@@ -1,0 +1,36 @@
+# Unreal Engine generated directories
+/Binaries/
+/DerivedDataCache/
+/Intermediate/
+/Saved/
+
+# Generated plugin directories
+/Plugins/**/Binaries/
+/Plugins/**/Intermediate/
+
+# IDE and editor state
+/.vs/
+/.vscode/
+/.idea/
+*.sln
+*.suo
+*.user
+*.userprefs
+*.VC.db
+*.VC.VC.opendb
+*.opensdf
+*.sdf
+*.opendb
+*.xcodeproj
+*.xcworkspace
+*.code-workspace
+
+# Build-generated metadata
+/Build/*/FileOpenOrder/
+
+# Debug symbols generated inside game content
+/Content/**/*.pdb
+
+# Operating system files
+.DS_Store
+Thumbs.db
