@@ -10,9 +10,24 @@ void AShooterGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// create the UI
-	ShooterUI = CreateWidget<UShooterUI>(UGameplayStatics::GetPlayerController(GetWorld(), 0), ShooterUIClass);
-	ShooterUI->AddToViewport(0);
+	// Dedicated servers do not have a local player or a viewport.
+	if (GetNetMode() == NM_DedicatedServer)
+	{
+		return;
+	}
+
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
+	if (!IsValid(PlayerController) || !PlayerController->IsLocalController() || !ShooterUIClass)
+	{
+		return;
+	}
+
+	// create the UI for the local standalone or listen-server player
+	ShooterUI = CreateWidget<UShooterUI>(PlayerController, ShooterUIClass);
+	if (IsValid(ShooterUI))
+	{
+		ShooterUI->AddToViewport(0);
+	}
 }
 
 void AShooterGameMode::IncrementTeamScore(uint8 TeamByte)
@@ -28,6 +43,10 @@ void AShooterGameMode::IncrementTeamScore(uint8 TeamByte)
 	++Score;
 	TeamScores.Add(TeamByte, Score);
 
-	// update the UI
-	ShooterUI->BP_UpdateScore(TeamByte, Score);
+	// Dedicated servers have no UI. Client score presentation will move to
+	// PlayerController/GameState when the shooter mode is fully networked.
+	if (IsValid(ShooterUI))
+	{
+		ShooterUI->BP_UpdateScore(TeamByte, Score);
+	}
 }

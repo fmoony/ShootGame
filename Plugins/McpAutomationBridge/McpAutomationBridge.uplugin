@@ -1,0 +1,20 @@
+{
+  "FileVersion": 3,
+  "Version": 4,
+  "VersionName": "0.2.0-readonly",
+  "FriendlyName": "MCP Automation Bridge (Read Only)",
+  "Description": "Minimal editor-only MCP bridge for reading project assets, Content Browser folders, and Blueprint graphs.",
+  "Category": "Editor|Automation|AI",
+  "CreatedBy": "ChiR24 / local minimal build",
+  "CanContainContent": false,
+  "IsBetaVersion": true,
+  "EnabledByDefault": true,
+  "Modules": [
+    {
+      "Name": "McpAutomationBridge",
+      "Type": "Editor",
+      "LoadingPhase": "Default",
+      "PlatformAllowList": ["Win64", "Mac", "Linux"]
+    }
+  ]
+}

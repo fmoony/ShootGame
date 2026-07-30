@@ -7,6 +7,7 @@
 # Generated plugin directories
 /Plugins/**/Binaries/
 /Plugins/**/Intermediate/
+/McpAutomationBridge_FullSourceArchive/
 
 # IDE and editor state
 /.vs/

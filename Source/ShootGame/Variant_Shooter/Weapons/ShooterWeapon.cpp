@@ -16,6 +16,10 @@ AShooterWeapon::AShooterWeapon()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	// Weapons are spawned by the server and replicated to clients.
+	bReplicates = true;
+	SetReplicateMovement(false);
+
 	// create the root
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 
