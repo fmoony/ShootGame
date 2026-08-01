@@ -28,6 +28,9 @@ AShooterPickup::AShooterPickup()
 	SphereCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 	SphereCollision->bFillCollisionUnderneathForNavmesh = true;
 
+	// 开启复制，让隐藏/碰撞状态能同步到客户端
+	bReplicates = true;
+
 	// subscribe to the collision overlap on the sphere
 	SphereCollision->OnComponentBeginOverlap.AddDynamic(this, &AShooterPickup::OnOverlap);
 
@@ -70,6 +73,12 @@ void AShooterPickup::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void AShooterPickup::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	// 只有服务器可以发放武器；客户端只观察复制的结果
+	if (!HasAuthority())
+	{
+		return;
+	}
+
 	// have we collided against a weapon holder?
 	if (IShooterWeaponHolder* WeaponHolder = Cast<IShooterWeaponHolder>(OtherActor))
 	{

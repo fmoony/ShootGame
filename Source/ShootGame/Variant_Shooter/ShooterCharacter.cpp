@@ -12,6 +12,7 @@
 #include "Camera/CameraComponent.h"
 #include "TimerManager.h"
 #include "ShooterGameMode.h"
+#include "Net/UnrealNetwork.h"
 
 AShooterCharacter::AShooterCharacter()
 {
@@ -178,12 +179,18 @@ FVector AShooterCharacter::GetWeaponTargetLocation()
 
 void AShooterCharacter::AddWeaponClass(const TSubclassOf<AShooterWeapon>& WeaponClass)
 {
-	// do we already own this weapon?
+	// 只有服务器可以生成并装备武器
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	// 是否已经拥有该类型的武器？
 	AShooterWeapon* OwnedWeapon = FindWeaponOfType(WeaponClass);
 
 	if (!OwnedWeapon)
 	{
-		// spawn the new weapon
+		// 生成新武器
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.Owner = this;
 		SpawnParams.Instigator = this;
@@ -194,20 +201,48 @@ void AShooterCharacter::AddWeaponClass(const TSubclassOf<AShooterWeapon>& Weapon
 
 		if (AddedWeapon)
 		{
-			// add the weapon to the owned list
+			// 加入拥有列表（第一版仅服务器维护）
 			OwnedWeapons.Add(AddedWeapon);
 
-			// if we have an existing weapon, deactivate it
+			// 已有武器时先停用旧武器
 			if (CurrentWeapon)
 			{
 				CurrentWeapon->DeactivateWeapon();
 			}
 
-			// switch to the new weapon
+			// 切换到新武器并刷新表现
 			CurrentWeapon = AddedWeapon;
-			CurrentWeapon->ActivateWeapon();
+			ApplyCurrentWeapon();
 		}
 	}
+}
+
+void AShooterCharacter::OnRep_CurrentWeapon()
+{
+	// 客户端根据复制的武器引用刷新表现
+	ApplyCurrentWeapon();
+}
+
+void AShooterCharacter::ApplyCurrentWeapon()
+{
+	if (!CurrentWeapon)
+	{
+		return;
+	}
+
+	// 将武器网格附着到角色（幂等，可重复调用）
+	AttachWeaponMeshes(CurrentWeapon);
+
+	// 切换 AnimBP 并更新 HUD
+	OnWeaponActivated(CurrentWeapon);
+}
+
+void AShooterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	// 所有客户端都需要当前武器，以显示第三人称视角
+	DOREPLIFETIME(AShooterCharacter, CurrentWeapon);
 }
 
 void AShooterCharacter::OnWeaponActivated(AShooterWeapon* Weapon)

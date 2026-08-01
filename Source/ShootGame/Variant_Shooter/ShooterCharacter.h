@@ -65,8 +65,19 @@ protected:
 	/** List of weapons picked up by the character */
 	TArray<AShooterWeapon*> OwnedWeapons;
 
-	/** Weapon currently equipped and ready to shoot with */
+	/** 当前装备且可射击的武器。
+	 *  服务器权威：只有服务器能修改，客户端通过 OnRep 接收 */
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentWeapon, VisibleAnywhere, BlueprintReadOnly, Category = "Weapons")
 	TObjectPtr<AShooterWeapon> CurrentWeapon;
+
+	/** 客户端收到服务器复制的当前武器时调用 */
+	UFUNCTION()
+	void OnRep_CurrentWeapon();
+
+	/** 在服务器和客户端应用当前武器的表现（附着 + AnimBP）。可重复调用，无副作用。 */
+	void ApplyCurrentWeapon();
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UPROPERTY(EditAnywhere, Category ="Destruction", meta = (ClampMin = 0, ClampMax = 10, Units = "s"))
 	float RespawnTime = 5.0f;
