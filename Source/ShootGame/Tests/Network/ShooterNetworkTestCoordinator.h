@@ -23,11 +23,13 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 private:
 	void PollServerState();
 	void PollClientState();
+	void HandleActorSpawned(AActor* SpawnedActor);
 	void FailTest(const FString& Reason);
 
 	UFUNCTION(Server, Reliable)
@@ -37,6 +39,7 @@ private:
 	AShooterWeapon* GetCurrentWeapon(AShooterCharacter* Character) const;
 
 	FTimerHandle PollTimer;
+	FDelegateHandle ActorSpawnedHandle;
 
 	UPROPERTY(Replicated)
 	bool bServerReadyToFire = false;
@@ -45,4 +48,7 @@ private:
 	int32 InitialBulletCount = INDEX_NONE;
 	bool bClientObservedWeapon = false;
 	bool bClientTriggeredFire = false;
+	bool bServerObservedProjectile = false;
+	bool bAimDirectionValid = false;
+	float ObservedAimDot = -1.0f;
 };

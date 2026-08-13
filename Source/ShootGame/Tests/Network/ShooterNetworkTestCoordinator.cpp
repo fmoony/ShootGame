@@ -3,6 +3,7 @@
 #include "Tests/Network/ShooterNetworkTestCoordinator.h"
 
 #include "ShootGame.h"
+#include "Engine/World.h"
 #include "TimerManager.h"
 #include "UObject/UnrealType.h"
 #include "GameFramework/PlayerController.h"
@@ -10,6 +11,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Variant_Shooter/ShooterCharacter.h"
 #include "Variant_Shooter/Weapons/ShooterWeapon.h"
+#include "Variant_Shooter/Weapons/ShooterProjectile.h"
 
 namespace ShooterNetworkTest
 {
@@ -32,6 +34,14 @@ void AShooterNetworkTestCoordinator::BeginPlay()
 	Super::BeginPlay();
 
 	TestStartTime = GetWorld()->GetTimeSeconds();
+	if (HasAuthority())
+	{
+		ActorSpawnedHandle = GetWorld()->AddOnActorSpawnedHandler(
+			FOnActorSpawned::FDelegate::CreateUObject(
+				this,
+				&AShooterNetworkTestCoordinator::HandleActorSpawned));
+	}
+
 	const FTimerDelegate PollDelegate = HasAuthority()
 		? FTimerDelegate::CreateUObject(this, &AShooterNetworkTestCoordinator::PollServerState)
 		: FTimerDelegate::CreateUObject(this, &AShooterNetworkTestCoordinator::PollClientState);
@@ -42,6 +52,17 @@ void AShooterNetworkTestCoordinator::BeginPlay()
 		ShooterNetworkTest::PollIntervalSeconds,
 		true,
 		ShooterNetworkTest::PollIntervalSeconds);
+}
+
+void AShooterNetworkTestCoordinator::EndPlay(EEndPlayReason::Type EndPlayReason)
+{
+	if (ActorSpawnedHandle.IsValid())
+	{
+		GetWorld()->RemoveOnActorSpawnedHandler(ActorSpawnedHandle);
+	}
+	GetWorldTimerManager().ClearTimer(PollTimer);
+
+	Super::EndPlay(EndPlayReason);
 }
 
 void AShooterNetworkTestCoordinator::GetLifetimeReplicatedProps(
@@ -88,7 +109,10 @@ void AShooterNetworkTestCoordinator::PollServerState()
 	}
 
 	const int32 CurrentBulletCount = Weapon->GetBulletCount();
-	if (bClientObservedWeapon && CurrentBulletCount < InitialBulletCount)
+	if (bClientObservedWeapon &&
+		bServerObservedProjectile &&
+		bAimDirectionValid &&
+		CurrentBulletCount < InitialBulletCount)
 	{
 		const APlayerController* PlayerController = Cast<APlayerController>(GetOwner());
 		const int32 PlayerId = PlayerController && PlayerController->PlayerState
@@ -98,10 +122,11 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		UE_LOG(
 			LogShootGame,
 			Display,
-			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS PlayerId=%d Bullets=%d->%d"),
+			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS PlayerId=%d Bullets=%d->%d AimDot=%.3f"),
 			PlayerId,
 			InitialBulletCount,
-			CurrentBulletCount);
+			CurrentBulletCount,
+			ObservedAimDot);
 		GetWorldTimerManager().ClearTimer(PollTimer);
 		return;
 	}
@@ -109,10 +134,37 @@ void AShooterNetworkTestCoordinator::PollServerState()
 	if (GetWorld()->GetTimeSeconds() - TestStartTime >= ShooterNetworkTest::TimeoutSeconds)
 	{
 		FailTest(FString::Printf(
-			TEXT("Timed out waiting for client fire; observedWeapon=%s bullets=%d->%d"),
+			TEXT("Timed out waiting for client fire; observedWeapon=%s observedProjectile=%s aimValid=%s bullets=%d->%d"),
 			bClientObservedWeapon ? TEXT("true") : TEXT("false"),
+			bServerObservedProjectile ? TEXT("true") : TEXT("false"),
+			bAimDirectionValid ? TEXT("true") : TEXT("false"),
 			InitialBulletCount,
 			CurrentBulletCount));
+	}
+}
+
+void AShooterNetworkTestCoordinator::HandleActorSpawned(AActor* SpawnedActor)
+{
+	const AShooterProjectile* Projectile = Cast<AShooterProjectile>(SpawnedActor);
+	AShooterCharacter* Character = GetShooterCharacter();
+	if (!Projectile || !Character || Projectile->GetInstigator() != Character)
+	{
+		return;
+	}
+
+	bServerObservedProjectile = true;
+	const FVector ExpectedDirection = Character->GetControlRotation().Vector();
+	const FVector ProjectileDirection = Projectile->GetActorForwardVector();
+	ObservedAimDot = FVector::DotProduct(ExpectedDirection, ProjectileDirection);
+	// 枪口会朝摄像机射线的实际命中点发射；近处遮挡会让它明显偏离控制器前向，
+	// 但正常弹道不应落入控制器朝向的后半球。该条件仍能捕获远程摄像机失效时的反向弹道。
+	bAimDirectionValid = ObservedAimDot >= 0.0f;
+
+	if (!bAimDirectionValid)
+	{
+		FailTest(FString::Printf(
+			TEXT("Projectile aim differs from server control rotation; dot=%.3f"),
+			ObservedAimDot));
 	}
 }
 

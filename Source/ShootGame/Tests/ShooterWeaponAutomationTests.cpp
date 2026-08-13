@@ -43,6 +43,22 @@ namespace ShooterWeaponAutomationTests
 			FString::Printf(TEXT("%s refire rate is positive"), WeaponName),
 			RefireRate > 0.0f);
 
+		const FObjectPropertyBase* MuzzleFlashProperty =
+			FindFProperty<FObjectPropertyBase>(WeaponClass, TEXT("MuzzleFlash"));
+		Test.TestNotNull(
+			FString::Printf(TEXT("%s has muzzle flash configured"), WeaponName),
+			MuzzleFlashProperty
+				? MuzzleFlashProperty->GetObjectPropertyValue_InContainer(WeaponDefaults)
+				: nullptr);
+
+		const FObjectPropertyBase* FireSoundProperty =
+			FindFProperty<FObjectPropertyBase>(WeaponClass, TEXT("FireSound"));
+		Test.TestNotNull(
+			FString::Printf(TEXT("%s has fire sound configured"), WeaponName),
+			FireSoundProperty
+				? FireSoundProperty->GetObjectPropertyValue_InContainer(WeaponDefaults)
+				: nullptr);
+
 		return true;
 	}
 }
