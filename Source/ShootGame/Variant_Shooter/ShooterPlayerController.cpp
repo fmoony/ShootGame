@@ -101,8 +101,17 @@ void AShooterPlayerController::OnPossess(APawn* InPawn)
 
 void AShooterPlayerController::OnPawnDestroyed(AActor* DestroyedActor)
 {
-	// reset the bullet counter HUD
-	BulletCounterUI->BP_UpdateBulletCounter(0, 0);
+	// 只有本地控制器拥有 HUD；专用服务器上的控制器没有界面对象。
+	if (IsLocalController() && IsValid(BulletCounterUI))
+	{
+		BulletCounterUI->BP_UpdateBulletCounter(0, 0);
+	}
+
+	// 角色生成与重新占有属于服务器权威职责。
+	if (!HasAuthority())
+	{
+		return;
+	}
 
 	// find the player start
 	TArray<AActor*> ActorList;
@@ -116,7 +125,10 @@ void AShooterPlayerController::OnPawnDestroyed(AActor* DestroyedActor)
 		// spawn a character at the player start
 		const FTransform SpawnTransform = RandomPlayerStart->GetActorTransform();
 
-		if (AShooterCharacter* RespawnedCharacter = GetWorld()->SpawnActor<AShooterCharacter>(CharacterClass, SpawnTransform))
+		AShooterCharacter* RespawnedCharacter = CharacterClass
+			? GetWorld()->SpawnActor<AShooterCharacter>(CharacterClass, SpawnTransform)
+			: nullptr;
+		if (RespawnedCharacter)
 		{
 			// possess the character
 			Possess(RespawnedCharacter);

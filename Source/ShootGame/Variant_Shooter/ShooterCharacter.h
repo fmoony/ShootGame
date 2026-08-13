@@ -56,7 +56,21 @@ protected:
 	float MaxHP = 500.0f;
 
 	/** Current HP remaining to this character */
+	UPROPERTY(ReplicatedUsing=OnRep_CurrentHP, VisibleAnywhere, BlueprintReadOnly, Category="Health")
 	float CurrentHP = 0.0f;
+
+	/** 服务器权威死亡状态，所有客户端据此应用死亡表现。 */
+	UPROPERTY(ReplicatedUsing=OnRep_IsDead, VisibleAnywhere, BlueprintReadOnly, Category="Health")
+	bool bIsDead = false;
+
+	UFUNCTION()
+	void OnRep_CurrentHP();
+
+	UFUNCTION()
+	void OnRep_IsDead();
+
+	/** 在服务器与客户端应用死亡后的本地状态和表现。 */
+	void ApplyDeathState();
 
 	/** Team ID for this character*/
 	UPROPERTY(EditAnywhere, Category="Team")
@@ -112,6 +126,15 @@ public:
 
 	/** Handle incoming damage */
 	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+
+	/** 当前服务器权威生命值的本地副本。 */
+	float GetCurrentHP() const { return CurrentHP; }
+
+	/** 配置的最大生命值。 */
+	float GetMaxHP() const { return MaxHP; }
+
+	/** 当前是否处于已死亡状态。 */
+	bool IsDead() const { return bIsDead; }
 
 public:
 

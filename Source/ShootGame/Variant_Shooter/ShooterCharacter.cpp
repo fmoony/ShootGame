@@ -27,11 +27,15 @@ void AShooterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// reset HP to max
-	CurrentHP = MaxHP;
+	// 生命值只由服务器初始化，客户端通过初始复制获得。
+	if (HasAuthority())
+	{
+		CurrentHP = MaxHP;
+		bIsDead = false;
+	}
 
 	// update the HUD
-	OnDamaged.Broadcast(1.0f);
+	OnDamaged.Broadcast(MaxHP > 0.0f ? CurrentHP / MaxHP : 0.0f);
 }
 
 void AShooterCharacter::EndPlay(EEndPlayReason::Type EndPlayReason)
@@ -62,14 +66,23 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 float AShooterCharacter::TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-	// ignore if already dead
-	if (CurrentHP <= 0.0f)
+	// 客户端不能自行扣血，且死亡后不重复处理伤害。
+	if (!HasAuthority() || bIsDead || Damage <= 0.0f)
 	{
 		return 0.0f;
 	}
 
-	// Reduce HP
-	CurrentHP -= Damage;
+	const float AppliedDamage = FMath::Clamp(
+		Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser),
+		0.0f,
+		CurrentHP);
+	if (AppliedDamage <= 0.0f)
+	{
+		return 0.0f;
+	}
+
+	CurrentHP = FMath::Clamp(CurrentHP - AppliedDamage, 0.0f, MaxHP);
+	OnRep_CurrentHP();
 
 	// Have we depleted HP?
 	if (CurrentHP <= 0.0f)
@@ -77,10 +90,20 @@ float AShooterCharacter::TakeDamage(float Damage, struct FDamageEvent const& Dam
 		Die();
 	}
 
-	// update the HUD
-	OnDamaged.Broadcast(FMath::Max(0.0f, CurrentHP / MaxHP));
+	return AppliedDamage;
+}
 
-	return Damage;
+void AShooterCharacter::OnRep_CurrentHP()
+{
+	OnDamaged.Broadcast(MaxHP > 0.0f ? CurrentHP / MaxHP : 0.0f);
+}
+
+void AShooterCharacter::OnRep_IsDead()
+{
+	if (bIsDead)
+	{
+		ApplyDeathState();
+	}
 }
 
 void AShooterCharacter::DoStartFiring()
@@ -104,7 +127,7 @@ void AShooterCharacter::ServerStartFire_Implementation()
 	}
 
 	// 服务器校验：必须有装备的武器才能开火
-	if (CurrentWeapon)
+	if (!bIsDead && CurrentWeapon)
 	{
 		CurrentWeapon->StartFiring();
 	}
@@ -291,6 +314,8 @@ void AShooterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 
 	// 所有客户端都需要当前武器，以显示第三人称视角
 	DOREPLIFETIME(AShooterCharacter, CurrentWeapon);
+	DOREPLIFETIME(AShooterCharacter, CurrentHP);
+	DOREPLIFETIME(AShooterCharacter, bIsDead);
 }
 
 void AShooterCharacter::OnWeaponActivated(AShooterWeapon* Weapon)
@@ -331,36 +356,57 @@ AShooterWeapon* AShooterCharacter::FindWeaponOfType(TSubclassOf<AShooterWeapon> 
 
 void AShooterCharacter::Die()
 {
-	// deactivate the weapon
-	if (IsValid(CurrentWeapon))
+	if (!HasAuthority() || bIsDead)
 	{
-		CurrentWeapon->DeactivateWeapon();
+		return;
 	}
+
+	bIsDead = true;
+	ApplyDeathState();
+	ForceNetUpdate();
 
 	// increment the team score
 	if (AShooterGameMode* GM = Cast<AShooterGameMode>(GetWorld()->GetAuthGameMode()))
 	{
 		GM->IncrementTeamScore(TeamByte);
 	}
-		
+
+	// 只有服务器安排角色销毁和重生。
+	GetWorld()->GetTimerManager().SetTimer(RespawnTimer, this, &AShooterCharacter::OnRespawn, RespawnTime, false);
+}
+
+void AShooterCharacter::ApplyDeathState()
+{
+	// deactivate the weapon
+	if (IsValid(CurrentWeapon))
+	{
+		CurrentWeapon->DeactivateWeapon();
+	}
+
 	// stop character movement
 	GetCharacterMovement()->StopMovementImmediately();
 
-	// disable controls
-	DisableInput(nullptr);
+	// 只禁用本机拥有者的输入；模拟代理本来就没有本地输入。
+	if (IsLocallyControlled())
+	{
+		DisableInput(nullptr);
+	}
 
 	// reset the bullet counter UI
 	OnBulletCountUpdated.Broadcast(0, 0);
 
-	// call the BP handler
-	BP_OnDeath();
-
-	// schedule character respawn
-	GetWorld()->GetTimerManager().SetTimer(RespawnTimer, this, &AShooterCharacter::OnRespawn, RespawnTime, false);
+	// 专用服务器不执行纯表现蓝图。
+	if (GetNetMode() != NM_DedicatedServer)
+	{
+		BP_OnDeath();
+	}
 }
 
 void AShooterCharacter::OnRespawn()
 {
-	// destroy the character to force the PC to respawn
-	Destroy();
+	if (HasAuthority())
+	{
+		// destroy the character to force the PC to respawn
+		Destroy();
+	}
 }
