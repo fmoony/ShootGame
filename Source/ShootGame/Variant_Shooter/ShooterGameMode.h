@@ -7,6 +7,7 @@
 #include "ShooterGameMode.generated.h"
 
 class APlayerController;
+class AController;
 
 /**
  *  Simple GameMode for a first person shooter game
@@ -32,4 +33,7 @@ public:
 
 	/** Increases the score for the given team */
 	void IncrementTeamScore(uint8 TeamId);
+
+	/** 服务器销毁死亡 Pawn，并使用 GameMode 的默认 Pawn 类型重新生成玩家。 */
+	void RestartPlayerAfterDeath(AController* PlayerController);
 };

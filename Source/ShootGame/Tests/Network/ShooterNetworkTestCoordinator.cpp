@@ -12,6 +12,7 @@
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/PlayerState.h"
 #include "GameFramework/GameStateBase.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "Variant_Shooter/ShooterCharacter.h"
@@ -181,6 +182,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 
 	if (bFireReplicationVerified && !bPartialDamageApplied)
 	{
+		BulletCountAfterFire = CurrentBulletCount;
 		InitialHP = Character->GetCurrentHP();
 		UGameplayStatics::ApplyDamage(
 			Character,
@@ -200,6 +202,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			return;
 		}
 
+		CharacterBeforeDeath = Character;
 		UGameplayStatics::ApplyDamage(
 			Character,
 			Character->GetMaxHP() * 2.0f,
@@ -236,11 +239,19 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		bOpponentKilledForStats = true;
 	}
 
-	if (bLethalDamageApplied && bClientObservedDeath &&
+	const APlayerController* PlayerController = Cast<APlayerController>(GetOwner());
+	const bool bServerObservedRespawn = bLethalDamageApplied &&
+		Character != CharacterBeforeDeath.Get() &&
+		!Character->IsDead() &&
+		Character->GetCurrentHP() > 0.0f &&
+		Character->GetCharacterMovement()->MovementMode != MOVE_None &&
+		PlayerController && PlayerController->GetPawn() == Character &&
+		Character->GetController() == PlayerController;
+
+	if (bLethalDamageApplied && bClientObservedDeath && bClientObservedRespawn &&
 		bClientObservedMatchState && bClientObservedRemoteAim &&
-		(!bRequireRemoteMontage || bClientObservedRemoteMontage) && Character->IsDead())
+		(!bRequireRemoteMontage || bClientObservedRemoteMontage) && bServerObservedRespawn)
 	{
-		const APlayerController* PlayerController = Cast<APlayerController>(GetOwner());
 		const int32 PlayerId = PlayerController && PlayerController->PlayerState
 			? PlayerController->PlayerState->GetPlayerId()
 			: INDEX_NONE;
@@ -248,10 +259,10 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		UE_LOG(
 			LogShootGame,
 			Display,
-			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS PlayerId=%d Switch=true OwnerAmmo=true NonOwnerAmmoHidden=true Bullets=%d->%d HP=%.0f->%.0f Dead=true AimDot=%.3f Team=%u Kills=%d Deaths=%d TeamScore=%d RemotePitch=%.3f/%.3f RemoteMontage=%s"),
+			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS PlayerId=%d Switch=true OwnerAmmo=true NonOwnerAmmoHidden=true Bullets=%d->%d HP=%.0f->0 Dead=true Respawn=true RespawnHP=%.0f AimDot=%.3f Team=%u Kills=%d Deaths=%d TeamScore=%d RemotePitch=%.3f/%.3f RemoteMontage=%s"),
 			PlayerId,
 			InitialBulletCount,
-			CurrentBulletCount,
+			BulletCountAfterFire,
 			InitialHP,
 			Character->GetCurrentHP(),
 			ObservedAimDot,
@@ -269,7 +280,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 	if (GetWorld()->GetTimeSeconds() - TestStartTime >= ShooterNetworkTest::TimeoutSeconds)
 	{
 		FailTest(FString::Printf(
-			TEXT("Timed out waiting for network state; switch=%s weapon=%s clientProjectile=%s ownerAmmo=%s nonOwnerAmmo=%s serverProjectile=%s aim=%s damage=%s death=%s matchState=%s remoteAim=%s remoteMontage=%s bullets=%d->%d hp=%.0f"),
+			TEXT("Timed out waiting for network state; switch=%s weapon=%s clientProjectile=%s ownerAmmo=%s nonOwnerAmmo=%s serverProjectile=%s aim=%s damage=%s death=%s respawn=%s matchState=%s remoteAim=%s remoteMontage=%s bullets=%d->%d hp=%.0f"),
 			bClientObservedSwitch ? TEXT("true") : TEXT("false"),
 			bClientObservedWeapon ? TEXT("true") : TEXT("false"),
 			bClientObservedProjectile ? TEXT("true") : TEXT("false"),
@@ -279,6 +290,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			bAimDirectionValid ? TEXT("true") : TEXT("false"),
 			bClientObservedDamage ? TEXT("true") : TEXT("false"),
 			bClientObservedDeath ? TEXT("true") : TEXT("false"),
+			bClientObservedRespawn ? TEXT("true") : TEXT("false"),
 			bClientObservedMatchState ? TEXT("true") : TEXT("false"),
 			bClientObservedRemoteAim ? TEXT("true") : TEXT("false"),
 			bClientObservedRemoteMontage ? TEXT("true") : TEXT("false"),
@@ -457,6 +469,15 @@ void AShooterNetworkTestCoordinator::PollClientState()
 		ServerReportClientObservedDeath();
 	}
 
+	if (bClientReportedDeath && !bClientReportedRespawn && !Character->IsDead() &&
+		Character->GetCurrentHP() > 0.0f && Character->IsLocallyControlled() &&
+		Character->GetCharacterMovement()->MovementMode != MOVE_None &&
+		PlayerController->GetPawn() == Character && Character->GetController() == PlayerController)
+	{
+		bClientReportedRespawn = true;
+		ServerReportClientObservedRespawn();
+	}
+
 	if (!bClientReportedMatchState)
 	{
 		const AShooterPlayerState* ShooterPlayerState =
@@ -515,6 +536,11 @@ void AShooterNetworkTestCoordinator::ServerReportClientObservedDamage_Implementa
 void AShooterNetworkTestCoordinator::ServerReportClientObservedDeath_Implementation()
 {
 	bClientObservedDeath = true;
+}
+
+void AShooterNetworkTestCoordinator::ServerReportClientObservedRespawn_Implementation()
+{
+	bClientObservedRespawn = true;
 }
 
 void AShooterNetworkTestCoordinator::ServerReportClientObservedMatchState_Implementation(

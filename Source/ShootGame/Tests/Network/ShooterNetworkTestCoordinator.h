@@ -54,6 +54,9 @@ private:
 	void ServerReportClientObservedDeath();
 
 	UFUNCTION(Server, Reliable)
+	void ServerReportClientObservedRespawn();
+
+	UFUNCTION(Server, Reliable)
 	void ServerReportClientObservedMatchState(
 		uint8 TeamId,
 		int32 Kills,
@@ -87,6 +90,7 @@ private:
 
 	float TestStartTime = 0.0f;
 	int32 InitialBulletCount = INDEX_NONE;
+	int32 BulletCountAfterFire = INDEX_NONE;
 	bool bClientObservedWeapon = false;
 	bool bClientObservedProjectile = false;
 	bool bClientObservedSwitch = false;
@@ -94,6 +98,7 @@ private:
 	bool bClientObservedNonOwnerAmmoHidden = false;
 	bool bClientObservedDamage = false;
 	bool bClientObservedDeath = false;
+	bool bClientObservedRespawn = false;
 	bool bClientObservedMatchState = false;
 	bool bClientObservedRemoteAim = false;
 	bool bClientObservedRemoteMontage = false;
@@ -105,6 +110,7 @@ private:
 	bool bClientReportedNonOwnerAmmoHidden = false;
 	bool bClientReportedDamage = false;
 	bool bClientReportedDeath = false;
+	bool bClientReportedRespawn = false;
 	bool bClientReportedMatchState = false;
 	bool bClientSetAimPitch = false;
 	bool bClientReportedRemoteAim = false;
@@ -126,4 +132,5 @@ private:
 	float ObservedRemotePitchN = 0.0f;
 	float ExpectedRemotePitchN = 0.0f;
 	TWeakObjectPtr<AShooterWeapon> InitialClientWeapon;
+	TWeakObjectPtr<AShooterCharacter> CharacterBeforeDeath;
 };

@@ -114,3 +114,20 @@ void AShooterGameMode::IncrementTeamScore(uint8 TeamId)
 		ShooterGameState->AddTeamScore(TeamId);
 	}
 }
+
+void AShooterGameMode::RestartPlayerAfterDeath(AController* PlayerController)
+{
+	if (!IsValid(PlayerController))
+	{
+		return;
+	}
+
+	APawn* DeadPawn = PlayerController->GetPawn();
+	PlayerController->UnPossess();
+	if (IsValid(DeadPawn))
+	{
+		DeadPawn->Destroy();
+	}
+
+	RestartPlayer(PlayerController);
+}

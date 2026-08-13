@@ -5,8 +5,6 @@
 #include "EnhancedInputSubsystems.h"
 #include "Engine/LocalPlayer.h"
 #include "InputMappingContext.h"
-#include "Kismet/GameplayStatics.h"
-#include "GameFramework/PlayerStart.h"
 #include "ShooterCharacter.h"
 #include "ShooterGameState.h"
 #include "ShooterUI.h"
@@ -202,7 +200,7 @@ void AShooterPlayerController::BindToShooterGameState()
 
 void AShooterPlayerController::OnPawnDestroyed(AActor* DestroyedActor)
 {
-	// 只有本地控制器拥有 HUD；专用服务器上的控制器没有界面对象。
+	// 只有本地控制器拥有 HUD；服务器复活由 ShooterGameMode 统一负责。
 	if (IsLocalController() && IsValid(BulletCounterUI))
 	{
 		BulletCounterUI->BP_UpdateBulletCounter(0, 0);
@@ -210,34 +208,6 @@ void AShooterPlayerController::OnPawnDestroyed(AActor* DestroyedActor)
 	if (DestroyedActor == BoundShooterCharacter)
 	{
 		BoundShooterCharacter = nullptr;
-	}
-
-	// 角色生成与重新占有属于服务器权威职责。
-	if (!HasAuthority())
-	{
-		return;
-	}
-
-	// find the player start
-	TArray<AActor*> ActorList;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), ActorList);
-
-	if (ActorList.Num() > 0)
-	{
-		// select a random player start
-		AActor* RandomPlayerStart = ActorList[FMath::RandRange(0, ActorList.Num() - 1)];
-
-		// spawn a character at the player start
-		const FTransform SpawnTransform = RandomPlayerStart->GetActorTransform();
-
-		AShooterCharacter* RespawnedCharacter = CharacterClass
-			? GetWorld()->SpawnActor<AShooterCharacter>(CharacterClass, SpawnTransform)
-			: nullptr;
-		if (RespawnedCharacter)
-		{
-			// possess the character
-			Possess(RespawnedCharacter);
-		}
 	}
 }
 

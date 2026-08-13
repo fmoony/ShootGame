@@ -487,9 +487,19 @@ void AShooterCharacter::ApplyDeathState()
 
 void AShooterCharacter::OnRespawn()
 {
-	if (HasAuthority())
+	if (!HasAuthority())
 	{
-		// destroy the character to force the PC to respawn
-		Destroy();
+		return;
 	}
+
+	AController* PlayerController = GetController();
+	if (AShooterGameMode* GameMode = Cast<AShooterGameMode>(GetWorld()->GetAuthGameMode());
+		GameMode && IsValid(PlayerController))
+	{
+		GameMode->RestartPlayerAfterDeath(PlayerController);
+		return;
+	}
+
+	// 非 Shooter GameMode 下仍清理死亡角色，但不会尝试客户端自行复活。
+	Destroy();
 }

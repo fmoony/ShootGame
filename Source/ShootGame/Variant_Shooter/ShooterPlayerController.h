@@ -39,10 +39,6 @@ protected:
 	/** Pointer to the mobile controls widget */
 	TObjectPtr<UUserWidget> MobileControlsWidget;
 
-	/** Character class to respawn when the possessed pawn is destroyed */
-	UPROPERTY(EditAnywhere, Category="Shooter|Respawn")
-	TSubclassOf<AShooterCharacter> CharacterClass;
-
 	/** Type of bullet counter UI widget to spawn */
 	UPROPERTY(EditAnywhere, Category="Shooter|UI")
 	TSubclassOf<UShooterBulletCounterUI> BulletCounterUIClass;
@@ -85,7 +81,7 @@ protected:
 	void BindToShooterCharacter(AShooterCharacter* ShooterCharacter);
 	void BindToShooterGameState();
 
-	/** Called if the possessed pawn is destroyed */
+	/** 本地 Pawn 销毁时清理 HUD 引用；复活由服务器 GameMode 负责。 */
 	UFUNCTION()
 	void OnPawnDestroyed(AActor* DestroyedActor);
 

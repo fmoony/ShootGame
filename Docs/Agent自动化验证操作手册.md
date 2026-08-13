@@ -108,13 +108,14 @@ Agent 的最终结果至少包含：
   → 观察远端俯仰与第三人称开火 Montage
   → 服务器施加部分伤害和致死伤害
   → 客户端确认生命、死亡、队伍、击杀、死亡数和队伍分数
+  → 服务器通过 GameMode 生成新 Pawn，客户端确认重新占有且移动模式有效
   → 输出该客户端的成功标记
 ```
 
 成功标记格式：
 
 ```text
-AUTOMATION_TEST_CLIENT_SUCCESS PlayerId=<ID> Switch=true OwnerAmmo=true NonOwnerAmmoHidden=true Bullets=<Before>-><After> HP=<Before>->0 Dead=true AimDot=<Value> Team=<ID> Kills=1 Deaths=1 TeamScore=1 RemotePitch=<Observed>/<Expected> RemoteMontage=<State>
+AUTOMATION_TEST_CLIENT_SUCCESS PlayerId=<ID> Switch=true OwnerAmmo=true NonOwnerAmmoHidden=true Bullets=<Before>-><After> HP=<Before>->0 Dead=true Respawn=true RespawnHP=<HP> AimDot=<Value> Team=<ID> Kills=1 Deaths=1 TeamScore=1 RemotePitch=<Observed>/<Expected> RemoteMontage=<State>
 ```
 
 失败标记前缀：
