@@ -44,10 +44,26 @@ void AShooterCharacter::BeginPlay()
 
 void AShooterCharacter::EndPlay(EEndPlayReason::Type EndPlayReason)
 {
-	Super::EndPlay(EndPlayReason);
-
-	// clear the respawn timer
+	// 清理角色自身的延迟回调，避免销毁后继续触发。
 	GetWorld()->GetTimerManager().ClearTimer(RespawnTimer);
+
+	// 武器是服务器按角色生命周期生成的独立 Actor；Owner 关系不会自动级联销毁。
+	// 角色死亡销毁或玩家断线时由服务器显式回收，避免遗留不可见的复制 Actor。
+	if (HasAuthority())
+	{
+		for (AShooterWeapon* Weapon : OwnedWeapons)
+		{
+			if (IsValid(Weapon))
+			{
+				Weapon->Destroy();
+			}
+		}
+
+		OwnedWeapons.Empty();
+		CurrentWeapon = nullptr;
+	}
+
+	Super::EndPlay(EndPlayReason);
 }
 
 void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
