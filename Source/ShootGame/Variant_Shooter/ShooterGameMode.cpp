@@ -5,6 +5,9 @@
 #include "ShooterUI.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/World.h"
+#include "Misc/CommandLine.h"
+#include "Misc/Parse.h"
+#include "Tests/Network/ShooterNetworkTestCoordinator.h"
 
 void AShooterGameMode::BeginPlay()
 {
@@ -28,6 +31,24 @@ void AShooterGameMode::BeginPlay()
 	{
 		ShooterUI->AddToViewport(0);
 	}
+}
+
+void AShooterGameMode::PostLogin(APlayerController* NewPlayer)
+{
+	Super::PostLogin(NewPlayer);
+
+#if WITH_DEV_AUTOMATION_TESTS
+	if (NewPlayer && FParse::Param(FCommandLine::Get(), TEXT("ShootGameNetworkTest")))
+	{
+		FActorSpawnParameters SpawnParameters;
+		SpawnParameters.Owner = NewPlayer;
+		SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		GetWorld()->SpawnActor<AShooterNetworkTestCoordinator>(
+			AShooterNetworkTestCoordinator::StaticClass(),
+			FTransform::Identity,
+			SpawnParameters);
+	}
+#endif
 }
 
 void AShooterGameMode::IncrementTeamScore(uint8 TeamByte)

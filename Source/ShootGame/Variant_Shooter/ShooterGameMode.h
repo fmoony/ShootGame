@@ -7,6 +7,7 @@
 #include "ShooterGameMode.generated.h"
 
 class UShooterUI;
+class APlayerController;
 
 /**
  *  Simple GameMode for a first person shooter game
@@ -34,6 +35,9 @@ protected:
 
 	/** Gameplay initialization */
 	virtual void BeginPlay() override;
+
+	/** Creates an owning test coordinator when explicitly requested by command line. */
+	virtual void PostLogin(APlayerController* NewPlayer) override;
 
 public:
 
