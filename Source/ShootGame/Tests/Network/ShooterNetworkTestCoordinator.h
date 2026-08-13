@@ -38,6 +38,12 @@ private:
 	UFUNCTION(Server, Reliable)
 	void ServerReportClientObservedProjectile();
 
+	UFUNCTION(Server, Reliable)
+	void ServerReportClientObservedDamage();
+
+	UFUNCTION(Server, Reliable)
+	void ServerReportClientObservedDeath();
+
 	AShooterCharacter* GetShooterCharacter() const;
 	AShooterWeapon* GetCurrentWeapon(AShooterCharacter* Character) const;
 
@@ -51,9 +57,16 @@ private:
 	int32 InitialBulletCount = INDEX_NONE;
 	bool bClientObservedWeapon = false;
 	bool bClientObservedProjectile = false;
+	bool bClientObservedDamage = false;
+	bool bClientObservedDeath = false;
 	bool bClientTriggeredFire = false;
 	bool bClientReportedProjectile = false;
+	bool bClientReportedDamage = false;
+	bool bClientReportedDeath = false;
 	bool bServerObservedProjectile = false;
 	bool bAimDirectionValid = false;
+	bool bPartialDamageApplied = false;
+	bool bLethalDamageApplied = false;
+	float InitialHP = 0.0f;
 	float ObservedAimDot = -1.0f;
 };

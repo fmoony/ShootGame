@@ -4,6 +4,7 @@
 
 #include "Misc/AutomationTest.h"
 #include "UObject/UnrealType.h"
+#include "Variant_Shooter/ShooterCharacter.h"
 #include "Variant_Shooter/Weapons/ShooterProjectile.h"
 #include "Variant_Shooter/Weapons/ShooterWeapon.h"
 
@@ -90,6 +91,41 @@ namespace ShooterWeaponAutomationTests
 
 		return true;
 	}
+
+	bool TestCharacterReplication(FAutomationTestBase& Test)
+	{
+		const FProperty* CurrentHPProperty =
+			FindFProperty<FProperty>(AShooterCharacter::StaticClass(), TEXT("CurrentHP"));
+		if (!Test.TestNotNull(TEXT("Character exposes CurrentHP"), CurrentHPProperty))
+		{
+			return false;
+		}
+
+		Test.TestTrue(
+			TEXT("CurrentHP is replicated"),
+			CurrentHPProperty->HasAnyPropertyFlags(CPF_Net));
+		Test.TestEqual(
+			TEXT("CurrentHP uses OnRep_CurrentHP"),
+			CurrentHPProperty->RepNotifyFunc,
+			FName(TEXT("OnRep_CurrentHP")));
+
+		const FProperty* IsDeadProperty =
+			FindFProperty<FProperty>(AShooterCharacter::StaticClass(), TEXT("bIsDead"));
+		if (!Test.TestNotNull(TEXT("Character exposes bIsDead"), IsDeadProperty))
+		{
+			return false;
+		}
+
+		Test.TestTrue(
+			TEXT("bIsDead is replicated"),
+			IsDeadProperty->HasAnyPropertyFlags(CPF_Net));
+		Test.TestEqual(
+			TEXT("bIsDead uses OnRep_IsDead"),
+			IsDeadProperty->RepNotifyFunc,
+			FName(TEXT("OnRep_IsDead")));
+
+		return true;
+	}
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
@@ -110,6 +146,7 @@ bool FShooterWeaponConfigurationTest::RunTest(const FString& Parameters)
 		*this,
 		TEXT("Pistol"),
 		TEXT("/Game/Variant_Shooter/Blueprints/Pickups/Weapons/BP_ShooterWeapon_Pistol.BP_ShooterWeapon_Pistol_C"));
+	bSucceeded &= TestCharacterReplication(*this);
 
 	return bSucceeded;
 }

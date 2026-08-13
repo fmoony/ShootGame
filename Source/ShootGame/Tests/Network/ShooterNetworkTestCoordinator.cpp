@@ -9,6 +9,7 @@
 #include "UObject/UnrealType.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/PlayerState.h"
+#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "Variant_Shooter/ShooterCharacter.h"
 #include "Variant_Shooter/Weapons/ShooterWeapon.h"
@@ -110,11 +111,38 @@ void AShooterNetworkTestCoordinator::PollServerState()
 	}
 
 	const int32 CurrentBulletCount = Weapon->GetBulletCount();
-	if (bClientObservedWeapon &&
+	const bool bFireReplicationVerified = bClientObservedWeapon &&
 		bClientObservedProjectile &&
 		bServerObservedProjectile &&
 		bAimDirectionValid &&
-		CurrentBulletCount < InitialBulletCount)
+		CurrentBulletCount < InitialBulletCount;
+
+	if (bFireReplicationVerified && !bPartialDamageApplied)
+	{
+		InitialHP = Character->GetCurrentHP();
+		UGameplayStatics::ApplyDamage(
+			Character,
+			FMath::Max(1.0f, Character->GetMaxHP() * 0.25f),
+			nullptr,
+			this,
+			nullptr);
+		bPartialDamageApplied = true;
+		return;
+	}
+
+	if (bPartialDamageApplied && bClientObservedDamage && !bLethalDamageApplied)
+	{
+		UGameplayStatics::ApplyDamage(
+			Character,
+			Character->GetMaxHP() * 2.0f,
+			nullptr,
+			this,
+			nullptr);
+		bLethalDamageApplied = true;
+		return;
+	}
+
+	if (bLethalDamageApplied && bClientObservedDeath && Character->IsDead())
 	{
 		const APlayerController* PlayerController = Cast<APlayerController>(GetOwner());
 		const int32 PlayerId = PlayerController && PlayerController->PlayerState
@@ -124,10 +152,12 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		UE_LOG(
 			LogShootGame,
 			Display,
-			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS PlayerId=%d Bullets=%d->%d AimDot=%.3f"),
+			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS PlayerId=%d Bullets=%d->%d HP=%.0f->%.0f Dead=true AimDot=%.3f"),
 			PlayerId,
 			InitialBulletCount,
 			CurrentBulletCount,
+			InitialHP,
+			Character->GetCurrentHP(),
 			ObservedAimDot);
 		GetWorldTimerManager().ClearTimer(PollTimer);
 		return;
@@ -136,13 +166,16 @@ void AShooterNetworkTestCoordinator::PollServerState()
 	if (GetWorld()->GetTimeSeconds() - TestStartTime >= ShooterNetworkTest::TimeoutSeconds)
 	{
 		FailTest(FString::Printf(
-			TEXT("Timed out waiting for client fire; observedWeapon=%s clientObservedProjectile=%s serverObservedProjectile=%s aimValid=%s bullets=%d->%d"),
+			TEXT("Timed out waiting for network state; weapon=%s clientProjectile=%s serverProjectile=%s aim=%s damage=%s death=%s bullets=%d->%d hp=%.0f"),
 			bClientObservedWeapon ? TEXT("true") : TEXT("false"),
 			bClientObservedProjectile ? TEXT("true") : TEXT("false"),
 			bServerObservedProjectile ? TEXT("true") : TEXT("false"),
 			bAimDirectionValid ? TEXT("true") : TEXT("false"),
+			bClientObservedDamage ? TEXT("true") : TEXT("false"),
+			bClientObservedDeath ? TEXT("true") : TEXT("false"),
 			InitialBulletCount,
-			CurrentBulletCount));
+			CurrentBulletCount,
+			Character->GetCurrentHP()));
 	}
 }
 
@@ -201,10 +234,23 @@ void AShooterNetworkTestCoordinator::PollClientState()
 			{
 				bClientReportedProjectile = true;
 				ServerReportClientObservedProjectile();
-				GetWorldTimerManager().ClearTimer(PollTimer);
 				break;
 			}
 		}
+	}
+
+	if (!bClientReportedDamage && Character->GetCurrentHP() > 0.0f &&
+		Character->GetCurrentHP() < Character->GetMaxHP())
+	{
+		bClientReportedDamage = true;
+		ServerReportClientObservedDamage();
+	}
+
+	if (!bClientReportedDeath && Character->IsDead())
+	{
+		bClientReportedDeath = true;
+		ServerReportClientObservedDeath();
+		GetWorldTimerManager().ClearTimer(PollTimer);
 	}
 }
 
@@ -216,6 +262,16 @@ void AShooterNetworkTestCoordinator::ServerReportClientObservedWeapon_Implementa
 void AShooterNetworkTestCoordinator::ServerReportClientObservedProjectile_Implementation()
 {
 	bClientObservedProjectile = true;
+}
+
+void AShooterNetworkTestCoordinator::ServerReportClientObservedDamage_Implementation()
+{
+	bClientObservedDamage = true;
+}
+
+void AShooterNetworkTestCoordinator::ServerReportClientObservedDeath_Implementation()
+{
+	bClientObservedDeath = true;
 }
 
 AShooterCharacter* AShooterNetworkTestCoordinator::GetShooterCharacter() const
