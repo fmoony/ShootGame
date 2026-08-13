@@ -12,6 +12,7 @@
 #include "Camera/CameraComponent.h"
 #include "TimerManager.h"
 #include "ShooterGameMode.h"
+#include "ShooterPlayerState.h"
 #include "Net/UnrealNetwork.h"
 
 AShooterCharacter::AShooterCharacter()
@@ -87,7 +88,7 @@ float AShooterCharacter::TakeDamage(float Damage, struct FDamageEvent const& Dam
 	// Have we depleted HP?
 	if (CurrentHP <= 0.0f)
 	{
-		Die();
+			Die(EventInstigator);
 	}
 
 	return AppliedDamage;
@@ -371,7 +372,7 @@ AShooterWeapon* AShooterCharacter::FindWeaponOfType(TSubclassOf<AShooterWeapon> 
 
 }
 
-void AShooterCharacter::Die()
+void AShooterCharacter::Die(AController* KillerController)
 {
 	if (!HasAuthority() || bIsDead)
 	{
@@ -382,10 +383,24 @@ void AShooterCharacter::Die()
 	ApplyDeathState();
 	ForceNetUpdate();
 
-	// increment the team score
-	if (AShooterGameMode* GM = Cast<AShooterGameMode>(GetWorld()->GetAuthGameMode()))
+	if (AShooterPlayerState* VictimState = GetPlayerState<AShooterPlayerState>())
 	{
-		GM->IncrementTeamScore(TeamByte);
+		VictimState->AddDeath();
+	}
+
+	if (KillerController && KillerController != GetController())
+	{
+		if (AShooterPlayerState* KillerState =
+			KillerController->GetPlayerState<AShooterPlayerState>())
+		{
+			KillerState->AddKill();
+
+			if (AShooterGameMode* GameMode =
+				Cast<AShooterGameMode>(GetWorld()->GetAuthGameMode()))
+			{
+				GameMode->IncrementTeamScore(KillerState->GetTeamId());
+			}
+		}
 	}
 
 	// 只有服务器安排角色销毁和重生。

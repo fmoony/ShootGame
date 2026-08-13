@@ -8,7 +8,9 @@
 
 class UInputMappingContext;
 class AShooterCharacter;
+class AShooterGameState;
 class UShooterBulletCounterUI;
+class UShooterUI;
 
 /**
  *  Simple PlayerController for a first person shooter game
@@ -52,6 +54,20 @@ protected:
 	/** Pointer to the bullet counter UI widget */
 	TObjectPtr<UShooterBulletCounterUI> BulletCounterUI;
 
+	/** 计分板 Widget 类型；未配置时使用 Shooter 模板默认资源。 */
+	UPROPERTY(EditAnywhere, Category="Shooter|UI")
+	TSubclassOf<UShooterUI> ShooterUIClass;
+
+	/** 只存在于本地 PlayerController 的计分板实例。 */
+	UPROPERTY(Transient)
+	TObjectPtr<UShooterUI> ShooterUI;
+
+	UPROPERTY(Transient)
+	TObjectPtr<AShooterCharacter> BoundShooterCharacter;
+
+	UPROPERTY(Transient)
+	TObjectPtr<AShooterGameState> BoundShooterGameState;
+
 protected:
 
 	/** Gameplay Initialization */
@@ -62,6 +78,12 @@ protected:
 
 	/** Pawn initialization */
 	virtual void OnPossess(APawn* InPawn) override;
+
+	/** 客户端收到 Pawn 复制后绑定本地 HUD。 */
+	virtual void OnRep_Pawn() override;
+
+	void BindToShooterCharacter(AShooterCharacter* ShooterCharacter);
+	void BindToShooterGameState();
 
 	/** Called if the possessed pawn is destroyed */
 	UFUNCTION()
@@ -74,4 +96,8 @@ protected:
 	/** Called when the possessed pawn is damaged */
 	UFUNCTION()
 	void OnPawnDamaged(float LifePercent);
+
+	/** 队伍分数复制后更新本地计分板。 */
+	UFUNCTION()
+	void OnTeamScoreChanged(uint8 TeamId, int32 Score);
 };

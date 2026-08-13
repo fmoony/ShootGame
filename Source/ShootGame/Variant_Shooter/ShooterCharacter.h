@@ -72,10 +72,6 @@ protected:
 	/** 在服务器与客户端应用死亡后的本地状态和表现。 */
 	void ApplyDeathState();
 
-	/** Team ID for this character*/
-	UPROPERTY(EditAnywhere, Category="Team")
-	uint8 TeamByte = 0;
-
 	/** List of weapons picked up by the character */
 	TArray<AShooterWeapon*> OwnedWeapons;
 
@@ -135,6 +131,9 @@ public:
 
 	/** 当前是否处于已死亡状态。 */
 	bool IsDead() const { return bIsDead; }
+
+	/** 当前由服务器选择并复制给客户端的武器。 */
+	AShooterWeapon* GetCurrentWeapon() const { return CurrentWeapon; }
 
 public:
 
@@ -205,7 +204,7 @@ protected:
 	AShooterWeapon* FindWeaponOfType(TSubclassOf<AShooterWeapon> WeaponClass) const;
 
 	/** Called when this character's HP is depleted */
-	void Die();
+	void Die(AController* KillerController);
 
 	/** Called to allow Blueprint code to react to this character's death */
 	UFUNCTION(BlueprintImplementableEvent, Category="Shooter", meta = (DisplayName = "On Death"))

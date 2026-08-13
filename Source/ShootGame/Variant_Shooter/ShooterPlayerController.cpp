@@ -8,7 +8,10 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerStart.h"
 #include "ShooterCharacter.h"
+#include "ShooterGameState.h"
+#include "ShooterUI.h"
 #include "ShooterBulletCounterUI.h"
+#include "Weapons/ShooterWeapon.h"
 #include "ShootGame.h"
 #include "Widgets/Input/SVirtualJoystick.h"
 
@@ -16,40 +19,54 @@ void AShooterPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// only spawn touch controls on local player controllers
-	if (IsLocalPlayerController())
+	// Widget 和视口只属于本地控制器，专用服务器不会进入这里。
+	if (!IsLocalPlayerController())
 	{
-		if (SVirtualJoystick::ShouldDisplayTouchInterface())
-		{
-			// spawn the mobile controls widget
-			MobileControlsWidget = CreateWidget<UUserWidget>(this, MobileControlsWidgetClass);
-
-			if (MobileControlsWidget)
-			{
-				// add the controls to the player screen
-				MobileControlsWidget->AddToPlayerScreen(0);
-
-			} else {
-
-				UE_LOG(LogShootGame, Error, TEXT("Could not spawn mobile controls widget."));
-
-			}
-		}
-
-		// create the bullet counter widget and add it to the screen
-		BulletCounterUI = CreateWidget<UShooterBulletCounterUI>(this, BulletCounterUIClass);
-
-		if (BulletCounterUI)
-		{
-			BulletCounterUI->AddToPlayerScreen(0);
-
-		} else {
-
-			UE_LOG(LogShootGame, Error, TEXT("Could not spawn bullet counter widget."));
-
-		}
-		
+		return;
 	}
+
+	if (SVirtualJoystick::ShouldDisplayTouchInterface())
+	{
+		MobileControlsWidget = CreateWidget<UUserWidget>(this, MobileControlsWidgetClass);
+		if (MobileControlsWidget)
+		{
+			MobileControlsWidget->AddToPlayerScreen(0);
+		}
+		else
+		{
+			UE_LOG(LogShootGame, Error, TEXT("Could not spawn mobile controls widget."));
+		}
+	}
+
+	BulletCounterUI = CreateWidget<UShooterBulletCounterUI>(this, BulletCounterUIClass);
+	if (BulletCounterUI)
+	{
+		BulletCounterUI->AddToPlayerScreen(0);
+	}
+	else
+	{
+		UE_LOG(LogShootGame, Error, TEXT("Could not spawn bullet counter widget."));
+	}
+
+	if (!ShooterUIClass)
+	{
+		ShooterUIClass = LoadClass<UShooterUI>(
+			nullptr,
+			TEXT("/Game/Variant_Shooter/UI/UI_Shooter.UI_Shooter_C"));
+	}
+
+	ShooterUI = CreateWidget<UShooterUI>(this, ShooterUIClass);
+	if (ShooterUI)
+	{
+		ShooterUI->AddToPlayerScreen(0);
+	}
+	else
+	{
+		UE_LOG(LogShootGame, Error, TEXT("Could not spawn shooter scoreboard widget."));
+	}
+
+	BindToShooterGameState();
+	BindToShooterCharacter(Cast<AShooterCharacter>(GetPawn()));
 }
 
 void AShooterPlayerController::SetupInputComponent()
@@ -81,21 +98,105 @@ void AShooterPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 
-	// subscribe to the pawn's OnDestroyed delegate
-	InPawn->OnDestroyed.AddDynamic(this, &AShooterPlayerController::OnPawnDestroyed);
-
-	// is this a shooter character?
 	if (AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(InPawn))
 	{
-		// add the player tag
-		ShooterCharacter->Tags.Add(PlayerPawnTag);
+		if (HasAuthority())
+		{
+			ShooterCharacter->Tags.AddUnique(PlayerPawnTag);
+		}
 
-		// subscribe to the pawn's delegates
-		ShooterCharacter->OnBulletCountUpdated.AddDynamic(this, &AShooterPlayerController::OnBulletCountUpdated);
-		ShooterCharacter->OnDamaged.AddDynamic(this, &AShooterPlayerController::OnPawnDamaged);
+		BindToShooterCharacter(ShooterCharacter);
+	}
+}
 
-		// force update the life bar
-		ShooterCharacter->OnDamaged.Broadcast(1.0f);
+void AShooterPlayerController::OnRep_Pawn()
+{
+	Super::OnRep_Pawn();
+	BindToShooterGameState();
+	BindToShooterCharacter(Cast<AShooterCharacter>(GetPawn()));
+}
+
+void AShooterPlayerController::BindToShooterCharacter(AShooterCharacter* ShooterCharacter)
+{
+	if (!IsLocalController())
+	{
+		return;
+	}
+
+	if (BoundShooterCharacter && BoundShooterCharacter != ShooterCharacter)
+	{
+		BoundShooterCharacter->OnDestroyed.RemoveDynamic(
+			this,
+			&AShooterPlayerController::OnPawnDestroyed);
+		BoundShooterCharacter->OnBulletCountUpdated.RemoveDynamic(
+			this,
+			&AShooterPlayerController::OnBulletCountUpdated);
+		BoundShooterCharacter->OnDamaged.RemoveDynamic(
+			this,
+			&AShooterPlayerController::OnPawnDamaged);
+	}
+
+	BoundShooterCharacter = ShooterCharacter;
+	if (!BoundShooterCharacter)
+	{
+		return;
+	}
+
+	BoundShooterCharacter->OnDestroyed.AddUniqueDynamic(
+		this,
+		&AShooterPlayerController::OnPawnDestroyed);
+	BoundShooterCharacter->OnBulletCountUpdated.AddUniqueDynamic(
+		this,
+		&AShooterPlayerController::OnBulletCountUpdated);
+	BoundShooterCharacter->OnDamaged.AddUniqueDynamic(
+		this,
+		&AShooterPlayerController::OnPawnDamaged);
+
+	OnPawnDamaged(BoundShooterCharacter->GetMaxHP() > 0.0f
+		? BoundShooterCharacter->GetCurrentHP() / BoundShooterCharacter->GetMaxHP()
+		: 0.0f);
+	if (const AShooterWeapon* Weapon = BoundShooterCharacter->GetCurrentWeapon())
+	{
+		OnBulletCountUpdated(Weapon->GetMagazineSize(), Weapon->GetBulletCount());
+	}
+}
+
+void AShooterPlayerController::BindToShooterGameState()
+{
+	if (!IsLocalController())
+	{
+		return;
+	}
+
+	AShooterGameState* ShooterGameState = GetWorld()
+		? GetWorld()->GetGameState<AShooterGameState>()
+		: nullptr;
+	if (BoundShooterGameState == ShooterGameState)
+	{
+		return;
+	}
+
+	if (BoundShooterGameState)
+	{
+		BoundShooterGameState->OnTeamScoreChanged.RemoveDynamic(
+			this,
+			&AShooterPlayerController::OnTeamScoreChanged);
+	}
+
+	BoundShooterGameState = ShooterGameState;
+	if (!BoundShooterGameState)
+	{
+		return;
+	}
+
+	BoundShooterGameState->OnTeamScoreChanged.AddUniqueDynamic(
+		this,
+		&AShooterPlayerController::OnTeamScoreChanged);
+	for (int32 TeamIndex = 0; TeamIndex < BoundShooterGameState->GetTeamCount(); ++TeamIndex)
+	{
+		OnTeamScoreChanged(
+			static_cast<uint8>(TeamIndex),
+			BoundShooterGameState->GetTeamScore(static_cast<uint8>(TeamIndex)));
 	}
 }
 
@@ -105,6 +206,10 @@ void AShooterPlayerController::OnPawnDestroyed(AActor* DestroyedActor)
 	if (IsLocalController() && IsValid(BulletCounterUI))
 	{
 		BulletCounterUI->BP_UpdateBulletCounter(0, 0);
+	}
+	if (DestroyedActor == BoundShooterCharacter)
+	{
+		BoundShooterCharacter = nullptr;
 	}
 
 	// 角色生成与重新占有属于服务器权威职责。
@@ -150,5 +255,13 @@ void AShooterPlayerController::OnPawnDamaged(float LifePercent)
 	if (IsValid(BulletCounterUI))
 	{
 		BulletCounterUI->BP_Damaged(LifePercent);
+	}
+}
+
+void AShooterPlayerController::OnTeamScoreChanged(uint8 TeamId, int32 Score)
+{
+	if (IsValid(ShooterUI))
+	{
+		ShooterUI->BP_UpdateScore(TeamId, Score);
 	}
 }

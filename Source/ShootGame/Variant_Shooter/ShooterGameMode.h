@@ -6,35 +6,21 @@
 #include "GameFramework/GameModeBase.h"
 #include "ShooterGameMode.generated.h"
 
-class UShooterUI;
 class APlayerController;
 
 /**
  *  Simple GameMode for a first person shooter game
- *  Manages game UI
- *  Keeps track of team scores
+ *  Assigns teams and applies server-only match rules
  */
 UCLASS(abstract)
 class SHOOTGAME_API AShooterGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
 	
-protected:
-
-	/** Type of UI widget to spawn */
-	UPROPERTY(EditAnywhere, Category="Shooter")
-	TSubclassOf<UShooterUI> ShooterUIClass;
-
-	/** Pointer to the UI widget */
-	TObjectPtr<UShooterUI> ShooterUI;
-
-	/** Map of scores by team ID */
-	TMap<uint8, int32> TeamScores;
+public:
+	AShooterGameMode();
 
 protected:
-
-	/** Gameplay initialization */
-	virtual void BeginPlay() override;
 
 	/** Creates an owning test coordinator when explicitly requested by command line. */
 	virtual void PostLogin(APlayerController* NewPlayer) override;
@@ -42,5 +28,5 @@ protected:
 public:
 
 	/** Increases the score for the given team */
-	void IncrementTeamScore(uint8 TeamByte);
+	void IncrementTeamScore(uint8 TeamId);
 };

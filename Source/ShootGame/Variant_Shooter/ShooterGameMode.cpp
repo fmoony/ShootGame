@@ -2,40 +2,29 @@
 
 
 #include "Variant_Shooter/ShooterGameMode.h"
-#include "ShooterUI.h"
-#include "Kismet/GameplayStatics.h"
 #include "Engine/World.h"
+#include "ShooterGameState.h"
+#include "ShooterPlayerState.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 #include "Tests/Network/ShooterNetworkTestCoordinator.h"
 
-void AShooterGameMode::BeginPlay()
+AShooterGameMode::AShooterGameMode()
 {
-	Super::BeginPlay();
-
-	// Dedicated servers do not have a local player or a viewport.
-	if (GetNetMode() == NM_DedicatedServer)
-	{
-		return;
-	}
-
-	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
-	if (!IsValid(PlayerController) || !PlayerController->IsLocalController() || !ShooterUIClass)
-	{
-		return;
-	}
-
-	// create the UI for the local standalone or listen-server player
-	ShooterUI = CreateWidget<UShooterUI>(PlayerController, ShooterUIClass);
-	if (IsValid(ShooterUI))
-	{
-		ShooterUI->AddToViewport(0);
-	}
+	GameStateClass = AShooterGameState::StaticClass();
+	PlayerStateClass = AShooterPlayerState::StaticClass();
 }
 
 void AShooterGameMode::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
+
+	if (AShooterPlayerState* ShooterPlayerState =
+		NewPlayer ? NewPlayer->GetPlayerState<AShooterPlayerState>() : nullptr)
+	{
+		const int32 JoinedPlayerIndex = FMath::Max(0, GetNumPlayers() - 1);
+		ShooterPlayerState->SetTeamId(static_cast<uint8>(JoinedPlayerIndex % 2));
+	}
 
 #if WITH_DEV_AUTOMATION_TESTS
 	if (NewPlayer && FParse::Param(FCommandLine::Get(), TEXT("ShootGameNetworkTest")))
@@ -51,23 +40,10 @@ void AShooterGameMode::PostLogin(APlayerController* NewPlayer)
 #endif
 }
 
-void AShooterGameMode::IncrementTeamScore(uint8 TeamByte)
+void AShooterGameMode::IncrementTeamScore(uint8 TeamId)
 {
-	// retrieve the team score if any
-	int32 Score = 0;
-	if (int32* FoundScore = TeamScores.Find(TeamByte))
+	if (AShooterGameState* ShooterGameState = GetGameState<AShooterGameState>())
 	{
-		Score = *FoundScore;
-	}
-
-	// increment the score for the given team
-	++Score;
-	TeamScores.Add(TeamByte, Score);
-
-	// Dedicated servers have no UI. Client score presentation will move to
-	// PlayerController/GameState when the shooter mode is fully networked.
-	if (IsValid(ShooterUI))
-	{
-		ShooterUI->BP_UpdateScore(TeamByte, Score);
+		ShooterGameState->AddTeamScore(TeamId);
 	}
 }
