@@ -4,6 +4,7 @@
 
 #include "Misc/AutomationTest.h"
 #include "UObject/UnrealType.h"
+#include "Variant_Shooter/Weapons/ShooterProjectile.h"
 #include "Variant_Shooter/Weapons/ShooterWeapon.h"
 
 namespace ShooterWeaponAutomationTests
@@ -58,6 +59,34 @@ namespace ShooterWeaponAutomationTests
 			FireSoundProperty
 				? FireSoundProperty->GetObjectPropertyValue_InContainer(WeaponDefaults)
 				: nullptr);
+
+		const FClassProperty* ProjectileClassProperty =
+			FindFProperty<FClassProperty>(WeaponClass, TEXT("ProjectileClass"));
+		const UClass* ProjectileClass = ProjectileClassProperty
+			? Cast<UClass>(ProjectileClassProperty->GetObjectPropertyValue_InContainer(WeaponDefaults))
+			: nullptr;
+		if (!Test.TestNotNull(
+			FString::Printf(TEXT("%s has projectile class configured"), WeaponName),
+			ProjectileClass))
+		{
+			return false;
+		}
+
+		const AShooterProjectile* ProjectileDefaults =
+			ProjectileClass->GetDefaultObject<AShooterProjectile>();
+		if (!Test.TestNotNull(
+			FString::Printf(TEXT("%s projectile has defaults"), WeaponName),
+			ProjectileDefaults))
+		{
+			return false;
+		}
+
+		Test.TestTrue(
+			FString::Printf(TEXT("%s projectile replicates"), WeaponName),
+			ProjectileDefaults->GetIsReplicated());
+		Test.TestTrue(
+			FString::Printf(TEXT("%s projectile replicates movement"), WeaponName),
+			ProjectileDefaults->IsReplicatingMovement());
 
 		return true;
 	}

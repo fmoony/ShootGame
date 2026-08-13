@@ -35,6 +35,9 @@ private:
 	UFUNCTION(Server, Reliable)
 	void ServerReportClientObservedWeapon();
 
+	UFUNCTION(Server, Reliable)
+	void ServerReportClientObservedProjectile();
+
 	AShooterCharacter* GetShooterCharacter() const;
 	AShooterWeapon* GetCurrentWeapon(AShooterCharacter* Character) const;
 
@@ -47,7 +50,9 @@ private:
 	float TestStartTime = 0.0f;
 	int32 InitialBulletCount = INDEX_NONE;
 	bool bClientObservedWeapon = false;
+	bool bClientObservedProjectile = false;
 	bool bClientTriggeredFire = false;
+	bool bClientReportedProjectile = false;
 	bool bServerObservedProjectile = false;
 	bool bAimDirectionValid = false;
 	float ObservedAimDot = -1.0f;

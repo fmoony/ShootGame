@@ -4,6 +4,7 @@
 
 #include "ShootGame.h"
 #include "Engine/World.h"
+#include "EngineUtils.h"
 #include "TimerManager.h"
 #include "UObject/UnrealType.h"
 #include "GameFramework/PlayerController.h"
@@ -110,6 +111,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 
 	const int32 CurrentBulletCount = Weapon->GetBulletCount();
 	if (bClientObservedWeapon &&
+		bClientObservedProjectile &&
 		bServerObservedProjectile &&
 		bAimDirectionValid &&
 		CurrentBulletCount < InitialBulletCount)
@@ -134,8 +136,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 	if (GetWorld()->GetTimeSeconds() - TestStartTime >= ShooterNetworkTest::TimeoutSeconds)
 	{
 		FailTest(FString::Printf(
-			TEXT("Timed out waiting for client fire; observedWeapon=%s observedProjectile=%s aimValid=%s bullets=%d->%d"),
+			TEXT("Timed out waiting for client fire; observedWeapon=%s clientObservedProjectile=%s serverObservedProjectile=%s aimValid=%s bullets=%d->%d"),
 			bClientObservedWeapon ? TEXT("true") : TEXT("false"),
+			bClientObservedProjectile ? TEXT("true") : TEXT("false"),
 			bServerObservedProjectile ? TEXT("true") : TEXT("false"),
 			bAimDirectionValid ? TEXT("true") : TEXT("false"),
 			InitialBulletCount,
@@ -188,13 +191,31 @@ void AShooterNetworkTestCoordinator::PollClientState()
 		ServerReportClientObservedWeapon();
 		Character->DoStartFiring();
 		Character->DoStopFiring();
-		GetWorldTimerManager().ClearTimer(PollTimer);
+	}
+
+	if (!bClientReportedProjectile)
+	{
+		for (TActorIterator<AShooterProjectile> It(GetWorld()); It; ++It)
+		{
+			if (It->GetOwner() == Character || It->GetInstigator() == Character)
+			{
+				bClientReportedProjectile = true;
+				ServerReportClientObservedProjectile();
+				GetWorldTimerManager().ClearTimer(PollTimer);
+				break;
+			}
+		}
 	}
 }
 
 void AShooterNetworkTestCoordinator::ServerReportClientObservedWeapon_Implementation()
 {
 	bClientObservedWeapon = true;
+}
+
+void AShooterNetworkTestCoordinator::ServerReportClientObservedProjectile_Implementation()
+{
+	bClientObservedProjectile = true;
 }
 
 AShooterCharacter* AShooterNetworkTestCoordinator::GetShooterCharacter() const
