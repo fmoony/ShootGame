@@ -17,6 +17,10 @@ AShooterProjectile::AShooterProjectile()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	// 弹丸只由服务器生成并模拟，位置和旋转复制给所有客户端。
+	bReplicates = true;
+	SetReplicateMovement(true);
+
 	// create the collision component and assign it as the root
 	RootComponent = CollisionComponent = CreateDefaultSubobject<USphereComponent>(TEXT("Collision Component"));
 
@@ -42,6 +46,12 @@ void AShooterProjectile::BeginPlay()
 	
 	// ignore the pawn that shot this projectile
 	CollisionComponent->IgnoreActorWhenMoving(GetInstigator(), true);
+
+	// 客户端只显示服务器复制的弹道，不参与权威碰撞判定。
+	if (!HasAuthority())
+	{
+		CollisionComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
 }
 
 void AShooterProjectile::EndPlay(EEndPlayReason::Type EndPlayReason)
@@ -54,6 +64,12 @@ void AShooterProjectile::EndPlay(EEndPlayReason::Type EndPlayReason)
 
 void AShooterProjectile::NotifyHit(class UPrimitiveComponent* MyComp, AActor* Other, class UPrimitiveComponent* OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit)
 {
+	// 命中、伤害和销毁只能由服务器决定。
+	if (!HasAuthority())
+	{
+		return;
+	}
+
 	// ignore if we've already hit something else
 	if (bHit)
 	{
@@ -64,6 +80,7 @@ void AShooterProjectile::NotifyHit(class UPrimitiveComponent* MyComp, AActor* Ot
 
 	// disable collision on the projectile
 	CollisionComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	ProjectileMovement->StopMovementImmediately();
 
 	// make AI perception noise
 	MakeNoise(NoiseLoudness, GetInstigator(), GetActorLocation(), NoiseRange, NoiseTag);
@@ -81,8 +98,8 @@ void AShooterProjectile::NotifyHit(class UPrimitiveComponent* MyComp, AActor* Ot
 
 	}
 
-	// pass control to BP for any extra effects
-	BP_OnProjectileHit(Hit);
+	// 将命中表现广播给所有已连接客户端。
+	MulticastPlayHitEffects(Hit);
 
 	// check if we should schedule deferred destruction of the projectile
 	if (DeferredDestructionTime > 0.0f)
@@ -94,6 +111,14 @@ void AShooterProjectile::NotifyHit(class UPrimitiveComponent* MyComp, AActor* Ot
 		// destroy the projectile right away
 		Destroy();
 	}
+}
+
+void AShooterProjectile::MulticastPlayHitEffects_Implementation(const FHitResult& Hit)
+{
+	bHit = true;
+	CollisionComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	ProjectileMovement->StopMovementImmediately();
+	BP_OnProjectileHit(Hit);
 }
 
 void AShooterProjectile::ExplosionCheck(const FVector& ExplosionCenter)
@@ -148,12 +173,18 @@ void AShooterProjectile::ProcessHit(AActor* HitActor, UPrimitiveComponent* HitCo
 		if (HitCharacter != GetOwner() || bDamageOwner)
 		{
 			// apply damage to the character
-			UGameplayStatics::ApplyDamage(HitCharacter, HitDamage, GetInstigator()->GetController(), this, HitDamageType);
+			const APawn* InstigatorPawn = GetInstigator();
+			UGameplayStatics::ApplyDamage(
+				HitCharacter,
+				HitDamage,
+				InstigatorPawn ? InstigatorPawn->GetController() : nullptr,
+				this,
+				HitDamageType);
 		}
 	}
 
 	// have we hit a physics object?
-	if (HitComp->IsSimulatingPhysics())
+	if (HitComp && HitComp->IsSimulatingPhysics())
 	{
 		// give some physics impulse to the object
 		HitComp->AddImpulseAtLocation(HitDirection * PhysicsForce, HitLocation);
@@ -162,6 +193,9 @@ void AShooterProjectile::ProcessHit(AActor* HitActor, UPrimitiveComponent* HitCo
 
 void AShooterProjectile::OnDeferredDestruction()
 {
-	// destroy this actor
-	Destroy();
+	if (HasAuthority())
+	{
+		// destroy this actor
+		Destroy();
+	}
 }

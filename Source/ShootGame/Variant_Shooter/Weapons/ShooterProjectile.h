@@ -103,6 +103,10 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category="Projectile", meta = (DisplayName = "On Projectile Hit"))
 	void BP_OnProjectileHit(const FHitResult& Hit);
 
+	/** 服务器将权威命中的表现广播给所有客户端。 */
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastPlayHitEffects(const FHitResult& Hit);
+
 	/** Called from the destruction timer to destroy this projectile */
 	void OnDeferredDestruction();
 
