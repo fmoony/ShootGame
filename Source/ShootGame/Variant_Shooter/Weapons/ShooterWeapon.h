@@ -49,7 +49,11 @@ protected:
 	int32 MagazineSize = 10;
 
 	/** Number of bullets in the current magazine */
+	UPROPERTY(ReplicatedUsing=OnRep_CurrentBullets, VisibleAnywhere, Category="Ammo")
 	int32 CurrentBullets = 0;
+
+	UFUNCTION()
+	void OnRep_CurrentBullets();
 	
 	/** Animation montage to play when firing this weapon */
 	UPROPERTY(EditAnywhere, Category="Animation")
@@ -131,6 +135,8 @@ protected:
 
 	/** Gameplay Cleanup */
 	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected:
 

@@ -14,6 +14,7 @@
 #include "GameFramework/Pawn.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
+#include "Net/UnrealNetwork.h"
 
 AShooterWeapon::AShooterWeapon()
 {
@@ -54,11 +55,32 @@ void AShooterWeapon::BeginPlay()
 	WeaponOwner = Cast<IShooterWeaponHolder>(GetOwner());
 	PawnOwner = Cast<APawn>(GetOwner());
 
-	// fill the first ammo clip
-	CurrentBullets = MagazineSize;
+	// 弹药只由服务器初始化，拥有者客户端通过复制获得。
+	if (HasAuthority())
+	{
+		CurrentBullets = MagazineSize;
+	}
 
 	// attach the meshes to the owner
 	WeaponOwner->AttachWeaponMeshes(this);
+}
+
+void AShooterWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	// 弹药只与拥有该武器的客户端相关。
+	DOREPLIFETIME_CONDITION(AShooterWeapon, CurrentBullets, COND_OwnerOnly);
+}
+
+void AShooterWeapon::OnRep_CurrentBullets()
+{
+	APawn* OwnerPawn = Cast<APawn>(GetOwner());
+	IShooterWeaponHolder* OwnerHolder = Cast<IShooterWeaponHolder>(GetOwner());
+	if (OwnerPawn && OwnerPawn->IsLocallyControlled() && OwnerHolder)
+	{
+		OwnerHolder->UpdateWeaponHUD(CurrentBullets, MagazineSize);
+	}
 }
 
 void AShooterWeapon::EndPlay(EEndPlayReason::Type EndPlayReason)
@@ -207,6 +229,7 @@ void AShooterWeapon::FireProjectile(const FVector& TargetLocation)
 
 	// update the weapon HUD
 	WeaponOwner->UpdateWeaponHUD(CurrentBullets, MagazineSize);
+	ForceNetUpdate();
 }
 
 FTransform AShooterWeapon::CalculateProjectileSpawnTransform(const FVector& TargetLocation) const

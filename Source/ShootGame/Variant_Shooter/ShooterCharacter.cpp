@@ -172,8 +172,19 @@ void AShooterCharacter::MulticastPlayFiringMontage_Implementation(UAnimMontage* 
 
 void AShooterCharacter::DoSwitchWeapon()
 {
+	ServerSwitchWeapon();
+}
+
+void AShooterCharacter::ServerSwitchWeapon_Implementation()
+{
+	// 只有控制该角色的客户端可以请求切枪，死亡角色不能切枪。
+	if (!GetController() || GetController()->GetPawn() != this || bIsDead)
+	{
+		return;
+	}
+
 	// ensure we have at least two weapons two switch between
-	if (OwnedWeapons.Num() > 1)
+	if (OwnedWeapons.Num() > 1 && CurrentWeapon && OwnedWeapons.Contains(CurrentWeapon))
 	{
 		// deactivate the old weapon
 		CurrentWeapon->DeactivateWeapon();
@@ -197,6 +208,7 @@ void AShooterCharacter::DoSwitchWeapon()
 
 		// activate the new weapon
 		CurrentWeapon->ActivateWeapon();
+		ForceNetUpdate();
 	}
 }
 
@@ -288,8 +300,13 @@ void AShooterCharacter::AddWeaponClass(const TSubclassOf<AShooterWeapon>& Weapon
 	}
 }
 
-void AShooterCharacter::OnRep_CurrentWeapon()
+void AShooterCharacter::OnRep_CurrentWeapon(AShooterWeapon* PreviousWeapon)
 {
+	if (IsValid(PreviousWeapon) && PreviousWeapon != CurrentWeapon)
+	{
+		PreviousWeapon->DeactivateWeapon();
+	}
+
 	// 客户端根据复制的武器引用刷新表现
 	ApplyCurrentWeapon();
 }

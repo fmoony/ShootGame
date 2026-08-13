@@ -86,7 +86,7 @@ protected:
 
 	/** 客户端收到服务器复制的当前武器时调用 */
 	UFUNCTION()
-	void OnRep_CurrentWeapon();
+	void OnRep_CurrentWeapon(AShooterWeapon* PreviousWeapon);
 
 	/** 在服务器和客户端应用当前武器的表现（附着 + AnimBP）。可重复调用，无副作用。 */
 	void ApplyCurrentWeapon();
@@ -161,6 +161,10 @@ public:
 	/** 处理切换武器输入 */
 	UFUNCTION(BlueprintCallable, Category="Input")
 	void DoSwitchWeapon();
+
+	/** 服务器校验并执行切枪。 */
+	UFUNCTION(Server, Reliable)
+	void ServerSwitchWeapon();
 
 public:
 
