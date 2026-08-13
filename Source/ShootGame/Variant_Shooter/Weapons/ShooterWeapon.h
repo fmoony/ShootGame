@@ -13,6 +13,8 @@ class AShooterProjectile;
 class USkeletalMeshComponent;
 class UAnimMontage;
 class UAnimInstance;
+class UNiagaraSystem;
+class USoundBase;
 
 /**
  *  Base class for a simple first person shooter weapon
@@ -52,6 +54,14 @@ protected:
 	/** Animation montage to play when firing this weapon */
 	UPROPERTY(EditAnywhere, Category="Animation")
 	UAnimMontage* FiringMontage;
+
+	/** Niagara muzzle flash spawned at the weapon's muzzle socket when firing */
+	UPROPERTY(EditAnywhere, Category="Animation")
+	TObjectPtr<UNiagaraSystem> MuzzleFlash;
+
+	/** Sound to play when firing this weapon */
+	UPROPERTY(EditAnywhere, Category="Animation")
+	TObjectPtr<USoundBase> FireSound;
 
 	/** AnimInstance class to set for the first person character mesh when this weapon is active */
 	UPROPERTY(EditAnywhere, Category="Animation")
@@ -152,6 +162,10 @@ protected:
 
 	/** Fire a projectile towards the target location */
 	virtual void FireProjectile(const FVector& TargetLocation);
+
+	/** Broadcast firing effects (muzzle flash + sound) to all clients. Unreliable: dropping a flash is acceptable */
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastPlayFiringFX();
 
 	/** Calculates the spawn transform for projectiles shot by this weapon */
 	FTransform CalculateProjectileSpawnTransform(const FVector& TargetLocation) const;

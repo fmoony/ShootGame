@@ -115,15 +115,27 @@ public:
 
 public:
 
-	/** Handles start firing input */
+	/** 处理开火输入：本地只向服务器提交请求，由服务器权威执行 */
 	UFUNCTION(BlueprintCallable, Category="Input")
 	void DoStartFiring();
 
-	/** Handles stop firing input */
+	/** 处理停止开火输入：本地只向服务器提交请求，由服务器权威执行 */
 	UFUNCTION(BlueprintCallable, Category="Input")
 	void DoStopFiring();
 
-	/** Handles switch weapon input */
+	/** 服务器端：校验后开始开火 */
+	UFUNCTION(Server, Reliable)
+	void ServerStartFire();
+
+	/** 服务器端：停止开火 */
+	UFUNCTION(Server, Reliable)
+	void ServerStopFire();
+
+	/** 广播开火动画到所有客户端（不可靠，允许丢失） */
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastPlayFiringMontage(UAnimMontage* Montage);
+
+	/** 处理切换武器输入 */
 	UFUNCTION(BlueprintCallable, Category="Input")
 	void DoSwitchWeapon();
 

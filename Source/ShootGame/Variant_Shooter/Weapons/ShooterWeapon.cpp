@@ -3,6 +3,7 @@
 
 #include "ShooterWeapon.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Kismet/GameplayStatics.h"
 #include "Engine/World.h"
 #include "ShooterProjectile.h"
 #include "ShooterWeaponHolder.h"
@@ -11,6 +12,8 @@
 #include "Animation/AnimInstance.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/Pawn.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraSystem.h"
 
 AShooterWeapon::AShooterWeapon()
 {
@@ -102,7 +105,7 @@ void AShooterWeapon::StartFiring()
 	// this may be under the refire rate if the weapon shoots slow enough and the player is spamming the trigger
 	const float TimeSinceLastShot = GetWorld()->GetTimeSeconds() - TimeOfLastShot;
 
-	if (TimeSinceLastShot > RefireRate)
+	if (TimeSinceLastShot >= RefireRate)
 	{
 		// fire the weapon right away
 		Fire();
@@ -112,7 +115,8 @@ void AShooterWeapon::StartFiring()
 		// if we're full auto, schedule the next shot
 		if (bFullAuto)
 		{
-			GetWorld()->GetTimerManager().SetTimer(RefireTimer, this, &AShooterWeapon::Fire, TimeSinceLastShot, false);
+			const float RemainingRefireTime = RefireRate - TimeSinceLastShot;
+			GetWorld()->GetTimerManager().SetTimer(RefireTimer, this, &AShooterWeapon::Fire, RemainingRefireTime, false);
 		}
 
 	}
@@ -129,6 +133,12 @@ void AShooterWeapon::StopFiring()
 
 void AShooterWeapon::Fire()
 {
+	// 纵深防御：即使客户端绕过开火 RPC 直接调用，弹丸也只在服务器生成
+	if (!HasAuthority())
+	{
+		return;
+	}
+
 	// ensure the player still wants to fire. They may have let go of the trigger
 	if (!bIsFiring)
 	{
@@ -180,6 +190,9 @@ void AShooterWeapon::FireProjectile(const FVector& TargetLocation)
 	// play the firing montage
 	WeaponOwner->PlayFiringMontage(FiringMontage);
 
+	// broadcast the muzzle flash and firing sound
+	MulticastPlayFiringFX();
+
 	// add recoil
 	WeaponOwner->AddWeaponRecoil(FiringRecoil);
 
@@ -209,6 +222,39 @@ FTransform AShooterWeapon::CalculateProjectileSpawnTransform(const FVector& Targ
 
 	// return the built transform
 	return FTransform(AimRot, SpawnLoc, FVector::OneVector);
+}
+
+void AShooterWeapon::MulticastPlayFiringFX_Implementation()
+{
+	// 没有配置任何表现资产时直接返回
+	if (!MuzzleFlash && !FireSound)
+	{
+		return;
+	}
+
+	// 拥有者只看第一人称 mesh，其他客户端（及服务器模拟端）看第三人称 mesh
+	const bool bLocalOwner = PawnOwner && PawnOwner->IsLocallyControlled();
+
+	// 枪口闪光：挂在 muzzle socket 上，随武器移动
+	if (MuzzleFlash)
+	{
+		USkeletalMeshComponent* MuzzleMesh = bLocalOwner ? FirstPersonMesh : ThirdPersonMesh;
+		if (MuzzleMesh)
+		{
+			UNiagaraFunctionLibrary::SpawnSystemAttached(
+				MuzzleFlash, MuzzleMesh, MuzzleSocketName,
+				FVector::ZeroVector, FRotator::ZeroRotator,
+				EAttachLocation::SnapToTarget, true);
+		}
+	}
+
+	// 开火音效：所有端在武器位置播放，距离衰减由音频系统处理
+	if (FireSound)
+	{
+		UGameplayStatics::SpawnSoundAttached(FireSound, RootComponent, NAME_None,
+			FVector::ZeroVector, FRotator::ZeroRotator,
+			EAttachLocation::SnapToTarget, true);
+	}
 }
 
 const TSubclassOf<UAnimInstance>& AShooterWeapon::GetFirstPersonAnimInstanceClass() const

@@ -85,19 +85,65 @@ float AShooterCharacter::TakeDamage(float Damage, struct FDamageEvent const& Dam
 
 void AShooterCharacter::DoStartFiring()
 {
-	// fire the current weapon
+	// 客户端只提交输入意图，由服务器权威执行开火
+	ServerStartFire();
+}
+
+void AShooterCharacter::DoStopFiring()
+{
+	// 客户端只提交输入意图，由服务器权威执行停火
+	ServerStopFire();
+}
+
+void AShooterCharacter::ServerStartFire_Implementation()
+{
+	// 服务器校验：只有控制该角色的客户端能请求开火
+	if (!GetController() || GetController()->GetPawn() != this)
+	{
+		return;
+	}
+
+	// 服务器校验：必须有装备的武器才能开火
 	if (CurrentWeapon)
 	{
 		CurrentWeapon->StartFiring();
 	}
 }
 
-void AShooterCharacter::DoStopFiring()
+void AShooterCharacter::ServerStopFire_Implementation()
 {
-	// stop firing the current weapon
+	// 服务器校验：只有控制该角色的客户端能请求停火
+	if (!GetController() || GetController()->GetPawn() != this)
+	{
+		return;
+	}
+
 	if (CurrentWeapon)
 	{
 		CurrentWeapon->StopFiring();
+	}
+}
+
+void AShooterCharacter::MulticastPlayFiringMontage_Implementation(UAnimMontage* Montage)
+{
+	if (!Montage)
+	{
+		return;
+	}
+
+	// 第三人称 mesh 在所有客户端上播放开火动画
+	if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+	{
+		AnimInstance->Montage_Play(Montage);
+	}
+
+	// 第一人称手臂只对拥有者播放
+	if (IsLocallyControlled())
+	{
+		if (UAnimInstance* FPAnimInstance = GetFirstPersonMesh()->GetAnimInstance())
+		{
+			FPAnimInstance->Montage_Play(Montage);
+		}
 	}
 }
 
@@ -146,7 +192,8 @@ void AShooterCharacter::AttachWeaponMeshes(AShooterWeapon* Weapon)
 
 void AShooterCharacter::PlayFiringMontage(UAnimMontage* Montage)
 {
-	
+	// 服务器开火时广播动画到所有客户端
+	MulticastPlayFiringMontage(Montage);
 }
 
 void AShooterCharacter::AddWeaponRecoil(float Recoil)
@@ -162,11 +209,12 @@ void AShooterCharacter::UpdateWeaponHUD(int32 CurrentAmmo, int32 MagazineSize)
 
 FVector AShooterCharacter::GetWeaponTargetLocation()
 {
-	// trace ahead from the camera viewpoint
+	// Server-authoritative aim: remote camera component rotation is not reliable on
+	// the server, while ControlRotation is updated by the owning connection.
 	FHitResult OutHit;
 
-	const FVector Start = GetFirstPersonCameraComponent()->GetComponentLocation();
-	const FVector End = Start + (GetFirstPersonCameraComponent()->GetForwardVector() * MaxAimDistance);
+	const FVector Start = GetPawnViewLocation();
+	const FVector End = Start + (GetControlRotation().Vector() * MaxAimDistance);
 
 	FCollisionQueryParams QueryParams;
 	QueryParams.AddIgnoredActor(this);
