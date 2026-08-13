@@ -9,6 +9,7 @@
 #include "UObject/UnrealType.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/PlayerState.h"
+#include "GameFramework/GameStateBase.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "Variant_Shooter/ShooterCharacter.h"
@@ -18,9 +19,11 @@
 namespace ShooterNetworkTest
 {
 	constexpr float PollIntervalSeconds = 0.1f;
-	constexpr float TimeoutSeconds = 20.0f;
+	constexpr float TimeoutSeconds = 35.0f;
 	const TCHAR* RifleClassPath =
 		TEXT("/Game/Variant_Shooter/Blueprints/Pickups/Weapons/BP_ShooterWeapon_Rifle.BP_ShooterWeapon_Rifle_C");
+	const TCHAR* PistolClassPath =
+		TEXT("/Game/Variant_Shooter/Blueprints/Pickups/Weapons/BP_ShooterWeapon_Pistol.BP_ShooterWeapon_Pistol_C");
 }
 
 AShooterNetworkTestCoordinator::AShooterNetworkTestCoordinator()
@@ -71,7 +74,9 @@ void AShooterNetworkTestCoordinator::GetLifetimeReplicatedProps(
 	TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyToSwitch);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyToFire);
+	DOREPLIFETIME(AShooterNetworkTestCoordinator, WeaponBeforeSwitch);
 }
 
 void AShooterNetworkTestCoordinator::PollServerState()
@@ -83,6 +88,12 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		{
 			FailTest(TEXT("Server did not receive a shooter character"));
 		}
+		return;
+	}
+
+	const AGameStateBase* GameState = GetWorld()->GetGameState();
+	if (!GameState || GameState->PlayerArray.Num() < 2)
+	{
 		return;
 	}
 
@@ -102,6 +113,31 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		return;
 	}
 
+	if (!bSecondaryWeaponGranted)
+	{
+		const TSubclassOf<AShooterWeapon> PistolClass = LoadClass<AShooterWeapon>(
+			nullptr,
+			ShooterNetworkTest::PistolClassPath);
+		if (!PistolClass)
+		{
+			FailTest(TEXT("Pistol class could not be loaded"));
+			return;
+		}
+
+		Character->AddWeaponClass(PistolClass);
+		WeaponBeforeSwitch = GetCurrentWeapon(Character);
+		bSecondaryWeaponGranted = true;
+		bServerReadyToSwitch = true;
+		ForceNetUpdate();
+		return;
+	}
+
+	Weapon = GetCurrentWeapon(Character);
+	if (!bClientObservedSwitch || Weapon == WeaponBeforeSwitch)
+	{
+		return;
+	}
+
 	if (InitialBulletCount == INDEX_NONE)
 	{
 		InitialBulletCount = Weapon->GetBulletCount();
@@ -113,6 +149,8 @@ void AShooterNetworkTestCoordinator::PollServerState()
 	const int32 CurrentBulletCount = Weapon->GetBulletCount();
 	const bool bFireReplicationVerified = bClientObservedWeapon &&
 		bClientObservedProjectile &&
+		bClientObservedOwnerAmmo &&
+		bClientObservedNonOwnerAmmoHidden &&
 		bServerObservedProjectile &&
 		bAimDirectionValid &&
 		CurrentBulletCount < InitialBulletCount;
@@ -152,7 +190,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		UE_LOG(
 			LogShootGame,
 			Display,
-			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS PlayerId=%d Bullets=%d->%d HP=%.0f->%.0f Dead=true AimDot=%.3f"),
+			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS PlayerId=%d Switch=true OwnerAmmo=true NonOwnerAmmoHidden=true Bullets=%d->%d HP=%.0f->%.0f Dead=true AimDot=%.3f"),
 			PlayerId,
 			InitialBulletCount,
 			CurrentBulletCount,
@@ -166,9 +204,12 @@ void AShooterNetworkTestCoordinator::PollServerState()
 	if (GetWorld()->GetTimeSeconds() - TestStartTime >= ShooterNetworkTest::TimeoutSeconds)
 	{
 		FailTest(FString::Printf(
-			TEXT("Timed out waiting for network state; weapon=%s clientProjectile=%s serverProjectile=%s aim=%s damage=%s death=%s bullets=%d->%d hp=%.0f"),
+			TEXT("Timed out waiting for network state; switch=%s weapon=%s clientProjectile=%s ownerAmmo=%s nonOwnerAmmo=%s serverProjectile=%s aim=%s damage=%s death=%s bullets=%d->%d hp=%.0f"),
+			bClientObservedSwitch ? TEXT("true") : TEXT("false"),
 			bClientObservedWeapon ? TEXT("true") : TEXT("false"),
 			bClientObservedProjectile ? TEXT("true") : TEXT("false"),
+			bClientObservedOwnerAmmo ? TEXT("true") : TEXT("false"),
+			bClientObservedNonOwnerAmmoHidden ? TEXT("true") : TEXT("false"),
 			bServerObservedProjectile ? TEXT("true") : TEXT("false"),
 			bAimDirectionValid ? TEXT("true") : TEXT("false"),
 			bClientObservedDamage ? TEXT("true") : TEXT("false"),
@@ -213,17 +254,61 @@ void AShooterNetworkTestCoordinator::PollClientState()
 	}
 
 	AShooterCharacter* Character = GetShooterCharacter();
-	if (!bServerReadyToFire || !Character || !GetCurrentWeapon(Character))
+	AShooterWeapon* Weapon = GetCurrentWeapon(Character);
+	if (!Character || !Weapon)
+	{
+		return;
+	}
+
+	if (bServerReadyToSwitch && WeaponBeforeSwitch &&
+		Weapon == WeaponBeforeSwitch && !bClientTriggeredSwitch)
+	{
+		bClientTriggeredSwitch = true;
+		InitialClientWeapon = Weapon;
+		Character->DoSwitchWeapon();
+		return;
+	}
+
+	if (bClientTriggeredSwitch && !bClientReportedSwitch &&
+		Weapon != InitialClientWeapon.Get() && Weapon->GetBulletCount() > 0)
+	{
+		bClientReportedSwitch = true;
+		InitialClientBulletCount = Weapon->GetBulletCount();
+		ServerReportClientObservedSwitch();
+	}
+
+	if (!bClientReportedNonOwnerAmmoHidden)
+	{
+		for (TActorIterator<AShooterWeapon> It(GetWorld()); It; ++It)
+		{
+			if (It->GetOwner() != Character && It->GetBulletCount() == 0)
+			{
+				bClientReportedNonOwnerAmmoHidden = true;
+				ServerReportNonOwnerAmmoHidden();
+				break;
+			}
+		}
+	}
+
+	if (!bServerReadyToFire || !bClientReportedSwitch)
 	{
 		return;
 	}
 
 	if (!bClientTriggeredFire)
 	{
+		InitialClientBulletCount = Weapon->GetBulletCount();
 		bClientTriggeredFire = true;
 		ServerReportClientObservedWeapon();
 		Character->DoStartFiring();
 		Character->DoStopFiring();
+	}
+
+	if (!bClientReportedOwnerAmmo && InitialClientBulletCount > 0 &&
+		Weapon->GetBulletCount() < InitialClientBulletCount)
+	{
+		bClientReportedOwnerAmmo = true;
+		ServerReportOwnerAmmoReplicated();
 	}
 
 	if (!bClientReportedProjectile)
@@ -262,6 +347,21 @@ void AShooterNetworkTestCoordinator::ServerReportClientObservedWeapon_Implementa
 void AShooterNetworkTestCoordinator::ServerReportClientObservedProjectile_Implementation()
 {
 	bClientObservedProjectile = true;
+}
+
+void AShooterNetworkTestCoordinator::ServerReportClientObservedSwitch_Implementation()
+{
+	bClientObservedSwitch = true;
+}
+
+void AShooterNetworkTestCoordinator::ServerReportOwnerAmmoReplicated_Implementation()
+{
+	bClientObservedOwnerAmmo = true;
+}
+
+void AShooterNetworkTestCoordinator::ServerReportNonOwnerAmmoHidden_Implementation()
+{
+	bClientObservedNonOwnerAmmoHidden = true;
 }
 
 void AShooterNetworkTestCoordinator::ServerReportClientObservedDamage_Implementation()

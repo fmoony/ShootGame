@@ -39,6 +39,15 @@ private:
 	void ServerReportClientObservedProjectile();
 
 	UFUNCTION(Server, Reliable)
+	void ServerReportClientObservedSwitch();
+
+	UFUNCTION(Server, Reliable)
+	void ServerReportOwnerAmmoReplicated();
+
+	UFUNCTION(Server, Reliable)
+	void ServerReportNonOwnerAmmoHidden();
+
+	UFUNCTION(Server, Reliable)
 	void ServerReportClientObservedDamage();
 
 	UFUNCTION(Server, Reliable)
@@ -51,22 +60,38 @@ private:
 	FDelegateHandle ActorSpawnedHandle;
 
 	UPROPERTY(Replicated)
+	bool bServerReadyToSwitch = false;
+
+	UPROPERTY(Replicated)
 	bool bServerReadyToFire = false;
+
+	UPROPERTY(Replicated)
+	TObjectPtr<AShooterWeapon> WeaponBeforeSwitch;
 
 	float TestStartTime = 0.0f;
 	int32 InitialBulletCount = INDEX_NONE;
 	bool bClientObservedWeapon = false;
 	bool bClientObservedProjectile = false;
+	bool bClientObservedSwitch = false;
+	bool bClientObservedOwnerAmmo = false;
+	bool bClientObservedNonOwnerAmmoHidden = false;
 	bool bClientObservedDamage = false;
 	bool bClientObservedDeath = false;
 	bool bClientTriggeredFire = false;
+	bool bClientTriggeredSwitch = false;
 	bool bClientReportedProjectile = false;
+	bool bClientReportedSwitch = false;
+	bool bClientReportedOwnerAmmo = false;
+	bool bClientReportedNonOwnerAmmoHidden = false;
 	bool bClientReportedDamage = false;
 	bool bClientReportedDeath = false;
 	bool bServerObservedProjectile = false;
 	bool bAimDirectionValid = false;
 	bool bPartialDamageApplied = false;
 	bool bLethalDamageApplied = false;
+	bool bSecondaryWeaponGranted = false;
+	int32 InitialClientBulletCount = INDEX_NONE;
 	float InitialHP = 0.0f;
 	float ObservedAimDot = -1.0f;
+	TWeakObjectPtr<AShooterWeapon> InitialClientWeapon;
 };

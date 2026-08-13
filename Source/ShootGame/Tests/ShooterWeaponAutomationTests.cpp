@@ -34,6 +34,22 @@ namespace ShooterWeaponAutomationTests
 			FString::Printf(TEXT("%s magazine size is positive"), WeaponName),
 			WeaponDefaults->GetMagazineSize() > 0);
 
+		const FProperty* CurrentBulletsProperty =
+			FindFProperty<FProperty>(WeaponClass, TEXT("CurrentBullets"));
+		if (!Test.TestNotNull(
+			FString::Printf(TEXT("%s exposes CurrentBullets"), WeaponName),
+			CurrentBulletsProperty))
+		{
+			return false;
+		}
+		Test.TestTrue(
+			FString::Printf(TEXT("%s CurrentBullets is replicated"), WeaponName),
+			CurrentBulletsProperty->HasAnyPropertyFlags(CPF_Net));
+		Test.TestEqual(
+			FString::Printf(TEXT("%s CurrentBullets uses OnRep_CurrentBullets"), WeaponName),
+			CurrentBulletsProperty->RepNotifyFunc,
+			FName(TEXT("OnRep_CurrentBullets")));
+
 		const FFloatProperty* RefireRateProperty = FindFProperty<FFloatProperty>(WeaponClass, TEXT("RefireRate"));
 		if (!Test.TestNotNull(FString::Printf(TEXT("%s exposes RefireRate"), WeaponName), RefireRateProperty))
 		{
