@@ -3,13 +3,13 @@ param(
     [string]$EngineRoot = "E:\Unreal_Engine\UE_5.6",
     [string]$ProjectPath = "",
     [string]$TestFilter = "ShootGame",
-    [string]$MapPath = "/Game/FirstPerson/Lvl_FirstPerson",
+    [string]$MapPath = "/Game/Variant_Shooter/Lvl_Shooter",
     [ValidateRange(1, 8)]
     [int]$ClientCount = 2,
     [ValidateRange(1024, 65535)]
     [int]$Port = 17777,
     [ValidateRange(1, 600)]
-    [int]$SessionDurationSeconds = 10,
+    [int]$SessionDurationSeconds = 25,
     [switch]$WithRendering
 )
 
@@ -112,6 +112,9 @@ try
         ClientCount = $ClientCount
         Port = $Port
         SessionDurationSeconds = $SessionDurationSeconds
+        SuccessMarker = "AUTOMATION_TEST_CLIENT_SUCCESS"
+        SuccessMarkerCount = $ClientCount
+        ServerExtraArgs = @("-ShootGameNetworkTest")
     }
 
     $summary.status = "Passed"

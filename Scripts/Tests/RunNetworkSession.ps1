@@ -12,6 +12,8 @@ param(
     [ValidateRange(1, 600)]
     [int]$SessionDurationSeconds = 10,
     [string]$SuccessMarker = "",
+    [ValidateRange(1, 100)]
+    [int]$SuccessMarkerCount = 1,
     [string]$FailureMarker = "AUTOMATION_TEST_FAILURE",
     [string[]]$ServerExtraArgs = @(),
     [string[]]$ClientExtraArgs = @()
@@ -51,6 +53,24 @@ function Test-LogContains
     }
 
     return [bool](Select-String -LiteralPath $Path -Pattern $Pattern -Quiet)
+}
+
+function Get-LogMatchCount
+{
+    param(
+        [string]$Path,
+        [string]$Pattern
+    )
+
+    if (-not (Test-Path -LiteralPath $Path -PathType Leaf))
+    {
+        return 0
+    }
+
+    $matchingLines = @(
+        Select-String -LiteralPath $Path -Pattern $Pattern -AllMatches
+    )
+    return [int]$matchingLines.Count
 }
 
 function Wait-ForLogPattern
@@ -189,6 +209,7 @@ try
 
     $deadline = (Get-Date).AddSeconds($SessionDurationSeconds)
     $successFound = [string]::IsNullOrWhiteSpace($SuccessMarker)
+    $successMatchCount = 0
     while ((Get-Date) -lt $deadline)
     {
         $serverProcess.Refresh()
@@ -206,6 +227,7 @@ try
             }
         }
 
+        $successMatchCount = 0
         foreach ($logPath in $allLogs)
         {
             if (-not [string]::IsNullOrWhiteSpace($FailureMarker) -and
@@ -213,11 +235,14 @@ try
             {
                 throw "Failure marker '$FailureMarker' was found. Log: $logPath"
             }
-            if (-not $successFound -and (Test-LogContains -Path $logPath -Pattern $SuccessMarker))
+            if (-not [string]::IsNullOrWhiteSpace($SuccessMarker))
             {
-                $successFound = $true
+                $successMatchCount += Get-LogMatchCount -Path $logPath -Pattern $SuccessMarker
             }
         }
+
+        $successFound = [string]::IsNullOrWhiteSpace($SuccessMarker) -or
+            $successMatchCount -ge $SuccessMarkerCount
 
         if ($successFound -and -not [string]::IsNullOrWhiteSpace($SuccessMarker))
         {
@@ -229,7 +254,7 @@ try
 
     if (-not $successFound)
     {
-        throw "Success marker '$SuccessMarker' was not found. Logs: $sessionRoot"
+        throw "Found $successMatchCount of $SuccessMarkerCount required success marker(s) '$SuccessMarker'. Logs: $sessionRoot"
     }
 
     Write-Host "[Passed] Server and $ClientCount client(s) completed the network session."
