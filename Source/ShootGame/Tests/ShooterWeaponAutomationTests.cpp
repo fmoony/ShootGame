@@ -1,0 +1,72 @@
+// Copyright Epic Games, Inc. All Rights Reserved.
+
+#if WITH_DEV_AUTOMATION_TESTS
+
+#include "Misc/AutomationTest.h"
+#include "UObject/UnrealType.h"
+#include "Variant_Shooter/Weapons/ShooterWeapon.h"
+
+namespace ShooterWeaponAutomationTests
+{
+	bool TestWeaponConfiguration(
+		FAutomationTestBase& Test,
+		const TCHAR* WeaponName,
+		const TCHAR* WeaponClassPath)
+	{
+		UClass* WeaponClass = LoadClass<AShooterWeapon>(nullptr, WeaponClassPath);
+		if (!Test.TestNotNull(FString::Printf(TEXT("%s class can be loaded"), WeaponName), WeaponClass))
+		{
+			return false;
+		}
+
+		const AShooterWeapon* WeaponDefaults = WeaponClass->GetDefaultObject<AShooterWeapon>();
+		if (!Test.TestNotNull(FString::Printf(TEXT("%s has defaults"), WeaponName), WeaponDefaults))
+		{
+			return false;
+		}
+
+		Test.TestTrue(
+			FString::Printf(TEXT("%s replicates"), WeaponName),
+			WeaponDefaults->GetIsReplicated());
+		Test.TestTrue(
+			FString::Printf(TEXT("%s magazine size is positive"), WeaponName),
+			WeaponDefaults->GetMagazineSize() > 0);
+
+		const FFloatProperty* RefireRateProperty = FindFProperty<FFloatProperty>(WeaponClass, TEXT("RefireRate"));
+		if (!Test.TestNotNull(FString::Printf(TEXT("%s exposes RefireRate"), WeaponName), RefireRateProperty))
+		{
+			return false;
+		}
+
+		const float RefireRate = RefireRateProperty->GetPropertyValue_InContainer(WeaponDefaults);
+		Test.TestTrue(
+			FString::Printf(TEXT("%s refire rate is positive"), WeaponName),
+			RefireRate > 0.0f);
+
+		return true;
+	}
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FShooterWeaponConfigurationTest,
+	"ShootGame.Weapon.Configuration",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FShooterWeaponConfigurationTest::RunTest(const FString& Parameters)
+{
+	using namespace ShooterWeaponAutomationTests;
+
+	bool bSucceeded = true;
+	bSucceeded &= TestWeaponConfiguration(
+		*this,
+		TEXT("Rifle"),
+		TEXT("/Game/Variant_Shooter/Blueprints/Pickups/Weapons/BP_ShooterWeapon_Rifle.BP_ShooterWeapon_Rifle_C"));
+	bSucceeded &= TestWeaponConfiguration(
+		*this,
+		TEXT("Pistol"),
+		TEXT("/Game/Variant_Shooter/Blueprints/Pickups/Weapons/BP_ShooterWeapon_Pistol.BP_ShooterWeapon_Pistol_C"));
+
+	return bSucceeded;
+}
+
+#endif
