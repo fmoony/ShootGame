@@ -3,6 +3,8 @@
 #include "Tests/Network/ShooterNetworkTestCoordinator.h"
 
 #include "ShootGame.h"
+#include "Animation/AnimInstance.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "TimerManager.h"
@@ -189,7 +191,8 @@ void AShooterNetworkTestCoordinator::PollServerState()
 	}
 
 	if (bLethalDamageApplied && bClientObservedDeath &&
-		bClientObservedMatchState && Character->IsDead())
+		bClientObservedMatchState && bClientObservedRemoteAim &&
+		bClientObservedRemoteMontage && Character->IsDead())
 	{
 		const APlayerController* PlayerController = Cast<APlayerController>(GetOwner());
 		const int32 PlayerId = PlayerController && PlayerController->PlayerState
@@ -199,7 +202,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		UE_LOG(
 			LogShootGame,
 			Display,
-			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS PlayerId=%d Switch=true OwnerAmmo=true NonOwnerAmmoHidden=true Bullets=%d->%d HP=%.0f->%.0f Dead=true AimDot=%.3f Team=%u Kills=%d Deaths=%d TeamScore=%d"),
+			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS PlayerId=%d Switch=true OwnerAmmo=true NonOwnerAmmoHidden=true Bullets=%d->%d HP=%.0f->%.0f Dead=true AimDot=%.3f Team=%u Kills=%d Deaths=%d TeamScore=%d RemotePitch=%.3f/%.3f RemoteMontage=true"),
 			PlayerId,
 			InitialBulletCount,
 			CurrentBulletCount,
@@ -209,7 +212,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			ObservedTeamId,
 			ObservedKills,
 			ObservedDeaths,
-			ObservedTeamScore);
+			ObservedTeamScore,
+			ObservedRemotePitchN,
+			ExpectedRemotePitchN);
 		GetWorldTimerManager().ClearTimer(PollTimer);
 		return;
 	}
@@ -217,7 +222,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 	if (GetWorld()->GetTimeSeconds() - TestStartTime >= ShooterNetworkTest::TimeoutSeconds)
 	{
 		FailTest(FString::Printf(
-			TEXT("Timed out waiting for network state; switch=%s weapon=%s clientProjectile=%s ownerAmmo=%s nonOwnerAmmo=%s serverProjectile=%s aim=%s damage=%s death=%s matchState=%s bullets=%d->%d hp=%.0f"),
+			TEXT("Timed out waiting for network state; switch=%s weapon=%s clientProjectile=%s ownerAmmo=%s nonOwnerAmmo=%s serverProjectile=%s aim=%s damage=%s death=%s matchState=%s remoteAim=%s remoteMontage=%s bullets=%d->%d hp=%.0f"),
 			bClientObservedSwitch ? TEXT("true") : TEXT("false"),
 			bClientObservedWeapon ? TEXT("true") : TEXT("false"),
 			bClientObservedProjectile ? TEXT("true") : TEXT("false"),
@@ -228,6 +233,8 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			bClientObservedDamage ? TEXT("true") : TEXT("false"),
 			bClientObservedDeath ? TEXT("true") : TEXT("false"),
 			bClientObservedMatchState ? TEXT("true") : TEXT("false"),
+			bClientObservedRemoteAim ? TEXT("true") : TEXT("false"),
+			bClientObservedRemoteMontage ? TEXT("true") : TEXT("false"),
 			InitialBulletCount,
 			CurrentBulletCount,
 			Character->GetCurrentHP()));
@@ -272,6 +279,58 @@ void AShooterNetworkTestCoordinator::PollClientState()
 	if (!Character || !Weapon)
 	{
 		return;
+	}
+
+	if (!bClientSetAimPitch)
+	{
+		FRotator ControlRotation = PlayerController->GetControlRotation();
+		ControlRotation.Pitch = 30.0f;
+		PlayerController->SetControlRotation(ControlRotation);
+		bClientSetAimPitch = true;
+	}
+
+	for (TActorIterator<AShooterCharacter> It(GetWorld()); It; ++It)
+	{
+		AShooterCharacter* RemoteCharacter = *It;
+		if (RemoteCharacter == Character ||
+			RemoteCharacter->GetLocalRole() != ROLE_SimulatedProxy)
+		{
+			continue;
+		}
+
+		UAnimInstance* RemoteAnimInstance = RemoteCharacter->GetMesh()
+			? RemoteCharacter->GetMesh()->GetAnimInstance()
+			: nullptr;
+		if (!RemoteAnimInstance)
+		{
+			continue;
+		}
+
+		if (!bClientReportedRemoteAim)
+		{
+			const FNumericProperty* PitchProperty = FindFProperty<FNumericProperty>(
+				RemoteAnimInstance->GetClass(),
+				TEXT("PitchN"));
+			if (PitchProperty && PitchProperty->IsFloatingPoint())
+			{
+				const void* PitchValue = PitchProperty->ContainerPtrToValuePtr<void>(RemoteAnimInstance);
+				const float PitchN = static_cast<float>(
+					PitchProperty->GetFloatingPointPropertyValue(PitchValue));
+				const float ExpectedPitchN = RemoteCharacter->GetBaseAimRotation().Vector().Z;
+				if (FMath::Abs(ExpectedPitchN) >= 0.2f &&
+					FMath::IsNearlyEqual(PitchN, ExpectedPitchN, 0.05f))
+				{
+					bClientReportedRemoteAim = true;
+					ServerReportClientObservedRemoteAim(PitchN, ExpectedPitchN);
+				}
+			}
+		}
+
+		if (!bClientReportedRemoteMontage && RemoteAnimInstance->IsAnyMontagePlaying())
+		{
+			bClientReportedRemoteMontage = true;
+			ServerReportClientObservedRemoteMontage();
+		}
 	}
 
 	if (bServerReadyToSwitch && WeaponBeforeSwitch &&
@@ -422,6 +481,21 @@ void AShooterNetworkTestCoordinator::ServerReportClientObservedMatchState_Implem
 	ObservedKills = Kills;
 	ObservedDeaths = Deaths;
 	ObservedTeamScore = TeamScore;
+}
+
+void AShooterNetworkTestCoordinator::ServerReportClientObservedRemoteAim_Implementation(
+	float PitchN,
+	float ExpectedPitchN)
+{
+	bClientObservedRemoteAim = FMath::Abs(ExpectedPitchN) >= 0.2f &&
+		FMath::IsNearlyEqual(PitchN, ExpectedPitchN, 0.05f);
+	ObservedRemotePitchN = PitchN;
+	ExpectedRemotePitchN = ExpectedPitchN;
+}
+
+void AShooterNetworkTestCoordinator::ServerReportClientObservedRemoteMontage_Implementation()
+{
+	bClientObservedRemoteMontage = true;
 }
 
 AShooterCharacter* AShooterNetworkTestCoordinator::GetShooterCharacter() const

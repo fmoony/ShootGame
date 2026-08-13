@@ -60,6 +60,12 @@ private:
 		int32 Deaths,
 		int32 TeamScore);
 
+	UFUNCTION(Server, Reliable)
+	void ServerReportClientObservedRemoteAim(float PitchN, float ExpectedPitchN);
+
+	UFUNCTION(Server, Reliable)
+	void ServerReportClientObservedRemoteMontage();
+
 	AShooterCharacter* GetShooterCharacter() const;
 	AShooterWeapon* GetCurrentWeapon(AShooterCharacter* Character) const;
 	AController* GetOpponentController() const;
@@ -86,6 +92,8 @@ private:
 	bool bClientObservedDamage = false;
 	bool bClientObservedDeath = false;
 	bool bClientObservedMatchState = false;
+	bool bClientObservedRemoteAim = false;
+	bool bClientObservedRemoteMontage = false;
 	bool bClientTriggeredFire = false;
 	bool bClientTriggeredSwitch = false;
 	bool bClientReportedProjectile = false;
@@ -95,6 +103,9 @@ private:
 	bool bClientReportedDamage = false;
 	bool bClientReportedDeath = false;
 	bool bClientReportedMatchState = false;
+	bool bClientSetAimPitch = false;
+	bool bClientReportedRemoteAim = false;
+	bool bClientReportedRemoteMontage = false;
 	bool bServerObservedProjectile = false;
 	bool bAimDirectionValid = false;
 	bool bPartialDamageApplied = false;
@@ -107,5 +118,7 @@ private:
 	int32 ObservedKills = 0;
 	int32 ObservedDeaths = 0;
 	int32 ObservedTeamScore = 0;
+	float ObservedRemotePitchN = 0.0f;
+	float ExpectedRemotePitchN = 0.0f;
 	TWeakObjectPtr<AShooterWeapon> InitialClientWeapon;
 };

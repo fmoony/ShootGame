@@ -3,6 +3,8 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "Misc/AutomationTest.h"
+#include "Animation/AnimInstance.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "UObject/UnrealType.h"
 #include "Variant_Shooter/ShooterCharacter.h"
 #include "Variant_Shooter/ShooterGameMode.h"
@@ -209,6 +211,46 @@ namespace ShooterWeaponAutomationTests
 
 		return true;
 	}
+
+	bool TestAnimationConfiguration(FAutomationTestBase& Test)
+	{
+		const AShooterCharacter* CharacterDefaults =
+			AShooterCharacter::StaticClass()->GetDefaultObject<AShooterCharacter>();
+		if (!Test.TestNotNull(TEXT("Shooter character has defaults"), CharacterDefaults))
+		{
+			return false;
+		}
+
+		Test.TestTrue(
+			TEXT("First-person mesh is visible only to its owner"),
+			CharacterDefaults->GetFirstPersonMesh()->bOnlyOwnerSee);
+		Test.TestTrue(
+			TEXT("Third-person mesh is hidden from its owner"),
+			CharacterDefaults->GetMesh()->bOwnerNoSee);
+
+		const TCHAR* ThirdPersonAnimClassPaths[] = {
+			TEXT("/Game/Variant_Shooter/Anims/ABP_TP_Rifle.ABP_TP_Rifle_C"),
+			TEXT("/Game/Variant_Shooter/Anims/ABP_TP_Pistol.ABP_TP_Pistol_C"),
+		};
+		for (const TCHAR* AnimClassPath : ThirdPersonAnimClassPaths)
+		{
+			const UClass* AnimClass = LoadClass<UAnimInstance>(nullptr, AnimClassPath);
+			if (!Test.TestNotNull(
+				FString::Printf(TEXT("Third-person AnimBP can be loaded: %s"), AnimClassPath),
+				AnimClass))
+			{
+				return false;
+			}
+
+			const FNumericProperty* PitchProperty =
+				FindFProperty<FNumericProperty>(AnimClass, TEXT("PitchN"));
+			Test.TestTrue(
+				FString::Printf(TEXT("Third-person AnimBP exposes floating-point PitchN: %s"), AnimClassPath),
+				PitchProperty && PitchProperty->IsFloatingPoint());
+		}
+
+		return true;
+	}
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
@@ -231,6 +273,7 @@ bool FShooterWeaponConfigurationTest::RunTest(const FString& Parameters)
 		TEXT("/Game/Variant_Shooter/Blueprints/Pickups/Weapons/BP_ShooterWeapon_Pistol.BP_ShooterWeapon_Pistol_C"));
 	bSucceeded &= TestCharacterReplication(*this);
 	bSucceeded &= TestMatchStateReplication(*this);
+	bSucceeded &= TestAnimationConfiguration(*this);
 
 	return bSucceeded;
 }
