@@ -112,6 +112,9 @@ protected:
 	/** Gameplay initialization */
 	virtual void BeginPlay() override;
 
+	/** 客户端收到 RemoteViewPitch 后刷新远端第三人称瞄准俯仰。 */
+	virtual void PostNetReceive() override;
+
 	/** Gameplay cleanup */
 	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
 
@@ -202,6 +205,9 @@ protected:
 
 	/** Returns true if the character already owns a weapon of the given class */
 	AShooterWeapon* FindWeaponOfType(TSubclassOf<AShooterWeapon> WeaponClass) const;
+
+	/** 将 Character 自带的远程视角数据写入模板第三人称 AnimBP。 */
+	void ApplyRemoteAimPitch();
 
 	/** Called when this character's HP is depleted */
 	void Die(AController* KillerController);

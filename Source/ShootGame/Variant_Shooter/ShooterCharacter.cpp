@@ -13,7 +13,10 @@
 #include "TimerManager.h"
 #include "ShooterGameMode.h"
 #include "ShooterPlayerState.h"
+#include "Animation/AnimInstance.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "UObject/UnrealType.h"
 
 AShooterCharacter::AShooterCharacter()
 {
@@ -97,6 +100,12 @@ float AShooterCharacter::TakeDamage(float Damage, struct FDamageEvent const& Dam
 void AShooterCharacter::OnRep_CurrentHP()
 {
 	OnDamaged.Broadcast(MaxHP > 0.0f ? CurrentHP / MaxHP : 0.0f);
+}
+
+void AShooterCharacter::PostNetReceive()
+{
+	Super::PostNetReceive();
+	ApplyRemoteAimPitch();
 }
 
 void AShooterCharacter::OnRep_IsDead()
@@ -310,6 +319,7 @@ void AShooterCharacter::OnRep_CurrentWeapon(AShooterWeapon* PreviousWeapon)
 
 	// 客户端根据复制的武器引用刷新表现
 	ApplyCurrentWeapon();
+	ApplyRemoteAimPitch();
 }
 
 void AShooterCharacter::ApplyCurrentWeapon()
@@ -405,6 +415,31 @@ void AShooterCharacter::Die(AController* KillerController)
 
 	// 只有服务器安排角色销毁和重生。
 	GetWorld()->GetTimerManager().SetTimer(RespawnTimer, this, &AShooterCharacter::OnRespawn, RespawnTime, false);
+}
+
+void AShooterCharacter::ApplyRemoteAimPitch()
+{
+	// 本地玩家和服务器都有 Controller，原 AnimBP 路径可以直接读取 ControlRotation。
+	// 这里只有观察其他玩家的客户端需要使用 APawn 已复制的 RemoteViewPitch。
+	if (GetLocalRole() != ROLE_SimulatedProxy || !GetMesh())
+	{
+		return;
+	}
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	FNumericProperty* PitchProperty = AnimInstance
+		? FindFProperty<FNumericProperty>(AnimInstance->GetClass(), TEXT("PitchN"))
+		: nullptr;
+	if (!PitchProperty || !PitchProperty->IsFloatingPoint())
+	{
+		return;
+	}
+
+	// 模板 AnimBP 的 PitchN 定义为瞄准前向与世界 Up 的点积，即 sin(Pitch)。
+	void* PitchValue = PitchProperty->ContainerPtrToValuePtr<void>(AnimInstance);
+	PitchProperty->SetFloatingPointPropertyValue(
+		PitchValue,
+		GetBaseAimRotation().Vector().Z);
 }
 
 void AShooterCharacter::ApplyDeathState()
