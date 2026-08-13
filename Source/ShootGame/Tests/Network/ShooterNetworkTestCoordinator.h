@@ -53,8 +53,16 @@ private:
 	UFUNCTION(Server, Reliable)
 	void ServerReportClientObservedDeath();
 
+	UFUNCTION(Server, Reliable)
+	void ServerReportClientObservedMatchState(
+		uint8 TeamId,
+		int32 Kills,
+		int32 Deaths,
+		int32 TeamScore);
+
 	AShooterCharacter* GetShooterCharacter() const;
 	AShooterWeapon* GetCurrentWeapon(AShooterCharacter* Character) const;
+	AController* GetOpponentController() const;
 
 	FTimerHandle PollTimer;
 	FDelegateHandle ActorSpawnedHandle;
@@ -77,6 +85,7 @@ private:
 	bool bClientObservedNonOwnerAmmoHidden = false;
 	bool bClientObservedDamage = false;
 	bool bClientObservedDeath = false;
+	bool bClientObservedMatchState = false;
 	bool bClientTriggeredFire = false;
 	bool bClientTriggeredSwitch = false;
 	bool bClientReportedProjectile = false;
@@ -85,6 +94,7 @@ private:
 	bool bClientReportedNonOwnerAmmoHidden = false;
 	bool bClientReportedDamage = false;
 	bool bClientReportedDeath = false;
+	bool bClientReportedMatchState = false;
 	bool bServerObservedProjectile = false;
 	bool bAimDirectionValid = false;
 	bool bPartialDamageApplied = false;
@@ -93,5 +103,9 @@ private:
 	int32 InitialClientBulletCount = INDEX_NONE;
 	float InitialHP = 0.0f;
 	float ObservedAimDot = -1.0f;
+	uint8 ObservedTeamId = 0;
+	int32 ObservedKills = 0;
+	int32 ObservedDeaths = 0;
+	int32 ObservedTeamScore = 0;
 	TWeakObjectPtr<AShooterWeapon> InitialClientWeapon;
 };

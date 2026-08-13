@@ -13,6 +13,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "Variant_Shooter/ShooterCharacter.h"
+#include "Variant_Shooter/ShooterGameState.h"
+#include "Variant_Shooter/ShooterPlayerState.h"
 #include "Variant_Shooter/Weapons/ShooterWeapon.h"
 #include "Variant_Shooter/Weapons/ShooterProjectile.h"
 
@@ -170,17 +172,24 @@ void AShooterNetworkTestCoordinator::PollServerState()
 
 	if (bPartialDamageApplied && bClientObservedDamage && !bLethalDamageApplied)
 	{
+		AController* OpponentController = GetOpponentController();
+		if (!OpponentController)
+		{
+			return;
+		}
+
 		UGameplayStatics::ApplyDamage(
 			Character,
 			Character->GetMaxHP() * 2.0f,
-			nullptr,
+			OpponentController,
 			this,
 			nullptr);
 		bLethalDamageApplied = true;
 		return;
 	}
 
-	if (bLethalDamageApplied && bClientObservedDeath && Character->IsDead())
+	if (bLethalDamageApplied && bClientObservedDeath &&
+		bClientObservedMatchState && Character->IsDead())
 	{
 		const APlayerController* PlayerController = Cast<APlayerController>(GetOwner());
 		const int32 PlayerId = PlayerController && PlayerController->PlayerState
@@ -190,13 +199,17 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		UE_LOG(
 			LogShootGame,
 			Display,
-			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS PlayerId=%d Switch=true OwnerAmmo=true NonOwnerAmmoHidden=true Bullets=%d->%d HP=%.0f->%.0f Dead=true AimDot=%.3f"),
+			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS PlayerId=%d Switch=true OwnerAmmo=true NonOwnerAmmoHidden=true Bullets=%d->%d HP=%.0f->%.0f Dead=true AimDot=%.3f Team=%u Kills=%d Deaths=%d TeamScore=%d"),
 			PlayerId,
 			InitialBulletCount,
 			CurrentBulletCount,
 			InitialHP,
 			Character->GetCurrentHP(),
-			ObservedAimDot);
+			ObservedAimDot,
+			ObservedTeamId,
+			ObservedKills,
+			ObservedDeaths,
+			ObservedTeamScore);
 		GetWorldTimerManager().ClearTimer(PollTimer);
 		return;
 	}
@@ -204,7 +217,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 	if (GetWorld()->GetTimeSeconds() - TestStartTime >= ShooterNetworkTest::TimeoutSeconds)
 	{
 		FailTest(FString::Printf(
-			TEXT("Timed out waiting for network state; switch=%s weapon=%s clientProjectile=%s ownerAmmo=%s nonOwnerAmmo=%s serverProjectile=%s aim=%s damage=%s death=%s bullets=%d->%d hp=%.0f"),
+			TEXT("Timed out waiting for network state; switch=%s weapon=%s clientProjectile=%s ownerAmmo=%s nonOwnerAmmo=%s serverProjectile=%s aim=%s damage=%s death=%s matchState=%s bullets=%d->%d hp=%.0f"),
 			bClientObservedSwitch ? TEXT("true") : TEXT("false"),
 			bClientObservedWeapon ? TEXT("true") : TEXT("false"),
 			bClientObservedProjectile ? TEXT("true") : TEXT("false"),
@@ -214,6 +227,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			bAimDirectionValid ? TEXT("true") : TEXT("false"),
 			bClientObservedDamage ? TEXT("true") : TEXT("false"),
 			bClientObservedDeath ? TEXT("true") : TEXT("false"),
+			bClientObservedMatchState ? TEXT("true") : TEXT("false"),
 			InitialBulletCount,
 			CurrentBulletCount,
 			Character->GetCurrentHP()));
@@ -335,7 +349,30 @@ void AShooterNetworkTestCoordinator::PollClientState()
 	{
 		bClientReportedDeath = true;
 		ServerReportClientObservedDeath();
-		GetWorldTimerManager().ClearTimer(PollTimer);
+	}
+
+	if (!bClientReportedMatchState)
+	{
+		const AShooterPlayerState* ShooterPlayerState =
+			PlayerController->GetPlayerState<AShooterPlayerState>();
+		const AShooterGameState* ShooterGameState =
+			GetWorld()->GetGameState<AShooterGameState>();
+		if (ShooterPlayerState && ShooterGameState)
+		{
+			const uint8 TeamId = ShooterPlayerState->GetTeamId();
+			const int32 TeamScore = ShooterGameState->GetTeamScore(TeamId);
+			if (TeamId < 2 && ShooterPlayerState->GetKills() >= 1 &&
+				ShooterPlayerState->GetDeaths() >= 1 &&
+				ShooterPlayerState->GetScore() >= 1.0f && TeamScore >= 1)
+			{
+				bClientReportedMatchState = true;
+				ServerReportClientObservedMatchState(
+					TeamId,
+					ShooterPlayerState->GetKills(),
+					ShooterPlayerState->GetDeaths(),
+					TeamScore);
+			}
+		}
 	}
 }
 
@@ -374,6 +411,19 @@ void AShooterNetworkTestCoordinator::ServerReportClientObservedDeath_Implementat
 	bClientObservedDeath = true;
 }
 
+void AShooterNetworkTestCoordinator::ServerReportClientObservedMatchState_Implementation(
+	uint8 TeamId,
+	int32 Kills,
+	int32 Deaths,
+	int32 TeamScore)
+{
+	bClientObservedMatchState = TeamId < 2 && Kills >= 1 && Deaths >= 1 && TeamScore >= 1;
+	ObservedTeamId = TeamId;
+	ObservedKills = Kills;
+	ObservedDeaths = Deaths;
+	ObservedTeamScore = TeamScore;
+}
+
 AShooterCharacter* AShooterNetworkTestCoordinator::GetShooterCharacter() const
 {
 	const APlayerController* PlayerController = Cast<APlayerController>(GetOwner());
@@ -392,6 +442,21 @@ AShooterWeapon* AShooterNetworkTestCoordinator::GetCurrentWeapon(AShooterCharact
 	return CurrentWeaponProperty
 		? Cast<AShooterWeapon>(CurrentWeaponProperty->GetObjectPropertyValue_InContainer(Character))
 		: nullptr;
+}
+
+AController* AShooterNetworkTestCoordinator::GetOpponentController() const
+{
+	const AController* OwnerController = Cast<AController>(GetOwner());
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		APlayerController* PlayerController = It->Get();
+		if (PlayerController && PlayerController != OwnerController)
+		{
+			return PlayerController;
+		}
+	}
+
+	return nullptr;
 }
 
 void AShooterNetworkTestCoordinator::FailTest(const FString& Reason)

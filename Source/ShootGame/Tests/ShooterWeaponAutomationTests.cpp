@@ -5,6 +5,9 @@
 #include "Misc/AutomationTest.h"
 #include "UObject/UnrealType.h"
 #include "Variant_Shooter/ShooterCharacter.h"
+#include "Variant_Shooter/ShooterGameMode.h"
+#include "Variant_Shooter/ShooterGameState.h"
+#include "Variant_Shooter/ShooterPlayerState.h"
 #include "Variant_Shooter/Weapons/ShooterProjectile.h"
 #include "Variant_Shooter/Weapons/ShooterWeapon.h"
 
@@ -142,6 +145,70 @@ namespace ShooterWeaponAutomationTests
 
 		return true;
 	}
+
+	bool TestMatchStateReplication(FAutomationTestBase& Test)
+	{
+		const AShooterGameMode* GameModeDefaults =
+			AShooterGameMode::StaticClass()->GetDefaultObject<AShooterGameMode>();
+		if (!Test.TestNotNull(TEXT("Shooter GameMode has defaults"), GameModeDefaults))
+		{
+			return false;
+		}
+
+		Test.TestEqual(
+			TEXT("Shooter GameMode uses replicated ShooterGameState"),
+			GameModeDefaults->GameStateClass.Get(),
+			AShooterGameState::StaticClass());
+		Test.TestEqual(
+			TEXT("Shooter GameMode uses ShooterPlayerState"),
+			GameModeDefaults->PlayerStateClass.Get(),
+			AShooterPlayerState::StaticClass());
+
+		const FProperty* TeamScoresProperty =
+			FindFProperty<FProperty>(AShooterGameState::StaticClass(), TEXT("TeamScores"));
+		if (!Test.TestNotNull(TEXT("ShooterGameState exposes TeamScores"), TeamScoresProperty))
+		{
+			return false;
+		}
+		Test.TestTrue(TEXT("TeamScores is replicated"), TeamScoresProperty->HasAnyPropertyFlags(CPF_Net));
+		Test.TestEqual(
+			TEXT("TeamScores uses OnRep_TeamScores"),
+			TeamScoresProperty->RepNotifyFunc,
+			FName(TEXT("OnRep_TeamScores")));
+
+		struct FReplicatedPlayerProperty
+		{
+			const TCHAR* Name;
+			const TCHAR* RepNotify;
+		};
+		const FReplicatedPlayerProperty PlayerProperties[] = {
+			{TEXT("TeamId"), TEXT("OnRep_TeamId")},
+			{TEXT("Kills"), TEXT("OnRep_CombatStats")},
+			{TEXT("Deaths"), TEXT("OnRep_CombatStats")},
+		};
+
+		for (const FReplicatedPlayerProperty& Expected : PlayerProperties)
+		{
+			const FProperty* Property = FindFProperty<FProperty>(
+				AShooterPlayerState::StaticClass(),
+				Expected.Name);
+			if (!Test.TestNotNull(
+				FString::Printf(TEXT("ShooterPlayerState exposes %s"), Expected.Name),
+				Property))
+			{
+				return false;
+			}
+			Test.TestTrue(
+				FString::Printf(TEXT("%s is replicated"), Expected.Name),
+				Property->HasAnyPropertyFlags(CPF_Net));
+			Test.TestEqual(
+				FString::Printf(TEXT("%s uses %s"), Expected.Name, Expected.RepNotify),
+				Property->RepNotifyFunc,
+				FName(Expected.RepNotify));
+		}
+
+		return true;
+	}
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
@@ -163,6 +230,7 @@ bool FShooterWeaponConfigurationTest::RunTest(const FString& Parameters)
 		TEXT("Pistol"),
 		TEXT("/Game/Variant_Shooter/Blueprints/Pickups/Weapons/BP_ShooterWeapon_Pistol.BP_ShooterWeapon_Pistol_C"));
 	bSucceeded &= TestCharacterReplication(*this);
+	bSucceeded &= TestMatchStateReplication(*this);
 
 	return bSucceeded;
 }
