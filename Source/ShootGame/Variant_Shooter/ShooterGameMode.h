@@ -25,6 +25,9 @@ protected:
 	/** Creates an owning test coordinator when explicitly requested by command line. */
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 
+	/** 玩家退出时执行服务器清理。 */
+	virtual void Logout(AController* Exiting) override;
+
 public:
 
 	/** Increases the score for the given team */

@@ -5,6 +5,8 @@ param(
     [string]$MapPath = "/Game/FirstPerson/Lvl_FirstPerson",
     [ValidateRange(1, 8)]
     [int]$ClientCount = 2,
+    [ValidateSet("Dedicated", "Listen")]
+    [string]$ServerMode = "Dedicated",
     [ValidateRange(1024, 65535)]
     [int]$Port = 17777,
     [ValidateRange(10, 300)]
@@ -16,7 +18,11 @@ param(
     [int]$SuccessMarkerCount = 1,
     [string]$FailureMarker = "AUTOMATION_TEST_FAILURE",
     [string[]]$ServerExtraArgs = @(),
-    [string[]]$ClientExtraArgs = @()
+    [string[]]$ClientExtraArgs = @(),
+    [ValidateRange(0, 8)]
+    [int]$DisconnectClientIndex = 0,
+    [ValidateRange(1, 300)]
+    [int]$DisconnectAfterSeconds = 5
 )
 
 Set-StrictMode -Version Latest
@@ -147,20 +153,29 @@ $commonArguments = @(
     "-nosplash",
     "-NoSound",
     "-NullRHI",
+    "-DDC-ForceMemoryCache",
     "-DisablePlugins=McpAutomationBridge"
 )
 
 try
 {
+    $serverMapArgument = $MapPath
+    $serverModeArguments = @("-server")
+    if ($ServerMode -eq "Listen")
+    {
+        $serverMapArgument = "${MapPath}?listen"
+        $serverModeArguments = @("-game")
+    }
+
     $serverArguments = @(
         $ProjectPath,
-        $MapPath,
-        "-server",
+        $serverMapArgument
+    ) + $serverModeArguments + @(
         "-port=$Port",
         "-ABSLOG=$serverLog"
     ) + $commonArguments + $ServerExtraArgs
 
-    Write-Host "[Network] Starting server on 127.0.0.1:$Port"
+    Write-Host "[Network] Starting $ServerMode server on 127.0.0.1:$Port"
     Write-Host "[Network] Session logs: $sessionRoot"
     $serverProcess = Start-Process `
         -FilePath $editorCommand `
@@ -207,9 +222,11 @@ try
         Write-Host "[Network] Client $clientIndex connected."
     }
 
-    $deadline = (Get-Date).AddSeconds($SessionDurationSeconds)
+    $sessionStartedAt = Get-Date
+    $deadline = $sessionStartedAt.AddSeconds($SessionDurationSeconds)
     $successFound = [string]::IsNullOrWhiteSpace($SuccessMarker)
     $successMatchCount = 0
+    $disconnectedClientIndex = 0
     while ((Get-Date) -lt $deadline)
     {
         $serverProcess.Refresh()
@@ -218,8 +235,28 @@ try
             throw "Server exited during the session. Log: $serverLog"
         }
 
-        foreach ($clientProcess in $clientProcesses)
+        if ($DisconnectClientIndex -gt 0 -and
+            $disconnectedClientIndex -eq 0 -and
+            ((Get-Date) - $sessionStartedAt).TotalSeconds -ge $DisconnectAfterSeconds)
         {
+            if ($DisconnectClientIndex -gt $clientProcesses.Count)
+            {
+                throw "DisconnectClientIndex exceeds the launched client count."
+            }
+
+            Stop-LaunchedProcess -Process $clientProcesses[$DisconnectClientIndex - 1]
+            $disconnectedClientIndex = $DisconnectClientIndex
+            Write-Host "[Network] Client $DisconnectClientIndex was intentionally disconnected."
+        }
+
+        for ($clientIndex = 1; $clientIndex -le $clientProcesses.Count; ++$clientIndex)
+        {
+            if ($clientIndex -eq $disconnectedClientIndex)
+            {
+                continue
+            }
+
+            $clientProcess = $clientProcesses[$clientIndex - 1]
             $clientProcess.Refresh()
             if ($clientProcess.HasExited)
             {
@@ -257,7 +294,7 @@ try
         throw "Found $successMatchCount of $SuccessMarkerCount required success marker(s) '$SuccessMarker'. Logs: $sessionRoot"
     }
 
-    Write-Host "[Passed] Server and $ClientCount client(s) completed the network session."
+    Write-Host "[Passed] $ServerMode server and $ClientCount remote client(s) completed the network session."
 }
 finally
 {

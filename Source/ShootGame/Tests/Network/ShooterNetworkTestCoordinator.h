@@ -82,6 +82,9 @@ private:
 	UPROPERTY(Replicated)
 	TObjectPtr<AShooterWeapon> WeaponBeforeSwitch;
 
+	UPROPERTY(Replicated)
+	bool bRequireRemoteMontage = true;
+
 	float TestStartTime = 0.0f;
 	int32 InitialBulletCount = INDEX_NONE;
 	bool bClientObservedWeapon = false;
@@ -111,6 +114,8 @@ private:
 	bool bPartialDamageApplied = false;
 	bool bLethalDamageApplied = false;
 	bool bSecondaryWeaponGranted = false;
+	bool bOpponentKilledForStats = false;
+	bool bDisconnectCleanupMode = false;
 	int32 InitialClientBulletCount = INDEX_NONE;
 	float InitialHP = 0.0f;
 	float ObservedAimDot = -1.0f;

@@ -86,6 +86,7 @@ function Invoke-TestStage
 $buildScript = Join-Path $PSScriptRoot "BuildEditor.ps1"
 $automationScript = Join-Path $PSScriptRoot "RunAutomation.ps1"
 $networkScript = Join-Path $PSScriptRoot "RunNetworkSession.ps1"
+$standaloneScript = Join-Path $PSScriptRoot "RunStandaloneSmoke.ps1"
 
 try
 {
@@ -105,7 +106,13 @@ try
     }
     Invoke-TestStage -Name "Automation" -ScriptPath $automationScript -Arguments $automationArguments
 
-    Invoke-TestStage -Name "NetworkSession" -ScriptPath $networkScript -Arguments @{
+    Invoke-TestStage -Name "Standalone" -ScriptPath $standaloneScript -Arguments @{
+        EngineRoot = $EngineRoot
+        ProjectPath = $ProjectPath
+        MapPath = $MapPath
+    }
+
+    Invoke-TestStage -Name "DedicatedNetwork" -ScriptPath $networkScript -Arguments @{
         EngineRoot = $EngineRoot
         ProjectPath = $ProjectPath
         MapPath = $MapPath
@@ -115,6 +122,60 @@ try
         SuccessMarker = "AUTOMATION_TEST_CLIENT_SUCCESS"
         SuccessMarkerCount = $ClientCount
         ServerExtraArgs = @("-ShootGameNetworkTest")
+    }
+
+    Invoke-TestStage -Name "ListenNetwork" -ScriptPath $networkScript -Arguments @{
+        EngineRoot = $EngineRoot
+        ProjectPath = $ProjectPath
+        MapPath = $MapPath
+        ClientCount = 1
+        ServerMode = "Listen"
+        Port = $Port + 1
+        SessionDurationSeconds = [Math]::Max($SessionDurationSeconds, 35)
+        SuccessMarker = "AUTOMATION_TEST_CLIENT_SUCCESS"
+        SuccessMarkerCount = 1
+        ServerExtraArgs = @(
+            "-ShootGameNetworkTest",
+            "-ShootGameSkipRemoteMontage"
+        )
+    }
+
+    Invoke-TestStage -Name "EmulatedNetwork" -ScriptPath $networkScript -Arguments @{
+        EngineRoot = $EngineRoot
+        ProjectPath = $ProjectPath
+        MapPath = $MapPath
+        ClientCount = $ClientCount
+        Port = $Port + 2
+        SessionDurationSeconds = [Math]::Max($SessionDurationSeconds, 60)
+        SuccessMarker = "AUTOMATION_TEST_CLIENT_SUCCESS"
+        SuccessMarkerCount = $ClientCount
+        ServerExtraArgs = @(
+            "-ShootGameNetworkTest",
+            "-ShootGameSkipRemoteMontage",
+            "-PktLag=100",
+            "-PktLoss=2"
+        )
+        ClientExtraArgs = @(
+            "-PktLag=100",
+            "-PktLoss=2"
+        )
+    }
+
+    Invoke-TestStage -Name "DisconnectCleanup" -ScriptPath $networkScript -Arguments @{
+        EngineRoot = $EngineRoot
+        ProjectPath = $ProjectPath
+        MapPath = $MapPath
+        ClientCount = 2
+        Port = $Port + 3
+        SessionDurationSeconds = [Math]::Max($SessionDurationSeconds, 45)
+        SuccessMarker = "AUTOMATION_TEST_DISCONNECT_SUCCESS"
+        SuccessMarkerCount = 1
+        DisconnectClientIndex = 1
+        DisconnectAfterSeconds = 5
+        ServerExtraArgs = @(
+            "-ShootGameNetworkTest",
+            "-ShootGameDisconnectTest"
+        )
     }
 
     $summary.status = "Passed"

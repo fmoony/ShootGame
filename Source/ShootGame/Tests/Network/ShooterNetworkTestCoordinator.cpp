@@ -23,7 +23,7 @@
 namespace ShooterNetworkTest
 {
 	constexpr float PollIntervalSeconds = 0.1f;
-	constexpr float TimeoutSeconds = 35.0f;
+	constexpr float TimeoutSeconds = 60.0f;
 	const TCHAR* RifleClassPath =
 		TEXT("/Game/Variant_Shooter/Blueprints/Pickups/Weapons/BP_ShooterWeapon_Rifle.BP_ShooterWeapon_Rifle_C");
 	const TCHAR* PistolClassPath =
@@ -36,6 +36,12 @@ AShooterNetworkTestCoordinator::AShooterNetworkTestCoordinator()
 	bReplicates = true;
 	bOnlyRelevantToOwner = true;
 	SetReplicateMovement(false);
+	bRequireRemoteMontage = !FParse::Param(
+		FCommandLine::Get(),
+		TEXT("ShootGameSkipRemoteMontage"));
+	bDisconnectCleanupMode = FParse::Param(
+		FCommandLine::Get(),
+		TEXT("ShootGameDisconnectTest"));
 }
 
 void AShooterNetworkTestCoordinator::BeginPlay()
@@ -81,6 +87,7 @@ void AShooterNetworkTestCoordinator::GetLifetimeReplicatedProps(
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyToSwitch);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyToFire);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, WeaponBeforeSwitch);
+	DOREPLIFETIME(AShooterNetworkTestCoordinator, bRequireRemoteMontage);
 }
 
 void AShooterNetworkTestCoordinator::PollServerState()
@@ -99,6 +106,14 @@ void AShooterNetworkTestCoordinator::PollServerState()
 	if (!GameState || GameState->PlayerArray.Num() < 2)
 	{
 		return;
+	}
+
+	if (APlayerController* OwnerController = Cast<APlayerController>(GetOwner());
+		OwnerController && OwnerController->IsLocalController())
+	{
+		FRotator ControlRotation = OwnerController->GetControlRotation();
+		ControlRotation.Pitch = 30.0f;
+		OwnerController->SetControlRotation(ControlRotation);
 	}
 
 	AShooterWeapon* Weapon = GetCurrentWeapon(Character);
@@ -133,6 +148,11 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		bSecondaryWeaponGranted = true;
 		bServerReadyToSwitch = true;
 		ForceNetUpdate();
+		return;
+	}
+
+	if (bDisconnectCleanupMode)
+	{
 		return;
 	}
 
@@ -190,9 +210,35 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		return;
 	}
 
+	if (GetNetMode() == NM_ListenServer && bLethalDamageApplied &&
+		Character->IsDead() && !bOpponentKilledForStats)
+	{
+		APlayerController* OwnerController = Cast<APlayerController>(GetOwner());
+		const AShooterPlayerState* OwnerState = OwnerController
+			? OwnerController->GetPlayerState<AShooterPlayerState>()
+			: nullptr;
+		if (OwnerState && OwnerState->GetKills() < 1)
+		{
+			AController* OpponentController = GetOpponentController();
+			AShooterCharacter* OpponentCharacter = OpponentController
+				? Cast<AShooterCharacter>(OpponentController->GetPawn())
+				: nullptr;
+			if (OpponentCharacter && !OpponentCharacter->IsDead())
+			{
+				UGameplayStatics::ApplyDamage(
+					OpponentCharacter,
+					OpponentCharacter->GetMaxHP() * 2.0f,
+					OwnerController,
+					this,
+					nullptr);
+			}
+		}
+		bOpponentKilledForStats = true;
+	}
+
 	if (bLethalDamageApplied && bClientObservedDeath &&
 		bClientObservedMatchState && bClientObservedRemoteAim &&
-		bClientObservedRemoteMontage && Character->IsDead())
+		(!bRequireRemoteMontage || bClientObservedRemoteMontage) && Character->IsDead())
 	{
 		const APlayerController* PlayerController = Cast<APlayerController>(GetOwner());
 		const int32 PlayerId = PlayerController && PlayerController->PlayerState
@@ -202,7 +248,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		UE_LOG(
 			LogShootGame,
 			Display,
-			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS PlayerId=%d Switch=true OwnerAmmo=true NonOwnerAmmoHidden=true Bullets=%d->%d HP=%.0f->%.0f Dead=true AimDot=%.3f Team=%u Kills=%d Deaths=%d TeamScore=%d RemotePitch=%.3f/%.3f RemoteMontage=true"),
+			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS PlayerId=%d Switch=true OwnerAmmo=true NonOwnerAmmoHidden=true Bullets=%d->%d HP=%.0f->%.0f Dead=true AimDot=%.3f Team=%u Kills=%d Deaths=%d TeamScore=%d RemotePitch=%.3f/%.3f RemoteMontage=%s"),
 			PlayerId,
 			InitialBulletCount,
 			CurrentBulletCount,
@@ -214,7 +260,8 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			ObservedDeaths,
 			ObservedTeamScore,
 			ObservedRemotePitchN,
-			ExpectedRemotePitchN);
+			ExpectedRemotePitchN,
+			bClientObservedRemoteMontage ? TEXT("true") : TEXT("skipped"));
 		GetWorldTimerManager().ClearTimer(PollTimer);
 		return;
 	}

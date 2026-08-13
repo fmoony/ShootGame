@@ -2,12 +2,17 @@
 
 
 #include "Variant_Shooter/ShooterGameMode.h"
+#include "ShootGame.h"
 #include "Engine/World.h"
+#include "EngineUtils.h"
 #include "ShooterGameState.h"
 #include "ShooterPlayerState.h"
+#include "Weapons/ShooterWeapon.h"
+#include "Weapons/ShooterWeaponHolder.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 #include "Tests/Network/ShooterNetworkTestCoordinator.h"
+#include "TimerManager.h"
 
 AShooterGameMode::AShooterGameMode()
 {
@@ -36,6 +41,68 @@ void AShooterGameMode::PostLogin(APlayerController* NewPlayer)
 			AShooterNetworkTestCoordinator::StaticClass(),
 			FTransform::Identity,
 			SpawnParameters);
+	}
+#endif
+}
+
+void AShooterGameMode::Logout(AController* Exiting)
+{
+#if WITH_DEV_AUTOMATION_TESTS
+	const bool bRunDisconnectTest = FParse::Param(
+		FCommandLine::Get(),
+		TEXT("ShootGameDisconnectTest"));
+#endif
+
+	Super::Logout(Exiting);
+
+#if WITH_DEV_AUTOMATION_TESTS
+	if (bRunDisconnectTest)
+	{
+		TWeakObjectPtr<UWorld> TestWorld = GetWorld();
+		GetWorldTimerManager().SetTimerForNextTick(FTimerDelegate::CreateLambda(
+			[TestWorld]()
+			{
+				if (!TestWorld.IsValid())
+				{
+					return;
+				}
+
+				int32 ActiveWeaponCount = 0;
+				int32 OrphanWeaponCount = 0;
+				for (TActorIterator<AShooterWeapon> It(TestWorld.Get()); It; ++It)
+				{
+					if (!It->IsActorBeingDestroyed())
+					{
+						++ActiveWeaponCount;
+
+						const AActor* WeaponOwner = It->GetOwner();
+						if (!IsValid(WeaponOwner)
+							|| WeaponOwner->IsActorBeingDestroyed()
+							|| !WeaponOwner->Implements<UShooterWeaponHolder>())
+						{
+							++OrphanWeaponCount;
+						}
+					}
+				}
+
+				if (ActiveWeaponCount <= 0 || OrphanWeaponCount > 0)
+				{
+					UE_LOG(
+						LogShootGame,
+						Error,
+						TEXT("AUTOMATION_TEST_FAILURE: Disconnect left invalid weapon ownership Active=%d Orphans=%d"),
+						ActiveWeaponCount,
+						OrphanWeaponCount);
+					return;
+				}
+
+				UE_LOG(
+					LogShootGame,
+					Display,
+					TEXT("AUTOMATION_TEST_DISCONNECT_SUCCESS ActiveWeapons=%d Orphans=%d"),
+					ActiveWeaponCount,
+					OrphanWeaponCount);
+			}));
 	}
 #endif
 }
