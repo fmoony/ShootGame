@@ -44,6 +44,7 @@ $arguments = @(
     "-nop4",
     "-nosplash",
     "-NoSound",
+    "-DisablePlugins=McpAutomationBridge",
     "-stdout",
     "-FullStdOutLogOutput"
 )
