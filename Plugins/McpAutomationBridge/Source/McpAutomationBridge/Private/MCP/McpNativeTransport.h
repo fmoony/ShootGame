@@ -184,7 +184,10 @@ private:
 	TMap<FString, double> ActiveSessions;  // SessionId → LastActivityTime
 	mutable FCriticalSection SessionMutex;
 
-	static constexpr double SessionTimeoutSeconds = 3600.0;  // 1 hour
+	// 会话不活动超时：Reasonix 客户端在会话过期后不会自动重新握手（表现为
+	// "Invalid or expired session ID"），因此把超时放宽到 30 天，避免长时间
+	// 空闲导致工具调用全部失败；多会话支持可容忍少量陈旧会话留存。
+	static constexpr double SessionTimeoutSeconds = 2592000.0;  // 30 days
 
 	// Active SSE streaming connections (RequestId → connection)
 	TMap<FString, TSharedPtr<FSSEConnection>> SSEConnections;

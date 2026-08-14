@@ -166,6 +166,12 @@ void AShooterNetworkTestCoordinator::PollServerState()
 	if (InitialBulletCount == INDEX_NONE)
 	{
 		InitialBulletCount = Weapon->GetBulletCount();
+		// 网络测试验证权威瞄准链路，关闭单次随机散布以保证方向断言可重复。
+		if (FFloatProperty* AimVarianceProperty =
+			FindFProperty<FFloatProperty>(Weapon->GetClass(), TEXT("AimVariance")))
+		{
+			AimVarianceProperty->SetPropertyValue_InContainer(Weapon, 0.0f);
+		}
 		bServerReadyToFire = true;
 		ForceNetUpdate();
 		return;
@@ -220,7 +226,11 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		const AShooterPlayerState* OwnerState = OwnerController
 			? OwnerController->GetPlayerState<AShooterPlayerState>()
 			: nullptr;
-		if (OwnerState && OwnerState->GetKills() < 1)
+		if (OwnerState && OwnerState->GetKills() >= 1)
+		{
+			bOpponentKilledForStats = true;
+		}
+		else if (OwnerState)
 		{
 			AController* OpponentController = GetOpponentController();
 			AShooterCharacter* OpponentCharacter = OpponentController
@@ -234,9 +244,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 					OwnerController,
 					this,
 					nullptr);
+				bOpponentKilledForStats = OwnerState->GetKills() >= 1;
 			}
 		}
-		bOpponentKilledForStats = true;
 	}
 
 	const APlayerController* PlayerController = Cast<APlayerController>(GetOwner());
@@ -279,8 +289,20 @@ void AShooterNetworkTestCoordinator::PollServerState()
 
 	if (GetWorld()->GetTimeSeconds() - TestStartTime >= ShooterNetworkTest::TimeoutSeconds)
 	{
+		const AShooterPlayerState* TimeoutPlayerState = PlayerController
+			? PlayerController->GetPlayerState<AShooterPlayerState>()
+			: nullptr;
+		const AShooterGameState* TimeoutGameState =
+			GetWorld()->GetGameState<AShooterGameState>();
+		const uint8 TimeoutTeamId = TimeoutPlayerState
+			? TimeoutPlayerState->GetTeamId()
+			: MAX_uint8;
+		const int32 TimeoutTeamScore = TimeoutGameState
+			? TimeoutGameState->GetTeamScore(TimeoutTeamId)
+			: INDEX_NONE;
+
 		FailTest(FString::Printf(
-			TEXT("Timed out waiting for network state; switch=%s weapon=%s clientProjectile=%s ownerAmmo=%s nonOwnerAmmo=%s serverProjectile=%s aim=%s damage=%s death=%s respawn=%s matchState=%s remoteAim=%s remoteMontage=%s bullets=%d->%d hp=%.0f"),
+			TEXT("Timed out waiting for network state; switch=%s weapon=%s clientProjectile=%s ownerAmmo=%s nonOwnerAmmo=%s serverProjectile=%s aim=%s damage=%s death=%s respawn=%s matchState=%s remoteAim=%s remoteMontage=%s bullets=%d->%d hp=%.0f team=%u kills=%d deaths=%d score=%.0f teamScore=%d"),
 			bClientObservedSwitch ? TEXT("true") : TEXT("false"),
 			bClientObservedWeapon ? TEXT("true") : TEXT("false"),
 			bClientObservedProjectile ? TEXT("true") : TEXT("false"),
@@ -296,7 +318,12 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			bClientObservedRemoteMontage ? TEXT("true") : TEXT("false"),
 			InitialBulletCount,
 			CurrentBulletCount,
-			Character->GetCurrentHP()));
+			Character->GetCurrentHP(),
+			TimeoutTeamId,
+			TimeoutPlayerState ? TimeoutPlayerState->GetKills() : INDEX_NONE,
+			TimeoutPlayerState ? TimeoutPlayerState->GetDeaths() : INDEX_NONE,
+			TimeoutPlayerState ? TimeoutPlayerState->GetScore() : -1.0f,
+			TimeoutTeamScore));
 	}
 }
 
