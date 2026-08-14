@@ -236,12 +236,30 @@ FTransform AShooterWeapon::CalculateProjectileSpawnTransform(const FVector& Targ
 {
 	// find the muzzle location
 	const FVector MuzzleLoc = FirstPersonMesh->GetSocketLocation(MuzzleSocketName);
+	const FVector ControlForward = PawnOwner
+		? PawnOwner->GetControlRotation().Vector().GetSafeNormal()
+		: FVector::ZeroVector;
+
+	FVector MuzzleToTarget = (TargetLocation - MuzzleLoc).GetSafeNormal();
+	// 摄像机可能命中位于枪口后方的近距离物体，此时不能让弹丸反向生成。
+	if (!ControlForward.IsNearlyZero() &&
+		FVector::DotProduct(MuzzleToTarget, ControlForward) <= 0.0f)
+	{
+		MuzzleToTarget = ControlForward;
+	}
 
 	// calculate the spawn location ahead of the muzzle
-	const FVector SpawnLoc = MuzzleLoc + ((TargetLocation - MuzzleLoc).GetSafeNormal() * MuzzleOffset);
+	const FVector SpawnLoc = MuzzleLoc + (MuzzleToTarget * MuzzleOffset);
 
 	// find the aim rotation vector while applying some variance to the target 
-	const FRotator AimRot = UKismetMathLibrary::FindLookAtRotation(SpawnLoc, TargetLocation + (UKismetMathLibrary::RandomUnitVector() * AimVariance));
+	FVector AimDirection =
+		(TargetLocation + (UKismetMathLibrary::RandomUnitVector() * AimVariance) - SpawnLoc).GetSafeNormal();
+	if (!ControlForward.IsNearlyZero() &&
+		FVector::DotProduct(AimDirection, ControlForward) <= 0.0f)
+	{
+		AimDirection = ControlForward;
+	}
+	const FRotator AimRot = AimDirection.Rotation();
 
 	// return the built transform
 	return FTransform(AimRot, SpawnLoc, FVector::OneVector);
