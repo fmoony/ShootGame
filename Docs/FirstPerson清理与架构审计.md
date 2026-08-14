@@ -22,14 +22,16 @@ Asset Registry 共识别到 73 个 FirstPerson 包：
 
 其中只有 3 个主资产存在 FirstPerson 目录外的直接引用；把它们的 FirstPerson 内部依赖递归展开后，必须保留和迁移的最小闭包为 4 个资产：
 
-| 当前资产 | 目录外用途 | 计划目标目录 |
+| 迁移源资产 | 目录外用途 | 当前目标目录 |
 | --- | --- | --- |
 | `/Game/FirstPerson/Anims/ABP_FP_Copy` | `BP_ShooterCharacter` 与 `BP_ShooterNPC` 使用 | `/Game/Variant_Shooter/Anims/Base` |
 | `/Game/FirstPerson/Anims/CtrlRig_FPWarp` | `ABP_FP_Copy` 的内部依赖 | `/Game/Variant_Shooter/Anims/Base` |
 | `/Game/FirstPerson/Blueprints/BP_FirstPersonCharacter` | `ABP_FP_Weapon` 与 `ABP_FP_Pistol` 使用 | `/Game/Variant_Shooter/Blueprints/AnimationSupport` |
 | `/Game/FirstPerson/MI_FirstPersonColorway` | Shooter 投射物、场景 External Actor 和 LevelPrototyping 资产使用 | `/Game/Shared/Materials` |
 
-其余 FirstPerson 内容主要是旧示例地图、GameMode、PlayerController 和对应 External Actor/Object。必须在上述 4 个资产迁移、引用更新并重新审计后才能删除。
+上述 4 个资产已于 2026-08-14 迁移完成，资产名称保持不变。Asset Registry 复查确认 4 个旧路径的 FirstPerson 目录外引用者总数为 0。`MI_FirstPersonColorway` 的旧路径暂时保留 Redirector，只供下一步将被删除的 FirstPerson 地图包使用。
+
+其余 FirstPerson 内容主要是旧示例地图、GameMode、PlayerController 和对应 External Actor/Object，可以进入删除步骤。
 
 ### 根目录 C++ 类
 
