@@ -1,0 +1,71 @@
+# FirstPerson 清理与架构审计
+
+## 审计目标
+
+Shooter 已经成为项目唯一默认玩法，但 `/Game/FirstPerson` 和根目录模板 C++ 类仍然存在。本审计用于区分：
+
+- 可以直接删除的旧模板内容；
+- Shooter 仍在使用、必须先迁移的共享资产；
+- 名称像旧模板、但当前仍承担共享基类职责的 C++ 类型。
+
+审计只形成迁移边界，不在同一步中移动或删除资产。
+
+## 当前结论
+
+### FirstPerson 资产
+
+Asset Registry 共识别到 73 个 FirstPerson 包：
+
+- `/Game/FirstPerson`：7 个主资产；
+- `/Game/__ExternalActors__/FirstPerson`：65 个地图 External Actor；
+- `/Game/__ExternalObjects__/FirstPerson`：1 个地图 External Object。
+
+其中只有 3 个主资产存在 FirstPerson 目录外的直接引用；把它们的 FirstPerson 内部依赖递归展开后，必须保留和迁移的最小闭包为 4 个资产：
+
+| 当前资产 | 目录外用途 | 计划目标目录 |
+| --- | --- | --- |
+| `/Game/FirstPerson/Anims/ABP_FP_Copy` | `BP_ShooterCharacter` 与 `BP_ShooterNPC` 使用 | `/Game/Variant_Shooter/Anims/Base` |
+| `/Game/FirstPerson/Anims/CtrlRig_FPWarp` | `ABP_FP_Copy` 的内部依赖 | `/Game/Variant_Shooter/Anims/Base` |
+| `/Game/FirstPerson/Blueprints/BP_FirstPersonCharacter` | `ABP_FP_Weapon` 与 `ABP_FP_Pistol` 使用 | `/Game/Variant_Shooter/Blueprints/AnimationSupport` |
+| `/Game/FirstPerson/MI_FirstPersonColorway` | Shooter 投射物、场景 External Actor 和 LevelPrototyping 资产使用 | `/Game/Shared/Materials` |
+
+其余 FirstPerson 内容主要是旧示例地图、GameMode、PlayerController 和对应 External Actor/Object。必须在上述 4 个资产迁移、引用更新并重新审计后才能删除。
+
+### 根目录 C++ 类
+
+| 类型 | 当前关系 | 去留结论 |
+| --- | --- | --- |
+| `AShootGameCharacter` | `AShooterCharacter` 与 `AShooterNPC` 的直接基类 | 当前必须保留；后续只清理其中的早期网络实验代码 |
+| `AShootGameGameState` | 仅被 `AShootGameCharacter` 的 NetCounter/RPC 实验代码使用 | 先移除实验代码，再删除该类型 |
+| `AShootGamePlayerController` | Shooter Controller 不继承它；只服务旧 FirstPerson 蓝图 | FirstPerson 模板清理后删除 |
+| `AShootGameCameraManager` | 仅由 `AShootGamePlayerController` 设置 | 随根 PlayerController 删除 |
+| `AShootGameGameMode` | Shooter GameMode 直接继承 `AGameModeBase` | FirstPerson 模板清理后删除 |
+| `AShooterPlayerController` | 直接继承 `APlayerController` | 保留 |
+| `AShooterGameMode` | 直接继承 `AGameModeBase` | 保留 |
+| `AShooterGameState` | 直接继承 `AGameStateBase` | 保留 |
+
+`AShootGameCharacter` 目前同时承担“可复用第一人称角色基类”和“早期网络 RPC 实验载体”两个职责。短期不做类名大改，先移除不属于生产 Shooter 链路的 NetCounter、RPC Matrix 与可靠性测试代码，使它回到纯角色基础能力。
+
+## 配置残留
+
+- `DefaultInput.ini` 仍指向不存在的 `/Game/FirstPerson/Input/MobileControls.MobileControls`。
+- `DefaultEditor.ini` 的 `SimpleMapName` 仍指向旧 FirstPerson 示例地图路径。
+- `DefaultEditorPerProjectUserSettings.ini` 的 Content Browser 默认路径仍为 `/Game/FirstPerson`。
+- `DefaultEngine.ini` 仍保留从 `TP_FirstPerson*` 到根目录模板类的历史 Class Redirect。
+
+这些配置不和资产迁移混在同一提交中；待 FirstPerson 资产删除并验证后再单独清理。
+
+## 推荐执行顺序
+
+1. 通过 UE 资产系统迁移 4 个保留资产，修复 Redirector，并运行完整七阶段验证。
+2. 重新运行 Asset Registry 审计，确认 `/Game/FirstPerson` 不再有目录外引用。
+3. 删除 FirstPerson 主资产及其 External Actor/Object，修复 Redirector，并运行完整验证。
+4. 清理陈旧的编辑器、触控界面和 Class Redirect 配置，独立验证并提交。
+5. 从 `AShootGameCharacter` 移除早期网络实验输入与 RPC，删除对应测试输入资产和 `AShootGameGameState`。
+6. 删除已无引用的根 PlayerController、CameraManager 与 GameMode，并更新项目导航。
+
+## 暂不执行的改动
+
+- 不重命名 `ShootGame` Runtime 模块；模块名与项目名一致，当前没有迁移收益。
+- 不立即把 `AShootGameCharacter` 改名为 Shooter 类型；它仍是玩家和 NPC 共用基类，重命名需要单独设计 Class Redirect 与蓝图迁移。
+- 不在资产清理阶段接入 GAS；先保住当前 Shooter 网络闭环，再以干净基线开始能力系统改造。
