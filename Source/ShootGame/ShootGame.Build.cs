@@ -25,8 +25,6 @@ public class ShootGame : ModuleRules
 
 		PublicIncludePaths.AddRange(new string[] {
 			"ShootGame",
-			"ShootGame/Variant_Horror",
-			"ShootGame/Variant_Horror/UI",
 			"ShootGame/Variant_Shooter",
 			"ShootGame/Variant_Shooter/AI",
 			"ShootGame/Variant_Shooter/UI",

@@ -20,18 +20,13 @@ Source/ShootGame/
 ├── ShootGameGameMode.h/.cpp    # 基础 GameMode
 ├── ShootGameGameState.h/.cpp   # GameState（含 MatchCounter 复制测试）
 ├── ShootGameCameraManager.h/.cpp   # 自定义 PlayerCameraManager
-├── Variant_Shooter/            # 🔫 射击玩法变体
+└── Variant_Shooter/            # 🔫 射击玩法变体
 │   ├── ShooterCharacter        # 射击角色（武器管理、开火、拾取）
 │   ├── ShooterPlayerController # 射击 PlayerController
 │   ├── ShooterGameMode         # 射击 GameMode
 │   ├── AI/                     # ShooterNPC、ShooterAIController、StateTree 工具
 │   ├── Weapons/                # ShooterWeapon、ShooterProjectile、ShooterPickup
 │   └── UI/                     # ShooterUI、ShooterBulletCounterUI
-└── Variant_Horror/             # 👻 恐怖玩法变体
-    ├── HorrorCharacter         # 恐怖角色
-    ├── HorrorPlayerController  # 恐怖 PlayerController
-    ├── HorrorGameMode          # 恐怖 GameMode
-    └── UI/                     # HorrorUI
 ```
 
 ## 文档入口
