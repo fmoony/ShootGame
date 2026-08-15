@@ -35,3 +35,6 @@
 # Operating system files
 .DS_Store
 Thumbs.db
+
+# Local agent task records
+/.reasonix/
