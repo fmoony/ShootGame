@@ -134,7 +134,7 @@ Locomotion State Machine
 ## 建议目录
 
 ```text
-Source/ShootGame/Variant_Shooter/
+Source/ShootGame/
 ├── AbilitySystem/
 │   ├── ShooterAbilitySystemComponent.h/.cpp
 │   ├── ShooterAttributeSet.h/.cpp
@@ -146,8 +146,10 @@ Source/ShootGame/Variant_Shooter/
 ├── Inventory/
 │   ├── ShooterInventoryComponent.h/.cpp
 │   └── ShooterInventoryTypes.h
-├── ShooterCharacter.h/.cpp
-└── ShooterPlayerState.h/.cpp
+├── Characters/
+│   └── ShooterCharacter.h/.cpp
+└── GameFramework/
+    └── ShooterPlayerState.h/.cpp
 ```
 
 只在对应阶段真正需要时创建目录和类型，不预先生成空框架。

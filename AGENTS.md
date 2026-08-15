@@ -15,17 +15,18 @@
 Source/ShootGame/
 ├── ShootGame.Build.cs          # 模块依赖和 include 路径
 ├── ShootGame.h / .cpp          # 模块入口 + LogShootGame 日志分类
-├── ShootGameCharacter.h/.cpp   # Shooter 共用角色基类（第一人称骨骼、摄像机、移动/视角输入）
-├── ShootGamePlayerController.h/.cpp  # 基础 PlayerController（输入映射、移动端控件）
-├── ShootGameGameMode.h/.cpp    # 基础 GameMode
-├── ShootGameCameraManager.h/.cpp   # 自定义 PlayerCameraManager
-└── Variant_Shooter/            # 🔫 Shooter 主玩法代码（暂保留模板历史目录名）
-│   ├── ShooterCharacter        # 射击角色（武器管理、开火、拾取）
-│   ├── ShooterPlayerController # 射击 PlayerController
-│   ├── ShooterGameMode         # 射击 GameMode
-│   ├── AI/                     # ShooterNPC、ShooterAIController、StateTree 工具
-│   ├── Weapons/                # ShooterWeapon、ShooterProjectile、ShooterPickup
-│   └── UI/                     # ShooterUI、ShooterBulletCounterUI
+├── GameFramework/              # 框架入口
+│   ├── ShooterGameMode.h/.cpp
+│   ├── ShooterGameState.h/.cpp
+│   ├── ShooterPlayerController.h/.cpp
+│   ├── ShooterPlayerState.h/.cpp
+│   └── ShooterCameraManager.h/.cpp
+├── Characters/                 # 玩家角色
+│   └── ShooterCharacter.h/.cpp
+├── AI/                         # ShooterNPC、ShooterAIController、StateTree 工具
+├── Weapons/                    # ShooterWeapon、ShooterProjectile、ShooterPickup
+├── UI/                         # ShooterUI、ShooterBulletCounterUI
+└── Tests/                      # 自动化测试（网络协调器、武器配置检查）
 ```
 
 ## 文档入口
@@ -34,6 +35,7 @@ Source/ShootGame/
 - [FirstPerson 清理与架构审计](Docs/FirstPerson清理与架构审计.md)：记录旧模板资产依赖闭包、根目录 C++ 类去留和分步清理顺序。
 - [多人网络改造计划](Docs/多人网络改造计划.md)：记录当前网络化状态、分阶段实施顺序和每阶段验收条件。
 - [GAS、动画分层与客户端预测扩展计划](Docs/GAS动画分层与预测扩展计划.md)：规划 GAS 生命周期、第三人称上下半身分层、简单武器背包与开火预测的渐进式接入路线。
+- [GAS 接入前架构整理执行方案](Docs/GAS接入前架构整理执行方案.md)：供 Agent 执行 Shooter 主玩法收束、旧模板类清理、源码目录重组、资产引用迁移和最终自动化验收。
 - [代码规范](Docs/代码规范.md)：C++ 命名、文件结构、注释、日志和网络代码约定。
 - [自动化测试](Docs/自动化测试.md)：说明编译、Automation 测试及服务器双客户端联机会话脚本的使用方式。
 - [Agent 自动化验证操作手册](Docs/Agent自动化验证操作手册.md)：Agent 执行、判定、排错和扩展自动化测试时必须遵循的标准流程。

@@ -37,16 +37,18 @@ Asset Registry 共识别到 73 个 FirstPerson 包：
 
 | 类型 | 当前关系 | 去留结论 |
 | --- | --- | --- |
-| `AShootGameCharacter` | `AShooterCharacter` 与 `AShooterNPC` 的直接基类 | 当前保留；早期网络实验代码已移除，只负责第一人称组件和基础移动输入 |
+| `AShootGameCharacter` | 原为 `AShooterCharacter` 与 `AShooterNPC` 的直接基类 | 已删除；第一人称组件与输入迁入 `AShooterCharacter`，`AShooterCharacter`/`AShooterNPC` 直接继承 `ACharacter` |
 | `AShootGameGameState` | 仅被已移除的 NetCounter/RPC 实验代码使用 | 已删除；Shooter 比赛状态统一由 `AShooterGameState` 承担 |
-| `AShootGamePlayerController` | Shooter Controller 不继承它；只服务旧 FirstPerson 蓝图 | FirstPerson 模板清理后删除 |
-| `AShootGameCameraManager` | 仅由 `AShootGamePlayerController` 设置 | 随根 PlayerController 删除 |
-| `AShootGameGameMode` | Shooter GameMode 直接继承 `AGameModeBase` | FirstPerson 模板清理后删除 |
+| `AShootGamePlayerController` | Shooter Controller 不继承它；只服务旧 FirstPerson 蓝图 | 已删除；由 `AShooterPlayerController` 接管框架入口 |
+| `AShootGameCameraManager` | 仅由 `AShootGamePlayerController` 设置 | 已删除；俯仰限制迁入 `AShooterCameraManager` |
+| `AShootGameGameMode` | Shooter GameMode 直接继承 `AGameModeBase` | 已删除；由 `AShooterGameMode` 接管 |
+| `AShooterCharacter` | 直接继承 `ACharacter` | 保留 |
+| `AShooterNPC` | 直接继承 `ACharacter` | 保留 |
 | `AShooterPlayerController` | 直接继承 `APlayerController` | 保留 |
 | `AShooterGameMode` | 直接继承 `AGameModeBase` | 保留 |
 | `AShooterGameState` | 直接继承 `AGameStateBase` | 保留 |
 
-`AShootGameCharacter` 已移除 NetCounter、RPC Matrix 与可靠性实验代码，现在只承担 Shooter 玩家和 NPC 共用的角色基础能力。短期仍不改类名；是否改为 Shooter 命名或拍平继承，需要与蓝图父类和动画蓝图类型引用一起讨论。
+`AShootGameCharacter` 已删除，其第一人称摄像机、第一人称手臂和移动/视角/跳跃输入已迁入 `AShooterCharacter`（直接继承 `ACharacter`）；`AShooterNPC` 同样直接继承 `ACharacter`，不再创建玩家第一人称组件与输入。旧模块 `TP_FirstPerson` 的资产引用与兼容重定向已清空。
 
 ## 配置残留
 
@@ -54,7 +56,7 @@ Asset Registry 共识别到 73 个 FirstPerson 包：
 - `DefaultEditor.ini` 的 `SimpleMapName` 已改为 `/Game/Variant_Shooter/Lvl_Shooter`。
 - `DefaultEditorPerProjectUserSettings.ini` 的 Content Browser 默认路径已改为 `/Game/Variant_Shooter`。
 - `DefaultGame.ini` 的项目显示名称已从 `First Person Template` 改为 `ShootGame`。
-- `DefaultEngine.ini` 继续保留从 `TP_FirstPerson*` 到根目录模板类的历史 Game/Class Redirect。当前 `BP_ShooterPlayerController` 仍包含旧 CameraManager 类标识；移除 Redirect 必须与蓝图及根目录类迁移放在同一个架构改造闭环中，本轮不处理。
+- `DefaultEngine.ini` 的 `TP_FirstPerson*` 历史 Game/Class Redirect 已全部移除；资产 import 表已重写为 `/Script/ShootGame.*`，无需再保留旧模块兼容层。
 
 资源路径配置已经独立清理。Class Redirect 属于类型兼容层，不按无效资源路径处理。
 
@@ -71,5 +73,5 @@ Asset Registry 共识别到 73 个 FirstPerson 包：
 ## 暂不执行的改动
 
 - 不重命名 `ShootGame` Runtime 模块；模块名与项目名一致，当前没有迁移收益。
-- 不立即把 `AShootGameCharacter` 改名为 Shooter 类型；它仍是玩家和 NPC 共用基类，重命名需要单独设计 Class Redirect 与蓝图迁移。
+- `AShootGameCharacter` 已拍平：玩家第一人称内容迁入 `AShooterCharacter`（直接继承 `ACharacter`），`AShooterNPC` 直接继承 `ACharacter`，旧基类已删除。
 - 不在资产清理阶段接入 GAS；先保住当前 Shooter 网络闭环，再以干净基线开始能力系统改造。
