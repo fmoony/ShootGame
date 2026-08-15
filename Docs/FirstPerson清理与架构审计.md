@@ -37,8 +37,8 @@ Asset Registry 共识别到 73 个 FirstPerson 包：
 
 | 类型 | 当前关系 | 去留结论 |
 | --- | --- | --- |
-| `AShootGameCharacter` | `AShooterCharacter` 与 `AShooterNPC` 的直接基类 | 当前必须保留；后续只清理其中的早期网络实验代码 |
-| `AShootGameGameState` | 仅被 `AShootGameCharacter` 的 NetCounter/RPC 实验代码使用 | 先移除实验代码，再删除该类型 |
+| `AShootGameCharacter` | `AShooterCharacter` 与 `AShooterNPC` 的直接基类 | 当前保留；早期网络实验代码已移除，只负责第一人称组件和基础移动输入 |
+| `AShootGameGameState` | 仅被已移除的 NetCounter/RPC 实验代码使用 | 已删除；Shooter 比赛状态统一由 `AShooterGameState` 承担 |
 | `AShootGamePlayerController` | Shooter Controller 不继承它；只服务旧 FirstPerson 蓝图 | FirstPerson 模板清理后删除 |
 | `AShootGameCameraManager` | 仅由 `AShootGamePlayerController` 设置 | 随根 PlayerController 删除 |
 | `AShootGameGameMode` | Shooter GameMode 直接继承 `AGameModeBase` | FirstPerson 模板清理后删除 |
@@ -46,13 +46,14 @@ Asset Registry 共识别到 73 个 FirstPerson 包：
 | `AShooterGameMode` | 直接继承 `AGameModeBase` | 保留 |
 | `AShooterGameState` | 直接继承 `AGameStateBase` | 保留 |
 
-`AShootGameCharacter` 目前同时承担“可复用第一人称角色基类”和“早期网络 RPC 实验载体”两个职责。短期不做类名大改，先移除不属于生产 Shooter 链路的 NetCounter、RPC Matrix 与可靠性测试代码，使它回到纯角色基础能力。
+`AShootGameCharacter` 已移除 NetCounter、RPC Matrix 与可靠性实验代码，现在只承担 Shooter 玩家和 NPC 共用的角色基础能力。短期仍不改类名；是否改为 Shooter 命名或拍平继承，需要与蓝图父类和动画蓝图类型引用一起讨论。
 
 ## 配置残留
 
 - `DefaultInput.ini` 已将不存在的旧触控资源改为 `DefaultTouchInterface=None`；Shooter 的移动端控件继续由 `BP_ShooterPlayerController` 创建 `UI_TouchInterface_Shooter`。
 - `DefaultEditor.ini` 的 `SimpleMapName` 已改为 `/Game/Variant_Shooter/Lvl_Shooter`。
 - `DefaultEditorPerProjectUserSettings.ini` 的 Content Browser 默认路径已改为 `/Game/Variant_Shooter`。
+- `DefaultGame.ini` 的项目显示名称已从 `First Person Template` 改为 `ShootGame`。
 - `DefaultEngine.ini` 继续保留从 `TP_FirstPerson*` 到根目录模板类的历史 Game/Class Redirect。当前 `BP_ShooterPlayerController` 仍包含旧 CameraManager 类标识；移除 Redirect 必须与蓝图及根目录类迁移放在同一个架构改造闭环中，本轮不处理。
 
 资源路径配置已经独立清理。Class Redirect 属于类型兼容层，不按无效资源路径处理。
@@ -63,8 +64,9 @@ Asset Registry 共识别到 73 个 FirstPerson 包：
 2. 重新运行 Asset Registry 审计，确认 `/Game/FirstPerson` 不再有目录外引用。
 3. 删除 FirstPerson 主资产及其 External Actor/Object，修复 Redirector，并运行完整验证。
 4. 清理陈旧的编辑器、触控界面和 Class Redirect 配置，独立验证并提交。
-5. 从 `AShootGameCharacter` 移除早期网络实验输入与 RPC，删除对应测试输入资产和 `AShootGameGameState`。
-6. 删除已无引用的根 PlayerController、CameraManager 与 GameMode，并更新项目导航。
+5. 已从 `AShootGameCharacter` 移除早期网络实验输入与 RPC，并删除 `AShootGameGameState`。
+6. 在编辑器中清理 `IMC_Default` 和 `BP_FirstPersonCharacter` 保存的三个实验输入引用，再删除对应 Input Action 资产。
+7. 删除已无有效资产引用的根 PlayerController、CameraManager 与 GameMode，并更新项目导航。
 
 ## 暂不执行的改动
 

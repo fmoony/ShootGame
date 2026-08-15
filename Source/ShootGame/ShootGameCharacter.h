@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
-#include "Net/UnrealNetwork.h"
 #include "ShootGameCharacter.generated.h"
 
 class UInputComponent;
@@ -17,7 +16,8 @@ struct FInputActionValue;
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
 /**
- *  A basic first person character
+ *  Shooter ç©å®¶ä¸ NPC å…±ç”¨çš„ç¬¬ä¸€äººç§°è§’è‰²åŸºç¡€ç±»ã€‚
+ *  åªè´Ÿè´£è§’è‰²ç»„ä»¶ä»¥åŠç§»åŠ¨ã€è§†è§’è¾“å…¥ï¼Œä¸æ‰¿è½½å…·ä½“ç©æ³•çŠ¶æ€ã€‚
  */
 UCLASS(abstract)
 class AShootGameCharacter : public ACharacter
@@ -50,15 +50,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category ="Input")
 	UInputAction* MouseLookAction;
 	
-	UPROPERTY(EditAnywhere, Category = "Input")
-	UInputAction* NetCounterAction;
-
-	UPROPERTY(EditAnywhere, Category = "Input")
-	UInputAction* NetCounterTestLocalAction;
-
-	UPROPERTY(EditAnywhere, Category = "Input")
-	UInputAction* OwnershipTestAction;
-
 public:
 	AShootGameCharacter();
 
@@ -91,53 +82,6 @@ protected:
 	/** Set up input action bindings */
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
 
-	UFUNCTION(Server, Reliable)
-	void ServerIncreaseCounter();
-
-	UFUNCTION(Server, Reliable)
-	void ServerBurstIncreaseCounter();
-
-	UPROPERTY(ReplicatedUsing = OnRep_NetCounter, VisibleAnywhere, BlueprintReadOnly, Category = "NetWork")
-	int32 NetCounter = 0;
-
-	UFUNCTION()
-	void OnRep_NetCounter();
-
-	/** Ö»ÓĞ·şÎñÆ÷ÕæÕıĞŞ¸ÄÈ¨Íş¼ÆÊı */
-	void IncreaseCounterAuthority();
-
-	/** ·şÎñÆ÷ºÍ¿Í»§¶Ë¹²ÓÃµÄ±íÏÖ¸üĞÂ */
-	void HandleNetCounterChanged(bool bOnRep = false);
-
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
-	void IncreaseCounterLocallyForTest();
-
-	void TestServerRpcOnOtherPawn();
-
-	UFUNCTION(Server, Reliable)
-	void ServerRunRpcMatrixTest();
-
-	UFUNCTION(Client, Reliable)
-	void ClientRpcTest(int32 SourcePlayerId);
-
-	UFUNCTION(NetMulticast, Reliable)
-	void MulticastRpcTest(int32 SourcePlayerId);
-
-	UFUNCTION(Server, Reliable)
-	void ServerStartReliabilityTest();
-
-	UFUNCTION(Client, Reliable)
-	void ClientReliableSample(int32 Sequence);
-
-	UFUNCTION(Client, Unreliable)
-	void ClientUnreliableSample(int32 Sequence);
-
-	void SendNextReliabilitySample();
-
-	FTimerHandle ReliabilityTestTimer;
-	int32 ReliabilityTestSequence = 0;
-
 public:
 
 	/** Returns the first person mesh **/
@@ -146,7 +90,5 @@ public:
 	/** Returns first person camera component **/
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 
-private:
-	void RequestIncreaseCounter();
 };
 

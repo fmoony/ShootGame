@@ -38,7 +38,7 @@ class SHOOTGAME_API AShooterWeapon : public AActor
 protected:
 
 	/** Cast pointer to the weapon owner */
-	IShooterWeaponHolder* WeaponOwner;
+	IShooterWeaponHolder* WeaponOwner = nullptr;
 
 	/** Type of projectiles this weapon will shoot */
 	UPROPERTY(EditAnywhere, Category="Ammo")
@@ -133,6 +133,9 @@ protected:
 	/** Gameplay initialization */
 	virtual void BeginPlay() override;
 
+	/** 客户端收到 Owner 复制后补齐武器拥有者初始化。 */
+	virtual void OnRep_Owner() override;
+
 	/** Gameplay Cleanup */
 	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
 
@@ -143,6 +146,9 @@ protected:
 	/** Called when the weapon's owner is destroyed */
 	UFUNCTION()
 	void OnOwnerDestroyed(AActor* DestroyedActor);
+
+	/** 幂等绑定当前 Owner；允许 Owner 晚于武器 BeginPlay 到达客户端。 */
+	void InitializeWeaponOwner();
 
 public:
 

@@ -15,12 +15,11 @@
 Source/ShootGame/
 ├── ShootGame.Build.cs          # 模块依赖和 include 路径
 ├── ShootGame.h / .cpp          # 模块入口 + LogShootGame 日志分类
-├── ShootGameCharacter.h/.cpp   # 基础角色（第一人称骨骼、摄像机、移动/视角输入、网络测试 RPC）
+├── ShootGameCharacter.h/.cpp   # Shooter 共用角色基类（第一人称骨骼、摄像机、移动/视角输入）
 ├── ShootGamePlayerController.h/.cpp  # 基础 PlayerController（输入映射、移动端控件）
 ├── ShootGameGameMode.h/.cpp    # 基础 GameMode
-├── ShootGameGameState.h/.cpp   # GameState（含 MatchCounter 复制测试）
 ├── ShootGameCameraManager.h/.cpp   # 自定义 PlayerCameraManager
-└── Variant_Shooter/            # 🔫 射击玩法变体
+└── Variant_Shooter/            # 🔫 Shooter 主玩法代码（暂保留模板历史目录名）
 │   ├── ShooterCharacter        # 射击角色（武器管理、开火、拾取）
 │   ├── ShooterPlayerController # 射击 PlayerController
 │   ├── ShooterGameMode         # 射击 GameMode

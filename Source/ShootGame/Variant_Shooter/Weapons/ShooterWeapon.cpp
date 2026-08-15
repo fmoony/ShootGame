@@ -48,12 +48,7 @@ void AShooterWeapon::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// subscribe to the owner's destroyed delegate
-	GetOwner()->OnDestroyed.AddDynamic(this, &AShooterWeapon::OnOwnerDestroyed);
-
-	// cast the weapon owner
-	WeaponOwner = Cast<IShooterWeaponHolder>(GetOwner());
-	PawnOwner = Cast<APawn>(GetOwner());
+	InitializeWeaponOwner();
 
 	// 弹药只由服务器初始化，拥有者客户端通过复制获得。
 	if (HasAuthority())
@@ -61,8 +56,30 @@ void AShooterWeapon::BeginPlay()
 		CurrentBullets = MagazineSize;
 	}
 
-	// attach the meshes to the owner
-	WeaponOwner->AttachWeaponMeshes(this);
+}
+
+void AShooterWeapon::OnRep_Owner()
+{
+	Super::OnRep_Owner();
+	InitializeWeaponOwner();
+}
+
+void AShooterWeapon::InitializeWeaponOwner()
+{
+	AActor* OwningActor = GetOwner();
+	if (!IsValid(OwningActor))
+	{
+		return;
+	}
+
+	OwningActor->OnDestroyed.AddUniqueDynamic(this, &AShooterWeapon::OnOwnerDestroyed);
+	WeaponOwner = Cast<IShooterWeaponHolder>(OwningActor);
+	PawnOwner = Cast<APawn>(OwningActor);
+
+	if (WeaponOwner)
+	{
+		WeaponOwner->AttachWeaponMeshes(this);
+	}
 }
 
 void AShooterWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -102,8 +119,11 @@ void AShooterWeapon::ActivateWeapon()
 	// unhide this weapon
 	SetActorHiddenInGame(false);
 
-	// notify the owner
-	WeaponOwner->OnWeaponActivated(this);
+	// 客户端可能先收到 Character 的武器 RepNotify，再执行武器 BeginPlay。
+	if (WeaponOwner)
+	{
+		WeaponOwner->OnWeaponActivated(this);
+	}
 }
 
 void AShooterWeapon::DeactivateWeapon()
@@ -114,8 +134,11 @@ void AShooterWeapon::DeactivateWeapon()
 	// hide the weapon
 	SetActorHiddenInGame(true);
 
-	// notify the owner
-	WeaponOwner->OnWeaponDeactivated(this);
+	// 复制初始化顺序不保证 WeaponOwner 已经在 BeginPlay 中完成赋值。
+	if (WeaponOwner)
+	{
+		WeaponOwner->OnWeaponDeactivated(this);
+	}
 }
 
 void AShooterWeapon::StartFiring()
