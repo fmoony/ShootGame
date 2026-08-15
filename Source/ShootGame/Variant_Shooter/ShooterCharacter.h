@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ShootGameCharacter.h"
+#include "GameFramework/Character.h"
 #include "ShooterWeaponHolder.h"
 #include "ShooterCharacter.generated.h"
 
@@ -11,6 +11,9 @@ class AShooterWeapon;
 class UInputAction;
 class UInputComponent;
 class UPawnNoiseEmitterComponent;
+class USkeletalMeshComponent;
+class UCameraComponent;
+struct FInputActionValue;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FBulletCountUpdatedDelegate, int32, MagazineSize, int32, Bullets);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDamagedDelegate, float, LifePercent);
@@ -21,15 +24,39 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDamagedDelegate, float, LifePercent
  *  Manages health and death
  */
 UCLASS(abstract)
-class SHOOTGAME_API AShooterCharacter : public AShootGameCharacter, public IShooterWeaponHolder
+class SHOOTGAME_API AShooterCharacter : public ACharacter, public IShooterWeaponHolder
 {
 	GENERATED_BODY()
-	
+
+	/** Pawn mesh: first person view (arms; seen only by self) */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
+	USkeletalMeshComponent* FirstPersonMesh;
+
+	/** First person camera */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
+	UCameraComponent* FirstPersonCameraComponent;
+
 	/** AI Noise emitter component */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
 	UPawnNoiseEmitterComponent* PawnNoiseEmitter;
 
 protected:
+
+	/** Jump Input Action */
+	UPROPERTY(EditAnywhere, Category ="Input")
+	UInputAction* JumpAction;
+
+	/** Move Input Action */
+	UPROPERTY(EditAnywhere, Category ="Input")
+	UInputAction* MoveAction;
+
+	/** Look Input Action */
+	UPROPERTY(EditAnywhere, Category ="Input")
+	UInputAction* LookAction;
+
+	/** Mouse Look Input Action */
+	UPROPERTY(EditAnywhere, Category ="Input")
+	UInputAction* MouseLookAction;
 
 	/** Fire weapon input action */
 	UPROPERTY(EditAnywhere, Category ="Input")
@@ -104,6 +131,12 @@ public:
 
 public:
 
+	/** Returns the first person mesh */
+	USkeletalMeshComponent* GetFirstPersonMesh() const { return FirstPersonMesh; }
+
+	/** Returns first person camera component */
+	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
+
 	/** Constructor */
 	AShooterCharacter();
 
@@ -117,6 +150,28 @@ protected:
 
 	/** Gameplay cleanup */
 	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
+
+	/** Called from Input Actions for movement input */
+	void MoveInput(const FInputActionValue& Value);
+
+	/** Called from Input Actions for looking input */
+	void LookInput(const FInputActionValue& Value);
+
+	/** Handles aim inputs from either controls or UI interfaces */
+	UFUNCTION(BlueprintCallable, Category="Input")
+	virtual void DoAim(float Yaw, float Pitch);
+
+	/** Handles move inputs from either controls or UI interfaces */
+	UFUNCTION(BlueprintCallable, Category="Input")
+	virtual void DoMove(float Right, float Forward);
+
+	/** Handles jump start inputs from either controls or UI interfaces */
+	UFUNCTION(BlueprintCallable, Category="Input")
+	virtual void DoJumpStart();
+
+	/** Handles jump end inputs from either controls or UI interfaces */
+	UFUNCTION(BlueprintCallable, Category="Input")
+	virtual void DoJumpEnd();
 
 	/** Set up input action bindings */
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;

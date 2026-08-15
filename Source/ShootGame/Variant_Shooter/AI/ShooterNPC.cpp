@@ -60,9 +60,8 @@ void AShooterNPC::AttachWeaponMeshes(AShooterWeapon* WeaponToAttach)
 	// attach the weapon actor
 	WeaponToAttach->AttachToActor(this, AttachmentRule);
 
-	// attach the weapon meshes
-	WeaponToAttach->GetFirstPersonMesh()->AttachToComponent(GetFirstPersonMesh(), AttachmentRule, FirstPersonWeaponSocket);
-	WeaponToAttach->GetThirdPersonMesh()->AttachToComponent(GetMesh(), AttachmentRule, FirstPersonWeaponSocket);
+	// NPC 只挂接第三人称武器 Mesh，不再借用玩家第一人称手臂。
+	WeaponToAttach->GetThirdPersonMesh()->AttachToComponent(GetMesh(), AttachmentRule, ThirdPersonWeaponSocket);
 }
 
 void AShooterNPC::PlayFiringMontage(UAnimMontage* Montage)
@@ -82,8 +81,8 @@ void AShooterNPC::UpdateWeaponHUD(int32 CurrentAmmo, int32 MagazineSize)
 
 FVector AShooterNPC::GetWeaponTargetLocation()
 {
-	// start aiming from the camera location
-	const FVector AimSource = GetFirstPersonCameraComponent()->GetComponentLocation();
+	// NPC 不再借用玩家第一人称摄像机，瞄准起点改用 Pawn 视点。
+	const FVector AimSource = GetPawnViewLocation();
 
 	FVector AimDir, AimTarget = FVector::ZeroVector;
 
@@ -103,8 +102,8 @@ FVector AShooterNPC::GetWeaponTargetLocation()
 		
 	} else {
 
-		// no aim target, so just use the camera facing
-		AimDir = UKismetMathLibrary::RandomUnitVectorInConeInDegrees(GetFirstPersonCameraComponent()->GetForwardVector(), AimVarianceHalfAngle);
+		// no aim target, so use the NPC's own facing (driven by the AI Controller)
+		AimDir = UKismetMathLibrary::RandomUnitVectorInConeInDegrees(GetActorForwardVector(), AimVarianceHalfAngle);
 
 	}
 

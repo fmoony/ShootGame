@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ShootGameCharacter.h"
+#include "GameFramework/Character.h"
 #include "ShooterWeaponHolder.h"
 #include "ShooterNPC.generated.h"
 
@@ -17,7 +17,7 @@ class AShooterWeapon;
  *  Holds and manages a weapon
  */
 UCLASS(abstract)
-class SHOOTGAME_API AShooterNPC : public AShootGameCharacter, public IShooterWeaponHolder
+class SHOOTGAME_API AShooterNPC : public ACharacter, public IShooterWeaponHolder
 {
 	GENERATED_BODY()
 
