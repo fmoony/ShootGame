@@ -50,12 +50,12 @@ Asset Registry 共识别到 73 个 FirstPerson 包：
 
 ## 配置残留
 
-- `DefaultInput.ini` 仍指向不存在的 `/Game/FirstPerson/Input/MobileControls.MobileControls`。
-- `DefaultEditor.ini` 的 `SimpleMapName` 仍指向旧 FirstPerson 示例地图路径。
-- `DefaultEditorPerProjectUserSettings.ini` 的 Content Browser 默认路径仍为 `/Game/FirstPerson`。
-- `DefaultEngine.ini` 仍保留从 `TP_FirstPerson*` 到根目录模板类的历史 Class Redirect。
+- `DefaultInput.ini` 已将不存在的旧触控资源改为 `DefaultTouchInterface=None`；Shooter 的移动端控件继续由 `BP_ShooterPlayerController` 创建 `UI_TouchInterface_Shooter`。
+- `DefaultEditor.ini` 的 `SimpleMapName` 已改为 `/Game/Variant_Shooter/Lvl_Shooter`。
+- `DefaultEditorPerProjectUserSettings.ini` 的 Content Browser 默认路径已改为 `/Game/Variant_Shooter`。
+- `DefaultEngine.ini` 继续保留从 `TP_FirstPerson*` 到根目录模板类的历史 Game/Class Redirect。当前 `BP_ShooterPlayerController` 仍包含旧 CameraManager 类标识；移除 Redirect 必须与蓝图及根目录类迁移放在同一个架构改造闭环中，本轮不处理。
 
-这些配置不和资产迁移混在同一提交中；待 FirstPerson 资产删除并验证后再单独清理。
+资源路径配置已经独立清理。Class Redirect 属于类型兼容层，不按无效资源路径处理。
 
 ## 推荐执行顺序
 
