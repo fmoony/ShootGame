@@ -7,11 +7,18 @@
 #include "InputMappingContext.h"
 #include "ShooterCharacter.h"
 #include "ShooterGameState.h"
+#include "ShooterCameraManager.h"
 #include "ShooterUI.h"
 #include "ShooterBulletCounterUI.h"
 #include "Weapons/ShooterWeapon.h"
 #include "ShootGame.h"
 #include "Widgets/Input/SVirtualJoystick.h"
+
+AShooterPlayerController::AShooterPlayerController()
+{
+	// 使用 Shooter 摄像机管理器，保持与原模板一致的俯仰范围限制。
+	PlayerCameraManagerClass = AShooterCameraManager::StaticClass();
+}
 
 void AShooterPlayerController::BeginPlay()
 {

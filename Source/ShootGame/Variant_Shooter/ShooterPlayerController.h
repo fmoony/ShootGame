@@ -9,6 +9,7 @@
 class UInputMappingContext;
 class AShooterCharacter;
 class AShooterGameState;
+class AShooterCameraManager;
 class UShooterBulletCounterUI;
 class UShooterUI;
 
@@ -21,7 +22,12 @@ UCLASS(abstract)
 class SHOOTGAME_API AShooterPlayerController : public APlayerController
 {
 	GENERATED_BODY()
-	
+
+public:
+
+	/** 构造函数，指定 Shooter 摄像机管理器并应用俯仰限制。 */
+	AShooterPlayerController();
+
 protected:
 
 	/** Input mapping contexts for this player */
