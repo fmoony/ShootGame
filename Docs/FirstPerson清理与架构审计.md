@@ -65,7 +65,7 @@ Asset Registry 共识别到 73 个 FirstPerson 包：
 3. 删除 FirstPerson 主资产及其 External Actor/Object，修复 Redirector，并运行完整验证。
 4. 清理陈旧的编辑器、触控界面和 Class Redirect 配置，独立验证并提交。
 5. 已从 `AShootGameCharacter` 移除早期网络实验输入与 RPC，并删除 `AShootGameGameState`。
-6. 在编辑器中清理 `IMC_Default` 和 `BP_FirstPersonCharacter` 保存的三个实验输入引用，再删除对应 Input Action 资产。
+6. 已在编辑器中清理 `IMC_Default` 和 `BP_FirstPersonCharacter` 保存的三个实验输入引用，并删除对应 Input Action 资产。
 7. 删除已无有效资产引用的根 PlayerController、CameraManager 与 GameMode，并更新项目导航。
 
 ## 暂不执行的改动
