@@ -1,6 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "Variant_Shooter/ShooterGameState.h"
+#include "ShooterGameState.h"
 
 #include "Net/UnrealNetwork.h"
 

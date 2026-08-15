@@ -25,10 +25,11 @@ public class ShootGame : ModuleRules
 
 		PublicIncludePaths.AddRange(new string[] {
 			"ShootGame",
-			"ShootGame/Variant_Shooter",
-			"ShootGame/Variant_Shooter/AI",
-			"ShootGame/Variant_Shooter/UI",
-			"ShootGame/Variant_Shooter/Weapons"
+			"ShootGame/GameFramework",
+			"ShootGame/Characters",
+			"ShootGame/AI",
+			"ShootGame/Weapons",
+			"ShootGame/UI"
 		});
 
 		// Uncomment if you are using Slate UI

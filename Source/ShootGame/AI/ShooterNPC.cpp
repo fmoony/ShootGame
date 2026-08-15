@@ -1,7 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 
-#include "Variant_Shooter/AI/ShooterNPC.h"
+#include "ShooterNPC.h"
 #include "ShooterWeapon.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Camera/CameraComponent.h"

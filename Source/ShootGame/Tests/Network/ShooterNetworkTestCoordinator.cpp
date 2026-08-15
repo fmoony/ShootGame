@@ -15,11 +15,11 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
-#include "Variant_Shooter/ShooterCharacter.h"
-#include "Variant_Shooter/ShooterGameState.h"
-#include "Variant_Shooter/ShooterPlayerState.h"
-#include "Variant_Shooter/Weapons/ShooterWeapon.h"
-#include "Variant_Shooter/Weapons/ShooterProjectile.h"
+#include "ShooterCharacter.h"
+#include "ShooterGameState.h"
+#include "ShooterPlayerState.h"
+#include "ShooterWeapon.h"
+#include "ShooterProjectile.h"
 
 namespace ShooterNetworkTest
 {

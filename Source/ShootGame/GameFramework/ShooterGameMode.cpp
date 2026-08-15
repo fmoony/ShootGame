@@ -1,7 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 
-#include "Variant_Shooter/ShooterGameMode.h"
+#include "ShooterGameMode.h"
 #include "ShootGame.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"

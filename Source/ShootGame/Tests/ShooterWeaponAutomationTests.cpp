@@ -6,12 +6,12 @@
 #include "Animation/AnimInstance.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "UObject/UnrealType.h"
-#include "Variant_Shooter/ShooterCharacter.h"
-#include "Variant_Shooter/ShooterGameMode.h"
-#include "Variant_Shooter/ShooterGameState.h"
-#include "Variant_Shooter/ShooterPlayerState.h"
-#include "Variant_Shooter/Weapons/ShooterProjectile.h"
-#include "Variant_Shooter/Weapons/ShooterWeapon.h"
+#include "ShooterCharacter.h"
+#include "ShooterGameMode.h"
+#include "ShooterGameState.h"
+#include "ShooterPlayerState.h"
+#include "ShooterProjectile.h"
+#include "ShooterWeapon.h"
 
 namespace ShooterWeaponAutomationTests
 {

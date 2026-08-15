@@ -1,7 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 
-#include "Variant_Shooter/AI/ShooterStateTreeUtility.h"
+#include "ShooterStateTreeUtility.h"
 #include "StateTreeExecutionContext.h"
 #include "ShooterNPC.h"
 #include "Camera/CameraComponent.h"
