@@ -75,3 +75,9 @@ Asset Registry 共识别到 73 个 FirstPerson 包：
 - 不重命名 `ShootGame` Runtime 模块；模块名与项目名一致，当前没有迁移收益。
 - `AShootGameCharacter` 已拍平：玩家第一人称内容迁入 `AShooterCharacter`（直接继承 `ACharacter`），`AShooterNPC` 直接继承 `ACharacter`，旧基类已删除。
 - 不在资产清理阶段接入 GAS；先保住当前 Shooter 网络闭环，再以干净基线开始能力系统改造。
+
+## 最终状态（2026-08-16）
+
+- 2026-08-14 从 FirstPerson 迁出的资产当时进入 `/Game/Variant_Shooter`，后续在独立 Content 目录整理任务中再次迁入 `/Game/Shooter` 正式目录。
+- `/Game/Variant_Shooter` 已移除；`/Game/Shooter` 为 Shooter 正式 Content 根，按资产类型组织（Blueprints / Animation / Data / Input / UI / FX / Materials / Meshes / Maps）。
+- 本文件的历史迁移记录与审计结论保持不变。

@@ -154,6 +154,10 @@ Source/ShootGame/
 
 只在对应阶段真正需要时创建目录和类型，不预先生成空框架。
 
+## Content 基线
+
+GAS Phase 1 基于新的 `/Game/Shooter` Content 基线开始：Shooter 正式资产已从 `/Game/Variant_Shooter` 收束到按资产类型组织的 `/Game/Shooter`（Blueprints / Animation / Data / Input / UI / FX / Materials / Meshes），地图位于 `/Game/Shooter/Maps/`。
+
 ## 分阶段实施顺序
 
 除阶段 8 按 P2、P3、P4、P5 拆成四个子提交外，每个阶段只形成一个提交。提交前必须按 [开发记录规范](../开发记录/README.md) 新建对应中文记录，并把改动、验证、问题和遗留项与代码放入同一提交。
