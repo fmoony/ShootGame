@@ -3,7 +3,7 @@ param(
     [string]$EngineRoot = "E:\Unreal_Engine\UE_5.6",
     [string]$ProjectPath = "",
     [string]$TestFilter = "ShootGame",
-    [string]$MapPath = "/Game/Variant_Shooter/Lvl_Shooter",
+    [string]$MapPath = "/Game/Shooter/Maps/Lvl_Shooter",
     [ValidateRange(1, 8)]
     [int]$ClientCount = 2,
     [ValidateRange(1024, 65535)]
