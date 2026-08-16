@@ -229,8 +229,8 @@ namespace ShooterWeaponAutomationTests
 			CharacterDefaults->GetMesh()->bOwnerNoSee);
 
 		const TCHAR* ThirdPersonAnimClassPaths[] = {
-			TEXT("/Game/Variant_Shooter/Anims/ABP_TP_Rifle.ABP_TP_Rifle_C"),
-			TEXT("/Game/Variant_Shooter/Anims/ABP_TP_Pistol.ABP_TP_Pistol_C"),
+			TEXT("/Game/Shooter/Animation/ThirdPerson/ABP_TP_Rifle.ABP_TP_Rifle_C"),
+			TEXT("/Game/Shooter/Animation/ThirdPerson/ABP_TP_Pistol.ABP_TP_Pistol_C"),
 		};
 		for (const TCHAR* AnimClassPath : ThirdPersonAnimClassPaths)
 		{
@@ -266,11 +266,11 @@ bool FShooterWeaponConfigurationTest::RunTest(const FString& Parameters)
 	bSucceeded &= TestWeaponConfiguration(
 		*this,
 		TEXT("Rifle"),
-		TEXT("/Game/Variant_Shooter/Blueprints/Pickups/Weapons/BP_ShooterWeapon_Rifle.BP_ShooterWeapon_Rifle_C"));
+		TEXT("/Game/Shooter/Blueprints/Weapons/BP_ShooterWeapon_Rifle.BP_ShooterWeapon_Rifle_C"));
 	bSucceeded &= TestWeaponConfiguration(
 		*this,
 		TEXT("Pistol"),
-		TEXT("/Game/Variant_Shooter/Blueprints/Pickups/Weapons/BP_ShooterWeapon_Pistol.BP_ShooterWeapon_Pistol_C"));
+		TEXT("/Game/Shooter/Blueprints/Weapons/BP_ShooterWeapon_Pistol.BP_ShooterWeapon_Pistol_C"));
 	bSucceeded &= TestCharacterReplication(*this);
 	bSucceeded &= TestMatchStateReplication(*this);
 	bSucceeded &= TestAnimationConfiguration(*this);

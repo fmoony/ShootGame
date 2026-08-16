@@ -57,7 +57,7 @@ void AShooterPlayerController::BeginPlay()
 	{
 		ShooterUIClass = LoadClass<UShooterUI>(
 			nullptr,
-			TEXT("/Game/Variant_Shooter/UI/UI_Shooter.UI_Shooter_C"));
+			TEXT("/Game/Shooter/UI/UI_Shooter.UI_Shooter_C"));
 	}
 
 	ShooterUI = CreateWidget<UShooterUI>(this, ShooterUIClass);

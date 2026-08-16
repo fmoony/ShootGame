@@ -26,9 +26,9 @@ namespace ShooterNetworkTest
 	constexpr float PollIntervalSeconds = 0.1f;
 	constexpr float TimeoutSeconds = 60.0f;
 	const TCHAR* RifleClassPath =
-		TEXT("/Game/Variant_Shooter/Blueprints/Pickups/Weapons/BP_ShooterWeapon_Rifle.BP_ShooterWeapon_Rifle_C");
+		TEXT("/Game/Shooter/Blueprints/Weapons/BP_ShooterWeapon_Rifle.BP_ShooterWeapon_Rifle_C");
 	const TCHAR* PistolClassPath =
-		TEXT("/Game/Variant_Shooter/Blueprints/Pickups/Weapons/BP_ShooterWeapon_Pistol.BP_ShooterWeapon_Pistol_C");
+		TEXT("/Game/Shooter/Blueprints/Weapons/BP_ShooterWeapon_Pistol.BP_ShooterWeapon_Pistol_C");
 }
 
 AShooterNetworkTestCoordinator::AShooterNetworkTestCoordinator()
