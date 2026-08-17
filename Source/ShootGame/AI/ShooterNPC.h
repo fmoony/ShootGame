@@ -4,30 +4,45 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "AbilitySystemInterface.h"
 #include "ShooterWeaponHolder.h"
 #include "ShooterNPC.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FPawnDeathDelegate);
 
 class AShooterWeapon;
+class UAbilitySystemComponent;
 
 /**
  *  A simple AI-controlled shooter game NPC
  *  Executes its behavior through a StateTree managed by its AI Controller
  *  Holds and manages a weapon
+ *  NPC 的 ASC 由自身持有：Owner = Avatar = NPC，不依赖 PlayerController / PlayerState。
  */
 UCLASS(abstract)
-class SHOOTGAME_API AShooterNPC : public ACharacter, public IShooterWeaponHolder
+class SHOOTGAME_API AShooterNPC : public ACharacter, public IShooterWeaponHolder, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
 public:
+
+	/** 构造函数：创建 NPC 自身的 ASC 并启用 Minimal 复制模式。 */
+	AShooterNPC();
+
+	//~Begin IAbilitySystemInterface
+	/** 返回由本 NPC 持有的能力系统组件。 */
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	//~End IAbilitySystemInterface
 
 	/** Current HP for this character. It dies if it reaches zero through damage */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Damage")
 	float CurrentHP = 100.0f;
 
 protected:
+
+	/** NPC 自身持有的能力系统组件；在专用服务器上无需 Controller 即可独立初始化。 */
+	UPROPERTY(VisibleAnywhere, Category="Abilities")
+	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 
 	/** Name of the collision profile to use during ragdoll death */
 	UPROPERTY(EditAnywhere, Category="Damage")

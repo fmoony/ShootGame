@@ -4,10 +4,23 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "ShooterNPC.h"
 #include "ShooterNetworkTestCoordinator.generated.h"
 
 class AShooterCharacter;
 class AShooterWeapon;
+class AShooterPlayerState;
+class UAbilitySystemComponent;
+
+/**
+ * 仅用于网络测试的 NPC 子类：验证 ShooterNPC C++ 基类的 ASC 生命周期
+ * （Owner = Avatar = NPC），避免依赖 BP_ShooterNPC 的自动占有与武器配置。
+ */
+UCLASS(NotBlueprintable, Transient)
+class AShooterNetworkTestNPC : public AShooterNPC
+{
+	GENERATED_BODY()
+};
 
 /**
  * Drives one owning client through the server-authoritative weapon fire path.
@@ -69,6 +82,12 @@ private:
 	UFUNCTION(Server, Reliable)
 	void ServerReportClientObservedRemoteMontage();
 
+	UFUNCTION(Server, Reliable)
+	void ServerReportClientObservedGasLifecycle();
+
+	UFUNCTION(Server, Reliable)
+	void ServerReportClientObservedGasRespawn();
+
 	AShooterCharacter* GetShooterCharacter() const;
 	AShooterWeapon* GetCurrentWeapon(AShooterCharacter* Character) const;
 	AController* GetOpponentController() const;
@@ -115,6 +134,19 @@ private:
 	bool bClientSetAimPitch = false;
 	bool bClientReportedRemoteAim = false;
 	bool bClientReportedRemoteMontage = false;
+	bool bServerGasLifecycleChecked = false;
+	bool bServerGasOwnerOk = false;
+	bool bServerGasAvatarOk = false;
+	bool bServerGasConnectionOk = false;
+	bool bNpcGasLifecycleChecked = false;
+	bool bNpcGasLifecycleOk = false;
+	bool bServerGasRespawnChecked = false;
+	bool bServerGasRespawnOk = false;
+	bool bClientObservedGasLifecycle = false;
+	bool bClientObservedGasRespawn = false;
+	bool bClientReportedGasLifecycle = false;
+	bool bClientReportedGasRespawn = false;
+	TWeakObjectPtr<UAbilitySystemComponent> ObservedAbilitySystemComponent;
 	bool bServerObservedProjectile = false;
 	bool bAimDirectionValid = false;
 	bool bPartialDamageApplied = false;

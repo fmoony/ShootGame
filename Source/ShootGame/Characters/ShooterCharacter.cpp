@@ -3,6 +3,7 @@
 
 #include "ShooterCharacter.h"
 #include "ShooterWeapon.h"
+#include "AbilitySystemComponent.h"
 #include "EnhancedInputComponent.h"
 #include "Components/InputComponent.h"
 #include "Components/PawnNoiseEmitterComponent.h"
@@ -77,6 +78,21 @@ void AShooterCharacter::BeginPlay()
 
 void AShooterCharacter::EndPlay(EEndPlayReason::Type EndPlayReason)
 {
+	// 角色销毁时若仍是 ASC 的 Avatar，先解除 ActorInfo，避免残留旧 Pawn 引用。
+	// 服务器复活或客户端收到新 Pawn 时会重新建立 ActorInfo。
+	if (AShooterPlayerState* ShooterPlayerState = GetPlayerState<AShooterPlayerState>())
+	{
+		if (IsValid(ShooterPlayerState))
+		{
+			if (UAbilitySystemComponent* AbilitySystemComponent =
+				ShooterPlayerState->GetAbilitySystemComponent();
+				AbilitySystemComponent && AbilitySystemComponent->GetAvatarActor() == this)
+			{
+				AbilitySystemComponent->ClearActorInfo();
+			}
+		}
+	}
+
 	// 清理角色自身的延迟回调，避免销毁后继续触发。
 	GetWorld()->GetTimerManager().ClearTimer(RespawnTimer);
 
@@ -97,6 +113,55 @@ void AShooterCharacter::EndPlay(EEndPlayReason::Type EndPlayReason)
 	}
 
 	Super::EndPlay(EndPlayReason);
+}
+
+void AShooterCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	// 服务器（含监听主机）在占有发生时建立 ASC ActorInfo：Owner=PlayerState，Avatar=本角色。
+	InitializeAbilityActorInfo();
+}
+
+void AShooterCharacter::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	// 客户端在 PlayerState 复制到达后建立 ASC ActorInfo；重生后的新 Pawn 会再次进入这里。
+	InitializeAbilityActorInfo();
+}
+
+UAbilitySystemComponent* AShooterCharacter::GetAbilitySystemComponent() const
+{
+	const AShooterPlayerState* ShooterPlayerState = GetPlayerState<AShooterPlayerState>();
+	return ShooterPlayerState ? ShooterPlayerState->GetAbilitySystemComponent() : nullptr;
+}
+
+void AShooterCharacter::InitializeAbilityActorInfo()
+{
+	AShooterPlayerState* ShooterPlayerState = GetPlayerState<AShooterPlayerState>();
+	UAbilitySystemComponent* AbilitySystemComponent = ShooterPlayerState
+		? ShooterPlayerState->GetAbilitySystemComponent()
+		: nullptr;
+	if (!ShooterPlayerState || !AbilitySystemComponent ||
+		AbilitySystemComponent->GetAvatarActor() == this)
+	{
+		return;
+	}
+
+	AbilitySystemComponent->InitAbilityActorInfo(ShooterPlayerState, this);
+	UE_LOG(
+		LogShootGame,
+		Display,
+		TEXT("GAS ActorInfo init: Actor=%s Role=%d NetMode=%d ASC=%s OwnerActor=%s AvatarActor=%s PlayerState=%s Character=%s"),
+		*GetName(),
+		static_cast<int32>(GetLocalRole()),
+		static_cast<int32>(GetNetMode()),
+		*GetNameSafe(AbilitySystemComponent),
+		*GetNameSafe(AbilitySystemComponent->GetOwnerActor()),
+		*GetNameSafe(AbilitySystemComponent->GetAvatarActor()),
+		*GetNameSafe(ShooterPlayerState),
+		*GetName());
 }
 
 void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

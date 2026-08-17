@@ -3,6 +3,8 @@
 
 #include "ShooterNPC.h"
 #include "ShooterWeapon.h"
+#include "ShootGame.h"
+#include "AbilitySystemComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -12,9 +14,38 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "TimerManager.h"
 
+AShooterNPC::AShooterNPC()
+{
+	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
+	AbilitySystemComponent->SetIsReplicated(true);
+	// Minimal：NPC 只需服务器维护能力状态，客户端只同步最小数据。
+	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
+}
+
+UAbilitySystemComponent* AShooterNPC::GetAbilitySystemComponent() const
+{
+	return AbilitySystemComponent;
+}
+
 void AShooterNPC::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// NPC 的 ASC Owner 与 Avatar 都是自身，在专用服务器上无需 Controller 也能独立初始化。
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->InitAbilityActorInfo(this, this);
+		UE_LOG(
+			LogShootGame,
+			Display,
+			TEXT("GAS NPC ActorInfo init: Actor=%s Role=%d NetMode=%d ASC=%s OwnerActor=%s AvatarActor=%s"),
+			*GetName(),
+			static_cast<int32>(GetLocalRole()),
+			static_cast<int32>(GetNetMode()),
+			*GetNameSafe(AbilitySystemComponent),
+			*GetNameSafe(AbilitySystemComponent->GetOwnerActor()),
+			*GetNameSafe(AbilitySystemComponent->GetAvatarActor()));
+	}
 
 	// spawn the weapon
 	FActorSpawnParameters SpawnParams;
@@ -28,6 +59,12 @@ void AShooterNPC::BeginPlay()
 void AShooterNPC::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
+
+	// 销毁时解除 ASC ActorInfo，避免残留已销毁 Actor 的引用。
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->ClearActorInfo();
+	}
 
 	// clear the death timer
 	GetWorld()->GetTimerManager().ClearTimer(DeathTimer);

@@ -8,6 +8,7 @@
 #include "ShooterCharacter.generated.h"
 
 class AShooterWeapon;
+class UAbilitySystemComponent;
 class UInputAction;
 class UInputComponent;
 class UPawnNoiseEmitterComponent;
@@ -140,10 +141,22 @@ public:
 	/** Constructor */
 	AShooterCharacter();
 
+	/** 返回 PlayerState 持有的玩家 ASC；PlayerState 或 ASC 不存在时返回 nullptr。 */
+	UAbilitySystemComponent* GetAbilitySystemComponent() const;
+
 protected:
 
 	/** Gameplay initialization */
 	virtual void BeginPlay() override;
+
+	/** 服务器（含监听主机）在占有发生时建立 ASC ActorInfo。 */
+	virtual void PossessedBy(AController* NewController) override;
+
+	/** 客户端在 PlayerState 复制到达后建立 ASC ActorInfo（含重生后的新 Pawn）。 */
+	virtual void OnRep_PlayerState() override;
+
+	/** 幂等建立 PlayerState ASC 的 Owner/Avatar 关系。 */
+	void InitializeAbilityActorInfo();
 
 	/** 客户端收到 RemoteViewPitch 后刷新远端第三人称瞄准俯仰。 */
 	virtual void PostNetReceive() override;

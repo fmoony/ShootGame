@@ -15,6 +15,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
+#include "AbilitySystemComponent.h"
 #include "ShooterCharacter.h"
 #include "ShooterGameState.h"
 #include "ShooterPlayerState.h"
@@ -107,6 +108,78 @@ void AShooterNetworkTestCoordinator::PollServerState()
 	if (!GameState || GameState->PlayerArray.Num() < 2)
 	{
 		return;
+	}
+
+	// ---- GAS ASC 生命周期（服务器视角）：Owner=PlayerState，Avatar=当前角色 ----
+	if (!bServerGasLifecycleChecked)
+	{
+		bServerGasLifecycleChecked = true;
+
+		const APlayerController* PlayerController = Cast<APlayerController>(GetOwner());
+		AShooterPlayerState* ShooterPlayerState = PlayerController
+			? PlayerController->GetPlayerState<AShooterPlayerState>()
+			: nullptr;
+		UAbilitySystemComponent* AbilitySystemComponent = ShooterPlayerState
+			? ShooterPlayerState->GetAbilitySystemComponent()
+			: nullptr;
+
+		bServerGasOwnerOk = AbilitySystemComponent &&
+			AbilitySystemComponent->GetOwnerActor() == ShooterPlayerState;
+		bServerGasAvatarOk = AbilitySystemComponent &&
+			AbilitySystemComponent->GetAvatarActor() == Character;
+		// Mixed 复制模式依赖 OwnerActor（PlayerState → PlayerController）的网络连接。
+		// 运行时事实：监听服务器的主机玩家是本地权威玩家，PlayerState 没有网络连接，
+		// 属于预期情况；连接要求只对远程客户端成立。
+		bServerGasConnectionOk = (ShooterPlayerState &&
+			ShooterPlayerState->GetNetConnection() != nullptr) ||
+			(GetNetMode() == NM_ListenServer && PlayerController && PlayerController->IsLocalController());
+		ObservedAbilitySystemComponent = AbilitySystemComponent;
+
+		if (!bServerGasOwnerOk || !bServerGasAvatarOk || !bServerGasConnectionOk)
+		{
+			FailTest(FString::Printf(
+				TEXT("Server-side GAS ASC lifecycle invalid; ASC=%s OwnerOk=%s AvatarOk=%s ConnectionOk=%s Owner=%s Avatar=%s"),
+				*GetNameSafe(AbilitySystemComponent),
+				bServerGasOwnerOk ? TEXT("true") : TEXT("false"),
+				bServerGasAvatarOk ? TEXT("true") : TEXT("false"),
+				bServerGasConnectionOk ? TEXT("true") : TEXT("false"),
+				*GetNameSafe(AbilitySystemComponent ? AbilitySystemComponent->GetOwnerActor() : nullptr),
+				*GetNameSafe(AbilitySystemComponent ? AbilitySystemComponent->GetAvatarActor() : nullptr)));
+			return;
+		}
+	}
+
+	// ---- GAS NPC ASC 生命周期（服务器视角）：Owner=Avatar=NPC ----
+	if (!bNpcGasLifecycleChecked)
+	{
+		bNpcGasLifecycleChecked = true;
+
+		// 生成无控制器的测试 NPC，验证其 ASC 后立即销毁。
+		FActorSpawnParameters SpawnParameters;
+		SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		AShooterNetworkTestNPC* TestNpc = GetWorld()->SpawnActor<AShooterNetworkTestNPC>(
+			FVector::ZeroVector,
+			FRotator::ZeroRotator,
+			SpawnParameters);
+		if (!TestNpc)
+		{
+			FailTest(TEXT("Server could not spawn the GAS NPC lifecycle test actor"));
+			return;
+		}
+
+		UAbilitySystemComponent* NpcAbilitySystemComponent = TestNpc->GetAbilitySystemComponent();
+		bNpcGasLifecycleOk = NpcAbilitySystemComponent &&
+			NpcAbilitySystemComponent->GetOwnerActor() == TestNpc &&
+			NpcAbilitySystemComponent->GetAvatarActor() == TestNpc;
+		if (!bNpcGasLifecycleOk)
+		{
+			FailTest(FString::Printf(
+				TEXT("NPC GAS ASC lifecycle invalid; ASC=%s Owner=%s Avatar=%s"),
+				*GetNameSafe(NpcAbilitySystemComponent),
+				*GetNameSafe(NpcAbilitySystemComponent ? NpcAbilitySystemComponent->GetOwnerActor() : nullptr),
+				*GetNameSafe(NpcAbilitySystemComponent ? NpcAbilitySystemComponent->GetAvatarActor() : nullptr)));
+		}
+		TestNpc->Destroy();
 	}
 
 	if (APlayerController* OwnerController = Cast<APlayerController>(GetOwner());
@@ -258,9 +331,40 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		PlayerController && PlayerController->GetPawn() == Character &&
 		Character->GetController() == PlayerController;
 
+	// ---- GAS ASC 重生生命周期（服务器视角）：ASC 本体与 Owner 不变，Avatar 切换到新角色 ----
+	if (bServerObservedRespawn && bLethalDamageApplied && !bServerGasRespawnChecked)
+	{
+		bServerGasRespawnChecked = true;
+
+		AShooterPlayerState* ShooterPlayerState = PlayerController
+			? PlayerController->GetPlayerState<AShooterPlayerState>()
+			: nullptr;
+		UAbilitySystemComponent* AbilitySystemComponent = ShooterPlayerState
+			? ShooterPlayerState->GetAbilitySystemComponent()
+			: nullptr;
+		bServerGasRespawnOk = AbilitySystemComponent &&
+			AbilitySystemComponent == ObservedAbilitySystemComponent.Get() &&
+			AbilitySystemComponent->GetOwnerActor() == ShooterPlayerState &&
+			AbilitySystemComponent->GetAvatarActor() == Character &&
+			Character != CharacterBeforeDeath.Get();
+
+		if (!bServerGasRespawnOk)
+		{
+			FailTest(FString::Printf(
+				TEXT("Server-side GAS ASC respawn avatar invalid; ASC=%s SameASC=%s OwnerOk=%s Avatar=%s OldAvatar=%s"),
+				*GetNameSafe(AbilitySystemComponent),
+				AbilitySystemComponent == ObservedAbilitySystemComponent.Get() ? TEXT("true") : TEXT("false"),
+				AbilitySystemComponent && AbilitySystemComponent->GetOwnerActor() == ShooterPlayerState ? TEXT("true") : TEXT("false"),
+				*GetNameSafe(AbilitySystemComponent ? AbilitySystemComponent->GetAvatarActor() : nullptr),
+				*GetNameSafe(CharacterBeforeDeath.Get())));
+			return;
+		}
+	}
+
 	if (bLethalDamageApplied && bClientObservedDeath && bClientObservedRespawn &&
 		bClientObservedMatchState && bClientObservedRemoteAim &&
-		(!bRequireRemoteMontage || bClientObservedRemoteMontage) && bServerObservedRespawn)
+		(!bRequireRemoteMontage || bClientObservedRemoteMontage) && bServerObservedRespawn &&
+		bClientObservedGasLifecycle && bClientObservedGasRespawn && bServerGasRespawnOk)
 	{
 		const int32 PlayerId = PlayerController && PlayerController->PlayerState
 			? PlayerController->PlayerState->GetPlayerId()
@@ -269,7 +373,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		UE_LOG(
 			LogShootGame,
 			Display,
-			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS PlayerId=%d Switch=true OwnerAmmo=true NonOwnerAmmoHidden=true Bullets=%d->%d HP=%.0f->0 Dead=true Respawn=true RespawnHP=%.0f AimDot=%.3f Team=%u Kills=%d Deaths=%d TeamScore=%d RemotePitch=%.3f/%.3f RemoteMontage=%s"),
+			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS PlayerId=%d Switch=true OwnerAmmo=true NonOwnerAmmoHidden=true Bullets=%d->%d HP=%.0f->0 Dead=true Respawn=true RespawnHP=%.0f AimDot=%.3f Team=%u Kills=%d Deaths=%d TeamScore=%d RemotePitch=%.3f/%.3f RemoteMontage=%s GasServer=%s/%s/%s GasNPC=%s GasRespawn=%s GasClient=%s GasClientRespawn=%s"),
 			PlayerId,
 			InitialBulletCount,
 			BulletCountAfterFire,
@@ -282,7 +386,14 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			ObservedTeamScore,
 			ObservedRemotePitchN,
 			ExpectedRemotePitchN,
-			bClientObservedRemoteMontage ? TEXT("true") : TEXT("skipped"));
+			bClientObservedRemoteMontage ? TEXT("true") : TEXT("skipped"),
+			bServerGasOwnerOk ? TEXT("true") : TEXT("false"),
+			bServerGasAvatarOk ? TEXT("true") : TEXT("false"),
+			bServerGasConnectionOk ? TEXT("true") : TEXT("false"),
+			bNpcGasLifecycleOk ? TEXT("true") : TEXT("false"),
+			bServerGasRespawnOk ? TEXT("true") : TEXT("false"),
+			bClientObservedGasLifecycle ? TEXT("true") : TEXT("false"),
+			bClientObservedGasRespawn ? TEXT("true") : TEXT("false"));
 		GetWorldTimerManager().ClearTimer(PollTimer);
 		return;
 	}
@@ -302,7 +413,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			: INDEX_NONE;
 
 		FailTest(FString::Printf(
-			TEXT("Timed out waiting for network state; switch=%s weapon=%s clientProjectile=%s ownerAmmo=%s nonOwnerAmmo=%s serverProjectile=%s aim=%s damage=%s death=%s respawn=%s matchState=%s remoteAim=%s remoteMontage=%s bullets=%d->%d hp=%.0f team=%u kills=%d deaths=%d score=%.0f teamScore=%d"),
+			TEXT("Timed out waiting for network state; switch=%s weapon=%s clientProjectile=%s ownerAmmo=%s nonOwnerAmmo=%s serverProjectile=%s aim=%s damage=%s death=%s respawn=%s matchState=%s remoteAim=%s remoteMontage=%s gasOwner=%s gasAvatar=%s gasConnection=%s gasNpc=%s gasRespawn=%s gasClient=%s gasClientRespawn=%s bullets=%d->%d hp=%.0f team=%u kills=%d deaths=%d score=%.0f teamScore=%d"),
 			bClientObservedSwitch ? TEXT("true") : TEXT("false"),
 			bClientObservedWeapon ? TEXT("true") : TEXT("false"),
 			bClientObservedProjectile ? TEXT("true") : TEXT("false"),
@@ -316,6 +427,13 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			bClientObservedMatchState ? TEXT("true") : TEXT("false"),
 			bClientObservedRemoteAim ? TEXT("true") : TEXT("false"),
 			bClientObservedRemoteMontage ? TEXT("true") : TEXT("false"),
+			bServerGasOwnerOk ? TEXT("true") : TEXT("false"),
+			bServerGasAvatarOk ? TEXT("true") : TEXT("false"),
+			bServerGasConnectionOk ? TEXT("true") : TEXT("false"),
+			bNpcGasLifecycleOk ? TEXT("true") : TEXT("false"),
+			bServerGasRespawnOk ? TEXT("true") : TEXT("false"),
+			bClientObservedGasLifecycle ? TEXT("true") : TEXT("false"),
+			bClientObservedGasRespawn ? TEXT("true") : TEXT("false"),
 			InitialBulletCount,
 			CurrentBulletCount,
 			Character->GetCurrentHP(),
@@ -373,6 +491,24 @@ void AShooterNetworkTestCoordinator::PollClientState()
 		ControlRotation.Pitch = 30.0f;
 		PlayerController->SetControlRotation(ControlRotation);
 		bClientSetAimPitch = true;
+	}
+
+	// ---- GAS ASC 生命周期（拥有者客户端视角）：Owner=PlayerState，Avatar=本地角色 ----
+	if (!bClientReportedGasLifecycle)
+	{
+		AShooterPlayerState* ShooterPlayerState =
+			PlayerController->GetPlayerState<AShooterPlayerState>();
+		UAbilitySystemComponent* AbilitySystemComponent = ShooterPlayerState
+			? ShooterPlayerState->GetAbilitySystemComponent()
+			: nullptr;
+		if (AbilitySystemComponent &&
+			AbilitySystemComponent->GetOwnerActor() == ShooterPlayerState &&
+			AbilitySystemComponent->GetAvatarActor() == Character &&
+			Character->IsLocallyControlled())
+		{
+			bClientReportedGasLifecycle = true;
+			ServerReportClientObservedGasLifecycle();
+		}
 	}
 
 	for (TActorIterator<AShooterCharacter> It(GetWorld()); It; ++It)
@@ -505,6 +641,23 @@ void AShooterNetworkTestCoordinator::PollClientState()
 		ServerReportClientObservedRespawn();
 	}
 
+	// ---- GAS ASC 重生生命周期（拥有者客户端视角）：Avatar 切换到复活后的新角色 ----
+	if (bClientReportedRespawn && !bClientReportedGasRespawn)
+	{
+		AShooterPlayerState* ShooterPlayerState =
+			PlayerController->GetPlayerState<AShooterPlayerState>();
+		UAbilitySystemComponent* AbilitySystemComponent = ShooterPlayerState
+			? ShooterPlayerState->GetAbilitySystemComponent()
+			: nullptr;
+		if (AbilitySystemComponent &&
+			AbilitySystemComponent->GetOwnerActor() == ShooterPlayerState &&
+			AbilitySystemComponent->GetAvatarActor() == Character)
+		{
+			bClientReportedGasRespawn = true;
+			ServerReportClientObservedGasRespawn();
+		}
+	}
+
 	if (!bClientReportedMatchState)
 	{
 		const AShooterPlayerState* ShooterPlayerState =
@@ -596,6 +749,16 @@ void AShooterNetworkTestCoordinator::ServerReportClientObservedRemoteAim_Impleme
 void AShooterNetworkTestCoordinator::ServerReportClientObservedRemoteMontage_Implementation()
 {
 	bClientObservedRemoteMontage = true;
+}
+
+void AShooterNetworkTestCoordinator::ServerReportClientObservedGasLifecycle_Implementation()
+{
+	bClientObservedGasLifecycle = true;
+}
+
+void AShooterNetworkTestCoordinator::ServerReportClientObservedGasRespawn_Implementation()
+{
+	bClientObservedGasRespawn = true;
 }
 
 AShooterCharacter* AShooterNetworkTestCoordinator::GetShooterCharacter() const
