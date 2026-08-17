@@ -5,6 +5,9 @@
 #include "ShooterWeapon.h"
 #include "ShootGame.h"
 #include "AbilitySystemComponent.h"
+#include "GameplayEffectTypes.h"
+#include "ShooterAttributeSet.h"
+#include "ShooterGameplayEffectStatics.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -20,6 +23,8 @@ AShooterNPC::AShooterNPC()
 	AbilitySystemComponent->SetIsReplicated(true);
 	// Minimal：NPC 只需服务器维护能力状态，客户端只同步最小数据。
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
+
+	AttributeSet = CreateDefaultSubobject<UShooterAttributeSet>(TEXT("AttributeSet"));
 }
 
 UAbilitySystemComponent* AShooterNPC::GetAbilitySystemComponent() const
@@ -47,6 +52,21 @@ void AShooterNPC::BeginPlay()
 			*GetNameSafe(AbilitySystemComponent->GetAvatarActor()));
 	}
 
+	// 注册属性集并绑定 Health 变化桥接；服务器写入出生生命。
+	if (AbilitySystemComponent)
+	{
+		if (AttributeSet)
+		{
+			AbilitySystemComponent->AddAttributeSetSubobject(AttributeSet.Get());
+		}
+		BindHealthAttributeDelegate();
+		if (HasAuthority())
+		{
+			// 出生生命沿用 NPC 的 CurrentHP 配置值（模板默认 100）。
+			UShooterGameplayEffectStatics::ApplyInitHealthEffect(AbilitySystemComponent, CurrentHP);
+		}
+	}
+
 	// spawn the weapon
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = this;
@@ -54,6 +74,35 @@ void AShooterNPC::BeginPlay()
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
 	Weapon = GetWorld()->SpawnActor<AShooterWeapon>(WeaponClass, GetActorTransform(), SpawnParams);
+}
+
+void AShooterNPC::BindHealthAttributeDelegate()
+{
+	if (bHealthAttributeDelegateBound || !AbilitySystemComponent)
+	{
+		return;
+	}
+
+	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
+		UShooterAttributeSet::GetHealthAttribute())
+		.AddUObject(this, &AShooterNPC::HandleHealthAttributeChanged);
+	bHealthAttributeDelegateBound = true;
+}
+
+void AShooterNPC::HandleHealthAttributeChanged(const FOnAttributeChangeData& ChangeData)
+{
+	// NPC 属性不向客户端复制（Minimal），桥接只对服务器有意义。
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	// 镜像保留给蓝图 / StateTree 可能的读取；死亡进入现有 Die() 流程。
+	CurrentHP = ChangeData.NewValue;
+	if (ChangeData.NewValue <= 0.0f && !bIsDead)
+	{
+		Die();
+	}
 }
 
 void AShooterNPC::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -72,22 +121,37 @@ void AShooterNPC::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 float AShooterNPC::TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-	// ignore if already dead
-	if (bIsDead)
+	// 服务器权威：NPC 伤害只由服务器（弹丸命中）施加；死亡后不重复处理。
+	if (!HasAuthority() || bIsDead || Damage <= 0.0f)
 	{
 		return 0.0f;
 	}
 
-	// Reduce HP
-	CurrentHP -= Damage;
-
-	// Have we depleted HP?
-	if (CurrentHP <= 0.0f)
+	UAbilitySystemComponent* NpcAbilitySystemComponent = GetAbilitySystemComponent();
+	if (!NpcAbilitySystemComponent)
 	{
-		Die();
+		return 0.0f;
 	}
 
-	return Damage;
+	// 实际作用量不超过当前属性生命；属性归零由 Health 变化桥接进入现有 Die() 流程。
+	const float CurrentHealth = NpcAbilitySystemComponent->GetNumericAttribute(
+		UShooterAttributeSet::GetHealthAttribute());
+	const float AppliedDamage = FMath::Clamp(Damage, 0.0f, CurrentHealth);
+	if (AppliedDamage <= 0.0f)
+	{
+		return 0.0f;
+	}
+
+	// 保持引擎伤害广播链（OnTakeAnyDamage 等）。
+	Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
+
+	UShooterGameplayEffectStatics::ApplyDamageEffect(
+		NpcAbilitySystemComponent,
+		AppliedDamage,
+		EventInstigator,
+		DamageCauser);
+
+	return AppliedDamage;
 }
 
 void AShooterNPC::AttachWeaponMeshes(AShooterWeapon* WeaponToAttach)
@@ -239,6 +303,9 @@ void AShooterNPC::StopShooting()
 	// lower the flag
 	bIsShooting = false;
 
-	// signal the weapon
-	Weapon->StopFiring();
+	// 武器可能尚未生成（例如监听服务器主机登录早于 NPC BeginPlay），安全跳过。
+	if (Weapon)
+	{
+		Weapon->StopFiring();
+	}
 }

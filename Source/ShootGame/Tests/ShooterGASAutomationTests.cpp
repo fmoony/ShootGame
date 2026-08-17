@@ -5,6 +5,7 @@
 #include "Misc/AutomationTest.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemInterface.h"
+#include "ShooterAttributeSet.h"
 #include "ShooterNPC.h"
 #include "ShooterPlayerState.h"
 
@@ -60,6 +61,44 @@ namespace ShooterGASAutomationTests
 
 		return true;
 	}
+
+	bool TestAttributeSetSubobject(FAutomationTestBase& Test, const TCHAR* ClassName, UClass* Class)
+	{
+		const FObjectPropertyBase* Property = FindFProperty<FObjectPropertyBase>(
+			Class,
+			TEXT("AttributeSet"));
+		if (!Test.TestNotNull(
+			FString::Printf(TEXT("%s exposes AttributeSet"), ClassName),
+			Property))
+		{
+			return false;
+		}
+
+		const AActor* Defaults = Class->GetDefaultObject<AActor>();
+		const UObject* AttributeSet = Property->GetObjectPropertyValue_InContainer(Defaults);
+		return Test.TestTrue(
+			FString::Printf(TEXT("%s default AttributeSet is ShooterAttributeSet"), ClassName),
+			AttributeSet && AttributeSet->IsA<UShooterAttributeSet>());
+	}
+
+	bool TestHealthAttributes(FAutomationTestBase& Test)
+	{
+		Test.TestTrue(
+			TEXT("Health attribute handle is valid"),
+			UShooterAttributeSet::GetHealthAttribute().IsValid());
+		Test.TestTrue(
+			TEXT("MaxHealth attribute handle is valid"),
+			UShooterAttributeSet::GetMaxHealthAttribute().IsValid());
+
+		Test.TestNotNull(
+			TEXT("ShooterAttributeSet exposes Health property"),
+			FindFProperty<FStructProperty>(UShooterAttributeSet::StaticClass(), TEXT("Health")));
+		Test.TestNotNull(
+			TEXT("ShooterAttributeSet exposes MaxHealth property"),
+			FindFProperty<FStructProperty>(UShooterAttributeSet::StaticClass(), TEXT("MaxHealth")));
+
+		return true;
+	}
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
@@ -82,6 +121,15 @@ bool FShooterGasConfigurationTest::RunTest(const FString& Parameters)
 		TEXT("ShooterNPC"),
 		AShooterNPC::StaticClass(),
 		EGameplayEffectReplicationMode::Minimal);
+	bSucceeded &= TestAttributeSetSubobject(
+		*this,
+		TEXT("ShooterPlayerState"),
+		AShooterPlayerState::StaticClass());
+	bSucceeded &= TestAttributeSetSubobject(
+		*this,
+		TEXT("ShooterNPC"),
+		AShooterNPC::StaticClass());
+	bSucceeded &= TestHealthAttributes(*this);
 
 	return bSucceeded;
 }

@@ -4,6 +4,7 @@
 
 #include "ShootGame.h"
 #include "Animation/AnimInstance.h"
+#include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
@@ -16,6 +17,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "AbilitySystemComponent.h"
+#include "ShooterAttributeSet.h"
 #include "ShooterCharacter.h"
 #include "ShooterGameState.h"
 #include "ShooterPlayerState.h"
@@ -94,6 +96,22 @@ void AShooterNetworkTestCoordinator::GetLifetimeReplicatedProps(
 
 void AShooterNetworkTestCoordinator::PollServerState()
 {
+	// 网络测试期间停用地图 NPC 的 AI 与射击：首次轮询时世界已开始运行，
+	// 能覆盖监听服务器上晚于 PostLogin 才完成拥有的 NPC。只停止行为，不销毁 NPC。
+	if (!bNpcAiSuppressed)
+	{
+		bNpcAiSuppressed = true;
+		for (TActorIterator<AShooterNPC> It(GetWorld()); It; ++It)
+		{
+			AShooterNPC* Npc = *It;
+			Npc->StopShooting();
+			if (AController* NpcController = Npc->GetController())
+			{
+				NpcController->Destroy();
+			}
+		}
+	}
+
 	AShooterCharacter* Character = GetShooterCharacter();
 	if (!Character)
 	{
@@ -147,6 +165,25 @@ void AShooterNetworkTestCoordinator::PollServerState()
 				*GetNameSafe(AbilitySystemComponent ? AbilitySystemComponent->GetAvatarActor() : nullptr)));
 			return;
 		}
+
+		// GAS Health 初始化：出生后 Health == MaxHealth 且大于零（初始化效果已同步应用）。
+		bServerGasHealthInitChecked = true;
+		const float MaxHealthAttributeValue = AbilitySystemComponent
+			? AbilitySystemComponent->GetNumericAttribute(UShooterAttributeSet::GetMaxHealthAttribute())
+			: 0.0f;
+		const float HealthAttributeValue = AbilitySystemComponent
+			? AbilitySystemComponent->GetNumericAttribute(UShooterAttributeSet::GetHealthAttribute())
+			: 0.0f;
+		bServerGasHealthInitOk = MaxHealthAttributeValue > 0.0f &&
+			FMath::IsNearlyEqual(HealthAttributeValue, MaxHealthAttributeValue, 0.01f);
+		if (!bServerGasHealthInitOk)
+		{
+			FailTest(FString::Printf(
+				TEXT("Server-side GAS health init invalid; MaxHealth=%.1f Health=%.1f"),
+				MaxHealthAttributeValue,
+				HealthAttributeValue));
+			return;
+		}
 	}
 
 	// ---- GAS NPC ASC 生命周期（服务器视角）：Owner=Avatar=NPC ----
@@ -178,6 +215,45 @@ void AShooterNetworkTestCoordinator::PollServerState()
 				*GetNameSafe(NpcAbilitySystemComponent),
 				*GetNameSafe(NpcAbilitySystemComponent ? NpcAbilitySystemComponent->GetOwnerActor() : nullptr),
 				*GetNameSafe(NpcAbilitySystemComponent ? NpcAbilitySystemComponent->GetAvatarActor() : nullptr)));
+		}
+
+		// NPC Health 初始化 + 致死伤害桥接：属性归零进入现有 Die() 死亡流程。
+		if (NpcAbilitySystemComponent)
+		{
+			const float NpcMaxHealth = NpcAbilitySystemComponent->GetNumericAttribute(
+				UShooterAttributeSet::GetMaxHealthAttribute());
+			const float NpcHealthBefore = NpcAbilitySystemComponent->GetNumericAttribute(
+				UShooterAttributeSet::GetHealthAttribute());
+			bNpcGasHealthInitOk = NpcMaxHealth > 0.0f &&
+				FMath::IsNearlyEqual(NpcHealthBefore, NpcMaxHealth, 0.01f);
+			if (bNpcGasHealthInitOk)
+			{
+				UGameplayStatics::ApplyDamage(TestNpc, NpcMaxHealth + 100.0f, nullptr, this, nullptr);
+				const float NpcHealthAfter = NpcAbilitySystemComponent->GetNumericAttribute(
+					UShooterAttributeSet::GetHealthAttribute());
+				// bIsDead 是未反射的私有成员；用可观察证据判定死亡：
+				// 属性归零 + CurrentHP 镜像归零 + 现有 Die() 流程禁用胶囊碰撞。
+				// 不用布娃娃物理作为证据：测试 NPC 使用 C++ 裸默认网格，没有物理资产。
+				bNpcGasDeathOk = NpcHealthAfter <= 0.0f &&
+					TestNpc->CurrentHP <= 0.0f &&
+					TestNpc->GetCapsuleComponent() &&
+					TestNpc->GetCapsuleComponent()->GetCollisionEnabled() == ECollisionEnabled::NoCollision;
+			}
+		}
+		if (!bNpcGasHealthInitOk || !bNpcGasDeathOk)
+		{
+			FailTest(FString::Printf(
+				TEXT("NPC GAS health bridge invalid; InitOk=%s DeathOk=%s Health=%.1f CurrentHP=%.1f CapsuleCollision=%s"),
+				bNpcGasHealthInitOk ? TEXT("true") : TEXT("false"),
+				bNpcGasDeathOk ? TEXT("true") : TEXT("false"),
+				NpcAbilitySystemComponent
+					? NpcAbilitySystemComponent->GetNumericAttribute(UShooterAttributeSet::GetHealthAttribute())
+					: -1.0f,
+				TestNpc->CurrentHP,
+				TestNpc->GetCapsuleComponent() &&
+					TestNpc->GetCapsuleComponent()->GetCollisionEnabled() == ECollisionEnabled::NoCollision
+					? TEXT("NoCollision")
+					: TEXT("not-disabled")));
 		}
 		TestNpc->Destroy();
 	}
@@ -263,6 +339,14 @@ void AShooterNetworkTestCoordinator::PollServerState()
 	{
 		BulletCountAfterFire = CurrentBulletCount;
 		InitialHP = Character->GetCurrentHP();
+		// GAS：记录伤害前属性生命，随后验证部分伤害恰好只应用一次。
+		if (UAbilitySystemComponent* AbilitySystemComponent = Character->GetAbilitySystemComponent())
+		{
+			InitialAttributeHealth = AbilitySystemComponent->GetNumericAttribute(
+				UShooterAttributeSet::GetHealthAttribute());
+			ExpectedPartialHealth = InitialAttributeHealth -
+				FMath::Max(1.0f, Character->GetMaxHP() * 0.25f);
+		}
 		UGameplayStatics::ApplyDamage(
 			Character,
 			FMath::Max(1.0f, Character->GetMaxHP() * 0.25f),
@@ -271,6 +355,27 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			nullptr);
 		bPartialDamageApplied = true;
 		return;
+	}
+
+	if (bPartialDamageApplied && !bServerGasDamageChecked)
+	{
+		bServerGasDamageChecked = true;
+		if (UAbilitySystemComponent* AbilitySystemComponent = Character->GetAbilitySystemComponent())
+		{
+			const float HealthAfterPartial = AbilitySystemComponent->GetNumericAttribute(
+				UShooterAttributeSet::GetHealthAttribute());
+			bServerGasDamageOk = HealthAfterPartial < InitialAttributeHealth &&
+				FMath::IsNearlyEqual(HealthAfterPartial, ExpectedPartialHealth, 0.01f);
+			if (!bServerGasDamageOk)
+			{
+				FailTest(FString::Printf(
+					TEXT("Server-side GAS partial damage invalid; Before=%.1f Expected=%.1f After=%.1f"),
+					InitialAttributeHealth,
+					ExpectedPartialHealth,
+					HealthAfterPartial));
+				return;
+			}
+		}
 	}
 
 	if (bPartialDamageApplied && bClientObservedDamage && !bLethalDamageApplied)
@@ -290,6 +395,22 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			nullptr);
 		bLethalDamageApplied = true;
 		return;
+	}
+
+	if (bLethalDamageApplied && !bServerGasDeathChecked && Character->IsDead())
+	{
+		bServerGasDeathChecked = true;
+		if (UAbilitySystemComponent* AbilitySystemComponent = Character->GetAbilitySystemComponent())
+		{
+			const float HealthAfterLethal = AbilitySystemComponent->GetNumericAttribute(
+				UShooterAttributeSet::GetHealthAttribute());
+			bServerGasDeathOk = HealthAfterLethal <= 0.0f;
+		}
+		if (!bServerGasDeathOk)
+		{
+			FailTest(TEXT("Server-side GAS lethal damage did not reduce Health to zero"));
+			return;
+		}
 	}
 
 	if (GetNetMode() == NM_ListenServer && bLethalDamageApplied &&
@@ -342,21 +463,35 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		UAbilitySystemComponent* AbilitySystemComponent = ShooterPlayerState
 			? ShooterPlayerState->GetAbilitySystemComponent()
 			: nullptr;
+		// 新 Pawn 满血：初始化效果在 PossessedBy 时同步应用。
+		float RespawnMaxHealth = 0.0f;
+		float RespawnHealth = 0.0f;
+		if (AbilitySystemComponent)
+		{
+			RespawnMaxHealth = AbilitySystemComponent->GetNumericAttribute(
+				UShooterAttributeSet::GetMaxHealthAttribute());
+			RespawnHealth = AbilitySystemComponent->GetNumericAttribute(
+				UShooterAttributeSet::GetHealthAttribute());
+		}
 		bServerGasRespawnOk = AbilitySystemComponent &&
 			AbilitySystemComponent == ObservedAbilitySystemComponent.Get() &&
 			AbilitySystemComponent->GetOwnerActor() == ShooterPlayerState &&
 			AbilitySystemComponent->GetAvatarActor() == Character &&
-			Character != CharacterBeforeDeath.Get();
+			Character != CharacterBeforeDeath.Get() &&
+			RespawnMaxHealth > 0.0f &&
+			FMath::IsNearlyEqual(RespawnHealth, RespawnMaxHealth, 0.01f);
 
 		if (!bServerGasRespawnOk)
 		{
 			FailTest(FString::Printf(
-				TEXT("Server-side GAS ASC respawn avatar invalid; ASC=%s SameASC=%s OwnerOk=%s Avatar=%s OldAvatar=%s"),
+				TEXT("Server-side GAS ASC respawn avatar invalid; ASC=%s SameASC=%s OwnerOk=%s Avatar=%s OldAvatar=%s MaxHealth=%.1f Health=%.1f"),
 				*GetNameSafe(AbilitySystemComponent),
 				AbilitySystemComponent == ObservedAbilitySystemComponent.Get() ? TEXT("true") : TEXT("false"),
 				AbilitySystemComponent && AbilitySystemComponent->GetOwnerActor() == ShooterPlayerState ? TEXT("true") : TEXT("false"),
 				*GetNameSafe(AbilitySystemComponent ? AbilitySystemComponent->GetAvatarActor() : nullptr),
-				*GetNameSafe(CharacterBeforeDeath.Get())));
+				*GetNameSafe(CharacterBeforeDeath.Get()),
+				RespawnMaxHealth,
+				RespawnHealth));
 			return;
 		}
 	}
@@ -364,7 +499,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 	if (bLethalDamageApplied && bClientObservedDeath && bClientObservedRespawn &&
 		bClientObservedMatchState && bClientObservedRemoteAim &&
 		(!bRequireRemoteMontage || bClientObservedRemoteMontage) && bServerObservedRespawn &&
-		bClientObservedGasLifecycle && bClientObservedGasRespawn && bServerGasRespawnOk)
+		bClientObservedGasLifecycle && bClientObservedGasRespawn && bServerGasRespawnOk &&
+		bClientObservedGasHealthInit && bClientObservedGasHealthDamage &&
+		bClientObservedGasHealthRespawn && bServerGasDeathOk)
 	{
 		const int32 PlayerId = PlayerController && PlayerController->PlayerState
 			? PlayerController->PlayerState->GetPlayerId()
@@ -373,7 +510,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		UE_LOG(
 			LogShootGame,
 			Display,
-			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS PlayerId=%d Switch=true OwnerAmmo=true NonOwnerAmmoHidden=true Bullets=%d->%d HP=%.0f->0 Dead=true Respawn=true RespawnHP=%.0f AimDot=%.3f Team=%u Kills=%d Deaths=%d TeamScore=%d RemotePitch=%.3f/%.3f RemoteMontage=%s GasServer=%s/%s/%s GasNPC=%s GasRespawn=%s GasClient=%s GasClientRespawn=%s"),
+			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS PlayerId=%d Switch=true OwnerAmmo=true NonOwnerAmmoHidden=true Bullets=%d->%d HP=%.0f->0 Dead=true Respawn=true RespawnHP=%.0f AimDot=%.3f Team=%u Kills=%d Deaths=%d TeamScore=%d RemotePitch=%.3f/%.3f RemoteMontage=%s GasServer=%s/%s/%s GasNPC=%s GasRespawn=%s GasClient=%s GasClientRespawn=%s GasHealthInit=%s GasDamage=%s GasDeath=%s GasNpcHealth=%s/%s GasClientHealth=%s/%s/%s GasHud=%s"),
 			PlayerId,
 			InitialBulletCount,
 			BulletCountAfterFire,
@@ -393,7 +530,16 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			bNpcGasLifecycleOk ? TEXT("true") : TEXT("false"),
 			bServerGasRespawnOk ? TEXT("true") : TEXT("false"),
 			bClientObservedGasLifecycle ? TEXT("true") : TEXT("false"),
-			bClientObservedGasRespawn ? TEXT("true") : TEXT("false"));
+			bClientObservedGasRespawn ? TEXT("true") : TEXT("false"),
+			bServerGasHealthInitOk ? TEXT("true") : TEXT("false"),
+			bServerGasDamageOk ? TEXT("true") : TEXT("false"),
+			bServerGasDeathOk ? TEXT("true") : TEXT("false"),
+			bNpcGasHealthInitOk ? TEXT("true") : TEXT("false"),
+			bNpcGasDeathOk ? TEXT("true") : TEXT("false"),
+			bClientObservedGasHealthInit ? TEXT("true") : TEXT("false"),
+			bClientObservedGasHealthDamage ? TEXT("true") : TEXT("false"),
+			bClientObservedGasHealthRespawn ? TEXT("true") : TEXT("false"),
+			bClientObservedFullHealthHudEvent ? TEXT("true") : TEXT("false"));
 		GetWorldTimerManager().ClearTimer(PollTimer);
 		return;
 	}
@@ -413,7 +559,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			: INDEX_NONE;
 
 		FailTest(FString::Printf(
-			TEXT("Timed out waiting for network state; switch=%s weapon=%s clientProjectile=%s ownerAmmo=%s nonOwnerAmmo=%s serverProjectile=%s aim=%s damage=%s death=%s respawn=%s matchState=%s remoteAim=%s remoteMontage=%s gasOwner=%s gasAvatar=%s gasConnection=%s gasNpc=%s gasRespawn=%s gasClient=%s gasClientRespawn=%s bullets=%d->%d hp=%.0f team=%u kills=%d deaths=%d score=%.0f teamScore=%d"),
+			TEXT("Timed out waiting for network state; switch=%s weapon=%s clientProjectile=%s ownerAmmo=%s nonOwnerAmmo=%s serverProjectile=%s aim=%s damage=%s death=%s respawn=%s matchState=%s remoteAim=%s remoteMontage=%s gasOwner=%s gasAvatar=%s gasConnection=%s gasNpc=%s gasRespawn=%s gasClient=%s gasClientRespawn=%s gasHealthInit=%s gasDamage=%s gasDeath=%s gasNpcHealth=%s/%s gasClientHealth=%s/%s/%s gasHud=%s bullets=%d->%d hp=%.0f team=%u kills=%d deaths=%d score=%.0f teamScore=%d"),
 			bClientObservedSwitch ? TEXT("true") : TEXT("false"),
 			bClientObservedWeapon ? TEXT("true") : TEXT("false"),
 			bClientObservedProjectile ? TEXT("true") : TEXT("false"),
@@ -434,6 +580,15 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			bServerGasRespawnOk ? TEXT("true") : TEXT("false"),
 			bClientObservedGasLifecycle ? TEXT("true") : TEXT("false"),
 			bClientObservedGasRespawn ? TEXT("true") : TEXT("false"),
+			bServerGasHealthInitOk ? TEXT("true") : TEXT("false"),
+			bServerGasDamageOk ? TEXT("true") : TEXT("false"),
+			bServerGasDeathOk ? TEXT("true") : TEXT("false"),
+			bNpcGasHealthInitOk ? TEXT("true") : TEXT("false"),
+			bNpcGasDeathOk ? TEXT("true") : TEXT("false"),
+			bClientObservedGasHealthInit ? TEXT("true") : TEXT("false"),
+			bClientObservedGasHealthDamage ? TEXT("true") : TEXT("false"),
+			bClientObservedGasHealthRespawn ? TEXT("true") : TEXT("false"),
+			bClientObservedFullHealthHudEvent ? TEXT("true") : TEXT("false"),
 			InitialBulletCount,
 			CurrentBulletCount,
 			Character->GetCurrentHP(),
@@ -508,6 +663,63 @@ void AShooterNetworkTestCoordinator::PollClientState()
 		{
 			bClientReportedGasLifecycle = true;
 			ServerReportClientObservedGasLifecycle();
+		}
+	}
+
+	// 绑定 OnDamaged 事件：验证 HUD 事件链由属性变化驱动且数值一致。
+	// 复活会更换角色，需要在角色变化时重新绑定。
+	if (HudBoundCharacter.Get() != Character)
+	{
+		if (HudBoundCharacter.IsValid())
+		{
+			HudBoundCharacter->OnDamaged.RemoveDynamic(
+				this,
+				&AShooterNetworkTestCoordinator::HandleDamagedEvent);
+		}
+		HudBoundCharacter = Character;
+		Character->OnDamaged.AddDynamic(this, &AShooterNetworkTestCoordinator::HandleDamagedEvent);
+	}
+
+	// ---- GAS Health 初始化（拥有者客户端视角）：属性复制到达且为满血 ----
+	if (!bClientReportedGasHealthInit)
+	{
+		AShooterPlayerState* ShooterPlayerState =
+			PlayerController->GetPlayerState<AShooterPlayerState>();
+		UAbilitySystemComponent* AbilitySystemComponent = ShooterPlayerState
+			? ShooterPlayerState->GetAbilitySystemComponent()
+			: nullptr;
+		if (AbilitySystemComponent)
+		{
+			const float HealthAttributeValue = AbilitySystemComponent->GetNumericAttribute(
+				UShooterAttributeSet::GetHealthAttribute());
+			const float MaxHealthAttributeValue = AbilitySystemComponent->GetNumericAttribute(
+				UShooterAttributeSet::GetMaxHealthAttribute());
+			if (MaxHealthAttributeValue > 0.0f && HealthAttributeValue > 0.0f &&
+				FMath::IsNearlyEqual(HealthAttributeValue, MaxHealthAttributeValue, 0.01f))
+			{
+				ClientMaxHealthAttributeValue = MaxHealthAttributeValue;
+				bClientReportedGasHealthInit = true;
+				ServerReportClientObservedGasHealthInit();
+			}
+		}
+	}
+
+	// 订阅 ASC 的 Health 属性变化事件：HUD 事件链的源头，跨角色重生无竞态。
+	if (!bClientHealthAttributeDelegateBound)
+	{
+		AShooterPlayerState* ShooterPlayerState =
+			PlayerController->GetPlayerState<AShooterPlayerState>();
+		UAbilitySystemComponent* AbilitySystemComponent = ShooterPlayerState
+			? ShooterPlayerState->GetAbilitySystemComponent()
+			: nullptr;
+		if (AbilitySystemComponent)
+		{
+			AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
+				UShooterAttributeSet::GetHealthAttribute())
+				.AddUObject(
+					this,
+					&AShooterNetworkTestCoordinator::HandleClientHealthAttributeChanged);
+			bClientHealthAttributeDelegateBound = true;
 		}
 	}
 
@@ -658,6 +870,55 @@ void AShooterNetworkTestCoordinator::PollClientState()
 		}
 	}
 
+	// ---- GAS Health 伤害收敛（拥有者客户端视角）：属性与复制镜像在受伤状态最终一致 ----
+	if (bClientReportedDamage && !bClientReportedGasHealthDamage)
+	{
+		AShooterPlayerState* ShooterPlayerState =
+			PlayerController->GetPlayerState<AShooterPlayerState>();
+		UAbilitySystemComponent* AbilitySystemComponent = ShooterPlayerState
+			? ShooterPlayerState->GetAbilitySystemComponent()
+			: nullptr;
+		if (AbilitySystemComponent)
+		{
+			const float HealthAttributeValue = AbilitySystemComponent->GetNumericAttribute(
+				UShooterAttributeSet::GetHealthAttribute());
+			const float MaxHealthAttributeValue = AbilitySystemComponent->GetNumericAttribute(
+				UShooterAttributeSet::GetMaxHealthAttribute());
+			// 属性值可能在两次网络更新间被合并（部分伤害后紧跟致死），
+			// 因此不要求特定的中间值，只要求属性与镜像收敛到同一受伤状态。
+			if (HealthAttributeValue < MaxHealthAttributeValue &&
+				FMath::IsNearlyEqual(HealthAttributeValue, Character->GetCurrentHP(), 0.01f))
+			{
+				bClientReportedGasHealthDamage = true;
+				ServerReportClientObservedGasHealthDamage();
+			}
+		}
+	}
+
+	// ---- GAS Health 重生收敛：新 Pawn 满血，且 HUD 事件链收到满血事件 ----
+	if (bClientReportedRespawn && !bClientReportedGasHealthRespawn)
+	{
+		AShooterPlayerState* ShooterPlayerState =
+			PlayerController->GetPlayerState<AShooterPlayerState>();
+		UAbilitySystemComponent* AbilitySystemComponent = ShooterPlayerState
+			? ShooterPlayerState->GetAbilitySystemComponent()
+			: nullptr;
+		if (AbilitySystemComponent)
+		{
+			const float HealthAttributeValue = AbilitySystemComponent->GetNumericAttribute(
+				UShooterAttributeSet::GetHealthAttribute());
+			const float MaxHealthAttributeValue = AbilitySystemComponent->GetNumericAttribute(
+				UShooterAttributeSet::GetMaxHealthAttribute());
+			if (HealthAttributeValue > 0.0f &&
+				FMath::IsNearlyEqual(HealthAttributeValue, MaxHealthAttributeValue, 0.01f) &&
+				FMath::IsNearlyEqual(HealthAttributeValue, Character->GetCurrentHP(), 0.01f))
+			{
+				bClientReportedGasHealthRespawn = true;
+				ServerReportClientObservedGasHealthRespawn(bClientObservedFullHealthHudEvent);
+			}
+		}
+	}
+
 	if (!bClientReportedMatchState)
 	{
 		const AShooterPlayerState* ShooterPlayerState =
@@ -753,12 +1014,57 @@ void AShooterNetworkTestCoordinator::ServerReportClientObservedRemoteMontage_Imp
 
 void AShooterNetworkTestCoordinator::ServerReportClientObservedGasLifecycle_Implementation()
 {
+	UE_LOG(LogShootGame, Display, TEXT("GAS client report: GasLifecycle"));
 	bClientObservedGasLifecycle = true;
 }
 
 void AShooterNetworkTestCoordinator::ServerReportClientObservedGasRespawn_Implementation()
 {
+	UE_LOG(LogShootGame, Display, TEXT("GAS client report: GasRespawn"));
 	bClientObservedGasRespawn = true;
+}
+
+void AShooterNetworkTestCoordinator::ServerReportClientObservedGasHealthInit_Implementation()
+{
+	UE_LOG(LogShootGame, Display, TEXT("GAS client report: GasHealthInit"));
+	bClientObservedGasHealthInit = true;
+}
+
+void AShooterNetworkTestCoordinator::ServerReportClientObservedGasHealthDamage_Implementation()
+{
+	UE_LOG(LogShootGame, Display, TEXT("GAS client report: GasHealthDamage"));
+	bClientObservedGasHealthDamage = true;
+}
+
+void AShooterNetworkTestCoordinator::ServerReportClientObservedGasHealthRespawn_Implementation(
+	bool bFullHealthHudEvent)
+{
+	UE_LOG(LogShootGame, Display, TEXT("GAS client report: GasHealthRespawn Hud=%s"), bFullHealthHudEvent ? TEXT("true") : TEXT("false"));
+	bClientObservedGasHealthRespawn = true;
+	bClientObservedFullHealthHudEvent |= bFullHealthHudEvent;
+}
+
+void AShooterNetworkTestCoordinator::HandleDamagedEvent(float LifePercent)
+{
+	LastDamagedLifePercent = LifePercent;
+	// 观察过死亡之后收到满血事件，证明属性驱动的 HUD 事件链最终一致（复活满血）。
+	// 用死亡观测而不是复活观测做门，避免与复活上报的竞态。
+	if (bClientReportedDeath && FMath::IsNearlyEqual(LifePercent, 1.0f, 0.001f))
+	{
+		bClientObservedFullHealthHudEvent = true;
+	}
+}
+
+void AShooterNetworkTestCoordinator::HandleClientHealthAttributeChanged(
+	const FOnAttributeChangeData& ChangeData)
+{
+	LastClientAttributeHealth = ChangeData.NewValue;
+	// HUD 事件链源头：属性变化事件在死亡后送达满血值（复活满血收敛）。
+	if (bClientReportedDeath && ClientMaxHealthAttributeValue > 0.0f &&
+		FMath::IsNearlyEqual(ChangeData.NewValue, ClientMaxHealthAttributeValue, 0.01f))
+	{
+		bClientObservedFullHealthHudEvent = true;
+	}
 }
 
 AShooterCharacter* AShooterNetworkTestCoordinator::GetShooterCharacter() const

@@ -11,6 +11,7 @@ class AShooterCharacter;
 class AShooterWeapon;
 class AShooterPlayerState;
 class UAbilitySystemComponent;
+struct FOnAttributeChangeData;
 
 /**
  * 仅用于网络测试的 NPC 子类：验证 ShooterNPC C++ 基类的 ASC 生命周期
@@ -88,6 +89,22 @@ private:
 	UFUNCTION(Server, Reliable)
 	void ServerReportClientObservedGasRespawn();
 
+	/** 记录角色 OnDamaged 事件值（HUD 事件链证据）。 */
+	UFUNCTION()
+	void HandleDamagedEvent(float LifePercent);
+
+	/** 记录 ASC Health 属性变化（HUD 事件链源头，跨重生无竞态）。 */
+	void HandleClientHealthAttributeChanged(const FOnAttributeChangeData& ChangeData);
+
+	UFUNCTION(Server, Reliable)
+	void ServerReportClientObservedGasHealthInit();
+
+	UFUNCTION(Server, Reliable)
+	void ServerReportClientObservedGasHealthDamage();
+
+	UFUNCTION(Server, Reliable)
+	void ServerReportClientObservedGasHealthRespawn(bool bFullHealthHudEvent);
+
 	AShooterCharacter* GetShooterCharacter() const;
 	AShooterWeapon* GetCurrentWeapon(AShooterCharacter* Character) const;
 	AController* GetOpponentController() const;
@@ -140,12 +157,35 @@ private:
 	bool bServerGasConnectionOk = false;
 	bool bNpcGasLifecycleChecked = false;
 	bool bNpcGasLifecycleOk = false;
+	bool bNpcAiSuppressed = false;
 	bool bServerGasRespawnChecked = false;
 	bool bServerGasRespawnOk = false;
 	bool bClientObservedGasLifecycle = false;
 	bool bClientObservedGasRespawn = false;
 	bool bClientReportedGasLifecycle = false;
 	bool bClientReportedGasRespawn = false;
+	bool bServerGasHealthInitChecked = false;
+	bool bServerGasHealthInitOk = false;
+	float InitialAttributeHealth = 0.0f;
+	float ExpectedPartialHealth = 0.0f;
+	bool bServerGasDamageChecked = false;
+	bool bServerGasDamageOk = false;
+	bool bServerGasDeathChecked = false;
+	bool bServerGasDeathOk = false;
+	bool bNpcGasHealthInitOk = false;
+	bool bNpcGasDeathOk = false;
+	bool bClientObservedGasHealthInit = false;
+	bool bClientObservedGasHealthDamage = false;
+	bool bClientObservedGasHealthRespawn = false;
+	bool bClientReportedGasHealthInit = false;
+	bool bClientReportedGasHealthDamage = false;
+	bool bClientReportedGasHealthRespawn = false;
+	bool bClientObservedFullHealthHudEvent = false;
+	float LastDamagedLifePercent = -1.0f;
+	float LastClientAttributeHealth = -1.0f;
+	float ClientMaxHealthAttributeValue = 0.0f;
+	bool bClientHealthAttributeDelegateBound = false;
+	TWeakObjectPtr<AShooterCharacter> HudBoundCharacter;
 	TWeakObjectPtr<UAbilitySystemComponent> ObservedAbilitySystemComponent;
 	bool bServerObservedProjectile = false;
 	bool bAimDirectionValid = false;

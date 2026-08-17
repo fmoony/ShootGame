@@ -5,7 +5,9 @@
 #include "ShootGame.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
+#include "GameFramework/Controller.h"
 #include "ShooterGameState.h"
+#include "ShooterNPC.h"
 #include "ShooterPlayerState.h"
 #include "Weapons/ShooterWeapon.h"
 #include "Weapons/ShooterWeaponHolder.h"
@@ -34,6 +36,18 @@ void AShooterGameMode::PostLogin(APlayerController* NewPlayer)
 #if WITH_DEV_AUTOMATION_TESTS
 	if (NewPlayer && FParse::Param(FCommandLine::Get(), TEXT("ShootGameNetworkTest")))
 	{
+		// 网络测试期间停用地图中 NPC 的 AI 与射击，消除旧基线 NPC 干扰对确定性验证的影响。
+		// 只停止行为，不销毁 NPC：GAS 生命周期检查仍覆盖真实 BP_ShooterNPC 实例。
+		for (TActorIterator<AShooterNPC> It(GetWorld()); It; ++It)
+		{
+			AShooterNPC* Npc = *It;
+			Npc->StopShooting();
+			if (AController* NpcController = Npc->GetController())
+			{
+				NpcController->Destroy();
+			}
+		}
+
 		FActorSpawnParameters SpawnParameters;
 		SpawnParameters.Owner = NewPlayer;
 		SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;

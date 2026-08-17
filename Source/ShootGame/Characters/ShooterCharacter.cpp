@@ -4,6 +4,9 @@
 #include "ShooterCharacter.h"
 #include "ShooterWeapon.h"
 #include "AbilitySystemComponent.h"
+#include "GameplayEffectTypes.h"
+#include "ShooterAttributeSet.h"
+#include "ShooterGameplayEffectStatics.h"
 #include "EnhancedInputComponent.h"
 #include "Components/InputComponent.h"
 #include "Components/PawnNoiseEmitterComponent.h"
@@ -150,6 +153,21 @@ void AShooterCharacter::InitializeAbilityActorInfo()
 	}
 
 	AbilitySystemComponent->InitAbilityActorInfo(ShooterPlayerState, this);
+
+	// 注册属性集（所有机器都需要；属性数值由属性集复制收敛）。
+	if (UShooterAttributeSet* AttributeSet = ShooterPlayerState->GetAttributeSet())
+	{
+		AbilitySystemComponent->AddAttributeSetSubobject(AttributeSet);
+	}
+
+	// Health 属性变化桥接由 PlayerState 持久绑定（跨重生有效），无需每角色重复绑定。
+
+	// 服务器在每次出生时通过初始化效果写入 Health = MaxHealth = 角色配置值。
+	if (HasAuthority())
+	{
+		UShooterGameplayEffectStatics::ApplyInitHealthEffect(AbilitySystemComponent, MaxHP);
+	}
+
 	UE_LOG(
 		LogShootGame,
 		Display,
@@ -162,6 +180,43 @@ void AShooterCharacter::InitializeAbilityActorInfo()
 		*GetNameSafe(AbilitySystemComponent->GetAvatarActor()),
 		*GetNameSafe(ShooterPlayerState),
 		*GetName());
+}
+
+void AShooterCharacter::HandleHealthAttributeChanged(const FOnAttributeChangeData& ChangeData)
+{
+	UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponent();
+	const float MaxHealthValue = AbilitySystemComponent
+		? AbilitySystemComponent->GetNumericAttribute(UShooterAttributeSet::GetMaxHealthAttribute())
+		: MaxHP;
+
+	if (HasAuthority())
+	{
+		// 服务器：同步旧 CurrentHP 复制镜像（观察者/回归仍依赖），并驱动死亡桥接。
+		CurrentHP = ChangeData.NewValue;
+
+		// 立即推送角色镜像与 PlayerState 上的属性集复制，
+		// 避免属性数值在两次网络更新之间被合并，保证拥有者客户端能观察到伤害过程。
+		ForceNetUpdate();
+		if (AShooterPlayerState* ShooterPlayerState = GetPlayerState<AShooterPlayerState>())
+		{
+			ShooterPlayerState->ForceNetUpdate();
+		}
+
+		// 本地权威（含监听主机）也需要刷新本地 HUD。
+		OnDamaged.Broadcast(MaxHealthValue > 0.0f ? ChangeData.NewValue / MaxHealthValue : 0.0f);
+
+		if (ChangeData.NewValue <= 0.0f && !bIsDead)
+		{
+			AController* KillerController = PendingDeathInstigator;
+			PendingDeathInstigator = nullptr;
+			Die(KillerController);
+		}
+	}
+	else
+	{
+		// 拥有者客户端：HUD 事件链由属性复制驱动（与 CurrentHP 镜像并存，重复广播幂等）。
+		OnDamaged.Broadcast(MaxHealthValue > 0.0f ? ChangeData.NewValue / MaxHealthValue : 0.0f);
+	}
 }
 
 void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -254,23 +309,32 @@ float AShooterCharacter::TakeDamage(float Damage, struct FDamageEvent const& Dam
 		return 0.0f;
 	}
 
-	const float AppliedDamage = FMath::Clamp(
-		Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser),
-		0.0f,
-		CurrentHP);
+	UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponent();
+	if (!AbilitySystemComponent)
+	{
+		return 0.0f;
+	}
+
+	// 实际作用量不超过当前属性生命；属性归零由 Health 变化桥接进入现有死亡闭环。
+	const float CurrentHealth = AbilitySystemComponent->GetNumericAttribute(
+		UShooterAttributeSet::GetHealthAttribute());
+	const float AppliedDamage = FMath::Clamp(Damage, 0.0f, CurrentHealth);
 	if (AppliedDamage <= 0.0f)
 	{
 		return 0.0f;
 	}
 
-	CurrentHP = FMath::Clamp(CurrentHP - AppliedDamage, 0.0f, MaxHP);
-	OnRep_CurrentHP();
+	// 保持引擎伤害广播链（OnTakeAnyDamage 等）。
+	Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
 
-	// Have we depleted HP?
-	if (CurrentHP <= 0.0f)
-	{
-			Die(EventInstigator);
-	}
+	// 击杀者交给 Health 归零桥接，用于现有 Death/Kill/计分闭环。
+	PendingDeathInstigator = EventInstigator;
+	UShooterGameplayEffectStatics::ApplyDamageEffect(
+		AbilitySystemComponent,
+		AppliedDamage,
+		EventInstigator,
+		DamageCauser);
+	PendingDeathInstigator = nullptr;
 
 	return AppliedDamage;
 }

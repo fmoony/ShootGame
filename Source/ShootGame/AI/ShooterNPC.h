@@ -12,6 +12,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FPawnDeathDelegate);
 
 class AShooterWeapon;
 class UAbilitySystemComponent;
+class UShooterAttributeSet;
+struct FOnAttributeChangeData;
 
 /**
  *  A simple AI-controlled shooter game NPC
@@ -34,6 +36,9 @@ public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	//~End IAbilitySystemInterface
 
+	/** 返回由本 NPC 持有的属性集（Health / MaxHealth）。 */
+	UShooterAttributeSet* GetAttributeSet() const { return AttributeSet; }
+
 	/** Current HP for this character. It dies if it reaches zero through damage */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Damage")
 	float CurrentHP = 100.0f;
@@ -43,6 +48,19 @@ protected:
 	/** NPC 自身持有的能力系统组件；在专用服务器上无需 Controller 即可独立初始化。 */
 	UPROPERTY(VisibleAnywhere, Category="Abilities")
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
+
+	/** NPC 属性集子对象；NPC 属性不向客户端复制（Minimal），只由服务器维护。 */
+	UPROPERTY(VisibleAnywhere, Category="Abilities")
+	TObjectPtr<UShooterAttributeSet> AttributeSet;
+
+	/** 是否已绑定 Health 属性变化回调（幂等保护）。 */
+	bool bHealthAttributeDelegateBound = false;
+
+	/** 幂等注册属性集并绑定 Health 属性变化回调。 */
+	void BindHealthAttributeDelegate();
+
+	/** Health 属性变化桥接：服务器镜像旧 CurrentHP 并进入现有 NPC 死亡流程。 */
+	void HandleHealthAttributeChanged(const FOnAttributeChangeData& ChangeData);
 
 	/** Name of the collision profile to use during ragdoll death */
 	UPROPERTY(EditAnywhere, Category="Damage")

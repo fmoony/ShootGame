@@ -15,6 +15,7 @@ class UPawnNoiseEmitterComponent;
 class USkeletalMeshComponent;
 class UCameraComponent;
 struct FInputActionValue;
+struct FOnAttributeChangeData;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FBulletCountUpdatedDelegate, int32, MagazineSize, int32, Bullets);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDamagedDelegate, float, LifePercent);
@@ -143,6 +144,10 @@ public:
 
 	/** 返回 PlayerState 持有的玩家 ASC；PlayerState 或 ASC 不存在时返回 nullptr。 */
 	UAbilitySystemComponent* GetAbilitySystemComponent() const;
+
+	/** Health 属性变化桥接：服务器镜像旧 CurrentHP 并触发死亡闭环；客户端驱动 HUD 事件链。
+	 *  由 PlayerState 的持久绑定转发调用。 */
+	void HandleHealthAttributeChanged(const FOnAttributeChangeData& ChangeData);
 
 protected:
 
@@ -276,6 +281,9 @@ protected:
 
 	/** 将 Character 自带的远程视角数据写入模板第三人称 AnimBP。 */
 	void ApplyRemoteAimPitch();
+
+	/** 本次伤害的击杀者；Health 归零桥接时用于现有 Death/Kill/计分闭环。 */
+	AController* PendingDeathInstigator = nullptr;
 
 	/** Called when this character's HP is depleted */
 	void Die(AController* KillerController);

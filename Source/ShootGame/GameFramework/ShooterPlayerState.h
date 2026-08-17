@@ -8,6 +8,8 @@
 #include "ShooterPlayerState.generated.h"
 
 class UAbilitySystemComponent;
+class UShooterAttributeSet;
+struct FOnAttributeChangeData;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(
 	FPlayerCombatStatsChangedDelegate,
@@ -40,6 +42,12 @@ public:
 	/** 以指定 Actor 为 Avatar 建立 AbilityActorInfo；Avatar 不变时幂等跳过。 */
 	void InitializeAbilityActorInfo(AActor* AvatarActor);
 
+	/** 返回由本 PlayerState 持有的玩家属性集（Health / MaxHealth）。 */
+	UShooterAttributeSet* GetAttributeSet() const { return AttributeSet; }
+
+	/** 幂等绑定 Health 属性变化回调（绑定在 PlayerState 上，跨角色重生保持有效）。 */
+	void BindHealthAttributeDelegate();
+
 	UPROPERTY(BlueprintAssignable, Category="Shooter|Stats")
 	FPlayerCombatStatsChangedDelegate OnCombatStatsChanged;
 
@@ -58,10 +66,21 @@ public:
 
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void PostInitializeComponents() override;
+
+	/** Health 属性变化：转发给当前 Avatar 角色（服务器死亡桥接 / 客户端 HUD 事件链）。 */
+	void HandleHealthAttributeChanged(const FOnAttributeChangeData& ChangeData);
+
+	/** 是否已绑定 Health 属性变化回调（幂等保护）。 */
+	bool bHealthAttributeDelegateBound = false;
 
 	/** 随 PlayerState 复制到客户端的玩家能力系统组件。 */
 	UPROPERTY(VisibleAnywhere, Category="Abilities")
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
+
+	/** 玩家属性集子对象；数值由 ASC 复制到拥有者客户端。 */
+	UPROPERTY(VisibleAnywhere, Category="Abilities")
+	TObjectPtr<UShooterAttributeSet> AttributeSet;
 
 	UPROPERTY(ReplicatedUsing=OnRep_TeamId, VisibleAnywhere, Category="Shooter|Stats")
 	uint8 TeamId = 0;

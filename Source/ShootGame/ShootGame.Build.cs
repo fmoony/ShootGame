@@ -32,7 +32,8 @@ public class ShootGame : ModuleRules
 			"ShootGame/Characters",
 			"ShootGame/AI",
 			"ShootGame/Weapons",
-			"ShootGame/UI"
+			"ShootGame/UI",
+			"ShootGame/AbilitySystem"
 		});
 
 		// Uncomment if you are using Slate UI
