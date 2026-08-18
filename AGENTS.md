@@ -7,7 +7,7 @@
 - **引擎**: UE 5.6
 - **模块**: `ShootGame`（Runtime 模块，含 `Engine`、`AIModule`、`UMG`、`EnhancedInput`、`StateTreeModule` 等依赖）
 - **入口**: `Source/ShootGame/ShootGame.cpp` → `FDefaultGameModuleImpl`
-- **插件**: `ModelingToolsEditorMode`（Editor）、`StateTree`、`GameplayStateTree`、`McpAutomationBridge`（Editor）
+- **插件**: `ModelingToolsEditorMode`（Editor）、`StateTree`、`GameplayStateTree`、`GameplayAbilities`、`McpAutomationBridge`（Editor）
 
 ## 源码结构
 
@@ -23,6 +23,9 @@ Source/ShootGame/
 │   └── ShooterCameraManager.h/.cpp
 ├── Characters/                 # 玩家角色
 │   └── ShooterCharacter.h/.cpp
+├── AbilitySystem/              # GAS：ShooterAttributeSet、GameplayEffect 工具
+│   ├── ShooterAttributeSet.h/.cpp
+│   └── ShooterGameplayEffectStatics.h/.cpp
 ├── AI/                         # ShooterNPC、ShooterAIController、StateTree 工具
 ├── Weapons/                    # ShooterWeapon、ShooterProjectile、ShooterPickup
 ├── UI/                         # ShooterUI、ShooterBulletCounterUI
@@ -36,7 +39,8 @@ Source/ShootGame/
 - [多人网络改造计划](Docs/已完成计划/多人网络改造计划.md)：记录当前网络化状态、分阶段实施顺序和每阶段验收条件。
 - [GAS、动画分层与客户端预测扩展计划](Docs/执行计划/GAS动画分层与预测扩展计划.md)：规划 GAS 生命周期、第三人称上下半身分层、简单武器背包与开火预测的渐进式接入路线。
 - [GAS 接入前架构整理执行方案](Docs/已完成计划/GAS接入前架构整理执行方案.md)：供 Agent 执行 Shooter 主玩法收束、旧模板类清理、源码目录重组、资产引用迁移和最终自动化验收。
-- [Shooter Content 资产目录整理执行方案](Docs/执行计划/Shooter_Content_Browser_资产目录整理执行方案.md)：供 Agent 执行 Shooter 正式资产从 `/Game/Variant_Shooter` 收束到 `/Game/Shooter` 的目录迁移。
+- [GAS 第一阶段：基础生命闭环执行计划](Docs/已完成计划/GAS第一阶段_基础生命闭环执行计划.md)：已完成（2026-08-17）；记录 1A 接入 GAS 模块、1B 建立玩家/NPC ASC 生命周期、1C Health/MaxHealth/伤害迁入 GAS 的执行与验收要求。
+- [Shooter Content 资产目录整理执行方案](Docs/已完成计划/Shooter_Content_Browser_资产目录整理执行方案.md)：供 Agent 执行 Shooter 正式资产从 `/Game/Variant_Shooter` 收束到 `/Game/Shooter` 的目录迁移。
 - [代码规范](Docs/代码规范.md)：C++ 命名、文件结构、注释、日志和网络代码约定。
 - [自动化测试](Docs/自动化测试.md)：说明编译、Automation 测试及服务器双客户端联机会话脚本的使用方式。
 - [Agent 自动化验证操作手册](Docs/Agent自动化验证操作手册.md)：Agent 执行、判定、排错和扩展自动化测试时必须遵循的标准流程。
