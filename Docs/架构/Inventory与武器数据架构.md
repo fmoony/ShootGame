@@ -290,5 +290,8 @@ WeaponActor*        = 不能作为永久武器身份
 
 当前架构事实基线：
 
-- 提交：`0c36702 Inventory：建立 WeaponInstance FastArray 数据模型`
-- Dedicated 双客户端与 Listen 单客户端网络验证均已通过，具体日志见 2A 开发记录。
+- 2A：`0c36702 Inventory：建立 WeaponInstance FastArray 数据模型`
+- 2B：`d077118 Inventory：接入武器拾取与 WeaponActor 绑定`
+- 2C：`ddb89b2 Inventory：建立当前武器与网络切换闭环`
+- 2D：`14f5de1 Inventory：完成 Ammo 权威迁移与 Death Clear`
+- 完整七阶段回归：Passed，Summary 见 `Saved/Automation/Runs/20260819_175505/Summary.json`。
