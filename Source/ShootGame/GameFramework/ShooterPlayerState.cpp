@@ -2,15 +2,18 @@
 
 #include "ShooterPlayerState.h"
 
-#include "AbilitySystemComponent.h"
+#include "Abilities/GameplayAbility.h"
 #include "GameplayEffectTypes.h"
+#include "ShooterAbilitySystemComponent.h"
 #include "ShooterAttributeSet.h"
 #include "ShooterCharacter.h"
+#include "ShooterGameplayAbility_Fire.h"
 #include "Net/UnrealNetwork.h"
 
 AShooterPlayerState::AShooterPlayerState()
 {
-	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
+	AbilitySystemComponent = CreateDefaultSubobject<UShooterAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
+	FireAbilityClass = UShooterGameplayAbility_Fire::StaticClass();
 	AbilitySystemComponent->SetIsReplicated(true);
 	// Mixed：完整能力数据复制给拥有者连接，其他客户端只收到最小集合。
 	// 该模式依赖 Owner（PlayerState → PlayerController）的网络连接，由网络测试协调器在运行时验证。
@@ -29,6 +32,7 @@ void AShooterPlayerState::PostInitializeComponents()
 	Super::PostInitializeComponents();
 
 	BindHealthAttributeDelegate();
+	GrantFireAbility();
 }
 
 void AShooterPlayerState::BindHealthAttributeDelegate()
@@ -68,6 +72,38 @@ void AShooterPlayerState::InitializeAbilityActorInfo(AActor* AvatarActor)
 	}
 
 	AbilitySystemComponent->InitAbilityActorInfo(this, AvatarActor);
+}
+
+void AShooterPlayerState::GrantFireAbility()
+{
+	if (!HasAuthority() || !AbilitySystemComponent || !FireAbilityClass)
+	{
+		return;
+	}
+
+	// 幂等授予：同一个 PlayerState 只允许存在一个 Fire Ability Spec。
+	// 重生不会重新调用这里，只会通过 InitializeAbilityActorInfo 更新 Avatar。
+	if (AbilitySystemComponent->FindAbilitySpecFromClass(FireAbilityClass))
+	{
+		return;
+	}
+
+	const FGameplayAbilitySpec FireAbilitySpec(
+		FireAbilityClass,
+		/*AbilityLevel*/1,
+		INDEX_NONE,
+		this);
+	AbilitySystemComponent->GiveAbility(FireAbilitySpec);
+}
+
+int32 AShooterPlayerState::GetFireAbilitySpecCount() const
+{
+	if (!AbilitySystemComponent)
+	{
+		return 0;
+	}
+
+	return AbilitySystemComponent->GetAbilitySpecCountForClass(FireAbilityClass);
 }
 
 void AShooterPlayerState::SetTeamId(uint8 NewTeamId)

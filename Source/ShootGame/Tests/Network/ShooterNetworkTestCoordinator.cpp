@@ -16,8 +16,11 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
+#include "Abilities/GameplayAbility.h"
 #include "AbilitySystemComponent.h"
+#include "ShooterAbilitySystemComponent.h"
 #include "ShooterAttributeSet.h"
+#include "ShooterGameplayAbility_Fire.h"
 #include "ShooterCharacter.h"
 #include "ShooterInventoryComponent.h"
 #include "ShooterGameState.h"
@@ -286,6 +289,54 @@ void AShooterNetworkTestCoordinator::PollServerState()
 				HealthAttributeValue));
 			return;
 		}
+
+		// ---- 4A Fire Ability 授予生命周期（服务器视角）----
+		if (!bServerFireGrantChecked)
+		{
+			bServerFireGrantChecked = true;
+
+			UShooterAbilitySystemComponent* ShooterAbilitySystemComponent =
+				Cast<UShooterAbilitySystemComponent>(AbilitySystemComponent);
+			const TSubclassOf<UShooterGameplayAbility_Fire> FireAbilityClass =
+				ShooterPlayerState->GetFireAbilityClass();
+			const FGameplayAbilitySpec* FireAbilitySpec =
+				AbilitySystemComponent
+					? AbilitySystemComponent->FindAbilitySpecFromClass(FireAbilityClass)
+					: nullptr;
+			ServerFireAbilityCount = ShooterPlayerState->GetFireAbilitySpecCount();
+			ServerFireAbilityHandle = FireAbilitySpec
+				? FireAbilitySpec->Handle
+				: FGameplayAbilitySpecHandle();
+
+			// 幂等授予：重复调用不得新增第二个 Spec。
+			ShooterPlayerState->GrantFireAbility();
+			ShooterPlayerState->GrantFireAbility();
+			const int32 FireAbilityCountAfterGrant =
+				ShooterPlayerState->GetFireAbilitySpecCount();
+
+			bServerFireGrantOk = ShooterAbilitySystemComponent &&
+				FireAbilityClass == UShooterGameplayAbility_Fire::StaticClass() &&
+				ServerFireAbilityCount == 1 &&
+				FireAbilityCountAfterGrant == 1 &&
+				FireAbilitySpec &&
+				FireAbilitySpec->Ability &&
+				FireAbilitySpec->Ability->GetClass() == FireAbilityClass &&
+				ServerFireAbilityHandle.IsValid();
+			if (!bServerFireGrantOk)
+			{
+				FailTest(FString::Printf(
+					TEXT("Server Fire Ability grant invalid; ASC=%s Class=%s Count=%d CountAfterGrant=%d Handle=%s SpecAbility=%s"),
+					*GetNameSafe(ShooterAbilitySystemComponent),
+					*GetNameSafe(FireAbilityClass),
+					ServerFireAbilityCount,
+					FireAbilityCountAfterGrant,
+					*ServerFireAbilityHandle.ToString(),
+					FireAbilitySpec && FireAbilitySpec->Ability
+						? *GetNameSafe(FireAbilitySpec->Ability->GetClass())
+						: TEXT("null")));
+				return;
+			}
+		}
 	}
 
 	// ---- GAS NPC ASC 生命周期（服务器视角）：Owner=Avatar=NPC ----
@@ -310,6 +361,19 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		bNpcGasLifecycleOk = NpcAbilitySystemComponent &&
 			NpcAbilitySystemComponent->GetOwnerActor() == TestNpc &&
 			NpcAbilitySystemComponent->GetAvatarActor() == TestNpc;
+
+		// ---- 4A NPC Fire Ability 授予：NPC ASC 独立持有一个 GA_Fire Spec ----
+		const FGameplayAbilitySpec* NpcFireAbilitySpec =
+			NpcAbilitySystemComponent
+				? NpcAbilitySystemComponent->FindAbilitySpecFromClass(
+					TestNpc->GetFireAbilityClass())
+				: nullptr;
+		bNpcFireGrantOk = NpcAbilitySystemComponent &&
+			NpcAbilitySystemComponent->IsA<UShooterAbilitySystemComponent>() &&
+			NpcFireAbilitySpec &&
+			NpcFireAbilitySpec->Ability &&
+			NpcFireAbilitySpec->Ability->GetClass() == TestNpc->GetFireAbilityClass() &&
+			TestNpc->GetFireAbilitySpecCount() == 1;
 		if (!bNpcGasLifecycleOk)
 		{
 			FailTest(FString::Printf(
@@ -342,12 +406,13 @@ void AShooterNetworkTestCoordinator::PollServerState()
 					TestNpc->GetCapsuleComponent()->GetCollisionEnabled() == ECollisionEnabled::NoCollision;
 			}
 		}
-		if (!bNpcGasHealthInitOk || !bNpcGasDeathOk)
+		if (!bNpcGasHealthInitOk || !bNpcGasDeathOk || !bNpcFireGrantOk)
 		{
 			FailTest(FString::Printf(
-				TEXT("NPC GAS health bridge invalid; InitOk=%s DeathOk=%s Health=%.1f CurrentHP=%.1f CapsuleCollision=%s"),
+				TEXT("NPC GAS health bridge invalid; InitOk=%s DeathOk=%s FireGrantOk=%s Health=%.1f CurrentHP=%.1f CapsuleCollision=%s"),
 				bNpcGasHealthInitOk ? TEXT("true") : TEXT("false"),
 				bNpcGasDeathOk ? TEXT("true") : TEXT("false"),
+				bNpcFireGrantOk ? TEXT("true") : TEXT("false"),
 				NpcAbilitySystemComponent
 					? NpcAbilitySystemComponent->GetNumericAttribute(UShooterAttributeSet::GetHealthAttribute())
 					: -1.0f,
@@ -592,14 +657,40 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			RespawnMaxHealth > 0.0f &&
 			FMath::IsNearlyEqual(RespawnHealth, RespawnMaxHealth, 0.01f);
 
+		// ---- 4A 重生不重复授予：同一个 PlayerState ASC / Spec Handle 在新 Avatar 上继续存在 ----
+		const FGameplayAbilitySpec* RespawnFireAbilitySpec =
+			AbilitySystemComponent
+				? AbilitySystemComponent->FindAbilitySpecFromClass(
+					ShooterPlayerState->GetFireAbilityClass())
+				: nullptr;
+		bServerFireRespawnGrantOk = RespawnFireAbilitySpec &&
+			RespawnFireAbilitySpec->Handle == ServerFireAbilityHandle &&
+			RespawnFireAbilitySpec->Ability &&
+			RespawnFireAbilitySpec->Ability->GetClass() ==
+				ShooterPlayerState->GetFireAbilityClass() &&
+			ShooterPlayerState->GetFireAbilitySpecCount() == 1;
+
 		UShooterInventoryComponent* RespawnInventory = Character->GetInventoryComponent();
 		bServerRespawnInventoryEmpty = RespawnInventory &&
 			RespawnInventory->GetWeaponCount() == 0 &&
 			!RespawnInventory->GetActiveWeaponInstanceId().IsValid() &&
 			Character->GetCurrentWeapon() == nullptr;
 
-		if (!bServerGasRespawnOk || !bServerRespawnInventoryEmpty)
+		if (!bServerGasRespawnOk || !bServerRespawnInventoryEmpty || !bServerFireRespawnGrantOk)
 		{
+			if (!bServerFireRespawnGrantOk)
+			{
+				FailTest(FString::Printf(
+					TEXT("Server respawn Fire Ability grant invalid; Count=%d Handle=%s Expected=%s Ability=%s"),
+					ShooterPlayerState->GetFireAbilitySpecCount(),
+					RespawnFireAbilitySpec ? *RespawnFireAbilitySpec->Handle.ToString() : TEXT("null"),
+					*ServerFireAbilityHandle.ToString(),
+					RespawnFireAbilitySpec && RespawnFireAbilitySpec->Ability
+						? *GetNameSafe(RespawnFireAbilitySpec->Ability->GetClass())
+						: TEXT("null")));
+				return;
+			}
+
 			if (!bServerGasRespawnOk)
 			{
 			FailTest(FString::Printf(
@@ -632,7 +723,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		bServerRespawnInventoryEmpty && bClientObservedRespawnInventoryEmpty &&
 		bClientObservedGasLifecycle && bClientObservedGasRespawn && bServerGasRespawnOk &&
 		bClientObservedGasHealthInit && bClientObservedGasHealthDamage &&
-		bClientObservedGasHealthRespawn && bServerGasDeathOk)
+		bClientObservedGasHealthRespawn && bServerGasDeathOk &&
+		bServerFireGrantOk && bNpcFireGrantOk && bServerFireRespawnGrantOk &&
+		bClientObservedFireGrant)
 	{
 		const int32 PlayerId = PlayerController && PlayerController->PlayerState
 			? PlayerController->PlayerState->GetPlayerId()
@@ -641,7 +734,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		UE_LOG(
 			LogShootGame,
 			Display,
-			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS PlayerId=%d Switch=true OwnerAmmo=true NonOwnerAmmoHidden=true Bullets=%d->%d HP=%.0f->0 Dead=true Respawn=true RespawnHP=%.0f AimDot=%.3f Team=%u Kills=%d Deaths=%d TeamScore=%d RemotePitch=%.3f/%.3f RemoteMontage=%s GasServer=%s/%s/%s GasNPC=%s GasRespawn=%s GasClient=%s GasClientRespawn=%s GasHealthInit=%s GasDamage=%s GasDeath=%s GasNpcHealth=%s/%s GasClientHealth=%s/%s/%s GasHud=%s PickupAuthority=%s InventoryOwner=%s InventoryRemoteHidden=%s AmmoIsolation=%s DeathClear=%s/%s RespawnEmpty=%s/%s"),
+			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS PlayerId=%d Switch=true OwnerAmmo=true NonOwnerAmmoHidden=true Bullets=%d->%d HP=%.0f->0 Dead=true Respawn=true RespawnHP=%.0f AimDot=%.3f Team=%u Kills=%d Deaths=%d TeamScore=%d RemotePitch=%.3f/%.3f RemoteMontage=%s GasServer=%s/%s/%s GasNPC=%s GasRespawn=%s GasClient=%s GasClientRespawn=%s GasHealthInit=%s GasDamage=%s GasDeath=%s GasNpcHealth=%s/%s GasClientHealth=%s/%s/%s GasHud=%s FireGrant=%s/%s/%s/%s PickupAuthority=%s InventoryOwner=%s InventoryRemoteHidden=%s AmmoIsolation=%s DeathClear=%s/%s RespawnEmpty=%s/%s"),
 			PlayerId,
 			InitialBulletCount,
 			BulletCountAfterFire,
@@ -671,6 +764,10 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			bClientObservedGasHealthDamage ? TEXT("true") : TEXT("false"),
 			bClientObservedGasHealthRespawn ? TEXT("true") : TEXT("false"),
 			bClientObservedFullHealthHudEvent ? TEXT("true") : TEXT("false"),
+			bServerFireGrantOk ? TEXT("true") : TEXT("false"),
+			bNpcFireGrantOk ? TEXT("true") : TEXT("false"),
+			bServerFireRespawnGrantOk ? TEXT("true") : TEXT("false"),
+			bClientObservedFireGrant ? TEXT("true") : TEXT("false"),
 			bClientObservedPickupAuthority ? TEXT("true") : TEXT("false"),
 			bClientObservedOwnerInventory ? TEXT("true") : TEXT("false"),
 			bClientObservedRemoteInventoryHidden ? TEXT("true") : TEXT("false"),
@@ -698,7 +795,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			: INDEX_NONE;
 
 		FailTest(FString::Printf(
-			TEXT("Timed out waiting for network state; switch=%s weapon=%s clientProjectile=%s ownerAmmo=%s nonOwnerAmmo=%s serverProjectile=%s aim=%s damage=%s death=%s respawn=%s matchState=%s remoteAim=%s remoteMontage=%s gasOwner=%s gasAvatar=%s gasConnection=%s gasNpc=%s gasRespawn=%s gasClient=%s gasClientRespawn=%s gasHealthInit=%s gasDamage=%s gasDeath=%s gasNpcHealth=%s/%s gasClientHealth=%s/%s/%s gasHud=%s bullets=%d->%d hp=%.0f team=%u kills=%d deaths=%d score=%.0f teamScore=%d PickupAuthority=%s InventoryOwner=%s InventoryRemoteHidden=%s AmmoIsolation=%s DeathClear=%s/%s RespawnEmpty=%s/%s"),
+			TEXT("Timed out waiting for network state; switch=%s weapon=%s clientProjectile=%s ownerAmmo=%s nonOwnerAmmo=%s serverProjectile=%s aim=%s damage=%s death=%s respawn=%s matchState=%s remoteAim=%s remoteMontage=%s gasOwner=%s gasAvatar=%s gasConnection=%s gasNpc=%s gasRespawn=%s gasClient=%s gasClientRespawn=%s gasHealthInit=%s gasDamage=%s gasDeath=%s gasNpcHealth=%s/%s gasClientHealth=%s/%s/%s gasHud=%s fireGrant=%s/%s/%s/%s bullets=%d->%d hp=%.0f team=%u kills=%d deaths=%d score=%.0f teamScore=%d PickupAuthority=%s InventoryOwner=%s InventoryRemoteHidden=%s AmmoIsolation=%s DeathClear=%s/%s RespawnEmpty=%s/%s"),
 			bClientObservedSwitch ? TEXT("true") : TEXT("false"),
 			bClientObservedWeapon ? TEXT("true") : TEXT("false"),
 			bClientObservedProjectile ? TEXT("true") : TEXT("false"),
@@ -728,6 +825,10 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			bClientObservedGasHealthDamage ? TEXT("true") : TEXT("false"),
 			bClientObservedGasHealthRespawn ? TEXT("true") : TEXT("false"),
 			bClientObservedFullHealthHudEvent ? TEXT("true") : TEXT("false"),
+			bServerFireGrantOk ? TEXT("true") : TEXT("false"),
+			bNpcFireGrantOk ? TEXT("true") : TEXT("false"),
+			bServerFireRespawnGrantOk ? TEXT("true") : TEXT("false"),
+			bClientObservedFireGrant ? TEXT("true") : TEXT("false"),
 			InitialBulletCount,
 			CurrentBulletCount,
 			Character->GetCurrentHP(),
@@ -872,6 +973,47 @@ void AShooterNetworkTestCoordinator::PollClientState()
 		{
 			bClientReportedGasLifecycle = true;
 			ServerReportClientObservedGasLifecycle();
+		}
+	}
+
+	// ---- 4A Fire Ability 授予复制（拥有者客户端视角）：Owner 恰好一个，远端不收到完整 Spec ----
+	if (!bClientReportedFireGrant)
+	{
+		AShooterPlayerState* ShooterPlayerState =
+			PlayerController->GetPlayerState<AShooterPlayerState>();
+		if (ShooterPlayerState && ShooterPlayerState->GetFireAbilitySpecCount() == 1)
+		{
+			bool bRemoteFireSpecsHidden = false;
+			const AGameStateBase* ClientGameState = GetWorld()->GetGameState();
+			if (ClientGameState)
+			{
+				for (APlayerState* OtherPlayerState : ClientGameState->PlayerArray)
+				{
+					if (OtherPlayerState == ShooterPlayerState)
+					{
+						continue;
+					}
+
+					const AShooterPlayerState* RemoteShooterPlayerState =
+						Cast<AShooterPlayerState>(OtherPlayerState);
+					if (!RemoteShooterPlayerState)
+					{
+						continue;
+					}
+
+					// Mixed 模式：完整 Ability Spec 只复制给拥有者连接；
+					// 远端 PlayerState 的 ASC 不应持有 Fire Spec。
+					bRemoteFireSpecsHidden =
+						RemoteShooterPlayerState->GetFireAbilitySpecCount() == 0;
+					break;
+				}
+			}
+
+			if (bRemoteFireSpecsHidden)
+			{
+				bClientReportedFireGrant = true;
+				ServerReportClientObservedFireAbilityGrant(1, true);
+			}
 		}
 	}
 
@@ -1322,6 +1464,28 @@ void AShooterNetworkTestCoordinator::ServerReportClientObservedGasRespawn_Implem
 {
 	UE_LOG(LogShootGame, Display, TEXT("GAS client report: GasRespawn"));
 	bClientObservedGasRespawn = true;
+}
+
+void AShooterNetworkTestCoordinator::ServerReportClientObservedFireAbilityGrant_Implementation(
+	int32 OwnerFireSpecCount,
+	bool bRemoteFireSpecsHidden)
+{
+	bClientObservedFireGrant = OwnerFireSpecCount == 1 && bRemoteFireSpecsHidden;
+	UE_LOG(
+		LogShootGame,
+		Display,
+		TEXT("GAS client report: FireAbilityGrant OwnerSpecs=%d RemoteHidden=%s Valid=%s"),
+		OwnerFireSpecCount,
+		bRemoteFireSpecsHidden ? TEXT("true") : TEXT("false"),
+		bClientObservedFireGrant ? TEXT("true") : TEXT("false"));
+
+	if (!bClientObservedFireGrant)
+	{
+		FailTest(FString::Printf(
+			TEXT("Client Fire Ability grant observation invalid; OwnerSpecs=%d RemoteHidden=%s"),
+			OwnerFireSpecCount,
+			bRemoteFireSpecsHidden ? TEXT("true") : TEXT("false")));
+	}
 }
 
 void AShooterNetworkTestCoordinator::ServerReportClientObservedInventory_Implementation(

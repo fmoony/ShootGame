@@ -36,7 +36,8 @@ public class ShootGame : ModuleRules
 			"ShootGame/Inventory",
 			"ShootGame/Tests/Inventory",
 			"ShootGame/UI",
-			"ShootGame/AbilitySystem"
+			"ShootGame/AbilitySystem",
+			"ShootGame/AbilitySystem/Abilities"
 		});
 
 		// Uncomment if you are using Slate UI

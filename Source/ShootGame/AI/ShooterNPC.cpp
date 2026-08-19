@@ -4,9 +4,11 @@
 #include "ShooterNPC.h"
 #include "ShooterWeapon.h"
 #include "ShootGame.h"
-#include "AbilitySystemComponent.h"
+#include "Abilities/GameplayAbility.h"
 #include "GameplayEffectTypes.h"
+#include "ShooterAbilitySystemComponent.h"
 #include "ShooterAttributeSet.h"
+#include "ShooterGameplayAbility_Fire.h"
 #include "ShooterGameplayEffectStatics.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Camera/CameraComponent.h"
@@ -19,7 +21,8 @@
 
 AShooterNPC::AShooterNPC()
 {
-	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
+	AbilitySystemComponent = CreateDefaultSubobject<UShooterAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
+	FireAbilityClass = UShooterGameplayAbility_Fire::StaticClass();
 	AbilitySystemComponent->SetIsReplicated(true);
 	// Minimal：NPC 只需服务器维护能力状态，客户端只同步最小数据。
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
@@ -65,6 +68,7 @@ void AShooterNPC::BeginPlay()
 			// 出生生命沿用 NPC 的 CurrentHP 配置值（模板默认 100）。
 			UShooterGameplayEffectStatics::ApplyInitHealthEffect(AbilitySystemComponent, CurrentHP);
 		}
+		GrantFireAbility();
 	}
 
 	// spawn the weapon
@@ -74,6 +78,37 @@ void AShooterNPC::BeginPlay()
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
 	Weapon = GetWorld()->SpawnActor<AShooterWeapon>(WeaponClass, GetActorTransform(), SpawnParams);
+}
+
+void AShooterNPC::GrantFireAbility()
+{
+	if (!HasAuthority() || !AbilitySystemComponent || !FireAbilityClass)
+	{
+		return;
+	}
+
+	// 幂等授予：每个 NPC ASC 只保留一个 Fire Ability Spec。
+	if (AbilitySystemComponent->FindAbilitySpecFromClass(FireAbilityClass))
+	{
+		return;
+	}
+
+	const FGameplayAbilitySpec FireAbilitySpec(
+		FireAbilityClass,
+		/*AbilityLevel*/1,
+		INDEX_NONE,
+		this);
+	AbilitySystemComponent->GiveAbility(FireAbilitySpec);
+}
+
+int32 AShooterNPC::GetFireAbilitySpecCount() const
+{
+	if (!AbilitySystemComponent)
+	{
+		return 0;
+	}
+
+	return AbilitySystemComponent->GetAbilitySpecCountForClass(FireAbilityClass);
 }
 
 void AShooterNPC::BindHealthAttributeDelegate()

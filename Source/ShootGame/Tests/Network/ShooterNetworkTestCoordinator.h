@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "GameplayAbilitySpecHandle.h"
 #include "ShooterNPC.h"
 #include "ShooterWeapon.h"
 #include "ShooterNetworkTestCoordinator.generated.h"
@@ -96,6 +97,11 @@ private:
 
 	UFUNCTION(Server, Reliable)
 	void ServerReportClientObservedGasLifecycle();
+
+	UFUNCTION(Server, Reliable)
+	void ServerReportClientObservedFireAbilityGrant(
+		int32 OwnerFireSpecCount,
+		bool bRemoteFireSpecsHidden);
 
 	UFUNCTION(Server, Reliable)
 	void ServerReportClientObservedGasRespawn();
@@ -210,6 +216,16 @@ private:
 	bool bClientReportedGasHealthDamage = false;
 	bool bClientReportedGasHealthRespawn = false;
 	bool bClientObservedFullHealthHudEvent = false;
+
+	/** 4A 观测：服务器 / NPC / 重生三个生命周期中 Fire Ability Spec 均有且只有一个。 */
+	bool bServerFireGrantChecked = false;
+	bool bServerFireGrantOk = false;
+	bool bNpcFireGrantOk = false;
+	bool bServerFireRespawnGrantOk = false;
+	bool bClientObservedFireGrant = false;
+	bool bClientReportedFireGrant = false;
+	FGameplayAbilitySpecHandle ServerFireAbilityHandle;
+	int32 ServerFireAbilityCount = INDEX_NONE;
 
 	/** Inventory 2A 观测：服务器插入两把测试武器，Owner 完整收到，远端不收到完整列表。 */
 	bool bServerInventoryPrepared = false;

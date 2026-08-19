@@ -11,8 +11,9 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FPawnDeathDelegate);
 
 class AShooterWeapon;
-class UAbilitySystemComponent;
+class UShooterAbilitySystemComponent;
 class UShooterAttributeSet;
+class UShooterGameplayAbility_Fire;
 struct FOnAttributeChangeData;
 
 /**
@@ -39,6 +40,15 @@ public:
 	/** 返回由本 NPC 持有的属性集（Health / MaxHealth）。 */
 	UShooterAttributeSet* GetAttributeSet() const { return AttributeSet; }
 
+	/** 返回服务器配置的开火 Ability 类。 */
+	TSubclassOf<UShooterGameplayAbility_Fire> GetFireAbilityClass() const { return FireAbilityClass; }
+
+	/** 返回当前 NPC ASC 中 Fire Ability Spec 的数量。 */
+	int32 GetFireAbilitySpecCount() const;
+
+	/** 服务器幂等授予 Fire Ability。 */
+	void GrantFireAbility();
+
 	/** Current HP for this character. It dies if it reaches zero through damage */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Damage")
 	float CurrentHP = 100.0f;
@@ -47,11 +57,15 @@ protected:
 
 	/** NPC 自身持有的能力系统组件；在专用服务器上无需 Controller 即可独立初始化。 */
 	UPROPERTY(VisibleAnywhere, Category="Abilities")
-	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
+	TObjectPtr<UShooterAbilitySystemComponent> AbilitySystemComponent;
 
 	/** NPC 属性集子对象；NPC 属性不向客户端复制（Minimal），只由服务器维护。 */
 	UPROPERTY(VisibleAnywhere, Category="Abilities")
 	TObjectPtr<UShooterAttributeSet> AttributeSet;
+
+	/** 服务器授予给 NPC 的开火 Ability 类；默认使用原生 GA_Fire。 */
+	UPROPERTY(EditAnywhere, Category="Abilities")
+	TSubclassOf<UShooterGameplayAbility_Fire> FireAbilityClass;
 
 	/** 是否已绑定 Health 属性变化回调（幂等保护）。 */
 	bool bHealthAttributeDelegateBound = false;

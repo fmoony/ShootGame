@@ -7,8 +7,9 @@
 #include "AbilitySystemInterface.h"
 #include "ShooterPlayerState.generated.h"
 
-class UAbilitySystemComponent;
+class UShooterAbilitySystemComponent;
 class UShooterAttributeSet;
+class UShooterGameplayAbility_Fire;
 struct FOnAttributeChangeData;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(
@@ -45,6 +46,15 @@ public:
 	/** 返回由本 PlayerState 持有的玩家属性集（Health / MaxHealth）。 */
 	UShooterAttributeSet* GetAttributeSet() const { return AttributeSet; }
 
+	/** 返回服务器配置的开火 Ability 类。 */
+	TSubclassOf<UShooterGameplayAbility_Fire> GetFireAbilityClass() const { return FireAbilityClass; }
+
+	/** 返回当前 PlayerState ASC 中 Fire Ability Spec 的数量（含尚未完成复制的本地视图）。 */
+	int32 GetFireAbilitySpecCount() const;
+
+	/** 服务器幂等授予 Fire Ability；同一 PlayerState 只允许存在一个 Spec，重生只更新 Avatar。 */
+	void GrantFireAbility();
+
 	/** 幂等绑定 Health 属性变化回调（绑定在 PlayerState 上，跨角色重生保持有效）。 */
 	void BindHealthAttributeDelegate();
 
@@ -76,11 +86,15 @@ protected:
 
 	/** 随 PlayerState 复制到客户端的玩家能力系统组件。 */
 	UPROPERTY(VisibleAnywhere, Category="Abilities")
-	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
+	TObjectPtr<UShooterAbilitySystemComponent> AbilitySystemComponent;
 
 	/** 玩家属性集子对象；数值由 ASC 复制到拥有者客户端。 */
 	UPROPERTY(VisibleAnywhere, Category="Abilities")
 	TObjectPtr<UShooterAttributeSet> AttributeSet;
+
+	/** 服务器授予给玩家的开火 Ability 类；BP_ShooterPlayerState 不存在时使用原生默认类。 */
+	UPROPERTY(EditAnywhere, Category="Abilities")
+	TSubclassOf<UShooterGameplayAbility_Fire> FireAbilityClass;
 
 	UPROPERTY(ReplicatedUsing=OnRep_TeamId, VisibleAnywhere, Category="Shooter|Stats")
 	uint8 TeamId = 0;
