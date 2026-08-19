@@ -104,6 +104,9 @@ private:
 		bool bRemoteFireSpecsHidden);
 
 	UFUNCTION(Server, Reliable)
+	void ServerReportFullAutoReleased(int32 BulletCountAfterRelease);
+
+	UFUNCTION(Server, Reliable)
 	void ServerReportClientObservedGasRespawn();
 
 	UFUNCTION(Server, Reliable)
@@ -149,6 +152,9 @@ private:
 
 	UPROPERTY(Replicated)
 	bool bServerReadyToFire = false;
+
+	UPROPERTY(Replicated)
+	bool bServerReadyForFullAuto = false;
 
 	UPROPERTY(Replicated)
 	TObjectPtr<AShooterWeapon> WeaponBeforeSwitch;
@@ -226,6 +232,23 @@ private:
 	bool bClientReportedFireGrant = false;
 	FGameplayAbilitySpecHandle ServerFireAbilityHandle;
 	int32 ServerFireAbilityCount = INDEX_NONE;
+
+	/** 4B 观测：单次按下只生成一颗弹丸，全自动保持期间只有一个活动 GA_Fire，释放后计时器无残留。 */
+	int32 ProjectileSpawnCount = 0;
+	bool bSingleProjectileVerified = false;
+	bool bFullAutoPhaseTriggered = false;
+	bool bFullAutoActiveObserved = false;
+	bool bClientReportedFullAutoRelease = false;
+	bool bFullAutoReleaseVerified = false;
+	bool bFullAutoQuiescentConfirmed = false;
+	bool bClientTriggeredFullAuto = false;
+	bool bClientReportedFullAuto = false;
+	int32 BulletCountBeforeFullAuto = INDEX_NONE;
+	int32 ProjectileCountBeforeFullAuto = INDEX_NONE;
+	int32 ProjectileCountAfterRelease = INDEX_NONE;
+	int32 AmmoAfterRelease = INDEX_NONE;
+	int32 ClientBulletCountAfterRelease = INDEX_NONE;
+	float FullAutoReleaseCheckTime = 0.0f;
 
 	/** Inventory 2A 观测：服务器插入两把测试武器，Owner 完整收到，远端不收到完整列表。 */
 	bool bServerInventoryPrepared = false;

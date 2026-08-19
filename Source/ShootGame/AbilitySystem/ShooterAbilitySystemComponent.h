@@ -33,4 +33,7 @@ public:
 
 	/** 返回指定 Ability 类的 Spec 数量；宿主用它验证授予幂等性。 */
 	int32 GetAbilitySpecCountForClass(TSubclassOf<UGameplayAbility> AbilityClass) const;
+
+	/** 返回指定 Ability 类当前处于活动状态的 Spec 数量；网络测试用它验证单激活约束。 */
+	int32 GetActiveAbilityCountForClass(TSubclassOf<UGameplayAbility> AbilityClass) const;
 };

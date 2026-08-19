@@ -100,3 +100,23 @@ int32 UShooterAbilitySystemComponent::GetAbilitySpecCountForClass(
 
 	return Count;
 }
+
+int32 UShooterAbilitySystemComponent::GetActiveAbilityCountForClass(
+	TSubclassOf<UGameplayAbility> AbilityClass) const
+{
+	if (!AbilityClass)
+	{
+		return 0;
+	}
+
+	int32 Count = 0;
+	for (const FGameplayAbilitySpec& Spec : GetActivatableAbilities())
+	{
+		if (Spec.IsActive() && Spec.Ability && Spec.Ability->IsA(AbilityClass))
+		{
+			++Count;
+		}
+	}
+
+	return Count;
+}

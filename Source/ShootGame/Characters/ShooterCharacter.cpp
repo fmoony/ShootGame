@@ -6,7 +6,9 @@
 #include "ShooterInventoryComponent.h"
 #include "AbilitySystemComponent.h"
 #include "GameplayEffectTypes.h"
+#include "ShooterAbilitySystemComponent.h"
 #include "ShooterAttributeSet.h"
+#include "ShooterGameplayTags.h"
 #include "ShooterGameplayEffectStatics.h"
 #include "EnhancedInputComponent.h"
 #include "Components/InputComponent.h"
@@ -361,14 +363,40 @@ void AShooterCharacter::OnRep_IsDead()
 
 void AShooterCharacter::DoStartFiring()
 {
-	// 客户端只提交输入意图，由服务器权威执行开火
-	ServerStartFire();
+	// 输入只提交给 ASC：GA_Fire 为 ServerOnly，客户端按 Input.Fire 发起激活，
+	// GAS 自动把激活请求可靠转发到服务器。
+	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent =
+		Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
+	{
+		ShooterAbilitySystemComponent->AbilityInputTagPressed(
+			ShooterGameplayTags::Input_Fire);
+		return;
+	}
+
+	// PlayerState / ASC 尚未就绪时静默忽略，不保留旧 RPC 双路径。
+	UE_LOG(
+		LogShootGame,
+		Warning,
+		TEXT("DoStartFiring ignored: ShooterASC unavailable for %s"),
+		*GetName());
 }
 
 void AShooterCharacter::DoStopFiring()
 {
-	// 客户端只提交输入意图，由服务器权威执行停火
-	ServerStopFire();
+	// 松开输入同样进入 ASC；服务器活动 GA_Fire 收到释放后停止 Weapon 并结束 Ability。
+	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent =
+		Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
+	{
+		ShooterAbilitySystemComponent->AbilityInputTagReleased(
+			ShooterGameplayTags::Input_Fire);
+		return;
+	}
+
+	UE_LOG(
+		LogShootGame,
+		Warning,
+		TEXT("DoStopFiring ignored: ShooterASC unavailable for %s"),
+		*GetName());
 }
 
 void AShooterCharacter::ServerStartFire_Implementation()

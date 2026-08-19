@@ -307,9 +307,11 @@ void AShooterWeapon::Fire()
 	}
 
 	// Ammo 权威位于 Inventory.MagazineAmmo；耗尽后停止开火，不自动换弹。
+	// 广播 OutOfAmmo 让 GA_Fire 幂等结束 Ability；未绑定的 NPC 旧路径不会进入这里。
 	if (!CanConsumeAmmo() || !ConsumeAmmo())
 	{
 		StopFiring();
+		OnOutOfAmmo.Broadcast(this);
 		return;
 	}
 

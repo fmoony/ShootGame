@@ -97,6 +97,7 @@ void AShooterNetworkTestCoordinator::GetLifetimeReplicatedProps(
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyToSwitch);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyToFire);
+	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyForFullAuto);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, WeaponBeforeSwitch);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bRequireRemoteMontage);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bRequireRemoteCurrentWeapon);
@@ -463,13 +464,15 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		return;
 	}
 
+	const bool bSingleShotVerified = CurrentBulletCount == InitialBulletCount - 1 &&
+		ProjectileSpawnCount == 1;
 	const bool bFireReplicationVerified = bClientObservedWeapon &&
 		bClientObservedProjectile &&
 		bClientObservedOwnerAmmo &&
 		bClientObservedNonOwnerAmmoHidden &&
 		bServerObservedProjectile &&
 		bAimDirectionValid &&
-		CurrentBulletCount < InitialBulletCount;
+		bSingleShotVerified;
 
 	if (bFireReplicationVerified && !bPartialDamageApplied)
 	{
@@ -497,6 +500,66 @@ void AShooterNetworkTestCoordinator::PollServerState()
 				PistolAmmoAfterFire));
 			return;
 		}
+
+		bSingleProjectileVerified = bSingleShotVerified;
+
+		if (!bFullAutoPhaseTriggered)
+		{
+			// ---- 4B FullAutoRelease：单发验证通过后，再要求客户端保持开火至少两发 ----
+			bFullAutoPhaseTriggered = true;
+			BulletCountBeforeFullAuto = CurrentBulletCount;
+			ProjectileCountBeforeFullAuto = ProjectileSpawnCount;
+			bServerReadyForFullAuto = true;
+			ForceNetUpdate();
+			return;
+		}
+	}
+
+	// 全自动保持期间：服务器必须观察到有且只有一个活动 GA_Fire。
+	if (bFullAutoPhaseTriggered && !bClientReportedFullAutoRelease &&
+		!bFullAutoActiveObserved)
+	{
+		if (AShooterPlayerState* ShooterPlayerState =
+			Character->GetPlayerState<AShooterPlayerState>())
+		{
+			UShooterAbilitySystemComponent* ShooterAbilitySystemComponent =
+				Cast<UShooterAbilitySystemComponent>(Character->GetAbilitySystemComponent());
+			bFullAutoActiveObserved =
+				ShooterAbilitySystemComponent &&
+				ShooterAbilitySystemComponent->GetActiveAbilityCountForClass(
+					ShooterPlayerState->GetFireAbilityClass()) == 1;
+		}
+	}
+
+	// 释放后静默期：0.5 秒内不得再生成弹丸，Inventory Ammo 不得继续下降。
+	if (bClientReportedFullAutoRelease && !bFullAutoQuiescentConfirmed)
+	{
+		if (GetWorld()->GetTimeSeconds() - FullAutoReleaseCheckTime >= 0.5f)
+		{
+			UShooterInventoryComponent* QuiescenceInventory =
+				Character->GetInventoryComponent();
+			const int32 RifleAmmoNow = QuiescenceInventory
+				? QuiescenceInventory->GetMagazineAmmo(ServerInventoryFirstId)
+				: INDEX_NONE;
+			bFullAutoQuiescentConfirmed =
+				ProjectileSpawnCount == ProjectileCountAfterRelease &&
+				RifleAmmoNow == AmmoAfterRelease;
+			if (!bFullAutoQuiescentConfirmed)
+			{
+				FailTest(FString::Printf(
+					TEXT("Full-auto release left firing residue; Projectiles=%d->%d Ammo=%d->%d"),
+					ProjectileCountAfterRelease,
+					ProjectileSpawnCount,
+					AmmoAfterRelease,
+					RifleAmmoNow));
+				return;
+			}
+		}
+	}
+	} // if (Weapon)
+
+	if (bFullAutoQuiescentConfirmed && bFullAutoReleaseVerified && !bPartialDamageApplied)
+	{
 		InitialHP = Character->GetCurrentHP();
 		// GAS：记录伤害前属性生命，随后验证部分伤害恰好只应用一次。
 		if (UAbilitySystemComponent* AbilitySystemComponent = Character->GetAbilitySystemComponent())
@@ -515,7 +578,6 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		bPartialDamageApplied = true;
 		return;
 	}
-	} // if (Weapon)
 
 	if (bPartialDamageApplied && !bServerGasDamageChecked)
 	{
@@ -725,7 +787,8 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		bClientObservedGasHealthInit && bClientObservedGasHealthDamage &&
 		bClientObservedGasHealthRespawn && bServerGasDeathOk &&
 		bServerFireGrantOk && bNpcFireGrantOk && bServerFireRespawnGrantOk &&
-		bClientObservedFireGrant)
+		bClientObservedFireGrant && bSingleProjectileVerified &&
+		bFullAutoReleaseVerified && bFullAutoQuiescentConfirmed)
 	{
 		const int32 PlayerId = PlayerController && PlayerController->PlayerState
 			? PlayerController->PlayerState->GetPlayerId()
@@ -734,7 +797,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		UE_LOG(
 			LogShootGame,
 			Display,
-			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS PlayerId=%d Switch=true OwnerAmmo=true NonOwnerAmmoHidden=true Bullets=%d->%d HP=%.0f->0 Dead=true Respawn=true RespawnHP=%.0f AimDot=%.3f Team=%u Kills=%d Deaths=%d TeamScore=%d RemotePitch=%.3f/%.3f RemoteMontage=%s GasServer=%s/%s/%s GasNPC=%s GasRespawn=%s GasClient=%s GasClientRespawn=%s GasHealthInit=%s GasDamage=%s GasDeath=%s GasNpcHealth=%s/%s GasClientHealth=%s/%s/%s GasHud=%s FireGrant=%s/%s/%s/%s PickupAuthority=%s InventoryOwner=%s InventoryRemoteHidden=%s AmmoIsolation=%s DeathClear=%s/%s RespawnEmpty=%s/%s"),
+			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS PlayerId=%d Switch=true OwnerAmmo=true NonOwnerAmmoHidden=true Bullets=%d->%d HP=%.0f->0 Dead=true Respawn=true RespawnHP=%.0f AimDot=%.3f Team=%u Kills=%d Deaths=%d TeamScore=%d RemotePitch=%.3f/%.3f RemoteMontage=%s GasServer=%s/%s/%s GasNPC=%s GasRespawn=%s GasClient=%s GasClientRespawn=%s GasHealthInit=%s GasDamage=%s GasDeath=%s GasNpcHealth=%s/%s GasClientHealth=%s/%s/%s GasHud=%s FireGrant=%s/%s/%s/%s FireGA=%s/%s/%s PickupAuthority=%s InventoryOwner=%s InventoryRemoteHidden=%s AmmoIsolation=%s DeathClear=%s/%s RespawnEmpty=%s/%s"),
 			PlayerId,
 			InitialBulletCount,
 			BulletCountAfterFire,
@@ -768,6 +831,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			bNpcFireGrantOk ? TEXT("true") : TEXT("false"),
 			bServerFireRespawnGrantOk ? TEXT("true") : TEXT("false"),
 			bClientObservedFireGrant ? TEXT("true") : TEXT("false"),
+			bSingleProjectileVerified ? TEXT("true") : TEXT("false"),
+			bFullAutoReleaseVerified ? TEXT("true") : TEXT("false"),
+			bFullAutoQuiescentConfirmed ? TEXT("true") : TEXT("false"),
 			bClientObservedPickupAuthority ? TEXT("true") : TEXT("false"),
 			bClientObservedOwnerInventory ? TEXT("true") : TEXT("false"),
 			bClientObservedRemoteInventoryHidden ? TEXT("true") : TEXT("false"),
@@ -795,7 +861,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			: INDEX_NONE;
 
 		FailTest(FString::Printf(
-			TEXT("Timed out waiting for network state; switch=%s weapon=%s clientProjectile=%s ownerAmmo=%s nonOwnerAmmo=%s serverProjectile=%s aim=%s damage=%s death=%s respawn=%s matchState=%s remoteAim=%s remoteMontage=%s gasOwner=%s gasAvatar=%s gasConnection=%s gasNpc=%s gasRespawn=%s gasClient=%s gasClientRespawn=%s gasHealthInit=%s gasDamage=%s gasDeath=%s gasNpcHealth=%s/%s gasClientHealth=%s/%s/%s gasHud=%s fireGrant=%s/%s/%s/%s bullets=%d->%d hp=%.0f team=%u kills=%d deaths=%d score=%.0f teamScore=%d PickupAuthority=%s InventoryOwner=%s InventoryRemoteHidden=%s AmmoIsolation=%s DeathClear=%s/%s RespawnEmpty=%s/%s"),
+			TEXT("Timed out waiting for network state; switch=%s weapon=%s clientProjectile=%s ownerAmmo=%s nonOwnerAmmo=%s serverProjectile=%s aim=%s damage=%s death=%s respawn=%s matchState=%s remoteAim=%s remoteMontage=%s gasOwner=%s gasAvatar=%s gasConnection=%s gasNpc=%s gasRespawn=%s gasClient=%s gasClientRespawn=%s gasHealthInit=%s gasDamage=%s gasDeath=%s gasNpcHealth=%s/%s gasClientHealth=%s/%s/%s gasHud=%s fireGrant=%s/%s/%s/%s fireGA=%s/%s/%s bullets=%d->%d hp=%.0f team=%u kills=%d deaths=%d score=%.0f teamScore=%d PickupAuthority=%s InventoryOwner=%s InventoryRemoteHidden=%s AmmoIsolation=%s DeathClear=%s/%s RespawnEmpty=%s/%s"),
 			bClientObservedSwitch ? TEXT("true") : TEXT("false"),
 			bClientObservedWeapon ? TEXT("true") : TEXT("false"),
 			bClientObservedProjectile ? TEXT("true") : TEXT("false"),
@@ -829,6 +895,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			bNpcFireGrantOk ? TEXT("true") : TEXT("false"),
 			bServerFireRespawnGrantOk ? TEXT("true") : TEXT("false"),
 			bClientObservedFireGrant ? TEXT("true") : TEXT("false"),
+			bSingleProjectileVerified ? TEXT("true") : TEXT("false"),
+			bFullAutoReleaseVerified ? TEXT("true") : TEXT("false"),
+			bFullAutoQuiescentConfirmed ? TEXT("true") : TEXT("false"),
 			InitialBulletCount,
 			CurrentBulletCount,
 			Character->GetCurrentHP(),
@@ -858,6 +927,7 @@ void AShooterNetworkTestCoordinator::HandleActorSpawned(AActor* SpawnedActor)
 	}
 
 	bServerObservedProjectile = true;
+	++ProjectileSpawnCount;
 	const FVector ExpectedDirection = Character->GetControlRotation().Vector();
 	const FVector ProjectileDirection = Projectile->GetActorForwardVector();
 	ObservedAimDot = FVector::DotProduct(ExpectedDirection, ProjectileDirection);
@@ -1216,6 +1286,25 @@ void AShooterNetworkTestCoordinator::PollClientState()
 			}
 		}
 	}
+
+	// ---- 4B FullAutoRelease：保持按下直到全自动计时器再打出至少两发，然后松开 ----
+	if (bServerReadyForFullAuto && !bClientTriggeredFullAuto &&
+		bClientReportedProjectile)
+	{
+		BulletCountBeforeFullAuto = Weapon->GetBulletCount();
+		bClientTriggeredFullAuto = true;
+		Character->DoStartFiring();
+	}
+
+	if (bClientTriggeredFullAuto && !bClientReportedFullAuto &&
+		BulletCountBeforeFullAuto != INDEX_NONE &&
+		Weapon->GetBulletCount() < BulletCountBeforeFullAuto - 1)
+	{
+		Character->DoStopFiring();
+		ClientBulletCountAfterRelease = Weapon->GetBulletCount();
+		bClientReportedFullAuto = true;
+		ServerReportFullAutoReleased(ClientBulletCountAfterRelease);
+	}
 	} // if (Weapon)
 
 	if (!bClientReportedDamage && Character->GetCurrentHP() > 0.0f &&
@@ -1464,6 +1553,53 @@ void AShooterNetworkTestCoordinator::ServerReportClientObservedGasRespawn_Implem
 {
 	UE_LOG(LogShootGame, Display, TEXT("GAS client report: GasRespawn"));
 	bClientObservedGasRespawn = true;
+}
+
+void AShooterNetworkTestCoordinator::ServerReportFullAutoReleased_Implementation(
+	int32 BulletCountAfterRelease)
+{
+	bClientReportedFullAutoRelease = true;
+	ClientBulletCountAfterRelease = BulletCountAfterRelease;
+
+	AShooterCharacter* Character = GetShooterCharacter();
+	UShooterInventoryComponent* InventoryComponent = Character
+		? Character->GetInventoryComponent()
+		: nullptr;
+	AmmoAfterRelease = InventoryComponent
+		? InventoryComponent->GetMagazineAmmo(ServerInventoryFirstId)
+		: INDEX_NONE;
+	ProjectileCountAfterRelease = ProjectileSpawnCount;
+
+	// 全自动阶段必须在单发基线（1 发）之后再产生至少 2 发，
+	// 且服务器保持期间只观察到一个活动 GA_Fire，释放时客户端镜像与权威 Ammo 一致。
+	bFullAutoReleaseVerified = bFullAutoActiveObserved &&
+		ProjectileCountBeforeFullAuto != INDEX_NONE &&
+		AmmoAfterRelease != INDEX_NONE &&
+		ProjectileCountAfterRelease >= ProjectileCountBeforeFullAuto + 2 &&
+		AmmoAfterRelease == BulletCountAfterRelease;
+	FullAutoReleaseCheckTime = GetWorld()->GetTimeSeconds();
+
+	UE_LOG(
+		LogShootGame,
+		Display,
+		TEXT("Full-auto client report: ClientAmmo=%d ServerAmmo=%d Projectiles=%d->%d ActiveObserved=%s Valid=%s"),
+		BulletCountAfterRelease,
+		AmmoAfterRelease,
+		ProjectileCountBeforeFullAuto,
+		ProjectileCountAfterRelease,
+		bFullAutoActiveObserved ? TEXT("true") : TEXT("false"),
+		bFullAutoReleaseVerified ? TEXT("true") : TEXT("false"));
+
+	if (!bFullAutoReleaseVerified)
+	{
+		FailTest(FString::Printf(
+			TEXT("Full-auto release verification invalid; ClientAmmo=%d ServerAmmo=%d Projectiles=%d->%d ActiveObserved=%s"),
+			BulletCountAfterRelease,
+			AmmoAfterRelease,
+			ProjectileCountBeforeFullAuto,
+			ProjectileCountAfterRelease,
+			bFullAutoActiveObserved ? TEXT("true") : TEXT("false")));
+	}
 }
 
 void AShooterNetworkTestCoordinator::ServerReportClientObservedFireAbilityGrant_Implementation(

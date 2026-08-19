@@ -10,6 +10,8 @@
 
 class IShooterWeaponHolder;
 class AShooterProjectile;
+
+DECLARE_MULTICAST_DELEGATE_OneParam(FShooterWeaponOutOfAmmoDelegate, AShooterWeapon*);
 class USkeletalMeshComponent;
 class UAnimMontage;
 class UAnimInstance;
@@ -225,4 +227,7 @@ public:
 
 	/** 服务器权威扣减一发；绑定 Inventory 时写入 WeaponInstanceData，否则保留旧 CurrentBullets 兼容路径。 */
 	bool ConsumeAmmo();
+
+	/** 弹药在 Fire 事务中耗尽时广播；GA_Fire 用它幂等结束 Ability。 */
+	FShooterWeaponOutOfAmmoDelegate OnOutOfAmmo;
 };
