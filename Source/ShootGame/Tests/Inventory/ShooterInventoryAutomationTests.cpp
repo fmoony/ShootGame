@@ -10,6 +10,7 @@
 #include "ShooterCharacter.h"
 #include "ShooterInventoryComponent.h"
 #include "ShooterInventoryTypes.h"
+#include "ShooterWeapon.h"
 
 namespace ShooterInventoryAutomationTests
 {
@@ -210,6 +211,72 @@ bool FShooterInventoryRemoteHiddenTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("MagazineAmmo survives roundtrip"), ReadEntry.InstanceData.MagazineAmmo, Source.MagazineAmmo);
 	TestEqual(TEXT("ReserveAmmo survives roundtrip"), ReadEntry.InstanceData.ReserveAmmo, Source.ReserveAmmo);
 	TestEqual(TEXT("SlotIndex survives roundtrip"), ReadEntry.InstanceData.SlotIndex, Source.SlotIndex);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FShooterInventoryWeaponActorBindingTest,
+	"ShootGame.Inventory.WeaponActorBinding",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FShooterInventoryWeaponActorBindingTest::RunTest(const FString& Parameters)
+{
+	const FProperty* BoundInstanceIdProperty = FindFProperty<FProperty>(
+		AShooterWeapon::StaticClass(),
+		TEXT("BoundInstanceId"));
+	if (!TestNotNull(TEXT("AShooterWeapon exposes BoundInstanceId"), BoundInstanceIdProperty))
+	{
+		return false;
+	}
+
+	TestTrue(TEXT("BoundInstanceId is replicated"), BoundInstanceIdProperty->HasAnyPropertyFlags(CPF_Net));
+	TestEqual(
+		TEXT("BoundInstanceId uses OnRep_BoundInstanceId"),
+		BoundInstanceIdProperty->RepNotifyFunc,
+		FName(TEXT("OnRep_BoundInstanceId")));
+
+	const AShooterWeapon* WeaponDefaults = GetDefault<AShooterWeapon>();
+	if (!TestNotNull(TEXT("AShooterWeapon has defaults"), WeaponDefaults))
+	{
+		return false;
+	}
+
+	TestFalse(TEXT("WeaponActor starts unbound"), WeaponDefaults->GetBoundInstanceId().IsValid());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FShooterInventoryPickupGrantContractTest,
+	"ShootGame.Inventory.Pickup.ServerAuthority",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FShooterInventoryPickupGrantContractTest::RunTest(const FString& Parameters)
+{
+	const UShooterInventoryComponent* InventoryDefaults =
+		GetDefault<UShooterInventoryComponent>();
+	if (!TestNotNull(TEXT("InventoryComponent has defaults"), InventoryDefaults))
+	{
+		return false;
+	}
+
+	// 服务器权威授予 + SlotFull Reject 的网络行为由 ShooterNetworkTestCoordinator 在
+	// Dedicated / Listen 中验证；这里检查本地数据契约的配置面。
+	TestTrue(TEXT("Inventory has a positive Slot limit"), InventoryDefaults->GetMaxWeaponSlots() > 0);
+
+	const FProperty* MaxWeaponSlotsProperty = FindFProperty<FProperty>(
+		UShooterInventoryComponent::StaticClass(),
+		TEXT("MaxWeaponSlots"));
+	TestNotNull(TEXT("Inventory exposes MaxWeaponSlots"), MaxWeaponSlotsProperty);
+	TestTrue(
+		TEXT("MaxWeaponSlots is a replicated-data-free config"),
+		MaxWeaponSlotsProperty && !MaxWeaponSlotsProperty->HasAnyPropertyFlags(CPF_Net));
+
+	const UFunction* TryAddWeaponFunction =
+		UShooterInventoryComponent::StaticClass()->FindFunctionByName(TEXT("TryAddWeapon"));
+	TestNull(
+		TEXT("TryAddWeapon is not exposed as a client-callable UFUNCTION"),
+		TryAddWeaponFunction);
+
 	return true;
 }
 

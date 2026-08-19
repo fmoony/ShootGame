@@ -5,7 +5,8 @@
 #include "Components/SceneComponent.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
-#include "ShooterWeaponHolder.h"
+#include "ShooterCharacter.h"
+#include "ShooterInventoryComponent.h"
 #include "ShooterWeapon.h"
 #include "Engine/World.h"
 #include "TimerManager.h"
@@ -73,16 +74,30 @@ void AShooterPickup::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void AShooterPickup::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	// 只有服务器可以发放武器；客户端只观察复制的结果
-	if (!HasAuthority())
+	// 只有服务器可以发放武器；客户端只观察复制的结果。
+	if (!HasAuthority() || !bPickupAvailable)
 	{
 		return;
 	}
 
-	// have we collided against a weapon holder?
-	if (IShooterWeaponHolder* WeaponHolder = Cast<IShooterWeaponHolder>(OtherActor))
+	AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(OtherActor);
+	UShooterInventoryComponent* Inventory = ShooterCharacter
+		? ShooterCharacter->GetInventoryComponent()
+		: nullptr;
+	if (!Inventory || ShooterCharacter->IsDead())
 	{
-		WeaponHolder->AddWeaponClass(WeaponClass);
+		return;
+	}
+
+	// 同一 Pickup 的连续 Overlap 只在服务器端处理一次；成功授予后才进入隐藏/重生流程。
+	bPickupAvailable = false;
+
+	FGuid GrantedInstanceId;
+	const EShooterInventoryAddResult AddResult =
+		Inventory->TryAddWeapon(WeaponClass, GrantedInstanceId);
+	if (AddResult == EShooterInventoryAddResult::Added)
+	{
+		ShooterCharacter->HandleWeaponAddedToInventory(GrantedInstanceId);
 
 		// hide this mesh
 		SetActorHiddenInGame(true);
@@ -95,6 +110,11 @@ void AShooterPickup::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
 
 		// schedule the respawn
 		GetWorld()->GetTimerManager().SetTimer(RespawnTimer, this, &AShooterPickup::RespawnPickup, RespawnTime, false);
+	}
+	else
+	{
+		// 明确 Reject：重复定义或 Slot 满时不消费 Pickup，允许后续合法拾取重试。
+		bPickupAvailable = true;
 	}
 }
 

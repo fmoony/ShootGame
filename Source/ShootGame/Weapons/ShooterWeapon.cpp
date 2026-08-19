@@ -5,6 +5,8 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/World.h"
+#include "ShooterCharacter.h"
+#include "ShooterInventoryComponent.h"
 #include "ShooterProjectile.h"
 #include "ShooterWeaponHolder.h"
 #include "Components/SceneComponent.h"
@@ -76,9 +78,30 @@ void AShooterWeapon::InitializeWeaponOwner()
 	WeaponOwner = Cast<IShooterWeaponHolder>(OwningActor);
 	PawnOwner = Cast<APawn>(OwningActor);
 
+	if (AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(OwningActor))
+	{
+		if (UShooterInventoryComponent* Inventory = ShooterCharacter->GetInventoryComponent();
+			Inventory && BoundInstanceId.IsValid())
+		{
+			Inventory->RegisterWeaponActor(this);
+		}
+	}
+
 	if (WeaponOwner)
 	{
 		WeaponOwner->AttachWeaponMeshes(this);
+	}
+}
+
+void AShooterWeapon::OnRep_BoundInstanceId()
+{
+	if (AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(GetOwner()))
+	{
+		if (UShooterInventoryComponent* Inventory = ShooterCharacter->GetInventoryComponent();
+			Inventory && BoundInstanceId.IsValid())
+		{
+			Inventory->RegisterWeaponActor(this);
+		}
 	}
 }
 
@@ -88,6 +111,8 @@ void AShooterWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 
 	// 弹药只与拥有该武器的客户端相关。
 	DOREPLIFETIME_CONDITION(AShooterWeapon, CurrentBullets, COND_OwnerOnly);
+	// 只有 Owner 需要知道该 Actor 对应哪个 WeaponInstance；远端表现只看 Character.CurrentWeapon。
+	DOREPLIFETIME_CONDITION(AShooterWeapon, BoundInstanceId, COND_OwnerOnly);
 }
 
 void AShooterWeapon::OnRep_CurrentBullets()

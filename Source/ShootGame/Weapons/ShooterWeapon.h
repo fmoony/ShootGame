@@ -40,6 +40,13 @@ protected:
 	/** Cast pointer to the weapon owner */
 	IShooterWeaponHolder* WeaponOwner = nullptr;
 
+	/** 绑定的 Inventory WeaponInstance 身份；OwnerOnly 复制，远端表现不需要该数据。 */
+	UPROPERTY(ReplicatedUsing = OnRep_BoundInstanceId, VisibleAnywhere, BlueprintReadOnly, Category="Inventory")
+	FGuid BoundInstanceId;
+
+	UFUNCTION()
+	void OnRep_BoundInstanceId();
+
 	/** Type of projectiles this weapon will shoot */
 	UPROPERTY(EditAnywhere, Category="Ammo")
 	TSubclassOf<AShooterProjectile> ProjectileClass;
@@ -203,4 +210,10 @@ public:
 
 	/** Returns the current bullet count */
 	int32 GetBulletCount() const { return CurrentBullets; }
+
+	/** 返回绑定的 WeaponInstance ID；无效表示尚未接入 Inventory 的兼容路径。 */
+	FGuid GetBoundInstanceId() const { return BoundInstanceId; }
+
+	/** 服务器在创建 WeaponActor 后写入绑定关系。 */
+	void SetBoundInstanceId(const FGuid& InInstanceId) { BoundInstanceId = InInstanceId; }
 };

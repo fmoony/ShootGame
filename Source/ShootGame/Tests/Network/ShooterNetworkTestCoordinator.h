@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "ShooterNPC.h"
+#include "ShooterWeapon.h"
 #include "ShooterNetworkTestCoordinator.generated.h"
 
 class AShooterCharacter;
@@ -19,6 +20,13 @@ struct FOnAttributeChangeData;
  */
 UCLASS(NotBlueprintable, Transient)
 class AShooterNetworkTestNPC : public AShooterNPC
+{
+	GENERATED_BODY()
+};
+
+/** 仅用于 SlotFull 测试的额外武器类；不参与开火，只验证 Inventory 授予路径。 */
+UCLASS(NotBlueprintable, Transient)
+class AShooterNetworkTestWeapon : public AShooterWeapon
 {
 	GENERATED_BODY()
 };
@@ -94,6 +102,9 @@ private:
 		int32 WeaponCount,
 		const FString& ActiveWeaponInstanceId,
 		bool bRemoteInventoryHidden);
+
+	UFUNCTION(Server, Reliable)
+	void ServerReportClientObservedPickupAuthority();
 
 	/** 记录角色 OnDamaged 事件值（HUD 事件链证据）。 */
 	UFUNCTION()
@@ -190,6 +201,8 @@ private:
 
 	/** Inventory 2A 观测：服务器插入两把测试武器，Owner 完整收到，远端不收到完整列表。 */
 	bool bServerInventoryPrepared = false;
+	bool bClientObservedPickupAuthority = false;
+	bool bClientReportedPickupAuthority = false;
 	FGuid ServerInventoryFirstId;
 	FGuid ServerInventorySecondId;
 	FGuid ServerInventoryActiveId;

@@ -61,6 +61,9 @@ protected:
 	/** Timer to respawn the pickup */
 	FTimerHandle RespawnTimer;
 
+	/** 服务器授予状态闸门：防止同一 Pickup 在连续 Overlap 中重复授予。 */
+	bool bPickupAvailable = true;
+
 public:	
 	
 	/** Constructor */

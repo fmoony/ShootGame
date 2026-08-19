@@ -106,7 +106,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Inventory", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UShooterInventoryComponent> InventoryComponent;
 
-	/** List of weapons picked up by the character */
+	/** 兼容镜像：Inventory 建立后的 WeaponActor 列表；逻辑权威源是 Inventory WeaponInstances。 */
 	TArray<AShooterWeapon*> OwnedWeapons;
 
 	/** 当前装备且可射击的武器。
@@ -215,6 +215,12 @@ public:
 
 	/** 当前由服务器选择并复制给客户端的武器。 */
 	AShooterWeapon* GetCurrentWeapon() const { return CurrentWeapon; }
+
+	/** 公共表现侧命名：CurrentWeapon 即阶段计划中的 CurrentWeaponActor。 */
+	AShooterWeapon* GetCurrentWeaponActor() const { return CurrentWeapon; }
+
+	/** 2B 桥接：Inventory 成功创建 WeaponActor 后，由 Pickup 路径调用以更新兼容列表与当前武器表现。 */
+	void HandleWeaponAddedToInventory(const FGuid& InstanceId);
 
 	/** 返回角色的 Inventory 组件；该组件是武器持有关系的逻辑权威源。 */
 	UShooterInventoryComponent* GetInventoryComponent() const { return InventoryComponent; }

@@ -123,7 +123,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		return;
 	}
 
-	// ---- Inventory 2A：服务器通过测试入口插入两把测试武器 ----
+	// ---- Inventory 2B：服务器通过正式授予路径创建 WeaponInstance + WeaponActor ----
 	if (!bServerInventoryPrepared)
 	{
 		UShooterInventoryComponent* InventoryComponent = Character->GetInventoryComponent();
@@ -133,43 +133,80 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			return;
 		}
 
-		ServerInventoryFirstId = FGuid::NewGuid();
-		ServerInventorySecondId = FGuid::NewGuid();
+		const TSubclassOf<AShooterWeapon> RifleClass = LoadClass<AShooterWeapon>(
+			nullptr,
+			ShooterNetworkTest::RifleClassPath);
+		const TSubclassOf<AShooterWeapon> PistolClass = LoadClass<AShooterWeapon>(
+			nullptr,
+			ShooterNetworkTest::PistolClassPath);
+		if (!RifleClass || !PistolClass)
+		{
+			FailTest(TEXT("Rifle or Pistol class could not be loaded"));
+			return;
+		}
 
-		FShooterWeaponInstanceData RifleData;
-		RifleData.InstanceId = ServerInventoryFirstId;
-		RifleData.DefinitionId = FPrimaryAssetId(FPrimaryAssetType(TEXT("ShooterTest")), FName(TEXT("Rifle")));
-		RifleData.MagazineAmmo = 24;
-		RifleData.ReserveAmmo = 90;
-		RifleData.SlotIndex = 0;
+		const EShooterInventoryAddResult RifleResult =
+			InventoryComponent->TryAddWeapon(RifleClass, ServerInventoryFirstId);
+		if (RifleResult == EShooterInventoryAddResult::Added)
+		{
+			Character->HandleWeaponAddedToInventory(ServerInventoryFirstId);
+		}
 
-		FShooterWeaponInstanceData PistolData;
-		PistolData.InstanceId = ServerInventorySecondId;
-		PistolData.DefinitionId = FPrimaryAssetId(FPrimaryAssetType(TEXT("ShooterTest")), FName(TEXT("Pistol")));
-		PistolData.MagazineAmmo = 10;
-		PistolData.ReserveAmmo = 36;
-		PistolData.SlotIndex = 1;
+		const EShooterInventoryAddResult PistolResult =
+			InventoryComponent->TryAddWeapon(PistolClass, ServerInventorySecondId);
+		if (PistolResult == EShooterInventoryAddResult::Added)
+		{
+			Character->HandleWeaponAddedToInventory(ServerInventorySecondId);
+		}
 
-		const bool bRifleAdded = InventoryComponent->AddWeaponInstance(RifleData);
-		const bool bPistolAdded = InventoryComponent->AddWeaponInstance(PistolData);
-		InventoryComponent->SetActiveWeaponInstanceId(ServerInventoryFirstId);
+		// SingleGrant：同一 WeaponClass 不能第二次授予。
+		FGuid DuplicateInstanceId;
+		const EShooterInventoryAddResult DuplicateResult =
+			InventoryComponent->TryAddWeapon(RifleClass, DuplicateInstanceId);
+
+		// SlotFull：临时把 Slot 上限设为 1，使用额外测试类验证唯一空位耗尽后明确 Reject。
+		const int32 PreviousMaxSlots = InventoryComponent->GetMaxWeaponSlots();
+		InventoryComponent->SetMaxWeaponSlots(1);
+		FGuid SlotFullInstanceId;
+		const EShooterInventoryAddResult SlotFullResult =
+			InventoryComponent->TryAddWeapon(AShooterNetworkTestWeapon::StaticClass(), SlotFullInstanceId);
+		InventoryComponent->SetMaxWeaponSlots(PreviousMaxSlots);
+
+		// WeaponActorBinding：每个 InstanceId 必须与对应 Actor 的 BoundInstanceId 完全一致。
+		AShooterWeapon* RifleActor = InventoryComponent->FindWeaponActor(ServerInventoryFirstId);
+		AShooterWeapon* PistolActor = InventoryComponent->FindWeaponActor(ServerInventorySecondId);
+		const bool bBindingOk = IsValid(RifleActor) && IsValid(PistolActor) &&
+			RifleActor->GetBoundInstanceId() == ServerInventoryFirstId &&
+			PistolActor->GetBoundInstanceId() == ServerInventorySecondId;
+
 		ServerInventoryActiveId = InventoryComponent->GetActiveWeaponInstanceId();
-
-		if (!bRifleAdded || !bPistolAdded ||
+		if (RifleResult != EShooterInventoryAddResult::Added ||
+			PistolResult != EShooterInventoryAddResult::Added ||
+			DuplicateResult != EShooterInventoryAddResult::DuplicateDefinition ||
+			SlotFullResult != EShooterInventoryAddResult::SlotFull ||
 			InventoryComponent->GetWeaponCount() != 2 ||
-			ServerInventoryActiveId != ServerInventoryFirstId)
+			ServerInventoryActiveId != ServerInventorySecondId ||
+			!bBindingOk)
 		{
 			FailTest(FString::Printf(
-				TEXT("Server Inventory preparation failed; RifleAdded=%s PistolAdded=%s Count=%d Active=%s Expected=%s"),
-				bRifleAdded ? TEXT("true") : TEXT("false"),
-				bPistolAdded ? TEXT("true") : TEXT("false"),
+				TEXT("Server Inventory 2B preparation failed; Rifle=%d Pistol=%d Duplicate=%d SlotFull=%d Count=%d Active=%s ExpectedActive=%s Binding=%s"),
+				static_cast<int32>(RifleResult),
+				static_cast<int32>(PistolResult),
+				static_cast<int32>(DuplicateResult),
+				static_cast<int32>(SlotFullResult),
 				InventoryComponent->GetWeaponCount(),
 				*ServerInventoryActiveId.ToString(),
-				*ServerInventoryFirstId.ToString()));
+				*ServerInventorySecondId.ToString(),
+				bBindingOk ? TEXT("true") : TEXT("false")));
 			return;
 		}
 
 		bServerInventoryPrepared = true;
+		bSecondaryWeaponGranted = true;
+		WeaponBeforeSwitch = Character->GetCurrentWeapon();
+		bServerReadyToSwitch = true;
+		ForceNetUpdate();
+		return;
 	}
 
 	const AGameStateBase* GameState = GetWorld()->GetGameState();
@@ -550,6 +587,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		bClientObservedMatchState && bClientObservedRemoteAim &&
 		(!bRequireRemoteMontage || bClientObservedRemoteMontage) && bServerObservedRespawn &&
 		bClientObservedOwnerInventory && bClientObservedRemoteInventoryHidden &&
+		bClientObservedPickupAuthority &&
 		bClientObservedGasLifecycle && bClientObservedGasRespawn && bServerGasRespawnOk &&
 		bClientObservedGasHealthInit && bClientObservedGasHealthDamage &&
 		bClientObservedGasHealthRespawn && bServerGasDeathOk)
@@ -561,7 +599,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		UE_LOG(
 			LogShootGame,
 			Display,
-			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS PlayerId=%d Switch=true OwnerAmmo=true NonOwnerAmmoHidden=true Bullets=%d->%d HP=%.0f->0 Dead=true Respawn=true RespawnHP=%.0f AimDot=%.3f Team=%u Kills=%d Deaths=%d TeamScore=%d RemotePitch=%.3f/%.3f RemoteMontage=%s GasServer=%s/%s/%s GasNPC=%s GasRespawn=%s GasClient=%s GasClientRespawn=%s GasHealthInit=%s GasDamage=%s GasDeath=%s GasNpcHealth=%s/%s GasClientHealth=%s/%s/%s GasHud=%s InventoryOwner=%s InventoryRemoteHidden=%s"),
+			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS PlayerId=%d Switch=true OwnerAmmo=true NonOwnerAmmoHidden=true Bullets=%d->%d HP=%.0f->0 Dead=true Respawn=true RespawnHP=%.0f AimDot=%.3f Team=%u Kills=%d Deaths=%d TeamScore=%d RemotePitch=%.3f/%.3f RemoteMontage=%s GasServer=%s/%s/%s GasNPC=%s GasRespawn=%s GasClient=%s GasClientRespawn=%s GasHealthInit=%s GasDamage=%s GasDeath=%s GasNpcHealth=%s/%s GasClientHealth=%s/%s/%s GasHud=%s PickupAuthority=%s InventoryOwner=%s InventoryRemoteHidden=%s"),
 			PlayerId,
 			InitialBulletCount,
 			BulletCountAfterFire,
@@ -591,6 +629,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			bClientObservedGasHealthDamage ? TEXT("true") : TEXT("false"),
 			bClientObservedGasHealthRespawn ? TEXT("true") : TEXT("false"),
 			bClientObservedFullHealthHudEvent ? TEXT("true") : TEXT("false"),
+			bClientObservedPickupAuthority ? TEXT("true") : TEXT("false"),
 			bClientObservedOwnerInventory ? TEXT("true") : TEXT("false"),
 			bClientObservedRemoteInventoryHidden ? TEXT("true") : TEXT("false"));
 		GetWorldTimerManager().ClearTimer(PollTimer);
@@ -612,7 +651,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			: INDEX_NONE;
 
 		FailTest(FString::Printf(
-			TEXT("Timed out waiting for network state; switch=%s weapon=%s clientProjectile=%s ownerAmmo=%s nonOwnerAmmo=%s serverProjectile=%s aim=%s damage=%s death=%s respawn=%s matchState=%s remoteAim=%s remoteMontage=%s gasOwner=%s gasAvatar=%s gasConnection=%s gasNpc=%s gasRespawn=%s gasClient=%s gasClientRespawn=%s gasHealthInit=%s gasDamage=%s gasDeath=%s gasNpcHealth=%s/%s gasClientHealth=%s/%s/%s gasHud=%s bullets=%d->%d hp=%.0f team=%u kills=%d deaths=%d score=%.0f teamScore=%d InventoryOwner=%s InventoryRemoteHidden=%s"),
+			TEXT("Timed out waiting for network state; switch=%s weapon=%s clientProjectile=%s ownerAmmo=%s nonOwnerAmmo=%s serverProjectile=%s aim=%s damage=%s death=%s respawn=%s matchState=%s remoteAim=%s remoteMontage=%s gasOwner=%s gasAvatar=%s gasConnection=%s gasNpc=%s gasRespawn=%s gasClient=%s gasClientRespawn=%s gasHealthInit=%s gasDamage=%s gasDeath=%s gasNpcHealth=%s/%s gasClientHealth=%s/%s/%s gasHud=%s bullets=%d->%d hp=%.0f team=%u kills=%d deaths=%d score=%.0f teamScore=%d PickupAuthority=%s InventoryOwner=%s InventoryRemoteHidden=%s"),
 			bClientObservedSwitch ? TEXT("true") : TEXT("false"),
 			bClientObservedWeapon ? TEXT("true") : TEXT("false"),
 			bClientObservedProjectile ? TEXT("true") : TEXT("false"),
@@ -650,6 +689,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			TimeoutPlayerState ? TimeoutPlayerState->GetDeaths() : INDEX_NONE,
 			TimeoutPlayerState ? TimeoutPlayerState->GetScore() : -1.0f,
 			TimeoutTeamScore,
+			bClientObservedPickupAuthority ? TEXT("true") : TEXT("false"),
 			bClientObservedOwnerInventory ? TEXT("true") : TEXT("false"),
 			bClientObservedRemoteInventoryHidden ? TEXT("true") : TEXT("false")));
 	}
@@ -732,6 +772,27 @@ void AShooterNetworkTestCoordinator::PollClientState()
 				InventoryComponent->GetWeaponCount(),
 				ActiveId.ToString(),
 				true);
+		}
+	}
+
+	// ---- Inventory 2B Pickup ServerAuthority：客户端直接调用授予入口必须被拒绝 ----
+	if (!bClientReportedPickupAuthority)
+	{
+		UShooterInventoryComponent* InventoryComponent = Character->GetInventoryComponent();
+		const TSubclassOf<AShooterWeapon> RifleClass = LoadClass<AShooterWeapon>(
+			nullptr,
+			ShooterNetworkTest::RifleClassPath);
+		if (InventoryComponent && RifleClass)
+		{
+			FGuid ClientAttemptInstanceId;
+			const EShooterInventoryAddResult ClientAttemptResult =
+				InventoryComponent->TryAddWeapon(RifleClass, ClientAttemptInstanceId);
+			if (ClientAttemptResult == EShooterInventoryAddResult::NotAuthoritative &&
+				InventoryComponent->GetWeaponCount() == 2)
+			{
+				bClientReportedPickupAuthority = true;
+				ServerReportClientObservedPickupAuthority();
+			}
 		}
 	}
 
@@ -1147,6 +1208,12 @@ void AShooterNetworkTestCoordinator::ServerReportClientObservedInventory_Impleme
 			*ServerInventoryActiveId.ToString(),
 			bRemoteInventoryHidden ? TEXT("true") : TEXT("false")));
 	}
+}
+
+void AShooterNetworkTestCoordinator::ServerReportClientObservedPickupAuthority_Implementation()
+{
+	UE_LOG(LogShootGame, Display, TEXT("Inventory client report: PickupAuthority rejected"));
+	bClientObservedPickupAuthority = true;
 }
 
 void AShooterNetworkTestCoordinator::ServerReportClientObservedGasHealthInit_Implementation()

@@ -14,7 +14,7 @@
 
 ---
 
-## 2. 当前 Inventory 数据模型（2A 已落地）
+## 2. 当前 Inventory 数据模型（2A / 2B 已落地）
 
 当前已经成立的组件与数据关系：
 
@@ -24,8 +24,16 @@ AShooterCharacter
    ├─ FShooterWeaponInventoryList
    │  └─ TArray<FShooterWeaponInstanceEntry>
    │     └─ FShooterWeaponInstanceData
-   └─ ActiveWeaponInstanceId
+   ├─ ActiveWeaponInstanceId
+   └─ BoundWeaponActors（InstanceId -> WeaponActor）
 ```
+
+2B 已落地：
+
+- Pickup 最终授予路径已迁移到 `UShooterInventoryComponent::TryAddWeapon`。
+- 服务器创建 WeaponInstance 后同步创建并绑定 WeaponActor。
+- `AShooterWeapon::BoundInstanceId` 已建立，OwnerOnly 复制。
+- 重复 WeaponClass 授予与 Slot 满均明确 Reject。
 
 当前 `FShooterWeaponInstanceData`：
 
@@ -46,16 +54,14 @@ FShooterWeaponInstanceData
 - `DefinitionId`：指向静态 WeaponDefinition 的资产身份。
 - `ActiveWeaponInstanceId`：当前逻辑武器身份。
 
-当前 2A 尚未实现：
+当前尚未实现：
 
-- Pickup 接入。
-- WeaponActor Binding。
-- `Character.CurrentWeaponActor` 切换表现。
+- `Character.CurrentWeaponActor` 基于 ActiveWeaponInstanceId 的切换表现。
 - Ammo 实际消费迁移。
 - Death Clear。
 - GA_Fire。
 
-上述内容在 2B / 2C / 2D 落地前，不得在代码或文档中当作“已经存在”。
+上述内容在 2C / 2D 落地前，不得在代码或文档中当作“已经存在”。
 
 ---
 
@@ -75,7 +81,8 @@ ActiveWeaponInstanceId     = COND_OwnerOnly
 
 状态说明：
 
-- `CurrentWeaponActor` 链路属于后续阶段，当前 2A 尚未完成。
+- `Character.CurrentWeapon` 已作为公共表现属性复制给所有观察者，2B 复用其作为当前持枪表现。
+- `CurrentWeaponActor` 命名下的 ActiveWeaponInstanceId 驱动切换属于 2C。
 - 当前远端客户端看到的是空 Inventory 组件，这是 OwnerOnly 的预期结果。
 
 ---
@@ -261,7 +268,7 @@ WeaponActor*        = 不能作为永久武器身份
 
 状态说明：
 
-> 上述 WeaponActor 边界属于后续阶段，当前 2A 尚未全部实现。
+> 2B 已建立 `WeaponActor.BoundInstanceId` 绑定；切换、公共表现与 Ammo 权威迁移仍属于后续阶段。
 
 ---
 

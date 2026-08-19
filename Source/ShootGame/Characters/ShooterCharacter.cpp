@@ -516,6 +516,34 @@ FVector AShooterCharacter::GetWeaponTargetLocation()
 	return OutHit.bBlockingHit ? OutHit.ImpactPoint : OutHit.TraceEnd;
 }
 
+void AShooterCharacter::HandleWeaponAddedToInventory(const FGuid& InstanceId)
+{
+	if (!HasAuthority() || !InventoryComponent)
+	{
+		return;
+	}
+
+	AShooterWeapon* AddedWeapon = InventoryComponent->FindWeaponActor(InstanceId);
+	if (!AddedWeapon)
+	{
+		return;
+	}
+
+	// OwnedWeapons 是兼容镜像，逻辑权威仍在 Inventory。
+	OwnedWeapons.AddUnique(AddedWeapon);
+
+	// 与旧 Pickup 表现一致：拾取新武器后立即装备。
+	if (CurrentWeapon)
+	{
+		CurrentWeapon->DeactivateWeapon();
+	}
+
+	CurrentWeapon = AddedWeapon;
+	InventoryComponent->SetActiveWeaponInstanceId(InstanceId);
+	AddedWeapon->ActivateWeapon();
+	ApplyCurrentWeapon();
+}
+
 void AShooterCharacter::AddWeaponClass(const TSubclassOf<AShooterWeapon>& WeaponClass)
 {
 	// 只有服务器可以生成并装备武器

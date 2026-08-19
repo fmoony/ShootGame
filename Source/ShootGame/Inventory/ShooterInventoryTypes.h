@@ -206,6 +206,32 @@ struct FShooterWeaponInventoryList : public FFastArraySerializer
 		return nullptr;
 	}
 
+	const FShooterWeaponInstanceEntry* FindItemBySlot(int32 SlotIndex) const
+	{
+		for (const FShooterWeaponInstanceEntry& Entry : Items)
+		{
+			if (Entry.InstanceData.SlotIndex == SlotIndex)
+			{
+				return &Entry;
+			}
+		}
+
+		return nullptr;
+	}
+
+	const FShooterWeaponInstanceEntry* FindItemByDefinitionId(const FPrimaryAssetId& DefinitionId) const
+	{
+		for (const FShooterWeaponInstanceEntry& Entry : Items)
+		{
+			if (Entry.InstanceData.DefinitionId == DefinitionId)
+			{
+				return &Entry;
+			}
+		}
+
+		return nullptr;
+	}
+
 	FShooterWeaponInstanceEntry* FindItem(const FGuid& InstanceId)
 	{
 		for (FShooterWeaponInstanceEntry& Entry : Items)
