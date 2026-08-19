@@ -10,6 +10,7 @@
 #include "ShooterAttributeSet.h"
 #include "ShooterGameplayAbility_Fire.h"
 #include "ShooterGameplayEffectStatics.h"
+#include "ShooterGameplayTags.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -43,6 +44,8 @@ void AShooterNPC::BeginPlay()
 	if (AbilitySystemComponent)
 	{
 		AbilitySystemComponent->InitAbilityActorInfo(this, this);
+		AbilitySystemComponent->RemoveLooseGameplayTag(ShooterGameplayTags::State_Dead);
+		AbilitySystemComponent->RemoveLooseGameplayTag(ShooterGameplayTags::State_Firing);
 		UE_LOG(
 			LogShootGame,
 			Display,
@@ -144,7 +147,12 @@ void AShooterNPC::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
 
-	// 销毁时解除 ASC ActorInfo，避免残留已销毁 Actor 的引用。
+	// 销毁时先结束 GA_Fire，再解除 ActorInfo，避免 Ability 残留旧 Avatar。
+	if (HasAuthority())
+	{
+		CancelFireAbility();
+	}
+
 	if (AbilitySystemComponent)
 	{
 		AbilitySystemComponent->ClearActorInfo();
@@ -291,6 +299,17 @@ void AShooterNPC::Die()
 		return;
 	}
 
+	// 死亡事务：设置 State.Dead 并取消 GA_Fire，再进入现有死亡流程。
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->AddLooseGameplayTag(ShooterGameplayTags::State_Dead);
+	}
+	CancelFireAbility();
+	if (Weapon)
+	{
+		Weapon->StopFiring();
+	}
+
 	// raise the dead flag
 	bIsDead = true;
 
@@ -323,24 +342,37 @@ void AShooterNPC::DeferredDestruction()
 
 void AShooterNPC::StartShooting(AActor* ActorToShoot)
 {
-	// save the aim target
+	// AI 只提交开火意图：保存目标并让 GA_Fire 在服务器执行武器事务。
 	CurrentAimTarget = ActorToShoot;
-
-	// raise the flag
 	bIsShooting = true;
 
-	// signal the weapon
-	Weapon->StartFiring();
+	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent =
+		Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
+	{
+		ShooterAbilitySystemComponent->AbilityInputTagPressed(
+			ShooterGameplayTags::Input_Fire);
+	}
 }
 
 void AShooterNPC::StopShooting()
 {
-	// lower the flag
+	// AI 只提交停火意图；服务器活动 GA_Fire 收到释放后结束武器事务。
 	bIsShooting = false;
 
-	// 武器可能尚未生成（例如监听服务器主机登录早于 NPC BeginPlay），安全跳过。
-	if (Weapon)
+	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent =
+		Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
 	{
-		Weapon->StopFiring();
+		ShooterAbilitySystemComponent->AbilityInputTagReleased(
+			ShooterGameplayTags::Input_Fire);
+	}
+}
+
+void AShooterNPC::CancelFireAbility()
+{
+	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent =
+		Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
+	{
+		ShooterAbilitySystemComponent->CancelAbilitiesByTag(
+			ShooterGameplayTags::Input_Fire);
 	}
 }

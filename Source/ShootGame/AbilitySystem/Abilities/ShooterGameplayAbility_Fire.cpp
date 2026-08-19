@@ -8,6 +8,7 @@
 #include "ShooterGameplayTags.h"
 #include "ShooterNPC.h"
 #include "ShooterWeapon.h"
+#include "ShooterWeaponHolder.h"
 #include "ShootGame.h"
 
 bool UShooterGameplayAbility_Fire::HasInputFireTag() const
@@ -77,24 +78,31 @@ bool UShooterGameplayAbility_Fire::CanActivateAbility(
 		return true;
 	}
 
-	// 服务器完整校验：Avatar 必须是 ASC 当前 Avatar、角色未死亡、
-	// 当前 WeaponActor 有效且属于该角色，并且存在可消耗弹药。
-	if (const AShooterCharacter* Character = Cast<AShooterCharacter>(AvatarActor))
-	{
-		const UAbilitySystemComponent* AbilitySystemComponent =
-			ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
-		const AShooterWeapon* Weapon = Character->GetCurrentWeapon();
-		return AbilitySystemComponent &&
-			AbilitySystemComponent->GetAvatarActor() == Character &&
-			!Character->IsDead() &&
-			IsValid(Weapon) &&
-			Weapon->GetOwner() == Character &&
-			!Weapon->IsHidden() &&
-			Weapon->CanConsumeAmmo();
-	}
+	// 服务器完整校验：Avatar 必须是 ASC 当前 Avatar、玩家 / NPC 未死亡、
+	// 当前 WeaponActor 有效且属于该 Avatar，并且存在可消耗弹药。
+	const UAbilitySystemComponent* AbilitySystemComponent =
+		ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
+	const IShooterWeaponHolder* WeaponHolder =
+		Cast<IShooterWeaponHolder>(AvatarActor);
+	const AShooterWeapon* Weapon = WeaponHolder
+		? WeaponHolder->GetCurrentWeapon()
+		: nullptr;
 
-	// NPC 开火链路在 4C 接入；4B 只迁移玩家入口。
-	return false;
+	const AShooterCharacter* Character = Cast<AShooterCharacter>(AvatarActor);
+	const AShooterNPC* Npc = Cast<AShooterNPC>(AvatarActor);
+	const bool bHolderAlive = Character
+		? !Character->IsDead()
+		: Npc
+			? !Npc->IsDead()
+			: false;
+
+	return AbilitySystemComponent &&
+		AbilitySystemComponent->GetAvatarActor() == AvatarActor &&
+		bHolderAlive &&
+		IsValid(Weapon) &&
+		Weapon->GetOwner() == AvatarActor &&
+		!Weapon->IsHidden() &&
+		Weapon->CanConsumeAmmo();
 }
 
 void UShooterGameplayAbility_Fire::ActivateAbility(
@@ -110,11 +118,17 @@ void UShooterGameplayAbility_Fire::ActivateAbility(
 		return;
 	}
 
-	AShooterCharacter* Character = GetShooterCharacter();
-	AShooterWeapon* Weapon = GetCurrentWeaponForAvatar(
-		ActorInfo ? ActorInfo->AvatarActor.Get() : nullptr);
-	if (!Character || !IsValid(Weapon) || Character->IsDead() ||
-		Weapon->GetOwner() != Character || Weapon->IsHidden() ||
+	AActor* AvatarActor = ActorInfo ? ActorInfo->AvatarActor.Get() : nullptr;
+	AShooterCharacter* Character = Cast<AShooterCharacter>(AvatarActor);
+	AShooterNPC* Npc = Cast<AShooterNPC>(AvatarActor);
+	AShooterWeapon* Weapon = GetCurrentWeaponForAvatar(AvatarActor);
+	const bool bHolderAlive = Character
+		? !Character->IsDead()
+		: Npc
+			? !Npc->IsDead()
+			: false;
+	if ((!Character && !Npc) || !IsValid(Weapon) || !bHolderAlive ||
+		Weapon->GetOwner() != AvatarActor || Weapon->IsHidden() ||
 		!Weapon->CanConsumeAmmo())
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
@@ -222,12 +236,8 @@ AShooterNPC* UShooterGameplayAbility_Fire::GetShooterNPC() const
 AShooterWeapon* UShooterGameplayAbility_Fire::GetCurrentWeaponForAvatar(
 	AActor* AvatarActor) const
 {
-	// 4B 只支持玩家 Character；NPC 的 Current Weapon 接口在 4C 通过
-	// IShooterWeaponHolder 的最小只读接口接入。
-	if (AShooterCharacter* Character = Cast<AShooterCharacter>(AvatarActor))
-	{
-		return Character->GetCurrentWeapon();
-	}
-
-	return nullptr;
+	// 玩家与 NPC 共用 IShooterWeaponHolder 的最小只读 CurrentWeapon 接口。
+	const IShooterWeaponHolder* WeaponHolder =
+		Cast<IShooterWeaponHolder>(AvatarActor);
+	return WeaponHolder ? WeaponHolder->GetCurrentWeapon() : nullptr;
 }

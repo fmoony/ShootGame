@@ -213,8 +213,8 @@ public:
 	/** 当前是否处于已死亡状态。 */
 	bool IsDead() const { return bIsDead; }
 
-	/** 当前由服务器选择并复制给客户端的武器。 */
-	AShooterWeapon* GetCurrentWeapon() const { return CurrentWeapon; }
+	/** 当前由服务器选择并复制给客户端的武器（IShooterWeaponHolder 最小只读接口）。 */
+	virtual AShooterWeapon* GetCurrentWeapon() const override { return CurrentWeapon; }
 
 	/** 公共表现侧命名：CurrentWeapon 即阶段计划中的 CurrentWeaponActor。 */
 	AShooterWeapon* GetCurrentWeaponActor() const { return CurrentWeapon; }
@@ -298,6 +298,9 @@ protected:
 
 	/** 本次伤害的击杀者；Health 归零桥接时用于现有 Death/Kill/计分闭环。 */
 	AController* PendingDeathInstigator = nullptr;
+
+	/** 幂等取消 GA_Fire；死亡、切枪、角色销毁共用。 */
+	void CancelFireAbility();
 
 	/** Called when this character's HP is depleted */
 	void Die(AController* KillerController);

@@ -46,8 +46,14 @@ public:
 	/** 返回当前 NPC ASC 中 Fire Ability Spec 的数量。 */
 	int32 GetFireAbilitySpecCount() const;
 
+	/** 是否已进入死亡流程。 */
+	bool IsDead() const { return bIsDead; }
+
 	/** 服务器幂等授予 Fire Ability。 */
 	void GrantFireAbility();
+
+	/** 幂等取消 GA_Fire；死亡与销毁清理共用。 */
+	void CancelFireAbility();
 
 	/** Current HP for this character. It dies if it reaches zero through damage */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Damage")
@@ -167,6 +173,9 @@ public:
 
 	/** Calculates and returns the aim location for the weapon */
 	virtual FVector GetWeaponTargetLocation() override;
+
+	/** 返回当前装备的 WeaponActor（IShooterWeaponHolder 最小只读接口）。 */
+	virtual AShooterWeapon* GetCurrentWeapon() const override { return Weapon; }
 
 	/** Gives a weapon of this class to the owner */
 	virtual void AddWeaponClass(const TSubclassOf<AShooterWeapon>& WeaponClass) override;

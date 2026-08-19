@@ -21,12 +21,14 @@
 #include "ShooterAbilitySystemComponent.h"
 #include "ShooterAttributeSet.h"
 #include "ShooterGameplayAbility_Fire.h"
+#include "ShooterGameplayTags.h"
 #include "ShooterCharacter.h"
 #include "ShooterInventoryComponent.h"
 #include "ShooterGameState.h"
 #include "ShooterPlayerState.h"
 #include "ShooterWeapon.h"
 #include "ShooterProjectile.h"
+#include "UObject/ConstructorHelpers.h"
 
 namespace ShooterNetworkTest
 {
@@ -36,6 +38,20 @@ namespace ShooterNetworkTest
 		TEXT("/Game/Shooter/Blueprints/Weapons/BP_ShooterWeapon_Rifle.BP_ShooterWeapon_Rifle_C");
 	const TCHAR* PistolClassPath =
 		TEXT("/Game/Shooter/Blueprints/Weapons/BP_ShooterWeapon_Pistol.BP_ShooterWeapon_Pistol_C");
+}
+
+AShooterNetworkTestWeapon::AShooterNetworkTestWeapon()
+{
+	// 测试 NPC 使用不依赖蓝图的武器/弹丸配置；单发避免 AI 停火验证出现计时器噪音。
+	static ConstructorHelpers::FClassFinder<AShooterProjectile> ProjectileClassFinder(
+		TEXT("/Game/Shooter/Blueprints/Weapons/BP_ShooterProjectile_Bullet.BP_ShooterProjectile_Bullet_C"));
+	ProjectileClass = ProjectileClassFinder.Class;
+	bFullAuto = false;
+}
+
+AShooterNetworkTestNPC::AShooterNetworkTestNPC()
+{
+	WeaponClass = AShooterNetworkTestWeapon::StaticClass();
 }
 
 AShooterNetworkTestCoordinator::AShooterNetworkTestCoordinator()
@@ -98,6 +114,7 @@ void AShooterNetworkTestCoordinator::GetLifetimeReplicatedProps(
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyToSwitch);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyToFire);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyForFullAuto);
+	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyForSwitchCancel);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, WeaponBeforeSwitch);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bRequireRemoteMontage);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bRequireRemoteCurrentWeapon);
@@ -384,7 +401,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 				*GetNameSafe(NpcAbilitySystemComponent ? NpcAbilitySystemComponent->GetAvatarActor() : nullptr)));
 		}
 
-		// NPC Health 初始化 + 致死伤害桥接：属性归零进入现有 Die() 死亡流程。
+		// NPC Health 初始化。
 		if (NpcAbilitySystemComponent)
 		{
 			const float NpcMaxHealth = NpcAbilitySystemComponent->GetNumericAttribute(
@@ -393,27 +410,57 @@ void AShooterNetworkTestCoordinator::PollServerState()
 				UShooterAttributeSet::GetHealthAttribute());
 			bNpcGasHealthInitOk = NpcMaxHealth > 0.0f &&
 				FMath::IsNearlyEqual(NpcHealthBefore, NpcMaxHealth, 0.01f);
-			if (bNpcGasHealthInitOk)
-			{
-				UGameplayStatics::ApplyDamage(TestNpc, NpcMaxHealth + 100.0f, nullptr, this, nullptr);
-				const float NpcHealthAfter = NpcAbilitySystemComponent->GetNumericAttribute(
-					UShooterAttributeSet::GetHealthAttribute());
-				// bIsDead 是未反射的私有成员；用可观察证据判定死亡：
-				// 属性归零 + CurrentHP 镜像归零 + 现有 Die() 流程禁用胶囊碰撞。
-				// 不用布娃娃物理作为证据：测试 NPC 使用 C++ 裸默认网格，没有物理资产。
-				bNpcGasDeathOk = NpcHealthAfter <= 0.0f &&
-					TestNpc->CurrentHP <= 0.0f &&
-					TestNpc->GetCapsuleComponent() &&
-					TestNpc->GetCapsuleComponent()->GetCollisionEnabled() == ECollisionEnabled::NoCollision;
-			}
 		}
-		if (!bNpcGasHealthInitOk || !bNpcGasDeathOk || !bNpcFireGrantOk)
+
+		// ---- 4C NPC GA_Fire：AI 只提交意图，ASC 激活 Ability，服务器生成弹丸 ----
+		if (bNpcGasLifecycleOk && bNpcFireGrantOk && bNpcGasHealthInitOk)
 		{
+			NpcFireTestNpc = TestNpc;
+			const int32 NpcProjectilesBefore = CountProjectilesForInstigator(TestNpc);
+			TestNpc->StartShooting(Character);
+
+			UShooterAbilitySystemComponent* NpcShooterAbilitySystemComponent =
+				Cast<UShooterAbilitySystemComponent>(NpcAbilitySystemComponent);
+			bNpcFireActivated = NpcShooterAbilitySystemComponent &&
+				NpcShooterAbilitySystemComponent->GetActiveAbilityCountForClass(
+					TestNpc->GetFireAbilityClass()) == 1 &&
+				CountProjectilesForInstigator(TestNpc) > NpcProjectilesBefore;
+
+			TestNpc->StopShooting();
+			bNpcFireStopOk = NpcShooterAbilitySystemComponent &&
+				NpcShooterAbilitySystemComponent->GetActiveAbilityCountForClass(
+					TestNpc->GetFireAbilityClass()) == 0;
+			NpcProjectileCountAtStop = CountProjectilesForInstigator(TestNpc);
+			NpcFireStopCheckTime = GetWorld()->GetTimeSeconds();
+		}
+
+		// 致死伤害桥接：属性归零进入现有 Die() 死亡流程。
+		if (NpcAbilitySystemComponent && bNpcGasHealthInitOk)
+		{
+			const float NpcMaxHealth = NpcAbilitySystemComponent->GetNumericAttribute(
+				UShooterAttributeSet::GetMaxHealthAttribute());
+			UGameplayStatics::ApplyDamage(TestNpc, NpcMaxHealth + 100.0f, nullptr, this, nullptr);
+			const float NpcHealthAfter = NpcAbilitySystemComponent->GetNumericAttribute(
+				UShooterAttributeSet::GetHealthAttribute());
+			// bIsDead 是未反射的私有成员；用可观察证据判定死亡：
+			// 属性归零 + CurrentHP 镜像归零 + 现有 Die() 流程禁用胶囊碰撞。
+			// 不用布娃娃物理作为证据：测试 NPC 使用 C++ 裸默认网格，没有物理资产。
+			bNpcGasDeathOk = NpcHealthAfter <= 0.0f &&
+				TestNpc->CurrentHP <= 0.0f &&
+				TestNpc->GetCapsuleComponent() &&
+				TestNpc->GetCapsuleComponent()->GetCollisionEnabled() == ECollisionEnabled::NoCollision;
+		}
+		if (!bNpcGasHealthInitOk || !bNpcGasDeathOk || !bNpcFireGrantOk ||
+			!bNpcFireActivated || !bNpcFireStopOk)
+		{
+			TestNpc->Destroy();
 			FailTest(FString::Printf(
-				TEXT("NPC GAS health bridge invalid; InitOk=%s DeathOk=%s FireGrantOk=%s Health=%.1f CurrentHP=%.1f CapsuleCollision=%s"),
+				TEXT("NPC GAS health bridge invalid; InitOk=%s DeathOk=%s FireGrantOk=%s FireActivated=%s FireStopOk=%s Health=%.1f CurrentHP=%.1f CapsuleCollision=%s"),
 				bNpcGasHealthInitOk ? TEXT("true") : TEXT("false"),
 				bNpcGasDeathOk ? TEXT("true") : TEXT("false"),
 				bNpcFireGrantOk ? TEXT("true") : TEXT("false"),
+				bNpcFireActivated ? TEXT("true") : TEXT("false"),
+				bNpcFireStopOk ? TEXT("true") : TEXT("false"),
 				NpcAbilitySystemComponent
 					? NpcAbilitySystemComponent->GetNumericAttribute(UShooterAttributeSet::GetHealthAttribute())
 					: -1.0f,
@@ -423,7 +470,27 @@ void AShooterNetworkTestCoordinator::PollServerState()
 					? TEXT("NoCollision")
 					: TEXT("not-disabled")));
 		}
-		TestNpc->Destroy();
+	}
+
+	// NPC 停火后的静默期：0.5 秒内不得再生成 NPC 弹丸，随后销毁测试 NPC。
+	if (NpcFireTestNpc.IsValid() && bNpcFireActivated && !bNpcFireQuiescenceConfirmed)
+	{
+		if (GetWorld()->GetTimeSeconds() - NpcFireStopCheckTime >= 0.5f)
+		{
+			const int32 NpcProjectilesNow =
+				CountProjectilesForInstigator(NpcFireTestNpc.Get());
+			bNpcFireQuiescenceConfirmed =
+				NpcProjectilesNow == NpcProjectileCountAtStop;
+			if (!bNpcFireQuiescenceConfirmed)
+			{
+				FailTest(FString::Printf(
+					TEXT("NPC fire stop left projectiles; Projectiles=%d->%d"),
+					NpcProjectileCountAtStop,
+					NpcProjectilesNow));
+			}
+			NpcFireTestNpc->Destroy();
+			NpcFireTestNpc.Reset();
+		}
 	}
 
 	if (APlayerController* OwnerController = Cast<APlayerController>(GetOwner());
@@ -445,7 +512,10 @@ void AShooterNetworkTestCoordinator::PollServerState()
 
 	if (Weapon)
 	{
-	if (!bClientObservedSwitch || Weapon == WeaponBeforeSwitch)
+	// 初始切换阶段要求 CurrentWeapon 离开旧手枪；4C 切枪取消阶段会合法回到旧手枪，
+	// 此时不能再被该早期门挡住。
+	if (!bClientObservedSwitch ||
+		(Weapon == WeaponBeforeSwitch && !bSwitchCancelPhaseTriggered))
 	{
 		return;
 	}
@@ -556,9 +626,114 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			}
 		}
 	}
+
+	// ---- 4C Cancel.SwitchWeapon：保持步枪开火时切枪，旧 GA_Fire 必须被取消 ----
+	if (bFullAutoQuiescentConfirmed && bFullAutoReleaseVerified &&
+		!bSwitchCancelPhaseTriggered)
+	{
+		bSwitchCancelPhaseTriggered = true;
+		ProjectileCountBeforeSwitchCancel = ProjectileSpawnCount;
+		UShooterInventoryComponent* SwitchCancelInventory =
+			Character->GetInventoryComponent();
+		RifleAmmoBeforeSwitchCancel = SwitchCancelInventory
+			? SwitchCancelInventory->GetMagazineAmmo(ServerInventoryFirstId)
+			: INDEX_NONE;
+		bServerReadyForSwitchCancel = true;
+		ForceNetUpdate();
+		return;
+	}
+
+	if (bSwitchCancelPhaseTriggered && !bClientReportedSwitchCancel &&
+		!bSwitchCancelActiveObserved)
+	{
+		AShooterPlayerState* ShooterPlayerState =
+			Character->GetPlayerState<AShooterPlayerState>();
+		UShooterAbilitySystemComponent* ShooterAbilitySystemComponent =
+			Cast<UShooterAbilitySystemComponent>(Character->GetAbilitySystemComponent());
+		bSwitchCancelActiveObserved = ShooterAbilitySystemComponent &&
+			ShooterAbilitySystemComponent->GetActiveAbilityCountForClass(
+				ShooterPlayerState->GetFireAbilityClass()) == 1;
+	}
+
+	if (bClientReportedSwitchCancel && !bSwitchCancelQuiescentConfirmed)
+	{
+		if (GetWorld()->GetTimeSeconds() - SwitchCancelCheckTime >= 0.5f)
+		{
+			UShooterInventoryComponent* SwitchCancelInventory =
+				Character->GetInventoryComponent();
+			const int32 RifleAmmoNow = SwitchCancelInventory
+				? SwitchCancelInventory->GetMagazineAmmo(ServerInventoryFirstId)
+				: INDEX_NONE;
+			AShooterWeapon* CurrentWeaponAfterSwitch =
+				Character->GetCurrentWeapon();
+			bSwitchCancelQuiescentConfirmed =
+				ProjectileSpawnCount == ProjectileCountAfterSwitchCancel &&
+				RifleAmmoNow == RifleAmmoAfterSwitchCancel &&
+				CurrentWeaponAfterSwitch &&
+				CurrentWeaponAfterSwitch->GetBoundInstanceId() ==
+					ServerInventorySecondId;
+			bSwitchCancelVerified = bSwitchCancelActiveObserved &&
+				bClientObservedSwitchCancel &&
+				bSwitchCancelQuiescentConfirmed;
+			if (!bSwitchCancelVerified)
+			{
+				FailTest(FString::Printf(
+					TEXT("Switch-weapon cancel invalid; ActiveObserved=%s ClientObserved=%s Quiescent=%s Projectiles=%d->%d RifleAmmo=%d->%d Weapon=%s"),
+					bSwitchCancelActiveObserved ? TEXT("true") : TEXT("false"),
+					bClientObservedSwitchCancel ? TEXT("true") : TEXT("false"),
+					bSwitchCancelQuiescentConfirmed ? TEXT("true") : TEXT("false"),
+					ProjectileCountAfterSwitchCancel,
+					ProjectileSpawnCount,
+					RifleAmmoAfterSwitchCancel,
+					RifleAmmoNow,
+					CurrentWeaponAfterSwitch && CurrentWeaponAfterSwitch->GetBoundInstanceId() == ServerInventorySecondId
+						? TEXT("pistol")
+						: TEXT("invalid")));
+				return;
+			}
+		}
+	}
+
+	// ---- 4C Reject.NoAmmo：手枪弹药耗尽后服务器 TryActivate 必须拒绝 ----
+	if (bSwitchCancelVerified && !bNoAmmoRejectVerified)
+	{
+		UShooterInventoryComponent* NoAmmoInventory =
+			Character->GetInventoryComponent();
+		const int32 PistolAmmoBefore = NoAmmoInventory
+			? NoAmmoInventory->GetMagazineAmmo(ServerInventorySecondId)
+			: INDEX_NONE;
+		if (NoAmmoInventory && PistolAmmoBefore > 0)
+		{
+			NoAmmoInventory->ConsumeMagazineAmmo(
+				ServerInventorySecondId,
+				PistolAmmoBefore);
+		}
+
+		UAbilitySystemComponent* AbilitySystemComponent =
+			Character->GetAbilitySystemComponent();
+		UShooterAbilitySystemComponent* ShooterAbilitySystemComponent =
+			Cast<UShooterAbilitySystemComponent>(AbilitySystemComponent);
+		const int32 ProjectilesBeforeReject = ProjectileSpawnCount;
+		const bool bActivated = AbilitySystemComponent
+			? AbilitySystemComponent->TryActivateAbility(ServerFireAbilityHandle)
+			: false;
+		bNoAmmoRejectVerified = !bActivated &&
+			ProjectileSpawnCount == ProjectilesBeforeReject &&
+			ShooterAbilitySystemComponent &&
+			ShooterAbilitySystemComponent->GetActiveAbilityCountForClass(
+				Character->GetPlayerState<AShooterPlayerState>()->GetFireAbilityClass()) == 0 &&
+			NoAmmoInventory &&
+			NoAmmoInventory->GetMagazineAmmo(ServerInventorySecondId) == 0;
+		if (!bNoAmmoRejectVerified)
+		{
+			FailTest(TEXT("No-ammo activation was not rejected without projectile"));
+			return;
+		}
+	}
 	} // if (Weapon)
 
-	if (bFullAutoQuiescentConfirmed && bFullAutoReleaseVerified && !bPartialDamageApplied)
+	if (bFullAutoQuiescentConfirmed && bFullAutoReleaseVerified &&
+		bSwitchCancelVerified && bNoAmmoRejectVerified && !bPartialDamageApplied)
 	{
 		InitialHP = Character->GetCurrentHP();
 		// GAS：记录伤害前属性生命，随后验证部分伤害恰好只应用一次。
@@ -649,6 +824,35 @@ void AShooterNetworkTestCoordinator::PollServerState()
 				*GetNameSafe(Character->GetCurrentWeapon())));
 			return;
 		}
+
+		// ---- 4C Reject.Dead：State.Dead 已设置，死亡角色不能再次激活 GA_Fire ----
+		if (!bFireRejectDeadVerified)
+		{
+			UAbilitySystemComponent* AbilitySystemComponent =
+				Character->GetAbilitySystemComponent();
+			UShooterAbilitySystemComponent* ShooterAbilitySystemComponent =
+				Cast<UShooterAbilitySystemComponent>(AbilitySystemComponent);
+			const bool bActivated = AbilitySystemComponent
+				? AbilitySystemComponent->TryActivateAbility(ServerFireAbilityHandle)
+				: false;
+			bFireRejectDeadVerified = !bActivated &&
+				AbilitySystemComponent &&
+				AbilitySystemComponent->HasMatchingGameplayTag(
+					ShooterGameplayTags::State_Dead) &&
+				ShooterAbilitySystemComponent &&
+				ShooterAbilitySystemComponent->GetActiveAbilityCountForClass(
+					Character->GetPlayerState<AShooterPlayerState>()->GetFireAbilityClass()) == 0;
+			if (!bFireRejectDeadVerified)
+			{
+				FailTest(FString::Printf(
+					TEXT("Dead activation reject invalid; Activated=%s DeadTag=%s"),
+					bActivated ? TEXT("true") : TEXT("false"),
+					AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Dead)
+						? TEXT("true")
+						: TEXT("false")));
+				return;
+			}
+		}
 	}
 
 	if (GetNetMode() == NM_ListenServer && bLethalDamageApplied &&
@@ -738,8 +942,55 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			!RespawnInventory->GetActiveWeaponInstanceId().IsValid() &&
 			Character->GetCurrentWeapon() == nullptr;
 
-		if (!bServerGasRespawnOk || !bServerRespawnInventoryEmpty || !bServerFireRespawnGrantOk)
+		// ---- 4C 重生 Tag 清理：State.Dead / State.Firing 不得跨生命保留 ----
+		UShooterAbilitySystemComponent* RespawnShooterAbilitySystemComponent =
+			Cast<UShooterAbilitySystemComponent>(AbilitySystemComponent);
+		bRespawnTagCleanupVerified = AbilitySystemComponent &&
+			!AbilitySystemComponent->HasMatchingGameplayTag(
+				ShooterGameplayTags::State_Dead) &&
+			!AbilitySystemComponent->HasMatchingGameplayTag(
+				ShooterGameplayTags::State_Firing) &&
+			RespawnShooterAbilitySystemComponent &&
+			RespawnShooterAbilitySystemComponent->GetActiveAbilityCountForClass(
+				ShooterPlayerState->GetFireAbilityClass()) == 0;
+
+		// ---- 4C Reject.NoWeapon：重生 Inventory 为空，激活必须被拒绝 ----
+		if (bServerGasRespawnOk && bServerRespawnInventoryEmpty &&
+			!bFireRejectNoWeaponVerified)
 		{
+			const bool bActivated = AbilitySystemComponent
+				? AbilitySystemComponent->TryActivateAbility(ServerFireAbilityHandle)
+				: false;
+			bFireRejectNoWeaponVerified = !bActivated &&
+				RespawnShooterAbilitySystemComponent &&
+				RespawnShooterAbilitySystemComponent->GetActiveAbilityCountForClass(
+					ShooterPlayerState->GetFireAbilityClass()) == 0;
+			if (!bFireRejectNoWeaponVerified)
+			{
+				FailTest(TEXT("No-weapon activation after respawn was not rejected"));
+				return;
+			}
+		}
+
+		if (!bServerGasRespawnOk || !bServerRespawnInventoryEmpty ||
+			!bServerFireRespawnGrantOk || !bRespawnTagCleanupVerified)
+		{
+			if (!bRespawnTagCleanupVerified)
+			{
+				FailTest(FString::Printf(
+					TEXT("Respawn ability tag cleanup invalid; DeadTag=%s FiringTag=%s Active=%d"),
+					AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Dead)
+						? TEXT("true")
+						: TEXT("false"),
+					AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Firing)
+						? TEXT("true")
+						: TEXT("false"),
+					RespawnShooterAbilitySystemComponent
+						? RespawnShooterAbilitySystemComponent->GetActiveAbilityCountForClass(ShooterPlayerState->GetFireAbilityClass())
+						: INDEX_NONE));
+				return;
+			}
+
 			if (!bServerFireRespawnGrantOk)
 			{
 				FailTest(FString::Printf(
@@ -788,7 +1039,10 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		bClientObservedGasHealthRespawn && bServerGasDeathOk &&
 		bServerFireGrantOk && bNpcFireGrantOk && bServerFireRespawnGrantOk &&
 		bClientObservedFireGrant && bSingleProjectileVerified &&
-		bFullAutoReleaseVerified && bFullAutoQuiescentConfirmed)
+		bFullAutoReleaseVerified && bFullAutoQuiescentConfirmed &&
+		bSwitchCancelVerified && bNoAmmoRejectVerified && bFireRejectDeadVerified &&
+		bFireRejectNoWeaponVerified && bRespawnTagCleanupVerified &&
+		bNpcFireActivated && bNpcFireStopOk && bNpcFireQuiescenceConfirmed)
 	{
 		const int32 PlayerId = PlayerController && PlayerController->PlayerState
 			? PlayerController->PlayerState->GetPlayerId()
@@ -797,7 +1051,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		UE_LOG(
 			LogShootGame,
 			Display,
-			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS PlayerId=%d Switch=true OwnerAmmo=true NonOwnerAmmoHidden=true Bullets=%d->%d HP=%.0f->0 Dead=true Respawn=true RespawnHP=%.0f AimDot=%.3f Team=%u Kills=%d Deaths=%d TeamScore=%d RemotePitch=%.3f/%.3f RemoteMontage=%s GasServer=%s/%s/%s GasNPC=%s GasRespawn=%s GasClient=%s GasClientRespawn=%s GasHealthInit=%s GasDamage=%s GasDeath=%s GasNpcHealth=%s/%s GasClientHealth=%s/%s/%s GasHud=%s FireGrant=%s/%s/%s/%s FireGA=%s/%s/%s PickupAuthority=%s InventoryOwner=%s InventoryRemoteHidden=%s AmmoIsolation=%s DeathClear=%s/%s RespawnEmpty=%s/%s"),
+			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS PlayerId=%d Switch=true OwnerAmmo=true NonOwnerAmmoHidden=true Bullets=%d->%d HP=%.0f->0 Dead=true Respawn=true RespawnHP=%.0f AimDot=%.3f Team=%u Kills=%d Deaths=%d TeamScore=%d RemotePitch=%.3f/%.3f RemoteMontage=%s GasServer=%s/%s/%s GasNPC=%s GasRespawn=%s GasClient=%s GasClientRespawn=%s GasHealthInit=%s GasDamage=%s GasDeath=%s GasNpcHealth=%s/%s GasClientHealth=%s/%s/%s GasHud=%s FireGrant=%s/%s/%s/%s FireGA=%s/%s/%s Cancellation=%s/%s/%s/%s/%s/%s/%s PickupAuthority=%s InventoryOwner=%s InventoryRemoteHidden=%s AmmoIsolation=%s DeathClear=%s/%s RespawnEmpty=%s/%s"),
 			PlayerId,
 			InitialBulletCount,
 			BulletCountAfterFire,
@@ -834,6 +1088,13 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			bSingleProjectileVerified ? TEXT("true") : TEXT("false"),
 			bFullAutoReleaseVerified ? TEXT("true") : TEXT("false"),
 			bFullAutoQuiescentConfirmed ? TEXT("true") : TEXT("false"),
+			bSwitchCancelVerified ? TEXT("true") : TEXT("false"),
+			bNoAmmoRejectVerified ? TEXT("true") : TEXT("false"),
+			bFireRejectDeadVerified ? TEXT("true") : TEXT("false"),
+			bFireRejectNoWeaponVerified ? TEXT("true") : TEXT("false"),
+			bRespawnTagCleanupVerified ? TEXT("true") : TEXT("false"),
+			bNpcFireActivated && bNpcFireStopOk ? TEXT("true") : TEXT("false"),
+			bNpcFireQuiescenceConfirmed ? TEXT("true") : TEXT("false"),
 			bClientObservedPickupAuthority ? TEXT("true") : TEXT("false"),
 			bClientObservedOwnerInventory ? TEXT("true") : TEXT("false"),
 			bClientObservedRemoteInventoryHidden ? TEXT("true") : TEXT("false"),
@@ -861,7 +1122,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			: INDEX_NONE;
 
 		FailTest(FString::Printf(
-			TEXT("Timed out waiting for network state; switch=%s weapon=%s clientProjectile=%s ownerAmmo=%s nonOwnerAmmo=%s serverProjectile=%s aim=%s damage=%s death=%s respawn=%s matchState=%s remoteAim=%s remoteMontage=%s gasOwner=%s gasAvatar=%s gasConnection=%s gasNpc=%s gasRespawn=%s gasClient=%s gasClientRespawn=%s gasHealthInit=%s gasDamage=%s gasDeath=%s gasNpcHealth=%s/%s gasClientHealth=%s/%s/%s gasHud=%s fireGrant=%s/%s/%s/%s fireGA=%s/%s/%s bullets=%d->%d hp=%.0f team=%u kills=%d deaths=%d score=%.0f teamScore=%d PickupAuthority=%s InventoryOwner=%s InventoryRemoteHidden=%s AmmoIsolation=%s DeathClear=%s/%s RespawnEmpty=%s/%s"),
+			TEXT("Timed out waiting for network state; switch=%s weapon=%s clientProjectile=%s ownerAmmo=%s nonOwnerAmmo=%s serverProjectile=%s aim=%s damage=%s death=%s respawn=%s matchState=%s remoteAim=%s remoteMontage=%s gasOwner=%s gasAvatar=%s gasConnection=%s gasNpc=%s gasRespawn=%s gasClient=%s gasClientRespawn=%s gasHealthInit=%s gasDamage=%s gasDeath=%s gasNpcHealth=%s/%s gasClientHealth=%s/%s/%s gasHud=%s fireGrant=%s/%s/%s/%s fireGA=%s/%s/%s cancellation=%s/%s/%s/%s/%s/%s/%s bullets=%d->%d hp=%.0f team=%u kills=%d deaths=%d score=%.0f teamScore=%d PickupAuthority=%s InventoryOwner=%s InventoryRemoteHidden=%s AmmoIsolation=%s DeathClear=%s/%s RespawnEmpty=%s/%s"),
 			bClientObservedSwitch ? TEXT("true") : TEXT("false"),
 			bClientObservedWeapon ? TEXT("true") : TEXT("false"),
 			bClientObservedProjectile ? TEXT("true") : TEXT("false"),
@@ -898,6 +1159,13 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			bSingleProjectileVerified ? TEXT("true") : TEXT("false"),
 			bFullAutoReleaseVerified ? TEXT("true") : TEXT("false"),
 			bFullAutoQuiescentConfirmed ? TEXT("true") : TEXT("false"),
+			bSwitchCancelVerified ? TEXT("true") : TEXT("false"),
+			bNoAmmoRejectVerified ? TEXT("true") : TEXT("false"),
+			bFireRejectDeadVerified ? TEXT("true") : TEXT("false"),
+			bFireRejectNoWeaponVerified ? TEXT("true") : TEXT("false"),
+			bRespawnTagCleanupVerified ? TEXT("true") : TEXT("false"),
+			bNpcFireActivated && bNpcFireStopOk ? TEXT("true") : TEXT("false"),
+			bNpcFireQuiescenceConfirmed ? TEXT("true") : TEXT("false"),
 			InitialBulletCount,
 			CurrentBulletCount,
 			Character->GetCurrentHP(),
@@ -1305,6 +1573,32 @@ void AShooterNetworkTestCoordinator::PollClientState()
 		bClientReportedFullAuto = true;
 		ServerReportFullAutoReleased(ClientBulletCountAfterRelease);
 	}
+
+	// ---- 4C Cancel.SwitchWeapon：保持步枪开火，等到再打出一发后直接切枪 ----
+	if (bServerReadyForSwitchCancel && !bClientTriggeredSwitchCancel &&
+		bClientReportedFullAuto)
+	{
+		BulletCountBeforeClientSwitchCancel = Weapon->GetBulletCount();
+		ClientWeaponBeforeSwitchCancel = Weapon;
+		bClientTriggeredSwitchCancel = true;
+		Character->DoStartFiring();
+	}
+
+	if (bClientTriggeredSwitchCancel && !bClientSwitchCancelRequested &&
+		BulletCountBeforeClientSwitchCancel != INDEX_NONE &&
+		Weapon->GetBulletCount() < BulletCountBeforeClientSwitchCancel)
+	{
+		bClientSwitchCancelRequested = true;
+		Character->DoSwitchWeapon();
+	}
+
+	if (bClientSwitchCancelRequested && !bClientReportedSwitchCancel &&
+		Weapon != ClientWeaponBeforeSwitchCancel.Get())
+	{
+		bClientReportedSwitchCancel = true;
+		ServerReportClientObservedCancelSwitch(
+			Weapon->GetBoundInstanceId().ToString());
+	}
 	} // if (Weapon)
 
 	if (!bClientReportedDamage && Character->GetCurrentHP() > 0.0f &&
@@ -1602,6 +1896,52 @@ void AShooterNetworkTestCoordinator::ServerReportFullAutoReleased_Implementation
 	}
 }
 
+void AShooterNetworkTestCoordinator::ServerReportClientObservedCancelSwitch_Implementation(
+	const FString& CurrentWeaponBoundInstanceId)
+{
+	FGuid ObservedBoundId;
+	FGuid::Parse(CurrentWeaponBoundInstanceId, ObservedBoundId);
+
+	AShooterCharacter* Character = GetShooterCharacter();
+	AShooterWeapon* CurrentWeaponAfterSwitch = Character
+		? Character->GetCurrentWeapon()
+		: nullptr;
+	bClientReportedSwitchCancel = true;
+	bClientObservedSwitchCancel = CurrentWeaponAfterSwitch &&
+		CurrentWeaponAfterSwitch->GetBoundInstanceId() == ServerInventorySecondId &&
+		ObservedBoundId == ServerInventorySecondId;
+
+	ProjectileCountAfterSwitchCancel = ProjectileSpawnCount;
+	UShooterInventoryComponent* SwitchCancelInventory = Character
+		? Character->GetInventoryComponent()
+		: nullptr;
+	RifleAmmoAfterSwitchCancel = SwitchCancelInventory
+		? SwitchCancelInventory->GetMagazineAmmo(ServerInventoryFirstId)
+		: INDEX_NONE;
+	SwitchCancelCheckTime = GetWorld()->GetTimeSeconds();
+
+	UE_LOG(
+		LogShootGame,
+		Display,
+		TEXT("Switch-cancel client report: Bound=%s Expected=%s Projectiles=%d->%d RifleAmmo=%d->%d Valid=%s"),
+		*CurrentWeaponBoundInstanceId,
+		*ServerInventorySecondId.ToString(),
+		ProjectileCountBeforeSwitchCancel,
+		ProjectileCountAfterSwitchCancel,
+		RifleAmmoBeforeSwitchCancel,
+		RifleAmmoAfterSwitchCancel,
+		bClientObservedSwitchCancel ? TEXT("true") : TEXT("false"));
+
+	if (!bClientObservedSwitchCancel)
+	{
+		FailTest(FString::Printf(
+			TEXT("Switch-cancel client observation invalid; Bound=%s Expected=%s Weapon=%s"),
+			*CurrentWeaponBoundInstanceId,
+			*ServerInventorySecondId.ToString(),
+			*GetNameSafe(CurrentWeaponAfterSwitch)));
+	}
+}
+
 void AShooterNetworkTestCoordinator::ServerReportClientObservedFireAbilityGrant_Implementation(
 	int32 OwnerFireSpecCount,
 	bool bRemoteFireSpecsHidden)
@@ -1736,6 +2076,21 @@ AShooterWeapon* AShooterNetworkTestCoordinator::GetCurrentWeapon(AShooterCharact
 	return CurrentWeaponProperty
 		? Cast<AShooterWeapon>(CurrentWeaponProperty->GetObjectPropertyValue_InContainer(Character))
 		: nullptr;
+}
+
+int32 AShooterNetworkTestCoordinator::CountProjectilesForInstigator(
+	APawn* ProjectileInstigator) const
+{
+	int32 Count = 0;
+	for (TActorIterator<AShooterProjectile> It(GetWorld()); It; ++It)
+	{
+		if (It->GetInstigator() == ProjectileInstigator)
+		{
+			++Count;
+		}
+	}
+
+	return Count;
 }
 
 AController* AShooterNetworkTestCoordinator::GetOpponentController() const

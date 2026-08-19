@@ -41,6 +41,9 @@ public:
 	/** Calculates and returns the aim location for the weapon */
 	virtual FVector GetWeaponTargetLocation() = 0;
 
+	/** 最小只读接口：返回持有者当前可开火的 WeaponActor；没有时为 nullptr。 */
+	virtual AShooterWeapon* GetCurrentWeapon() const = 0;
+
 	/** Gives a weapon of this class to the owner */
 	virtual void AddWeaponClass(const TSubclassOf<AShooterWeapon>& WeaponClass) = 0;
 

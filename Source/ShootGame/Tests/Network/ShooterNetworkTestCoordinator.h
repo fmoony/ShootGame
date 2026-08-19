@@ -23,6 +23,9 @@ UCLASS(NotBlueprintable, Transient)
 class AShooterNetworkTestNPC : public AShooterNPC
 {
 	GENERATED_BODY()
+
+public:
+	AShooterNetworkTestNPC();
 };
 
 /** 仅用于 SlotFull 测试的额外武器类；不参与开火，只验证 Inventory 授予路径。 */
@@ -30,6 +33,9 @@ UCLASS(NotBlueprintable, Transient)
 class AShooterNetworkTestWeapon : public AShooterWeapon
 {
 	GENERATED_BODY()
+
+public:
+	AShooterNetworkTestWeapon();
 };
 
 /**
@@ -107,6 +113,10 @@ private:
 	void ServerReportFullAutoReleased(int32 BulletCountAfterRelease);
 
 	UFUNCTION(Server, Reliable)
+	void ServerReportClientObservedCancelSwitch(
+		const FString& CurrentWeaponBoundInstanceId);
+
+	UFUNCTION(Server, Reliable)
 	void ServerReportClientObservedGasRespawn();
 
 	UFUNCTION(Server, Reliable)
@@ -142,6 +152,7 @@ private:
 
 	AShooterCharacter* GetShooterCharacter() const;
 	AShooterWeapon* GetCurrentWeapon(AShooterCharacter* Character) const;
+	int32 CountProjectilesForInstigator(APawn* ProjectileInstigator) const;
 	AController* GetOpponentController() const;
 
 	FTimerHandle PollTimer;
@@ -155,6 +166,9 @@ private:
 
 	UPROPERTY(Replicated)
 	bool bServerReadyForFullAuto = false;
+
+	UPROPERTY(Replicated)
+	bool bServerReadyForSwitchCancel = false;
 
 	UPROPERTY(Replicated)
 	TObjectPtr<AShooterWeapon> WeaponBeforeSwitch;
@@ -249,6 +263,34 @@ private:
 	int32 AmmoAfterRelease = INDEX_NONE;
 	int32 ClientBulletCountAfterRelease = INDEX_NONE;
 	float FullAutoReleaseCheckTime = 0.0f;
+
+	/** 4C 观测：死亡 / 无武器 / 无弹药拒绝、切枪取消、重生 Tag 清理与 NPC Ability 链路。 */
+	bool bSwitchCancelPhaseTriggered = false;
+	bool bSwitchCancelActiveObserved = false;
+	bool bClientObservedSwitchCancel = false;
+	bool bClientReportedSwitchCancel = false;
+	bool bSwitchCancelVerified = false;
+	bool bSwitchCancelQuiescentConfirmed = false;
+	bool bNoAmmoRejectVerified = false;
+	bool bFireRejectDeadVerified = false;
+	bool bFireRejectNoWeaponVerified = false;
+	bool bRespawnTagCleanupVerified = false;
+	bool bClientTriggeredSwitchCancel = false;
+	bool bClientSwitchCancelRequested = false;
+	TWeakObjectPtr<AShooterWeapon> ClientWeaponBeforeSwitchCancel;
+	int32 BulletCountBeforeClientSwitchCancel = INDEX_NONE;
+	int32 ProjectileCountBeforeSwitchCancel = INDEX_NONE;
+	int32 RifleAmmoBeforeSwitchCancel = INDEX_NONE;
+	int32 ProjectileCountAfterSwitchCancel = INDEX_NONE;
+	int32 RifleAmmoAfterSwitchCancel = INDEX_NONE;
+	float SwitchCancelCheckTime = 0.0f;
+
+	bool bNpcFireActivated = false;
+	bool bNpcFireStopOk = false;
+	bool bNpcFireQuiescenceConfirmed = false;
+	int32 NpcProjectileCountAtStop = INDEX_NONE;
+	float NpcFireStopCheckTime = 0.0f;
+	TWeakObjectPtr<AShooterNPC> NpcFireTestNpc;
 
 	/** Inventory 2A 观测：服务器插入两把测试武器，Owner 完整收到，远端不收到完整列表。 */
 	bool bServerInventoryPrepared = false;

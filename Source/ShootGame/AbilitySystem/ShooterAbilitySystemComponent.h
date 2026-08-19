@@ -36,4 +36,7 @@ public:
 
 	/** 返回指定 Ability 类当前处于活动状态的 Spec 数量；网络测试用它验证单激活约束。 */
 	int32 GetActiveAbilityCountForClass(TSubclassOf<UGameplayAbility> AbilityClass) const;
+
+	/** 按输入 Tag 取消所有匹配 Ability；死亡、切枪、断线等清理链共用。 */
+	void CancelAbilitiesByTag(const FGameplayTag& InputTag);
 };

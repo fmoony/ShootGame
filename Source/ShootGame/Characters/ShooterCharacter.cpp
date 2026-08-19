@@ -105,6 +105,12 @@ void AShooterCharacter::EndPlay(EEndPlayReason::Type EndPlayReason)
 	// 清理角色自身的延迟回调，避免销毁后继续触发。
 	GetWorld()->GetTimerManager().ClearTimer(RespawnTimer);
 
+	// 角色销毁 / 断线时先结束 GA_Fire，避免 Ability 生命周期残留旧 Avatar 或旧 Weapon。
+	if (HasAuthority())
+	{
+		CancelFireAbility();
+	}
+
 	// 武器是服务器按角色生命周期生成的独立 Actor；Owner 关系不会自动级联销毁。
 	// Inventory 是唯一回收入口：它销毁 BoundWeaponActors、清空 FastArray 与 Active。
 	if (HasAuthority())
@@ -156,6 +162,13 @@ void AShooterCharacter::InitializeAbilityActorInfo()
 	}
 
 	AbilitySystemComponent->InitAbilityActorInfo(ShooterPlayerState, this);
+
+	// 新 Avatar 不继承上一生命周期的死亡/开火状态；服务器防御性清理残留 Tag。
+	if (HasAuthority())
+	{
+		AbilitySystemComponent->RemoveLooseGameplayTag(ShooterGameplayTags::State_Dead);
+		AbilitySystemComponent->RemoveLooseGameplayTag(ShooterGameplayTags::State_Firing);
+	}
 
 	// 注册属性集（所有机器都需要；属性数值由属性集复制收敛）。
 	if (UShooterAttributeSet* AttributeSet = ShooterPlayerState->GetAttributeSet())
@@ -361,6 +374,16 @@ void AShooterCharacter::OnRep_IsDead()
 	}
 }
 
+void AShooterCharacter::CancelFireAbility()
+{
+	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent =
+		Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
+	{
+		ShooterAbilitySystemComponent->CancelAbilitiesByTag(
+			ShooterGameplayTags::Input_Fire);
+	}
+}
+
 void AShooterCharacter::DoStartFiring()
 {
 	// 输入只提交给 ASC：GA_Fire 为 ServerOnly，客户端按 Input.Fire 发起激活，
@@ -484,8 +507,10 @@ void AShooterCharacter::ServerSwitchWeapon_Implementation()
 		return;
 	}
 
+	// 切枪前先结束旧 Weapon 对应的 GA_Fire；DeactivateWeapon 的 StopFiring 作为幂等兜底。
 	if (IsValid(CurrentWeapon))
 	{
+		CancelFireAbility();
 		CurrentWeapon->DeactivateWeapon();
 	}
 
@@ -689,6 +714,13 @@ void AShooterCharacter::Die(AController* KillerController)
 	{
 		return;
 	}
+
+	// 死亡事务：先设置 State.Dead 并取消 GA_Fire，再执行 Death Clear。
+	if (UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponent())
+	{
+		AbilitySystemComponent->AddLooseGameplayTag(ShooterGameplayTags::State_Dead);
+	}
+	CancelFireAbility();
 
 	// Death Clear：停火 -> 销毁全部 WeaponActor -> Inventory Clear -> Active Invalid -> CurrentWeapon null。
 	if (IsValid(CurrentWeapon))

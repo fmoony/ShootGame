@@ -101,6 +101,18 @@ int32 UShooterAbilitySystemComponent::GetAbilitySpecCountForClass(
 	return Count;
 }
 
+void UShooterAbilitySystemComponent::CancelAbilitiesByTag(const FGameplayTag& InputTag)
+{
+	if (!InputTag.IsValid())
+	{
+		return;
+	}
+
+	FGameplayTagContainer CancelTags;
+	CancelTags.AddTag(InputTag);
+	CancelAbilities(&CancelTags);
+}
+
 int32 UShooterAbilitySystemComponent::GetActiveAbilityCountForClass(
 	TSubclassOf<UGameplayAbility> AbilityClass) const
 {
