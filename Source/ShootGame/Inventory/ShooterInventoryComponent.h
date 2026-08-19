@@ -77,6 +77,12 @@ public:
 	/** 返回绑定到指定 InstanceId 的 WeaponActor；不存在时返回 nullptr。 */
 	AShooterWeapon* FindWeaponActor(const FGuid& InstanceId) const;
 
+	/** 返回当前 Active Instance 绑定的 WeaponActor；不存在时返回 nullptr。 */
+	AShooterWeapon* GetActiveWeaponActor() const { return FindWeaponActor(ActiveWeaponInstanceId); }
+
+	/** 按 Slot 顺序返回 CurrentId 之后的下一个 InstanceId；失败时返回 false。 */
+	bool FindNextWeaponInstanceId(const FGuid& CurrentId, FGuid& OutNextId) const;
+
 	/** WeaponActor 初始化或复制 BoundInstanceId 后注册到 Inventory。 */
 	void RegisterWeaponActor(AShooterWeapon* Weapon);
 

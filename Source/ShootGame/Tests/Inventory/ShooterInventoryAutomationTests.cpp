@@ -280,4 +280,34 @@ bool FShooterInventoryPickupGrantContractTest::RunTest(const FString& Parameters
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FShooterInventorySwitchContractTest,
+	"ShootGame.Inventory.Switch.Valid",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FShooterInventorySwitchContractTest::RunTest(const FString& Parameters)
+{
+	const FProperty* CurrentWeaponProperty = FindFProperty<FProperty>(
+		AShooterCharacter::StaticClass(),
+		TEXT("CurrentWeapon"));
+	if (!TestNotNull(TEXT("Character exposes CurrentWeapon"), CurrentWeaponProperty))
+	{
+		return false;
+	}
+
+	TestTrue(TEXT("CurrentWeapon is replicated to all observers"), CurrentWeaponProperty->HasAnyPropertyFlags(CPF_Net));
+	TestEqual(
+		TEXT("CurrentWeapon uses OnRep_CurrentWeapon"),
+		CurrentWeaponProperty->RepNotifyFunc,
+		FName(TEXT("OnRep_CurrentWeapon")));
+
+	const AShooterCharacter* CharacterDefaults = GetDefault<AShooterCharacter>();
+	TestNotNull(TEXT("Character has defaults"), CharacterDefaults);
+	TestEqual(
+		TEXT("GetCurrentWeaponActor mirrors CurrentWeapon"),
+		CharacterDefaults ? CharacterDefaults->GetCurrentWeaponActor() : nullptr,
+		CharacterDefaults ? CharacterDefaults->GetCurrentWeapon() : nullptr);
+	return true;
+}
+
 #endif

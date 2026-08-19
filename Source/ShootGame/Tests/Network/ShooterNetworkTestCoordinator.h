@@ -61,7 +61,10 @@ private:
 	void ServerReportClientObservedProjectile();
 
 	UFUNCTION(Server, Reliable)
-	void ServerReportClientObservedSwitch();
+	void ServerReportClientObservedSwitch(
+		const FString& ActiveWeaponInstanceId,
+		const FString& CurrentWeaponBoundInstanceId,
+		bool bRemoteCurrentWeaponVisible);
 
 	UFUNCTION(Server, Reliable)
 	void ServerReportOwnerAmmoReplicated();
@@ -140,6 +143,9 @@ private:
 
 	UPROPERTY(Replicated)
 	bool bRequireRemoteMontage = true;
+
+	UPROPERTY(Replicated)
+	bool bRequireRemoteCurrentWeapon = true;
 
 	float TestStartTime = 0.0f;
 	int32 InitialBulletCount = INDEX_NONE;

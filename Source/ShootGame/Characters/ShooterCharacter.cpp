@@ -434,38 +434,40 @@ void AShooterCharacter::DoSwitchWeapon()
 void AShooterCharacter::ServerSwitchWeapon_Implementation()
 {
 	// 只有控制该角色的客户端可以请求切枪，死亡角色不能切枪。
-	if (!GetController() || GetController()->GetPawn() != this || bIsDead)
+	if (!GetController() || GetController()->GetPawn() != this || bIsDead || !InventoryComponent)
 	{
 		return;
 	}
 
-	// ensure we have at least two weapons two switch between
-	if (OwnedWeapons.Num() > 1 && CurrentWeapon && OwnedWeapons.Contains(CurrentWeapon))
+	if (InventoryComponent->GetWeaponCount() <= 1)
 	{
-		// deactivate the old weapon
-		CurrentWeapon->DeactivateWeapon();
-
-		// find the index of the current weapon in the owned list
-		int32 WeaponIndex = OwnedWeapons.Find(CurrentWeapon);
-
-		// is this the last weapon?
-		if (WeaponIndex == OwnedWeapons.Num() - 1)
-		{
-			// loop back to the beginning of the array
-			WeaponIndex = 0;
-		}
-		else {
-			// select the next weapon index
-			++WeaponIndex;
-		}
-
-		// set the new weapon as current
-		CurrentWeapon = OwnedWeapons[WeaponIndex];
-
-		// activate the new weapon
-		CurrentWeapon->ActivateWeapon();
-		ForceNetUpdate();
+		return;
 	}
+
+	// 逻辑身份决定目标；公共表现随后才更新 CurrentWeaponActor。
+	FGuid TargetInstanceId;
+	if (!InventoryComponent->FindNextWeaponInstanceId(
+		InventoryComponent->GetActiveWeaponInstanceId(),
+		TargetInstanceId))
+	{
+		return;
+	}
+
+	AShooterWeapon* TargetWeapon = InventoryComponent->FindWeaponActor(TargetInstanceId);
+	if (!TargetWeapon)
+	{
+		return;
+	}
+
+	if (IsValid(CurrentWeapon))
+	{
+		CurrentWeapon->DeactivateWeapon();
+	}
+
+	InventoryComponent->SetActiveWeaponInstanceId(TargetInstanceId);
+	CurrentWeapon = TargetWeapon;
+	TargetWeapon->ActivateWeapon();
+	ForceNetUpdate();
 }
 
 void AShooterCharacter::AttachWeaponMeshes(AShooterWeapon* Weapon)

@@ -136,7 +136,11 @@ try
         SuccessMarkerCount = 1
         ServerExtraArgs = @(
             "-ShootGameNetworkTest",
-            "-ShootGameSkipRemoteMontage"
+            "-ShootGameSkipRemoteMontage",
+            "-ShootGameSkipRemoteCurrentWeapon"
+        )
+        ClientExtraArgs = @(
+            "-ShootGameSkipRemoteCurrentWeapon"
         )
     }
 

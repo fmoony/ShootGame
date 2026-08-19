@@ -44,6 +44,9 @@ AShooterNetworkTestCoordinator::AShooterNetworkTestCoordinator()
 	bRequireRemoteMontage = !FParse::Param(
 		FCommandLine::Get(),
 		TEXT("ShootGameSkipRemoteMontage"));
+	bRequireRemoteCurrentWeapon = !FParse::Param(
+		FCommandLine::Get(),
+		TEXT("ShootGameSkipRemoteCurrentWeapon"));
 	bDisconnectCleanupMode = FParse::Param(
 		FCommandLine::Get(),
 		TEXT("ShootGameDisconnectTest"));
@@ -93,6 +96,7 @@ void AShooterNetworkTestCoordinator::GetLifetimeReplicatedProps(
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyToFire);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, WeaponBeforeSwitch);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bRequireRemoteMontage);
+	DOREPLIFETIME(AShooterNetworkTestCoordinator, bRequireRemoteCurrentWeapon);
 }
 
 void AShooterNetworkTestCoordinator::PollServerState()
@@ -179,6 +183,12 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			RifleActor->GetBoundInstanceId() == ServerInventoryFirstId &&
 			PistolActor->GetBoundInstanceId() == ServerInventorySecondId;
 
+		// Switch.InvalidInstance：不存在的 InstanceId 不能改写 Active 身份。
+		const FGuid ActiveBeforeInvalid = InventoryComponent->GetActiveWeaponInstanceId();
+		InventoryComponent->SetActiveWeaponInstanceId(FGuid::NewGuid());
+		const bool bInvalidInstanceRejected =
+			InventoryComponent->GetActiveWeaponInstanceId() == ActiveBeforeInvalid;
+
 		ServerInventoryActiveId = InventoryComponent->GetActiveWeaponInstanceId();
 		if (RifleResult != EShooterInventoryAddResult::Added ||
 			PistolResult != EShooterInventoryAddResult::Added ||
@@ -186,10 +196,11 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			SlotFullResult != EShooterInventoryAddResult::SlotFull ||
 			InventoryComponent->GetWeaponCount() != 2 ||
 			ServerInventoryActiveId != ServerInventorySecondId ||
-			!bBindingOk)
+			!bBindingOk ||
+			!bInvalidInstanceRejected)
 		{
 			FailTest(FString::Printf(
-				TEXT("Server Inventory 2B preparation failed; Rifle=%d Pistol=%d Duplicate=%d SlotFull=%d Count=%d Active=%s ExpectedActive=%s Binding=%s"),
+				TEXT("Server Inventory 2B preparation failed; Rifle=%d Pistol=%d Duplicate=%d SlotFull=%d Count=%d Active=%s ExpectedActive=%s Binding=%s InvalidInstanceRejected=%s"),
 				static_cast<int32>(RifleResult),
 				static_cast<int32>(PistolResult),
 				static_cast<int32>(DuplicateResult),
@@ -197,7 +208,8 @@ void AShooterNetworkTestCoordinator::PollServerState()
 				InventoryComponent->GetWeaponCount(),
 				*ServerInventoryActiveId.ToString(),
 				*ServerInventorySecondId.ToString(),
-				bBindingOk ? TEXT("true") : TEXT("false")));
+				bBindingOk ? TEXT("true") : TEXT("false"),
+				bInvalidInstanceRejected ? TEXT("true") : TEXT("false")));
 			return;
 		}
 
@@ -935,9 +947,42 @@ void AShooterNetworkTestCoordinator::PollClientState()
 	if (bClientTriggeredSwitch && !bClientReportedSwitch &&
 		Weapon != InitialClientWeapon.Get() && Weapon->GetBulletCount() > 0)
 	{
-		bClientReportedSwitch = true;
-		InitialClientBulletCount = Weapon->GetBulletCount();
-		ServerReportClientObservedSwitch();
+		UShooterInventoryComponent* InventoryComponent = Character->GetInventoryComponent();
+		const FGuid ActiveId = InventoryComponent
+			? InventoryComponent->GetActiveWeaponInstanceId()
+			: FGuid();
+		const FGuid CurrentBoundId = Weapon->GetBoundInstanceId();
+
+		bool bRemoteCurrentWeaponVisible = !bRequireRemoteCurrentWeapon;
+		if (bRequireRemoteCurrentWeapon)
+		{
+			for (TActorIterator<AShooterCharacter> It(GetWorld()); It; ++It)
+			{
+				AShooterCharacter* RemoteCharacter = *It;
+				if (RemoteCharacter == Character ||
+					RemoteCharacter->GetLocalRole() != ROLE_SimulatedProxy)
+				{
+					continue;
+				}
+
+				AShooterWeapon* RemoteCurrentWeapon =
+					RemoteCharacter->GetCurrentWeapon();
+				// 远端复制的是另一个 Actor 实例，按武器类验证公共表现一致性。
+				bRemoteCurrentWeaponVisible = RemoteCurrentWeapon &&
+					RemoteCurrentWeapon->GetClass() == Weapon->GetClass();
+				break;
+			}
+		}
+
+		if (ActiveId.IsValid() && CurrentBoundId.IsValid() && bRemoteCurrentWeaponVisible)
+		{
+			bClientReportedSwitch = true;
+			InitialClientBulletCount = Weapon->GetBulletCount();
+			ServerReportClientObservedSwitch(
+				ActiveId.ToString(),
+				CurrentBoundId.ToString(),
+				true);
+		}
 	}
 
 	if (!bClientReportedNonOwnerAmmoHidden)
@@ -1110,9 +1155,38 @@ void AShooterNetworkTestCoordinator::ServerReportClientObservedProjectile_Implem
 	bClientObservedProjectile = true;
 }
 
-void AShooterNetworkTestCoordinator::ServerReportClientObservedSwitch_Implementation()
+void AShooterNetworkTestCoordinator::ServerReportClientObservedSwitch_Implementation(
+	const FString& ActiveWeaponInstanceId,
+	const FString& CurrentWeaponBoundInstanceId,
+	bool bRemoteCurrentWeaponVisible)
 {
-	bClientObservedSwitch = true;
+	FGuid ObservedActiveId;
+	FGuid ObservedBoundId;
+	FGuid::Parse(ActiveWeaponInstanceId, ObservedActiveId);
+	FGuid::Parse(CurrentWeaponBoundInstanceId, ObservedBoundId);
+
+	// 从手枪切回步枪：Active、当前 WeaponActor 绑定、远端公共表现必须三方一致。
+	bClientObservedSwitch = bServerInventoryPrepared &&
+		ObservedActiveId == ServerInventoryFirstId &&
+		ObservedBoundId == ServerInventoryFirstId &&
+		bRemoteCurrentWeaponVisible;
+
+	UE_LOG(LogShootGame, Display, TEXT("Switch client report: Active=%s Bound=%s RemoteVisible=%s Valid=%s"),
+		*ActiveWeaponInstanceId,
+		*CurrentWeaponBoundInstanceId,
+		bRemoteCurrentWeaponVisible ? TEXT("true") : TEXT("false"),
+		bClientObservedSwitch ? TEXT("true") : TEXT("false"));
+
+	if (!bClientObservedSwitch)
+	{
+		FailTest(FString::Printf(
+			TEXT("Switch state invalid; Active=%s Expected=%s Bound=%s Expected=%s RemoteVisible=%s"),
+			*ActiveWeaponInstanceId,
+			*ServerInventoryFirstId.ToString(),
+			*CurrentWeaponBoundInstanceId,
+			*ServerInventoryFirstId.ToString(),
+			bRemoteCurrentWeaponVisible ? TEXT("true") : TEXT("false")));
+	}
 }
 
 void AShooterNetworkTestCoordinator::ServerReportOwnerAmmoReplicated_Implementation()
@@ -1188,9 +1262,12 @@ void AShooterNetworkTestCoordinator::ServerReportClientObservedInventory_Impleme
 	FGuid ObservedActiveId;
 	FGuid::Parse(ActiveWeaponInstanceId, ObservedActiveId);
 
+	// 初始 Owner Inventory 报告允许 Active 仍是第一或第二把：快速切换可能在报告前发生；
+	// 切换后的精确 Active 由 Switch client report 另行验证。
 	bClientObservedOwnerInventory = bServerInventoryPrepared &&
 		WeaponCount == 2 &&
-		ObservedActiveId == ServerInventoryActiveId;
+		(ObservedActiveId == ServerInventoryFirstId ||
+			ObservedActiveId == ServerInventorySecondId);
 	bClientObservedRemoteInventoryHidden = bRemoteInventoryHidden;
 
 	UE_LOG(LogShootGame, Display, TEXT("Inventory client report: Count=%d Active=%s RemoteHidden=%s OwnerOk=%s"),

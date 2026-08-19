@@ -225,6 +225,39 @@ int32 UShooterInventoryComponent::FindFreeSlotIndex() const
 	return INDEX_NONE;
 }
 
+bool UShooterInventoryComponent::FindNextWeaponInstanceId(
+	const FGuid& CurrentId,
+	FGuid& OutNextId) const
+{
+	OutNextId = FGuid();
+	const FShooterWeaponInstanceData* CurrentInstance = FindWeaponInstance(CurrentId);
+	if (!CurrentInstance || GetWeaponCount() < 2)
+	{
+		return false;
+	}
+
+	const FShooterWeaponInstanceData* WrapCandidate = nullptr;
+	const FShooterWeaponInstanceData* NextCandidate = nullptr;
+	for (const FShooterWeaponInstanceEntry& Entry : GetWeaponEntries())
+	{
+		const FShooterWeaponInstanceData& Candidate = Entry.InstanceData;
+		if (!WrapCandidate || Candidate.SlotIndex < WrapCandidate->SlotIndex)
+		{
+			WrapCandidate = &Candidate;
+		}
+
+		if (Candidate.SlotIndex > CurrentInstance->SlotIndex &&
+			(!NextCandidate || Candidate.SlotIndex < NextCandidate->SlotIndex))
+		{
+			NextCandidate = &Candidate;
+		}
+	}
+
+	const FShooterWeaponInstanceData* Target = NextCandidate ? NextCandidate : WrapCandidate;
+	OutNextId = Target ? Target->InstanceId : FGuid();
+	return OutNextId.IsValid();
+}
+
 AShooterWeapon* UShooterInventoryComponent::FindWeaponActor(const FGuid& InstanceId) const
 {
 	if (!InstanceId.IsValid())
