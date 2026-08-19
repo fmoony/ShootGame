@@ -25,7 +25,9 @@ struct FShooterWeaponInstanceData
 
 	/**
 	 * 武器定义资产主 ID。
-	 * FPrimaryAssetId 不是 UPROPERTY 兼容类型，因此由 Entry 的 NetSerialize 负责网络序列化。
+	 * UE5.6 的 FPrimaryAssetId 不是 UHT 反射类型，不能声明为 UPROPERTY；
+	 * 它支持普通 FArchive << 序列化，但该能力不等于默认属性网络复制。
+	 * 当前由 FShooterWeaponInstanceEntry::NetSerialize 显式序列化本字段。
 	 */
 	FPrimaryAssetId DefinitionId;
 
@@ -59,7 +61,8 @@ struct FShooterWeaponInventoryList;
 
 /**
  * FastArray 单项：复制层身份 + WeaponInstanceData。
- * 2A 关闭 FastArray 内部 Struct Delta 路径，统一走 NetSerialize，保证 DefinitionId 被完整复制。
+ * 保留 FastArray 的 Item Add/Change/Remove Delta；关闭的是 Item 内部 Struct Delta，
+ * 保证非反射字段 DefinitionId 也被完整复制。
  */
 USTRUCT()
 struct FShooterWeaponInstanceEntry : public FFastArraySerializerItem
@@ -70,7 +73,22 @@ struct FShooterWeaponInstanceEntry : public FFastArraySerializerItem
 	UPROPERTY()
 	FShooterWeaponInstanceData InstanceData;
 
-	/** FastArray 使用自定义网络序列化，显式覆盖 InstanceData 的全部字段。 */
+	/**
+	 * IMPORTANT：当前手动维护完整的 WeaponInstance 网络 Payload。
+	 *
+	 * 根因：UE5.6 的 FPrimaryAssetId 不是 UHT 反射类型，因此
+	 * FShooterWeaponInstanceData::DefinitionId 不能声明为 UPROPERTY，
+	 * 默认反射序列化看不到该字段。
+	 *
+	 * 维护约束：
+	 * 1. 任何新增到 FShooterWeaponInstanceData 且需要复制给 Owner Client 的字段，
+	 *    必须同步写入本函数；
+	 * 2. 同时更新 Inventory / 网络复制自动化测试；
+	 * 3. 不能因为字段已标记 UPROPERTY 就认为它已进入当前网络协议。
+	 *
+	 * 未来若 DefinitionId 改为项目可反射包装类型，再评估删除 WithNetSerializer
+	 * 与恢复默认 Struct Delta；当前不执行该重构。
+	 */
 	bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess)
 	{
 		Ar << InstanceData.InstanceId;
@@ -111,7 +129,9 @@ struct FShooterWeaponInventoryList : public FFastArraySerializer
 
 	FShooterWeaponInventoryList()
 	{
-		// Entry 使用自定义 NetSerialize；关闭 Struct Delta 后始终走完整 Entry 序列化路径。
+		// 保留 FastArray 的 Item Add/Change/Remove Delta；这里关闭的只是 Item 内部 Struct Delta。
+		// Struct Delta 只比较 UPROPERTY 反射字段，而 DefinitionId 是非反射字段；
+		// 为可靠复制 DefinitionId-only 变更，强制每个 dirty Item 走完整 NetSerialize Payload。
 		SetDeltaSerializationEnabled(false);
 	}
 
@@ -200,6 +220,7 @@ struct FShooterWeaponInventoryList : public FFastArraySerializer
 	}
 };
 
+/** WithNetSerializer：DefinitionId 是非反射字段，必须由 NetSerialize 手工复制；当前正确性依赖此配置。 */
 template<>
 struct TStructOpsTypeTraits<FShooterWeaponInstanceEntry> : public TStructOpsTypeTraitsBase2<FShooterWeaponInstanceEntry>
 {
