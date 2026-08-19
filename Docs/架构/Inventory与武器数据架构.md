@@ -14,7 +14,7 @@
 
 ---
 
-## 2. 当前 Inventory 数据模型（2A / 2B / 2C 已落地）
+## 2. 当前 Inventory 数据模型（2A / 2B / 2C / 2D 已落地）
 
 当前已经成立的组件与数据关系：
 
@@ -42,6 +42,13 @@ AShooterCharacter
 - 无效 InstanceId 不会改写 Active 身份。
 - Owner 客户端可观察到 Active 与当前 WeaponActor 的 BoundInstanceId 一致。
 
+2D 已落地：
+
+- `MagazineAmmo` 权威位于 `FShooterWeaponInstanceData`；旧 Fire 通过 Inventory 消费。
+- `AShooterWeapon::CurrentBullets` 保留为 OwnerOnly 兼容镜像，未绑定的 NPC 旧路径仍可用。
+- 死亡时服务器销毁 WeaponActor、清空 Inventory 与 Active，并置空 CurrentWeapon。
+- 重生后 Inventory 为空。
+
 当前 `FShooterWeaponInstanceData`：
 
 ```text
@@ -63,11 +70,9 @@ FShooterWeaponInstanceData
 
 当前尚未实现：
 
-- Ammo 实际消费迁移。
-- Death Clear。
 - GA_Fire。
 
-上述内容在 2D 落地前，不得在代码或文档中当作“已经存在”。
+在后续阶段落地前，不得在代码或文档中当作“已经存在”。
 
 ---
 
@@ -273,7 +278,7 @@ WeaponActor*        = 不能作为永久武器身份
 
 状态说明：
 
-> 2B 已建立 `WeaponActor.BoundInstanceId` 绑定，2C 已建立 Active 驱动切换与公共 CurrentWeapon 表现；Ammo 权威迁移与死亡清空仍属于 2D。
+> 2B 已建立 `WeaponActor.BoundInstanceId` 绑定，2C 已建立 Active 驱动切换与公共 CurrentWeapon 表现，2D 已完成 Ammo 权威迁移与 Death Clear。
 
 ---
 

@@ -310,4 +310,32 @@ bool FShooterInventorySwitchContractTest::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FShooterInventoryAmmoConsumeTest,
+	"ShootGame.Inventory.AmmoConsume",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FShooterInventoryAmmoConsumeTest::RunTest(const FString& Parameters)
+{
+	FShooterWeaponInventoryList Inventory;
+	FShooterWeaponInstanceData InstanceData;
+	InstanceData.InstanceId = FGuid::NewGuid();
+	InstanceData.DefinitionId = FPrimaryAssetId(
+		FPrimaryAssetType(TEXT("ShooterTest")),
+		FName(TEXT("Weapon")));
+	InstanceData.MagazineAmmo = 2;
+	InstanceData.ReserveAmmo = 10;
+	InstanceData.SlotIndex = 0;
+
+	TestTrue(TEXT("Weapon instance is added"), Inventory.AddItem(InstanceData));
+	TestTrue(TEXT("First round can be consumed"), Inventory.ConsumeMagazineAmmo(InstanceData.InstanceId));
+	TestEqual(TEXT("Magazine decreases to 1"), Inventory.FindItem(InstanceData.InstanceId)->InstanceData.MagazineAmmo, 1);
+	TestTrue(TEXT("Second round can be consumed"), Inventory.ConsumeMagazineAmmo(InstanceData.InstanceId));
+	TestFalse(TEXT("Empty magazine cannot be consumed"), Inventory.ConsumeMagazineAmmo(InstanceData.InstanceId));
+	TestEqual(TEXT("Magazine remains 0"), Inventory.FindItem(InstanceData.InstanceId)->InstanceData.MagazineAmmo, 0);
+	TestFalse(TEXT("Invalid InstanceId is rejected"), Inventory.ConsumeMagazineAmmo(FGuid::NewGuid()));
+	TestEqual(TEXT("ReserveAmmo is untouched by magazine consumption"), Inventory.FindItem(InstanceData.InstanceId)->InstanceData.ReserveAmmo, 10);
+	return true;
+}
+
 #endif

@@ -109,6 +109,12 @@ private:
 	UFUNCTION(Server, Reliable)
 	void ServerReportClientObservedPickupAuthority();
 
+	UFUNCTION(Server, Reliable)
+	void ServerReportClientObservedInventoryDeathClear();
+
+	UFUNCTION(Server, Reliable)
+	void ServerReportClientObservedInventoryRespawnEmpty();
+
 	/** 记录角色 OnDamaged 事件值（HUD 事件链证据）。 */
 	UFUNCTION()
 	void HandleDamagedEvent(float LifePercent);
@@ -209,6 +215,15 @@ private:
 	bool bServerInventoryPrepared = false;
 	bool bClientObservedPickupAuthority = false;
 	bool bClientReportedPickupAuthority = false;
+	int32 InitialRifleMagazineAmmo = INDEX_NONE;
+	int32 InitialPistolMagazineAmmo = INDEX_NONE;
+	bool bAmmoIsolationVerified = false;
+	bool bServerDeathInventoryCleared = false;
+	bool bClientObservedDeathInventoryClear = false;
+	bool bClientReportedDeathInventoryClear = false;
+	bool bServerRespawnInventoryEmpty = false;
+	bool bClientObservedRespawnInventoryEmpty = false;
+	bool bClientReportedRespawnInventoryEmpty = false;
 	FGuid ServerInventoryFirstId;
 	FGuid ServerInventorySecondId;
 	FGuid ServerInventoryActiveId;

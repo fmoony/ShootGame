@@ -41,6 +41,8 @@ class SHOOTGAME_API UShooterInventoryComponent : public UActorComponent
 public:
 	UShooterInventoryComponent();
 
+	virtual void InitializeComponent() override;
+
 	/** 服务器权威：按 WeaponClass 创建 WeaponInstance 与 WeaponActor，并自动选择空 Slot。 */
 	EShooterInventoryAddResult TryAddWeapon(
 		TSubclassOf<AShooterWeapon> WeaponClass,
@@ -98,11 +100,29 @@ public:
 	/** 当前逻辑武器实例 ID；无效 FGuid 表示未装备。 */
 	FGuid GetActiveWeaponInstanceId() const { return ActiveWeaponInstanceId; }
 
-	/** 服务器权威：更新 ActiveWeaponInstanceId。传入有效 ID 时要求该实例已存在；2A 不执行表现切换。 */
+	/** 服务器权威：更新 ActiveWeaponInstanceId。传入有效 ID 时要求该实例已存在。 */
 	void SetActiveWeaponInstanceId(const FGuid& NewInstanceId);
+
+	/** 查询指定实例当前弹匣弹药；实例不存在时返回 0。 */
+	int32 GetMagazineAmmo(const FGuid& InstanceId) const;
+
+	/** 查询指定实例当前备用弹药；实例不存在时返回 0。 */
+	int32 GetReserveAmmo(const FGuid& InstanceId) const;
+
+	/** 指定实例是否还有弹匣弹药。 */
+	bool CanConsumeMagazineAmmo(const FGuid& InstanceId) const;
+
+	/** 服务器权威：从指定实例弹匣扣除 Amount；失败时不产生任何变化。 */
+	bool ConsumeMagazineAmmo(const FGuid& InstanceId, int32 Amount = 1);
 
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	/** Owner Client FastArray 回调与服务器本地修改共用的表现刷新入口。 */
+	void HandleInstanceChanged(const FShooterWeaponInstanceData& InstanceData);
+
+	/** Owner Client FastArray 删除回调：同步解除对应 WeaponActor 绑定。 */
+	void HandleInstanceRemoved(const FGuid& InstanceId);
 
 	/** 第一版固定 Slot 上限。SlotFull 时 Pickup 必须明确 Reject。 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Inventory")

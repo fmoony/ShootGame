@@ -104,15 +104,12 @@ void AShooterCharacter::EndPlay(EEndPlayReason::Type EndPlayReason)
 	GetWorld()->GetTimerManager().ClearTimer(RespawnTimer);
 
 	// 武器是服务器按角色生命周期生成的独立 Actor；Owner 关系不会自动级联销毁。
-	// 角色死亡销毁或玩家断线时由服务器显式回收，避免遗留不可见的复制 Actor。
+	// Inventory 是唯一回收入口：它销毁 BoundWeaponActors、清空 FastArray 与 Active。
 	if (HasAuthority())
 	{
-		for (AShooterWeapon* Weapon : OwnedWeapons)
+		if (InventoryComponent)
 		{
-			if (IsValid(Weapon))
-			{
-				Weapon->Destroy();
-			}
+			InventoryComponent->ClearInventory();
 		}
 
 		OwnedWeapons.Empty();
@@ -664,6 +661,18 @@ void AShooterCharacter::Die(AController* KillerController)
 	{
 		return;
 	}
+
+	// Death Clear：停火 -> 销毁全部 WeaponActor -> Inventory Clear -> Active Invalid -> CurrentWeapon null。
+	if (IsValid(CurrentWeapon))
+	{
+		CurrentWeapon->StopFiring();
+	}
+	if (InventoryComponent)
+	{
+		InventoryComponent->ClearInventory();
+	}
+	OwnedWeapons.Empty();
+	CurrentWeapon = nullptr;
 
 	bIsDead = true;
 	ApplyDeathState();

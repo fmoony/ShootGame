@@ -105,6 +105,97 @@ void AShooterWeapon::OnRep_BoundInstanceId()
 	}
 }
 
+namespace ShooterWeaponInventory
+{
+	UShooterInventoryComponent* FindInventory(const AActor* WeaponActor)
+	{
+		const AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(
+			WeaponActor ? WeaponActor->GetOwner() : nullptr);
+		return ShooterCharacter ? ShooterCharacter->GetInventoryComponent() : nullptr;
+	}
+
+	const FShooterWeaponInstanceData* FindInstance(const AShooterWeapon* Weapon)
+	{
+		UShooterInventoryComponent* Inventory = FindInventory(Weapon);
+		return Inventory ? Inventory->FindWeaponInstance(Weapon->GetBoundInstanceId()) : nullptr;
+	}
+}
+
+int32 AShooterWeapon::GetBulletCount() const
+{
+	if (BoundInstanceId.IsValid())
+	{
+		if (const FShooterWeaponInstanceData* Instance = ShooterWeaponInventory::FindInstance(this))
+		{
+			return Instance->MagazineAmmo;
+		}
+	}
+
+	return CurrentBullets;
+}
+
+bool AShooterWeapon::CanConsumeAmmo() const
+{
+	if (BoundInstanceId.IsValid())
+	{
+		if (UShooterInventoryComponent* Inventory = ShooterWeaponInventory::FindInventory(this))
+		{
+			return Inventory->CanConsumeMagazineAmmo(BoundInstanceId);
+		}
+	}
+
+	return CurrentBullets > 0;
+}
+
+bool AShooterWeapon::ConsumeAmmo()
+{
+	if (!HasAuthority())
+	{
+		return false;
+	}
+
+	if (BoundInstanceId.IsValid())
+	{
+		if (UShooterInventoryComponent* Inventory = ShooterWeaponInventory::FindInventory(this))
+		{
+			return Inventory->ConsumeMagazineAmmo(BoundInstanceId, 1);
+		}
+	}
+
+	if (CurrentBullets <= 0)
+	{
+		return false;
+	}
+
+	--CurrentBullets;
+	return true;
+}
+
+void AShooterWeapon::RefreshAmmoMirror()
+{
+	if (!BoundInstanceId.IsValid())
+	{
+		return;
+	}
+
+	const FShooterWeaponInstanceData* Instance = ShooterWeaponInventory::FindInstance(this);
+	if (!Instance)
+	{
+		return;
+	}
+
+	CurrentBullets = Instance->MagazineAmmo;
+	if (WeaponOwner && !IsHidden())
+	{
+		WeaponOwner->UpdateWeaponHUD(CurrentBullets, MagazineSize);
+	}
+
+	if (HasAuthority())
+	{
+		ForceNetUpdate();
+	}
+}
+
 void AShooterWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -214,7 +305,14 @@ void AShooterWeapon::Fire()
 	{
 		return;
 	}
-	
+
+	// Ammo 权威位于 Inventory.MagazineAmmo；耗尽后停止开火，不自动换弹。
+	if (!CanConsumeAmmo() || !ConsumeAmmo())
+	{
+		StopFiring();
+		return;
+	}
+
 	// fire a projectile at the target
 	FireProjectile(WeaponOwner->GetWeaponTargetLocation());
 
@@ -266,18 +364,17 @@ void AShooterWeapon::FireProjectile(const FVector& TargetLocation)
 	// add recoil
 	WeaponOwner->AddWeaponRecoil(FiringRecoil);
 
-	// consume bullets
-	--CurrentBullets;
-
-	// if the clip is depleted, reload it
-	if (CurrentBullets <= 0)
+	// 未绑定 Inventory 的旧路径（如 NPC）保留兼容镜像扣减与自动补弹。
+	if (!BoundInstanceId.IsValid())
 	{
-		CurrentBullets = MagazineSize;
-	}
+		if (CurrentBullets <= 0)
+		{
+			CurrentBullets = MagazineSize;
+		}
 
-	// update the weapon HUD
-	WeaponOwner->UpdateWeaponHUD(CurrentBullets, MagazineSize);
-	ForceNetUpdate();
+		WeaponOwner->UpdateWeaponHUD(CurrentBullets, MagazineSize);
+		ForceNetUpdate();
+	}
 }
 
 FTransform AShooterWeapon::CalculateProjectileSpawnTransform(const FVector& TargetLocation) const

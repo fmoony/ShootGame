@@ -189,6 +189,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		const bool bInvalidInstanceRejected =
 			InventoryComponent->GetActiveWeaponInstanceId() == ActiveBeforeInvalid;
 
+		InitialRifleMagazineAmmo = InventoryComponent->GetMagazineAmmo(ServerInventoryFirstId);
+		InitialPistolMagazineAmmo = InventoryComponent->GetMagazineAmmo(ServerInventorySecondId);
+
 		ServerInventoryActiveId = InventoryComponent->GetActiveWeaponInstanceId();
 		if (RifleResult != EShooterInventoryAddResult::Added ||
 			PistolResult != EShooterInventoryAddResult::Added ||
@@ -365,47 +368,17 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		OwnerController->SetControlRotation(ControlRotation);
 	}
 
+	// 死亡后的清空阶段不允许旧 AddWeaponClass 路径重新补枪；重生后 Inventory 也必须保持为空。
 	AShooterWeapon* Weapon = GetCurrentWeapon(Character);
-	if (!Weapon)
-	{
-		const TSubclassOf<AShooterWeapon> RifleClass = LoadClass<AShooterWeapon>(
-			nullptr,
-			ShooterNetworkTest::RifleClassPath);
-		if (!RifleClass)
-		{
-			FailTest(TEXT("Rifle class could not be loaded"));
-			return;
-		}
-
-		Character->AddWeaponClass(RifleClass);
-		return;
-	}
-
-	if (!bSecondaryWeaponGranted)
-	{
-		const TSubclassOf<AShooterWeapon> PistolClass = LoadClass<AShooterWeapon>(
-			nullptr,
-			ShooterNetworkTest::PistolClassPath);
-		if (!PistolClass)
-		{
-			FailTest(TEXT("Pistol class could not be loaded"));
-			return;
-		}
-
-		Character->AddWeaponClass(PistolClass);
-		WeaponBeforeSwitch = GetCurrentWeapon(Character);
-		bSecondaryWeaponGranted = true;
-		bServerReadyToSwitch = true;
-		ForceNetUpdate();
-		return;
-	}
+	const int32 CurrentBulletCount = Weapon ? Weapon->GetBulletCount() : INDEX_NONE;
 
 	if (bDisconnectCleanupMode)
 	{
 		return;
 	}
 
-	Weapon = GetCurrentWeapon(Character);
+	if (Weapon)
+	{
 	if (!bClientObservedSwitch || Weapon == WeaponBeforeSwitch)
 	{
 		return;
@@ -425,7 +398,6 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		return;
 	}
 
-	const int32 CurrentBulletCount = Weapon->GetBulletCount();
 	const bool bFireReplicationVerified = bClientObservedWeapon &&
 		bClientObservedProjectile &&
 		bClientObservedOwnerAmmo &&
@@ -437,6 +409,29 @@ void AShooterNetworkTestCoordinator::PollServerState()
 	if (bFireReplicationVerified && !bPartialDamageApplied)
 	{
 		BulletCountAfterFire = CurrentBulletCount;
+
+		UShooterInventoryComponent* AmmoInventory = Character->GetInventoryComponent();
+		const int32 RifleAmmoAfterFire = AmmoInventory
+			? AmmoInventory->GetMagazineAmmo(ServerInventoryFirstId)
+			: INDEX_NONE;
+		const int32 PistolAmmoAfterFire = AmmoInventory
+			? AmmoInventory->GetMagazineAmmo(ServerInventorySecondId)
+			: INDEX_NONE;
+		bAmmoIsolationVerified =
+			InitialRifleMagazineAmmo != INDEX_NONE &&
+			InitialPistolMagazineAmmo != INDEX_NONE &&
+			RifleAmmoAfterFire == InitialRifleMagazineAmmo - 1 &&
+			PistolAmmoAfterFire == InitialPistolMagazineAmmo;
+		if (!bAmmoIsolationVerified)
+		{
+			FailTest(FString::Printf(
+				TEXT("Ammo isolation invalid; Rifle=%d->%d Pistol=%d->%d"),
+				InitialRifleMagazineAmmo,
+				RifleAmmoAfterFire,
+				InitialPistolMagazineAmmo,
+				PistolAmmoAfterFire));
+			return;
+		}
 		InitialHP = Character->GetCurrentHP();
 		// GAS：记录伤害前属性生命，随后验证部分伤害恰好只应用一次。
 		if (UAbilitySystemComponent* AbilitySystemComponent = Character->GetAbilitySystemComponent())
@@ -455,6 +450,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		bPartialDamageApplied = true;
 		return;
 	}
+	} // if (Weapon)
 
 	if (bPartialDamageApplied && !bServerGasDamageChecked)
 	{
@@ -508,6 +504,22 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		if (!bServerGasDeathOk)
 		{
 			FailTest(TEXT("Server-side GAS lethal damage did not reduce Health to zero"));
+			return;
+		}
+
+		UShooterInventoryComponent* DeathInventory = Character->GetInventoryComponent();
+		bServerDeathInventoryCleared = DeathInventory &&
+			DeathInventory->GetWeaponCount() == 0 &&
+			!DeathInventory->GetActiveWeaponInstanceId().IsValid() &&
+			Character->GetCurrentWeapon() == nullptr;
+		if (!bServerDeathInventoryCleared)
+		{
+			FailTest(FString::Printf(
+				TEXT("Server Inventory death clear invalid; Inventory=%s Count=%d Active=%s CurrentWeapon=%s"),
+				*GetNameSafe(DeathInventory),
+				DeathInventory ? DeathInventory->GetWeaponCount() : INDEX_NONE,
+				DeathInventory ? *DeathInventory->GetActiveWeaponInstanceId().ToString() : TEXT("null"),
+				*GetNameSafe(Character->GetCurrentWeapon())));
 			return;
 		}
 	}
@@ -580,8 +592,16 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			RespawnMaxHealth > 0.0f &&
 			FMath::IsNearlyEqual(RespawnHealth, RespawnMaxHealth, 0.01f);
 
-		if (!bServerGasRespawnOk)
+		UShooterInventoryComponent* RespawnInventory = Character->GetInventoryComponent();
+		bServerRespawnInventoryEmpty = RespawnInventory &&
+			RespawnInventory->GetWeaponCount() == 0 &&
+			!RespawnInventory->GetActiveWeaponInstanceId().IsValid() &&
+			Character->GetCurrentWeapon() == nullptr;
+
+		if (!bServerGasRespawnOk || !bServerRespawnInventoryEmpty)
 		{
+			if (!bServerGasRespawnOk)
+			{
 			FailTest(FString::Printf(
 				TEXT("Server-side GAS ASC respawn avatar invalid; ASC=%s SameASC=%s OwnerOk=%s Avatar=%s OldAvatar=%s MaxHealth=%.1f Health=%.1f"),
 				*GetNameSafe(AbilitySystemComponent),
@@ -591,6 +611,14 @@ void AShooterNetworkTestCoordinator::PollServerState()
 				*GetNameSafe(CharacterBeforeDeath.Get()),
 				RespawnMaxHealth,
 				RespawnHealth));
+				return;
+			}
+
+			FailTest(FString::Printf(
+				TEXT("Server respawn Inventory is not empty; Count=%d Active=%s CurrentWeapon=%s"),
+				RespawnInventory ? RespawnInventory->GetWeaponCount() : INDEX_NONE,
+				RespawnInventory ? *RespawnInventory->GetActiveWeaponInstanceId().ToString() : TEXT("null"),
+				*GetNameSafe(Character->GetCurrentWeapon())));
 			return;
 		}
 	}
@@ -599,7 +627,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		bClientObservedMatchState && bClientObservedRemoteAim &&
 		(!bRequireRemoteMontage || bClientObservedRemoteMontage) && bServerObservedRespawn &&
 		bClientObservedOwnerInventory && bClientObservedRemoteInventoryHidden &&
-		bClientObservedPickupAuthority &&
+		bClientObservedPickupAuthority && bAmmoIsolationVerified &&
+		bServerDeathInventoryCleared && bClientObservedDeathInventoryClear &&
+		bServerRespawnInventoryEmpty && bClientObservedRespawnInventoryEmpty &&
 		bClientObservedGasLifecycle && bClientObservedGasRespawn && bServerGasRespawnOk &&
 		bClientObservedGasHealthInit && bClientObservedGasHealthDamage &&
 		bClientObservedGasHealthRespawn && bServerGasDeathOk)
@@ -611,7 +641,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		UE_LOG(
 			LogShootGame,
 			Display,
-			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS PlayerId=%d Switch=true OwnerAmmo=true NonOwnerAmmoHidden=true Bullets=%d->%d HP=%.0f->0 Dead=true Respawn=true RespawnHP=%.0f AimDot=%.3f Team=%u Kills=%d Deaths=%d TeamScore=%d RemotePitch=%.3f/%.3f RemoteMontage=%s GasServer=%s/%s/%s GasNPC=%s GasRespawn=%s GasClient=%s GasClientRespawn=%s GasHealthInit=%s GasDamage=%s GasDeath=%s GasNpcHealth=%s/%s GasClientHealth=%s/%s/%s GasHud=%s PickupAuthority=%s InventoryOwner=%s InventoryRemoteHidden=%s"),
+			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS PlayerId=%d Switch=true OwnerAmmo=true NonOwnerAmmoHidden=true Bullets=%d->%d HP=%.0f->0 Dead=true Respawn=true RespawnHP=%.0f AimDot=%.3f Team=%u Kills=%d Deaths=%d TeamScore=%d RemotePitch=%.3f/%.3f RemoteMontage=%s GasServer=%s/%s/%s GasNPC=%s GasRespawn=%s GasClient=%s GasClientRespawn=%s GasHealthInit=%s GasDamage=%s GasDeath=%s GasNpcHealth=%s/%s GasClientHealth=%s/%s/%s GasHud=%s PickupAuthority=%s InventoryOwner=%s InventoryRemoteHidden=%s AmmoIsolation=%s DeathClear=%s/%s RespawnEmpty=%s/%s"),
 			PlayerId,
 			InitialBulletCount,
 			BulletCountAfterFire,
@@ -643,7 +673,12 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			bClientObservedFullHealthHudEvent ? TEXT("true") : TEXT("false"),
 			bClientObservedPickupAuthority ? TEXT("true") : TEXT("false"),
 			bClientObservedOwnerInventory ? TEXT("true") : TEXT("false"),
-			bClientObservedRemoteInventoryHidden ? TEXT("true") : TEXT("false"));
+			bClientObservedRemoteInventoryHidden ? TEXT("true") : TEXT("false"),
+			bAmmoIsolationVerified ? TEXT("true") : TEXT("false"),
+			bServerDeathInventoryCleared ? TEXT("true") : TEXT("false"),
+			bClientObservedDeathInventoryClear ? TEXT("true") : TEXT("false"),
+			bServerRespawnInventoryEmpty ? TEXT("true") : TEXT("false"),
+			bClientObservedRespawnInventoryEmpty ? TEXT("true") : TEXT("false"));
 		GetWorldTimerManager().ClearTimer(PollTimer);
 		return;
 	}
@@ -663,7 +698,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			: INDEX_NONE;
 
 		FailTest(FString::Printf(
-			TEXT("Timed out waiting for network state; switch=%s weapon=%s clientProjectile=%s ownerAmmo=%s nonOwnerAmmo=%s serverProjectile=%s aim=%s damage=%s death=%s respawn=%s matchState=%s remoteAim=%s remoteMontage=%s gasOwner=%s gasAvatar=%s gasConnection=%s gasNpc=%s gasRespawn=%s gasClient=%s gasClientRespawn=%s gasHealthInit=%s gasDamage=%s gasDeath=%s gasNpcHealth=%s/%s gasClientHealth=%s/%s/%s gasHud=%s bullets=%d->%d hp=%.0f team=%u kills=%d deaths=%d score=%.0f teamScore=%d PickupAuthority=%s InventoryOwner=%s InventoryRemoteHidden=%s"),
+			TEXT("Timed out waiting for network state; switch=%s weapon=%s clientProjectile=%s ownerAmmo=%s nonOwnerAmmo=%s serverProjectile=%s aim=%s damage=%s death=%s respawn=%s matchState=%s remoteAim=%s remoteMontage=%s gasOwner=%s gasAvatar=%s gasConnection=%s gasNpc=%s gasRespawn=%s gasClient=%s gasClientRespawn=%s gasHealthInit=%s gasDamage=%s gasDeath=%s gasNpcHealth=%s/%s gasClientHealth=%s/%s/%s gasHud=%s bullets=%d->%d hp=%.0f team=%u kills=%d deaths=%d score=%.0f teamScore=%d PickupAuthority=%s InventoryOwner=%s InventoryRemoteHidden=%s AmmoIsolation=%s DeathClear=%s/%s RespawnEmpty=%s/%s"),
 			bClientObservedSwitch ? TEXT("true") : TEXT("false"),
 			bClientObservedWeapon ? TEXT("true") : TEXT("false"),
 			bClientObservedProjectile ? TEXT("true") : TEXT("false"),
@@ -703,7 +738,12 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			TimeoutTeamScore,
 			bClientObservedPickupAuthority ? TEXT("true") : TEXT("false"),
 			bClientObservedOwnerInventory ? TEXT("true") : TEXT("false"),
-			bClientObservedRemoteInventoryHidden ? TEXT("true") : TEXT("false")));
+			bClientObservedRemoteInventoryHidden ? TEXT("true") : TEXT("false"),
+			bAmmoIsolationVerified ? TEXT("true") : TEXT("false"),
+			bServerDeathInventoryCleared ? TEXT("true") : TEXT("false"),
+			bClientObservedDeathInventoryClear ? TEXT("true") : TEXT("false"),
+			bServerRespawnInventoryEmpty ? TEXT("true") : TEXT("false"),
+			bClientObservedRespawnInventoryEmpty ? TEXT("true") : TEXT("false")));
 	}
 }
 
@@ -741,11 +781,12 @@ void AShooterNetworkTestCoordinator::PollClientState()
 	}
 
 	AShooterCharacter* Character = GetShooterCharacter();
-	AShooterWeapon* Weapon = GetCurrentWeapon(Character);
-	if (!Character || !Weapon)
+	if (!Character)
 	{
 		return;
 	}
+
+	AShooterWeapon* Weapon = GetCurrentWeapon(Character);
 
 	// ---- Inventory 2A（拥有者客户端视角）：Owner 完整收到，远端角色不收到完整列表 ----
 	if (!bClientReportedInventory)
@@ -935,6 +976,8 @@ void AShooterNetworkTestCoordinator::PollClientState()
 		}
 	}
 
+	if (Weapon)
+	{
 	if (bServerReadyToSwitch && WeaponBeforeSwitch &&
 		Weapon == WeaponBeforeSwitch && !bClientTriggeredSwitch)
 	{
@@ -1031,6 +1074,7 @@ void AShooterNetworkTestCoordinator::PollClientState()
 			}
 		}
 	}
+	} // if (Weapon)
 
 	if (!bClientReportedDamage && Character->GetCurrentHP() > 0.0f &&
 		Character->GetCurrentHP() < Character->GetMaxHP())
@@ -1045,6 +1089,19 @@ void AShooterNetworkTestCoordinator::PollClientState()
 		ServerReportClientObservedDeath();
 	}
 
+	if (bClientReportedDeath && !bClientReportedDeathInventoryClear && Character->IsDead())
+	{
+		UShooterInventoryComponent* DeathInventory = Character->GetInventoryComponent();
+		if (DeathInventory &&
+			DeathInventory->GetWeaponCount() == 0 &&
+			!DeathInventory->GetActiveWeaponInstanceId().IsValid() &&
+			Character->GetCurrentWeapon() == nullptr)
+		{
+			bClientReportedDeathInventoryClear = true;
+			ServerReportClientObservedInventoryDeathClear();
+		}
+	}
+
 	if (bClientReportedDeath && !bClientReportedRespawn && !Character->IsDead() &&
 		Character->GetCurrentHP() > 0.0f && Character->IsLocallyControlled() &&
 		Character->GetCharacterMovement()->MovementMode != MOVE_None &&
@@ -1052,6 +1109,19 @@ void AShooterNetworkTestCoordinator::PollClientState()
 	{
 		bClientReportedRespawn = true;
 		ServerReportClientObservedRespawn();
+	}
+
+	if (bClientReportedRespawn && !bClientReportedRespawnInventoryEmpty)
+	{
+		UShooterInventoryComponent* RespawnInventory = Character->GetInventoryComponent();
+		if (RespawnInventory &&
+			RespawnInventory->GetWeaponCount() == 0 &&
+			!RespawnInventory->GetActiveWeaponInstanceId().IsValid() &&
+			Character->GetCurrentWeapon() == nullptr)
+		{
+			bClientReportedRespawnInventoryEmpty = true;
+			ServerReportClientObservedInventoryRespawnEmpty();
+		}
 	}
 
 	// ---- GAS ASC 重生生命周期（拥有者客户端视角）：Avatar 切换到复活后的新角色 ----
@@ -1291,6 +1361,18 @@ void AShooterNetworkTestCoordinator::ServerReportClientObservedPickupAuthority_I
 {
 	UE_LOG(LogShootGame, Display, TEXT("Inventory client report: PickupAuthority rejected"));
 	bClientObservedPickupAuthority = true;
+}
+
+void AShooterNetworkTestCoordinator::ServerReportClientObservedInventoryDeathClear_Implementation()
+{
+	UE_LOG(LogShootGame, Display, TEXT("Inventory client report: DeathClear"));
+	bClientObservedDeathInventoryClear = true;
+}
+
+void AShooterNetworkTestCoordinator::ServerReportClientObservedInventoryRespawnEmpty_Implementation()
+{
+	UE_LOG(LogShootGame, Display, TEXT("Inventory client report: RespawnEmpty"));
+	bClientObservedRespawnInventoryEmpty = true;
 }
 
 void AShooterNetworkTestCoordinator::ServerReportClientObservedGasHealthInit_Implementation()

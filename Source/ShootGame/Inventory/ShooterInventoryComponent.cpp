@@ -3,6 +3,7 @@
 #include "ShooterInventoryComponent.h"
 
 #include "Engine/World.h"
+#include "GameFramework/Pawn.h"
 #include "Net/UnrealNetwork.h"
 #include "ShootGame.h"
 #include "ShooterWeapon.h"
@@ -29,6 +30,19 @@ UShooterInventoryComponent::UShooterInventoryComponent()
 {
 	// 组件随 Character 一起复制；数组属性本身使用 COND_OwnerOnly。
 	SetIsReplicatedByDefault(true);
+}
+
+void UShooterInventoryComponent::InitializeComponent()
+{
+	Super::InitializeComponent();
+
+	// Owner Client 的 FastArray Add/Change/Remove 回调驱动本地 WeaponActor 弹药镜像与 HUD。
+	ReplicatedInventory.OnInstanceChanged.AddUObject(
+		this,
+		&UShooterInventoryComponent::HandleInstanceChanged);
+	ReplicatedInventory.OnInstanceRemoved.AddUObject(
+		this,
+		&UShooterInventoryComponent::HandleInstanceRemoved);
 }
 
 EShooterInventoryAddResult UShooterInventoryComponent::TryAddWeapon(
@@ -146,6 +160,12 @@ bool UShooterInventoryComponent::RemoveWeaponInstance(const FGuid& InstanceId)
 	const bool bRemoved = ReplicatedInventory.RemoveItem(InstanceId);
 	if (bRemoved)
 	{
+		if (AShooterWeapon* Weapon = FindWeaponActor(InstanceId))
+		{
+			UnregisterWeaponActor(Weapon);
+			Weapon->Destroy();
+		}
+
 		if (ActiveWeaponInstanceId == InstanceId)
 		{
 			SetActiveWeaponInstanceId(FGuid());
@@ -169,6 +189,14 @@ void UShooterInventoryComponent::ClearInventory()
 		return;
 	}
 
+	for (AShooterWeapon* Weapon : BoundWeaponActors)
+	{
+		if (IsValid(Weapon))
+		{
+			Weapon->Destroy();
+		}
+	}
+	BoundWeaponActors.Empty();
 	ReplicatedInventory.ClearItems();
 	SetActiveWeaponInstanceId(FGuid());
 
@@ -291,6 +319,60 @@ void UShooterInventoryComponent::RegisterWeaponActor(AShooterWeapon* Weapon)
 		*GetNameSafe(GetOwner()),
 		*Weapon->GetBoundInstanceId().ToString(),
 		*GetNameSafe(Weapon));
+}
+
+int32 UShooterInventoryComponent::GetMagazineAmmo(const FGuid& InstanceId) const
+{
+	const FShooterWeaponInstanceData* Instance = FindWeaponInstance(InstanceId);
+	return Instance ? Instance->MagazineAmmo : 0;
+}
+
+int32 UShooterInventoryComponent::GetReserveAmmo(const FGuid& InstanceId) const
+{
+	const FShooterWeaponInstanceData* Instance = FindWeaponInstance(InstanceId);
+	return Instance ? Instance->ReserveAmmo : 0;
+}
+
+bool UShooterInventoryComponent::CanConsumeMagazineAmmo(const FGuid& InstanceId) const
+{
+	return GetMagazineAmmo(InstanceId) > 0;
+}
+
+bool UShooterInventoryComponent::ConsumeMagazineAmmo(const FGuid& InstanceId, int32 Amount)
+{
+	if (!GetOwner() || !GetOwner()->HasAuthority())
+	{
+		return false;
+	}
+
+	if (!ReplicatedInventory.ConsumeMagazineAmmo(InstanceId, Amount))
+	{
+		return false;
+	}
+
+	if (const FShooterWeaponInstanceData* Instance = FindWeaponInstance(InstanceId))
+	{
+		HandleInstanceChanged(*Instance);
+	}
+	return true;
+}
+
+void UShooterInventoryComponent::HandleInstanceChanged(
+	const FShooterWeaponInstanceData& InstanceData)
+{
+	if (AShooterWeapon* Weapon = FindWeaponActor(InstanceData.InstanceId))
+	{
+		Weapon->RefreshAmmoMirror();
+	}
+}
+
+void UShooterInventoryComponent::HandleInstanceRemoved(const FGuid& InstanceId)
+{
+	if (AShooterWeapon* Weapon = FindWeaponActor(InstanceId))
+	{
+		UnregisterWeaponActor(Weapon);
+		Weapon->SetBoundInstanceId(FGuid());
+	}
 }
 
 void UShooterInventoryComponent::UnregisterWeaponActor(AShooterWeapon* Weapon)

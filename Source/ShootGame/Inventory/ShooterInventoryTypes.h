@@ -7,6 +7,13 @@
 #include "UObject/PrimaryAssetId.h"
 #include "ShooterInventoryTypes.generated.h"
 
+DECLARE_MULTICAST_DELEGATE_OneParam(
+	FShooterWeaponInstanceChangedDelegate,
+	const FShooterWeaponInstanceData&);
+DECLARE_MULTICAST_DELEGATE_OneParam(
+	FShooterWeaponInstanceRemovedDelegate,
+	const FGuid&);
+
 /**
  * 单把武器实例的权威逻辑数据。
  *
@@ -101,9 +108,9 @@ struct FShooterWeaponInstanceEntry : public FFastArraySerializerItem
 		return true;
 	}
 
-	void PreReplicatedRemove(const FShooterWeaponInventoryList& InArraySerializer) {}
-	void PostReplicatedAdd(const FShooterWeaponInventoryList& InArraySerializer) {}
-	void PostReplicatedChange(const FShooterWeaponInventoryList& InArraySerializer) {}
+	void PreReplicatedRemove(const FShooterWeaponInventoryList& InArraySerializer);
+	void PostReplicatedAdd(const FShooterWeaponInventoryList& InArraySerializer);
+	void PostReplicatedChange(const FShooterWeaponInventoryList& InArraySerializer);
 
 	/** 调试字符串，供 LogNetFastTArray 使用。 */
 	FString GetDebugString() const
@@ -138,6 +145,39 @@ struct FShooterWeaponInventoryList : public FFastArraySerializer
 	/** FastArray 要求的 Items 数组。 */
 	UPROPERTY()
 	TArray<FShooterWeaponInstanceEntry> Items;
+
+	/** Owner Client 收到 Add/Change/Remove 后的表现桥接；由 InventoryComponent 绑定。 */
+	FShooterWeaponInstanceChangedDelegate OnInstanceChanged;
+	FShooterWeaponInstanceRemovedDelegate OnInstanceRemoved;
+
+	void NotifyInstanceChanged(const FShooterWeaponInstanceData& InstanceData) const
+	{
+		OnInstanceChanged.Broadcast(InstanceData);
+	}
+
+	void NotifyInstanceRemoved(const FGuid& InstanceId) const
+	{
+		OnInstanceRemoved.Broadcast(InstanceId);
+	}
+
+	/** 服务器权威扣减：当前弹匣不足时返回 false。 */
+	bool ConsumeMagazineAmmo(const FGuid& InstanceId, int32 Amount = 1)
+	{
+		if (!InstanceId.IsValid() || Amount <= 0)
+		{
+			return false;
+		}
+
+		FShooterWeaponInstanceEntry* Entry = FindItem(InstanceId);
+		if (!Entry || Entry->InstanceData.MagazineAmmo < Amount)
+		{
+			return false;
+		}
+
+		Entry->InstanceData.MagazineAmmo -= Amount;
+		MarkItemDirty(*Entry);
+		return true;
+	}
 
 	bool NetDeltaSerialize(FNetDeltaSerializeInfo& DeltaParms)
 	{
@@ -245,6 +285,24 @@ struct FShooterWeaponInventoryList : public FFastArraySerializer
 		return nullptr;
 	}
 };
+
+FORCEINLINE void FShooterWeaponInstanceEntry::PreReplicatedRemove(
+	const FShooterWeaponInventoryList& InArraySerializer)
+{
+	InArraySerializer.NotifyInstanceRemoved(InstanceData.InstanceId);
+}
+
+FORCEINLINE void FShooterWeaponInstanceEntry::PostReplicatedAdd(
+	const FShooterWeaponInventoryList& InArraySerializer)
+{
+	InArraySerializer.NotifyInstanceChanged(InstanceData);
+}
+
+FORCEINLINE void FShooterWeaponInstanceEntry::PostReplicatedChange(
+	const FShooterWeaponInventoryList& InArraySerializer)
+{
+	InArraySerializer.NotifyInstanceChanged(InstanceData);
+}
 
 /** WithNetSerializer：DefinitionId 是非反射字段，必须由 NetSerialize 手工复制；当前正确性依赖此配置。 */
 template<>

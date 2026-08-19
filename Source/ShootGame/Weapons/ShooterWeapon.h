@@ -55,7 +55,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Ammo", meta = (ClampMin = 0, ClampMax = 100))
 	int32 MagazineSize = 10;
 
-	/** Number of bullets in the current magazine */
+	/** 兼容镜像：Inventory 建立后复制 Inventory.MagazineAmmo；未绑定的旧路径仍直接使用该字段。 */
 	UPROPERTY(ReplicatedUsing=OnRep_CurrentBullets, VisibleAnywhere, Category="Ammo")
 	int32 CurrentBullets = 0;
 
@@ -159,6 +159,9 @@ protected:
 
 public:
 
+	/** 刷新本地 CurrentBullets 镜像与拥有者 HUD；Inventory 数据变化时由两边共同调用。 */
+	void RefreshAmmoMirror();
+
 	/** Activates this weapon and gets it ready to fire */
 	void ActivateWeapon();
 
@@ -208,12 +211,18 @@ public:
 	/** Returns the magazine size */
 	int32 GetMagazineSize() const { return MagazineSize; };
 
-	/** Returns the current bullet count */
-	int32 GetBulletCount() const { return CurrentBullets; }
+	/** Returns the current bullet count；绑定 Inventory 时从 MagazineAmmo 读取。 */
+	int32 GetBulletCount() const;
 
 	/** 返回绑定的 WeaponInstance ID；无效表示尚未接入 Inventory 的兼容路径。 */
 	FGuid GetBoundInstanceId() const { return BoundInstanceId; }
 
 	/** 服务器在创建 WeaponActor 后写入绑定关系。 */
 	void SetBoundInstanceId(const FGuid& InInstanceId) { BoundInstanceId = InInstanceId; }
+
+	/** 判断当前是否还有可发射弹药；绑定 Inventory 时检查权威 MagazineAmmo。 */
+	bool CanConsumeAmmo() const;
+
+	/** 服务器权威扣减一发；绑定 Inventory 时写入 WeaponInstanceData，否则保留旧 CurrentBullets 兼容路径。 */
+	bool ConsumeAmmo();
 };
