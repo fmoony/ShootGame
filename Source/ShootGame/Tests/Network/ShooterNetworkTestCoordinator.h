@@ -89,6 +89,12 @@ private:
 	UFUNCTION(Server, Reliable)
 	void ServerReportClientObservedGasRespawn();
 
+	UFUNCTION(Server, Reliable)
+	void ServerReportClientObservedInventory(
+		int32 WeaponCount,
+		const FString& ActiveWeaponInstanceId,
+		bool bRemoteInventoryHidden);
+
 	/** 记录角色 OnDamaged 事件值（HUD 事件链证据）。 */
 	UFUNCTION()
 	void HandleDamagedEvent(float LifePercent);
@@ -181,6 +187,16 @@ private:
 	bool bClientReportedGasHealthDamage = false;
 	bool bClientReportedGasHealthRespawn = false;
 	bool bClientObservedFullHealthHudEvent = false;
+
+	/** Inventory 2A 观测：服务器插入两把测试武器，Owner 完整收到，远端不收到完整列表。 */
+	bool bServerInventoryPrepared = false;
+	FGuid ServerInventoryFirstId;
+	FGuid ServerInventorySecondId;
+	FGuid ServerInventoryActiveId;
+	bool bClientObservedOwnerInventory = false;
+	bool bClientReportedInventory = false;
+	bool bClientObservedRemoteInventoryHidden = false;
+
 	float LastDamagedLifePercent = -1.0f;
 	float LastClientAttributeHealth = -1.0f;
 	float ClientMaxHealthAttributeValue = 0.0f;

@@ -14,6 +14,7 @@ class UInputComponent;
 class UPawnNoiseEmitterComponent;
 class USkeletalMeshComponent;
 class UCameraComponent;
+class UShooterInventoryComponent;
 struct FInputActionValue;
 struct FOnAttributeChangeData;
 
@@ -100,6 +101,10 @@ protected:
 
 	/** 在服务器与客户端应用死亡后的本地状态和表现。 */
 	void ApplyDeathState();
+
+	/** Inventory 组件宿主：2A 只创建组件并暴露最薄访问入口，不接 Pickup。 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Inventory", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UShooterInventoryComponent> InventoryComponent;
 
 	/** List of weapons picked up by the character */
 	TArray<AShooterWeapon*> OwnedWeapons;
@@ -210,6 +215,9 @@ public:
 
 	/** 当前由服务器选择并复制给客户端的武器。 */
 	AShooterWeapon* GetCurrentWeapon() const { return CurrentWeapon; }
+
+	/** 返回角色的 Inventory 组件；该组件是武器持有关系的逻辑权威源。 */
+	UShooterInventoryComponent* GetInventoryComponent() const { return InventoryComponent; }
 
 public:
 

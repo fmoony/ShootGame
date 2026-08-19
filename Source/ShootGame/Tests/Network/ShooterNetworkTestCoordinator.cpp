@@ -19,6 +19,7 @@
 #include "AbilitySystemComponent.h"
 #include "ShooterAttributeSet.h"
 #include "ShooterCharacter.h"
+#include "ShooterInventoryComponent.h"
 #include "ShooterGameState.h"
 #include "ShooterPlayerState.h"
 #include "ShooterWeapon.h"
@@ -120,6 +121,55 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			FailTest(TEXT("Server did not receive a shooter character"));
 		}
 		return;
+	}
+
+	// ---- Inventory 2A：服务器通过测试入口插入两把测试武器 ----
+	if (!bServerInventoryPrepared)
+	{
+		UShooterInventoryComponent* InventoryComponent = Character->GetInventoryComponent();
+		if (!InventoryComponent)
+		{
+			FailTest(TEXT("Server character does not have an InventoryComponent"));
+			return;
+		}
+
+		ServerInventoryFirstId = FGuid::NewGuid();
+		ServerInventorySecondId = FGuid::NewGuid();
+
+		FShooterWeaponInstanceData RifleData;
+		RifleData.InstanceId = ServerInventoryFirstId;
+		RifleData.DefinitionId = FPrimaryAssetId(FPrimaryAssetType(TEXT("ShooterTest")), FName(TEXT("Rifle")));
+		RifleData.MagazineAmmo = 24;
+		RifleData.ReserveAmmo = 90;
+		RifleData.SlotIndex = 0;
+
+		FShooterWeaponInstanceData PistolData;
+		PistolData.InstanceId = ServerInventorySecondId;
+		PistolData.DefinitionId = FPrimaryAssetId(FPrimaryAssetType(TEXT("ShooterTest")), FName(TEXT("Pistol")));
+		PistolData.MagazineAmmo = 10;
+		PistolData.ReserveAmmo = 36;
+		PistolData.SlotIndex = 1;
+
+		const bool bRifleAdded = InventoryComponent->AddWeaponInstance(RifleData);
+		const bool bPistolAdded = InventoryComponent->AddWeaponInstance(PistolData);
+		InventoryComponent->SetActiveWeaponInstanceId(ServerInventoryFirstId);
+		ServerInventoryActiveId = InventoryComponent->GetActiveWeaponInstanceId();
+
+		if (!bRifleAdded || !bPistolAdded ||
+			InventoryComponent->GetWeaponCount() != 2 ||
+			ServerInventoryActiveId != ServerInventoryFirstId)
+		{
+			FailTest(FString::Printf(
+				TEXT("Server Inventory preparation failed; RifleAdded=%s PistolAdded=%s Count=%d Active=%s Expected=%s"),
+				bRifleAdded ? TEXT("true") : TEXT("false"),
+				bPistolAdded ? TEXT("true") : TEXT("false"),
+				InventoryComponent->GetWeaponCount(),
+				*ServerInventoryActiveId.ToString(),
+				*ServerInventoryFirstId.ToString()));
+			return;
+		}
+
+		bServerInventoryPrepared = true;
 	}
 
 	const AGameStateBase* GameState = GetWorld()->GetGameState();
@@ -499,6 +549,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 	if (bLethalDamageApplied && bClientObservedDeath && bClientObservedRespawn &&
 		bClientObservedMatchState && bClientObservedRemoteAim &&
 		(!bRequireRemoteMontage || bClientObservedRemoteMontage) && bServerObservedRespawn &&
+		bClientObservedOwnerInventory && bClientObservedRemoteInventoryHidden &&
 		bClientObservedGasLifecycle && bClientObservedGasRespawn && bServerGasRespawnOk &&
 		bClientObservedGasHealthInit && bClientObservedGasHealthDamage &&
 		bClientObservedGasHealthRespawn && bServerGasDeathOk)
@@ -510,7 +561,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		UE_LOG(
 			LogShootGame,
 			Display,
-			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS PlayerId=%d Switch=true OwnerAmmo=true NonOwnerAmmoHidden=true Bullets=%d->%d HP=%.0f->0 Dead=true Respawn=true RespawnHP=%.0f AimDot=%.3f Team=%u Kills=%d Deaths=%d TeamScore=%d RemotePitch=%.3f/%.3f RemoteMontage=%s GasServer=%s/%s/%s GasNPC=%s GasRespawn=%s GasClient=%s GasClientRespawn=%s GasHealthInit=%s GasDamage=%s GasDeath=%s GasNpcHealth=%s/%s GasClientHealth=%s/%s/%s GasHud=%s"),
+			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS PlayerId=%d Switch=true OwnerAmmo=true NonOwnerAmmoHidden=true Bullets=%d->%d HP=%.0f->0 Dead=true Respawn=true RespawnHP=%.0f AimDot=%.3f Team=%u Kills=%d Deaths=%d TeamScore=%d RemotePitch=%.3f/%.3f RemoteMontage=%s GasServer=%s/%s/%s GasNPC=%s GasRespawn=%s GasClient=%s GasClientRespawn=%s GasHealthInit=%s GasDamage=%s GasDeath=%s GasNpcHealth=%s/%s GasClientHealth=%s/%s/%s GasHud=%s InventoryOwner=%s InventoryRemoteHidden=%s"),
 			PlayerId,
 			InitialBulletCount,
 			BulletCountAfterFire,
@@ -539,7 +590,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			bClientObservedGasHealthInit ? TEXT("true") : TEXT("false"),
 			bClientObservedGasHealthDamage ? TEXT("true") : TEXT("false"),
 			bClientObservedGasHealthRespawn ? TEXT("true") : TEXT("false"),
-			bClientObservedFullHealthHudEvent ? TEXT("true") : TEXT("false"));
+			bClientObservedFullHealthHudEvent ? TEXT("true") : TEXT("false"),
+			bClientObservedOwnerInventory ? TEXT("true") : TEXT("false"),
+			bClientObservedRemoteInventoryHidden ? TEXT("true") : TEXT("false"));
 		GetWorldTimerManager().ClearTimer(PollTimer);
 		return;
 	}
@@ -559,7 +612,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			: INDEX_NONE;
 
 		FailTest(FString::Printf(
-			TEXT("Timed out waiting for network state; switch=%s weapon=%s clientProjectile=%s ownerAmmo=%s nonOwnerAmmo=%s serverProjectile=%s aim=%s damage=%s death=%s respawn=%s matchState=%s remoteAim=%s remoteMontage=%s gasOwner=%s gasAvatar=%s gasConnection=%s gasNpc=%s gasRespawn=%s gasClient=%s gasClientRespawn=%s gasHealthInit=%s gasDamage=%s gasDeath=%s gasNpcHealth=%s/%s gasClientHealth=%s/%s/%s gasHud=%s bullets=%d->%d hp=%.0f team=%u kills=%d deaths=%d score=%.0f teamScore=%d"),
+			TEXT("Timed out waiting for network state; switch=%s weapon=%s clientProjectile=%s ownerAmmo=%s nonOwnerAmmo=%s serverProjectile=%s aim=%s damage=%s death=%s respawn=%s matchState=%s remoteAim=%s remoteMontage=%s gasOwner=%s gasAvatar=%s gasConnection=%s gasNpc=%s gasRespawn=%s gasClient=%s gasClientRespawn=%s gasHealthInit=%s gasDamage=%s gasDeath=%s gasNpcHealth=%s/%s gasClientHealth=%s/%s/%s gasHud=%s bullets=%d->%d hp=%.0f team=%u kills=%d deaths=%d score=%.0f teamScore=%d InventoryOwner=%s InventoryRemoteHidden=%s"),
 			bClientObservedSwitch ? TEXT("true") : TEXT("false"),
 			bClientObservedWeapon ? TEXT("true") : TEXT("false"),
 			bClientObservedProjectile ? TEXT("true") : TEXT("false"),
@@ -596,7 +649,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			TimeoutPlayerState ? TimeoutPlayerState->GetKills() : INDEX_NONE,
 			TimeoutPlayerState ? TimeoutPlayerState->GetDeaths() : INDEX_NONE,
 			TimeoutPlayerState ? TimeoutPlayerState->GetScore() : -1.0f,
-			TimeoutTeamScore));
+			TimeoutTeamScore,
+			bClientObservedOwnerInventory ? TEXT("true") : TEXT("false"),
+			bClientObservedRemoteInventoryHidden ? TEXT("true") : TEXT("false")));
 	}
 }
 
@@ -638,6 +693,46 @@ void AShooterNetworkTestCoordinator::PollClientState()
 	if (!Character || !Weapon)
 	{
 		return;
+	}
+
+	// ---- Inventory 2A（拥有者客户端视角）：Owner 完整收到，远端角色不收到完整列表 ----
+	if (!bClientReportedInventory)
+	{
+		UShooterInventoryComponent* InventoryComponent = Character->GetInventoryComponent();
+		const FGuid ActiveId = InventoryComponent ? InventoryComponent->GetActiveWeaponInstanceId() : FGuid();
+		const bool bOwnerInventoryOk = InventoryComponent &&
+			InventoryComponent->GetWeaponCount() == 2 &&
+			ActiveId.IsValid() &&
+			InventoryComponent->FindWeaponInstance(ActiveId) != nullptr;
+
+		bool bRemoteInventoryHidden = false;
+		if (bOwnerInventoryOk)
+		{
+			for (TActorIterator<AShooterCharacter> It(GetWorld()); It; ++It)
+			{
+				AShooterCharacter* RemoteCharacter = *It;
+				if (RemoteCharacter == Character ||
+					RemoteCharacter->GetLocalRole() != ROLE_SimulatedProxy)
+				{
+					continue;
+				}
+
+				UShooterInventoryComponent* RemoteInventory =
+					RemoteCharacter->GetInventoryComponent();
+				bRemoteInventoryHidden = RemoteInventory &&
+					RemoteInventory->GetWeaponCount() == 0;
+				break;
+			}
+		}
+
+		if (bOwnerInventoryOk && bRemoteInventoryHidden)
+		{
+			bClientReportedInventory = true;
+			ServerReportClientObservedInventory(
+				InventoryComponent->GetWeaponCount(),
+				ActiveId.ToString(),
+				true);
+		}
 	}
 
 	if (!bClientSetAimPitch)
@@ -1022,6 +1117,36 @@ void AShooterNetworkTestCoordinator::ServerReportClientObservedGasRespawn_Implem
 {
 	UE_LOG(LogShootGame, Display, TEXT("GAS client report: GasRespawn"));
 	bClientObservedGasRespawn = true;
+}
+
+void AShooterNetworkTestCoordinator::ServerReportClientObservedInventory_Implementation(
+	int32 WeaponCount,
+	const FString& ActiveWeaponInstanceId,
+	bool bRemoteInventoryHidden)
+{
+	FGuid ObservedActiveId;
+	FGuid::Parse(ActiveWeaponInstanceId, ObservedActiveId);
+
+	bClientObservedOwnerInventory = bServerInventoryPrepared &&
+		WeaponCount == 2 &&
+		ObservedActiveId == ServerInventoryActiveId;
+	bClientObservedRemoteInventoryHidden = bRemoteInventoryHidden;
+
+	UE_LOG(LogShootGame, Display, TEXT("Inventory client report: Count=%d Active=%s RemoteHidden=%s OwnerOk=%s"),
+		WeaponCount,
+		*ActiveWeaponInstanceId,
+		bRemoteInventoryHidden ? TEXT("true") : TEXT("false"),
+		bClientObservedOwnerInventory ? TEXT("true") : TEXT("false"));
+
+	if (!bClientObservedOwnerInventory || !bClientObservedRemoteInventoryHidden)
+	{
+		FailTest(FString::Printf(
+			TEXT("Client Inventory observation invalid; Count=%d Active=%s ExpectedActive=%s RemoteHidden=%s"),
+			WeaponCount,
+			*ActiveWeaponInstanceId,
+			*ServerInventoryActiveId.ToString(),
+			bRemoteInventoryHidden ? TEXT("true") : TEXT("false")));
+	}
 }
 
 void AShooterNetworkTestCoordinator::ServerReportClientObservedGasHealthInit_Implementation()

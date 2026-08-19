@@ -3,6 +3,7 @@
 
 #include "ShooterCharacter.h"
 #include "ShooterWeapon.h"
+#include "ShooterInventoryComponent.h"
 #include "AbilitySystemComponent.h"
 #include "GameplayEffectTypes.h"
 #include "ShooterAttributeSet.h"
@@ -60,6 +61,9 @@ AShooterCharacter::AShooterCharacter()
 
 	// create the noise emitter component
 	PawnNoiseEmitter = CreateDefaultSubobject<UPawnNoiseEmitterComponent>(TEXT("Pawn Noise Emitter"));
+
+	// Inventory 组件作为武器持有关系的逻辑权威源；2A 只创建宿主，不接 Pickup。
+	InventoryComponent = CreateDefaultSubobject<UShooterInventoryComponent>(TEXT("InventoryComponent"));
 
 	bReplicates = true;
 }

@@ -12,6 +12,7 @@ public class ShootGame : ModuleRules
 			"Core",
 			"CoreUObject",
 			"Engine",
+			"NetCore",
 			"InputCore",
 			"EnhancedInput",
 			"AIModule",
@@ -32,6 +33,8 @@ public class ShootGame : ModuleRules
 			"ShootGame/Characters",
 			"ShootGame/AI",
 			"ShootGame/Weapons",
+			"ShootGame/Inventory",
+			"ShootGame/Tests/Inventory",
 			"ShootGame/UI",
 			"ShootGame/AbilitySystem"
 		});
