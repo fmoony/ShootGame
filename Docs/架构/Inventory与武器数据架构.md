@@ -6,11 +6,11 @@
 
 文档使用三种状态区分事实：
 
-- **已落地事实**：当前 `0c36702` 提交中真实存在并已通过验证的行为。
+- **已落地事实**：当前代码中真实存在并已通过 Build / Automation / 多客户端网络验证的行为。
 - **当前架构方向**：项目已同意的设计目标，但允许尚未实现。
-- **后续尚未实现**：属于 Inventory 第二阶段 2B / 2C / 2D 等后续工作，当前不存在对应代码路径。
+- **后续尚未实现**：属于后续阶段（预测、Reload / Equip 等）的工作，当前不存在对应代码路径。
 
-本文档不替代执行计划。逐阶段实施与验收仍以 [Inventory 第二阶段基础闭环执行计划](../执行计划/Inventory第二阶段_基础闭环执行计划.md) 为准。
+本文档不替代执行计划。逐阶段实施与验收以对应阶段的执行计划为准。
 
 ---
 
@@ -44,7 +44,7 @@ AShooterCharacter
 
 2D 已落地：
 
-- `MagazineAmmo` 权威位于 `FShooterWeaponInstanceData`；旧 Fire 通过 Inventory 消费。
+- `MagazineAmmo` 权威位于 `FShooterWeaponInstanceData`；GA_Fire → WeaponActor → Inventory 是唯一消费路径。
 - `AShooterWeapon::CurrentBullets` 保留为 OwnerOnly 兼容镜像，未绑定的 NPC 旧路径仍可用。
 - 死亡时服务器销毁 WeaponActor、清空 Inventory 与 Active，并置空 CurrentWeapon。
 - 重生后 Inventory 为空。
@@ -70,7 +70,9 @@ FShooterWeaponInstanceData
 
 当前尚未实现：
 
-- GA_Fire。
+- Local Predicted GA_Fire。
+- GA_Reload / GA_Equip。
+- 正式 WeaponDefinition / FireBehavior 抽象。
 
 在后续阶段落地前，不得在代码或文档中当作“已经存在”。
 
@@ -282,10 +284,34 @@ WeaponActor*        = 不能作为永久武器身份
 
 ---
 
+## 11. GA_Fire ServerOnly 已落地
+
+GA_Fire 阶段（4A / 4B / 4C / 4D）已落地事实：
+
+```text
+Enhanced Input / AI Intent
+→ UShooterAbilitySystemComponent.Input.Fire
+→ GA_Fire（ServerOnly，InstancedPerActor）
+→ 服务器校验 Avatar / Death / Weapon / Ammo
+→ WeaponActor.StartFiring
+→ Inventory.ConsumeMagazineAmmo
+→ 服务器 Projectile / GAS Health
+```
+
+- 玩家 ASC 仍位于 `AShooterPlayerState`，NPC ASC 位于自身；两端都只保留一个 GA_Fire Spec。
+- 玩家重生不重复授予；NPC 与玩家共用同一 GA_Fire 规则。
+- `Input.Fire`、`State.Dead`、`State.Firing` 是 GA_Fire 阶段冻结的 Native GameplayTag。
+- 死亡、切枪、Weapon 销毁、Inventory Clear、断线均会取消 GA_Fire；释放输入结束 Ability 并清除 Weapon 计时器。
+- 旧 `ServerStartFire / ServerStopFire` 已由 CodeGraph 确认无调用者并删除。
+- 客户端预测、预测弹药 HUD、服务器倒带仍未实现。
+
 ## 相关文档与基线
 
-- [Inventory 第二阶段基础闭环执行计划](../执行计划/Inventory第二阶段_基础闭环执行计划.md)
+- [GA_Fire ServerOnly 执行计划](../执行计划/GA_Fire_ServerOnly执行计划.md)
 - [2A 开发记录](../开发记录/2026-08-19-1459-Inventory建立WeaponInstanceFastArray数据模型.md)
+- [4A 开发记录](../开发记录/2026-08-20-0735-GAS建立开火Ability输入与授予生命周期.md)
+- [4B 开发记录](../开发记录/2026-08-20-0745-GAS将玩家开火迁移为ServerOnlyAbility.md)
+- [4C 开发记录](../开发记录/2026-08-20-0756-GAS补齐开火取消边界与NPCAbility链路.md)
 - [ShootGame 代码规范](../代码规范.md)
 
 当前架构事实基线：
@@ -294,4 +320,8 @@ WeaponActor*        = 不能作为永久武器身份
 - 2B：`d077118 Inventory：接入武器拾取与 WeaponActor 绑定`
 - 2C：`ddb89b2 Inventory：建立当前武器与网络切换闭环`
 - 2D：`14f5de1 Inventory：完成 Ammo 权威迁移与 Death Clear`
-- 完整七阶段回归：Passed，Summary 见 `Saved/Automation/Runs/20260819_175505/Summary.json`。
+- 4A：`44d28cc GAS：建立开火 Ability 输入与授予生命周期`
+- 4B：`15fb5b0 GAS：将玩家开火迁移为 ServerOnly Ability`
+- 4C：`4cb9003 GAS：补齐开火取消边界与 NPC Ability 链路`
+- Inventory 完整七阶段回归：Passed，Summary 见 `Saved/Automation/Runs/20260819_175505/Summary.json`。
+- GA_Fire 阶段完整回归：由 4D 开发记录保存最终 `Summary.json` 路径。

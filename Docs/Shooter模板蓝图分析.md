@@ -161,7 +161,7 @@ EventGraph 从 Character 和 CharacterMovement 计算：
 需要同步的典型状态：
 
 - 当前装备的武器 Actor 或武器类型。
-- 服务器确认的开火事件。
+- 服务器 GA_Fire 激活后的开火表现事件（由 WeaponActor 的 Multicast / Montage 通知）。
 - 换弹和武器切换事件。
 - 弹药、生命和死亡状态。
 - 必要的远程瞄准方向。
@@ -176,6 +176,6 @@ EventGraph 从 Character 和 CharacterMovement 计算：
 
 - 第一人称 AnimBP 访问 Controller 或 Camera 前必须经过本地控制和有效性判断。
 - 专用服务器没有本地玩家、Viewport 或 HUD，不能执行 `AddToViewport`。
-- 只复制 Weapon Actor 还不够；当前武器引用、激活状态、弹药和开火权威仍需逐步补齐。
+- 复制 Weapon Actor 本身不够；当前已由 Inventory（WeaponInstance + BoundInstanceId + Ammo 权威）、Character.CurrentWeapon 和 GA_Fire ServerOnly 开火事务共同补齐。
 - 第三人称开火 Montage 必须让其他客户端收到表现通知，不能只在开火客户端播放。
 

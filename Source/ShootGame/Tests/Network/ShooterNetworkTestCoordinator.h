@@ -256,7 +256,9 @@ private:
 	bool bFullAutoReleaseVerified = false;
 	bool bFullAutoQuiescentConfirmed = false;
 	bool bClientTriggeredFullAuto = false;
+	bool bClientStoppedFullAuto = false;
 	bool bClientReportedFullAuto = false;
+	float FullAutoReleaseWaitStartTime = 0.0f;
 	int32 BulletCountBeforeFullAuto = INDEX_NONE;
 	int32 ProjectileCountBeforeFullAuto = INDEX_NONE;
 	int32 ProjectileCountAfterRelease = INDEX_NONE;

@@ -235,14 +235,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Input")
 	void DoStopFiring();
 
-	/** 服务器端：校验后开始开火 */
-	UFUNCTION(Server, Reliable)
-	void ServerStartFire();
-
-	/** 服务器端：停止开火 */
-	UFUNCTION(Server, Reliable)
-	void ServerStopFire();
-
 	/** 广播开火动画到所有客户端（不可靠，允许丢失） */
 	UFUNCTION(NetMulticast, Unreliable)
 	void MulticastPlayFiringMontage(UAnimMontage* Montage);

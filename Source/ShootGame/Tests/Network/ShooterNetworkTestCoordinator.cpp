@@ -1564,11 +1564,20 @@ void AShooterNetworkTestCoordinator::PollClientState()
 		Character->DoStartFiring();
 	}
 
-	if (bClientTriggeredFullAuto && !bClientReportedFullAuto &&
+	if (bClientTriggeredFullAuto && !bClientStoppedFullAuto &&
 		BulletCountBeforeFullAuto != INDEX_NONE &&
 		Weapon->GetBulletCount() < BulletCountBeforeFullAuto - 1)
 	{
 		Character->DoStopFiring();
+		bClientStoppedFullAuto = true;
+		FullAutoReleaseWaitStartTime = GetWorld()->GetTimeSeconds();
+	}
+
+	// 释放后给 OwnerOnly FastArray 复制留出收敛时间，避免弱网下
+	// 客户端镜像仍落后一发给服务器上报错误 Ammo。
+	if (bClientStoppedFullAuto && !bClientReportedFullAuto &&
+		GetWorld()->GetTimeSeconds() - FullAutoReleaseWaitStartTime >= 0.4f)
+	{
 		ClientBulletCountAfterRelease = Weapon->GetBulletCount();
 		bClientReportedFullAuto = true;
 		ServerReportFullAutoReleased(ClientBulletCountAfterRelease);

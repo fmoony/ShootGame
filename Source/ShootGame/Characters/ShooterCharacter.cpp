@@ -422,35 +422,6 @@ void AShooterCharacter::DoStopFiring()
 		*GetName());
 }
 
-void AShooterCharacter::ServerStartFire_Implementation()
-{
-	// 服务器校验：只有控制该角色的客户端能请求开火
-	if (!GetController() || GetController()->GetPawn() != this)
-	{
-		return;
-	}
-
-	// 服务器校验：必须有装备的武器才能开火
-	if (!bIsDead && CurrentWeapon)
-	{
-		CurrentWeapon->StartFiring();
-	}
-}
-
-void AShooterCharacter::ServerStopFire_Implementation()
-{
-	// 服务器校验：只有控制该角色的客户端能请求停火
-	if (!GetController() || GetController()->GetPawn() != this)
-	{
-		return;
-	}
-
-	if (CurrentWeapon)
-	{
-		CurrentWeapon->StopFiring();
-	}
-}
-
 void AShooterCharacter::MulticastPlayFiringMontage_Implementation(UAnimMontage* Montage)
 {
 	if (!Montage)
