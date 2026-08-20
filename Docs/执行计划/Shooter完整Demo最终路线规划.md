@@ -621,12 +621,20 @@ Preflight
 
 ## 15. 当前下一阶段
 
+已完成：
+
+```text
+GAS 基础生命闭环
+Weapon / Inventory 第二阶段基础闭环
+GA_Fire ServerOnly
+```
+
 当前正式下一阶段：
 
-> GAS 基础生命闭环。
+> GA_Reload 与 GA_Equip ServerOnly。
 
 详细执行见：
 
-`GAS第一阶段_基础生命闭环执行计划.md`
+[GA_Reload 与 GA_Equip ServerOnly 执行计划](GA_Reload与GA_Equip_ServerOnly执行计划.md)
 
-该阶段完成后必须暂停复盘，再确定第二阶段细节。
+该阶段先建立换弹与切枪的服务器权威事务、取消边界和自动化基线，不进入客户端预测。完成后必须暂停复盘，再决定 P1 Local Predicted 的真实范围。
