@@ -148,6 +148,22 @@ bool AShooterNetworkTestCoordinator::HasActiveReloadAbility(
 			ShooterPlayerState->GetReloadAbilityClass()) == 1;
 }
 
+bool AShooterNetworkTestCoordinator::HasActiveFireAbility(
+	AShooterCharacter* Character) const
+{
+	AShooterPlayerState* ShooterPlayerState = Character
+		? Character->GetPlayerState<AShooterPlayerState>()
+		: nullptr;
+	UShooterAbilitySystemComponent* ShooterAbilitySystemComponent =
+		ShooterPlayerState
+			? Cast<UShooterAbilitySystemComponent>(
+				ShooterPlayerState->GetAbilitySystemComponent())
+			: nullptr;
+	return ShooterAbilitySystemComponent &&
+		ShooterAbilitySystemComponent->GetActiveAbilityCountForClass(
+			ShooterPlayerState->GetFireAbilityClass()) == 1;
+}
+
 void AShooterNetworkTestCoordinator::TriggerDisconnectReload()
 {
 	AShooterCharacter* Character = GetShooterCharacter();
@@ -230,6 +246,8 @@ void AShooterNetworkTestCoordinator::GetLifetimeReplicatedProps(
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, ReloadInputRequestId);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyForReloadSwitch);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyForReloadSwitchBack);
+	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyForFireAfterReload);
+	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyForStopFireAfterReload);
 }
 
 void AShooterNetworkTestCoordinator::PollServerState()
@@ -1056,8 +1074,97 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		}
 	}
 
+
+	// ---- 5B 弱网 Fire-after-Reload：Reload 完成后客户端只按一次 Fire ----
+	// 服务器必须只观察到一次 GA_Fire 激活、一颗弹丸、一发弹药；
+	// 该阶段紧跟 Transfer 验证，目标窗口是服务器已结束 Reload、客户端 Tag 可能尚未收敛。
+	if (bReloadTransferVerified && !bFireAfterReloadPhaseTriggered)
+	{
+		bFireAfterReloadPhaseTriggered = true;
+		UShooterInventoryComponent* FireReloadInventory =
+			Character->GetInventoryComponent();
+		FireAfterReloadMagazineBefore = FireReloadInventory
+			? FireReloadInventory->GetMagazineAmmo(ServerInventorySecondId)
+			: INDEX_NONE;
+		FireAfterReloadProjectileBefore = ProjectileSpawnCount;
+		bServerReadyForFireAfterReload = true;
+		ForceNetUpdate();
+		return;
+	}
+
+	if (bClientTriggeredFireAfterReload && !bFireAfterReloadActiveObserved)
+	{
+		if (AShooterPlayerState* ShooterPlayerState =
+			Character->GetPlayerState<AShooterPlayerState>())
+		{
+			UShooterAbilitySystemComponent* ShooterAbilitySystemComponent =
+				Cast<UShooterAbilitySystemComponent>(Character->GetAbilitySystemComponent());
+			bFireAfterReloadActiveObserved = ShooterAbilitySystemComponent &&
+				ShooterAbilitySystemComponent->GetActiveAbilityCountForClass(
+					ShooterPlayerState->GetFireAbilityClass()) == 1;
+		}
+	}
+
+	if (bClientTriggeredFireAfterReload && !bFireAfterReloadSingleShotVerified)
+	{
+		UShooterInventoryComponent* FireReloadInventory =
+			Character->GetInventoryComponent();
+		const int32 MagazineAfterFire = FireReloadInventory
+			? FireReloadInventory->GetMagazineAmmo(ServerInventorySecondId)
+			: INDEX_NONE;
+		bFireAfterReloadSingleShotVerified = bFireAfterReloadActiveObserved &&
+			FireAfterReloadMagazineBefore != INDEX_NONE &&
+			MagazineAfterFire == FireAfterReloadMagazineBefore - 1 &&
+			ProjectileSpawnCount == FireAfterReloadProjectileBefore + 1;
+		if (bFireAfterReloadSingleShotVerified)
+		{
+			bServerReadyForStopFireAfterReload = true;
+			ForceNetUpdate();
+			return;
+		}
+	}
+
+	if (bClientTriggeredStopFireAfterReload && !bFireAfterReloadQuiescentVerified)
+	{
+		if (FireAfterReloadQuiescenceCheckTime <= 0.0f)
+		{
+			FireAfterReloadQuiescenceCheckTime = GetWorld()->GetTimeSeconds();
+		}
+
+		if (GetWorld()->GetTimeSeconds() - FireAfterReloadQuiescenceCheckTime >= 0.5f)
+		{
+			UShooterInventoryComponent* FireReloadInventory =
+				Character->GetInventoryComponent();
+			UAbilitySystemComponent* AbilitySystemComponent =
+				Character->GetAbilitySystemComponent();
+			bFireAfterReloadQuiescentVerified = FireReloadInventory &&
+				FireReloadInventory->GetMagazineAmmo(ServerInventorySecondId) ==
+					FireAfterReloadMagazineBefore - 1 &&
+				ProjectileSpawnCount == FireAfterReloadProjectileBefore + 1 &&
+				AbilitySystemComponent &&
+				!AbilitySystemComponent->HasMatchingGameplayTag(
+					ShooterGameplayTags::State_Firing) &&
+				!HasActiveFireAbility(Character);
+			if (!bFireAfterReloadQuiescentVerified)
+			{
+				FailTest(FString::Printf(
+					TEXT("Fire-after-reload quiescence invalid; Mag=%d->%d Projectiles=%d->%d ActiveFire=%s FiringTag=%s"),
+					FireAfterReloadMagazineBefore,
+					FireReloadInventory ? FireReloadInventory->GetMagazineAmmo(ServerInventorySecondId) : INDEX_NONE,
+					FireAfterReloadProjectileBefore,
+					ProjectileSpawnCount,
+					HasActiveFireAbility(Character) ? TEXT("true") : TEXT("false"),
+					AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Firing)
+						? TEXT("true")
+						: TEXT("false")));
+				return;
+			}
+		}
+	}
+
 	// ---- 5B Cancel.Equip：换弹等待中走旧切枪路径，提交前取消且 Ammo 不变 ----
-	if (bReloadTransferVerified && !bReloadCancelEquipPhaseTriggered)
+	if (bReloadTransferVerified && bFireAfterReloadQuiescentVerified &&
+		!bReloadCancelEquipPhaseTriggered)
 	{
 		bReloadCancelEquipPhaseTriggered = true;
 		UShooterInventoryComponent* ReloadInventory =
@@ -1696,6 +1803,8 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		bReloadFullRejectVerified && bReloadTransferVerified &&
 		bReloadCancelEquipVerified && bReloadSwitchBackVerified &&
 		bReloadNoReserveVerified && bReloadCancelDeathVerified &&
+		bFireAfterReloadActiveObserved && bFireAfterReloadSingleShotVerified &&
+		bFireAfterReloadQuiescentVerified &&
 		bSingleProjectileVerified &&
 		bFullAutoReleaseVerified && bFullAutoQuiescentConfirmed &&
 		bSwitchCancelVerified && bNoAmmoRejectVerified && bFireRejectDeadVerified &&
@@ -1709,7 +1818,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		UE_LOG(
 			LogShootGame,
 			Display,
-			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS PlayerId=%d Switch=true OwnerAmmo=true NonOwnerAmmoHidden=true Bullets=%d->%d HP=%.0f->0 Dead=true Respawn=true RespawnHP=%.0f AimDot=%.3f Team=%u Kills=%d Deaths=%d TeamScore=%d RemotePitch=%.3f/%.3f RemoteMontage=%s GasServer=%s/%s/%s GasNPC=%s GasRespawn=%s GasClient=%s GasClientRespawn=%s GasHealthInit=%s GasDamage=%s GasDeath=%s GasNpcHealth=%s/%s GasClientHealth=%s/%s/%s GasHud=%s FireGrant=%s/%s/%s/%s ReloadEquipGrant=%s/%s/%s Reload=%s/%s/%s/%s/%s/%s FireGA=%s/%s/%s Cancellation=%s/%s/%s/%s/%s/%s/%s PickupAuthority=%s InventoryOwner=%s InventoryRemoteHidden=%s AmmoIsolation=%s DeathClear=%s/%s RespawnEmpty=%s/%s"),
+			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS PlayerId=%d Switch=true OwnerAmmo=true NonOwnerAmmoHidden=true Bullets=%d->%d HP=%.0f->0 Dead=true Respawn=true RespawnHP=%.0f AimDot=%.3f Team=%u Kills=%d Deaths=%d TeamScore=%d RemotePitch=%.3f/%.3f RemoteMontage=%s GasServer=%s/%s/%s GasNPC=%s GasRespawn=%s GasClient=%s GasClientRespawn=%s GasHealthInit=%s GasDamage=%s GasDeath=%s GasNpcHealth=%s/%s GasClientHealth=%s/%s/%s GasHud=%s FireGrant=%s/%s/%s/%s ReloadEquipGrant=%s/%s/%s Reload=%s/%s/%s/%s/%s/%s FireAfterReload=%s/%s/%s FireGA=%s/%s/%s Cancellation=%s/%s/%s/%s/%s/%s/%s PickupAuthority=%s InventoryOwner=%s InventoryRemoteHidden=%s AmmoIsolation=%s DeathClear=%s/%s RespawnEmpty=%s/%s"),
 			PlayerId,
 			InitialBulletCount,
 			BulletCountAfterFire,
@@ -1752,6 +1861,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			bReloadSwitchBackVerified ? TEXT("true") : TEXT("false"),
 			bReloadNoReserveVerified ? TEXT("true") : TEXT("false"),
 			bReloadCancelDeathVerified ? TEXT("true") : TEXT("false"),
+			bFireAfterReloadActiveObserved ? TEXT("true") : TEXT("false"),
+			bFireAfterReloadSingleShotVerified ? TEXT("true") : TEXT("false"),
+			bFireAfterReloadQuiescentVerified ? TEXT("true") : TEXT("false"),
 			bSingleProjectileVerified ? TEXT("true") : TEXT("false"),
 			bFullAutoReleaseVerified ? TEXT("true") : TEXT("false"),
 			bFullAutoQuiescentConfirmed ? TEXT("true") : TEXT("false"),
@@ -1789,7 +1901,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			: INDEX_NONE;
 
 		FailTest(FString::Printf(
-			TEXT("Timed out waiting for network state; switch=%s weapon=%s clientProjectile=%s ownerAmmo=%s nonOwnerAmmo=%s serverProjectile=%s aim=%s damage=%s death=%s respawn=%s matchState=%s remoteAim=%s remoteMontage=%s gasOwner=%s gasAvatar=%s gasConnection=%s gasNpc=%s gasRespawn=%s gasClient=%s gasClientRespawn=%s gasHealthInit=%s gasDamage=%s gasDeath=%s gasNpcHealth=%s/%s gasClientHealth=%s/%s/%s gasHud=%s fireGrant=%s/%s/%s/%s reloadEquipGrant=%s/%s/%s reload=%s/%s/%s/%s/%s/%s fireGA=%s/%s/%s cancellation=%s/%s/%s/%s/%s/%s/%s bullets=%d->%d hp=%.0f team=%u kills=%d deaths=%d score=%.0f teamScore=%d PickupAuthority=%s InventoryOwner=%s InventoryRemoteHidden=%s AmmoIsolation=%s DeathClear=%s/%s RespawnEmpty=%s/%s"),
+			TEXT("Timed out waiting for network state; switch=%s weapon=%s clientProjectile=%s ownerAmmo=%s nonOwnerAmmo=%s serverProjectile=%s aim=%s damage=%s death=%s respawn=%s matchState=%s remoteAim=%s remoteMontage=%s gasOwner=%s gasAvatar=%s gasConnection=%s gasNpc=%s gasRespawn=%s gasClient=%s gasClientRespawn=%s gasHealthInit=%s gasDamage=%s gasDeath=%s gasNpcHealth=%s/%s gasClientHealth=%s/%s/%s gasHud=%s fireGrant=%s/%s/%s/%s reloadEquipGrant=%s/%s/%s reload=%s/%s/%s/%s/%s/%s fireAfterReload=%s/%s/%s fireGA=%s/%s/%s cancellation=%s/%s/%s/%s/%s/%s/%s bullets=%d->%d hp=%.0f team=%u kills=%d deaths=%d score=%.0f teamScore=%d PickupAuthority=%s InventoryOwner=%s InventoryRemoteHidden=%s AmmoIsolation=%s DeathClear=%s/%s RespawnEmpty=%s/%s"),
 			bClientObservedSwitch ? TEXT("true") : TEXT("false"),
 			bClientObservedWeapon ? TEXT("true") : TEXT("false"),
 			bClientObservedProjectile ? TEXT("true") : TEXT("false"),
@@ -1832,6 +1944,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			bReloadSwitchBackVerified ? TEXT("true") : TEXT("false"),
 			bReloadNoReserveVerified ? TEXT("true") : TEXT("false"),
 			bReloadCancelDeathVerified ? TEXT("true") : TEXT("false"),
+			bFireAfterReloadActiveObserved ? TEXT("true") : TEXT("false"),
+			bFireAfterReloadSingleShotVerified ? TEXT("true") : TEXT("false"),
+			bFireAfterReloadQuiescentVerified ? TEXT("true") : TEXT("false"),
 			bSingleProjectileVerified ? TEXT("true") : TEXT("false"),
 			bFullAutoReleaseVerified ? TEXT("true") : TEXT("false"),
 			bFullAutoQuiescentConfirmed ? TEXT("true") : TEXT("false"),
@@ -1917,6 +2032,26 @@ void AShooterNetworkTestCoordinator::PollClientState()
 			PlayerController->PlayerState ? PlayerController->PlayerState->GetPlayerId() : INDEX_NONE,
 			ReloadInputRequestId);
 		ServerReportClientTriggeredReload(ReloadInputRequestId);
+	}
+
+	// ---- 5B 弱网 Fire-after-Reload：Reload 完成后客户端只提交一次 Fire 与一次 Stop ----
+	if (bServerReadyForFireAfterReload && !bClientTriggeredFireAfterReload)
+	{
+		bClientTriggeredFireAfterReload = true;
+		Character->DoStartFiring();
+		UE_LOG(
+			LogShootGame,
+			Display,
+			TEXT("Fire-after-reload client input submitted once: PlayerId=%d"),
+			PlayerController->PlayerState ? PlayerController->PlayerState->GetPlayerId() : INDEX_NONE);
+		ServerReportClientTriggeredFireAfterReload();
+	}
+
+	if (bServerReadyForStopFireAfterReload && !bClientStoppedFireAfterReload)
+	{
+		bClientStoppedFireAfterReload = true;
+		Character->DoStopFiring();
+		ServerReportClientStoppedFireAfterReload();
 	}
 
 	// ---- 5B Cancel.Equip：等待服务器观察到活动 Reload 后切枪，随后按需切回 ----
@@ -2780,6 +2915,24 @@ void AShooterNetworkTestCoordinator::ServerReportClientTriggeredReloadSwitchBack
 {
 	bClientTriggeredReloadSwitchBack = true;
 	UE_LOG(LogShootGame, Display, TEXT("Reload client report: Switch back triggered"));
+}
+
+void AShooterNetworkTestCoordinator::ServerReportClientTriggeredFireAfterReload_Implementation()
+{
+	bClientTriggeredFireAfterReload = true;
+	UE_LOG(
+		LogShootGame,
+		Display,
+		TEXT("Fire-after-reload server report: Fire triggered once"));
+}
+
+void AShooterNetworkTestCoordinator::ServerReportClientStoppedFireAfterReload_Implementation()
+{
+	bClientTriggeredStopFireAfterReload = true;
+	UE_LOG(
+		LogShootGame,
+		Display,
+		TEXT("Fire-after-reload server report: Stop triggered once"));
 }
 
 void AShooterNetworkTestCoordinator::ServerReportClientObservedInventory_Implementation(

@@ -138,6 +138,12 @@ private:
 	void ServerReportClientTriggeredReloadSwitchBack();
 
 	UFUNCTION(Server, Reliable)
+	void ServerReportClientTriggeredFireAfterReload();
+
+	UFUNCTION(Server, Reliable)
+	void ServerReportClientStoppedFireAfterReload();
+
+	UFUNCTION(Server, Reliable)
 	void ServerReportFullAutoReleased(int32 BulletCountAfterRelease);
 
 	UFUNCTION(Server, Reliable)
@@ -191,6 +197,9 @@ private:
 		int32 MagazineAmmo,
 		int32 ReserveAmmo);
 
+	/** 5B 测试辅助：返回当前 PlayerState 是否有一个活动 GA_Fire。 */
+	bool HasActiveFireAbility(AShooterCharacter* Character) const;
+
 	/** 5B 测试辅助：返回当前 PlayerState 是否有一个活动 GA_Reload。 */
 	bool HasActiveReloadAbility(AShooterCharacter* Character) const;
 
@@ -210,6 +219,12 @@ private:
 
 	UPROPERTY(Replicated)
 	bool bServerReadyForReloadSwitchBack = false;
+
+	UPROPERTY(Replicated)
+	bool bServerReadyForFireAfterReload = false;
+
+	UPROPERTY(Replicated)
+	bool bServerReadyForStopFireAfterReload = false;
 
 	UPROPERTY(Replicated)
 	bool bServerReadyToSwitch = false;
@@ -252,6 +267,8 @@ private:
 	bool bClientTriggeredReloadSwitch = false;
 	bool bClientTriggeredReloadSwitchBack = false;
 	bool bClientReportedProjectile = false;
+	bool bClientTriggeredFireAfterReload = false;
+	bool bClientStoppedFireAfterReload = false;
 	bool bClientReportedSwitch = false;
 	bool bClientReportedOwnerAmmo = false;
 	bool bClientReportedNonOwnerAmmoHidden = false;
@@ -331,6 +348,16 @@ private:
 	int32 ReloadMagazineAfterTransfer = INDEX_NONE;
 	int32 ReloadReserveAfterTransfer = INDEX_NONE;
 	float ReloadTransferCheckTime = 0.0f;
+
+	/** 5B 弱网 Fire-after-Reload：Reload 完成后单次 Fire 必须到达服务器且只激活 / 射击 / 扣弹一次。 */
+	bool bFireAfterReloadPhaseTriggered = false;
+	bool bFireAfterReloadActiveObserved = false;
+	bool bFireAfterReloadSingleShotVerified = false;
+	bool bClientTriggeredStopFireAfterReload = false;
+	bool bFireAfterReloadQuiescentVerified = false;
+	int32 FireAfterReloadMagazineBefore = INDEX_NONE;
+	int32 FireAfterReloadProjectileBefore = INDEX_NONE;
+	float FireAfterReloadQuiescenceCheckTime = 0.0f;
 
 	bool bReloadCancelEquipPhaseTriggered = false;
 	bool bReloadCancelEquipActiveObserved = false;

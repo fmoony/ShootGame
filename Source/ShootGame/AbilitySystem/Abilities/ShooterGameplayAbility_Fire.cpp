@@ -67,6 +67,24 @@ bool UShooterGameplayAbility_Fire::CanActivateAbility(
 	const FGameplayTagContainer* TargetTags,
 	FGameplayTagContainer* OptionalRelevantTags) const
 {
+	const AActor* AvatarActor = ActorInfo ? ActorInfo->AvatarActor.Get() : nullptr;
+	if (!AvatarActor)
+	{
+		return false;
+	}
+
+	// ServerOnly 的客户端本地预检必须先于 Super，且不得读取 ActivationBlockedTags 等复制状态：
+	// 弱网下上一轮 State.Reloading / State.Firing 的移除复制可能迟到，
+	// 若先执行 Super 会把真实玩家唯一一次 Fire 输入吞在本地。
+	// 权威端仍执行 Super + 武器 / 弹药 / 死亡完整校验，非法请求由服务器拒绝。
+	if (!AvatarActor->HasAuthority())
+	{
+		const UAbilitySystemComponent* AbilitySystemComponent =
+			ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
+		return AbilitySystemComponent &&
+			AbilitySystemComponent->GetAvatarActor() == AvatarActor;
+	}
+
 	if (!Super::CanActivateAbility(
 		Handle,
 		ActorInfo,
@@ -75,20 +93,6 @@ bool UShooterGameplayAbility_Fire::CanActivateAbility(
 		OptionalRelevantTags))
 	{
 		return false;
-	}
-
-	const AActor* AvatarActor = ActorInfo ? ActorInfo->AvatarActor.Get() : nullptr;
-	if (!AvatarActor)
-	{
-		return false;
-	}
-
-	// ServerOnly 激活前会先在拥有者客户端做一次本地预检。
-	// 客户端只检查 Avatar 存在，武器、弹药与死亡等完整校验统一留给服务器，
-	// 避免复制时序差异在本地误拒绝合法输入。
-	if (!AvatarActor->HasAuthority())
-	{
-		return true;
 	}
 
 	// 服务器完整校验：Avatar 必须是 ASC 当前 Avatar、玩家 / NPC 未死亡、

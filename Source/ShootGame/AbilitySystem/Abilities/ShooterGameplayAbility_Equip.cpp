@@ -3,6 +3,7 @@
 #include "ShooterGameplayAbility_Equip.h"
 
 #include "GameplayTagContainer.h"
+#include "AbilitySystemComponent.h"
 #include "ShooterCharacter.h"
 #include "ShooterGameplayTags.h"
 #include "ShootGame.h"
@@ -56,6 +57,23 @@ bool UShooterGameplayAbility_Equip::CanActivateAbility(
 	const FGameplayTagContainer* TargetTags,
 	FGameplayTagContainer* OptionalRelevantTags) const
 {
+	const AActor* AvatarActor = ActorInfo ? ActorInfo->AvatarActor.Get() : nullptr;
+	if (!AvatarActor)
+	{
+		return false;
+	}
+
+	// 与 GA_Fire / GA_Reload 相同规则：ServerOnly 客户端预检必须先于 Super，
+	// 只确认请求来自当前 Avatar 的本地 ASC，不读取可能过期的 ActivationBlockedTags。
+	// 5C 正式实现时保持本顺序，并把 Inventory / CurrentWeapon 完整校验全部放在服务器分支。
+	if (!AvatarActor->HasAuthority())
+	{
+		const UAbilitySystemComponent* AbilitySystemComponent =
+			ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
+		return AbilitySystemComponent &&
+			AbilitySystemComponent->GetAvatarActor() == AvatarActor;
+	}
+
 	if (!Super::CanActivateAbility(
 		Handle,
 		ActorInfo,
@@ -66,15 +84,7 @@ bool UShooterGameplayAbility_Equip::CanActivateAbility(
 		return false;
 	}
 
-	// ServerOnly 激活前会先在拥有者客户端做一次本地预检；
-	// 客户端只要求 Avatar 存在，完整校验统一留给服务器。
-	const AActor* AvatarActor = ActorInfo ? ActorInfo->AvatarActor.Get() : nullptr;
-	if (AvatarActor && !AvatarActor->HasAuthority())
-	{
-		return true;
-	}
-
-	// 5A 阶段尚未接入 Inventory 事务；服务器只拒绝没有合法玩家 Avatar 的激活。
+	// 5A 阶段尚未接入 Inventory 事务；服务器只拒绝没有合法玩家 Avatar 的激活，5C 再补完整校验。
 	return Cast<AShooterCharacter>(AvatarActor) != nullptr;
 }
 
