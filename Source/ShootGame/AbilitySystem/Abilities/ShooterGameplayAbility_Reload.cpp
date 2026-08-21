@@ -66,6 +66,24 @@ bool UShooterGameplayAbility_Reload::CanActivateAbility(
 	const FGameplayTagContainer* TargetTags,
 	FGameplayTagContainer* OptionalRelevantTags) const
 {
+	const AActor* AvatarActor = ActorInfo ? ActorInfo->AvatarActor.Get() : nullptr;
+	if (!AvatarActor)
+	{
+		return false;
+	}
+
+	// ServerOnly 的客户端本地预检必须只检查“请求确实来自当前 Avatar 的本地 ASC”，
+	// 不能先执行 Super::CanActivateAbility：Super 会读取 ActivationBlockedTags 等依赖复制的状态，
+	// 弱网下客户端可能还残留上一轮 State.Reloading，从而在本地吞掉唯一一次 R 输入。
+	// 权威端仍会执行 Super + ResolveReloadTarget 的完整校验，非法请求由服务器拒绝。
+	if (!AvatarActor->HasAuthority())
+	{
+		const UAbilitySystemComponent* AbilitySystemComponent =
+			ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
+		return AbilitySystemComponent &&
+			AbilitySystemComponent->GetAvatarActor() == AvatarActor;
+	}
+
 	if (!Super::CanActivateAbility(
 		Handle,
 		ActorInfo,
@@ -74,14 +92,6 @@ bool UShooterGameplayAbility_Reload::CanActivateAbility(
 		OptionalRelevantTags))
 	{
 		return false;
-	}
-
-	// ServerOnly 激活前会先在拥有者客户端做一次本地预检；
-	// 客户端只要求 Avatar 存在，完整校验统一留给服务器。
-	const AActor* AvatarActor = ActorInfo ? ActorInfo->AvatarActor.Get() : nullptr;
-	if (AvatarActor && !AvatarActor->HasAuthority())
-	{
-		return true;
 	}
 
 	AShooterWeapon* Weapon = nullptr;

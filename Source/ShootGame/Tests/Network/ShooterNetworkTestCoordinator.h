@@ -251,8 +251,6 @@ private:
 	int32 LastObservedReloadInputRequestId = 0;
 	bool bClientTriggeredReloadSwitch = false;
 	bool bClientTriggeredReloadSwitchBack = false;
-	int32 PendingReloadPressCount = 0;
-	float NextReloadPressTime = 0.0f;
 	bool bClientReportedProjectile = false;
 	bool bClientReportedSwitch = false;
 	bool bClientReportedOwnerAmmo = false;

@@ -1903,30 +1903,26 @@ void AShooterNetworkTestCoordinator::PollClientState()
 
 	AShooterWeapon* Weapon = GetCurrentWeapon(Character);
 
-	// ---- 5B Reload 客户端输入驱动：新 RequestId 立即提交一次，并在 2 秒窗口内重试 ----
-	// 弱网下 State.Reloading 的移除复制可能晚于 RequestId，重试可避免本地预检误吞输入。
+	// ---- 5B Reload 客户端输入驱动：每个 RequestId 只允许一次 DoReload ----
+	// 生产修复后，客户端 CanActivateAbility 不再读取可能过期的 State.Reloading；
+	// 因此测试端也不得通过重试掩盖问题，单次输入必须直达服务器。
 	if (ReloadInputRequestId > LastObservedReloadInputRequestId)
 	{
 		LastObservedReloadInputRequestId = ReloadInputRequestId;
 		Character->DoReload();
-		PendingReloadPressCount = 8;
-		NextReloadPressTime = GetWorld()->GetTimeSeconds() + 0.25f;
+		UE_LOG(
+			LogShootGame,
+			Display,
+			TEXT("Reload client input submitted once: PlayerId=%d RequestId=%d"),
+			PlayerController->PlayerState ? PlayerController->PlayerState->GetPlayerId() : INDEX_NONE,
+			ReloadInputRequestId);
 		ServerReportClientTriggeredReload(ReloadInputRequestId);
-	}
-
-	if (PendingReloadPressCount > 0 &&
-		GetWorld()->GetTimeSeconds() >= NextReloadPressTime)
-	{
-		Character->DoReload();
-		--PendingReloadPressCount;
-		NextReloadPressTime = GetWorld()->GetTimeSeconds() + 0.25f;
 	}
 
 	// ---- 5B Cancel.Equip：等待服务器观察到活动 Reload 后切枪，随后按需切回 ----
 	if (bServerReadyForReloadSwitch && !bClientTriggeredReloadSwitch)
 	{
 		bClientTriggeredReloadSwitch = true;
-		PendingReloadPressCount = 0;
 		Character->DoSwitchWeapon();
 		ServerReportClientTriggeredReloadSwitch();
 	}
@@ -1934,7 +1930,6 @@ void AShooterNetworkTestCoordinator::PollClientState()
 	if (bServerReadyForReloadSwitchBack && !bClientTriggeredReloadSwitchBack)
 	{
 		bClientTriggeredReloadSwitchBack = true;
-		PendingReloadPressCount = 0;
 		Character->DoSwitchWeapon();
 		ServerReportClientTriggeredReloadSwitchBack();
 	}
