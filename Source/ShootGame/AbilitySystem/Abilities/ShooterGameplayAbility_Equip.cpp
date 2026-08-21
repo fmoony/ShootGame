@@ -2,10 +2,14 @@
 
 #include "ShooterGameplayAbility_Equip.h"
 
-#include "GameplayTagContainer.h"
+#include "Abilities/Tasks/AbilityTask_WaitDelay.h"
 #include "AbilitySystemComponent.h"
+#include "GameplayTagContainer.h"
+#include "ShooterAbilitySystemComponent.h"
 #include "ShooterCharacter.h"
 #include "ShooterGameplayTags.h"
+#include "ShooterInventoryComponent.h"
+#include "ShooterWeapon.h"
 #include "ShootGame.h"
 
 bool UShooterGameplayAbility_Equip::HasInputEquipNextTag() const
@@ -44,7 +48,7 @@ UShooterGameplayAbility_Equip::UShooterGameplayAbility_Equip()
 	AssetTags.AddTag(ShooterGameplayTags::Input_Equip_Next);
 	SetAssetTags(AssetTags);
 	// 死亡与装备中状态阻塞激活；State.Equipping 在激活期间由 GAS 自动挂到拥有者 ASC。
-	// 5C 会在激活时显式取消 Fire / Reload，因此这里不把 State.Firing / State.Reloading 设为阻塞。
+	// 激活时显式取消 Fire / Reload，因此这里不把 State.Firing / State.Reloading 设为阻塞。
 	ActivationBlockedTags.AddTag(ShooterGameplayTags::State_Dead);
 	ActivationBlockedTags.AddTag(ShooterGameplayTags::State_Equipping);
 	ActivationOwnedTags.AddTag(ShooterGameplayTags::State_Equipping);
@@ -63,9 +67,8 @@ bool UShooterGameplayAbility_Equip::CanActivateAbility(
 		return false;
 	}
 
-	// 与 GA_Fire / GA_Reload 相同规则：ServerOnly 客户端预检必须先于 Super，
-	// 只确认请求来自当前 Avatar 的本地 ASC，不读取可能过期的 ActivationBlockedTags。
-	// 5C 正式实现时保持本顺序，并把 Inventory / CurrentWeapon 完整校验全部放在服务器分支。
+	// ServerOnly 客户端预检必须先于 Super，只确认请求来自当前 Avatar 的本地 ASC；
+	// 不读取可能过期的 ActivationBlockedTags。权威端执行完整校验。
 	if (!AvatarActor->HasAuthority())
 	{
 		const UAbilitySystemComponent* AbilitySystemComponent =
@@ -84,8 +87,57 @@ bool UShooterGameplayAbility_Equip::CanActivateAbility(
 		return false;
 	}
 
-	// 5A 阶段尚未接入 Inventory 事务；服务器只拒绝没有合法玩家 Avatar 的激活，5C 再补完整校验。
-	return Cast<AShooterCharacter>(AvatarActor) != nullptr;
+	AShooterWeapon* Weapon = nullptr;
+	FGuid InstanceId;
+	return ResolveEquipTarget(ActorInfo, Weapon, InstanceId);
+}
+
+bool UShooterGameplayAbility_Equip::ResolveEquipTarget(
+	const FGameplayAbilityActorInfo* ActorInfo,
+	AShooterWeapon*& OutWeapon,
+	FGuid& OutInstanceId) const
+{
+	OutWeapon = nullptr;
+	OutInstanceId = FGuid();
+
+	const AShooterCharacter* Character = Cast<AShooterCharacter>(
+		ActorInfo ? ActorInfo->AvatarActor.Get() : nullptr);
+	const UAbilitySystemComponent* AbilitySystemComponent =
+		ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
+	if (!Character || !AbilitySystemComponent ||
+		AbilitySystemComponent->GetAvatarActor() != Character ||
+		Character->IsDead())
+	{
+		return false;
+	}
+
+	UShooterInventoryComponent* Inventory = Character->GetInventoryComponent();
+	if (!Inventory || Inventory->GetWeaponCount() < 2)
+	{
+		return false;
+	}
+
+	// 按 Slot 顺序计算下一个合法实例；单武器或当前 Active 无效时明确拒绝。
+	FGuid NextInstanceId;
+	if (!Inventory->FindNextWeaponInstanceId(
+		Inventory->GetActiveWeaponInstanceId(),
+		NextInstanceId))
+	{
+		return false;
+	}
+
+	AShooterWeapon* TargetWeapon = Inventory->FindWeaponActor(NextInstanceId);
+	if (!IsValid(TargetWeapon) ||
+		TargetWeapon->GetOwner() != Character ||
+		TargetWeapon->IsActorBeingDestroyed() ||
+		TargetWeapon == Character->GetCurrentWeapon())
+	{
+		return false;
+	}
+
+	OutWeapon = TargetWeapon;
+	OutInstanceId = NextInstanceId;
+	return true;
 }
 
 void UShooterGameplayAbility_Equip::ActivateAbility(
@@ -101,12 +153,186 @@ void UShooterGameplayAbility_Equip::ActivateAbility(
 		return;
 	}
 
-	// 5A 只验证 Ability 可以被服务器激活并正确结束；ActiveWeapon / CurrentWeapon 提交由 5C 接入。
+	AShooterWeapon* TargetWeapon = nullptr;
+	if (!ResolveEquipTarget(ActorInfo, TargetWeapon, TargetInstanceId))
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
+
+	AShooterCharacter* Character = Cast<AShooterCharacter>(
+		GetShooterAvatarActor());
+	UShooterInventoryComponent* Inventory = Character
+		? Character->GetInventoryComponent()
+		: nullptr;
+	PreviousInstanceId = Inventory
+		? Inventory->GetActiveWeaponInstanceId()
+		: FGuid();
+	CachedPreviousWeapon = Character ? Character->GetCurrentWeapon() : nullptr;
+	CachedTargetWeapon = TargetWeapon;
+
+	// 激活成功时 GAS 已挂上 State.Equipping；显式取消 Fire / Reload，保证切换期间旧武器停火。
+	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent =
+		Cast<UShooterAbilitySystemComponent>(ActorInfo->AbilitySystemComponent.Get()))
+	{
+		ShooterAbilitySystemComponent->CancelAbilitiesByTag(
+			ShooterGameplayTags::Input_Fire);
+		ShooterAbilitySystemComponent->CancelAbilitiesByTag(
+			ShooterGameplayTags::Input_Reload);
+	}
+
+	// 服务器事务时钟只来自目标 WeaponActor 配置；表现 Montage 不影响提交。
+	const float EquipDuration = FMath::Max(0.0f, TargetWeapon->GetEquipDuration());
+	UAbilityTask_WaitDelay* WaitTask = UAbilityTask_WaitDelay::WaitDelay(
+		this,
+		EquipDuration);
+	WaitTask->OnFinish.AddDynamic(
+		this,
+		&UShooterGameplayAbility_Equip::HandleEquipWaitFinished);
+	EquipWaitTask = WaitTask;
+	WaitTask->ReadyForActivation();
+
 	UE_LOG(
 		LogShootGame,
 		Display,
-		TEXT("GA_Equip activated (5A shell): Avatar=%s Owner=%s"),
-		*GetNameSafe(GetShooterAvatarActor()),
-		*GetNameSafe(ActorInfo ? ActorInfo->OwnerActor.Get() : nullptr));
-	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+		TEXT("GA_Equip activated: Avatar=%s Target=%s TargetInstanceId=%s PreviousInstanceId=%s Duration=%.3f"),
+		*GetNameSafe(Character),
+		*GetNameSafe(TargetWeapon),
+		*TargetInstanceId.ToString(),
+		*PreviousInstanceId.ToString(),
+		EquipDuration);
+}
+
+bool UShooterGameplayAbility_Equip::IsEquipTargetStillValid() const
+{
+	const AShooterCharacter* Character = Cast<AShooterCharacter>(
+		GetShooterAvatarActor());
+	UShooterInventoryComponent* Inventory = Character
+		? Character->GetInventoryComponent()
+		: nullptr;
+	if (!Character || Character->IsDead() || !Inventory ||
+		!CachedTargetWeapon.IsValid() ||
+		CachedTargetWeapon->IsActorBeingDestroyed() ||
+		CachedTargetWeapon->GetOwner() != Character ||
+		!Inventory->FindWeaponInstance(TargetInstanceId) ||
+		Inventory->GetActiveWeaponInstanceId() != PreviousInstanceId)
+	{
+		return false;
+	}
+
+	// 等待期间 CurrentWeapon 被其他路径改写则放弃提交，避免逻辑 ID 与 Actor 分离。
+	if (CachedPreviousWeapon.IsValid())
+	{
+		if (Character->GetCurrentWeapon() != CachedPreviousWeapon.Get())
+		{
+			return false;
+		}
+	}
+	else if (Character->GetCurrentWeapon() != nullptr)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+void UShooterGameplayAbility_Equip::HandleEquipWaitFinished()
+{
+	if (bEquipCommitted || !EquipWaitTask.IsValid())
+	{
+		return;
+	}
+
+	EquipWaitTask.Reset();
+
+	if (!IsEquipTargetStillValid())
+	{
+		UE_LOG(
+			LogShootGame,
+			Display,
+			TEXT("GA_Equip commit aborted: target no longer valid Avatar=%s InstanceId=%s"),
+			*GetNameSafe(GetShooterAvatarActor()),
+			*TargetInstanceId.ToString());
+		EndAbility(
+			GetCurrentAbilitySpecHandle(),
+			GetCurrentActorInfo(),
+			GetCurrentActivationInfo(),
+			true,
+			true);
+		return;
+	}
+
+	AShooterCharacter* Character = Cast<AShooterCharacter>(
+		GetShooterAvatarActor());
+	if (!Character || !Character->CommitActiveWeapon(TargetInstanceId))
+	{
+		UE_LOG(
+			LogShootGame,
+			Warning,
+			TEXT("GA_Equip commit failed: Avatar=%s InstanceId=%s"),
+			*GetNameSafe(Character),
+			*TargetInstanceId.ToString());
+		EndAbility(
+			GetCurrentAbilitySpecHandle(),
+			GetCurrentActorInfo(),
+			GetCurrentActivationInfo(),
+			true,
+			true);
+		return;
+	}
+
+	bEquipCommitted = true;
+	UE_LOG(
+		LogShootGame,
+		Display,
+		TEXT("GA_Equip committed: Avatar=%s InstanceId=%s Weapon=%s"),
+		*GetNameSafe(Character),
+		*TargetInstanceId.ToString(),
+		*GetNameSafe(Character->GetCurrentWeapon()));
+
+	EndAbility(
+		GetCurrentAbilitySpecHandle(),
+		GetCurrentActorInfo(),
+		GetCurrentActivationInfo(),
+		true,
+		false);
+}
+
+void UShooterGameplayAbility_Equip::CleanupEquipTransaction()
+{
+	if (EquipWaitTask.IsValid())
+	{
+		EquipWaitTask->EndTask();
+	}
+	EquipWaitTask.Reset();
+
+	CachedPreviousWeapon.Reset();
+	CachedTargetWeapon.Reset();
+	TargetInstanceId = FGuid();
+	PreviousInstanceId = FGuid();
+	bEquipCommitted = false;
+}
+
+void UShooterGameplayAbility_Equip::EndAbility(
+	const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo,
+	bool bReplicateEndAbility,
+	bool bWasCancelled)
+{
+	CleanupEquipTransaction();
+
+	Super::EndAbility(
+		Handle,
+		ActorInfo,
+		ActivationInfo,
+		bReplicateEndAbility,
+		bWasCancelled);
+
+	UE_LOG(
+		LogShootGame,
+		Display,
+		TEXT("GA_Equip ended: Cancelled=%s Avatar=%s"),
+		bWasCancelled ? TEXT("true") : TEXT("false"),
+		*GetNameSafe(GetShooterAvatarActor()));
 }

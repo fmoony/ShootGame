@@ -37,7 +37,7 @@ AShooterCharacter
 
 2C 已落地：
 
-- 切换请求由服务器基于 `ActiveWeaponInstanceId` 与 Slot 顺序选择目标。
+- 切换请求由 GA_Equip（ServerOnly）基于 `ActiveWeaponInstanceId` 与 Slot 顺序选择目标，等待 EquipDuration 后通过 `CommitActiveWeapon` 原子提交。
 - `Character.CurrentWeapon` 作为公共 `CurrentWeaponActor` 表现，复制给所有观察者。
 - 无效 InstanceId 不会改写 Active 身份。
 - Owner 客户端可观察到 Active 与当前 WeaponActor 的 BoundInstanceId 一致。
@@ -71,8 +71,8 @@ FShooterWeaponInstanceData
 当前尚未实现：
 
 - Local Predicted GA_Fire。
-- GA_Reload / GA_Equip。
 - 正式 WeaponDefinition / FireBehavior 抽象。
+- Reload / Equip Montage 表现接点。
 
 在后续阶段落地前，不得在代码或文档中当作“已经存在”。
 
@@ -305,6 +305,32 @@ Enhanced Input / AI Intent
 - 旧 `ServerStartFire / ServerStopFire` 已由 CodeGraph 确认无调用者并删除。
 - 客户端预测、预测弹药 HUD、服务器倒带仍未实现。
 
+## 12. GA_Reload / GA_Equip ServerOnly 已落地
+
+GA_Reload / GA_Equip 阶段（5A / 5B / 5C）已落地事实：
+
+```text
+IA_Reload
+→ ASC.Input.Reload
+→ GA_Reload（ServerOnly，InstancedPerActor）
+→ 服务器校验 CurrentWeapon / Instance / Ammo
+→ WaitDelay(ReloadDuration)
+→ Inventory.ReloadMagazine 原子提交
+
+IA_SwitchWeapon
+→ ASC.Input.Equip.Next
+→ GA_Equip（ServerOnly，InstancedPerActor）
+→ 取消 Fire / Reload
+→ WaitDelay(EquipDuration)
+→ Character.CommitActiveWeapon
+→ ActiveWeaponInstanceId + CurrentWeapon 原子提交
+```
+
+- `State.Reloading` / `State.Equipping` 与 `State.Dead` / `State.Firing` 共同构成 Fire / Reload / Equip 互斥合同。
+- 客户端非权威预检只确认 ASC 与 Avatar 对应，不读取可能过期的 ActivationBlockedTags；完整校验全部在服务器执行。
+- 旧 `ServerSwitchWeapon` 已由 CodeGraph 确认无调用者并删除。
+- 候选 Mannequin Reload / Equip 资产经编辑器只读检查为 `AnimSequence` 而非 `UAnimMontage`，且 Skeleton 为 `SK_Mannequin`；本阶段不接入表现，列为 Demo Polish 遗留项。
+
 ## 相关文档与基线
 
 - [GA_Fire ServerOnly 执行计划](../执行计划/GA_Fire_ServerOnly执行计划.md)
@@ -323,5 +349,8 @@ Enhanced Input / AI Intent
 - 4A：`44d28cc GAS：建立开火 Ability 输入与授予生命周期`
 - 4B：`15fb5b0 GAS：将玩家开火迁移为 ServerOnly Ability`
 - 4C：`4cb9003 GAS：补齐开火取消边界与 NPC Ability 链路`
+- 5A：`d4135f6 GAS：建立换弹装备 Ability 与弹药事务基础`
+- 5B：`b2a2f8c GAS：实现服务器权威换弹事务`
+- Fire 弱网修复：`df35777 修复：Fire ServerOnly 客户端预检与换弹后单发弱网验证`
 - Inventory 完整七阶段回归：Passed，Summary 见 `Saved/Automation/Runs/20260819_175505/Summary.json`。
 - GA_Fire 阶段完整回归：由 4D 开发记录保存最终 `Summary.json` 路径。

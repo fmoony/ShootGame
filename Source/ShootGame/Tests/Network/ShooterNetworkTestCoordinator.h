@@ -144,6 +144,9 @@ private:
 	void ServerReportClientStoppedFireAfterReload();
 
 	UFUNCTION(Server, Reliable)
+	void ServerReportClientTriggeredEquipSingleReject();
+
+	UFUNCTION(Server, Reliable)
 	void ServerReportFullAutoReleased(int32 BulletCountAfterRelease);
 
 	UFUNCTION(Server, Reliable)
@@ -200,6 +203,9 @@ private:
 	/** 5B 测试辅助：返回当前 PlayerState 是否有一个活动 GA_Fire。 */
 	bool HasActiveFireAbility(AShooterCharacter* Character) const;
 
+	/** 5C 测试辅助：返回当前 PlayerState 是否有一个活动 GA_Equip。 */
+	bool HasActiveEquipAbility(AShooterCharacter* Character) const;
+
 	/** 5B 测试辅助：返回当前 PlayerState 是否有一个活动 GA_Reload。 */
 	bool HasActiveReloadAbility(AShooterCharacter* Character) const;
 
@@ -225,6 +231,9 @@ private:
 
 	UPROPERTY(Replicated)
 	bool bServerReadyForStopFireAfterReload = false;
+
+	UPROPERTY(Replicated)
+	bool bServerReadyForEquipSingleReject = false;
 
 	UPROPERTY(Replicated)
 	bool bServerReadyToSwitch = false;
@@ -269,6 +278,7 @@ private:
 	bool bClientReportedProjectile = false;
 	bool bClientTriggeredFireAfterReload = false;
 	bool bClientStoppedFireAfterReload = false;
+	bool bClientTriggeredEquipSingleReject = false;
 	bool bClientReportedSwitch = false;
 	bool bClientReportedOwnerAmmo = false;
 	bool bClientReportedNonOwnerAmmoHidden = false;
@@ -331,6 +341,16 @@ private:
 	int32 ServerReloadAbilityCount = INDEX_NONE;
 	int32 ServerEquipAbilityCount = INDEX_NONE;
 
+	/** 5C 观测：GA_Equip 在初始切枪、取消 Reload 切枪与切回阶段均被服务器激活，提交后 InstanceId 与 CurrentWeapon 一致。 */
+	bool bEquipInitialCommitConsistent = false;
+	bool bEquipCancelReloadActiveObserved = false;
+	bool bEquipSwitchBackActiveObserved = false;
+
+	bool bEquipSingleRejectPhaseTriggered = false;
+	bool bEquipSingleRejectVerified = false;
+	float EquipSingleRejectCheckTime = 0.0f;
+	bool bEquipRejectDeadVerified = false;
+
 	/** 5B 观测：FullMagazine / Transfer / EquipCancel / NoReserve / DeathCancel 五个换弹事务边界。 */
 	bool bReloadFullRejectPhaseTriggered = false;
 	bool bReloadFullRejectVerified = false;
@@ -367,6 +387,8 @@ private:
 
 	bool bReloadSwitchBackPhaseTriggered = false;
 	bool bReloadSwitchBackVerified = false;
+	float ReloadCancelEquipCheckTime = 0.0f;
+	float ReloadSwitchBackCheckTime = 0.0f;
 
 	bool bReloadNoReservePhaseTriggered = false;
 	bool bReloadNoReserveVerified = false;

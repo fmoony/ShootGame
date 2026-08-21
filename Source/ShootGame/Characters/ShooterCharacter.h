@@ -225,6 +225,8 @@ public:
 
 	/** 2B 桥接：Inventory 成功创建 WeaponActor 后，由 Pickup 路径调用以更新兼容列表与当前武器表现。 */
 	void HandleWeaponAddedToInventory(const FGuid& InstanceId);
+	/** 服务器权威：原子提交 ActiveWeaponInstanceId、Weapon 可见性与 CurrentWeapon。 */
+	bool CommitActiveWeapon(const FGuid& InstanceId);
 
 	/** 返回角色的 Inventory 组件；该组件是武器持有关系的逻辑权威源。 */
 	UShooterInventoryComponent* GetInventoryComponent() const { return InventoryComponent; }
@@ -251,9 +253,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Input")
 	void DoSwitchWeapon();
 
-	/** 服务器校验并执行切枪。 */
-	UFUNCTION(Server, Reliable)
-	void ServerSwitchWeapon();
 
 public:
 

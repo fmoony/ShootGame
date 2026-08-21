@@ -164,6 +164,22 @@ bool AShooterNetworkTestCoordinator::HasActiveFireAbility(
 			ShooterPlayerState->GetFireAbilityClass()) == 1;
 }
 
+bool AShooterNetworkTestCoordinator::HasActiveEquipAbility(
+	AShooterCharacter* Character) const
+{
+	AShooterPlayerState* ShooterPlayerState = Character
+		? Character->GetPlayerState<AShooterPlayerState>()
+		: nullptr;
+	UShooterAbilitySystemComponent* ShooterAbilitySystemComponent =
+		ShooterPlayerState
+			? Cast<UShooterAbilitySystemComponent>(
+				ShooterPlayerState->GetAbilitySystemComponent())
+			: nullptr;
+	return ShooterAbilitySystemComponent &&
+		ShooterAbilitySystemComponent->GetActiveAbilityCountForClass(
+			ShooterPlayerState->GetEquipAbilityClass()) == 1;
+}
+
 void AShooterNetworkTestCoordinator::TriggerDisconnectReload()
 {
 	AShooterCharacter* Character = GetShooterCharacter();
@@ -248,6 +264,7 @@ void AShooterNetworkTestCoordinator::GetLifetimeReplicatedProps(
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyForReloadSwitchBack);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyForFireAfterReload);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyForStopFireAfterReload);
+	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyForEquipSingleReject);
 }
 
 void AShooterNetworkTestCoordinator::PollServerState()
@@ -739,6 +756,16 @@ void AShooterNetworkTestCoordinator::PollServerState()
 
 	if (Weapon)
 	{
+	// 5C：初始切换提交后 ActiveInstanceId 与 CurrentWeapon Actor 必须一致。
+	if (bClientObservedSwitch && !bEquipInitialCommitConsistent)
+	{
+		UShooterInventoryComponent* EquipInventory = Character->GetInventoryComponent();
+		AShooterWeapon* EquippedWeapon = Character->GetCurrentWeapon();
+		bEquipInitialCommitConsistent = EquipInventory && EquippedWeapon &&
+			EquippedWeapon->GetBoundInstanceId() == ServerInventoryFirstId &&
+			EquipInventory->GetActiveWeaponInstanceId() == ServerInventoryFirstId;
+	}
+
 	// 初始切换阶段要求 CurrentWeapon 离开旧手枪；4C 切枪取消阶段会合法回到旧手枪，
 	// 此时不能再被该早期门挡住。
 	if (!bClientObservedSwitch ||
@@ -1199,8 +1226,14 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		return;
 	}
 
+	if (bClientTriggeredReloadSwitch && !bEquipCancelReloadActiveObserved)
+	{
+		bEquipCancelReloadActiveObserved = HasActiveEquipAbility(Character);
+	}
+
 	if (bClientTriggeredReloadSwitch && !bReloadCancelEquipVerified)
 	{
+		// GA_Equip 提交有 0.5s 权威延迟：先等 CurrentWeapon 收敛到步枪再判定。
 		UShooterInventoryComponent* ReloadInventory =
 			Character->GetInventoryComponent();
 		AShooterWeapon* CurrentWeapon = Character->GetCurrentWeapon();
@@ -1219,18 +1252,25 @@ void AShooterNetworkTestCoordinator::PollServerState()
 				ShooterGameplayTags::State_Reloading);
 		if (!bReloadCancelEquipVerified)
 		{
-			FailTest(FString::Printf(
-				TEXT("Reload equip cancel invalid; Weapon=%s Mag=%d->%d Reserve=%d->%d ActiveReload=%s Tag=%s"),
-				*GetNameSafe(CurrentWeapon),
-				ReloadMagazineBeforeCancelEquip,
-				ReloadInventory ? ReloadInventory->GetMagazineAmmo(ServerInventorySecondId) : INDEX_NONE,
-				ReloadReserveBeforeCancelEquip,
-				ReloadInventory ? ReloadInventory->GetReserveAmmo(ServerInventorySecondId) : INDEX_NONE,
-				HasActiveReloadAbility(Character) ? TEXT("true") : TEXT("false"),
-				AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading)
-					? TEXT("true")
-					: TEXT("false")));
-			return;
+			if (ReloadCancelEquipCheckTime <= 0.0f)
+			{
+				ReloadCancelEquipCheckTime = GetWorld()->GetTimeSeconds();
+			}
+			if (GetWorld()->GetTimeSeconds() - ReloadCancelEquipCheckTime >= 2.0f)
+			{
+				FailTest(FString::Printf(
+					TEXT("Reload equip cancel invalid; Weapon=%s Mag=%d->%d Reserve=%d->%d ActiveReload=%s Tag=%s"),
+					*GetNameSafe(CurrentWeapon),
+					ReloadMagazineBeforeCancelEquip,
+					ReloadInventory ? ReloadInventory->GetMagazineAmmo(ServerInventorySecondId) : INDEX_NONE,
+					ReloadReserveBeforeCancelEquip,
+					ReloadInventory ? ReloadInventory->GetReserveAmmo(ServerInventorySecondId) : INDEX_NONE,
+					HasActiveReloadAbility(Character) ? TEXT("true") : TEXT("false"),
+					AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading)
+						? TEXT("true")
+						: TEXT("false")));
+				return;
+			}
 		}
 	}
 
@@ -1243,24 +1283,98 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		return;
 	}
 
+	if (bClientTriggeredReloadSwitchBack && !bEquipSwitchBackActiveObserved)
+	{
+		bEquipSwitchBackActiveObserved = HasActiveEquipAbility(Character);
+	}
+
 	if (bClientTriggeredReloadSwitchBack && !bReloadSwitchBackVerified)
 	{
+		// 同样等待 GA_Equip 提交完成后再验证 CurrentWeapon 回到手枪。
 		AShooterWeapon* CurrentWeapon = Character->GetCurrentWeapon();
 		bReloadSwitchBackVerified = CurrentWeapon &&
 			CurrentWeapon->GetBoundInstanceId() == ServerInventorySecondId &&
 			!HasActiveReloadAbility(Character);
 		if (!bReloadSwitchBackVerified)
 		{
-			FailTest(FString::Printf(
-				TEXT("Reload equip-cancel switch back invalid; Weapon=%s ActiveReload=%s"),
-				*GetNameSafe(CurrentWeapon),
-				HasActiveReloadAbility(Character) ? TEXT("true") : TEXT("false")));
+			if (ReloadSwitchBackCheckTime <= 0.0f)
+			{
+				ReloadSwitchBackCheckTime = GetWorld()->GetTimeSeconds();
+			}
+			if (GetWorld()->GetTimeSeconds() - ReloadSwitchBackCheckTime >= 2.0f)
+			{
+				FailTest(FString::Printf(
+					TEXT("Reload equip-cancel switch back invalid; Weapon=%s ActiveReload=%s"),
+					*GetNameSafe(CurrentWeapon),
+					HasActiveReloadAbility(Character) ? TEXT("true") : TEXT("false")));
+				return;
+			}
+		}
+	}
+
+
+	// ---- 5C Reject.SingleWeapon：只保留手枪后客户端切枪，GA_Equip 必须在服务器拒绝 ----
+	if (bReloadSwitchBackVerified && !bEquipSingleRejectPhaseTriggered)
+	{
+		bEquipSingleRejectPhaseTriggered = true;
+		UShooterInventoryComponent* EquipRejectInventory =
+			Character->GetInventoryComponent();
+		if (!EquipRejectInventory ||
+			!EquipRejectInventory->RemoveWeaponInstance(ServerInventoryFirstId) ||
+			EquipRejectInventory->GetWeaponCount() != 1 ||
+			EquipRejectInventory->GetActiveWeaponInstanceId() != ServerInventorySecondId)
+		{
+			FailTest(TEXT("Equip single-weapon preparation failed to keep only pistol"));
 			return;
+		}
+
+		bClientTriggeredEquipSingleReject = false;
+		bServerReadyForEquipSingleReject = true;
+		ForceNetUpdate();
+		return;
+	}
+
+	if (bClientTriggeredEquipSingleReject && !bEquipSingleRejectVerified)
+	{
+		if (EquipSingleRejectCheckTime <= 0.0f)
+		{
+			EquipSingleRejectCheckTime = GetWorld()->GetTimeSeconds();
+		}
+
+		if (GetWorld()->GetTimeSeconds() - EquipSingleRejectCheckTime >= 0.5f)
+		{
+			UShooterInventoryComponent* EquipRejectInventory =
+				Character->GetInventoryComponent();
+			AShooterWeapon* CurrentWeapon = Character->GetCurrentWeapon();
+			UAbilitySystemComponent* AbilitySystemComponent =
+				Character->GetAbilitySystemComponent();
+			bEquipSingleRejectVerified = EquipRejectInventory &&
+				EquipRejectInventory->GetWeaponCount() == 1 &&
+				EquipRejectInventory->GetActiveWeaponInstanceId() == ServerInventorySecondId &&
+				CurrentWeapon &&
+				CurrentWeapon->GetBoundInstanceId() == ServerInventorySecondId &&
+				!HasActiveEquipAbility(Character) &&
+				AbilitySystemComponent &&
+				!AbilitySystemComponent->HasMatchingGameplayTag(
+					ShooterGameplayTags::State_Equipping);
+			if (!bEquipSingleRejectVerified)
+			{
+				FailTest(FString::Printf(
+					TEXT("Single-weapon equip reject invalid; Count=%d Active=%s Weapon=%s ActiveEquip=%s Tag=%s"),
+					EquipRejectInventory ? EquipRejectInventory->GetWeaponCount() : INDEX_NONE,
+					EquipRejectInventory ? *EquipRejectInventory->GetActiveWeaponInstanceId().ToString() : TEXT("null"),
+					*GetNameSafe(CurrentWeapon),
+					HasActiveEquipAbility(Character) ? TEXT("true") : TEXT("false"),
+					AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Equipping)
+						? TEXT("true")
+						: TEXT("false")));
+				return;
+			}
 		}
 	}
 
 	// ---- 5B Reject.NoReserve：备用弹药为零时输入不得产生活动事务 ----
-	if (bReloadSwitchBackVerified && !bReloadNoReservePhaseTriggered)
+	if (bReloadSwitchBackVerified && bEquipSingleRejectVerified && !bReloadNoReservePhaseTriggered)
 	{
 		bReloadNoReservePhaseTriggered = true;
 		if (!ReplaceInventoryWeaponForReloadTest(
@@ -1559,6 +1673,36 @@ void AShooterNetworkTestCoordinator::PollServerState()
 				return;
 			}
 		}
+
+		// ---- 5C Reject.Dead：死亡角色不能激活 GA_Equip ----
+		if (!bEquipRejectDeadVerified)
+		{
+			UAbilitySystemComponent* AbilitySystemComponent =
+				Character->GetAbilitySystemComponent();
+			UShooterAbilitySystemComponent* ShooterAbilitySystemComponent =
+				Cast<UShooterAbilitySystemComponent>(AbilitySystemComponent);
+			const bool bActivated = AbilitySystemComponent
+				? AbilitySystemComponent->TryActivateAbility(ServerEquipAbilityHandle)
+				: false;
+			bEquipRejectDeadVerified = !bActivated &&
+				ShooterAbilitySystemComponent &&
+				ShooterAbilitySystemComponent->GetActiveAbilityCountForClass(
+					Character->GetPlayerState<AShooterPlayerState>()->GetEquipAbilityClass()) == 0 &&
+				AbilitySystemComponent &&
+				!AbilitySystemComponent->HasMatchingGameplayTag(
+					ShooterGameplayTags::State_Equipping);
+			if (!bEquipRejectDeadVerified)
+			{
+				FailTest(FString::Printf(
+					TEXT("Dead equip activation reject invalid; Activated=%s ActiveEquip=%s EquippingTag=%s"),
+					bActivated ? TEXT("true") : TEXT("false"),
+					HasActiveEquipAbility(Character) ? TEXT("true") : TEXT("false"),
+					AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Equipping)
+						? TEXT("true")
+						: TEXT("false")));
+				return;
+			}
+		}
 	}
 
 	if (GetNetMode() == NM_ListenServer && bLethalDamageApplied &&
@@ -1803,6 +1947,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		bReloadFullRejectVerified && bReloadTransferVerified &&
 		bReloadCancelEquipVerified && bReloadSwitchBackVerified &&
 		bReloadNoReserveVerified && bReloadCancelDeathVerified &&
+		bEquipInitialCommitConsistent &&
+		bEquipCancelReloadActiveObserved && bEquipSwitchBackActiveObserved &&
+		bEquipSingleRejectVerified && bEquipRejectDeadVerified &&
 		bFireAfterReloadActiveObserved && bFireAfterReloadSingleShotVerified &&
 		bFireAfterReloadQuiescentVerified &&
 		bSingleProjectileVerified &&
@@ -1818,7 +1965,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		UE_LOG(
 			LogShootGame,
 			Display,
-			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS PlayerId=%d Switch=true OwnerAmmo=true NonOwnerAmmoHidden=true Bullets=%d->%d HP=%.0f->0 Dead=true Respawn=true RespawnHP=%.0f AimDot=%.3f Team=%u Kills=%d Deaths=%d TeamScore=%d RemotePitch=%.3f/%.3f RemoteMontage=%s GasServer=%s/%s/%s GasNPC=%s GasRespawn=%s GasClient=%s GasClientRespawn=%s GasHealthInit=%s GasDamage=%s GasDeath=%s GasNpcHealth=%s/%s GasClientHealth=%s/%s/%s GasHud=%s FireGrant=%s/%s/%s/%s ReloadEquipGrant=%s/%s/%s Reload=%s/%s/%s/%s/%s/%s FireAfterReload=%s/%s/%s FireGA=%s/%s/%s Cancellation=%s/%s/%s/%s/%s/%s/%s PickupAuthority=%s InventoryOwner=%s InventoryRemoteHidden=%s AmmoIsolation=%s DeathClear=%s/%s RespawnEmpty=%s/%s"),
+			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS PlayerId=%d Switch=true OwnerAmmo=true NonOwnerAmmoHidden=true Bullets=%d->%d HP=%.0f->0 Dead=true Respawn=true RespawnHP=%.0f AimDot=%.3f Team=%u Kills=%d Deaths=%d TeamScore=%d RemotePitch=%.3f/%.3f RemoteMontage=%s GasServer=%s/%s/%s GasNPC=%s GasRespawn=%s GasClient=%s GasClientRespawn=%s GasHealthInit=%s GasDamage=%s GasDeath=%s GasNpcHealth=%s/%s GasClientHealth=%s/%s/%s GasHud=%s FireGrant=%s/%s/%s/%s ReloadEquipGrant=%s/%s/%s Reload=%s/%s/%s/%s/%s/%s FireAfterReload=%s/%s/%s Equip=%s/%s/%s/%s/%s FireGA=%s/%s/%s Cancellation=%s/%s/%s/%s/%s/%s/%s PickupAuthority=%s InventoryOwner=%s InventoryRemoteHidden=%s AmmoIsolation=%s DeathClear=%s/%s RespawnEmpty=%s/%s"),
 			PlayerId,
 			InitialBulletCount,
 			BulletCountAfterFire,
@@ -1864,6 +2011,11 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			bFireAfterReloadActiveObserved ? TEXT("true") : TEXT("false"),
 			bFireAfterReloadSingleShotVerified ? TEXT("true") : TEXT("false"),
 			bFireAfterReloadQuiescentVerified ? TEXT("true") : TEXT("false"),
+			bEquipInitialCommitConsistent ? TEXT("true") : TEXT("false"),
+			bEquipCancelReloadActiveObserved ? TEXT("true") : TEXT("false"),
+			bEquipSwitchBackActiveObserved ? TEXT("true") : TEXT("false"),
+			bEquipSingleRejectVerified ? TEXT("true") : TEXT("false"),
+			bEquipRejectDeadVerified ? TEXT("true") : TEXT("false"),
 			bSingleProjectileVerified ? TEXT("true") : TEXT("false"),
 			bFullAutoReleaseVerified ? TEXT("true") : TEXT("false"),
 			bFullAutoQuiescentConfirmed ? TEXT("true") : TEXT("false"),
@@ -1901,7 +2053,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			: INDEX_NONE;
 
 		FailTest(FString::Printf(
-			TEXT("Timed out waiting for network state; switch=%s weapon=%s clientProjectile=%s ownerAmmo=%s nonOwnerAmmo=%s serverProjectile=%s aim=%s damage=%s death=%s respawn=%s matchState=%s remoteAim=%s remoteMontage=%s gasOwner=%s gasAvatar=%s gasConnection=%s gasNpc=%s gasRespawn=%s gasClient=%s gasClientRespawn=%s gasHealthInit=%s gasDamage=%s gasDeath=%s gasNpcHealth=%s/%s gasClientHealth=%s/%s/%s gasHud=%s fireGrant=%s/%s/%s/%s reloadEquipGrant=%s/%s/%s reload=%s/%s/%s/%s/%s/%s fireAfterReload=%s/%s/%s fireGA=%s/%s/%s cancellation=%s/%s/%s/%s/%s/%s/%s bullets=%d->%d hp=%.0f team=%u kills=%d deaths=%d score=%.0f teamScore=%d PickupAuthority=%s InventoryOwner=%s InventoryRemoteHidden=%s AmmoIsolation=%s DeathClear=%s/%s RespawnEmpty=%s/%s"),
+			TEXT("Timed out waiting for network state; switch=%s weapon=%s clientProjectile=%s ownerAmmo=%s nonOwnerAmmo=%s serverProjectile=%s aim=%s damage=%s death=%s respawn=%s matchState=%s remoteAim=%s remoteMontage=%s gasOwner=%s gasAvatar=%s gasConnection=%s gasNpc=%s gasRespawn=%s gasClient=%s gasClientRespawn=%s gasHealthInit=%s gasDamage=%s gasDeath=%s gasNpcHealth=%s/%s gasClientHealth=%s/%s/%s gasHud=%s fireGrant=%s/%s/%s/%s reloadEquipGrant=%s/%s/%s reload=%s/%s/%s/%s/%s/%s fireAfterReload=%s/%s/%s equip=%s/%s/%s/%s/%s fireGA=%s/%s/%s cancellation=%s/%s/%s/%s/%s/%s/%s bullets=%d->%d hp=%.0f team=%u kills=%d deaths=%d score=%.0f teamScore=%d PickupAuthority=%s InventoryOwner=%s InventoryRemoteHidden=%s AmmoIsolation=%s DeathClear=%s/%s RespawnEmpty=%s/%s"),
 			bClientObservedSwitch ? TEXT("true") : TEXT("false"),
 			bClientObservedWeapon ? TEXT("true") : TEXT("false"),
 			bClientObservedProjectile ? TEXT("true") : TEXT("false"),
@@ -1947,6 +2099,11 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			bFireAfterReloadActiveObserved ? TEXT("true") : TEXT("false"),
 			bFireAfterReloadSingleShotVerified ? TEXT("true") : TEXT("false"),
 			bFireAfterReloadQuiescentVerified ? TEXT("true") : TEXT("false"),
+			bEquipInitialCommitConsistent ? TEXT("true") : TEXT("false"),
+			bEquipCancelReloadActiveObserved ? TEXT("true") : TEXT("false"),
+			bEquipSwitchBackActiveObserved ? TEXT("true") : TEXT("false"),
+			bEquipSingleRejectVerified ? TEXT("true") : TEXT("false"),
+			bEquipRejectDeadVerified ? TEXT("true") : TEXT("false"),
 			bSingleProjectileVerified ? TEXT("true") : TEXT("false"),
 			bFullAutoReleaseVerified ? TEXT("true") : TEXT("false"),
 			bFullAutoQuiescentConfirmed ? TEXT("true") : TEXT("false"),
@@ -2052,6 +2209,19 @@ void AShooterNetworkTestCoordinator::PollClientState()
 		bClientStoppedFireAfterReload = true;
 		Character->DoStopFiring();
 		ServerReportClientStoppedFireAfterReload();
+	}
+
+	// ---- 5C Reject.SingleWeapon：客户端仍走生产切枪入口，服务器必须拒绝 GA_Equip ----
+	if (bServerReadyForEquipSingleReject && !bClientTriggeredEquipSingleReject)
+	{
+		bClientTriggeredEquipSingleReject = true;
+		Character->DoSwitchWeapon();
+		UE_LOG(
+			LogShootGame,
+			Display,
+			TEXT("Equip-single-reject client input submitted once: PlayerId=%d"),
+			PlayerController->PlayerState ? PlayerController->PlayerState->GetPlayerId() : INDEX_NONE);
+		ServerReportClientTriggeredEquipSingleReject();
 	}
 
 	// ---- 5B Cancel.Equip：等待服务器观察到活动 Reload 后切枪，随后按需切回 ----
@@ -2933,6 +3103,12 @@ void AShooterNetworkTestCoordinator::ServerReportClientStoppedFireAfterReload_Im
 		LogShootGame,
 		Display,
 		TEXT("Fire-after-reload server report: Stop triggered once"));
+}
+
+void AShooterNetworkTestCoordinator::ServerReportClientTriggeredEquipSingleReject_Implementation()
+{
+	bClientTriggeredEquipSingleReject = true;
+	UE_LOG(LogShootGame, Display, TEXT("Equip-single-reject server report: switch triggered once"));
 }
 
 void AShooterNetworkTestCoordinator::ServerReportClientObservedInventory_Implementation(

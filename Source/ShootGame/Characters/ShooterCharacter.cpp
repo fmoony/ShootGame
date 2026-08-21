@@ -481,49 +481,21 @@ void AShooterCharacter::MulticastPlayFiringMontage_Implementation(UAnimMontage* 
 
 void AShooterCharacter::DoSwitchWeapon()
 {
-	ServerSwitchWeapon();
-}
-
-void AShooterCharacter::ServerSwitchWeapon_Implementation()
-{
-	// 只有控制该角色的客户端可以请求切枪，死亡角色不能切枪。
-	if (!GetController() || GetController()->GetPawn() != this || bIsDead || !InventoryComponent)
+	// 输入只提交给 ASC：GA_Equip 为 ServerOnly，客户端按 Input.Equip.Next 发起激活，
+	// GAS 自动把激活请求可靠转发到服务器。
+	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent =
+		Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
 	{
+		ShooterAbilitySystemComponent->AbilityInputTagPressed(
+			ShooterGameplayTags::Input_Equip_Next);
 		return;
 	}
 
-	if (InventoryComponent->GetWeaponCount() <= 1)
-	{
-		return;
-	}
-
-	// 逻辑身份决定目标；公共表现随后才更新 CurrentWeaponActor。
-	FGuid TargetInstanceId;
-	if (!InventoryComponent->FindNextWeaponInstanceId(
-		InventoryComponent->GetActiveWeaponInstanceId(),
-		TargetInstanceId))
-	{
-		return;
-	}
-
-	AShooterWeapon* TargetWeapon = InventoryComponent->FindWeaponActor(TargetInstanceId);
-	if (!TargetWeapon)
-	{
-		return;
-	}
-
-	// 切枪前先结束旧 Weapon 对应的 GA_Fire / GA_Reload；DeactivateWeapon 的 StopFiring 作为幂等兜底。
-	if (IsValid(CurrentWeapon))
-	{
-		CancelFireAbility();
-		CancelReloadAbility();
-		CurrentWeapon->DeactivateWeapon();
-	}
-
-	InventoryComponent->SetActiveWeaponInstanceId(TargetInstanceId);
-	CurrentWeapon = TargetWeapon;
-	TargetWeapon->ActivateWeapon();
-	ForceNetUpdate();
+	UE_LOG(
+		LogShootGame,
+		Warning,
+		TEXT("DoSwitchWeapon ignored: ShooterASC unavailable for %s"),
+		*GetName());
 }
 
 void AShooterCharacter::AttachWeaponMeshes(AShooterWeapon* Weapon)
@@ -600,6 +572,41 @@ void AShooterCharacter::HandleWeaponAddedToInventory(const FGuid& InstanceId)
 	InventoryComponent->SetActiveWeaponInstanceId(InstanceId);
 	AddedWeapon->ActivateWeapon();
 	ApplyCurrentWeapon();
+}
+
+bool AShooterCharacter::CommitActiveWeapon(const FGuid& InstanceId)
+{
+	if (!HasAuthority() || !InventoryComponent || !InstanceId.IsValid())
+	{
+		return false;
+	}
+
+	AShooterWeapon* TargetWeapon = InventoryComponent->FindWeaponActor(InstanceId);
+	if (!IsValid(TargetWeapon) || TargetWeapon->GetOwner() != this)
+	{
+		return false;
+	}
+
+	// 旧武器先停火并隐藏；同一事务内更新 Inventory Active、公开 CurrentWeapon 与新武器可见性。
+	if (IsValid(CurrentWeapon) && CurrentWeapon != TargetWeapon)
+	{
+		CurrentWeapon->DeactivateWeapon();
+	}
+
+	InventoryComponent->SetActiveWeaponInstanceId(InstanceId);
+	CurrentWeapon = TargetWeapon;
+	TargetWeapon->ActivateWeapon();
+	ApplyCurrentWeapon();
+	ForceNetUpdate();
+
+	UE_LOG(
+		LogShootGame,
+		Display,
+		TEXT("Character CommitActiveWeapon: Actor=%s InstanceId=%s Weapon=%s"),
+		*GetName(),
+		*InstanceId.ToString(),
+		*GetNameSafe(TargetWeapon));
+	return true;
 }
 
 void AShooterCharacter::AddWeaponClass(const TSubclassOf<AShooterWeapon>& WeaponClass)
