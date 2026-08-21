@@ -85,39 +85,19 @@ bool FShooterAbilityEquipNextSlotTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("Slot 1 is added"), Inventory.AddItem(MakeInstance(Slot1, 1)));
 	TestTrue(TEXT("Slot 2 is added"), Inventory.AddItem(MakeInstance(Slot2, 2)));
 
-	auto FindNext = [&Inventory](const FGuid& CurrentId, FGuid& OutNext)
-	{
-		OutNext = FGuid();
-		const FShooterWeaponInstanceEntry* Current = Inventory.FindItem(CurrentId);
-		if (!Current || Inventory.Items.Num() < 2)
-		{
-			return false;
-		}
-
-		const FShooterWeaponInstanceEntry* Wrap = nullptr;
-		const FShooterWeaponInstanceEntry* Next = nullptr;
-		for (const FShooterWeaponInstanceEntry& Entry : Inventory.Items)
-		{
-			if (!Wrap || Entry.InstanceData.SlotIndex < Wrap->InstanceData.SlotIndex)
-			{
-				Wrap = &Entry;
-			}
-			if (Entry.InstanceData.SlotIndex > Current->InstanceData.SlotIndex &&
-				(!Next || Entry.InstanceData.SlotIndex < Next->InstanceData.SlotIndex))
-			{
-				Next = &Entry;
-			}
-		}
-
-		OutNext = Next ? Next->InstanceData.InstanceId : Wrap->InstanceData.InstanceId;
-		return OutNext.IsValid();
-	};
-
 	FGuid Next;
-	TestTrue(TEXT("Slot 0 advances to Slot 1"), FindNext(Slot0, Next) && Next == Slot1);
-	TestTrue(TEXT("Slot 1 advances to Slot 2"), FindNext(Slot1, Next) && Next == Slot2);
-	TestTrue(TEXT("Slot 2 wraps to Slot 0"), FindNext(Slot2, Next) && Next == Slot0);
-	TestFalse(TEXT("Missing current instance is rejected"), FindNext(FGuid::NewGuid(), Next));
+	TestTrue(
+		TEXT("Slot 0 advances to Slot 1"),
+		Inventory.FindNextItemId(Slot0, Next) && Next == Slot1);
+	TestTrue(
+		TEXT("Slot 1 advances to Slot 2"),
+		Inventory.FindNextItemId(Slot1, Next) && Next == Slot2);
+	TestTrue(
+		TEXT("Slot 2 wraps to Slot 0"),
+		Inventory.FindNextItemId(Slot2, Next) && Next == Slot0);
+	TestFalse(
+		TEXT("Missing current instance is rejected"),
+		Inventory.FindNextItemId(FGuid::NewGuid(), Next));
 	return true;
 }
 

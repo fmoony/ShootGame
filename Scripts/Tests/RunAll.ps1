@@ -86,6 +86,7 @@ function Invoke-TestStage
 $buildScript = Join-Path $PSScriptRoot "BuildEditor.ps1"
 $automationScript = Join-Path $PSScriptRoot "RunAutomation.ps1"
 $networkScript = Join-Path $PSScriptRoot "RunNetworkSession.ps1"
+$abilityCleanupScript = Join-Path $PSScriptRoot "RunAbilityCleanup.ps1"
 $standaloneScript = Join-Path $PSScriptRoot "RunStandaloneSmoke.ps1"
 
 try
@@ -165,21 +166,12 @@ try
         )
     }
 
-    Invoke-TestStage -Name "DisconnectCleanup" -ScriptPath $networkScript -Arguments @{
+    Invoke-TestStage -Name "DisconnectCleanup" -ScriptPath $abilityCleanupScript -Arguments @{
         EngineRoot = $EngineRoot
         ProjectPath = $ProjectPath
         MapPath = $MapPath
-        ClientCount = 2
         Port = $Port + 3
         SessionDurationSeconds = [Math]::Max($SessionDurationSeconds, 45)
-        SuccessMarker = "AUTOMATION_TEST_DISCONNECT_SUCCESS"
-        SuccessMarkerCount = 1
-        DisconnectClientIndex = 1
-        DisconnectAfterSeconds = 5
-        ServerExtraArgs = @(
-            "-ShootGameNetworkTest",
-            "-ShootGameDisconnectTest"
-        )
     }
 
     $summary.status = "Passed"

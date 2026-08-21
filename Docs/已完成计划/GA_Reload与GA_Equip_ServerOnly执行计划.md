@@ -540,3 +540,24 @@ Saved/Automation/Runs/<timestamp>/Summary.json
 - Montage 候选为 `AnimSequence`（非 `UAnimMontage`），按本计划第 10 节作为 Demo Polish 遗留项，不在本阶段接入。
 
 按第 14 节要求：阶段结束后暂停，不自动进入预测；默认后续候选 P1 Local Predicted 基础射击反馈，只有复盘与新的详细计划完成后才实施。
+
+---
+
+## 16. 严格验收补充（2026-08-21）
+
+本次收尾补齐了首次完成确认中仍偏弱的自动化证据：
+
+- `Equip.NextSlot` 行为测试改为直接调用生产代码 `FShooterWeaponInventoryList::FindNextItemId`，不再在测试中复制一份同构算法；
+- 断线脚本支持等待服务端就绪标记，确认 `GA_Reload` 已处于活动状态且持有 `State.Reloading` 后才断开客户端，避免固定延时使 Ability 自然结束后产生假阳性；
+- 新增活动中 `GA_Equip` 的死亡清理验证：死亡前确认 Ability 与 `State.Equipping` 均处于活动状态，死亡后确认 Ability、状态 Tag、Inventory、ActiveWeapon 和 CurrentWeapon 全部清理；
+- 新增活动中 `GA_Equip` 的断线清理验证：断线前确认 Ability 与状态 Tag 已建立，断线后确认活动 Ability、Tag、公开武器 Actor 与孤儿 Actor 均无残留；
+- `DisconnectCleanup` 仍作为七阶段中的一个逻辑阶段，但内部依次运行 Reload 断线与 Equip 死亡/断线两场独立会话。
+
+最终验证证据：
+
+- 自动化测试：`ShootGame` 共 50 项，50 Passed、0 Warning、0 Failed、0 NotRun；
+- Reload 清理日志：`Saved/Automation/Network/20260821_143742/Server.log`；
+- Equip 清理日志：`Saved/Automation/Network/20260821_143805/Server.log`；
+- 完整七阶段回归：`Saved/Automation/Runs/20260821_143516/Summary.json`，状态 `Passed`。
+
+至此，GA_Reload 与 GA_Equip ServerOnly 计划的实现、异常结束清理和自动化证据均已完整收尾。历史上 5C / 5D 合并提交的流程偏差按项目约定不重写历史。

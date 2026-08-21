@@ -77,6 +77,9 @@ AShooterNetworkTestCoordinator::AShooterNetworkTestCoordinator()
 	bDisconnectCleanupMode = FParse::Param(
 		FCommandLine::Get(),
 		TEXT("ShootGameDisconnectTest"));
+	bDisconnectEquipMode = FParse::Param(
+		FCommandLine::Get(),
+		TEXT("ShootGameDisconnectEquip"));
 }
 
 bool AShooterNetworkTestCoordinator::ReplaceInventoryWeaponForReloadTest(
@@ -200,15 +203,175 @@ void AShooterNetworkTestCoordinator::TriggerDisconnectReload()
 	if (UAbilitySystemComponent* AbilitySystemComponent =
 		Character->GetAbilitySystemComponent())
 	{
-		AbilitySystemComponent->TryActivateAbility(ServerReloadAbilityHandle);
+		const bool bActivated = AbilitySystemComponent->TryActivateAbility(
+			ServerReloadAbilityHandle);
+		const bool bActive = HasActiveReloadAbility(Character);
+		const bool bReloadingTag = AbilitySystemComponent->HasMatchingGameplayTag(
+			ShooterGameplayTags::State_Reloading);
+		if (!bActivated || !bActive || !bReloadingTag)
+		{
+			FailTest(FString::Printf(
+				TEXT("Disconnect reload precondition failed; Activated=%s Active=%s Tag=%s Avatar=%s"),
+				bActivated ? TEXT("true") : TEXT("false"),
+				bActive ? TEXT("true") : TEXT("false"),
+				bReloadingTag ? TEXT("true") : TEXT("false"),
+				*GetNameSafe(Character)));
+			return;
+		}
+
 		UE_LOG(
 			LogShootGame,
 			Display,
-			TEXT("Disconnect reload trigger: Avatar=%s ActiveInstance=%s ActiveReload=%s"),
+			TEXT("AUTOMATION_TEST_DISCONNECT_RELOAD_READY Avatar=%s ActiveInstance=%s ActiveReload=true ReloadingTag=true"),
 			*GetNameSafe(Character),
-			*ActiveInstanceId.ToString(),
-			HasActiveReloadAbility(Character) ? TEXT("true") : TEXT("false"));
+			*ActiveInstanceId.ToString());
 	}
+}
+
+bool AShooterNetworkTestCoordinator::TriggerLongEquip(
+	AShooterCharacter* Character,
+	const TCHAR* Context)
+{
+	UShooterInventoryComponent* Inventory = Character
+		? Character->GetInventoryComponent()
+		: nullptr;
+	UAbilitySystemComponent* AbilitySystemComponent = Character
+		? Character->GetAbilitySystemComponent()
+		: nullptr;
+	if (!Inventory || !AbilitySystemComponent || !ServerEquipAbilityHandle.IsValid())
+	{
+		FailTest(FString::Printf(
+			TEXT("%s equip precondition missing Inventory, ASC or Ability handle"),
+			Context));
+		return false;
+	}
+
+	FGuid TargetInstanceId;
+	if (!Inventory->FindNextWeaponInstanceId(
+		Inventory->GetActiveWeaponInstanceId(),
+		TargetInstanceId))
+	{
+		FailTest(FString::Printf(
+			TEXT("%s equip precondition could not resolve next instance"),
+			Context));
+		return false;
+	}
+
+	AShooterWeapon* TargetWeapon = Inventory->FindWeaponActor(TargetInstanceId);
+	FFloatProperty* EquipDurationProperty = TargetWeapon
+		? FindFProperty<FFloatProperty>(TargetWeapon->GetClass(), TEXT("EquipDuration"))
+		: nullptr;
+	if (!TargetWeapon || !EquipDurationProperty)
+	{
+		FailTest(FString::Printf(
+			TEXT("%s equip precondition missing target Weapon or EquipDuration"),
+			Context));
+		return false;
+	}
+
+	// 给脚本和死亡检查留出充足窗口；仅修改本次无头测试生成的 Actor 实例。
+	EquipDurationProperty->SetPropertyValue_InContainer(TargetWeapon, 5.0f);
+	const bool bActivated = AbilitySystemComponent->TryActivateAbility(
+		ServerEquipAbilityHandle);
+	const bool bActive = HasActiveEquipAbility(Character);
+	const bool bEquippingTag = AbilitySystemComponent->HasMatchingGameplayTag(
+		ShooterGameplayTags::State_Equipping);
+	if (!bActivated || !bActive || !bEquippingTag)
+	{
+		FailTest(FString::Printf(
+			TEXT("%s equip precondition failed; Activated=%s Active=%s Tag=%s Avatar=%s"),
+			Context,
+			bActivated ? TEXT("true") : TEXT("false"),
+			bActive ? TEXT("true") : TEXT("false"),
+			bEquippingTag ? TEXT("true") : TEXT("false"),
+			*GetNameSafe(Character)));
+		return false;
+	}
+
+	return true;
+}
+
+void AShooterNetworkTestCoordinator::TriggerDisconnectEquip()
+{
+	AShooterCharacter* Character = GetShooterCharacter();
+	if (!TriggerLongEquip(Character, TEXT("Disconnect")))
+	{
+		return;
+	}
+
+	UE_LOG(
+		LogShootGame,
+		Display,
+		TEXT("AUTOMATION_TEST_DISCONNECT_EQUIP_READY Avatar=%s ActiveEquip=true EquippingTag=true"),
+		*GetNameSafe(Character));
+}
+
+void AShooterNetworkTestCoordinator::TriggerEquipDeath()
+{
+	AShooterCharacter* Character = GetShooterCharacter();
+	if (!TriggerLongEquip(Character, TEXT("Death")))
+	{
+		return;
+	}
+
+	CharacterBeforeDeath = Character;
+	UE_LOG(
+		LogShootGame,
+		Display,
+		TEXT("AUTOMATION_TEST_EQUIP_DEATH_READY Avatar=%s ActiveEquip=true EquippingTag=true"),
+		*GetNameSafe(Character));
+
+	UGameplayStatics::ApplyDamage(
+		Character,
+		Character->GetMaxHP() * 2.0f,
+		nullptr,
+		this,
+		nullptr);
+	GetWorldTimerManager().SetTimer(
+		EquipDeathVerifyTimer,
+		this,
+		&AShooterNetworkTestCoordinator::VerifyEquipDeathCleanup,
+		0.2f,
+		false);
+}
+
+void AShooterNetworkTestCoordinator::VerifyEquipDeathCleanup()
+{
+	AShooterCharacter* Character = CharacterBeforeDeath.Get();
+	UAbilitySystemComponent* AbilitySystemComponent = Character
+		? Character->GetAbilitySystemComponent()
+		: nullptr;
+	UShooterInventoryComponent* Inventory = Character
+		? Character->GetInventoryComponent()
+		: nullptr;
+	const bool bClean = Character && Character->IsDead() && Inventory &&
+		Inventory->GetWeaponCount() == 0 &&
+		!Inventory->GetActiveWeaponInstanceId().IsValid() &&
+		Character->GetCurrentWeapon() == nullptr &&
+		AbilitySystemComponent &&
+		!HasActiveEquipAbility(Character) &&
+		!AbilitySystemComponent->HasMatchingGameplayTag(
+			ShooterGameplayTags::State_Equipping);
+	if (!bClean)
+	{
+		FailTest(FString::Printf(
+			TEXT("Equip death cleanup invalid; Dead=%s Count=%d ActiveId=%s CurrentWeapon=%s ActiveEquip=%s EquippingTag=%s"),
+			Character && Character->IsDead() ? TEXT("true") : TEXT("false"),
+			Inventory ? Inventory->GetWeaponCount() : INDEX_NONE,
+			Inventory ? *Inventory->GetActiveWeaponInstanceId().ToString() : TEXT("null"),
+			*GetNameSafe(Character ? Character->GetCurrentWeapon() : nullptr),
+			Character && HasActiveEquipAbility(Character) ? TEXT("true") : TEXT("false"),
+			AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(
+				ShooterGameplayTags::State_Equipping)
+				? TEXT("true")
+				: TEXT("false")));
+		return;
+	}
+
+	UE_LOG(
+		LogShootGame,
+		Display,
+		TEXT("AUTOMATION_TEST_EQUIP_CLEANUP_SUCCESS Kind=Death ActiveEquip=0 EquippingTags=0 Inventory=0 CurrentWeapon=null"));
 }
 
 void AShooterNetworkTestCoordinator::BeginPlay()
@@ -244,7 +407,8 @@ void AShooterNetworkTestCoordinator::EndPlay(EEndPlayReason::Type EndPlayReason)
 	}
 	GetWorldTimerManager().ClearTimer(PollTimer);
 
-	GetWorldTimerManager().ClearTimer(DisconnectReloadTimer);
+	GetWorldTimerManager().ClearTimer(CleanupAbilityTimer);
+	GetWorldTimerManager().ClearTimer(EquipDeathVerifyTimer);
 	Super::EndPlay(EndPlayReason);
 }
 
@@ -574,8 +738,8 @@ void AShooterNetworkTestCoordinator::PollServerState()
 	}
 
 
-	// ---- DisconnectCleanup 专用：断线前 1 秒在将被断开的客户端上激活一次 GA_Reload ----
-	if (bDisconnectCleanupMode && !bDisconnectReloadScheduled &&
+	// ---- DisconnectCleanup 专用：先制造确定活动的 Ability，再由脚本收到 Ready 标记后断线 ----
+	if (bDisconnectCleanupMode && !bCleanupAbilityScheduled &&
 		bServerInventoryPrepared && bServerReloadEquipGrantOk)
 	{
 		APlayerController* OwnerController = Cast<APlayerController>(GetOwner());
@@ -584,19 +748,33 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			: nullptr;
 		if (OwnerState)
 		{
-			// 不按 TeamId 猜测断线索引：每个协调器都制造活动 Reload，
-			// 最终由 GameMode 只检查真正断线连接的 PlayerState。
-			bDisconnectReloadScheduled = true;
+			bCleanupAbilityScheduled = true;
+			void (AShooterNetworkTestCoordinator::*TriggerFunction)() =
+				&AShooterNetworkTestCoordinator::TriggerDisconnectReload;
+			const TCHAR* Scenario = TEXT("ReloadDisconnect");
+			if (bDisconnectEquipMode)
+			{
+				// RunNetworkSession 按连接顺序断开第一个客户端；PostLogin 为其分配 Team 0。
+				// Team 1 在同一会话执行活动 Equip → Death Clear，覆盖另一条取消路径。
+				TriggerFunction = OwnerState->GetTeamId() == 0
+					? &AShooterNetworkTestCoordinator::TriggerDisconnectEquip
+					: &AShooterNetworkTestCoordinator::TriggerEquipDeath;
+				Scenario = OwnerState->GetTeamId() == 0
+					? TEXT("EquipDisconnect")
+					: TEXT("EquipDeath");
+			}
+
 			GetWorldTimerManager().SetTimer(
-				DisconnectReloadTimer,
+				CleanupAbilityTimer,
 				this,
-				&AShooterNetworkTestCoordinator::TriggerDisconnectReload,
-				4.0f,
+				TriggerFunction,
+				0.5f,
 				false);
 			UE_LOG(
 				LogShootGame,
 				Display,
-				TEXT("Disconnect reload scheduled: PlayerId=%d Team=%u"),
+				TEXT("Ability cleanup scheduled: Scenario=%s PlayerId=%d Team=%u"),
+				Scenario,
 				OwnerState->GetPlayerId(),
 				OwnerState->GetTeamId());
 		}

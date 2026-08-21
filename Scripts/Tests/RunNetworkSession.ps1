@@ -22,7 +22,10 @@ param(
     [ValidateRange(0, 8)]
     [int]$DisconnectClientIndex = 0,
     [ValidateRange(1, 300)]
-    [int]$DisconnectAfterSeconds = 5
+    [int]$DisconnectAfterSeconds = 5,
+    [string]$DisconnectReadyMarker = "",
+    [ValidateRange(1, 100)]
+    [int]$DisconnectReadyMarkerCount = 1
 )
 
 Set-StrictMode -Version Latest
@@ -235,9 +238,22 @@ try
             throw "Server exited during the session. Log: $serverLog"
         }
 
+        $disconnectReady = ((Get-Date) - $sessionStartedAt).TotalSeconds -ge $DisconnectAfterSeconds
+        if (-not [string]::IsNullOrWhiteSpace($DisconnectReadyMarker))
+        {
+            $disconnectReadyCount = 0
+            foreach ($logPath in $allLogs)
+            {
+                $disconnectReadyCount += Get-LogMatchCount `
+                    -Path $logPath `
+                    -Pattern $DisconnectReadyMarker
+            }
+            $disconnectReady = $disconnectReadyCount -ge $DisconnectReadyMarkerCount
+        }
+
         if ($DisconnectClientIndex -gt 0 -and
             $disconnectedClientIndex -eq 0 -and
-            ((Get-Date) - $sessionStartedAt).TotalSeconds -ge $DisconnectAfterSeconds)
+            $disconnectReady)
         {
             if ($DisconnectClientIndex -gt $clientProcesses.Count)
             {

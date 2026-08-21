@@ -69,6 +69,9 @@ void AShooterGameMode::Logout(AController* Exiting)
 	const bool bRunDisconnectTest = FParse::Param(
 		FCommandLine::Get(),
 		TEXT("ShootGameDisconnectTest"));
+	const bool bRunEquipDisconnectTest = FParse::Param(
+		FCommandLine::Get(),
+		TEXT("ShootGameDisconnectEquip"));
 #endif
 
 	TWeakObjectPtr<AController> DisconnectController = Exiting;
@@ -83,7 +86,7 @@ void AShooterGameMode::Logout(AController* Exiting)
 		GetWorldTimerManager().SetTimer(
 			DisconnectCheckTimer,
 			FTimerDelegate::CreateLambda(
-				[TestWorld, DisconnectController]()
+				[TestWorld, DisconnectController, bRunEquipDisconnectTest]()
 				{
 				if (!TestWorld.IsValid())
 				{
@@ -157,16 +160,30 @@ void AShooterGameMode::Logout(AController* Exiting)
 					return;
 				}
 
-				UE_LOG(
-					LogShootGame,
-					Display,
-					TEXT("AUTOMATION_TEST_DISCONNECT_SUCCESS ActiveWeapons=%d Orphans=%d ActiveReload=%d ReloadingTags=%d ActiveEquip=%d EquippingTags=%d"),
-					ActiveWeaponCount,
-					OrphanWeaponCount,
-					ActiveReloadAbilityCount,
-					ReloadingTagCount,
-					ActiveEquipAbilityCount,
-					EquippingTagCount);
+				if (bRunEquipDisconnectTest)
+				{
+					UE_LOG(
+						LogShootGame,
+						Display,
+						TEXT("AUTOMATION_TEST_EQUIP_CLEANUP_SUCCESS Kind=Disconnect ActiveWeapons=%d Orphans=%d ActiveEquip=%d EquippingTags=%d"),
+						ActiveWeaponCount,
+						OrphanWeaponCount,
+						ActiveEquipAbilityCount,
+						EquippingTagCount);
+				}
+				else
+				{
+					UE_LOG(
+						LogShootGame,
+						Display,
+						TEXT("AUTOMATION_TEST_DISCONNECT_SUCCESS ActiveWeapons=%d Orphans=%d ActiveReload=%d ReloadingTags=%d ActiveEquip=%d EquippingTags=%d"),
+						ActiveWeaponCount,
+						OrphanWeaponCount,
+						ActiveReloadAbilityCount,
+						ReloadingTagCount,
+						ActiveEquipAbilityCount,
+						EquippingTagCount);
+				}
 				}),
 			0.5f,
 			false);

@@ -212,9 +212,20 @@ private:
 	/** DisconnectCleanup 专用：在断线前主动激活一次 GA_Reload。 */
 	void TriggerDisconnectReload();
 
+	/** DisconnectCleanup 专用：延长目标武器 EquipDuration 后激活 GA_Equip。 */
+	bool TriggerLongEquip(AShooterCharacter* Character, const TCHAR* Context);
+
+	/** Equip 清理会话：一名玩家保持活动 GA_Equip，等待脚本主动断线。 */
+	void TriggerDisconnectEquip();
+
+	/** Equip 清理会话：另一名玩家在活动 GA_Equip 提交前受到致死伤害。 */
+	void TriggerEquipDeath();
+	void VerifyEquipDeathCleanup();
+
 	FTimerHandle PollTimer;
-	FTimerHandle DisconnectReloadTimer;
-	bool bDisconnectReloadScheduled = false;
+	FTimerHandle CleanupAbilityTimer;
+	FTimerHandle EquipDeathVerifyTimer;
+	bool bCleanupAbilityScheduled = false;
 	FDelegateHandle ActorSpawnedHandle;
 
 	UPROPERTY(Replicated)
@@ -483,6 +494,7 @@ private:
 	bool bSecondaryWeaponGranted = false;
 	bool bOpponentKilledForStats = false;
 	bool bDisconnectCleanupMode = false;
+	bool bDisconnectEquipMode = false;
 	int32 InitialClientBulletCount = INDEX_NONE;
 	float InitialHP = 0.0f;
 	float ObservedAimDot = -1.0f;

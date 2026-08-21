@@ -310,6 +310,41 @@ struct FShooterWeaponInventoryList : public FFastArraySerializer
 		return nullptr;
 	}
 
+	/** 按 Slot 顺序返回 CurrentId 之后的下一个实例；到达末尾时回绕到最小 Slot。 */
+	bool FindNextItemId(const FGuid& CurrentId, FGuid& OutNextId) const
+	{
+		OutNextId = FGuid();
+		const FShooterWeaponInstanceEntry* Current = FindItem(CurrentId);
+		if (!Current || Items.Num() < 2)
+		{
+			return false;
+		}
+
+		const FShooterWeaponInstanceEntry* WrapCandidate = nullptr;
+		const FShooterWeaponInstanceEntry* NextCandidate = nullptr;
+		for (const FShooterWeaponInstanceEntry& Candidate : Items)
+		{
+			if (!WrapCandidate ||
+				Candidate.InstanceData.SlotIndex < WrapCandidate->InstanceData.SlotIndex)
+			{
+				WrapCandidate = &Candidate;
+			}
+
+			if (Candidate.InstanceData.SlotIndex > Current->InstanceData.SlotIndex &&
+				(!NextCandidate ||
+					Candidate.InstanceData.SlotIndex < NextCandidate->InstanceData.SlotIndex))
+			{
+				NextCandidate = &Candidate;
+			}
+		}
+
+		const FShooterWeaponInstanceEntry* Target = NextCandidate
+			? NextCandidate
+			: WrapCandidate;
+		OutNextId = Target ? Target->InstanceData.InstanceId : FGuid();
+		return OutNextId.IsValid();
+	}
+
 	FShooterWeaponInstanceEntry* FindItem(const FGuid& InstanceId)
 	{
 		for (FShooterWeaponInstanceEntry& Entry : Items)
