@@ -51,6 +51,12 @@ AShooterNetworkTestWeapon::AShooterNetworkTestWeapon()
 	bFullAuto = false;
 }
 
+AShooterNetworkTestReloadWeapon::AShooterNetworkTestReloadWeapon()
+{
+	MagazineSize = 30;
+	ReloadDuration = 1.5f;
+}
+
 AShooterNetworkTestNPC::AShooterNetworkTestNPC()
 {
 	WeaponClass = AShooterNetworkTestWeapon::StaticClass();
@@ -71,6 +77,106 @@ AShooterNetworkTestCoordinator::AShooterNetworkTestCoordinator()
 	bDisconnectCleanupMode = FParse::Param(
 		FCommandLine::Get(),
 		TEXT("ShootGameDisconnectTest"));
+}
+
+bool AShooterNetworkTestCoordinator::ReplaceInventoryWeaponForReloadTest(
+	AShooterCharacter* Character,
+	const FGuid& InstanceId,
+	int32 SlotIndex,
+	int32 MagazineAmmo,
+	int32 ReserveAmmo)
+{
+	UShooterInventoryComponent* Inventory = Character
+		? Character->GetInventoryComponent()
+		: nullptr;
+	if (!Inventory || !InstanceId.IsValid())
+	{
+		return false;
+	}
+
+	// 先走正式移除路径销毁旧 Actor / 清空 Active，再以测试数据重建同一逻辑身份。
+	Inventory->RemoveWeaponInstance(InstanceId);
+
+	FShooterWeaponInstanceData InstanceData;
+	InstanceData.InstanceId = InstanceId;
+	InstanceData.DefinitionId = FPrimaryAssetId(
+		FPrimaryAssetType(TEXT("ShooterTestReload")),
+		FName(TEXT("ReloadWeapon")));
+	InstanceData.MagazineAmmo = MagazineAmmo;
+	InstanceData.ReserveAmmo = ReserveAmmo;
+	InstanceData.SlotIndex = SlotIndex;
+	if (!Inventory->AddWeaponInstance(InstanceData))
+	{
+		return false;
+	}
+
+	FActorSpawnParameters SpawnParameters;
+	SpawnParameters.Owner = Character;
+	SpawnParameters.Instigator = Character;
+	SpawnParameters.SpawnCollisionHandlingOverride =
+		ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	AShooterWeapon* Weapon = GetWorld()->SpawnActor<AShooterWeapon>(
+		AShooterNetworkTestReloadWeapon::StaticClass(),
+		Character->GetActorTransform(),
+		SpawnParameters);
+	if (!Weapon)
+	{
+		Inventory->RemoveWeaponInstance(InstanceId);
+		return false;
+	}
+
+	Weapon->SetBoundInstanceId(InstanceId);
+	Weapon->SetActorHiddenInGame(true);
+	Inventory->RegisterWeaponActor(Weapon);
+	Character->HandleWeaponAddedToInventory(InstanceId);
+	return true;
+}
+
+bool AShooterNetworkTestCoordinator::HasActiveReloadAbility(
+	AShooterCharacter* Character) const
+{
+	AShooterPlayerState* ShooterPlayerState = Character
+		? Character->GetPlayerState<AShooterPlayerState>()
+		: nullptr;
+	UShooterAbilitySystemComponent* ShooterAbilitySystemComponent =
+		ShooterPlayerState
+			? Cast<UShooterAbilitySystemComponent>(
+				ShooterPlayerState->GetAbilitySystemComponent())
+			: nullptr;
+	return ShooterAbilitySystemComponent &&
+		ShooterAbilitySystemComponent->GetActiveAbilityCountForClass(
+			ShooterPlayerState->GetReloadAbilityClass()) == 1;
+}
+
+void AShooterNetworkTestCoordinator::TriggerDisconnectReload()
+{
+	AShooterCharacter* Character = GetShooterCharacter();
+	UShooterInventoryComponent* Inventory = Character
+		? Character->GetInventoryComponent()
+		: nullptr;
+	if (!Character || !Inventory || !ServerReloadAbilityHandle.IsValid())
+	{
+		return;
+	}
+
+	const FGuid ActiveInstanceId = Inventory->GetActiveWeaponInstanceId();
+	if (ActiveInstanceId.IsValid() && Inventory->GetMagazineAmmo(ActiveInstanceId) > 0)
+	{
+		Inventory->ConsumeMagazineAmmo(ActiveInstanceId, 1);
+	}
+
+	if (UAbilitySystemComponent* AbilitySystemComponent =
+		Character->GetAbilitySystemComponent())
+	{
+		AbilitySystemComponent->TryActivateAbility(ServerReloadAbilityHandle);
+		UE_LOG(
+			LogShootGame,
+			Display,
+			TEXT("Disconnect reload trigger: Avatar=%s ActiveInstance=%s ActiveReload=%s"),
+			*GetNameSafe(Character),
+			*ActiveInstanceId.ToString(),
+			HasActiveReloadAbility(Character) ? TEXT("true") : TEXT("false"));
+	}
 }
 
 void AShooterNetworkTestCoordinator::BeginPlay()
@@ -106,6 +212,7 @@ void AShooterNetworkTestCoordinator::EndPlay(EEndPlayReason::Type EndPlayReason)
 	}
 	GetWorldTimerManager().ClearTimer(PollTimer);
 
+	GetWorldTimerManager().ClearTimer(DisconnectReloadTimer);
 	Super::EndPlay(EndPlayReason);
 }
 
@@ -120,6 +227,9 @@ void AShooterNetworkTestCoordinator::GetLifetimeReplicatedProps(
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, WeaponBeforeSwitch);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bRequireRemoteMontage);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bRequireRemoteCurrentWeapon);
+	DOREPLIFETIME(AShooterNetworkTestCoordinator, ReloadInputRequestId);
+	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyForReloadSwitch);
+	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyForReloadSwitchBack);
 }
 
 void AShooterNetworkTestCoordinator::PollServerState()
@@ -428,6 +538,34 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		}
 	}
 
+
+	// ---- DisconnectCleanup 专用：断线前 1 秒在将被断开的客户端上激活一次 GA_Reload ----
+	if (bDisconnectCleanupMode && !bDisconnectReloadScheduled &&
+		bServerInventoryPrepared && bServerReloadEquipGrantOk)
+	{
+		APlayerController* OwnerController = Cast<APlayerController>(GetOwner());
+		AShooterPlayerState* OwnerState = OwnerController
+			? OwnerController->GetPlayerState<AShooterPlayerState>()
+			: nullptr;
+		if (OwnerState)
+		{
+			// 不按 TeamId 猜测断线索引：每个协调器都制造活动 Reload，
+			// 最终由 GameMode 只检查真正断线连接的 PlayerState。
+			bDisconnectReloadScheduled = true;
+			GetWorldTimerManager().SetTimer(
+				DisconnectReloadTimer,
+				this,
+				&AShooterNetworkTestCoordinator::TriggerDisconnectReload,
+				4.0f,
+				false);
+			UE_LOG(
+				LogShootGame,
+				Display,
+				TEXT("Disconnect reload scheduled: PlayerId=%d Team=%u"),
+				OwnerState->GetPlayerId(),
+				OwnerState->GetTeamId());
+		}
+	}
 	// ---- GAS NPC ASC 生命周期（服务器视角）：Owner=Avatar=NPC ----
 	if (!bNpcGasLifecycleChecked)
 	{
@@ -766,7 +904,354 @@ void AShooterNetworkTestCoordinator::PollServerState()
 	}
 
 	// ---- 4C Reject.NoAmmo：手枪弹药耗尽后服务器 TryActivate 必须拒绝 ----
-	if (bSwitchCancelVerified && !bNoAmmoRejectVerified)
+	// ---- 5B Reject.FullMagazine：满弹匣输入不得产生活动事务或 Ammo 变化 ----
+	if (bSwitchCancelVerified && !bReloadFullRejectPhaseTriggered)
+	{
+		bReloadFullRejectPhaseTriggered = true;
+		if (!ReplaceInventoryWeaponForReloadTest(
+			Character,
+			ServerInventorySecondId,
+			/*SlotIndex*/1,
+			/*MagazineAmmo*/30,
+			/*ReserveAmmo*/20))
+		{
+			FailTest(TEXT("Reload full-magazine preparation failed to replace pistol instance"));
+			return;
+		}
+
+		UShooterInventoryComponent* ReloadInventory = Character->GetInventoryComponent();
+		ReloadMagazineBeforeFullReject = ReloadInventory
+			? ReloadInventory->GetMagazineAmmo(ServerInventorySecondId)
+			: INDEX_NONE;
+		ReloadReserveBeforeFullReject = ReloadInventory
+			? ReloadInventory->GetReserveAmmo(ServerInventorySecondId)
+			: INDEX_NONE;
+		bClientTriggeredReload = false;
+		++ReloadInputRequestId;
+		ForceNetUpdate();
+		return;
+	}
+
+	if (bReloadFullRejectPhaseTriggered && bClientTriggeredReload &&
+		!bReloadFullRejectVerified)
+	{
+		if (ReloadFullRejectCheckTime <= 0.0f)
+		{
+			ReloadFullRejectCheckTime = GetWorld()->GetTimeSeconds();
+		}
+
+		if (GetWorld()->GetTimeSeconds() - ReloadFullRejectCheckTime >= 0.5f)
+		{
+			UShooterInventoryComponent* ReloadInventory =
+				Character->GetInventoryComponent();
+			UAbilitySystemComponent* AbilitySystemComponent =
+				Character->GetAbilitySystemComponent();
+			bReloadFullRejectVerified = ReloadInventory &&
+				ReloadInventory->GetMagazineAmmo(ServerInventorySecondId) ==
+					ReloadMagazineBeforeFullReject &&
+				ReloadInventory->GetReserveAmmo(ServerInventorySecondId) ==
+					ReloadReserveBeforeFullReject &&
+				!HasActiveReloadAbility(Character) &&
+				AbilitySystemComponent &&
+				!AbilitySystemComponent->HasMatchingGameplayTag(
+					ShooterGameplayTags::State_Reloading);
+			if (!bReloadFullRejectVerified)
+			{
+				FailTest(FString::Printf(
+					TEXT("Full-magazine reload was not rejected; Mag=%d->%d Reserve=%d->%d ActiveReload=%s Tag=%s"),
+					ReloadMagazineBeforeFullReject,
+					ReloadInventory ? ReloadInventory->GetMagazineAmmo(ServerInventorySecondId) : INDEX_NONE,
+					ReloadReserveBeforeFullReject,
+					ReloadInventory ? ReloadInventory->GetReserveAmmo(ServerInventorySecondId) : INDEX_NONE,
+					HasActiveReloadAbility(Character) ? TEXT("true") : TEXT("false"),
+					AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading)
+						? TEXT("true")
+						: TEXT("false")));
+				return;
+			}
+		}
+	}
+
+	// ---- 5B TransferOnce：一次输入只提交一次 Inventory 原子转移 ----
+	if (bReloadFullRejectVerified && !bReloadTransferPhaseTriggered)
+	{
+		bReloadTransferPhaseTriggered = true;
+		UShooterInventoryComponent* ReloadInventory =
+			Character->GetInventoryComponent();
+		if (!ReloadInventory ||
+			!ReloadInventory->ConsumeMagazineAmmo(ServerInventorySecondId, 5))
+		{
+			FailTest(TEXT("Reload transfer preparation could not consume test ammo"));
+			return;
+		}
+
+		ReloadMagazineBeforeTransfer =
+			ReloadInventory->GetMagazineAmmo(ServerInventorySecondId);
+		ReloadReserveBeforeTransfer =
+			ReloadInventory->GetReserveAmmo(ServerInventorySecondId);
+		AShooterWeapon* ReloadWeapon = ReloadInventory->FindWeaponActor(
+			ServerInventorySecondId);
+		ExpectedReloadTransfer = ReloadWeapon
+			? FMath::Min(
+				ReloadWeapon->GetMagazineSize() - ReloadMagazineBeforeTransfer,
+				ReloadReserveBeforeTransfer)
+			: INDEX_NONE;
+		bClientTriggeredReload = false;
+		++ReloadInputRequestId;
+		ForceNetUpdate();
+		return;
+	}
+
+	if (bReloadTransferPhaseTriggered && bClientTriggeredReload &&
+		!bReloadTransferActiveObserved)
+	{
+		bReloadTransferActiveObserved = HasActiveReloadAbility(Character);
+	}
+
+	if (bReloadTransferPhaseTriggered && bReloadTransferActiveObserved &&
+		!bReloadTransferVerified)
+	{
+		if (ReloadTransferCheckTime <= 0.0f)
+		{
+			ReloadTransferCheckTime = GetWorld()->GetTimeSeconds();
+		}
+
+		if (GetWorld()->GetTimeSeconds() - ReloadTransferCheckTime >= 1.8f)
+		{
+			UShooterInventoryComponent* ReloadInventory =
+				Character->GetInventoryComponent();
+			UAbilitySystemComponent* AbilitySystemComponent =
+				Character->GetAbilitySystemComponent();
+			ReloadMagazineAfterTransfer = ReloadInventory
+				? ReloadInventory->GetMagazineAmmo(ServerInventorySecondId)
+				: INDEX_NONE;
+			ReloadReserveAfterTransfer = ReloadInventory
+				? ReloadInventory->GetReserveAmmo(ServerInventorySecondId)
+				: INDEX_NONE;
+			bReloadTransferVerified = ReloadInventory &&
+				ReloadMagazineAfterTransfer ==
+					ReloadMagazineBeforeTransfer + ExpectedReloadTransfer &&
+				ReloadReserveAfterTransfer ==
+					ReloadReserveBeforeTransfer - ExpectedReloadTransfer &&
+				ExpectedReloadTransfer == 5 &&
+				!HasActiveReloadAbility(Character) &&
+				AbilitySystemComponent &&
+				!AbilitySystemComponent->HasMatchingGameplayTag(
+					ShooterGameplayTags::State_Reloading);
+			if (!bReloadTransferVerified)
+			{
+				FailTest(FString::Printf(
+					TEXT("Reload transfer invalid; Mag=%d->%d Reserve=%d->%d Expected=%d ActiveReload=%s Tag=%s"),
+					ReloadMagazineBeforeTransfer,
+					ReloadMagazineAfterTransfer,
+					ReloadReserveBeforeTransfer,
+					ReloadReserveAfterTransfer,
+					ExpectedReloadTransfer,
+					HasActiveReloadAbility(Character) ? TEXT("true") : TEXT("false"),
+					AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading)
+						? TEXT("true")
+						: TEXT("false")));
+				return;
+			}
+		}
+	}
+
+	// ---- 5B Cancel.Equip：换弹等待中走旧切枪路径，提交前取消且 Ammo 不变 ----
+	if (bReloadTransferVerified && !bReloadCancelEquipPhaseTriggered)
+	{
+		bReloadCancelEquipPhaseTriggered = true;
+		UShooterInventoryComponent* ReloadInventory =
+			Character->GetInventoryComponent();
+		if (!ReloadInventory ||
+			!ReloadInventory->ConsumeMagazineAmmo(ServerInventorySecondId, 5))
+		{
+			FailTest(TEXT("Reload equip-cancel preparation could not consume test ammo"));
+			return;
+		}
+
+		ReloadMagazineBeforeCancelEquip =
+			ReloadInventory->GetMagazineAmmo(ServerInventorySecondId);
+		ReloadReserveBeforeCancelEquip =
+			ReloadInventory->GetReserveAmmo(ServerInventorySecondId);
+		bClientTriggeredReload = false;
+		++ReloadInputRequestId;
+		ForceNetUpdate();
+		return;
+	}
+
+	if (bReloadCancelEquipPhaseTriggered && bClientTriggeredReload &&
+		!bReloadCancelEquipActiveObserved)
+	{
+		bReloadCancelEquipActiveObserved = HasActiveReloadAbility(Character);
+	}
+
+	if (bReloadCancelEquipActiveObserved && !bClientTriggeredReloadSwitch)
+	{
+		bServerReadyForReloadSwitch = true;
+		ForceNetUpdate();
+		return;
+	}
+
+	if (bClientTriggeredReloadSwitch && !bReloadCancelEquipVerified)
+	{
+		UShooterInventoryComponent* ReloadInventory =
+			Character->GetInventoryComponent();
+		AShooterWeapon* CurrentWeapon = Character->GetCurrentWeapon();
+		UAbilitySystemComponent* AbilitySystemComponent =
+			Character->GetAbilitySystemComponent();
+		bReloadCancelEquipVerified = ReloadInventory &&
+			CurrentWeapon &&
+			CurrentWeapon->GetBoundInstanceId() == ServerInventoryFirstId &&
+			ReloadInventory->GetMagazineAmmo(ServerInventorySecondId) ==
+				ReloadMagazineBeforeCancelEquip &&
+			ReloadInventory->GetReserveAmmo(ServerInventorySecondId) ==
+				ReloadReserveBeforeCancelEquip &&
+			!HasActiveReloadAbility(Character) &&
+			AbilitySystemComponent &&
+			!AbilitySystemComponent->HasMatchingGameplayTag(
+				ShooterGameplayTags::State_Reloading);
+		if (!bReloadCancelEquipVerified)
+		{
+			FailTest(FString::Printf(
+				TEXT("Reload equip cancel invalid; Weapon=%s Mag=%d->%d Reserve=%d->%d ActiveReload=%s Tag=%s"),
+				*GetNameSafe(CurrentWeapon),
+				ReloadMagazineBeforeCancelEquip,
+				ReloadInventory ? ReloadInventory->GetMagazineAmmo(ServerInventorySecondId) : INDEX_NONE,
+				ReloadReserveBeforeCancelEquip,
+				ReloadInventory ? ReloadInventory->GetReserveAmmo(ServerInventorySecondId) : INDEX_NONE,
+				HasActiveReloadAbility(Character) ? TEXT("true") : TEXT("false"),
+				AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading)
+					? TEXT("true")
+					: TEXT("false")));
+			return;
+		}
+	}
+
+	// 切回手枪，保持后续 NoAmmo / Death 验证沿用 ServerInventorySecondId。
+	if (bReloadCancelEquipVerified && !bReloadSwitchBackPhaseTriggered)
+	{
+		bReloadSwitchBackPhaseTriggered = true;
+		bServerReadyForReloadSwitchBack = true;
+		ForceNetUpdate();
+		return;
+	}
+
+	if (bClientTriggeredReloadSwitchBack && !bReloadSwitchBackVerified)
+	{
+		AShooterWeapon* CurrentWeapon = Character->GetCurrentWeapon();
+		bReloadSwitchBackVerified = CurrentWeapon &&
+			CurrentWeapon->GetBoundInstanceId() == ServerInventorySecondId &&
+			!HasActiveReloadAbility(Character);
+		if (!bReloadSwitchBackVerified)
+		{
+			FailTest(FString::Printf(
+				TEXT("Reload equip-cancel switch back invalid; Weapon=%s ActiveReload=%s"),
+				*GetNameSafe(CurrentWeapon),
+				HasActiveReloadAbility(Character) ? TEXT("true") : TEXT("false")));
+			return;
+		}
+	}
+
+	// ---- 5B Reject.NoReserve：备用弹药为零时输入不得产生活动事务 ----
+	if (bReloadSwitchBackVerified && !bReloadNoReservePhaseTriggered)
+	{
+		bReloadNoReservePhaseTriggered = true;
+		if (!ReplaceInventoryWeaponForReloadTest(
+			Character,
+			ServerInventorySecondId,
+			/*SlotIndex*/1,
+			/*MagazineAmmo*/5,
+			/*ReserveAmmo*/0))
+		{
+			FailTest(TEXT("Reload no-reserve preparation failed to replace pistol instance"));
+			return;
+		}
+
+		UShooterInventoryComponent* ReloadInventory =
+			Character->GetInventoryComponent();
+		ReloadMagazineBeforeNoReserve =
+			ReloadInventory->GetMagazineAmmo(ServerInventorySecondId);
+		ReloadReserveBeforeNoReserve =
+			ReloadInventory->GetReserveAmmo(ServerInventorySecondId);
+		bClientTriggeredReload = false;
+		++ReloadInputRequestId;
+		ForceNetUpdate();
+		return;
+	}
+
+	if (bReloadNoReservePhaseTriggered && bClientTriggeredReload &&
+		!bReloadNoReserveVerified)
+	{
+		if (ReloadNoReserveCheckTime <= 0.0f)
+		{
+			ReloadNoReserveCheckTime = GetWorld()->GetTimeSeconds();
+		}
+
+		if (GetWorld()->GetTimeSeconds() - ReloadNoReserveCheckTime >= 0.5f)
+		{
+			UShooterInventoryComponent* ReloadInventory =
+				Character->GetInventoryComponent();
+			UAbilitySystemComponent* AbilitySystemComponent =
+				Character->GetAbilitySystemComponent();
+			bReloadNoReserveVerified = ReloadInventory &&
+				ReloadInventory->GetMagazineAmmo(ServerInventorySecondId) ==
+					ReloadMagazineBeforeNoReserve &&
+				ReloadInventory->GetReserveAmmo(ServerInventorySecondId) ==
+					ReloadReserveBeforeNoReserve &&
+				!HasActiveReloadAbility(Character) &&
+				AbilitySystemComponent &&
+				!AbilitySystemComponent->HasMatchingGameplayTag(
+					ShooterGameplayTags::State_Reloading);
+			if (!bReloadNoReserveVerified)
+			{
+				FailTest(FString::Printf(
+					TEXT("No-reserve reload was not rejected; Mag=%d->%d Reserve=%d->%d ActiveReload=%s Tag=%s"),
+					ReloadMagazineBeforeNoReserve,
+					ReloadInventory ? ReloadInventory->GetMagazineAmmo(ServerInventorySecondId) : INDEX_NONE,
+					ReloadReserveBeforeNoReserve,
+					ReloadInventory ? ReloadInventory->GetReserveAmmo(ServerInventorySecondId) : INDEX_NONE,
+					HasActiveReloadAbility(Character) ? TEXT("true") : TEXT("false"),
+					AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading)
+						? TEXT("true")
+						: TEXT("false")));
+				return;
+			}
+		}
+	}
+
+	// ---- 5B Cancel.Death 前置：在部分伤害前制造一个仍在等待的 Reload 事务 ----
+	if (bNoAmmoRejectVerified && !bReloadCancelDeathPhaseTriggered)
+	{
+		bReloadCancelDeathPhaseTriggered = true;
+		if (!ReplaceInventoryWeaponForReloadTest(
+			Character,
+			ServerInventorySecondId,
+			/*SlotIndex*/1,
+			/*MagazineAmmo*/5,
+			/*ReserveAmmo*/20))
+		{
+			FailTest(TEXT("Reload death-cancel preparation failed to replace pistol instance"));
+			return;
+		}
+
+		UShooterInventoryComponent* ReloadInventory =
+			Character->GetInventoryComponent();
+		ReloadMagazineBeforeCancelDeath =
+			ReloadInventory->GetMagazineAmmo(ServerInventorySecondId);
+		ReloadReserveBeforeCancelDeath =
+			ReloadInventory->GetReserveAmmo(ServerInventorySecondId);
+		bClientTriggeredReload = false;
+		++ReloadInputRequestId;
+		ForceNetUpdate();
+		return;
+	}
+
+	if (bReloadCancelDeathPhaseTriggered && bClientTriggeredReload &&
+		!bReloadCancelDeathActiveObserved)
+	{
+		bReloadCancelDeathActiveObserved = HasActiveReloadAbility(Character);
+	}
+	if (bSwitchCancelVerified && bReloadNoReserveVerified && !bNoAmmoRejectVerified)
 	{
 		UShooterInventoryComponent* NoAmmoInventory =
 			Character->GetInventoryComponent();
@@ -804,7 +1289,8 @@ void AShooterNetworkTestCoordinator::PollServerState()
 	} // if (Weapon)
 
 	if (bFullAutoQuiescentConfirmed && bFullAutoReleaseVerified &&
-		bSwitchCancelVerified && bNoAmmoRejectVerified && !bPartialDamageApplied)
+		bSwitchCancelVerified && bNoAmmoRejectVerified &&
+		bReloadCancelDeathActiveObserved && !bPartialDamageApplied)
 	{
 		InitialHP = Character->GetCurrentHP();
 		// GAS：记录伤害前属性生命，随后验证部分伤害恰好只应用一次。
@@ -848,6 +1334,27 @@ void AShooterNetworkTestCoordinator::PollServerState()
 
 	if (bPartialDamageApplied && bClientObservedDamage && !bLethalDamageApplied)
 	{
+		// 致死伤害前确认 Reload 仍在提交窗口且 Ammo 未变化；随后 Die() 必须取消事务。
+		UShooterInventoryComponent* DeathReloadInventory =
+			Character->GetInventoryComponent();
+		bReloadCancelDeathAmmoUnchanged = DeathReloadInventory &&
+			DeathReloadInventory->GetMagazineAmmo(ServerInventorySecondId) ==
+				ReloadMagazineBeforeCancelDeath &&
+			DeathReloadInventory->GetReserveAmmo(ServerInventorySecondId) ==
+				ReloadReserveBeforeCancelDeath &&
+			HasActiveReloadAbility(Character);
+		if (!bReloadCancelDeathAmmoUnchanged)
+		{
+			FailTest(FString::Printf(
+				TEXT("Reload death-cancel precondition invalid; Mag=%d->%d Reserve=%d->%d ActiveReload=%s"),
+				ReloadMagazineBeforeCancelDeath,
+				DeathReloadInventory ? DeathReloadInventory->GetMagazineAmmo(ServerInventorySecondId) : INDEX_NONE,
+				ReloadReserveBeforeCancelDeath,
+				DeathReloadInventory ? DeathReloadInventory->GetReserveAmmo(ServerInventorySecondId) : INDEX_NONE,
+				HasActiveReloadAbility(Character) ? TEXT("true") : TEXT("false")));
+			return;
+		}
+
 		AController* OpponentController = GetOpponentController();
 		if (!OpponentController)
 		{
@@ -894,6 +1401,27 @@ void AShooterNetworkTestCoordinator::PollServerState()
 				DeathInventory ? *DeathInventory->GetActiveWeaponInstanceId().ToString() : TEXT("null"),
 				*GetNameSafe(Character->GetCurrentWeapon())));
 			return;
+		}
+
+		// ---- 5B Cancel.Death：Die() 必须取消活动 GA_Reload 且不留下 State.Reloading ----
+		if (!bReloadCancelDeathVerified)
+		{
+			UAbilitySystemComponent* AbilitySystemComponent =
+				Character->GetAbilitySystemComponent();
+			bReloadCancelDeathVerified = !HasActiveReloadAbility(Character) &&
+				AbilitySystemComponent &&
+				!AbilitySystemComponent->HasMatchingGameplayTag(
+					ShooterGameplayTags::State_Reloading);
+			if (!bReloadCancelDeathVerified)
+			{
+				FailTest(FString::Printf(
+					TEXT("Death did not cancel active reload; ActiveReload=%s Tag=%s"),
+					HasActiveReloadAbility(Character) ? TEXT("true") : TEXT("false"),
+					AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading)
+						? TEXT("true")
+						: TEXT("false")));
+				return;
+			}
 		}
 
 		// ---- 4C Reject.Dead：State.Dead 已设置，死亡角色不能再次激活 GA_Fire ----
@@ -1037,7 +1565,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			!RespawnInventory->GetActiveWeaponInstanceId().IsValid() &&
 			Character->GetCurrentWeapon() == nullptr;
 
-		// ---- 4C 重生 Tag 清理：State.Dead / State.Firing 不得跨生命保留 ----
+		// ---- 4C / 5B 重生 Tag 清理：Dead / Firing / Reloading 与活动 Ability 不得跨生命保留 ----
 		UShooterAbilitySystemComponent* RespawnShooterAbilitySystemComponent =
 			Cast<UShooterAbilitySystemComponent>(AbilitySystemComponent);
 		bRespawnTagCleanupVerified = AbilitySystemComponent &&
@@ -1045,9 +1573,13 @@ void AShooterNetworkTestCoordinator::PollServerState()
 				ShooterGameplayTags::State_Dead) &&
 			!AbilitySystemComponent->HasMatchingGameplayTag(
 				ShooterGameplayTags::State_Firing) &&
+			!AbilitySystemComponent->HasMatchingGameplayTag(
+				ShooterGameplayTags::State_Reloading) &&
 			RespawnShooterAbilitySystemComponent &&
 			RespawnShooterAbilitySystemComponent->GetActiveAbilityCountForClass(
-				ShooterPlayerState->GetFireAbilityClass()) == 0;
+				ShooterPlayerState->GetFireAbilityClass()) == 0 &&
+			RespawnShooterAbilitySystemComponent->GetActiveAbilityCountForClass(
+				ShooterPlayerState->GetReloadAbilityClass()) == 0;
 
 		// ---- 4C Reject.NoWeapon：重生 Inventory 为空，激活必须被拒绝 ----
 		if (bServerGasRespawnOk && bServerRespawnInventoryEmpty &&
@@ -1074,15 +1606,21 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			if (!bRespawnTagCleanupVerified)
 			{
 				FailTest(FString::Printf(
-					TEXT("Respawn ability tag cleanup invalid; DeadTag=%s FiringTag=%s Active=%d"),
+					TEXT("Respawn ability tag cleanup invalid; DeadTag=%s FiringTag=%s ReloadingTag=%s ActiveFire=%d ActiveReload=%d"),
 					AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Dead)
 						? TEXT("true")
 						: TEXT("false"),
 					AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Firing)
 						? TEXT("true")
 						: TEXT("false"),
+					AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading)
+						? TEXT("true")
+						: TEXT("false"),
 					RespawnShooterAbilitySystemComponent
 						? RespawnShooterAbilitySystemComponent->GetActiveAbilityCountForClass(ShooterPlayerState->GetFireAbilityClass())
+						: INDEX_NONE,
+					RespawnShooterAbilitySystemComponent
+						? RespawnShooterAbilitySystemComponent->GetActiveAbilityCountForClass(ShooterPlayerState->GetReloadAbilityClass())
 						: INDEX_NONE));
 				return;
 			}
@@ -1155,6 +1693,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		bServerFireGrantOk && bNpcFireGrantOk && bServerFireRespawnGrantOk &&
 		bClientObservedFireGrant && bServerReloadEquipGrantOk &&
 		bServerReloadEquipRespawnGrantOk && bClientObservedReloadEquipGrant &&
+		bReloadFullRejectVerified && bReloadTransferVerified &&
+		bReloadCancelEquipVerified && bReloadSwitchBackVerified &&
+		bReloadNoReserveVerified && bReloadCancelDeathVerified &&
 		bSingleProjectileVerified &&
 		bFullAutoReleaseVerified && bFullAutoQuiescentConfirmed &&
 		bSwitchCancelVerified && bNoAmmoRejectVerified && bFireRejectDeadVerified &&
@@ -1168,7 +1709,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		UE_LOG(
 			LogShootGame,
 			Display,
-			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS PlayerId=%d Switch=true OwnerAmmo=true NonOwnerAmmoHidden=true Bullets=%d->%d HP=%.0f->0 Dead=true Respawn=true RespawnHP=%.0f AimDot=%.3f Team=%u Kills=%d Deaths=%d TeamScore=%d RemotePitch=%.3f/%.3f RemoteMontage=%s GasServer=%s/%s/%s GasNPC=%s GasRespawn=%s GasClient=%s GasClientRespawn=%s GasHealthInit=%s GasDamage=%s GasDeath=%s GasNpcHealth=%s/%s GasClientHealth=%s/%s/%s GasHud=%s FireGrant=%s/%s/%s/%s ReloadEquipGrant=%s/%s/%s FireGA=%s/%s/%s Cancellation=%s/%s/%s/%s/%s/%s/%s PickupAuthority=%s InventoryOwner=%s InventoryRemoteHidden=%s AmmoIsolation=%s DeathClear=%s/%s RespawnEmpty=%s/%s"),
+			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS PlayerId=%d Switch=true OwnerAmmo=true NonOwnerAmmoHidden=true Bullets=%d->%d HP=%.0f->0 Dead=true Respawn=true RespawnHP=%.0f AimDot=%.3f Team=%u Kills=%d Deaths=%d TeamScore=%d RemotePitch=%.3f/%.3f RemoteMontage=%s GasServer=%s/%s/%s GasNPC=%s GasRespawn=%s GasClient=%s GasClientRespawn=%s GasHealthInit=%s GasDamage=%s GasDeath=%s GasNpcHealth=%s/%s GasClientHealth=%s/%s/%s GasHud=%s FireGrant=%s/%s/%s/%s ReloadEquipGrant=%s/%s/%s Reload=%s/%s/%s/%s/%s/%s FireGA=%s/%s/%s Cancellation=%s/%s/%s/%s/%s/%s/%s PickupAuthority=%s InventoryOwner=%s InventoryRemoteHidden=%s AmmoIsolation=%s DeathClear=%s/%s RespawnEmpty=%s/%s"),
 			PlayerId,
 			InitialBulletCount,
 			BulletCountAfterFire,
@@ -1205,6 +1746,12 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			bServerReloadEquipGrantOk ? TEXT("true") : TEXT("false"),
 			bServerReloadEquipRespawnGrantOk ? TEXT("true") : TEXT("false"),
 			bClientObservedReloadEquipGrant ? TEXT("true") : TEXT("false"),
+			bReloadFullRejectVerified ? TEXT("true") : TEXT("false"),
+			bReloadTransferVerified ? TEXT("true") : TEXT("false"),
+			bReloadCancelEquipVerified ? TEXT("true") : TEXT("false"),
+			bReloadSwitchBackVerified ? TEXT("true") : TEXT("false"),
+			bReloadNoReserveVerified ? TEXT("true") : TEXT("false"),
+			bReloadCancelDeathVerified ? TEXT("true") : TEXT("false"),
 			bSingleProjectileVerified ? TEXT("true") : TEXT("false"),
 			bFullAutoReleaseVerified ? TEXT("true") : TEXT("false"),
 			bFullAutoQuiescentConfirmed ? TEXT("true") : TEXT("false"),
@@ -1242,7 +1789,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			: INDEX_NONE;
 
 		FailTest(FString::Printf(
-			TEXT("Timed out waiting for network state; switch=%s weapon=%s clientProjectile=%s ownerAmmo=%s nonOwnerAmmo=%s serverProjectile=%s aim=%s damage=%s death=%s respawn=%s matchState=%s remoteAim=%s remoteMontage=%s gasOwner=%s gasAvatar=%s gasConnection=%s gasNpc=%s gasRespawn=%s gasClient=%s gasClientRespawn=%s gasHealthInit=%s gasDamage=%s gasDeath=%s gasNpcHealth=%s/%s gasClientHealth=%s/%s/%s gasHud=%s fireGrant=%s/%s/%s/%s reloadEquipGrant=%s/%s/%s fireGA=%s/%s/%s cancellation=%s/%s/%s/%s/%s/%s/%s bullets=%d->%d hp=%.0f team=%u kills=%d deaths=%d score=%.0f teamScore=%d PickupAuthority=%s InventoryOwner=%s InventoryRemoteHidden=%s AmmoIsolation=%s DeathClear=%s/%s RespawnEmpty=%s/%s"),
+			TEXT("Timed out waiting for network state; switch=%s weapon=%s clientProjectile=%s ownerAmmo=%s nonOwnerAmmo=%s serverProjectile=%s aim=%s damage=%s death=%s respawn=%s matchState=%s remoteAim=%s remoteMontage=%s gasOwner=%s gasAvatar=%s gasConnection=%s gasNpc=%s gasRespawn=%s gasClient=%s gasClientRespawn=%s gasHealthInit=%s gasDamage=%s gasDeath=%s gasNpcHealth=%s/%s gasClientHealth=%s/%s/%s gasHud=%s fireGrant=%s/%s/%s/%s reloadEquipGrant=%s/%s/%s reload=%s/%s/%s/%s/%s/%s fireGA=%s/%s/%s cancellation=%s/%s/%s/%s/%s/%s/%s bullets=%d->%d hp=%.0f team=%u kills=%d deaths=%d score=%.0f teamScore=%d PickupAuthority=%s InventoryOwner=%s InventoryRemoteHidden=%s AmmoIsolation=%s DeathClear=%s/%s RespawnEmpty=%s/%s"),
 			bClientObservedSwitch ? TEXT("true") : TEXT("false"),
 			bClientObservedWeapon ? TEXT("true") : TEXT("false"),
 			bClientObservedProjectile ? TEXT("true") : TEXT("false"),
@@ -1279,6 +1826,12 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			bServerReloadEquipGrantOk ? TEXT("true") : TEXT("false"),
 			bServerReloadEquipRespawnGrantOk ? TEXT("true") : TEXT("false"),
 			bClientObservedReloadEquipGrant ? TEXT("true") : TEXT("false"),
+			bReloadFullRejectVerified ? TEXT("true") : TEXT("false"),
+			bReloadTransferVerified ? TEXT("true") : TEXT("false"),
+			bReloadCancelEquipVerified ? TEXT("true") : TEXT("false"),
+			bReloadSwitchBackVerified ? TEXT("true") : TEXT("false"),
+			bReloadNoReserveVerified ? TEXT("true") : TEXT("false"),
+			bReloadCancelDeathVerified ? TEXT("true") : TEXT("false"),
 			bSingleProjectileVerified ? TEXT("true") : TEXT("false"),
 			bFullAutoReleaseVerified ? TEXT("true") : TEXT("false"),
 			bFullAutoQuiescentConfirmed ? TEXT("true") : TEXT("false"),
@@ -1349,6 +1902,42 @@ void AShooterNetworkTestCoordinator::PollClientState()
 	}
 
 	AShooterWeapon* Weapon = GetCurrentWeapon(Character);
+
+	// ---- 5B Reload 客户端输入驱动：新 RequestId 立即提交一次，并在 2 秒窗口内重试 ----
+	// 弱网下 State.Reloading 的移除复制可能晚于 RequestId，重试可避免本地预检误吞输入。
+	if (ReloadInputRequestId > LastObservedReloadInputRequestId)
+	{
+		LastObservedReloadInputRequestId = ReloadInputRequestId;
+		Character->DoReload();
+		PendingReloadPressCount = 8;
+		NextReloadPressTime = GetWorld()->GetTimeSeconds() + 0.25f;
+		ServerReportClientTriggeredReload(ReloadInputRequestId);
+	}
+
+	if (PendingReloadPressCount > 0 &&
+		GetWorld()->GetTimeSeconds() >= NextReloadPressTime)
+	{
+		Character->DoReload();
+		--PendingReloadPressCount;
+		NextReloadPressTime = GetWorld()->GetTimeSeconds() + 0.25f;
+	}
+
+	// ---- 5B Cancel.Equip：等待服务器观察到活动 Reload 后切枪，随后按需切回 ----
+	if (bServerReadyForReloadSwitch && !bClientTriggeredReloadSwitch)
+	{
+		bClientTriggeredReloadSwitch = true;
+		PendingReloadPressCount = 0;
+		Character->DoSwitchWeapon();
+		ServerReportClientTriggeredReloadSwitch();
+	}
+
+	if (bServerReadyForReloadSwitchBack && !bClientTriggeredReloadSwitchBack)
+	{
+		bClientTriggeredReloadSwitchBack = true;
+		PendingReloadPressCount = 0;
+		Character->DoSwitchWeapon();
+		ServerReportClientTriggeredReloadSwitchBack();
+	}
 
 	// ---- Inventory 2A（拥有者客户端视角）：Owner 完整收到，远端角色不收到完整列表 ----
 	if (!bClientReportedInventory)
@@ -2171,6 +2760,31 @@ void AShooterNetworkTestCoordinator::ServerReportClientObservedReloadEquipAbilit
 			OwnerEquipSpecCount,
 			bRemoteEquipSpecsHidden ? TEXT("true") : TEXT("false")));
 	}
+}
+
+void AShooterNetworkTestCoordinator::ServerReportClientTriggeredReload_Implementation(
+	int32 RequestId)
+{
+	// 只接受当前请求编号，避免前一阶段的迟到 RPC 污染下一阶段判定。
+	bClientTriggeredReload = RequestId == ReloadInputRequestId;
+	UE_LOG(
+		LogShootGame,
+		Display,
+		TEXT("Reload client report: Triggered request=%d current=%d"),
+		RequestId,
+		ReloadInputRequestId);
+}
+
+void AShooterNetworkTestCoordinator::ServerReportClientTriggeredReloadSwitch_Implementation()
+{
+	bClientTriggeredReloadSwitch = true;
+	UE_LOG(LogShootGame, Display, TEXT("Reload client report: Switch triggered"));
+}
+
+void AShooterNetworkTestCoordinator::ServerReportClientTriggeredReloadSwitchBack_Implementation()
+{
+	bClientTriggeredReloadSwitchBack = true;
+	UE_LOG(LogShootGame, Display, TEXT("Reload client report: Switch back triggered"));
 }
 
 void AShooterNetworkTestCoordinator::ServerReportClientObservedInventory_Implementation(

@@ -40,6 +40,16 @@ public:
 	AShooterNetworkTestWeapon();
 };
 
+/** 5B 换弹网络测试武器：固定 30 发容量与 1.5s ReloadDuration，在弱网取消窗口与阶段时长间取得平衡。 */
+UCLASS(NotBlueprintable, Transient)
+class AShooterNetworkTestReloadWeapon : public AShooterNetworkTestWeapon
+{
+	GENERATED_BODY()
+
+public:
+	AShooterNetworkTestReloadWeapon();
+};
+
 /**
  * Drives one owning client through the server-authoritative weapon fire path.
  * Spawned only when the server is launched with -ShootGameNetworkTest.
@@ -119,6 +129,15 @@ private:
 		bool bRemoteEquipSpecsHidden);
 
 	UFUNCTION(Server, Reliable)
+	void ServerReportClientTriggeredReload(int32 RequestId);
+
+	UFUNCTION(Server, Reliable)
+	void ServerReportClientTriggeredReloadSwitch();
+
+	UFUNCTION(Server, Reliable)
+	void ServerReportClientTriggeredReloadSwitchBack();
+
+	UFUNCTION(Server, Reliable)
 	void ServerReportFullAutoReleased(int32 BulletCountAfterRelease);
 
 	UFUNCTION(Server, Reliable)
@@ -164,8 +183,33 @@ private:
 	int32 CountProjectilesForInstigator(APawn* ProjectileInstigator) const;
 	AController* GetOpponentController() const;
 
+	/** 5B 测试辅助：用指定弹药数据替换 Inventory 实例并生成测试 WeaponActor。 */
+	bool ReplaceInventoryWeaponForReloadTest(
+		AShooterCharacter* Character,
+		const FGuid& InstanceId,
+		int32 SlotIndex,
+		int32 MagazineAmmo,
+		int32 ReserveAmmo);
+
+	/** 5B 测试辅助：返回当前 PlayerState 是否有一个活动 GA_Reload。 */
+	bool HasActiveReloadAbility(AShooterCharacter* Character) const;
+
+	/** DisconnectCleanup 专用：在断线前主动激活一次 GA_Reload。 */
+	void TriggerDisconnectReload();
+
 	FTimerHandle PollTimer;
+	FTimerHandle DisconnectReloadTimer;
+	bool bDisconnectReloadScheduled = false;
 	FDelegateHandle ActorSpawnedHandle;
+
+	UPROPERTY(Replicated)
+	int32 ReloadInputRequestId = 0;
+
+	UPROPERTY(Replicated)
+	bool bServerReadyForReloadSwitch = false;
+
+	UPROPERTY(Replicated)
+	bool bServerReadyForReloadSwitchBack = false;
 
 	UPROPERTY(Replicated)
 	bool bServerReadyToSwitch = false;
@@ -204,6 +248,11 @@ private:
 	bool bClientObservedRemoteMontage = false;
 	bool bClientTriggeredFire = false;
 	bool bClientTriggeredSwitch = false;
+	int32 LastObservedReloadInputRequestId = 0;
+	bool bClientTriggeredReloadSwitch = false;
+	bool bClientTriggeredReloadSwitchBack = false;
+	int32 PendingReloadPressCount = 0;
+	float NextReloadPressTime = 0.0f;
 	bool bClientReportedProjectile = false;
 	bool bClientReportedSwitch = false;
 	bool bClientReportedOwnerAmmo = false;
@@ -266,6 +315,46 @@ private:
 	FGameplayAbilitySpecHandle ServerEquipAbilityHandle;
 	int32 ServerReloadAbilityCount = INDEX_NONE;
 	int32 ServerEquipAbilityCount = INDEX_NONE;
+
+	/** 5B 观测：FullMagazine / Transfer / EquipCancel / NoReserve / DeathCancel 五个换弹事务边界。 */
+	bool bReloadFullRejectPhaseTriggered = false;
+	bool bReloadFullRejectVerified = false;
+	bool bClientTriggeredReload = false;
+	int32 ReloadMagazineBeforeFullReject = INDEX_NONE;
+	int32 ReloadReserveBeforeFullReject = INDEX_NONE;
+	float ReloadFullRejectCheckTime = 0.0f;
+
+	bool bReloadTransferPhaseTriggered = false;
+	bool bReloadTransferActiveObserved = false;
+	bool bReloadTransferVerified = false;
+	int32 ReloadMagazineBeforeTransfer = INDEX_NONE;
+	int32 ReloadReserveBeforeTransfer = INDEX_NONE;
+	int32 ExpectedReloadTransfer = INDEX_NONE;
+	int32 ReloadMagazineAfterTransfer = INDEX_NONE;
+	int32 ReloadReserveAfterTransfer = INDEX_NONE;
+	float ReloadTransferCheckTime = 0.0f;
+
+	bool bReloadCancelEquipPhaseTriggered = false;
+	bool bReloadCancelEquipActiveObserved = false;
+	bool bReloadCancelEquipVerified = false;
+	int32 ReloadMagazineBeforeCancelEquip = INDEX_NONE;
+	int32 ReloadReserveBeforeCancelEquip = INDEX_NONE;
+
+	bool bReloadSwitchBackPhaseTriggered = false;
+	bool bReloadSwitchBackVerified = false;
+
+	bool bReloadNoReservePhaseTriggered = false;
+	bool bReloadNoReserveVerified = false;
+	int32 ReloadMagazineBeforeNoReserve = INDEX_NONE;
+	int32 ReloadReserveBeforeNoReserve = INDEX_NONE;
+	float ReloadNoReserveCheckTime = 0.0f;
+
+	bool bReloadCancelDeathPhaseTriggered = false;
+	bool bReloadCancelDeathActiveObserved = false;
+	bool bReloadCancelDeathAmmoUnchanged = false;
+	bool bReloadCancelDeathVerified = false;
+	int32 ReloadMagazineBeforeCancelDeath = INDEX_NONE;
+	int32 ReloadReserveBeforeCancelDeath = INDEX_NONE;
 
 	/** 4B 观测：单次按下只生成一颗弹丸，全自动保持期间只有一个活动 GA_Fire，释放后计时器无残留。 */
 	int32 ProjectileSpawnCount = 0;

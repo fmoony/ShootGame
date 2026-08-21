@@ -6,9 +6,16 @@
 #include "ShooterGameplayAbility.h"
 #include "ShooterGameplayAbility_Reload.generated.h"
 
+class AShooterCharacter;
+class AShooterWeapon;
+class UAbilityTask_WaitDelay;
+
 /**
- * 换弹事务 Ability 壳体：5A 只建立 Input.Reload 标签、ServerOnly 执行策略、
- * 状态互斥合同与授予入口；真实 Inventory 原子提交在 5B 接入。
+ * 服务器权威换弹事务 Ability。
+ *
+ * 5B 闭环：激活时取消 Fire、记录目标 WeaponInstanceId 快照，
+ * 以 WeaponActor.ReloadDuration 为服务器时钟等待，提交前二次确认目标仍是当前武器，
+ * 最后调用 Inventory.ReloadMagazine 完成唯一一次原子转移。
  */
 UCLASS(NotBlueprintable)
 class SHOOTGAME_API UShooterGameplayAbility_Reload : public UShooterGameplayAbility
@@ -48,4 +55,39 @@ protected:
 		const FGameplayAbilityActorInfo* ActorInfo,
 		const FGameplayAbilityActivationInfo ActivationInfo,
 		const FGameplayEventData* TriggerEventData) override;
+	virtual void EndAbility(
+		const FGameplayAbilitySpecHandle Handle,
+		const FGameplayAbilityActorInfo* ActorInfo,
+		const FGameplayAbilityActivationInfo ActivationInfo,
+		bool bReplicateEndAbility,
+		bool bWasCancelled) override;
+
+private:
+	/** 服务器完整校验与目标解析：目标必须是 Inventory Active 且当前可见的 WeaponActor。 */
+	bool ResolveReloadTarget(
+		const FGameplayAbilityActorInfo* ActorInfo,
+		AShooterWeapon*& OutWeapon,
+		FGuid& OutInstanceId) const;
+
+	/** 提交前二次校验：目标 InstanceId 仍是 Inventory Active 与 Character.CurrentWeapon。 */
+	bool IsReloadTargetStillCurrent() const;
+
+	/** WaitDelay 到期：原子提交或失败结束；bReloadCommitted 保证一次 Ability 最多提交一次。 */
+	UFUNCTION()
+	void HandleReloadWaitFinished();
+
+	/** 结束前清理 WaitDelay、Weapon 引用与事务快照。 */
+	void CleanupReloadTransaction();
+
+	/** 本次事务目标实例快照；只在本 Ability 生命周期内有效。 */
+	FGuid TargetInstanceId;
+
+	/** 本次事务对应的当前 WeaponActor；EndAbility 只清理仍属于自己的引用。 */
+	TWeakObjectPtr<AShooterWeapon> CachedWeapon;
+
+	/** 服务器权威时钟任务；等待期间被取消时由 EndAbility 清理。 */
+	TWeakObjectPtr<UAbilityTask_WaitDelay> ReloadWaitTask;
+
+	/** 是否已经调用 Inventory.ReloadMagazine；重复回调不得再次提交。 */
+	bool bReloadCommitted = false;
 };

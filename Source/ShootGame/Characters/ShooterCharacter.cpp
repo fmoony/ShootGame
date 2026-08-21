@@ -105,10 +105,11 @@ void AShooterCharacter::EndPlay(EEndPlayReason::Type EndPlayReason)
 	// 清理角色自身的延迟回调，避免销毁后继续触发。
 	GetWorld()->GetTimerManager().ClearTimer(RespawnTimer);
 
-	// 角色销毁 / 断线时先结束 GA_Fire，避免 Ability 生命周期残留旧 Avatar 或旧 Weapon。
+	// 角色销毁 / 断线时先结束 GA_Fire / GA_Reload，避免 Ability 生命周期残留旧 Avatar 或旧 Weapon。
 	if (HasAuthority())
 	{
 		CancelFireAbility();
+		CancelReloadAbility();
 	}
 
 	// 武器是服务器按角色生命周期生成的独立 Actor；Owner 关系不会自动级联销毁。
@@ -163,11 +164,12 @@ void AShooterCharacter::InitializeAbilityActorInfo()
 
 	AbilitySystemComponent->InitAbilityActorInfo(ShooterPlayerState, this);
 
-	// 新 Avatar 不继承上一生命周期的死亡/开火状态；服务器防御性清理残留 Tag。
+	// 新 Avatar 不继承上一生命周期的死亡/开火/换弹状态；服务器防御性清理残留 Tag。
 	if (HasAuthority())
 	{
 		AbilitySystemComponent->RemoveLooseGameplayTag(ShooterGameplayTags::State_Dead);
 		AbilitySystemComponent->RemoveLooseGameplayTag(ShooterGameplayTags::State_Firing);
+		AbilitySystemComponent->RemoveLooseGameplayTag(ShooterGameplayTags::State_Reloading);
 	}
 
 	// 注册属性集（所有机器都需要；属性数值由属性集复制收敛）。
@@ -256,6 +258,9 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 		// Firing
 		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &AShooterCharacter::DoStartFiring);
 		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this, &AShooterCharacter::DoStopFiring);
+
+		// Reload：IA_Reload 只提交 Input.Reload，不直接改弹药。
+		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &AShooterCharacter::DoReload);
 
 		// Switch weapon
 		EnhancedInputComponent->BindAction(SwitchWeaponAction, ETriggerEvent::Triggered, this, &AShooterCharacter::DoSwitchWeapon);
@@ -384,6 +389,16 @@ void AShooterCharacter::CancelFireAbility()
 	}
 }
 
+void AShooterCharacter::CancelReloadAbility()
+{
+	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent =
+		Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
+	{
+		ShooterAbilitySystemComponent->CancelAbilitiesByTag(
+			ShooterGameplayTags::Input_Reload);
+	}
+}
+
 void AShooterCharacter::DoStartFiring()
 {
 	// 输入只提交给 ASC：GA_Fire 为 ServerOnly，客户端按 Input.Fire 发起激活，
@@ -419,6 +434,25 @@ void AShooterCharacter::DoStopFiring()
 		LogShootGame,
 		Warning,
 		TEXT("DoStopFiring ignored: ShooterASC unavailable for %s"),
+		*GetName());
+}
+
+void AShooterCharacter::DoReload()
+{
+	// 输入只提交给 ASC：GA_Reload 为 ServerOnly，客户端按 Input.Reload 发起激活，
+	// GAS 自动把激活请求可靠转发到服务器。
+	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent =
+		Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
+	{
+		ShooterAbilitySystemComponent->AbilityInputTagPressed(
+			ShooterGameplayTags::Input_Reload);
+		return;
+	}
+
+	UE_LOG(
+		LogShootGame,
+		Warning,
+		TEXT("DoReload ignored: ShooterASC unavailable for %s"),
 		*GetName());
 }
 
@@ -478,10 +512,11 @@ void AShooterCharacter::ServerSwitchWeapon_Implementation()
 		return;
 	}
 
-	// 切枪前先结束旧 Weapon 对应的 GA_Fire；DeactivateWeapon 的 StopFiring 作为幂等兜底。
+	// 切枪前先结束旧 Weapon 对应的 GA_Fire / GA_Reload；DeactivateWeapon 的 StopFiring 作为幂等兜底。
 	if (IsValid(CurrentWeapon))
 	{
 		CancelFireAbility();
+		CancelReloadAbility();
 		CurrentWeapon->DeactivateWeapon();
 	}
 
@@ -686,12 +721,13 @@ void AShooterCharacter::Die(AController* KillerController)
 		return;
 	}
 
-	// 死亡事务：先设置 State.Dead 并取消 GA_Fire，再执行 Death Clear。
+	// 死亡事务：先设置 State.Dead 并取消 GA_Fire / GA_Reload，再执行 Death Clear。
 	if (UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponent())
 	{
 		AbilitySystemComponent->AddLooseGameplayTag(ShooterGameplayTags::State_Dead);
 	}
 	CancelFireAbility();
+	CancelReloadAbility();
 
 	// Death Clear：停火 -> 销毁全部 WeaponActor -> Inventory Clear -> Active Invalid -> CurrentWeapon null。
 	if (IsValid(CurrentWeapon))

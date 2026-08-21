@@ -9,6 +9,9 @@
 #include "ShooterGameState.h"
 #include "ShooterNPC.h"
 #include "ShooterPlayerState.h"
+#include "ShooterAbilitySystemComponent.h"
+#include "ShooterGameplayAbility_Reload.h"
+#include "ShooterGameplayTags.h"
 #include "Weapons/ShooterWeapon.h"
 #include "Weapons/ShooterWeaponHolder.h"
 #include "Misc/CommandLine.h"
@@ -67,15 +70,20 @@ void AShooterGameMode::Logout(AController* Exiting)
 		TEXT("ShootGameDisconnectTest"));
 #endif
 
+	TWeakObjectPtr<AController> DisconnectController = Exiting;
 	Super::Logout(Exiting);
 
 #if WITH_DEV_AUTOMATION_TESTS
 	if (bRunDisconnectTest)
 	{
 		TWeakObjectPtr<UWorld> TestWorld = GetWorld();
-		GetWorldTimerManager().SetTimerForNextTick(FTimerDelegate::CreateLambda(
-			[TestWorld]()
-			{
+		FTimerHandle DisconnectCheckTimer;
+		// 5B：等待 0.5 秒让 Pawn EndPlay 完成 GA_Reload 取消后再检查，避免断线下一帧误报。
+		GetWorldTimerManager().SetTimer(
+			DisconnectCheckTimer,
+			FTimerDelegate::CreateLambda(
+				[TestWorld, DisconnectController]()
+				{
 				if (!TestWorld.IsValid())
 				{
 					return;
@@ -99,24 +107,54 @@ void AShooterGameMode::Logout(AController* Exiting)
 					}
 				}
 
-				if (ActiveWeaponCount <= 0 || OrphanWeaponCount > 0)
+				// 5B Cancel.Disconnect：只检查真正断线连接的 PlayerState，
+				// 不得残留活动 GA_Reload 或 State.Reloading。
+				int32 ActiveReloadAbilityCount = 0;
+				int32 ReloadingTagCount = 0;
+				AShooterPlayerState* DisconnectedPlayerState = DisconnectController.IsValid()
+					? DisconnectController->GetPlayerState<AShooterPlayerState>()
+					: nullptr;
+				UShooterAbilitySystemComponent* ShooterAbilitySystemComponent =
+					DisconnectedPlayerState
+						? Cast<UShooterAbilitySystemComponent>(
+							DisconnectedPlayerState->GetAbilitySystemComponent())
+						: nullptr;
+				if (ShooterAbilitySystemComponent)
+				{
+					ActiveReloadAbilityCount += ShooterAbilitySystemComponent->GetActiveAbilityCountForClass(
+						DisconnectedPlayerState->GetReloadAbilityClass());
+					if (ShooterAbilitySystemComponent->HasMatchingGameplayTag(
+						ShooterGameplayTags::State_Reloading))
+					{
+						++ReloadingTagCount;
+					}
+				}
+
+				if (ActiveWeaponCount <= 0 || OrphanWeaponCount > 0 ||
+					ActiveReloadAbilityCount > 0 || ReloadingTagCount > 0)
 				{
 					UE_LOG(
 						LogShootGame,
 						Error,
-						TEXT("AUTOMATION_TEST_FAILURE: Disconnect left invalid weapon ownership Active=%d Orphans=%d"),
+						TEXT("AUTOMATION_TEST_FAILURE: Disconnect left invalid weapon ownership Active=%d Orphans=%d ActiveReload=%d ReloadingTags=%d"),
 						ActiveWeaponCount,
-						OrphanWeaponCount);
+						OrphanWeaponCount,
+						ActiveReloadAbilityCount,
+						ReloadingTagCount);
 					return;
 				}
 
 				UE_LOG(
 					LogShootGame,
 					Display,
-					TEXT("AUTOMATION_TEST_DISCONNECT_SUCCESS ActiveWeapons=%d Orphans=%d"),
+					TEXT("AUTOMATION_TEST_DISCONNECT_SUCCESS ActiveWeapons=%d Orphans=%d ActiveReload=%d ReloadingTags=%d"),
 					ActiveWeaponCount,
-					OrphanWeaponCount);
-			}));
+					OrphanWeaponCount,
+					ActiveReloadAbilityCount,
+					ReloadingTagCount);
+				}),
+			0.5f,
+			false);
 	}
 #endif
 }

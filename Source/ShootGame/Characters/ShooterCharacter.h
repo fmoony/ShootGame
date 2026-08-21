@@ -69,6 +69,10 @@ protected:
 	UPROPERTY(EditAnywhere, Category ="Input")
 	UInputAction* SwitchWeaponAction;
 
+	/** 换弹输入动作；只提交 Input.Reload，不直接修改弹药。 */
+	UPROPERTY(EditAnywhere, Category ="Input")
+	UInputAction* ReloadAction;
+
 	/** Name of the first person mesh weapon socket */
 	UPROPERTY(EditAnywhere, Category ="Weapons")
 	FName FirstPersonWeaponSocket = FName("HandGrip_R");
@@ -235,6 +239,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Input")
 	void DoStopFiring();
 
+	/** 处理换弹输入：本地只向服务器提交 Input.Reload，由服务器权威执行。 */
+	UFUNCTION(BlueprintCallable, Category="Input")
+	void DoReload();
+
 	/** 广播开火动画到所有客户端（不可靠，允许丢失） */
 	UFUNCTION(NetMulticast, Unreliable)
 	void MulticastPlayFiringMontage(UAnimMontage* Montage);
@@ -293,6 +301,9 @@ protected:
 
 	/** 幂等取消 GA_Fire；死亡、切枪、角色销毁共用。 */
 	void CancelFireAbility();
+
+	/** 幂等取消 GA_Reload；死亡、切枪、角色销毁共用。 */
+	void CancelReloadAbility();
 
 	/** Called when this character's HP is depleted */
 	void Die(AController* KillerController);

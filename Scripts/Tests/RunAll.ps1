@@ -9,7 +9,7 @@ param(
     [ValidateRange(1024, 65535)]
     [int]$Port = 17777,
     [ValidateRange(1, 600)]
-    [int]$SessionDurationSeconds = 25,
+    [int]$SessionDurationSeconds = 45,
     [switch]$WithRendering
 )
 
