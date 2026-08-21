@@ -454,3 +454,13 @@ const TSubclassOf<UAnimInstance>& AShooterWeapon::GetThirdPersonAnimInstanceClas
 {
 	return ThirdPersonAnimInstanceClass;
 }
+
+FTransform AShooterWeapon::GetThirdPersonMuzzleWorldTransform() const
+{
+	if (ThirdPersonMesh && ThirdPersonMesh->DoesSocketExist(MuzzleSocketName))
+	{
+		return ThirdPersonMesh->GetSocketTransform(MuzzleSocketName);
+	}
+
+	return GetActorTransform();
+}

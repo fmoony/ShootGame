@@ -40,6 +40,17 @@ namespace ShooterNetworkTest
 		TEXT("/Game/Shooter/Blueprints/Weapons/BP_ShooterWeapon_Rifle.BP_ShooterWeapon_Rifle_C");
 	const TCHAR* PistolClassPath =
 		TEXT("/Game/Shooter/Blueprints/Weapons/BP_ShooterWeapon_Pistol.BP_ShooterWeapon_Pistol_C");
+
+	// ---- B1 瞄准表现基线：原地转视角调度与跟踪容差 ----
+	constexpr float AimRotationYawRateDegreesPerSecond = 30.0f;
+	constexpr float AimRotationYawSweepSeconds = 9.0f;
+	constexpr float AimRotationPitchUpSeconds = 12.0f;
+	constexpr float AimRotationPitchDownSeconds = 15.0f;
+	constexpr float AimRotationPhaseEndSeconds = 17.0f;
+	constexpr float AimRotationYawToleranceDegrees = 25.0f;
+	constexpr float AimRotationPitchToleranceDegrees = 20.0f;
+	/** 观察端 yaw 速率判据容差（°/s）：覆盖复制间隔、代理旋转平滑与阶段启动时间差。 */
+	constexpr float AimRotationObserverYawRateToleranceDegrees = 18.0f;
 }
 
 AShooterNetworkTestWeapon::AShooterNetworkTestWeapon()
@@ -80,6 +91,9 @@ AShooterNetworkTestCoordinator::AShooterNetworkTestCoordinator()
 	bDisconnectEquipMode = FParse::Param(
 		FCommandLine::Get(),
 		TEXT("ShootGameDisconnectEquip"));
+	bAimRotationMode = FParse::Param(
+		FCommandLine::Get(),
+		TEXT("ShootGameAimRotationTest"));
 }
 
 bool AShooterNetworkTestCoordinator::ReplaceInventoryWeaponForReloadTest(
@@ -429,10 +443,19 @@ void AShooterNetworkTestCoordinator::GetLifetimeReplicatedProps(
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyForFireAfterReload);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyForStopFireAfterReload);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyForEquipSingleReject);
+	DOREPLIFETIME(AShooterNetworkTestCoordinator, bAimRotationPhaseActive);
+	DOREPLIFETIME(AShooterNetworkTestCoordinator, bAimRotationServerDone);
 }
 
 void AShooterNetworkTestCoordinator::PollServerState()
 {
+	// B1 瞄准表现基线模式：只做旋转调度跟踪与枪口夹角采样，跳过常规事务阶段。
+	if (bAimRotationMode)
+	{
+		RunAimRotationServerPhase();
+		return;
+	}
+
 	// 网络测试期间停用地图 NPC 的 AI 与射击：首次轮询时世界已开始运行，
 	// 能覆盖监听服务器上晚于 PostLogin 才完成拥有的 NPC。只停止行为，不销毁 NPC。
 	if (!bNpcAiSuppressed)
@@ -2355,6 +2378,13 @@ void AShooterNetworkTestCoordinator::PollClientState()
 		return;
 	}
 
+	// B1 瞄准表现基线模式：客户端驱动本地视角旋转并采样观察端，跳过常规事务阶段。
+	if (bAimRotationMode)
+	{
+		RunAimRotationClientPhase();
+		return;
+	}
+
 	AShooterCharacter* Character = GetShooterCharacter();
 	if (!Character)
 	{
@@ -3441,6 +3471,428 @@ AController* AShooterNetworkTestCoordinator::GetOpponentController() const
 	}
 
 	return nullptr;
+}
+
+namespace
+{
+	/** B1 调度：0~9s yaw 0→270°（30°/s），9~12s pitch 0→40°，12~15s pitch 40→-30°。 */
+	float AimRotationExpectedYaw(float PhaseTime)
+	{
+		return PhaseTime * ShooterNetworkTest::AimRotationYawRateDegreesPerSecond;
+	}
+
+	float AimRotationExpectedPitch(float PhaseTime)
+	{
+		if (PhaseTime <= ShooterNetworkTest::AimRotationYawSweepSeconds)
+		{
+			return 0.0f;
+		}
+		if (PhaseTime <= ShooterNetworkTest::AimRotationPitchUpSeconds)
+		{
+			return 40.0f * (PhaseTime - ShooterNetworkTest::AimRotationYawSweepSeconds) /
+				(ShooterNetworkTest::AimRotationPitchUpSeconds - ShooterNetworkTest::AimRotationYawSweepSeconds);
+		}
+		if (PhaseTime <= ShooterNetworkTest::AimRotationPitchDownSeconds)
+		{
+			return 40.0f - 70.0f * (PhaseTime - ShooterNetworkTest::AimRotationPitchUpSeconds) /
+				(ShooterNetworkTest::AimRotationPitchDownSeconds - ShooterNetworkTest::AimRotationPitchUpSeconds);
+		}
+		return -30.0f;
+	}
+
+	/** B1 服务器侧夹角：第三人称真实枪口 Forward 与预散布瞄准目标方向的夹角（度）。 */
+	float AimMuzzleTargetAngleDegrees(AShooterCharacter* Character)
+	{
+		if (!Character)
+		{
+			return 0.0f;
+		}
+
+		const AShooterWeapon* Weapon = Character->GetCurrentWeapon();
+		const FTransform MuzzleTransform = Weapon
+			? Weapon->GetThirdPersonMuzzleWorldTransform()
+			: FTransform::Identity;
+		const FVector MuzzleForward = MuzzleTransform.GetRotation().Vector().GetSafeNormal();
+		const FVector AimTarget = Character->GetWeaponTargetLocation();
+		const FVector AimDirection = (AimTarget - Character->GetPawnViewLocation()).GetSafeNormal();
+		if (MuzzleForward.IsNearlyZero() || AimDirection.IsNearlyZero())
+		{
+			return 0.0f;
+		}
+
+		return FMath::RadiansToDegrees(FMath::Acos(
+			FMath::Clamp(FVector::DotProduct(MuzzleForward, AimDirection), -1.0f, 1.0f)));
+	}
+}
+
+void AShooterNetworkTestCoordinator::RunAimRotationServerPhase()
+{
+	// 与常规模式一致：停用地图 NPC 的 AI 与射击，避免 NPC 干扰旋转测量。
+	if (!bNpcAiSuppressed)
+	{
+		bNpcAiSuppressed = true;
+		for (TActorIterator<AShooterNPC> It(GetWorld()); It; ++It)
+		{
+			AShooterNPC* Npc = *It;
+			Npc->StopShooting();
+			if (AController* NpcController = Npc->GetController())
+			{
+				NpcController->Destroy();
+			}
+		}
+	}
+
+	AShooterCharacter* Character = GetShooterCharacter();
+	if (!Character)
+	{
+		if (GetWorld()->GetTimeSeconds() - TestStartTime >= ShooterNetworkTest::TimeoutSeconds)
+		{
+			FailTest(TEXT("AimRotation server did not receive a shooter character"));
+		}
+		return;
+	}
+
+	// B1 前置：确保目标玩家装备 Rifle（枪口夹角采样需要第三人称武器网格）。
+	if (!bServerInventoryPrepared)
+	{
+		UShooterInventoryComponent* InventoryComponent = Character->GetInventoryComponent();
+		if (!InventoryComponent)
+		{
+			FailTest(TEXT("AimRotation server character does not have an InventoryComponent"));
+			return;
+		}
+
+		const TSubclassOf<AShooterWeapon> RifleClass = LoadClass<AShooterWeapon>(
+			nullptr,
+			ShooterNetworkTest::RifleClassPath);
+		if (!RifleClass)
+		{
+			FailTest(TEXT("AimRotation Rifle class could not be loaded"));
+			return;
+		}
+
+		FGuid RifleInstanceId;
+		if (InventoryComponent->TryAddWeapon(
+			RifleClass,
+			RifleInstanceId) == EShooterInventoryAddResult::Added)
+		{
+			Character->HandleWeaponAddedToInventory(RifleInstanceId);
+			bServerInventoryPrepared = true;
+		}
+		return;
+	}
+
+	if (!bAimRotationPhaseActive)
+	{
+		// 所有玩家武器就绪后才开启阶段：两台客户端阶段启动时间差压到轮询粒度内，
+		// 观察端采样窗口与远端旋转/俯仰扫描窗口保持充分重叠。
+		bool bAllPlayersReady = true;
+		for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+		{
+			const APlayerController* OtherController = It->Get();
+			const AShooterCharacter* OtherCharacter = OtherController
+				? Cast<AShooterCharacter>(OtherController->GetPawn())
+				: nullptr;
+			if (!OtherCharacter || !OtherCharacter->GetCurrentWeapon())
+			{
+				bAllPlayersReady = false;
+				break;
+			}
+		}
+
+		if (Character->GetCurrentWeapon() && bAllPlayersReady)
+		{
+			bAimRotationPhaseActive = true;
+			AimRotationServerPhaseStartTime = GetWorld()->GetTimeSeconds();
+			UE_LOG(
+				LogShootGame,
+				Display,
+				TEXT("B1_AIM_ROTATION_PHASE_START Actor=%s"),
+				*GetNameSafe(Character));
+		}
+		return;
+	}
+
+	const float PhaseTime = GetWorld()->GetTimeSeconds() - AimRotationServerPhaseStartTime;
+	AController* Controller = Character->GetController();
+	const FRotator ServerControlRotation = Controller
+		? Controller->GetControlRotation()
+		: FRotator::ZeroRotator;
+
+	// Listen 主机同时是拥有者客户端：服务器侧直接驱动本地视角，与远端客户端走同一调度。
+	if (Character->IsLocallyControlled())
+	{
+		if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
+		{
+			FRotator LocalRotation = PlayerController->GetControlRotation();
+			LocalRotation.Yaw = AimRotationExpectedYaw(PhaseTime);
+			LocalRotation.Pitch = AimRotationExpectedPitch(PhaseTime);
+			PlayerController->SetControlRotation(LocalRotation);
+		}
+	}
+
+	const float ExpectedYaw = AimRotationExpectedYaw(PhaseTime);
+	const float ExpectedPitch = AimRotationExpectedPitch(PhaseTime);
+
+	// 每 0.5s 输出服务器采样：服务器预散布目标方向与第三人称枪口 Forward 的夹角。
+	if (PhaseTime - AimRotationLastSampleTime >= 0.5f)
+	{
+		AimRotationLastSampleTime = PhaseTime;
+		++AimRotationServerSampleCount;
+		const float MuzzleAngle = AimMuzzleTargetAngleDegrees(Character);
+		AimRotationServerMuzzleAngleMin = FMath::Min(
+			AimRotationServerMuzzleAngleMin,
+			MuzzleAngle);
+		AimRotationServerMuzzleAngleMax = FMath::Max(
+			AimRotationServerMuzzleAngleMax,
+			MuzzleAngle);
+		UE_LOG(
+			LogShootGame,
+			Display,
+			TEXT("B1_AIM_SAMPLE role=server t=%.2f ctrl_yaw=%.1f ctrl_pitch=%.1f expected_yaw=%.1f expected_pitch=%.1f muzzle_target_angle=%.1f"),
+			PhaseTime,
+			ServerControlRotation.Yaw,
+			ServerControlRotation.Pitch,
+			ExpectedYaw,
+			ExpectedPitch,
+			MuzzleAngle);
+	}
+
+	// 跟踪验证：yaw 在 3~8s、pitch 在 10~14s 窗口内至少 3 个采样点落在容差内。
+	if (PhaseTime >= 3.0f && PhaseTime <= 8.0f &&
+		FMath::Abs(FRotator::NormalizeAxis(
+			ExpectedYaw - ServerControlRotation.Yaw)) <=
+				ShooterNetworkTest::AimRotationYawToleranceDegrees)
+	{
+		++AimRotationServerYawGoodSamples;
+	}
+	if (PhaseTime >= 10.0f && PhaseTime <= 14.0f &&
+		FMath::Abs(ExpectedPitch - ServerControlRotation.Pitch) <=
+			ShooterNetworkTest::AimRotationPitchToleranceDegrees)
+	{
+		++AimRotationServerPitchGoodSamples;
+	}
+
+	if (PhaseTime >= ShooterNetworkTest::AimRotationPhaseEndSeconds &&
+		!bAimRotationServerDone)
+	{
+		bAimRotationServerDone = true;
+		bAimRotationServerYawTracked = AimRotationServerYawGoodSamples >= 3;
+		bAimRotationServerPitchTracked = AimRotationServerPitchGoodSamples >= 3;
+		const bool bVerified = bAimRotationServerYawTracked && bAimRotationServerPitchTracked;
+		UE_LOG(
+			LogShootGame,
+			Display,
+			TEXT("B1_SERVER_RESULT verified=%s yaw_tracked=%s pitch_tracked=%s samples=%d yaw_good=%d pitch_good=%d muzzle_angle_min=%.1f max=%.1f"),
+			bVerified ? TEXT("true") : TEXT("false"),
+			bAimRotationServerYawTracked ? TEXT("true") : TEXT("false"),
+			bAimRotationServerPitchTracked ? TEXT("true") : TEXT("false"),
+			AimRotationServerSampleCount,
+			AimRotationServerYawGoodSamples,
+			AimRotationServerPitchGoodSamples,
+			AimRotationServerMuzzleAngleMin,
+			AimRotationServerMuzzleAngleMax);
+		if (!bVerified)
+		{
+			FailTest(FString::Printf(
+				TEXT("AimRotation server tracking failed; yaw_good=%d pitch_good=%d"),
+				AimRotationServerYawGoodSamples,
+				AimRotationServerPitchGoodSamples));
+		}
+	}
+}
+
+void AShooterNetworkTestCoordinator::RunAimRotationClientPhase()
+{
+	// 观察端采样与阶段标志解耦：整个会话期间持续采样远端角色，
+	// 对两台客户端阶段启动时间差（可达 ~10s）稳健。
+	RunAimRotationObserverPhase();
+
+	if (!bAimRotationPhaseActive)
+	{
+		return;
+	}
+
+	APlayerController* PlayerController = Cast<APlayerController>(GetOwner());
+	AShooterCharacter* Character = GetShooterCharacter();
+	if (!PlayerController || !Character)
+	{
+		return;
+	}
+
+	if (!bClientAimRotationStarted)
+	{
+		bClientAimRotationStarted = true;
+		AimRotationClientPhaseStartTime = GetWorld()->GetTimeSeconds();
+		AimRotationClientStartRotation = PlayerController->GetControlRotation();
+		UE_LOG(
+			LogShootGame,
+			Display,
+			TEXT("B1_AIM_ROTATION_CLIENT_START Actor=%s"),
+			*GetNameSafe(Character));
+	}
+
+	const float PhaseTime = GetWorld()->GetTimeSeconds() - AimRotationClientPhaseStartTime;
+	if (PhaseTime <= ShooterNetworkTest::AimRotationPitchDownSeconds)
+	{
+		FRotator Rot = AimRotationClientStartRotation;
+		Rot.Yaw = AimRotationExpectedYaw(PhaseTime);
+		Rot.Pitch = AimRotationExpectedPitch(PhaseTime);
+		PlayerController->SetControlRotation(Rot);
+	}
+
+	// 拥有者本地摄像机方向（四类调试数据之一）。
+	if (PhaseTime - AimRotationLastSampleTime >= 0.5f)
+	{
+		AimRotationLastSampleTime = PhaseTime;
+		UE_LOG(
+			LogShootGame,
+			Display,
+			TEXT("B1_AIM_SAMPLE role=owner t=%.2f cam_yaw=%.1f cam_pitch=%.1f expected_yaw=%.1f expected_pitch=%.1f"),
+			PhaseTime,
+			PlayerController->GetControlRotation().Yaw,
+			PlayerController->GetControlRotation().Pitch,
+			AimRotationExpectedYaw(PhaseTime),
+			AimRotationExpectedPitch(PhaseTime));
+	}
+
+	RunAimRotationObserverPhase();
+
+	if (bAimRotationServerDone && !bClientAimRotationReported)
+	{
+		// 观察端判据：yaw 连续按 +30°/s 更新（≥3 个采样点），
+		// pitch 全程扫过 ≥25° 与 ≤-10°（验证远端俯仰完整传播）。
+		// 远端阶段可能比本地晚启动 ~10s：采样不足或范围未满足时继续观察。
+		const bool bRangeSatisfied = AimRotationObserverMaxPitch >= 25.0f &&
+			AimRotationObserverMinPitch <= -10.0f;
+		if (AimRotationObserverSampleCount < 60 && !bRangeSatisfied)
+		{
+			return;
+		}
+
+		const bool bObserverOk = AimRotationObserverYawGoodSamples >= 3 &&
+			bRangeSatisfied;
+		bClientAimRotationReported = true;
+		const int32 PlayerId = PlayerController->PlayerState
+			? PlayerController->PlayerState->GetPlayerId()
+			: INDEX_NONE;
+		if (!bObserverOk)
+		{
+			FailTest(FString::Printf(
+				TEXT("AimRotation observer tracking failed; yaw_rate_good=%d max_pitch=%.1f min_pitch=%.1f samples=%d remote=%s"),
+				AimRotationObserverYawGoodSamples,
+				AimRotationObserverMaxPitch,
+				AimRotationObserverMinPitch,
+				AimRotationObserverSampleCount,
+				*GetNameSafe(AimRotationObservedCharacter.Get())));
+			return;
+		}
+
+		UE_LOG(
+			LogShootGame,
+			Display,
+			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS AimRotation=true PlayerId=%d ObserverYawRate=%s ObserverPitchRange=%.1f..%.1f ObserverSamples=%d MuzzleAngleObserver=%.1f..%.1f"),
+			PlayerId,
+			AimRotationObserverYawGoodSamples >= 3 ? TEXT("true") : TEXT("false"),
+			AimRotationObserverMinPitch,
+			AimRotationObserverMaxPitch,
+			AimRotationObserverSampleCount,
+			AimRotationObserverMuzzleAngleMin,
+			AimRotationObserverMuzzleAngleMax);
+	}
+}
+
+void AShooterNetworkTestCoordinator::RunAimRotationObserverPhase()
+{
+	AShooterCharacter* LocalCharacter = GetShooterCharacter();
+	if (!LocalCharacter)
+	{
+		return;
+	}
+
+	AShooterCharacter* RemoteCharacter = AimRotationObservedCharacter.Get();
+	if (!IsValid(RemoteCharacter))
+	{
+		RemoteCharacter = nullptr;
+		for (TActorIterator<AShooterCharacter> It(GetWorld()); It; ++It)
+		{
+			AShooterCharacter* Candidate = *It;
+			// 只观察另一名玩家：跳过本地角色、NPC（AShooterNPC 也是 AShooterCharacter 子类）
+			// 与地图中不参与旋转的模拟代理。
+			if (Candidate == LocalCharacter ||
+				Candidate->IsA<AShooterNPC>() ||
+				Candidate->GetLocalRole() != ROLE_SimulatedProxy)
+			{
+				continue;
+			}
+			RemoteCharacter = Candidate;
+			AimRotationObservedCharacter = Candidate;
+			break;
+		}
+	}
+	if (!RemoteCharacter)
+	{
+		return;
+	}
+
+	const float Now = GetWorld()->GetTimeSeconds();
+	const float SampleInterval = Now - AimRotationLastObserverSampleTime;
+	if (SampleInterval >= 0.5f)
+	{
+		AimRotationLastObserverSampleTime = Now;
+		++AimRotationObserverSampleCount;
+
+		const FRotator RemoteAim = RemoteCharacter->GetBaseAimRotation();
+		const float RemoteYaw = RemoteCharacter->GetActorRotation().Yaw;
+		// 远端 pitch 可能以 0~360 包裹表示（如 353.3 ≡ -6.7°），先归一化再统计范围。
+		const float NormalizedRemotePitch = FRotator::NormalizeAxis(RemoteAim.Pitch);
+		const AShooterWeapon* RemoteWeapon = RemoteCharacter->GetCurrentWeapon();
+		const FTransform MuzzleTransform = RemoteWeapon
+			? RemoteWeapon->GetThirdPersonMuzzleWorldTransform()
+			: FTransform::Identity;
+		const FVector MuzzleForward = MuzzleTransform.GetRotation().Vector().GetSafeNormal();
+		const FVector AimDirection = RemoteAim.Vector().GetSafeNormal();
+		float MuzzleAngle = 0.0f;
+		if (!MuzzleForward.IsNearlyZero() && !AimDirection.IsNearlyZero())
+		{
+			MuzzleAngle = FMath::RadiansToDegrees(FMath::Acos(
+				FMath::Clamp(FVector::DotProduct(MuzzleForward, AimDirection), -1.0f, 1.0f)));
+		}
+		AimRotationObserverMuzzleAngleMin = FMath::Min(
+			AimRotationObserverMuzzleAngleMin,
+			MuzzleAngle);
+		AimRotationObserverMuzzleAngleMax = FMath::Max(
+			AimRotationObserverMuzzleAngleMax,
+			MuzzleAngle);
+		AimRotationObserverMaxPitch = FMath::Max(AimRotationObserverMaxPitch, NormalizedRemotePitch);
+		AimRotationObserverMinPitch = FMath::Min(AimRotationObserverMinPitch, NormalizedRemotePitch);
+
+		// 观察端 yaw 判据验证旋转速率与方向（+30°/s），而不是把远端绝对角度
+		// 与本地阶段时间直接比对（两玩家阶段可相差数秒，绝对比对必然失败）。
+		const float YawDelta = FRotator::NormalizeAxis(RemoteYaw - AimRotationLastObserverRemoteYaw);
+		const float ExpectedYawDelta =
+			ShooterNetworkTest::AimRotationYawRateDegreesPerSecond * SampleInterval;
+		const bool bYawRateOk = AimRotationObserverSampleCount == 1 ||
+			FMath::Abs(YawDelta - ExpectedYawDelta) <=
+				ShooterNetworkTest::AimRotationObserverYawRateToleranceDegrees;
+		if (bYawRateOk)
+		{
+			++AimRotationObserverYawGoodSamples;
+		}
+		AimRotationLastObserverRemoteYaw = RemoteYaw;
+
+		UE_LOG(
+			LogShootGame,
+			Display,
+			TEXT("B1_AIM_SAMPLE role=observer t=%.2f remote_yaw=%.1f remote_pitch=%.1f yaw_rate_ok=%s yaw_delta=%.1f expected_delta=%.1f muzzle_aim_angle=%.1f"),
+			Now,
+			RemoteYaw,
+			NormalizedRemotePitch,
+			bYawRateOk ? TEXT("true") : TEXT("false"),
+			YawDelta,
+			ExpectedYawDelta,
+			MuzzleAngle);
+	}
 }
 
 void AShooterNetworkTestCoordinator::FailTest(const FString& Reason)

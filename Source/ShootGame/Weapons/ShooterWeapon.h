@@ -214,6 +214,10 @@ public:
 	UFUNCTION(BlueprintPure, Category="Weapon")
 	USkeletalMeshComponent* GetThirdPersonMesh() const { return ThirdPersonMesh; };
 
+	/** 返回第三人称网格 Muzzle socket 的世界变换；网格或 socket 缺失时回退到武器 Actor 变换。
+	 *  观察端调试与表现测量使用该变换读取“第三人称真实枪口 Forward”。 */
+	FTransform GetThirdPersonMuzzleWorldTransform() const;
+
 	/** 返回服务器权威换弹事务等待时长。 */
 	float GetReloadDuration() const { return ReloadDuration; }
 

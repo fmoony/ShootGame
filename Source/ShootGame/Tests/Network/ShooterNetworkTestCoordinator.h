@@ -495,6 +495,52 @@ private:
 	bool bOpponentKilledForStats = false;
 	bool bDisconnectCleanupMode = false;
 	bool bDisconnectEquipMode = false;
+
+	/** B1 瞄准表现基线模式：-ShootGameAimRotationTest 开启。只测量，不新增网络字段。 */
+	bool bAimRotationMode = false;
+
+	/** 服务器开启瞄准旋转阶段后复制给客户端。 */
+	UPROPERTY(Replicated)
+	bool bAimRotationPhaseActive = false;
+
+	/** 服务器完成跟踪验证后复制给客户端。 */
+	UPROPERTY(Replicated)
+	bool bAimRotationServerDone = false;
+
+	/** B1 服务器侧阶段状态（服务器时间）。 */
+	float AimRotationServerPhaseStartTime = 0.0f;
+	float AimRotationLastSampleTime = -1.0f;
+	int32 AimRotationServerSampleCount = 0;
+	int32 AimRotationServerYawGoodSamples = 0;
+	int32 AimRotationServerPitchGoodSamples = 0;
+	bool bAimRotationServerYawTracked = false;
+	bool bAimRotationServerPitchTracked = false;
+	float AimRotationServerMuzzleAngleMin = 180.0f;
+	float AimRotationServerMuzzleAngleMax = 0.0f;
+
+	/** B1 客户端侧阶段状态（客户端时间）。 */
+	float AimRotationClientPhaseStartTime = 0.0f;
+	bool bClientAimRotationStarted = false;
+	bool bClientAimRotationReported = false;
+	FRotator AimRotationClientStartRotation = FRotator::ZeroRotator;
+	float AimRotationLastObserverSampleTime = -1.0f;
+	float AimRotationLastObserverRemoteYaw = 0.0f;
+	int32 AimRotationObserverSampleCount = 0;
+	int32 AimRotationObserverYawGoodSamples = 0;
+	float AimRotationObserverMaxPitch = -90.0f;
+	float AimRotationObserverMinPitch = 90.0f;
+	float AimRotationObserverMuzzleAngleMin = 180.0f;
+	float AimRotationObserverMuzzleAngleMax = 0.0f;
+	TWeakObjectPtr<AShooterCharacter> AimRotationObservedCharacter;
+
+	/** B1 服务器侧瞄准旋转阶段（PollServerState 专用分支）。 */
+	void RunAimRotationServerPhase();
+
+	/** B1 客户端侧瞄准旋转阶段（PollClientState 专用分支）。 */
+	void RunAimRotationClientPhase();
+
+	/** B1 观察端采样与验证：远端角色方向 + 枪口 Forward 夹角。 */
+	void RunAimRotationObserverPhase();
 	int32 InitialClientBulletCount = INDEX_NONE;
 	float InitialHP = 0.0f;
 	float ObservedAimDot = -1.0f;
