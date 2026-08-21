@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Engine/NetSerialization.h"
 #include "ShooterWeaponHolder.h"
 #include "ShooterCharacter.generated.h"
 
@@ -172,6 +173,37 @@ protected:
 	/** 幂等建立 PlayerState ASC 的 Owner/Avatar 关系。 */
 	void InitializeAbilityActorInfo();
 
+	/** 服务器表现目标：服务器从 Pawn 视点沿当前 ControlRotation 做无散布 Visibility Trace，
+	 *  命中时保存 Impact Point，未命中时保存最大瞄准距离终点（B2）。
+	 *  表现快照，不是命中缓存：开火时仍由 GetWeaponTargetLocation 现场重算权威目标。
+	 *  只复制给非拥有者（COND_SkipOwner）：拥有者继续使用本地即时视角。 */
+	UPROPERTY(ReplicatedUsing = OnRep_PresentationAimTarget, VisibleAnywhere, BlueprintReadOnly, Category = "Aim")
+	FVector_NetQuantize PresentationAimTarget = FVector::ZeroVector;
+
+	UFUNCTION()
+	void OnRep_PresentationAimTarget();
+
+	/** 表现目标服务器采样间隔（秒）。B2 调试起点 10Hz；最终频率按网络模拟与带宽统计决定。 */
+	UPROPERTY(EditAnywhere, Category = "Aim", meta = (ClampMin = 0.02, Units = "s"))
+	float PresentationAimSampleInterval = 0.1f;
+
+	/** 表现目标变化门槛：目标位移小于该值且方向夹角小于门槛角度时跳过更新（减少无意义更新）。 */
+	UPROPERTY(EditAnywhere, Category = "Aim", meta = (ClampMin = 0, Units = "cm"))
+	float PresentationAimMinChangeDistance = 50.0f;
+
+	/** 表现目标变化门槛：方向夹角（度）。 */
+	UPROPERTY(EditAnywhere, Category = "Aim", meta = (ClampMin = 0, ClampMax = 90, Units = "Degrees"))
+	float PresentationAimMinChangeAngle = 3.0f;
+
+	/** 服务器表现目标采样定时器。 */
+	FTimerHandle PresentationAimTimer;
+
+	/** 服务器启动受限频率的表现目标采样（BeginPlay，仅 Authority）。 */
+	void StartPresentationAimSampling();
+
+	/** 服务器采样一次表现目标：超过变化门槛才写入复制字段。 */
+	void SamplePresentationAimTarget();
+
 	/** 客户端收到 RemoteViewPitch 后刷新远端第三人称瞄准俯仰。 */
 	virtual void PostNetReceive() override;
 
@@ -230,6 +262,17 @@ public:
 
 	/** 返回角色的 Inventory 组件；该组件是武器持有关系的逻辑权威源。 */
 	UShooterInventoryComponent* GetInventoryComponent() const { return InventoryComponent; }
+
+	/** 只读访问服务器表现目标（观察端读取复制值；拥有者始终为零向量）。 */
+	const FVector& GetPresentationAimTarget() const { return PresentationAimTarget; }
+
+	/** 最大瞄准距离（预散布目标 Trace 长度）。 */
+	float GetMaxAimDistance() const { return MaxAimDistance; }
+
+	/** 无副作用公共计算入口：从 Pawn 视点沿瞄准旋转做无散布 Visibility Trace，
+	 *  命中返回 Impact Point，未命中返回最大距离终点。
+	 *  表现同步采样与每次权威开火共用同一规则，但各自现场计算，不共享缓存值（B2 §避免第二套真相）。 */
+	static FVector ComputePreSpreadAimTarget(const APawn* Pawn, float MaxDistance);
 
 public:
 

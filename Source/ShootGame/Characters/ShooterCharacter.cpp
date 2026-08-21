@@ -79,10 +79,62 @@ void AShooterCharacter::BeginPlay()
 	{
 		CurrentHP = MaxHP;
 		bIsDead = false;
+		StartPresentationAimSampling();
 	}
 
 	// update the HUD
 	OnDamaged.Broadcast(MaxHP > 0.0f ? CurrentHP / MaxHP : 0.0f);
+}
+
+void AShooterCharacter::StartPresentationAimSampling()
+{
+	// B2：服务器受限频率采样表现目标（10Hz 调试起点 + 变化门槛）。
+	// 稳态不主动 ForceNetUpdate；复制字段仅在值变化时由引擎发送。
+	GetWorldTimerManager().SetTimer(
+		PresentationAimTimer,
+		this,
+		&AShooterCharacter::SamplePresentationAimTarget,
+		PresentationAimSampleInterval,
+		true,
+		PresentationAimSampleInterval);
+}
+
+void AShooterCharacter::SamplePresentationAimTarget()
+{
+	if (!HasAuthority() || bIsDead)
+	{
+		return;
+	}
+
+	const FVector NewTarget = ComputePreSpreadAimTarget(this, MaxAimDistance);
+
+	// 变化门槛：目标位移与方向夹角都低于门槛时跳过，减少无意义更新。
+	const FVector ViewLocation = GetPawnViewLocation();
+	const FVector OldDirection = ((FVector)PresentationAimTarget - ViewLocation).GetSafeNormal();
+	const FVector NewDirection = (NewTarget - ViewLocation).GetSafeNormal();
+	const float DistanceDelta = FVector::Dist(NewTarget, (FVector)PresentationAimTarget);
+	const float AngleDelta = !OldDirection.IsNearlyZero() && !NewDirection.IsNearlyZero()
+		? FMath::RadiansToDegrees(FMath::Acos(
+			FMath::Clamp(FVector::DotProduct(OldDirection, NewDirection), -1.0f, 1.0f)))
+		: 180.0f;
+	if (DistanceDelta < PresentationAimMinChangeDistance &&
+		AngleDelta < PresentationAimMinChangeAngle)
+	{
+		return;
+	}
+
+	PresentationAimTarget = NewTarget;
+}
+
+void AShooterCharacter::OnRep_PresentationAimTarget()
+{
+	// B2：仅接收；观察端消费与平滑在 B3 接入。
+	UE_LOG(
+		LogShootGame,
+		VeryVerbose,
+		TEXT("OnRep PresentationAimTarget Actor=%s Target=%s"),
+		*GetName(),
+		*PresentationAimTarget.ToString());
 }
 
 void AShooterCharacter::EndPlay(EEndPlayReason::Type EndPlayReason)
@@ -104,6 +156,7 @@ void AShooterCharacter::EndPlay(EEndPlayReason::Type EndPlayReason)
 
 	// 清理角色自身的延迟回调，避免销毁后继续触发。
 	GetWorld()->GetTimerManager().ClearTimer(RespawnTimer);
+	GetWorld()->GetTimerManager().ClearTimer(PresentationAimTimer);
 
 	// 角色销毁 / 断线时先结束 GA_Fire / GA_Reload / GA_Equip，避免 Ability 生命周期残留旧 Avatar 或旧 Weapon。
 	if (HasAuthority())
@@ -542,17 +595,26 @@ void AShooterCharacter::UpdateWeaponHUD(int32 CurrentAmmo, int32 MagazineSize)
 
 FVector AShooterCharacter::GetWeaponTargetLocation()
 {
+	// 权威开火目标：与表现采样共用 ComputePreSpreadAimTarget 规则，现场重算，不使用复制缓存值。
+	return ComputePreSpreadAimTarget(this, MaxAimDistance);
+}
+
+FVector AShooterCharacter::ComputePreSpreadAimTarget(const APawn* Pawn, float MaxDistance)
+{
 	// Server-authoritative aim: remote camera component rotation is not reliable on
 	// the server, while ControlRotation is updated by the owning connection.
 	FHitResult OutHit;
 
-	const FVector Start = GetPawnViewLocation();
-	const FVector End = Start + (GetControlRotation().Vector() * MaxAimDistance);
+	const FVector Start = Pawn ? Pawn->GetPawnViewLocation() : FVector::ZeroVector;
+	const FVector End = Start + (Pawn ? Pawn->GetControlRotation().Vector() : FVector::ForwardVector) * MaxDistance;
 
 	FCollisionQueryParams QueryParams;
-	QueryParams.AddIgnoredActor(this);
+	if (Pawn)
+	{
+		QueryParams.AddIgnoredActor(Pawn);
+	}
 
-	GetWorld()->LineTraceSingleByChannel(OutHit, Start, End, ECC_Visibility, QueryParams);
+	Pawn->GetWorld()->LineTraceSingleByChannel(OutHit, Start, End, ECC_Visibility, QueryParams);
 
 	// return either the impact point or the trace end
 	return OutHit.bBlockingHit ? OutHit.ImpactPoint : OutHit.TraceEnd;
@@ -695,6 +757,9 @@ void AShooterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME(AShooterCharacter, CurrentWeapon);
 	DOREPLIFETIME(AShooterCharacter, CurrentHP);
 	DOREPLIFETIME(AShooterCharacter, bIsDead);
+
+	// 表现目标只复制给非拥有者：拥有者继续使用本地即时视角，不被远端表现数据覆盖。
+	DOREPLIFETIME_CONDITION(AShooterCharacter, PresentationAimTarget, COND_SkipOwner);
 }
 
 void AShooterCharacter::OnWeaponActivated(AShooterWeapon* Weapon)

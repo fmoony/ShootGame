@@ -507,6 +507,10 @@ private:
 	UPROPERTY(Replicated)
 	bool bAimRotationServerDone = false;
 
+	/** 服务器完成表现目标复制验证后复制给客户端（B2）。 */
+	UPROPERTY(Replicated)
+	bool bAimRotationServerPresentationVerified = false;
+
 	/** B1 服务器侧阶段状态（服务器时间）。 */
 	float AimRotationServerPhaseStartTime = 0.0f;
 	float AimRotationLastSampleTime = -1.0f;
@@ -532,6 +536,17 @@ private:
 	float AimRotationObserverMuzzleAngleMin = 180.0f;
 	float AimRotationObserverMuzzleAngleMax = 0.0f;
 	TWeakObjectPtr<AShooterCharacter> AimRotationObservedCharacter;
+
+	// ---- B2 表现目标复制验证 ----
+	int32 AimRotationServerPresentationGoodSamples = 0;
+	int32 AimRotationServerPresentationChanges = 0;
+	FVector AimRotationServerPresentationPrevTarget = FVector::ZeroVector;
+	bool bAimRotationServerPresentationPrevValid = false;
+	float AimRotationServerMaxPresentationMagnitude = 0.0f;
+	bool bAimRotationOwnerPresentationUntouched = false;
+	int32 AimRotationObserverPresentationGoodSamples = 0;
+	int32 AimRotationObserverQuantizedSamples = 0;
+	bool bAimRotationObserverPresentationSeen = false;
 
 	/** B1 服务器侧瞄准旋转阶段（PollServerState 专用分支）。 */
 	void RunAimRotationServerPhase();

@@ -445,6 +445,7 @@ void AShooterNetworkTestCoordinator::GetLifetimeReplicatedProps(
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyForEquipSingleReject);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bAimRotationPhaseActive);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bAimRotationServerDone);
+	DOREPLIFETIME(AShooterNetworkTestCoordinator, bAimRotationServerPresentationVerified);
 }
 
 void AShooterNetworkTestCoordinator::PollServerState()
@@ -3656,6 +3657,41 @@ void AShooterNetworkTestCoordinator::RunAimRotationServerPhase()
 			ExpectedYaw,
 			ExpectedPitch,
 			MuzzleAngle);
+
+		// B2：表现目标复制验证（服务器侧）。表现目标方向应随瞄准旋转、更新持续流动。
+		// 量化误差无法在服务器侧测量（FVector_NetQuantize 在序列化时量化，服务器内存中
+		// 保存原始值）；观察端收到的整数值即量化证据（见 B2_PRESENTATION_OBSERVER 的
+		// quantized 标志）。这里验证方向一致性、更新流动与目标量程。
+		const FVector PresentationTarget = Character->GetPresentationAimTarget();
+		const FVector ViewLocation = Character->GetPawnViewLocation();
+		const FVector PresentationDir = (PresentationTarget - ViewLocation).GetSafeNormal();
+		const FVector AimDir = ServerControlRotation.Vector().GetSafeNormal();
+		const float PresentationMagnitude = FVector::Dist(PresentationTarget, ViewLocation);
+		AimRotationServerMaxPresentationMagnitude = FMath::Max(
+			AimRotationServerMaxPresentationMagnitude,
+			PresentationMagnitude);
+		const bool bPresentationDirOk = !PresentationDir.IsNearlyZero() &&
+			FVector::DotProduct(PresentationDir, AimDir) >= 0.9f;
+		if (bPresentationDirOk)
+		{
+			++AimRotationServerPresentationGoodSamples;
+		}
+		if (bAimRotationServerPresentationPrevValid &&
+			!PresentationTarget.Equals(AimRotationServerPresentationPrevTarget, 0.5f))
+		{
+			++AimRotationServerPresentationChanges;
+		}
+		AimRotationServerPresentationPrevTarget = PresentationTarget;
+		bAimRotationServerPresentationPrevValid = true;
+		UE_LOG(
+			LogShootGame,
+			Display,
+			TEXT("B2_PRESENTATION_SERVER t=%.2f target=%s magnitude=%.1f dir_ok=%s changes=%d"),
+			PhaseTime,
+			*PresentationTarget.ToString(),
+			PresentationMagnitude,
+			bPresentationDirOk ? TEXT("true") : TEXT("false"),
+			AimRotationServerPresentationChanges);
 	}
 
 	// 跟踪验证：yaw 在 3~8s、pitch 在 10~14s 窗口内至少 3 个采样点落在容差内。
@@ -3680,10 +3716,17 @@ void AShooterNetworkTestCoordinator::RunAimRotationServerPhase()
 		bAimRotationServerYawTracked = AimRotationServerYawGoodSamples >= 3;
 		bAimRotationServerPitchTracked = AimRotationServerPitchGoodSamples >= 3;
 		const bool bVerified = bAimRotationServerYawTracked && bAimRotationServerPitchTracked;
+		// B2：表现目标方向随瞄准旋转（≥5 个合格采样）、更新持续流动（≥3 次变化）、
+		// 目标量程在 MaxAimDistance 内（量化类型 ±1,048,576 覆盖地图坐标，余量充足）。
+		const float MaxAimDistance = Character->GetMaxAimDistance();
+		bAimRotationServerPresentationVerified =
+			AimRotationServerPresentationGoodSamples >= 5 &&
+			AimRotationServerPresentationChanges >= 3 &&
+			AimRotationServerMaxPresentationMagnitude <= MaxAimDistance + 100.0f;
 		UE_LOG(
 			LogShootGame,
 			Display,
-			TEXT("B1_SERVER_RESULT verified=%s yaw_tracked=%s pitch_tracked=%s samples=%d yaw_good=%d pitch_good=%d muzzle_angle_min=%.1f max=%.1f"),
+			TEXT("B1_SERVER_RESULT verified=%s yaw_tracked=%s pitch_tracked=%s samples=%d yaw_good=%d pitch_good=%d muzzle_angle_min=%.1f max=%.1f presentation_verified=%s presentation_good=%d changes=%d max_magnitude=%.1f"),
 			bVerified ? TEXT("true") : TEXT("false"),
 			bAimRotationServerYawTracked ? TEXT("true") : TEXT("false"),
 			bAimRotationServerPitchTracked ? TEXT("true") : TEXT("false"),
@@ -3691,13 +3734,20 @@ void AShooterNetworkTestCoordinator::RunAimRotationServerPhase()
 			AimRotationServerYawGoodSamples,
 			AimRotationServerPitchGoodSamples,
 			AimRotationServerMuzzleAngleMin,
-			AimRotationServerMuzzleAngleMax);
-		if (!bVerified)
+			AimRotationServerMuzzleAngleMax,
+			bAimRotationServerPresentationVerified ? TEXT("true") : TEXT("false"),
+			AimRotationServerPresentationGoodSamples,
+			AimRotationServerPresentationChanges,
+			AimRotationServerMaxPresentationMagnitude);
+		if (!bVerified || !bAimRotationServerPresentationVerified)
 		{
 			FailTest(FString::Printf(
-				TEXT("AimRotation server tracking failed; yaw_good=%d pitch_good=%d"),
+				TEXT("AimRotation server tracking failed; yaw_good=%d pitch_good=%d presentation_good=%d changes=%d max_magnitude=%.1f"),
 				AimRotationServerYawGoodSamples,
-				AimRotationServerPitchGoodSamples));
+				AimRotationServerPitchGoodSamples,
+				AimRotationServerPresentationGoodSamples,
+				AimRotationServerPresentationChanges,
+				AimRotationServerMaxPresentationMagnitude));
 		}
 	}
 }
@@ -3760,6 +3810,12 @@ void AShooterNetworkTestCoordinator::RunAimRotationClientPhase()
 
 	if (bAimRotationServerDone && !bClientAimRotationReported)
 	{
+		// B2：拥有者不应收到表现目标（COND_SkipOwner），本地实例保持零向量。
+		if (!bAimRotationOwnerPresentationUntouched)
+		{
+			bAimRotationOwnerPresentationUntouched = Character->GetPresentationAimTarget().IsNearlyZero();
+		}
+
 		// 观察端判据：yaw 连续按 +30°/s 更新（≥3 个采样点），
 		// pitch 全程扫过 ≥25° 与 ≤-10°（验证远端俯仰完整传播）。
 		// 远端阶段可能比本地晚启动 ~10s：采样不足或范围未满足时继续观察。
@@ -3771,18 +3827,27 @@ void AShooterNetworkTestCoordinator::RunAimRotationClientPhase()
 		}
 
 		const bool bObserverOk = AimRotationObserverYawGoodSamples >= 3 &&
-			bRangeSatisfied;
+			bRangeSatisfied &&
+			AimRotationObserverPresentationGoodSamples >= 2 &&
+			AimRotationObserverQuantizedSamples >= 1 &&
+			bAimRotationObserverPresentationSeen;
 		bClientAimRotationReported = true;
 		const int32 PlayerId = PlayerController->PlayerState
 			? PlayerController->PlayerState->GetPlayerId()
 			: INDEX_NONE;
-		if (!bObserverOk)
+		if (!bObserverOk || !bAimRotationServerPresentationVerified ||
+			!bAimRotationOwnerPresentationUntouched)
 		{
 			FailTest(FString::Printf(
-				TEXT("AimRotation observer tracking failed; yaw_rate_good=%d max_pitch=%.1f min_pitch=%.1f samples=%d remote=%s"),
+				TEXT("AimRotation session failed; observer_yaw_rate_good=%d max_pitch=%.1f min_pitch=%.1f observer_pres_good=%d observer_quantized=%d observer_pres_seen=%s server_pres_verified=%s owner_untouched=%s samples=%d remote=%s"),
 				AimRotationObserverYawGoodSamples,
 				AimRotationObserverMaxPitch,
 				AimRotationObserverMinPitch,
+				AimRotationObserverPresentationGoodSamples,
+				AimRotationObserverQuantizedSamples,
+				bAimRotationObserverPresentationSeen ? TEXT("true") : TEXT("false"),
+				bAimRotationServerPresentationVerified ? TEXT("true") : TEXT("false"),
+				bAimRotationOwnerPresentationUntouched ? TEXT("true") : TEXT("false"),
 				AimRotationObserverSampleCount,
 				*GetNameSafe(AimRotationObservedCharacter.Get())));
 			return;
@@ -3791,11 +3856,15 @@ void AShooterNetworkTestCoordinator::RunAimRotationClientPhase()
 		UE_LOG(
 			LogShootGame,
 			Display,
-			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS AimRotation=true PlayerId=%d ObserverYawRate=%s ObserverPitchRange=%.1f..%.1f ObserverSamples=%d MuzzleAngleObserver=%.1f..%.1f"),
+			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS AimRotation=true Presentation=true PlayerId=%d ObserverYawRate=%s ObserverPitchRange=%.1f..%.1f PresentationObserver=%d/%d ServerPresentationVerified=%s OwnerUntouched=%s ObserverSamples=%d MuzzleAngleObserver=%.1f..%.1f"),
 			PlayerId,
 			AimRotationObserverYawGoodSamples >= 3 ? TEXT("true") : TEXT("false"),
 			AimRotationObserverMinPitch,
 			AimRotationObserverMaxPitch,
+			AimRotationObserverPresentationGoodSamples,
+			AimRotationObserverQuantizedSamples,
+			bAimRotationServerPresentationVerified ? TEXT("true") : TEXT("false"),
+			bAimRotationOwnerPresentationUntouched ? TEXT("true") : TEXT("false"),
 			AimRotationObserverSampleCount,
 			AimRotationObserverMuzzleAngleMin,
 			AimRotationObserverMuzzleAngleMax);
@@ -3866,6 +3935,44 @@ void AShooterNetworkTestCoordinator::RunAimRotationObserverPhase()
 			MuzzleAngle);
 		AimRotationObserverMaxPitch = FMath::Max(AimRotationObserverMaxPitch, NormalizedRemotePitch);
 		AimRotationObserverMinPitch = FMath::Min(AimRotationObserverMinPitch, NormalizedRemotePitch);
+
+		// B2：观察端表现目标验证。远端复制到的 PresentationAimTarget 应非零，
+		// 其方向与远端瞄准方向一致（dot ≥ 0.9），且分量呈整数量化特征
+		// （FVector_NetQuantize 序列化量化到整数 cm 的直接证据）。
+		const FVector RemotePresentationTarget = RemoteCharacter->GetPresentationAimTarget();
+		const FVector RemotePresentationDir =
+			(RemotePresentationTarget - RemoteCharacter->GetPawnViewLocation()).GetSafeNormal();
+		const bool bPresentationSeen = !RemotePresentationTarget.IsNearlyZero();
+		const bool bPresentationDirOk = bPresentationSeen &&
+			FVector::DotProduct(RemotePresentationDir, AimDirection) >= 0.9f;
+		const bool bQuantizedOk = bPresentationSeen &&
+			FMath::Abs(FMath::Fmod(RemotePresentationTarget.X, 1.0f)) < 0.01f &&
+			FMath::Abs(FMath::Fmod(RemotePresentationTarget.Y, 1.0f)) < 0.01f &&
+			FMath::Abs(FMath::Fmod(RemotePresentationTarget.Z, 1.0f)) < 0.01f;
+		if (bPresentationSeen)
+		{
+			bAimRotationObserverPresentationSeen = true;
+		}
+		if (bPresentationDirOk)
+		{
+			++AimRotationObserverPresentationGoodSamples;
+		}
+		if (bQuantizedOk)
+		{
+			++AimRotationObserverQuantizedSamples;
+		}
+		if (bPresentationSeen)
+		{
+			UE_LOG(
+				LogShootGame,
+				Display,
+				TEXT("B2_PRESENTATION_OBSERVER t=%.2f target=%s dir_ok=%s quantized=%s good=%d"),
+				Now,
+				*RemotePresentationTarget.ToString(),
+				bPresentationDirOk ? TEXT("true") : TEXT("false"),
+				bQuantizedOk ? TEXT("true") : TEXT("false"),
+				AimRotationObserverPresentationGoodSamples);
+		}
 
 		// 观察端 yaw 判据验证旋转速率与方向（+30°/s），而不是把远端绝对角度
 		// 与本地阶段时间直接比对（两玩家阶段可相差数秒，绝对比对必然失败）。
