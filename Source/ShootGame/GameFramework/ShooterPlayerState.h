@@ -10,6 +10,9 @@
 class UShooterAbilitySystemComponent;
 class UShooterAttributeSet;
 class UShooterGameplayAbility_Fire;
+class UShooterGameplayAbility_Equip;
+class UShooterGameplayAbility_Reload;
+class UGameplayAbility;
 struct FOnAttributeChangeData;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(
@@ -55,6 +58,24 @@ public:
 	/** 服务器幂等授予 Fire Ability；同一 PlayerState 只允许存在一个 Spec，重生只更新 Avatar。 */
 	void GrantFireAbility();
 
+	/** 返回服务器配置的换弹 Ability 类。 */
+	TSubclassOf<UShooterGameplayAbility_Reload> GetReloadAbilityClass() const { return ReloadAbilityClass; }
+
+	/** 返回当前 PlayerState ASC 中 Reload Ability Spec 的数量（含尚未完成复制的本地视图）。 */
+	int32 GetReloadAbilitySpecCount() const;
+
+	/** 服务器幂等授予 Reload Ability；同一 PlayerState 只允许存在一个 Spec，重生只更新 Avatar。 */
+	void GrantReloadAbility();
+
+	/** 返回服务器配置的装备 Ability 类。 */
+	TSubclassOf<UShooterGameplayAbility_Equip> GetEquipAbilityClass() const { return EquipAbilityClass; }
+
+	/** 返回当前 PlayerState ASC 中 Equip Ability Spec 的数量（含尚未完成复制的本地视图）。 */
+	int32 GetEquipAbilitySpecCount() const;
+
+	/** 服务器幂等授予 Equip Ability；同一 PlayerState 只允许存在一个 Spec，重生只更新 Avatar。 */
+	void GrantEquipAbility();
+
 	/** 幂等绑定 Health 属性变化回调（绑定在 PlayerState 上，跨角色重生保持有效）。 */
 	void BindHealthAttributeDelegate();
 
@@ -95,6 +116,16 @@ protected:
 	/** 服务器授予给玩家的开火 Ability 类；BP_ShooterPlayerState 不存在时使用原生默认类。 */
 	UPROPERTY(EditAnywhere, Category="Abilities")
 	TSubclassOf<UShooterGameplayAbility_Fire> FireAbilityClass;
+	/** 服务器授予给玩家的换弹 Ability 类；BP_ShooterPlayerState 不存在时使用原生默认类。 */
+	UPROPERTY(EditAnywhere, Category="Abilities")
+	TSubclassOf<UShooterGameplayAbility_Reload> ReloadAbilityClass;
+
+	/** 服务器授予给玩家的装备 Ability 类；BP_ShooterPlayerState 不存在时使用原生默认类。 */
+	UPROPERTY(EditAnywhere, Category="Abilities")
+	TSubclassOf<UShooterGameplayAbility_Equip> EquipAbilityClass;
+
+	/** Ability 授予幂等公共实现：指定类已存在 Spec 时直接跳过。 */
+	void GrantAbilityIfMissing(TSubclassOf<UGameplayAbility> AbilityClass);
 
 	UPROPERTY(ReplicatedUsing=OnRep_TeamId, VisibleAnywhere, Category="Shooter|Stats")
 	uint8 TeamId = 0;

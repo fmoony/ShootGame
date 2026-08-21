@@ -39,6 +39,12 @@ namespace ShooterAbilityAutomationTests
 			TEXT("GA_Fire blocked by State.Dead"),
 			AbilityDefaults->IsBlockedByStateDead());
 		Test.TestTrue(
+			TEXT("GA_Fire blocked by State.Reloading"),
+			AbilityDefaults->IsBlockedByStateReloading());
+		Test.TestTrue(
+			TEXT("GA_Fire blocked by State.Equipping"),
+			AbilityDefaults->IsBlockedByStateEquipping());
+		Test.TestTrue(
 			TEXT("GA_Fire owns State.Firing while active"),
 			AbilityDefaults->OwnsStateFiringWhileActive());
 		return true;

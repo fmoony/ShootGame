@@ -115,6 +115,12 @@ public:
 	/** 服务器权威：从指定实例弹匣扣除 Amount；失败时不产生任何变化。 */
 	bool ConsumeMagazineAmmo(const FGuid& InstanceId, int32 Amount = 1);
 
+	/**
+	 * 服务器权威换弹原子事务：按绑定 WeaponActor 的弹匣容量把 ReserveAmmo 一次性转进 MagazineAmmo。
+	 * 事务完成后统一刷新绑定 WeaponActor 的弹药镜像与 Owner HUD。
+	 */
+	bool ReloadMagazine(const FGuid& InstanceId, int32& OutTransferredAmmo);
+
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 

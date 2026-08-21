@@ -277,6 +277,8 @@ NPC 已通过 GAS 使用 GA_Fire，但没有玩家式 Inventory 和 ReserveAmmo�
 
 每个子阶段必须独立编写提交记录、Build、运行新增 Feature Tests 和相关网络验证，通过后再提交；不得夹带资产迁移或用户的无关修改。
 
+用户已明确指定：本计划建立后预留的 `AGENTS.md` 已完成计划导航精简，随 5A 提交进入，不单独创建文档提交。这是 5A 唯一允许附带的既有文档改动，开发记录必须单独列明。
+
 ---
 
 ## 7. 5A：数据事务与 Ability 基础设施
@@ -289,6 +291,7 @@ NPC 已通过 GAS 使用 GA_Fire，但没有玩家式 Inventory 和 ReserveAmmo�
 - 新增 UShooterGameplayAbility_Reload 与 UShooterGameplayAbility_Equip 壳体；
 - 服务器幂等授予两个 Ability；
 - 添加 IA_Reload；Switch 输入暂时保持旧路径；
+- 将已预留的 `AGENTS.md` 导航精简纳入本提交，并在 5A 开发记录中说明；
 - 本提交不改变实际 Reload/Equip 行为。
 
 ### Feature Tests

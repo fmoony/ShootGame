@@ -179,6 +179,44 @@ struct FShooterWeaponInventoryList : public FFastArraySerializer
 		return true;
 	}
 
+	/**
+	 * 服务器权威换弹原子事务：在同一次写入中把 ReserveAmmo 转移进 MagazineAmmo。
+	 * Transfer = Min(MagazineCapacity - MagazineAmmo, ReserveAmmo)；
+	 * Transfer 不大于 0（弹匣已满或无备用弹药）时返回 false 且不产生任何变化。
+	 */
+	bool ReloadMagazine(
+		const FGuid& InstanceId,
+		int32 MagazineCapacity,
+		int32& OutTransferredAmmo)
+	{
+		OutTransferredAmmo = 0;
+		if (!InstanceId.IsValid() || MagazineCapacity <= 0)
+		{
+			return false;
+		}
+
+		FShooterWeaponInstanceEntry* Entry = FindItem(InstanceId);
+		if (!Entry)
+		{
+			return false;
+		}
+
+		const int32 Need = FMath::Max(
+			0,
+			MagazineCapacity - Entry->InstanceData.MagazineAmmo);
+		const int32 Transfer = FMath::Min(Need, Entry->InstanceData.ReserveAmmo);
+		if (Transfer <= 0)
+		{
+			return false;
+		}
+
+		Entry->InstanceData.MagazineAmmo += Transfer;
+		Entry->InstanceData.ReserveAmmo -= Transfer;
+		MarkItemDirty(*Entry);
+		OutTransferredAmmo = Transfer;
+		return true;
+	}
+
 	bool NetDeltaSerialize(FNetDeltaSerializeInfo& DeltaParms)
 	{
 		return FFastArraySerializer::FastArrayDeltaSerialize<

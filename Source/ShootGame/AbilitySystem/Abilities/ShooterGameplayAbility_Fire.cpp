@@ -21,6 +21,16 @@ bool UShooterGameplayAbility_Fire::IsBlockedByStateDead() const
 	return ActivationBlockedTags.HasTag(ShooterGameplayTags::State_Dead);
 }
 
+bool UShooterGameplayAbility_Fire::IsBlockedByStateReloading() const
+{
+	return ActivationBlockedTags.HasTag(ShooterGameplayTags::State_Reloading);
+}
+
+bool UShooterGameplayAbility_Fire::IsBlockedByStateEquipping() const
+{
+	return ActivationBlockedTags.HasTag(ShooterGameplayTags::State_Equipping);
+}
+
 bool UShooterGameplayAbility_Fire::OwnsStateFiringWhileActive() const
 {
 	return ActivationOwnedTags.HasTag(ShooterGameplayTags::State_Firing);
@@ -44,6 +54,9 @@ UShooterGameplayAbility_Fire::UShooterGameplayAbility_Fire()
 	SetAssetTags(AssetTags);
 	// 死亡状态阻塞激活；State.Firing 在激活期间由 GAS 自动挂到拥有者 ASC。
 	ActivationBlockedTags.AddTag(ShooterGameplayTags::State_Dead);
+	// 换弹与装备事务期间同样阻塞开火，保证三者互斥。
+	ActivationBlockedTags.AddTag(ShooterGameplayTags::State_Reloading);
+	ActivationBlockedTags.AddTag(ShooterGameplayTags::State_Equipping);
 	ActivationOwnedTags.AddTag(ShooterGameplayTags::State_Firing);
 }
 

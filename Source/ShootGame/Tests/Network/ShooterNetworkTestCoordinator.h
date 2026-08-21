@@ -13,6 +13,8 @@ class AShooterCharacter;
 class AShooterWeapon;
 class AShooterPlayerState;
 class UAbilitySystemComponent;
+class UShooterGameplayAbility_Equip;
+class UShooterGameplayAbility_Reload;
 struct FOnAttributeChangeData;
 
 /**
@@ -108,6 +110,13 @@ private:
 	void ServerReportClientObservedFireAbilityGrant(
 		int32 OwnerFireSpecCount,
 		bool bRemoteFireSpecsHidden);
+
+	UFUNCTION(Server, Reliable)
+	void ServerReportClientObservedReloadEquipAbilityGrant(
+		int32 OwnerReloadSpecCount,
+		bool bRemoteReloadSpecsHidden,
+		int32 OwnerEquipSpecCount,
+		bool bRemoteEquipSpecsHidden);
 
 	UFUNCTION(Server, Reliable)
 	void ServerReportFullAutoReleased(int32 BulletCountAfterRelease);
@@ -246,6 +255,17 @@ private:
 	bool bClientReportedFireGrant = false;
 	FGameplayAbilitySpecHandle ServerFireAbilityHandle;
 	int32 ServerFireAbilityCount = INDEX_NONE;
+
+	/** 5A 观测：玩家 Reload / Equip Ability 在出生与重生后均有且只有一个 Spec，重复授予不增长。 */
+	bool bServerReloadEquipGrantChecked = false;
+	bool bServerReloadEquipGrantOk = false;
+	bool bServerReloadEquipRespawnGrantOk = false;
+	bool bClientObservedReloadEquipGrant = false;
+	bool bClientReportedReloadEquipGrant = false;
+	FGameplayAbilitySpecHandle ServerReloadAbilityHandle;
+	FGameplayAbilitySpecHandle ServerEquipAbilityHandle;
+	int32 ServerReloadAbilityCount = INDEX_NONE;
+	int32 ServerEquipAbilityCount = INDEX_NONE;
 
 	/** 4B 观测：单次按下只生成一颗弹丸，全自动保持期间只有一个活动 GA_Fire，释放后计时器无残留。 */
 	int32 ProjectileSpawnCount = 0;

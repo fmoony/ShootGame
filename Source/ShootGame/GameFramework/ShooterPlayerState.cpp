@@ -8,11 +8,15 @@
 #include "ShooterAttributeSet.h"
 #include "ShooterCharacter.h"
 #include "ShooterGameplayAbility_Fire.h"
+#include "ShooterGameplayAbility_Equip.h"
+#include "ShooterGameplayAbility_Reload.h"
 #include "Net/UnrealNetwork.h"
 
 AShooterPlayerState::AShooterPlayerState()
 {
 	AbilitySystemComponent = CreateDefaultSubobject<UShooterAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
+	ReloadAbilityClass = UShooterGameplayAbility_Reload::StaticClass();
+	EquipAbilityClass = UShooterGameplayAbility_Equip::StaticClass();
 	FireAbilityClass = UShooterGameplayAbility_Fire::StaticClass();
 	AbilitySystemComponent->SetIsReplicated(true);
 	// Mixed：完整能力数据复制给拥有者连接，其他客户端只收到最小集合。
@@ -33,6 +37,8 @@ void AShooterPlayerState::PostInitializeComponents()
 
 	BindHealthAttributeDelegate();
 	GrantFireAbility();
+	GrantReloadAbility();
+	GrantEquipAbility();
 }
 
 void AShooterPlayerState::BindHealthAttributeDelegate()
@@ -104,6 +110,62 @@ int32 AShooterPlayerState::GetFireAbilitySpecCount() const
 	}
 
 	return AbilitySystemComponent->GetAbilitySpecCountForClass(FireAbilityClass);
+}
+
+void AShooterPlayerState::GrantReloadAbility()
+{
+	if (!HasAuthority() || !AbilitySystemComponent || !ReloadAbilityClass)
+	{
+		return;
+	}
+
+	GrantAbilityIfMissing(ReloadAbilityClass);
+}
+
+int32 AShooterPlayerState::GetReloadAbilitySpecCount() const
+{
+	if (!AbilitySystemComponent)
+	{
+		return 0;
+	}
+
+	return AbilitySystemComponent->GetAbilitySpecCountForClass(ReloadAbilityClass);
+}
+
+void AShooterPlayerState::GrantEquipAbility()
+{
+	if (!HasAuthority() || !AbilitySystemComponent || !EquipAbilityClass)
+	{
+		return;
+	}
+
+	GrantAbilityIfMissing(EquipAbilityClass);
+}
+
+int32 AShooterPlayerState::GetEquipAbilitySpecCount() const
+{
+	if (!AbilitySystemComponent)
+	{
+		return 0;
+	}
+
+	return AbilitySystemComponent->GetAbilitySpecCountForClass(EquipAbilityClass);
+}
+
+void AShooterPlayerState::GrantAbilityIfMissing(TSubclassOf<UGameplayAbility> AbilityClass)
+{
+	if (!AbilityClass || !AbilitySystemComponent ||
+		AbilitySystemComponent->FindAbilitySpecFromClass(AbilityClass))
+	{
+		return;
+	}
+
+	const FGameplayAbilitySpec AbilitySpec(
+		AbilityClass,
+		/*AbilityLevel*/1,
+		INDEX_NONE,
+		this);
+	AbilitySystemComponent->GiveAbility(AbilitySpec);
 }
 
 void AShooterPlayerState::SetTeamId(uint8 NewTeamId)

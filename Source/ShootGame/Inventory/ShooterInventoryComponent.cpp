@@ -357,6 +357,49 @@ bool UShooterInventoryComponent::ConsumeMagazineAmmo(const FGuid& InstanceId, in
 	return true;
 }
 
+bool UShooterInventoryComponent::ReloadMagazine(
+	const FGuid& InstanceId,
+	int32& OutTransferredAmmo)
+{
+	OutTransferredAmmo = 0;
+	if (!GetOwner() || !GetOwner()->HasAuthority())
+	{
+		return false;
+	}
+
+	// 事务容量只来自绑定 WeaponActor 的权威配置；没有 Actor 时不能执行表现不可收敛的换弹。
+	AShooterWeapon* Weapon = FindWeaponActor(InstanceId);
+	if (!IsValid(Weapon))
+	{
+		return false;
+	}
+
+	if (!ReplicatedInventory.ReloadMagazine(
+		InstanceId,
+		Weapon->GetMagazineSize(),
+		OutTransferredAmmo))
+	{
+		return false;
+	}
+
+	// 服务器本地立即刷新 WeaponActor 镜像与 Owner HUD；Owner 客户端由 FastArray Change 回调刷新。
+	if (const FShooterWeaponInstanceData* Instance = FindWeaponInstance(InstanceId))
+	{
+		HandleInstanceChanged(*Instance);
+	}
+
+	UE_LOG(
+		LogShootGame,
+		Display,
+		TEXT("Inventory ReloadMagazine committed: Actor=%s InstanceId=%s Transfer=%d Mag=%d Reserve=%d"),
+		*GetNameSafe(GetOwner()),
+		*InstanceId.ToString(),
+		OutTransferredAmmo,
+		GetMagazineAmmo(InstanceId),
+		GetReserveAmmo(InstanceId));
+	return true;
+}
+
 void UShooterInventoryComponent::HandleInstanceChanged(
 	const FShooterWeaponInstanceData& InstanceData)
 {

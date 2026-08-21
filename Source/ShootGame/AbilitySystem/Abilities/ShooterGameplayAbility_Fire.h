@@ -28,6 +28,12 @@ public:
 	/** 测试观察接口：State.Dead 是否阻塞本 Ability 激活。 */
 	bool IsBlockedByStateDead() const;
 
+	/** 测试观察接口：State.Reloading 是否阻塞本 Ability 激活。 */
+	bool IsBlockedByStateReloading() const;
+
+	/** 测试观察接口：State.Equipping 是否阻塞本 Ability 激活。 */
+	bool IsBlockedByStateEquipping() const;
+
 	/** 测试观察接口：Ability 活动期间是否向拥有者挂载 State.Firing。 */
 	bool OwnsStateFiringWhileActive() const;
 

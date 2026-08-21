@@ -21,6 +21,8 @@
 #include "ShooterAbilitySystemComponent.h"
 #include "ShooterAttributeSet.h"
 #include "ShooterGameplayAbility_Fire.h"
+#include "ShooterGameplayAbility_Equip.h"
+#include "ShooterGameplayAbility_Reload.h"
 #include "ShooterGameplayTags.h"
 #include "ShooterCharacter.h"
 #include "ShooterInventoryComponent.h"
@@ -351,6 +353,75 @@ void AShooterNetworkTestCoordinator::PollServerState()
 					*ServerFireAbilityHandle.ToString(),
 					FireAbilitySpec && FireAbilitySpec->Ability
 						? *GetNameSafe(FireAbilitySpec->Ability->GetClass())
+						: TEXT("null")));
+				return;
+			}
+		}
+
+		// ---- 5A Reload / Equip Ability 授予生命周期（服务器视角）----
+		if (!bServerReloadEquipGrantChecked)
+		{
+			bServerReloadEquipGrantChecked = true;
+
+			const TSubclassOf<UShooterGameplayAbility_Reload> ReloadAbilityClass =
+				ShooterPlayerState->GetReloadAbilityClass();
+			const TSubclassOf<UShooterGameplayAbility_Equip> EquipAbilityClass =
+				ShooterPlayerState->GetEquipAbilityClass();
+			const FGameplayAbilitySpec* ReloadAbilitySpec =
+				AbilitySystemComponent
+					? AbilitySystemComponent->FindAbilitySpecFromClass(ReloadAbilityClass)
+					: nullptr;
+			const FGameplayAbilitySpec* EquipAbilitySpec =
+				AbilitySystemComponent
+					? AbilitySystemComponent->FindAbilitySpecFromClass(EquipAbilityClass)
+					: nullptr;
+			ServerReloadAbilityCount = ShooterPlayerState->GetReloadAbilitySpecCount();
+			ServerEquipAbilityCount = ShooterPlayerState->GetEquipAbilitySpecCount();
+			ServerReloadAbilityHandle = ReloadAbilitySpec
+				? ReloadAbilitySpec->Handle
+				: FGameplayAbilitySpecHandle();
+			ServerEquipAbilityHandle = EquipAbilitySpec
+				? EquipAbilitySpec->Handle
+				: FGameplayAbilitySpecHandle();
+
+			// 幂等授予：重复调用不得新增 Spec。
+			ShooterPlayerState->GrantReloadAbility();
+			ShooterPlayerState->GrantReloadAbility();
+			ShooterPlayerState->GrantEquipAbility();
+			ShooterPlayerState->GrantEquipAbility();
+
+			bServerReloadEquipGrantOk =
+				ReloadAbilityClass == UShooterGameplayAbility_Reload::StaticClass() &&
+				EquipAbilityClass == UShooterGameplayAbility_Equip::StaticClass() &&
+				ServerReloadAbilityCount == 1 &&
+				ServerEquipAbilityCount == 1 &&
+				ShooterPlayerState->GetReloadAbilitySpecCount() == 1 &&
+				ShooterPlayerState->GetEquipAbilitySpecCount() == 1 &&
+				ReloadAbilitySpec &&
+				ReloadAbilitySpec->Ability &&
+				ReloadAbilitySpec->Ability->GetClass() == ReloadAbilityClass &&
+				EquipAbilitySpec &&
+				EquipAbilitySpec->Ability &&
+				EquipAbilitySpec->Ability->GetClass() == EquipAbilityClass &&
+				ServerReloadAbilityHandle.IsValid() &&
+				ServerEquipAbilityHandle.IsValid();
+			if (!bServerReloadEquipGrantOk)
+			{
+				FailTest(FString::Printf(
+					TEXT("Server Reload/Equip Ability grant invalid; ReloadClass=%s EquipClass=%s ReloadCount=%d EquipCount=%d ReloadAfter=%d EquipAfter=%d ReloadHandle=%s EquipHandle=%s ReloadSpecAbility=%s EquipSpecAbility=%s"),
+					*GetNameSafe(ReloadAbilityClass),
+					*GetNameSafe(EquipAbilityClass),
+					ServerReloadAbilityCount,
+					ServerEquipAbilityCount,
+					ShooterPlayerState->GetReloadAbilitySpecCount(),
+					ShooterPlayerState->GetEquipAbilitySpecCount(),
+					*ServerReloadAbilityHandle.ToString(),
+					*ServerEquipAbilityHandle.ToString(),
+					ReloadAbilitySpec && ReloadAbilitySpec->Ability
+						? *GetNameSafe(ReloadAbilitySpec->Ability->GetClass())
+						: TEXT("null"),
+					EquipAbilitySpec && EquipAbilitySpec->Ability
+						? *GetNameSafe(EquipAbilitySpec->Ability->GetClass())
 						: TEXT("null")));
 				return;
 			}
@@ -936,6 +1007,30 @@ void AShooterNetworkTestCoordinator::PollServerState()
 				ShooterPlayerState->GetFireAbilityClass() &&
 			ShooterPlayerState->GetFireAbilitySpecCount() == 1;
 
+		// ---- 5A Reload / Equip 重生不重复授予：原 Spec Handle 在新 Avatar 上继续存在 ----
+		const FGameplayAbilitySpec* RespawnReloadAbilitySpec =
+			AbilitySystemComponent
+				? AbilitySystemComponent->FindAbilitySpecFromClass(
+					ShooterPlayerState->GetReloadAbilityClass())
+				: nullptr;
+		const FGameplayAbilitySpec* RespawnEquipAbilitySpec =
+			AbilitySystemComponent
+				? AbilitySystemComponent->FindAbilitySpecFromClass(
+					ShooterPlayerState->GetEquipAbilityClass())
+				: nullptr;
+		bServerReloadEquipRespawnGrantOk = RespawnReloadAbilitySpec &&
+			RespawnEquipAbilitySpec &&
+			RespawnReloadAbilitySpec->Handle == ServerReloadAbilityHandle &&
+			RespawnEquipAbilitySpec->Handle == ServerEquipAbilityHandle &&
+			RespawnReloadAbilitySpec->Ability &&
+			RespawnReloadAbilitySpec->Ability->GetClass() ==
+				ShooterPlayerState->GetReloadAbilityClass() &&
+			RespawnEquipAbilitySpec->Ability &&
+			RespawnEquipAbilitySpec->Ability->GetClass() ==
+				ShooterPlayerState->GetEquipAbilityClass() &&
+			ShooterPlayerState->GetReloadAbilitySpecCount() == 1 &&
+			ShooterPlayerState->GetEquipAbilitySpecCount() == 1;
+
 		UShooterInventoryComponent* RespawnInventory = Character->GetInventoryComponent();
 		bServerRespawnInventoryEmpty = RespawnInventory &&
 			RespawnInventory->GetWeaponCount() == 0 &&
@@ -973,7 +1068,8 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		}
 
 		if (!bServerGasRespawnOk || !bServerRespawnInventoryEmpty ||
-			!bServerFireRespawnGrantOk || !bRespawnTagCleanupVerified)
+			!bServerFireRespawnGrantOk || !bServerReloadEquipRespawnGrantOk ||
+			!bRespawnTagCleanupVerified)
 		{
 			if (!bRespawnTagCleanupVerified)
 			{
@@ -1000,6 +1096,25 @@ void AShooterNetworkTestCoordinator::PollServerState()
 					*ServerFireAbilityHandle.ToString(),
 					RespawnFireAbilitySpec && RespawnFireAbilitySpec->Ability
 						? *GetNameSafe(RespawnFireAbilitySpec->Ability->GetClass())
+						: TEXT("null")));
+				return;
+			}
+
+			if (!bServerReloadEquipRespawnGrantOk)
+			{
+				FailTest(FString::Printf(
+					TEXT("Server respawn Reload/Equip Ability grant invalid; ReloadCount=%d EquipCount=%d ReloadHandle=%s/%s EquipHandle=%s/%s ReloadAbility=%s EquipAbility=%s"),
+					ShooterPlayerState->GetReloadAbilitySpecCount(),
+					ShooterPlayerState->GetEquipAbilitySpecCount(),
+					RespawnReloadAbilitySpec ? *RespawnReloadAbilitySpec->Handle.ToString() : TEXT("null"),
+					*ServerReloadAbilityHandle.ToString(),
+					RespawnEquipAbilitySpec ? *RespawnEquipAbilitySpec->Handle.ToString() : TEXT("null"),
+					*ServerEquipAbilityHandle.ToString(),
+					RespawnReloadAbilitySpec && RespawnReloadAbilitySpec->Ability
+						? *GetNameSafe(RespawnReloadAbilitySpec->Ability->GetClass())
+						: TEXT("null"),
+					RespawnEquipAbilitySpec && RespawnEquipAbilitySpec->Ability
+						? *GetNameSafe(RespawnEquipAbilitySpec->Ability->GetClass())
 						: TEXT("null")));
 				return;
 			}
@@ -1038,7 +1153,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		bClientObservedGasHealthInit && bClientObservedGasHealthDamage &&
 		bClientObservedGasHealthRespawn && bServerGasDeathOk &&
 		bServerFireGrantOk && bNpcFireGrantOk && bServerFireRespawnGrantOk &&
-		bClientObservedFireGrant && bSingleProjectileVerified &&
+		bClientObservedFireGrant && bServerReloadEquipGrantOk &&
+		bServerReloadEquipRespawnGrantOk && bClientObservedReloadEquipGrant &&
+		bSingleProjectileVerified &&
 		bFullAutoReleaseVerified && bFullAutoQuiescentConfirmed &&
 		bSwitchCancelVerified && bNoAmmoRejectVerified && bFireRejectDeadVerified &&
 		bFireRejectNoWeaponVerified && bRespawnTagCleanupVerified &&
@@ -1051,7 +1168,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		UE_LOG(
 			LogShootGame,
 			Display,
-			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS PlayerId=%d Switch=true OwnerAmmo=true NonOwnerAmmoHidden=true Bullets=%d->%d HP=%.0f->0 Dead=true Respawn=true RespawnHP=%.0f AimDot=%.3f Team=%u Kills=%d Deaths=%d TeamScore=%d RemotePitch=%.3f/%.3f RemoteMontage=%s GasServer=%s/%s/%s GasNPC=%s GasRespawn=%s GasClient=%s GasClientRespawn=%s GasHealthInit=%s GasDamage=%s GasDeath=%s GasNpcHealth=%s/%s GasClientHealth=%s/%s/%s GasHud=%s FireGrant=%s/%s/%s/%s FireGA=%s/%s/%s Cancellation=%s/%s/%s/%s/%s/%s/%s PickupAuthority=%s InventoryOwner=%s InventoryRemoteHidden=%s AmmoIsolation=%s DeathClear=%s/%s RespawnEmpty=%s/%s"),
+			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS PlayerId=%d Switch=true OwnerAmmo=true NonOwnerAmmoHidden=true Bullets=%d->%d HP=%.0f->0 Dead=true Respawn=true RespawnHP=%.0f AimDot=%.3f Team=%u Kills=%d Deaths=%d TeamScore=%d RemotePitch=%.3f/%.3f RemoteMontage=%s GasServer=%s/%s/%s GasNPC=%s GasRespawn=%s GasClient=%s GasClientRespawn=%s GasHealthInit=%s GasDamage=%s GasDeath=%s GasNpcHealth=%s/%s GasClientHealth=%s/%s/%s GasHud=%s FireGrant=%s/%s/%s/%s ReloadEquipGrant=%s/%s/%s FireGA=%s/%s/%s Cancellation=%s/%s/%s/%s/%s/%s/%s PickupAuthority=%s InventoryOwner=%s InventoryRemoteHidden=%s AmmoIsolation=%s DeathClear=%s/%s RespawnEmpty=%s/%s"),
 			PlayerId,
 			InitialBulletCount,
 			BulletCountAfterFire,
@@ -1085,6 +1202,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			bNpcFireGrantOk ? TEXT("true") : TEXT("false"),
 			bServerFireRespawnGrantOk ? TEXT("true") : TEXT("false"),
 			bClientObservedFireGrant ? TEXT("true") : TEXT("false"),
+			bServerReloadEquipGrantOk ? TEXT("true") : TEXT("false"),
+			bServerReloadEquipRespawnGrantOk ? TEXT("true") : TEXT("false"),
+			bClientObservedReloadEquipGrant ? TEXT("true") : TEXT("false"),
 			bSingleProjectileVerified ? TEXT("true") : TEXT("false"),
 			bFullAutoReleaseVerified ? TEXT("true") : TEXT("false"),
 			bFullAutoQuiescentConfirmed ? TEXT("true") : TEXT("false"),
@@ -1122,7 +1242,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			: INDEX_NONE;
 
 		FailTest(FString::Printf(
-			TEXT("Timed out waiting for network state; switch=%s weapon=%s clientProjectile=%s ownerAmmo=%s nonOwnerAmmo=%s serverProjectile=%s aim=%s damage=%s death=%s respawn=%s matchState=%s remoteAim=%s remoteMontage=%s gasOwner=%s gasAvatar=%s gasConnection=%s gasNpc=%s gasRespawn=%s gasClient=%s gasClientRespawn=%s gasHealthInit=%s gasDamage=%s gasDeath=%s gasNpcHealth=%s/%s gasClientHealth=%s/%s/%s gasHud=%s fireGrant=%s/%s/%s/%s fireGA=%s/%s/%s cancellation=%s/%s/%s/%s/%s/%s/%s bullets=%d->%d hp=%.0f team=%u kills=%d deaths=%d score=%.0f teamScore=%d PickupAuthority=%s InventoryOwner=%s InventoryRemoteHidden=%s AmmoIsolation=%s DeathClear=%s/%s RespawnEmpty=%s/%s"),
+			TEXT("Timed out waiting for network state; switch=%s weapon=%s clientProjectile=%s ownerAmmo=%s nonOwnerAmmo=%s serverProjectile=%s aim=%s damage=%s death=%s respawn=%s matchState=%s remoteAim=%s remoteMontage=%s gasOwner=%s gasAvatar=%s gasConnection=%s gasNpc=%s gasRespawn=%s gasClient=%s gasClientRespawn=%s gasHealthInit=%s gasDamage=%s gasDeath=%s gasNpcHealth=%s/%s gasClientHealth=%s/%s/%s gasHud=%s fireGrant=%s/%s/%s/%s reloadEquipGrant=%s/%s/%s fireGA=%s/%s/%s cancellation=%s/%s/%s/%s/%s/%s/%s bullets=%d->%d hp=%.0f team=%u kills=%d deaths=%d score=%.0f teamScore=%d PickupAuthority=%s InventoryOwner=%s InventoryRemoteHidden=%s AmmoIsolation=%s DeathClear=%s/%s RespawnEmpty=%s/%s"),
 			bClientObservedSwitch ? TEXT("true") : TEXT("false"),
 			bClientObservedWeapon ? TEXT("true") : TEXT("false"),
 			bClientObservedProjectile ? TEXT("true") : TEXT("false"),
@@ -1156,6 +1276,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			bNpcFireGrantOk ? TEXT("true") : TEXT("false"),
 			bServerFireRespawnGrantOk ? TEXT("true") : TEXT("false"),
 			bClientObservedFireGrant ? TEXT("true") : TEXT("false"),
+			bServerReloadEquipGrantOk ? TEXT("true") : TEXT("false"),
+			bServerReloadEquipRespawnGrantOk ? TEXT("true") : TEXT("false"),
+			bClientObservedReloadEquipGrant ? TEXT("true") : TEXT("false"),
 			bSingleProjectileVerified ? TEXT("true") : TEXT("false"),
 			bFullAutoReleaseVerified ? TEXT("true") : TEXT("false"),
 			bFullAutoQuiescentConfirmed ? TEXT("true") : TEXT("false"),
@@ -1351,6 +1474,51 @@ void AShooterNetworkTestCoordinator::PollClientState()
 			{
 				bClientReportedFireGrant = true;
 				ServerReportClientObservedFireAbilityGrant(1, true);
+			}
+		}
+	}
+
+	// ---- 5A Reload / Equip Ability 授予复制（拥有者客户端视角）：Owner 各一个，远端不收到完整 Spec ----
+	if (!bClientReportedReloadEquipGrant)
+	{
+		AShooterPlayerState* ShooterPlayerState =
+			PlayerController->GetPlayerState<AShooterPlayerState>();
+		if (ShooterPlayerState &&
+			ShooterPlayerState->GetReloadAbilitySpecCount() == 1 &&
+			ShooterPlayerState->GetEquipAbilitySpecCount() == 1)
+		{
+			bool bRemoteReloadSpecsHidden = false;
+			bool bRemoteEquipSpecsHidden = false;
+			const AGameStateBase* ClientGameState = GetWorld()->GetGameState();
+			if (ClientGameState)
+			{
+				for (APlayerState* OtherPlayerState : ClientGameState->PlayerArray)
+				{
+					if (OtherPlayerState == ShooterPlayerState)
+					{
+						continue;
+					}
+
+					const AShooterPlayerState* RemoteShooterPlayerState =
+						Cast<AShooterPlayerState>(OtherPlayerState);
+					if (!RemoteShooterPlayerState)
+					{
+						continue;
+					}
+
+					// Mixed 模式：完整 Reload / Equip Spec 同样只复制给拥有者连接。
+					bRemoteReloadSpecsHidden =
+						RemoteShooterPlayerState->GetReloadAbilitySpecCount() == 0;
+					bRemoteEquipSpecsHidden =
+						RemoteShooterPlayerState->GetEquipAbilitySpecCount() == 0;
+					break;
+				}
+			}
+
+			if (bRemoteReloadSpecsHidden && bRemoteEquipSpecsHidden)
+			{
+				bClientReportedReloadEquipGrant = true;
+				ServerReportClientObservedReloadEquipAbilityGrant(1, true, 1, true);
 			}
 		}
 	}
@@ -1970,6 +2138,38 @@ void AShooterNetworkTestCoordinator::ServerReportClientObservedFireAbilityGrant_
 			TEXT("Client Fire Ability grant observation invalid; OwnerSpecs=%d RemoteHidden=%s"),
 			OwnerFireSpecCount,
 			bRemoteFireSpecsHidden ? TEXT("true") : TEXT("false")));
+	}
+}
+
+void AShooterNetworkTestCoordinator::ServerReportClientObservedReloadEquipAbilityGrant_Implementation(
+	int32 OwnerReloadSpecCount,
+	bool bRemoteReloadSpecsHidden,
+	int32 OwnerEquipSpecCount,
+	bool bRemoteEquipSpecsHidden)
+{
+	bClientObservedReloadEquipGrant =
+		OwnerReloadSpecCount == 1 &&
+		OwnerEquipSpecCount == 1 &&
+		bRemoteReloadSpecsHidden &&
+		bRemoteEquipSpecsHidden;
+	UE_LOG(
+		LogShootGame,
+		Display,
+		TEXT("GAS client report: ReloadEquipAbilityGrant Reload=%d/%s Equip=%d/%s Valid=%s"),
+		OwnerReloadSpecCount,
+		bRemoteReloadSpecsHidden ? TEXT("true") : TEXT("false"),
+		OwnerEquipSpecCount,
+		bRemoteEquipSpecsHidden ? TEXT("true") : TEXT("false"),
+		bClientObservedReloadEquipGrant ? TEXT("true") : TEXT("false"));
+
+	if (!bClientObservedReloadEquipGrant)
+	{
+		FailTest(FString::Printf(
+			TEXT("Client Reload/Equip Ability grant observation invalid; Reload=%d/%s Equip=%d/%s"),
+			OwnerReloadSpecCount,
+			bRemoteReloadSpecsHidden ? TEXT("true") : TEXT("false"),
+			OwnerEquipSpecCount,
+			bRemoteEquipSpecsHidden ? TEXT("true") : TEXT("false")));
 	}
 }
 

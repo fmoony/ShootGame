@@ -108,6 +108,16 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Refire", meta = (ClampMin = 0, ClampMax = 5, Units = "s"))
 	float RefireRate = 0.5f;
 
+	/** 服务器权威换弹事务等待时长；表现 Montage 不得反向决定该值。 */
+	UPROPERTY(EditAnywhere, Category="Timing", meta = (ClampMin = 0, Units = "s"))
+	float ReloadDuration = 1.5f;
+
+	/** 服务器权威切枪事务等待时长；表现 Montage 不得反向决定该值。 */
+	UPROPERTY(EditAnywhere, Category="Timing", meta = (ClampMin = 0, Units = "s"))
+	float EquipDuration = 0.5f;
+
+	/** Game time of last shot fired, used to enforce refire rate on semi auto */
+
 	/** Game time of last shot fired, used to enforce refire rate on semi auto */
 	float TimeOfLastShot = 0.0f;
 
@@ -203,6 +213,14 @@ public:
 	/** Returns the third person mesh */
 	UFUNCTION(BlueprintPure, Category="Weapon")
 	USkeletalMeshComponent* GetThirdPersonMesh() const { return ThirdPersonMesh; };
+
+	/** 返回服务器权威换弹事务等待时长。 */
+	float GetReloadDuration() const { return ReloadDuration; }
+
+	/** 返回服务器权威切枪事务等待时长。 */
+	float GetEquipDuration() const { return EquipDuration; }
+
+	/** Returns the current bullet count；绑定 Inventory 时从 MagazineAmmo 读取。 */
 
 	/** Returns the first person anim instance class */
 	const TSubclassOf<UAnimInstance>& GetFirstPersonAnimInstanceClass() const;
