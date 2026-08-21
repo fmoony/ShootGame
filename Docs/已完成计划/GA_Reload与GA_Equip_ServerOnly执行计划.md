@@ -1,4 +1,4 @@
-# 第五阶段：GA_Reload 与 GA_Equip ServerOnly 执行计划
+# 第五阶段：GA_Reload 与 GA_Equip ServerOnly 执行计划（已完成）
 
 ## 1. 阶段定位
 
@@ -523,3 +523,20 @@ Saved/Automation/Runs/<timestamp>/Summary.json
 6. 高丢包下 Fire、Reload、Equip 的取消和最终收敛数据。
 
 默认后续候选仍是 P1 Local Predicted 基础射击反馈，但只有复盘与新的详细计划完成后才能实施。
+
+---
+
+## 15. 完成确认（2026-08-21）
+
+第 13 节的完成条件已全部满足：
+
+- 5A `d4135f6`：Inventory Reload 原子事务、Tag 合同、两个 Ability 壳体与服务器幂等授予；
+- 5B `b2a2f8c`：GA_Reload ServerOnly 完整闭环；
+- 弱网修复 `eccc65c`：换弹单次输入不被残留 `State.Reloading` 吞掉；
+- Fire 弱网修复 `df35777`：Fire 客户端预检同规则 + 换弹后单发弱网验证；
+- 5C / 5D `766198d`：GA_Equip ServerOnly 替换旧切枪 RPC、`CommitActiveWeapon` 原子提交、删除 `ServerSwitchWeapon`、Montage 只读检查与文档更新；
+- 5D 收尾补充（本次提交）：`Die()` / `EndPlay()` 显式取消 GA_Equip，重生防御性清理 `State.Equipping`，Disconnect / Respawn 自动化断言同时检查活动 GA_Equip 与 `State.Equipping` 残留；
+- 完整七阶段回归 Passed（含本次收尾改动）：`Saved/Automation/Runs/20260821_140505/Summary.json`；
+- Montage 候选为 `AnimSequence`（非 `UAnimMontage`），按本计划第 10 节作为 Demo Polish 遗留项，不在本阶段接入。
+
+按第 14 节要求：阶段结束后暂停，不自动进入预测；默认后续候选 P1 Local Predicted 基础射击反馈，只有复盘与新的详细计划完成后才实施。

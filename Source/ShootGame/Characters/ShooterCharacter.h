@@ -304,6 +304,9 @@ protected:
 	/** 幂等取消 GA_Reload；死亡、切枪、角色销毁共用。 */
 	void CancelReloadAbility();
 
+	/** 幂等取消 GA_Equip；死亡、角色销毁与重生防御性清理共用。 */
+	void CancelEquipAbility();
+
 	/** Called when this character's HP is depleted */
 	void Die(AController* KillerController);
 

@@ -627,14 +627,17 @@ Preflight
 GAS 基础生命闭环
 Weapon / Inventory 第二阶段基础闭环
 GA_Fire ServerOnly
+GA_Reload / GA_Equip ServerOnly
 ```
 
-当前正式下一阶段：
+当前状态：阶段复盘暂停，不自动进入客户端预测。
 
-> GA_Reload 与 GA_Equip ServerOnly。
+默认后续候选：
 
-详细执行见：
+> P1 Local Predicted 基础射击反馈。
 
-[GA_Reload 与 GA_Equip ServerOnly 执行计划](GA_Reload与GA_Equip_ServerOnly执行计划.md)
+已完成的 Reload / Equip 计划与验收证据见：
 
-该阶段先建立换弹与切枪的服务器权威事务、取消边界和自动化基线，不进入客户端预测。完成后必须暂停复盘，再决定 P1 Local Predicted 的真实范围。
+[GA_Reload 与 GA_Equip ServerOnly 执行计划](../已完成计划/GA_Reload与GA_Equip_ServerOnly执行计划.md)
+
+只有完成 ServerOnly 阶段复盘，并形成新的详细执行计划后，才实施 P1 的任何预测内容。

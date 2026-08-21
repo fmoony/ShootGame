@@ -1816,7 +1816,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			!RespawnInventory->GetActiveWeaponInstanceId().IsValid() &&
 			Character->GetCurrentWeapon() == nullptr;
 
-		// ---- 4C / 5B 重生 Tag 清理：Dead / Firing / Reloading 与活动 Ability 不得跨生命保留 ----
+		// ---- 4C / 5B / 5C 重生 Tag 清理：Dead / Firing / Reloading / Equipping 与活动 Ability 不得跨生命保留 ----
 		UShooterAbilitySystemComponent* RespawnShooterAbilitySystemComponent =
 			Cast<UShooterAbilitySystemComponent>(AbilitySystemComponent);
 		bRespawnTagCleanupVerified = AbilitySystemComponent &&
@@ -1826,11 +1826,15 @@ void AShooterNetworkTestCoordinator::PollServerState()
 				ShooterGameplayTags::State_Firing) &&
 			!AbilitySystemComponent->HasMatchingGameplayTag(
 				ShooterGameplayTags::State_Reloading) &&
+			!AbilitySystemComponent->HasMatchingGameplayTag(
+				ShooterGameplayTags::State_Equipping) &&
 			RespawnShooterAbilitySystemComponent &&
 			RespawnShooterAbilitySystemComponent->GetActiveAbilityCountForClass(
 				ShooterPlayerState->GetFireAbilityClass()) == 0 &&
 			RespawnShooterAbilitySystemComponent->GetActiveAbilityCountForClass(
-				ShooterPlayerState->GetReloadAbilityClass()) == 0;
+				ShooterPlayerState->GetReloadAbilityClass()) == 0 &&
+			RespawnShooterAbilitySystemComponent->GetActiveAbilityCountForClass(
+				ShooterPlayerState->GetEquipAbilityClass()) == 0;
 
 		// ---- 4C Reject.NoWeapon：重生 Inventory 为空，激活必须被拒绝 ----
 		if (bServerGasRespawnOk && bServerRespawnInventoryEmpty &&
@@ -1857,7 +1861,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			if (!bRespawnTagCleanupVerified)
 			{
 				FailTest(FString::Printf(
-					TEXT("Respawn ability tag cleanup invalid; DeadTag=%s FiringTag=%s ReloadingTag=%s ActiveFire=%d ActiveReload=%d"),
+					TEXT("Respawn ability tag cleanup invalid; DeadTag=%s FiringTag=%s ReloadingTag=%s EquippingTag=%s ActiveFire=%d ActiveReload=%d ActiveEquip=%d"),
 					AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Dead)
 						? TEXT("true")
 						: TEXT("false"),
@@ -1867,11 +1871,17 @@ void AShooterNetworkTestCoordinator::PollServerState()
 					AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading)
 						? TEXT("true")
 						: TEXT("false"),
+					AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Equipping)
+						? TEXT("true")
+						: TEXT("false"),
 					RespawnShooterAbilitySystemComponent
 						? RespawnShooterAbilitySystemComponent->GetActiveAbilityCountForClass(ShooterPlayerState->GetFireAbilityClass())
 						: INDEX_NONE,
 					RespawnShooterAbilitySystemComponent
 						? RespawnShooterAbilitySystemComponent->GetActiveAbilityCountForClass(ShooterPlayerState->GetReloadAbilityClass())
+						: INDEX_NONE,
+					RespawnShooterAbilitySystemComponent
+						? RespawnShooterAbilitySystemComponent->GetActiveAbilityCountForClass(ShooterPlayerState->GetEquipAbilityClass())
 						: INDEX_NONE));
 				return;
 			}

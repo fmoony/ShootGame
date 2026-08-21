@@ -307,7 +307,7 @@ Enhanced Input / AI Intent
 
 ## 12. GA_Reload / GA_Equip ServerOnly 已落地
 
-GA_Reload / GA_Equip 阶段（5A / 5B / 5C）已落地事实：
+GA_Reload / GA_Equip 阶段（5A / 5B / 5C / 5D）已落地事实：
 
 ```text
 IA_Reload
@@ -338,6 +338,8 @@ IA_SwitchWeapon
 - [4A 开发记录](../开发记录/2026-08-20-0735-GAS建立开火Ability输入与授予生命周期.md)
 - [4B 开发记录](../开发记录/2026-08-20-0745-GAS将玩家开火迁移为ServerOnlyAbility.md)
 - [4C 开发记录](../开发记录/2026-08-20-0756-GAS补齐开火取消边界与NPCAbility链路.md)
+- [GA_Reload / GA_Equip 执行计划](../已完成计划/GA_Reload与GA_Equip_ServerOnly执行计划.md)
+- [5C / 5D 开发记录](../开发记录/2026-08-21-1349-GAS完成5C装备事务与5D收尾.md)
 - [ShootGame 代码规范](../代码规范.md)
 
 当前架构事实基线：
@@ -351,6 +353,9 @@ IA_SwitchWeapon
 - 4C：`4cb9003 GAS：补齐开火取消边界与 NPC Ability 链路`
 - 5A：`d4135f6 GAS：建立换弹装备 Ability 与弹药事务基础`
 - 5B：`b2a2f8c GAS：实现服务器权威换弹事务`
+- Reload 弱网修复：`eccc65c 修复：避免弱网下换弹输入被残留标签吞掉`
 - Fire 弱网修复：`df35777 修复：Fire ServerOnly 客户端预检与换弹后单发弱网验证`
+- 5C / 5D：`766198d GAS：完成5C装备事务与5D收尾`
 - Inventory 完整七阶段回归：Passed，Summary 见 `Saved/Automation/Runs/20260819_175505/Summary.json`。
 - GA_Fire 阶段完整回归：由 4D 开发记录保存最终 `Summary.json` 路径。
+- GA_Reload / GA_Equip 阶段完整回归：Passed，Summary 见 `Saved/Automation/Runs/20260821_134252/Summary.json`。

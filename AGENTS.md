@@ -37,8 +37,8 @@ Source/ShootGame/
 - [Shooter 模板蓝图分析](Docs/Shooter模板蓝图分析.md)：说明 Shooter 模板中的第一/第三人称动画蓝图、Control Rig、武器蓝图及其网络职责边界。
 - [FirstPerson 清理与架构审计](Docs/FirstPerson清理与架构审计.md)：记录旧模板资产依赖闭包、根目录 C++ 类去留和分步清理顺序。
 - [Shooter 完整 Demo 最终路线规划](Docs/执行计划/Shooter完整Demo最终路线规划.md)：记录最终 Demo 目标、系统边界、推荐实施顺序与当前阶段。
-- [GAS、动画分层与客户端预测扩展计划](Docs/执行计划/GAS动画分层与预测扩展计划.md)：规划 GAS 生命周期、第三人称上下半身分层、简单武器背包与开火预测的渐进式接入路线。
-- [GA_Reload 与 GA_Equip ServerOnly 执行计划](Docs/执行计划/GA_Reload与GA_Equip_ServerOnly执行计划.md)：当前下一阶段；规划换弹原子事务、服务器权威切枪、互斥 Tag 与自动化验收。
+- [GAS、动画分层与客户端预测扩展计划](Docs/执行计划/GAS动画分层与预测扩展计划.md)：候选技术路线；规划 GAS 生命周期、第三人称上下半身分层、简单武器背包与开火预测的渐进式接入路线。
+- [GA_Reload 与 GA_Equip ServerOnly 执行计划](Docs/已完成计划/GA_Reload与GA_Equip_ServerOnly执行计划.md)：已完成（2026-08-21）；记录换弹原子事务、服务器权威切枪、互斥 Tag、Montage 检查与完整回归。
 - [已完成计划归档](Docs/已完成计划/)：仅在追溯历史决策、验收证据或旧阶段边界时进入，不在主导航中逐项列出。
 - [代码规范](Docs/代码规范.md)：C++ 命名、文件结构、注释、日志和网络代码约定。
 - [自动化测试](Docs/自动化测试.md)：说明编译、Automation 测试及服务器双客户端联机会话脚本的使用方式。

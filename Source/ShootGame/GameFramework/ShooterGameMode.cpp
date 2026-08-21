@@ -11,6 +11,7 @@
 #include "ShooterPlayerState.h"
 #include "ShooterAbilitySystemComponent.h"
 #include "ShooterGameplayAbility_Reload.h"
+#include "ShooterGameplayAbility_Equip.h"
 #include "ShooterGameplayTags.h"
 #include "Weapons/ShooterWeapon.h"
 #include "Weapons/ShooterWeaponHolder.h"
@@ -107,10 +108,12 @@ void AShooterGameMode::Logout(AController* Exiting)
 					}
 				}
 
-				// 5B Cancel.Disconnect：只检查真正断线连接的 PlayerState，
-				// 不得残留活动 GA_Reload 或 State.Reloading。
+				// 5B / 5C Cancel.Disconnect：只检查真正断线连接的 PlayerState，
+				// 不得残留活动 GA_Reload / GA_Equip 或 State.Reloading / State.Equipping。
 				int32 ActiveReloadAbilityCount = 0;
 				int32 ReloadingTagCount = 0;
+				int32 ActiveEquipAbilityCount = 0;
+				int32 EquippingTagCount = 0;
 				AShooterPlayerState* DisconnectedPlayerState = DisconnectController.IsValid()
 					? DisconnectController->GetPlayerState<AShooterPlayerState>()
 					: nullptr;
@@ -123,35 +126,47 @@ void AShooterGameMode::Logout(AController* Exiting)
 				{
 					ActiveReloadAbilityCount += ShooterAbilitySystemComponent->GetActiveAbilityCountForClass(
 						DisconnectedPlayerState->GetReloadAbilityClass());
+					ActiveEquipAbilityCount += ShooterAbilitySystemComponent->GetActiveAbilityCountForClass(
+						DisconnectedPlayerState->GetEquipAbilityClass());
 					if (ShooterAbilitySystemComponent->HasMatchingGameplayTag(
 						ShooterGameplayTags::State_Reloading))
 					{
 						++ReloadingTagCount;
 					}
+					if (ShooterAbilitySystemComponent->HasMatchingGameplayTag(
+						ShooterGameplayTags::State_Equipping))
+					{
+						++EquippingTagCount;
+					}
 				}
 
 				if (ActiveWeaponCount <= 0 || OrphanWeaponCount > 0 ||
-					ActiveReloadAbilityCount > 0 || ReloadingTagCount > 0)
+					ActiveReloadAbilityCount > 0 || ReloadingTagCount > 0 ||
+					ActiveEquipAbilityCount > 0 || EquippingTagCount > 0)
 				{
 					UE_LOG(
 						LogShootGame,
 						Error,
-						TEXT("AUTOMATION_TEST_FAILURE: Disconnect left invalid weapon ownership Active=%d Orphans=%d ActiveReload=%d ReloadingTags=%d"),
+						TEXT("AUTOMATION_TEST_FAILURE: Disconnect left invalid weapon ownership Active=%d Orphans=%d ActiveReload=%d ReloadingTags=%d ActiveEquip=%d EquippingTags=%d"),
 						ActiveWeaponCount,
 						OrphanWeaponCount,
 						ActiveReloadAbilityCount,
-						ReloadingTagCount);
+						ReloadingTagCount,
+						ActiveEquipAbilityCount,
+						EquippingTagCount);
 					return;
 				}
 
 				UE_LOG(
 					LogShootGame,
 					Display,
-					TEXT("AUTOMATION_TEST_DISCONNECT_SUCCESS ActiveWeapons=%d Orphans=%d ActiveReload=%d ReloadingTags=%d"),
+					TEXT("AUTOMATION_TEST_DISCONNECT_SUCCESS ActiveWeapons=%d Orphans=%d ActiveReload=%d ReloadingTags=%d ActiveEquip=%d EquippingTags=%d"),
 					ActiveWeaponCount,
 					OrphanWeaponCount,
 					ActiveReloadAbilityCount,
-					ReloadingTagCount);
+					ReloadingTagCount,
+					ActiveEquipAbilityCount,
+					EquippingTagCount);
 				}),
 			0.5f,
 			false);

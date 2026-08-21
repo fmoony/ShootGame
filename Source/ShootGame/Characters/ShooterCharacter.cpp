@@ -105,11 +105,12 @@ void AShooterCharacter::EndPlay(EEndPlayReason::Type EndPlayReason)
 	// 清理角色自身的延迟回调，避免销毁后继续触发。
 	GetWorld()->GetTimerManager().ClearTimer(RespawnTimer);
 
-	// 角色销毁 / 断线时先结束 GA_Fire / GA_Reload，避免 Ability 生命周期残留旧 Avatar 或旧 Weapon。
+	// 角色销毁 / 断线时先结束 GA_Fire / GA_Reload / GA_Equip，避免 Ability 生命周期残留旧 Avatar 或旧 Weapon。
 	if (HasAuthority())
 	{
 		CancelFireAbility();
 		CancelReloadAbility();
+		CancelEquipAbility();
 	}
 
 	// 武器是服务器按角色生命周期生成的独立 Actor；Owner 关系不会自动级联销毁。
@@ -170,6 +171,7 @@ void AShooterCharacter::InitializeAbilityActorInfo()
 		AbilitySystemComponent->RemoveLooseGameplayTag(ShooterGameplayTags::State_Dead);
 		AbilitySystemComponent->RemoveLooseGameplayTag(ShooterGameplayTags::State_Firing);
 		AbilitySystemComponent->RemoveLooseGameplayTag(ShooterGameplayTags::State_Reloading);
+		AbilitySystemComponent->RemoveLooseGameplayTag(ShooterGameplayTags::State_Equipping);
 	}
 
 	// 注册属性集（所有机器都需要；属性数值由属性集复制收敛）。
@@ -396,6 +398,16 @@ void AShooterCharacter::CancelReloadAbility()
 	{
 		ShooterAbilitySystemComponent->CancelAbilitiesByTag(
 			ShooterGameplayTags::Input_Reload);
+	}
+}
+
+void AShooterCharacter::CancelEquipAbility()
+{
+	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent =
+		Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
+	{
+		ShooterAbilitySystemComponent->CancelAbilitiesByTag(
+			ShooterGameplayTags::Input_Equip_Next);
 	}
 }
 
@@ -728,13 +740,14 @@ void AShooterCharacter::Die(AController* KillerController)
 		return;
 	}
 
-	// 死亡事务：先设置 State.Dead 并取消 GA_Fire / GA_Reload，再执行 Death Clear。
+	// 死亡事务：先设置 State.Dead 并取消 GA_Fire / GA_Reload / GA_Equip，再执行 Death Clear。
 	if (UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponent())
 	{
 		AbilitySystemComponent->AddLooseGameplayTag(ShooterGameplayTags::State_Dead);
 	}
 	CancelFireAbility();
 	CancelReloadAbility();
+	CancelEquipAbility();
 
 	// Death Clear：停火 -> 销毁全部 WeaponActor -> Inventory Clear -> Active Invalid -> CurrentWeapon null。
 	if (IsValid(CurrentWeapon))
