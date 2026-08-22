@@ -178,6 +178,14 @@ void AShooterCharacter::GetAimPresentationAngles(float& OutAimYaw, float& OutAim
 		OutAimPitch);
 }
 
+float AShooterCharacter::GetAimPitchN() const
+{
+	float AimYaw = 0.0f;
+	float AimPitch = 0.0f;
+	GetAimPresentationAngles(AimYaw, AimPitch);
+	return FMath::Sin(FMath::DegreesToRadians(AimPitch));
+}
+
 void AShooterCharacter::StartPresentationAimSampling()
 {
 	// B2：服务器受限频率采样表现目标（10Hz 调试起点 + 变化门槛）。
@@ -520,12 +528,6 @@ void AShooterCharacter::OnRep_CurrentHP()
 	OnDamaged.Broadcast(MaxHP > 0.0f ? CurrentHP / MaxHP : 0.0f);
 }
 
-void AShooterCharacter::PostNetReceive()
-{
-	Super::PostNetReceive();
-	ApplyRemoteAimPitch();
-}
-
 void AShooterCharacter::OnRep_IsDead()
 {
 	if (bIsDead)
@@ -832,7 +834,6 @@ void AShooterCharacter::OnRep_CurrentWeapon(AShooterWeapon* PreviousWeapon)
 
 	// 客户端根据复制的武器引用刷新表现
 	ApplyCurrentWeapon();
-	ApplyRemoteAimPitch();
 
 	// B3：武器切换时重置观察端平滑，避免从旧武器/旧表现目标继续插值。
 	ResetPresentationAimSmoothing();
@@ -955,31 +956,6 @@ void AShooterCharacter::Die(AController* KillerController)
 
 	// 只有服务器安排角色销毁和重生。
 	GetWorld()->GetTimerManager().SetTimer(RespawnTimer, this, &AShooterCharacter::OnRespawn, RespawnTime, false);
-}
-
-void AShooterCharacter::ApplyRemoteAimPitch()
-{
-	// 本地玩家和服务器都有 Controller，原 AnimBP 路径可以直接读取 ControlRotation。
-	// 这里只有观察其他玩家的客户端需要使用 APawn 已复制的 RemoteViewPitch。
-	if (GetLocalRole() != ROLE_SimulatedProxy || !GetMesh())
-	{
-		return;
-	}
-
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	FNumericProperty* PitchProperty = AnimInstance
-		? FindFProperty<FNumericProperty>(AnimInstance->GetClass(), TEXT("PitchN"))
-		: nullptr;
-	if (!PitchProperty || !PitchProperty->IsFloatingPoint())
-	{
-		return;
-	}
-
-	// 模板 AnimBP 的 PitchN 定义为瞄准前向与世界 Up 的点积，即 sin(Pitch)。
-	void* PitchValue = PitchProperty->ContainerPtrToValuePtr<void>(AnimInstance);
-	PitchProperty->SetFloatingPointPropertyValue(
-		PitchValue,
-		GetBaseAimRotation().Vector().Z);
 }
 
 void AShooterCharacter::ApplyDeathState()

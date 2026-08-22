@@ -2707,21 +2707,15 @@ void AShooterNetworkTestCoordinator::PollClientState()
 
 		if (!bClientReportedRemoteAim)
 		{
-			const FNumericProperty* PitchProperty = FindFProperty<FNumericProperty>(
-				RemoteAnimInstance->GetClass(),
-				TEXT("PitchN"));
-			if (PitchProperty && PitchProperty->IsFloatingPoint())
+			// B3 数据契约：远端角色通过 GetAimPitchN 提供 sin(俯仰)（与旧 PitchN 语义一致）。
+			// 观察端平滑目标收敛后应与远端 GetBaseAimRotation 俯仰一致。
+			const float PitchN = RemoteCharacter->GetAimPitchN();
+			const float ExpectedPitchN = RemoteCharacter->GetBaseAimRotation().Vector().Z;
+			if (FMath::Abs(ExpectedPitchN) >= 0.2f &&
+				FMath::IsNearlyEqual(PitchN, ExpectedPitchN, 0.05f))
 			{
-				const void* PitchValue = PitchProperty->ContainerPtrToValuePtr<void>(RemoteAnimInstance);
-				const float PitchN = static_cast<float>(
-					PitchProperty->GetFloatingPointPropertyValue(PitchValue));
-				const float ExpectedPitchN = RemoteCharacter->GetBaseAimRotation().Vector().Z;
-				if (FMath::Abs(ExpectedPitchN) >= 0.2f &&
-					FMath::IsNearlyEqual(PitchN, ExpectedPitchN, 0.05f))
-				{
-					bClientReportedRemoteAim = true;
-					ServerReportClientObservedRemoteAim(PitchN, ExpectedPitchN);
-				}
+				bClientReportedRemoteAim = true;
+				ServerReportClientObservedRemoteAim(PitchN, ExpectedPitchN);
 			}
 		}
 

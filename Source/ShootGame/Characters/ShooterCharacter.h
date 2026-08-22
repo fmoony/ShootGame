@@ -232,9 +232,6 @@ protected:
 	/** 重置平滑状态：武器切换、死亡、传送、首次初始化时直接采用最新目标，不从旧值插值。 */
 	void ResetPresentationAimSmoothing();
 
-	/** 客户端收到 RemoteViewPitch 后刷新远端第三人称瞄准俯仰。 */
-	virtual void PostNetReceive() override;
-
 	/** Gameplay cleanup */
 	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
 
@@ -302,6 +299,12 @@ public:
 	 *  拥有者或回退：基于 GetBaseAimRotation（本地视角 / 角色 Forward + 远端 Pitch）。 */
 	UFUNCTION(BlueprintCallable, Category = "Aim")
 	void GetAimPresentationAngles(float& OutAimYaw, float& OutAimPitch) const;
+
+	/** AO 就绪形式的垂直瞄准值（sin(radians(AimPitch))，值域 [-1, 1]）：
+	 *  与旧 PitchN 契约（瞄准前向与世界 Up 的点积）语义一致，供 AimOffset Y 轴直接消费。
+	 *  AnimBP 蓝图契约改造后，运行时不再需要外部反射写入。 */
+	UFUNCTION(BlueprintCallable, Category = "Aim")
+	float GetAimPitchN() const;
 
 	/** 最大瞄准距离（预散布目标 Trace 长度）。 */
 	float GetMaxAimDistance() const { return MaxAimDistance; }
@@ -371,9 +374,6 @@ protected:
 
 	/** Returns true if the character already owns a weapon of the given class */
 	AShooterWeapon* FindWeaponOfType(TSubclassOf<AShooterWeapon> WeaponClass) const;
-
-	/** 将 Character 自带的远程视角数据写入模板第三人称 AnimBP。 */
-	void ApplyRemoteAimPitch();
 
 	/** 本次伤害的击杀者；Health 归零桥接时用于现有 Death/Kill/计分闭环。 */
 	AController* PendingDeathInstigator = nullptr;

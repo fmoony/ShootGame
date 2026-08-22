@@ -241,13 +241,19 @@ namespace ShooterWeaponAutomationTests
 			{
 				return false;
 			}
-
-			const FNumericProperty* PitchProperty =
-				FindFProperty<FNumericProperty>(AnimClass, TEXT("PitchN"));
-			Test.TestTrue(
-				FString::Printf(TEXT("Third-person AnimBP exposes floating-point PitchN: %s"), AnimClassPath),
-				PitchProperty && PitchProperty->IsFloatingPoint());
 		}
+
+		// B3 数据契约：AnimBP 的 AimOffset 俯仰输入不再依赖外部反射写入，
+		// Character 提供 AO 就绪形式的 GetAimPitchN（sin 俯仰，与旧 PitchN 语义一致）。
+		const UFunction* AimPitchNFunction = AShooterCharacter::StaticClass()
+			? AShooterCharacter::StaticClass()->FindFunctionByName(FName(TEXT("GetAimPitchN")))
+			: nullptr;
+		Test.TestNotNull(
+			TEXT("AShooterCharacter exposes GetAimPitchN data contract"),
+			AimPitchNFunction);
+		Test.TestTrue(
+			TEXT("GetAimPitchN is BlueprintCallable"),
+			AimPitchNFunction && AimPitchNFunction->HasAnyFunctionFlags(FUNC_BlueprintCallable));
 
 		return true;
 	}
