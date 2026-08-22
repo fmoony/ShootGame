@@ -548,6 +548,14 @@ private:
 	int32 AimRotationObserverQuantizedSamples = 0;
 	bool bAimRotationObserverPresentationSeen = false;
 
+	// ---- B3 观察端平滑与局部角度契约验证 ----
+	float AimRotationObserverMinSmoothGap = FLT_MAX;
+	int32 AimRotationObserverPitchContractSamples = 0;
+	int32 AimRotationObserverYawStableSamples = 0;
+	float AimRotationObserverAimYawFirst = 0.0f;
+	bool bAimRotationObserverAimYawFirstSet = false;
+	bool bAimRotationObserverSmoothingSeen = false;
+
 	/** B1 服务器侧瞄准旋转阶段（PollServerState 专用分支）。 */
 	void RunAimRotationServerPhase();
 

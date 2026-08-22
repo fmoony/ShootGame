@@ -164,6 +164,9 @@ protected:
 	/** Gameplay initialization */
 	virtual void BeginPlay() override;
 
+	/** 观察端每帧平滑表现目标（Tick）。 */
+	virtual void Tick(float DeltaSeconds) override;
+
 	/** 服务器（含监听主机）在占有发生时建立 ASC ActorInfo。 */
 	virtual void PossessedBy(AController* NewController) override;
 
@@ -203,6 +206,31 @@ protected:
 
 	/** 服务器采样一次表现目标：超过变化门槛才写入复制字段。 */
 	void SamplePresentationAimTarget();
+
+	// ---- B3 观察端平滑与数据契约 ----
+
+	/** 观察端当前平滑目标（本地成员，不复制）：每帧向最新网络目标指数插值。 */
+	FVector SmoothedPresentationAimTarget = FVector::ZeroVector;
+
+	/** 观察端最近一次收到网络目标的世界时间（回退判据）。 */
+	float LastPresentationAimUpdateTime = -1.0f;
+
+	/** 观察端上一帧视点位置（传送/重生检测）。 */
+	FVector LastPresentationAimViewLocation = FVector::ZeroVector;
+
+	/** 平滑指数速率（1/s）：越大收敛越快。B3 调试起点，最终值由 B6 观感验收决定。 */
+	UPROPERTY(EditAnywhere, Category = "Aim", meta = (ClampMin = 0.0))
+	float PresentationAimSmoothingRate = 8.0f;
+
+	/** 超过该时长没有新的网络目标时，回退到角色 Forward + 当前远端 Pitch。 */
+	UPROPERTY(EditAnywhere, Category = "Aim", meta = (ClampMin = 0.1, Units = "s"))
+	float PresentationAimFallbackDelay = 0.5f;
+
+	/** 观察端每帧平滑更新（仅 ROLE_SimulatedProxy 且非拥有者）。 */
+	void UpdatePresentationAimSmoothing(float DeltaSeconds);
+
+	/** 重置平滑状态：武器切换、死亡、传送、首次初始化时直接采用最新目标，不从旧值插值。 */
+	void ResetPresentationAimSmoothing();
 
 	/** 客户端收到 RemoteViewPitch 后刷新远端第三人称瞄准俯仰。 */
 	virtual void PostNetReceive() override;
@@ -265,6 +293,15 @@ public:
 
 	/** 只读访问服务器表现目标（观察端读取复制值；拥有者始终为零向量）。 */
 	const FVector& GetPresentationAimTarget() const { return PresentationAimTarget; }
+
+	/** 只读访问观察端平滑后的表现目标（本地成员；观察端消费入口）。 */
+	const FVector& GetSmoothedPresentationAimTarget() const { return SmoothedPresentationAimTarget; }
+
+	/** 观察端平滑后的表现角度（局部坐标，度）——AnimBP 数据契约出口（B3）。
+	 *  模拟代理：由平滑目标相对 Mesh 变换计算局部 AimYaw / AimPitch；
+	 *  拥有者或回退：基于 GetBaseAimRotation（本地视角 / 角色 Forward + 远端 Pitch）。 */
+	UFUNCTION(BlueprintCallable, Category = "Aim")
+	void GetAimPresentationAngles(float& OutAimYaw, float& OutAimPitch) const;
 
 	/** 最大瞄准距离（预散布目标 Trace 长度）。 */
 	float GetMaxAimDistance() const { return MaxAimDistance; }

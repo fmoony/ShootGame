@@ -3830,7 +3830,12 @@ void AShooterNetworkTestCoordinator::RunAimRotationClientPhase()
 			bRangeSatisfied &&
 			AimRotationObserverPresentationGoodSamples >= 2 &&
 			AimRotationObserverQuantizedSamples >= 1 &&
-			bAimRotationObserverPresentationSeen;
+			bAimRotationObserverPresentationSeen &&
+			// B3：平滑目标存在且收敛到网络目标、局部角度契约正确（Pitch 一致、Yaw 稳定）。
+			bAimRotationObserverSmoothingSeen &&
+			AimRotationObserverMinSmoothGap <= 50.0f &&
+			AimRotationObserverPitchContractSamples >= 2 &&
+			AimRotationObserverYawStableSamples >= 2;
 		bClientAimRotationReported = true;
 		const int32 PlayerId = PlayerController->PlayerState
 			? PlayerController->PlayerState->GetPlayerId()
@@ -3839,7 +3844,7 @@ void AShooterNetworkTestCoordinator::RunAimRotationClientPhase()
 			!bAimRotationOwnerPresentationUntouched)
 		{
 			FailTest(FString::Printf(
-				TEXT("AimRotation session failed; observer_yaw_rate_good=%d max_pitch=%.1f min_pitch=%.1f observer_pres_good=%d observer_quantized=%d observer_pres_seen=%s server_pres_verified=%s owner_untouched=%s samples=%d remote=%s"),
+				TEXT("AimRotation session failed; observer_yaw_rate_good=%d max_pitch=%.1f min_pitch=%.1f observer_pres_good=%d observer_quantized=%d observer_pres_seen=%s server_pres_verified=%s owner_untouched=%s smoothing_seen=%s min_smooth_gap=%.1f pitch_contract=%d yaw_stable=%d samples=%d remote=%s"),
 				AimRotationObserverYawGoodSamples,
 				AimRotationObserverMaxPitch,
 				AimRotationObserverMinPitch,
@@ -3848,6 +3853,10 @@ void AShooterNetworkTestCoordinator::RunAimRotationClientPhase()
 				bAimRotationObserverPresentationSeen ? TEXT("true") : TEXT("false"),
 				bAimRotationServerPresentationVerified ? TEXT("true") : TEXT("false"),
 				bAimRotationOwnerPresentationUntouched ? TEXT("true") : TEXT("false"),
+				bAimRotationObserverSmoothingSeen ? TEXT("true") : TEXT("false"),
+				AimRotationObserverMinSmoothGap,
+				AimRotationObserverPitchContractSamples,
+				AimRotationObserverYawStableSamples,
 				AimRotationObserverSampleCount,
 				*GetNameSafe(AimRotationObservedCharacter.Get())));
 			return;
@@ -3856,7 +3865,7 @@ void AShooterNetworkTestCoordinator::RunAimRotationClientPhase()
 		UE_LOG(
 			LogShootGame,
 			Display,
-			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS AimRotation=true Presentation=true PlayerId=%d ObserverYawRate=%s ObserverPitchRange=%.1f..%.1f PresentationObserver=%d/%d ServerPresentationVerified=%s OwnerUntouched=%s ObserverSamples=%d MuzzleAngleObserver=%.1f..%.1f"),
+			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS AimRotation=true Presentation=true Smoothing=true PlayerId=%d ObserverYawRate=%s ObserverPitchRange=%.1f..%.1f PresentationObserver=%d/%d ServerPresentationVerified=%s OwnerUntouched=%s MinSmoothGap=%.1f PitchContract=%d YawStable=%d ObserverSamples=%d MuzzleAngleObserver=%.1f..%.1f"),
 			PlayerId,
 			AimRotationObserverYawGoodSamples >= 3 ? TEXT("true") : TEXT("false"),
 			AimRotationObserverMinPitch,
@@ -3865,6 +3874,9 @@ void AShooterNetworkTestCoordinator::RunAimRotationClientPhase()
 			AimRotationObserverQuantizedSamples,
 			bAimRotationServerPresentationVerified ? TEXT("true") : TEXT("false"),
 			bAimRotationOwnerPresentationUntouched ? TEXT("true") : TEXT("false"),
+			AimRotationObserverMinSmoothGap,
+			AimRotationObserverPitchContractSamples,
+			AimRotationObserverYawStableSamples,
 			AimRotationObserverSampleCount,
 			AimRotationObserverMuzzleAngleMin,
 			AimRotationObserverMuzzleAngleMax);
@@ -3973,6 +3985,46 @@ void AShooterNetworkTestCoordinator::RunAimRotationObserverPhase()
 				bQuantizedOk ? TEXT("true") : TEXT("false"),
 				AimRotationObserverPresentationGoodSamples);
 		}
+
+		// B3：观察端平滑与局部角度契约验证。
+		const FVector SmoothedTarget = RemoteCharacter->GetSmoothedPresentationAimTarget();
+		const float SmoothGap = FVector::Dist(SmoothedTarget, RemotePresentationTarget);
+		AimRotationObserverMinSmoothGap = FMath::Min(AimRotationObserverMinSmoothGap, SmoothGap);
+		if (!SmoothedTarget.IsNearlyZero())
+		{
+			bAimRotationObserverSmoothingSeen = true;
+		}
+		float LocalAimYaw = 0.0f;
+		float LocalAimPitch = 0.0f;
+		RemoteCharacter->GetAimPresentationAngles(LocalAimYaw, LocalAimPitch);
+		const float RemotePitchNorm = FRotator::NormalizeAxis(RemoteAim.Pitch);
+		const float PitchDiff = FMath::Abs(FRotator::NormalizeAxis(LocalAimPitch - RemotePitchNorm));
+		if (PitchDiff <= 20.0f)
+		{
+			++AimRotationObserverPitchContractSamples;
+		}
+		// 局部 AimYaw 稳定性：第三人称 Mesh 通常带固定相对偏航（如 -90°），绝对值为常数偏移；
+		// 身体随表现方向转向时局部 AimYaw 应保持稳定（相对首个采样点漂移 ≤ 30°）。
+		if (!bAimRotationObserverAimYawFirstSet)
+		{
+			AimRotationObserverAimYawFirst = LocalAimYaw;
+			bAimRotationObserverAimYawFirstSet = true;
+		}
+		if (FMath::Abs(FRotator::NormalizeAxis(LocalAimYaw - AimRotationObserverAimYawFirst)) <= 30.0f)
+		{
+			++AimRotationObserverYawStableSamples;
+		}
+		UE_LOG(
+			LogShootGame,
+			Display,
+			TEXT("B3_AIM_SMOOTHING_OBSERVER t=%.2f smooth_gap=%.1f min_gap=%.1f local_yaw=%.1f local_pitch=%.1f remote_pitch=%.1f pitch_diff=%.1f"),
+			Now,
+			SmoothGap,
+			AimRotationObserverMinSmoothGap,
+			LocalAimYaw,
+			LocalAimPitch,
+			RemotePitchNorm,
+			PitchDiff);
 
 		// 观察端 yaw 判据验证旋转速率与方向（+30°/s），而不是把远端绝对角度
 		// 与本地阶段时间直接比对（两玩家阶段可相差数秒，绝对比对必然失败）。

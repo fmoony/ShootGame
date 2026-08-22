@@ -23,6 +23,7 @@
 #include "ShooterGameMode.h"
 #include "ShooterPlayerState.h"
 #include "ShootGame.h"
+#include "ShooterAimMath.h"
 #include "Animation/AnimInstance.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Net/UnrealNetwork.h"
@@ -86,6 +87,97 @@ void AShooterCharacter::BeginPlay()
 	OnDamaged.Broadcast(MaxHP > 0.0f ? CurrentHP / MaxHP : 0.0f);
 }
 
+void AShooterCharacter::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	// B3：观察端平滑只在模拟代理（观察其他玩家）上运行。
+	UpdatePresentationAimSmoothing(DeltaSeconds);
+}
+
+void AShooterCharacter::UpdatePresentationAimSmoothing(float DeltaSeconds)
+{
+	if (GetLocalRole() != ROLE_SimulatedProxy || !GetMesh())
+	{
+		return;
+	}
+
+	const float Now = GetWorld()->GetTimeSeconds();
+	const FVector ViewLocation = GetPawnViewLocation();
+
+	// 首次初始化 / 重置：平滑目标尚未建立、死亡、或视点发生传送级跳变时，
+	// 直接采用最新网络目标（或回退方向），避免从旧 Pawn / 旧位置继续插值。
+	if (PresentationAimTarget.IsNearlyZero() ||
+		bIsDead ||
+		SmoothedPresentationAimTarget.IsNearlyZero() ||
+		FVector::DistSquared(ViewLocation, LastPresentationAimViewLocation) > FMath::Square(500.0f))
+	{
+		ResetPresentationAimSmoothing();
+		LastPresentationAimViewLocation = ViewLocation;
+		return;
+	}
+	LastPresentationAimViewLocation = ViewLocation;
+
+	// 长时间没有有效目标时回退到角色 Forward + 当前远端 Pitch，不保持任意历史点。
+	if (Now - LastPresentationAimUpdateTime > PresentationAimFallbackDelay)
+	{
+		SmoothedPresentationAimTarget = ViewLocation + GetBaseAimRotation().Vector() * GetMaxAimDistance();
+		return;
+	}
+
+	// 指数插值向最新网络目标收敛（世界空间位置插值；角度环绕在局部角度计算时处理）。
+	const float Alpha = 1.0f - FMath::Exp(-PresentationAimSmoothingRate * DeltaSeconds);
+	SmoothedPresentationAimTarget = FMath::Lerp(
+		SmoothedPresentationAimTarget,
+		(FVector)PresentationAimTarget,
+		Alpha);
+}
+
+void AShooterCharacter::ResetPresentationAimSmoothing()
+{
+	// 目标可用时直接采用；否则用回退方向（角色 Forward + 远端 Pitch）。
+	if (!PresentationAimTarget.IsNearlyZero())
+	{
+		SmoothedPresentationAimTarget = PresentationAimTarget;
+	}
+	else if (GetMesh())
+	{
+		SmoothedPresentationAimTarget =
+			GetPawnViewLocation() + GetBaseAimRotation().Vector() * GetMaxAimDistance();
+	}
+	else
+	{
+		SmoothedPresentationAimTarget = FVector::ZeroVector;
+	}
+	LastPresentationAimUpdateTime = GetWorld()->GetTimeSeconds();
+}
+
+void AShooterCharacter::GetAimPresentationAngles(float& OutAimYaw, float& OutAimPitch) const
+{
+	FVector WorldDirection;
+	if (GetLocalRole() == ROLE_SimulatedProxy && !SmoothedPresentationAimTarget.IsNearlyZero())
+	{
+		// 观察端：平滑后的表现目标方向（计划 §B3：世界方向 = Normalized(目标 - AimPivot)）。
+		WorldDirection = SmoothedPresentationAimTarget - GetPawnViewLocation();
+	}
+	else
+	{
+		// 拥有者 / 回退：本地视角方向或远端 GetBaseAimRotation。
+		WorldDirection = GetBaseAimRotation().Vector();
+	}
+
+	// 局部方向 = Mesh 变换逆变换（计划 §B3），AimYaw 水平角 / AimPitch 垂直角。
+	const USceneComponent* MeshOrRoot = GetMesh() ? (const USceneComponent*)GetMesh() : (const USceneComponent*)GetRootComponent();
+	const FTransform ReferenceTransform = MeshOrRoot
+		? MeshOrRoot->GetComponentTransform()
+		: FTransform::Identity;
+	FShooterAimMath::WorldDirectionToLocalAngles(
+		WorldDirection,
+		ReferenceTransform,
+		OutAimYaw,
+		OutAimPitch);
+}
+
 void AShooterCharacter::StartPresentationAimSampling()
 {
 	// B2：服务器受限频率采样表现目标（10Hz 调试起点 + 变化门槛）。
@@ -128,7 +220,15 @@ void AShooterCharacter::SamplePresentationAimTarget()
 
 void AShooterCharacter::OnRep_PresentationAimTarget()
 {
-	// B2：仅接收；观察端消费与平滑在 B3 接入。
+	// B2：接收并刷新回退判据时间；B3：首次收到时直接采用（平滑从新目标起步）。
+	if (GetLocalRole() == ROLE_SimulatedProxy)
+	{
+		LastPresentationAimUpdateTime = GetWorld()->GetTimeSeconds();
+		if (SmoothedPresentationAimTarget.IsNearlyZero())
+		{
+			ResetPresentationAimSmoothing();
+		}
+	}
 	UE_LOG(
 		LogShootGame,
 		VeryVerbose,
@@ -733,6 +833,9 @@ void AShooterCharacter::OnRep_CurrentWeapon(AShooterWeapon* PreviousWeapon)
 	// 客户端根据复制的武器引用刷新表现
 	ApplyCurrentWeapon();
 	ApplyRemoteAimPitch();
+
+	// B3：武器切换时重置观察端平滑，避免从旧武器/旧表现目标继续插值。
+	ResetPresentationAimSmoothing();
 }
 
 void AShooterCharacter::ApplyCurrentWeapon()
@@ -889,6 +992,9 @@ void AShooterCharacter::ApplyDeathState()
 
 	// stop character movement
 	GetCharacterMovement()->StopMovementImmediately();
+
+	// B3：死亡时重置观察端平滑，避免从旧状态继续插值（Tick 内回退到角色 Forward + 远端 Pitch）。
+	ResetPresentationAimSmoothing();
 
 	// 只禁用本机拥有者的输入；模拟代理本来就没有本地输入。
 	if (IsLocallyControlled())
