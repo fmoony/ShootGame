@@ -22,7 +22,10 @@ Source/ShootGame/
 │   ├── ShooterPlayerState.h/.cpp
 │   └── ShooterCameraManager.h/.cpp
 ├── Characters/                 # 玩家角色
-│   └── ShooterCharacter.h/.cpp
+│   ├── ShooterCharacter.h/.cpp
+│   └── Animation/              # 第三人称动画数据源与程序化瞄准 IK 节点
+│       ├── ShooterThirdPersonAnimInstance.h/.cpp
+│       └── AnimNodes/          # ShooterAimIKMath、AnimNode_ShooterAimIK
 ├── AbilitySystem/              # GAS：ShooterAttributeSet、GameplayEffect 工具
 │   ├── ShooterAttributeSet.h/.cpp
 │   └── ShooterGameplayEffectStatics.h/.cpp

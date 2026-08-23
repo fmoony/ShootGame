@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AnimGraphNode_SkeletalControlBase.h"
-#include "ShootGame/Animation/AnimNodes/AnimNode_ShooterAimIK.h"
+#include "ShootGame/Characters/Animation/AnimNodes/AnimNode_ShooterAimIK.h"
 #include "AnimGraphNode_ShooterAimIK.generated.h"
 
 /**

@@ -32,6 +32,8 @@ public class ShootGame : ModuleRules
 			"ShootGame",
 			"ShootGame/GameFramework",
 			"ShootGame/Characters",
+			"ShootGame/Characters/Animation",
+			"ShootGame/Characters/Animation/AnimNodes",
 			"ShootGame/AI",
 			"ShootGame/Weapons",
 			"ShootGame/Inventory",
