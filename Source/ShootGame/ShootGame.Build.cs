@@ -16,6 +16,7 @@ public class ShootGame : ModuleRules
 			"InputCore",
 			"EnhancedInput",
 			"AIModule",
+			"AnimGraphRuntime",
 			"StateTreeModule",
 			"GameplayStateTreeModule",
 			"UMG",

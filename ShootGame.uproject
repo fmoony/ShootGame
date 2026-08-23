@@ -13,6 +13,15 @@
 				"AIModule",
 				"UMG"
 			]
+		},
+		{
+			"Name": "ShootGameEditor",
+			"Type": "Editor",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine",
+				"AnimGraph"
+			]
 		}
 	],
 	"Plugins": [
