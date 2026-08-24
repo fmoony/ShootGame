@@ -96,6 +96,11 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Aim")
 	FName MuzzleSocketName;
 
+	/** 第三人称左手握把 Socket 名；空名表示该武器没有左手握把配置，左手 IK 自动关闭。 */
+	UPROPERTY(EditAnywhere, Category="Aim")
+	FName ThirdPersonLeftHandGripSocketName = NAME_None;
+
+
 	/** Distance ahead of the muzzle that bullets will spawn at */
 	UPROPERTY(EditAnywhere, Category="Aim", meta = (ClampMin = 0, ClampMax = 1000, Units = "cm"))
 	float MuzzleOffset = 10.0f;
@@ -220,6 +225,15 @@ public:
 
 	/** 第三人称网格是否真实拥有 Muzzle socket（Aim IK 启用条件；不存在时不得回退启用）。 */
 	bool HasThirdPersonMuzzleSocket() const;
+
+	/** 返回第三人称左手握把 Socket 名；空名表示当前武器未配置左手握把。 */
+	FName GetThirdPersonLeftHandGripSocketName() const { return ThirdPersonLeftHandGripSocketName; }
+
+	/** 第三人称网格是否真实拥有配置的左手握把 Socket；无配置或 Socket 缺失时返回 false。 */
+	bool HasThirdPersonLeftHandGripSocket() const;
+
+	/** 返回第三人称网格左手握把 Socket 的世界变换；无效状态返回 Identity，不回退到 Actor 变换。 */
+	FTransform GetThirdPersonLeftHandGripWorldTransform() const;
 
 
 	/** 返回服务器权威换弹事务等待时长。 */

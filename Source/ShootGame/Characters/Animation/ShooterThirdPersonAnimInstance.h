@@ -17,6 +17,8 @@ class AShooterWeapon;
  *                        SimulatedProxy / Listen Server 远端观察：Muzzle → 平滑表现目标，C4）；
  *   HandToMuzzle      —— 当前武器 Muzzle 相对角色 Mesh hand socket 的刚性 Transform（附着状态变化时刷新并缓存）；
  *   bAimIKEnabled     —— 程序化 Aim IK 总开关（数据无效时自动关闭）。
+ *   LeftHandGripInRightHandSpace —— 当前武器左手握把 Socket 相对 hand_r 的刚性 Transform（武器/附着事件重建并缓存）；
+ *   bLeftHandIKEnabled     —— 左手 Two Bone IK 总开关（无有效握把数据时自动关闭）。
  *
  * 只承载表现数据，不修改骨骼；骨骼修改由 FAnimNode_ShooterAimIK 完成。
  */
@@ -37,6 +39,15 @@ public:
 	/** 程序化 Aim IK 总开关；无有效角色 / 武器 / Muzzle / HandToMuzzle / AimDirection 时为 false。 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter Aim")
 	bool bAimIKEnabled = false;
+
+	/** 当前武器第三人称左手握把 Socket 相对角色 Mesh HandSocket 的刚性 Transform（只缓存事件重建，不逐帧追逐世界点）。 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter Left Hand IK")
+	FTransform LeftHandGripInRightHandSpace = FTransform::Identity;
+
+	/** 左手 Two Bone IK 总开关；无有效角色 / 第三人称 Mesh / 武器 / 握把 Socket / 有效握把缓存时为 false。 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter Left Hand IK")
+	bool bLeftHandIKEnabled = false;
+
 
 	/** 角色 Mesh 上的手部 socket 名（与 FAnimNode_ShooterAimIK.HandBone 保持一致）。 */
 	UPROPERTY(EditAnywhere, Category = "Shooter Aim", meta = (DisplayName = "Hand Socket Name"))
@@ -80,6 +91,35 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Shooter Aim")
 	static FTransform GetHandWorldTransform(const AShooterCharacter* InCharacter, FName InHandSocketName);
 
+	/** 计算左手握把相对右手 HandSocket 的刚性 Transform（纯数据路径，可被 Automation 验证）。
+	 *  任一输入为 Identity / 无效时返回 Identity，避免把“原点恒等”误当成有效握把关系。 */
+	UFUNCTION(BlueprintPure, Category = "Shooter Left Hand IK")
+	static FTransform ComputeLeftHandGripInRightHandSpace(
+		const FTransform& InRightHandWorld,
+		const FTransform& InLeftHandGripWorld);
+
+	/** 纯判定：左手 IK 是否允许开启（可被 Automation 验证）。
+	 *  要求 Character、第三人称 Mesh、CurrentWeapon、第三人称武器 Mesh 已附着、
+	 *  HandSocket 与武器左手握把 Socket 真实存在，且握把缓存为有限非 Identity 的刚性 Transform。 */
+	static bool IsLeftHandIKEnabledForState(
+		bool bHasCharacter,
+		bool bHasThirdPersonMesh,
+		bool bHasCurrentWeapon,
+		bool bWeaponThirdPersonMeshAttached,
+		bool bHasThirdPersonHandSocket,
+		bool bHasThirdPersonLeftHandGripSocket,
+		const FTransform& LeftHandGripInRightHandSpace);
+
+	/** 纯判定：左手握把缓存是否需要重建（可被 Automation 验证）。
+	 *  缓存未建立、武器变化、同一武器第三人称 Mesh 附着状态变化或已缓存结果无效时返回 true；
+	 *  缺失 Socket 的稳定 Identity 状态不返回 true，避免每帧追逐世界点。 */
+	static bool ShouldRefreshLeftHandGripCache(
+		bool bCacheDirty,
+		bool bWeaponChanged,
+		bool bAttachStateChanged,
+		bool bCacheInvalid);
+
+
 protected:
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
@@ -90,4 +130,18 @@ private:
 
 	/** 已缓存武器第三人称 Mesh 是否附着到角色 Mesh；附着状态变化时刷新 HandToMuzzle。 */
 	bool bCachedWeaponThirdPersonMeshAttached = false;
+
+	/** 已缓存左手握把所属武器；武器变化时重建左手握把缓存。 */
+	UPROPERTY(Transient)
+	TObjectPtr<AShooterWeapon> CachedLeftHandGripWeapon = nullptr;
+
+	/** 左手握把缓存时的武器第三人称 Mesh 附着状态；附着状态变化时重建缓存。 */
+	bool bCachedLeftHandGripThirdPersonMeshAttached = false;
+
+	/** 左手握把缓存尚未建立；角色变化或武器清空后重新置脏。 */
+	bool bLeftHandGripCacheDirty = true;
+
+	/** 左手握把缓存重建时记录的 HandSocket 存在状态，避免动画更新每帧查询 Socket。 */
+	bool bCachedThirdPersonHandSocketExists = false;
+
 };

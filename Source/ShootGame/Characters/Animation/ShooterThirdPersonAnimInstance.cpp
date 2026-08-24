@@ -21,6 +21,59 @@ FTransform UShooterThirdPersonAnimInstance::ComputeHandToMuzzleTransform(
 	return InMuzzleWorld.GetRelativeTransform(InHandWorld);
 }
 
+FTransform UShooterThirdPersonAnimInstance::ComputeLeftHandGripInRightHandSpace(
+	const FTransform& InRightHandWorld,
+	const FTransform& InLeftHandGripWorld)
+{
+	// Identity 是合法 Transform，但在这里只代表“缺失数据”或“尚未初始化”，
+	// 不能作为右手与左手握把的真实相对关系继续参与 IK。
+	if (!InRightHandWorld.IsValid() || !InLeftHandGripWorld.IsValid() ||
+		InRightHandWorld.Equals(FTransform::Identity) || InLeftHandGripWorld.Equals(FTransform::Identity))
+	{
+		return FTransform::Identity;
+	}
+
+	// 握把相对 hand_r 的刚性 Transform（hand_r 坐标系中的握把位置/旋转）。
+	return InLeftHandGripWorld.GetRelativeTransform(InRightHandWorld);
+}
+
+bool UShooterThirdPersonAnimInstance::IsLeftHandIKEnabledForState(
+	bool bHasCharacter,
+	bool bHasThirdPersonMesh,
+	bool bHasCurrentWeapon,
+	bool bWeaponThirdPersonMeshAttached,
+	bool bHasThirdPersonHandSocket,
+	bool bHasThirdPersonLeftHandGripSocket,
+	const FTransform& LeftHandGripInRightHandSpace)
+{
+	// 左手 IK 与 Aim IK 相互独立：它只需要“右手与握把之间的刚性关系”真实存在。
+	// Identity 虽然是 Valid Transform，但不能证明握把数据已建立。
+	if (!bHasCharacter || !bHasThirdPersonMesh || !bHasCurrentWeapon ||
+		!bWeaponThirdPersonMeshAttached || !bHasThirdPersonHandSocket ||
+		!bHasThirdPersonLeftHandGripSocket)
+	{
+		return false;
+	}
+	if (!LeftHandGripInRightHandSpace.IsValid() ||
+		LeftHandGripInRightHandSpace.Equals(FTransform::Identity))
+	{
+		return false;
+	}
+	return true;
+}
+
+bool UShooterThirdPersonAnimInstance::ShouldRefreshLeftHandGripCache(
+	bool bCacheDirty,
+	bool bWeaponChanged,
+	bool bAttachStateChanged,
+	bool bCacheInvalid)
+{
+	// 只在这些状态事件或“数据应该存在但缓存仍无效”时重建；
+	// 已确认缺失 Socket 的稳定 Identity 状态不得触发逐帧重建。
+	return bCacheDirty || bWeaponChanged || bAttachStateChanged || bCacheInvalid;
+}
+
+
 FVector UShooterThirdPersonAnimInstance::ComputeMuzzleToTargetDirection(
 	const FVector& MuzzleWorldLocation,
 	const FVector& TargetWorld)
@@ -112,9 +165,18 @@ void UShooterThirdPersonAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	{
 		AimDirectionWorld = FVector::ZeroVector;
 		HandToMuzzle = FTransform::Identity;
+		LeftHandGripInRightHandSpace = FTransform::Identity;
+
 		CachedWeapon = nullptr;
+		CachedLeftHandGripWeapon = nullptr;
+		bCachedLeftHandGripThirdPersonMeshAttached = false;
+		bLeftHandGripCacheDirty = true;
+		bCachedThirdPersonHandSocketExists = false;
+
 		bCachedWeaponThirdPersonMeshAttached = false;
 		bAimIKEnabled = false;
+		bLeftHandIKEnabled = false;
+
 		return;
 	}
 
@@ -123,6 +185,10 @@ void UShooterThirdPersonAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	const FTransform MuzzleWorld = bHasThirdPersonMuzzle
 		? Weapon->GetThirdPersonMuzzleWorldTransform()
 		: FTransform::Identity;
+
+	// 左手握把只依赖武器自身配置和真实 Socket 存在性；Pistol 未配置时这里为 false。
+	const bool bHasThirdPersonLeftHandGrip = Weapon != nullptr && Weapon->HasThirdPersonLeftHandGripSocket();
+
 
 	// 武器第三人称 Mesh 必须已经附着到角色 Mesh。若 CurrentWeapon 先到、Attach 后发生，
 	// 本轮按“未附着”处理并把缓存置为 Identity；附着完成后状态变化会触发重建。
@@ -157,6 +223,48 @@ void UShooterThirdPersonAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		}
 	}
 
+	// LeftHandGripInRightHandSpace 缓存刷新条件：
+	//  1. 缓存尚未建立（首次进入 / 无角色复位）；
+	//  2. 武器引用变化（切枪，Rifle 与 Pistol 握把配置彼此独立）；
+	//  3. 同一武器的第三人称 Mesh 附着状态变化（首次附着 / 重新挂接）；
+	//  4. 数据应该存在但缓存仍是 Identity（上一轮未附着或握把尚未就绪）。
+	// 已确认缺失握把 Socket 的稳定 Identity 状态不会触发逐帧重建，也不追逐世界点。
+	const bool bLeftHandGripWeaponChanged = Weapon != CachedLeftHandGripWeapon;
+	const bool bLeftHandGripAttachStateChanged =
+		Weapon != nullptr &&
+		Weapon == CachedLeftHandGripWeapon &&
+		bThirdPersonMeshAttached != bCachedLeftHandGripThirdPersonMeshAttached;
+	const bool bLeftHandGripCacheInvalid =
+		Weapon != nullptr &&
+		bThirdPersonMeshAttached &&
+		bHasThirdPersonLeftHandGrip &&
+		(!LeftHandGripInRightHandSpace.IsValid() ||
+			LeftHandGripInRightHandSpace.Equals(FTransform::Identity));
+
+	if (ShouldRefreshLeftHandGripCache(
+		bLeftHandGripCacheDirty,
+		bLeftHandGripWeaponChanged,
+		bLeftHandGripAttachStateChanged,
+		bLeftHandGripCacheInvalid))
+	{
+		CachedLeftHandGripWeapon = Weapon;
+		bCachedLeftHandGripThirdPersonMeshAttached = bThirdPersonMeshAttached;
+		bCachedThirdPersonHandSocketExists =
+			Character->GetMesh() != nullptr &&
+			Character->GetMesh()->DoesSocketExist(HandSocketName);
+		LeftHandGripInRightHandSpace = FTransform::Identity;
+		bLeftHandGripCacheDirty = false;
+
+		if (Weapon && bThirdPersonMeshAttached &&
+			bCachedThirdPersonHandSocketExists && bHasThirdPersonLeftHandGrip)
+		{
+			const FTransform HandWorld = GetHandWorldTransform(Character, HandSocketName);
+			const FTransform GripWorld = Weapon->GetThirdPersonLeftHandGripWorldTransform();
+			LeftHandGripInRightHandSpace = ComputeLeftHandGripInRightHandSpace(HandWorld, GripWorld);
+		}
+	}
+
+
 	// C4 消费角色边界：
 	//  本地拥有者 → 即时 GetBaseAimRotation().Vector()；
 	//  SimulatedProxy / Listen Server 远端 → Muzzle → SmoothedPresentationAimTarget；
@@ -182,4 +290,15 @@ void UShooterThirdPersonAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		bHasThirdPersonMuzzle,
 		HandToMuzzle,
 		AimDirectionWorld);
+
+	// 左手 IK 独立于 Aim IK：Rifle 配置握把 Socket 后启用，Pistol / 无武器 / 无握把时保持关闭。
+	bLeftHandIKEnabled = IsLeftHandIKEnabledForState(
+		Character != nullptr,
+		Character->GetMesh() != nullptr,
+		Weapon != nullptr,
+		bThirdPersonMeshAttached,
+		bCachedThirdPersonHandSocketExists,
+		bHasThirdPersonLeftHandGrip,
+		LeftHandGripInRightHandSpace);
+
 }

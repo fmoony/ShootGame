@@ -469,3 +469,21 @@ bool AShooterWeapon::HasThirdPersonMuzzleSocket() const
 {
 	return ThirdPersonMesh != nullptr && ThirdPersonMesh->DoesSocketExist(MuzzleSocketName);
 }
+
+bool AShooterWeapon::HasThirdPersonLeftHandGripSocket() const
+{
+	return ThirdPersonMesh != nullptr &&
+		!ThirdPersonLeftHandGripSocketName.IsNone() &&
+		ThirdPersonMesh->DoesSocketExist(ThirdPersonLeftHandGripSocketName);
+}
+
+FTransform AShooterWeapon::GetThirdPersonLeftHandGripWorldTransform() const
+{
+	// 与 Muzzle 不同，握把缺失时不能回退 Actor 变换，否则会把错误的“原点握把”喂给左手 IK。
+	if (!HasThirdPersonLeftHandGripSocket())
+	{
+		return FTransform::Identity;
+	}
+
+	return ThirdPersonMesh->GetSocketTransform(ThirdPersonLeftHandGripSocketName);
+}
