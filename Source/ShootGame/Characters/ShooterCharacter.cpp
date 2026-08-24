@@ -26,8 +26,81 @@
 #include "ShooterAimMath.h"
 #include "Animation/AnimInstance.h"
 #include "Components/SkeletalMeshComponent.h"
+
 #include "Net/UnrealNetwork.h"
 #include "UObject/UnrealType.h"
+
+namespace ShooterAimTrace
+{
+	struct FResult
+	{
+		FVector Target = FVector::ZeroVector;
+		FHitResult Hit;
+		bool bBlockingHit = false;
+		bool bPawnHit = false;
+	};
+
+	FResult Trace(UWorld* World, const FVector& Start, const FVector& End, const AActor* IgnoredActor)
+	{
+		FResult Result;
+		Result.Target = End;
+		if (!World)
+		{
+			return Result;
+		}
+
+		FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(ShooterAimTarget), false, IgnoredActor);
+		FHitResult VisibilityHit;
+		const bool bVisibilityHit = World->LineTraceSingleByChannel(
+			VisibilityHit, Start, End, ECC_Visibility, QueryParams);
+
+		// 角色默认可能不阻挡 Visibility；单独查询 Pawn，避免近处玩家被穿透后使用远端兜底点。
+		FCollisionObjectQueryParams PawnObjectQuery;
+		PawnObjectQuery.AddObjectTypesToQuery(ECC_Pawn);
+		FHitResult PawnHit;
+		const bool bPawnHit = World->LineTraceSingleByObjectType(
+			PawnHit, Start, End, PawnObjectQuery, QueryParams);
+
+		// 选择最近命中，确保墙体仍能遮挡其后的 Pawn。
+		const bool bUsePawnHit = bPawnHit &&
+			(!bVisibilityHit || PawnHit.Time <= VisibilityHit.Time + UE_SMALL_NUMBER);
+		if (bUsePawnHit)
+		{
+			Result.Hit = PawnHit;
+			Result.bBlockingHit = true;
+			Result.bPawnHit = true;
+			Result.Target = PawnHit.ImpactPoint;
+		}
+		else if (bVisibilityHit)
+		{
+			Result.Hit = VisibilityHit;
+			Result.bBlockingHit = true;
+			Result.Target = VisibilityHit.ImpactPoint;
+		}
+
+		return Result;
+	}
+}
+
+FVector AShooterCharacter::TracePreSpreadAimTarget(
+	UWorld* World,
+	const FVector& Start,
+	const FVector& End,
+	const AActor* IgnoredActor,
+	FHitResult* OutHit,
+	bool* bOutPawnHit)
+{
+	const ShooterAimTrace::FResult Result = ShooterAimTrace::Trace(World, Start, End, IgnoredActor);
+	if (OutHit)
+	{
+		*OutHit = Result.Hit;
+	}
+	if (bOutPawnHit)
+	{
+		*bOutPawnHit = Result.bPawnHit;
+	}
+	return Result.Target;
+}
 
 AShooterCharacter::AShooterCharacter()
 {
@@ -91,24 +164,69 @@ void AShooterCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	// B3：观察端平滑只在模拟代理（观察其他玩家）上运行。
+	// C2.5：观察端平滑覆盖 SimulatedProxy 与 Listen Server 观察远端客户端 Pawn 的 Authority 非本地方。
 	UpdatePresentationAimSmoothing(DeltaSeconds);
+	DrawAimDebug();
+}
+
+bool AShooterCharacter::IsValidPresentationAimTargetValue(const FVector& Target)
+{
+	return FMath::IsFinite(Target.X) &&
+		FMath::IsFinite(Target.Y) &&
+		FMath::IsFinite(Target.Z) &&
+		!Target.IsNearlyZero();
+}
+
+bool AShooterCharacter::ShouldRunPresentationAimSmoothing(
+	ENetRole LocalRole,
+	ENetMode NetMode,
+	bool bLocallyControlled)
+{
+	// 普通客户端观察其他玩家：SimulatedProxy。
+	if (LocalRole == ROLE_SimulatedProxy)
+	{
+		return true;
+	}
+
+	// Listen Server 观察远端客户端 Pawn：Authority 但不是 LocallyControlled。
+	// 服务器本地拥有该 Pawn 的权威 PresentationAimTarget，直接做本地表现平滑。
+	if (LocalRole == ROLE_Authority && !bLocallyControlled)
+	{
+		return NetMode == NM_ListenServer;
+	}
+
+	return false;
 }
 
 void AShooterCharacter::UpdatePresentationAimSmoothing(float DeltaSeconds)
 {
-	if (GetLocalRole() != ROLE_SimulatedProxy || !GetMesh())
+	if (!ShouldRunPresentationAimSmoothing(GetLocalRole(), GetNetMode(), IsLocallyControlled()))
 	{
 		return;
 	}
 
-	const float Now = GetWorld()->GetTimeSeconds();
 	const FVector ViewLocation = GetPawnViewLocation();
 
-	// 首次初始化 / 重置：平滑目标尚未建立、死亡、或视点发生传送级跳变时，
-	// 直接采用最新网络目标（或回退方向），避免从旧 Pawn / 旧位置继续插值。
-	if (PresentationAimTarget.IsNearlyZero() ||
-		bIsDead ||
+	// 死亡是显式生命周期重置：旧表现目标立即失效，不插值、不回退复用。
+	if (bIsDead)
+	{
+		bPresentationAimTargetValid = false;
+		SmoothedPresentationAimTarget = FVector::ZeroVector;
+		LastPresentationAimViewLocation = ViewLocation;
+		return;
+	}
+
+	// 首次建立有效状态：直接采用最新目标，不从旧位置插值。
+	if (!bPresentationAimTargetValid && IsValidPresentationAimTargetValue(PresentationAimTarget))
+	{
+		bPresentationAimTargetValid = true;
+		SmoothedPresentationAimTarget = (FVector)PresentationAimTarget;
+		LastPresentationAimViewLocation = ViewLocation;
+		return;
+	}
+
+	// 尚未建立有效状态、平滑目标缺失、或视点发生传送级跳变时显式重置。
+	if (!bPresentationAimTargetValid ||
 		SmoothedPresentationAimTarget.IsNearlyZero() ||
 		FVector::DistSquared(ViewLocation, LastPresentationAimViewLocation) > FMath::Square(500.0f))
 	{
@@ -116,16 +234,18 @@ void AShooterCharacter::UpdatePresentationAimSmoothing(float DeltaSeconds)
 		LastPresentationAimViewLocation = ViewLocation;
 		return;
 	}
+
 	LastPresentationAimViewLocation = ViewLocation;
 
-	// 长时间没有有效目标时回退到角色 Forward + 当前远端 Pitch，不保持任意历史点。
-	if (Now - LastPresentationAimUpdateTime > PresentationAimFallbackDelay)
+	// C2.5：已建立的有效目标在稳态下持续有效。
+	// 不再使用“超过 PresentationAimFallbackDelay 没收到新包”作为失效判据；
+	// 即使服务器因变化门槛不重复复制同一目标，也不会回退到 ActorForward。
+	if (!IsValidPresentationAimTargetValue(PresentationAimTarget))
 	{
-		SmoothedPresentationAimTarget = ViewLocation + GetBaseAimRotation().Vector() * GetMaxAimDistance();
 		return;
 	}
 
-	// 指数插值向最新网络目标收敛（世界空间位置插值；角度环绕在局部角度计算时处理）。
+	// 指数插值向最新网络/权威目标收敛（世界空间位置插值；角度环绕在局部角度计算时处理）。
 	const float Alpha = 1.0f - FMath::Exp(-PresentationAimSmoothingRate * DeltaSeconds);
 	SmoothedPresentationAimTarget = FMath::Lerp(
 		SmoothedPresentationAimTarget,
@@ -136,9 +256,10 @@ void AShooterCharacter::UpdatePresentationAimSmoothing(float DeltaSeconds)
 void AShooterCharacter::ResetPresentationAimSmoothing()
 {
 	// 目标可用时直接采用；否则用回退方向（角色 Forward + 远端 Pitch）。
-	if (!PresentationAimTarget.IsNearlyZero())
+	bPresentationAimTargetValid = IsValidPresentationAimTargetValue(PresentationAimTarget);
+	if (bPresentationAimTargetValid)
 	{
-		SmoothedPresentationAimTarget = PresentationAimTarget;
+		SmoothedPresentationAimTarget = (FVector)PresentationAimTarget;
 	}
 	else if (GetMesh())
 	{
@@ -149,13 +270,16 @@ void AShooterCharacter::ResetPresentationAimSmoothing()
 	{
 		SmoothedPresentationAimTarget = FVector::ZeroVector;
 	}
-	LastPresentationAimUpdateTime = GetWorld()->GetTimeSeconds();
 }
 
 void AShooterCharacter::GetAimPresentationAngles(float& OutAimYaw, float& OutAimPitch) const
 {
 	FVector WorldDirection;
-	if (GetLocalRole() == ROLE_SimulatedProxy && !SmoothedPresentationAimTarget.IsNearlyZero())
+	const bool bShouldUseSmoothedTarget =
+		ShouldRunPresentationAimSmoothing(GetLocalRole(), GetNetMode(), IsLocallyControlled()) &&
+		bPresentationAimTargetValid &&
+		!SmoothedPresentationAimTarget.IsNearlyZero();
+	if (bShouldUseSmoothedTarget)
 	{
 		// 观察端：平滑后的表现目标方向（计划 §B3：世界方向 = Normalized(目标 - AimPivot)）。
 		WorldDirection = SmoothedPresentationAimTarget - GetPawnViewLocation();
@@ -163,6 +287,7 @@ void AShooterCharacter::GetAimPresentationAngles(float& OutAimYaw, float& OutAim
 	else
 	{
 		// 拥有者 / 回退：本地视角方向或远端 GetBaseAimRotation。
+		// 本地拥有者永远不被远端表现目标覆盖。
 		WorldDirection = GetBaseAimRotation().Vector();
 	}
 
@@ -228,21 +353,28 @@ void AShooterCharacter::SamplePresentationAimTarget()
 
 void AShooterCharacter::OnRep_PresentationAimTarget()
 {
-	// B2：接收并刷新回退判据时间；B3：首次收到时直接采用（平滑从新目标起步）。
+	// C2.5：只把“收到有效目标”当作建立有效状态的依据；不再刷新无变化超时计时。
+	// 稳态下服务器可能长期不重复发送未变化的值，这不代表目标失效。
 	if (GetLocalRole() == ROLE_SimulatedProxy)
 	{
-		LastPresentationAimUpdateTime = GetWorld()->GetTimeSeconds();
-		if (SmoothedPresentationAimTarget.IsNearlyZero())
+		if (IsValidPresentationAimTargetValue(PresentationAimTarget))
 		{
-			ResetPresentationAimSmoothing();
+			const bool bNeedsReset = !bPresentationAimTargetValid ||
+				SmoothedPresentationAimTarget.IsNearlyZero();
+			bPresentationAimTargetValid = true;
+			if (bNeedsReset)
+			{
+				ResetPresentationAimSmoothing();
+			}
 		}
 	}
 	UE_LOG(
 		LogShootGame,
 		VeryVerbose,
-		TEXT("OnRep PresentationAimTarget Actor=%s Target=%s"),
+		TEXT("OnRep PresentationAimTarget Actor=%s Target=%s Valid=%s"),
 		*GetName(),
-		*PresentationAimTarget.ToString());
+		*PresentationAimTarget.ToString(),
+		bPresentationAimTargetValid ? TEXT("true") : TEXT("false"));
 }
 
 void AShooterCharacter::EndPlay(EEndPlayReason::Type EndPlayReason)
@@ -674,7 +806,7 @@ void AShooterCharacter::AttachWeaponMeshes(AShooterWeapon* Weapon)
 
 	// attach the weapon meshes
 	Weapon->GetFirstPersonMesh()->AttachToComponent(GetFirstPersonMesh(), AttachmentRule, FirstPersonWeaponSocket);
-	Weapon->GetThirdPersonMesh()->AttachToComponent(GetMesh(), AttachmentRule, FirstPersonWeaponSocket);
+	Weapon->GetThirdPersonMesh()->AttachToComponent(GetMesh(), AttachmentRule, ThirdPersonWeaponSocket);
 	
 }
 
@@ -705,21 +837,17 @@ FVector AShooterCharacter::ComputePreSpreadAimTarget(const APawn* Pawn, float Ma
 {
 	// Server-authoritative aim: remote camera component rotation is not reliable on
 	// the server, while ControlRotation is updated by the owning connection.
-	FHitResult OutHit;
-
-	const FVector Start = Pawn ? Pawn->GetPawnViewLocation() : FVector::ZeroVector;
-	const FVector End = Start + (Pawn ? Pawn->GetControlRotation().Vector() : FVector::ForwardVector) * MaxDistance;
-
-	FCollisionQueryParams QueryParams;
-	if (Pawn)
+	if (!Pawn || !Pawn->GetWorld())
 	{
-		QueryParams.AddIgnoredActor(Pawn);
+		return FVector::ZeroVector;
 	}
 
-	Pawn->GetWorld()->LineTraceSingleByChannel(OutHit, Start, End, ECC_Visibility, QueryParams);
+	const FVector Start = Pawn->GetPawnViewLocation();
+	const FVector End = Start + Pawn->GetControlRotation().Vector() * MaxDistance;
 
-	// return either the impact point or the trace end
-	return OutHit.bBlockingHit ? OutHit.ImpactPoint : OutHit.TraceEnd;
+	// Visibility 保留墙体遮挡，Pawn 对象查询补足默认角色可能忽略 Visibility 的情况。
+	// 与本地绿色调试射线使用同一选择规则，未命中时才回退到最大距离终点。
+	return TracePreSpreadAimTarget(Pawn->GetWorld(), Start, End, Pawn);
 }
 
 void AShooterCharacter::HandleWeaponAddedToInventory(const FGuid& InstanceId)
@@ -748,6 +876,10 @@ void AShooterCharacter::HandleWeaponAddedToInventory(const FGuid& InstanceId)
 	InventoryComponent->SetActiveWeaponInstanceId(InstanceId);
 	AddedWeapon->ActivateWeapon();
 	ApplyCurrentWeapon();
+
+	// C2.5：Listen Server 观察远端客户端 Pawn 时，Authority 不会走 OnRep_CurrentWeapon；
+	// 切枪作为明确生命周期事件，必须在这里显式重置表现目标平滑。
+	ResetPresentationAimSmoothing();
 }
 
 bool AShooterCharacter::CommitActiveWeapon(const FGuid& InstanceId)
@@ -773,6 +905,10 @@ bool AShooterCharacter::CommitActiveWeapon(const FGuid& InstanceId)
 	CurrentWeapon = TargetWeapon;
 	TargetWeapon->ActivateWeapon();
 	ApplyCurrentWeapon();
+
+	// C2.5：Authority 切枪重置（Listen Server 观察远端客户端 Pawn 的消费路径）。
+	ResetPresentationAimSmoothing();
+
 	ForceNetUpdate();
 
 	UE_LOG(
@@ -821,6 +957,9 @@ void AShooterCharacter::AddWeaponClass(const TSubclassOf<AShooterWeapon>& Weapon
 			// 切换到新武器并刷新表现
 			CurrentWeapon = AddedWeapon;
 			ApplyCurrentWeapon();
+
+			// C2.5：Authority 切枪重置（Listen Server 观察远端客户端 Pawn 的消费路径）。
+			ResetPresentationAimSmoothing();
 		}
 	}
 }
@@ -969,8 +1108,11 @@ void AShooterCharacter::ApplyDeathState()
 	// stop character movement
 	GetCharacterMovement()->StopMovementImmediately();
 
-	// B3：死亡时重置观察端平滑，避免从旧状态继续插值（Tick 内回退到角色 Forward + 远端 Pitch）。
-	ResetPresentationAimSmoothing();
+	// C2.5：死亡是明确生命周期事件，观察端表现目标立即失效；
+	// 不再复用死亡前的旧目标，也不从旧值继续插值。
+	bPresentationAimTargetValid = false;
+	SmoothedPresentationAimTarget = FVector::ZeroVector;
+	LastPresentationAimViewLocation = FVector::ZeroVector;
 
 	// 只禁用本机拥有者的输入；模拟代理本来就没有本地输入。
 	if (IsLocallyControlled())

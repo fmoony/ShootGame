@@ -218,6 +218,10 @@ public:
 	 *  观察端调试与表现测量使用该变换读取“第三人称真实枪口 Forward”。 */
 	FTransform GetThirdPersonMuzzleWorldTransform() const;
 
+	/** 第三人称网格是否真实拥有 Muzzle socket（Aim IK 启用条件；不存在时不得回退启用）。 */
+	bool HasThirdPersonMuzzleSocket() const;
+
+
 	/** 返回服务器权威换弹事务等待时长。 */
 	float GetReloadDuration() const { return ReloadDuration; }
 

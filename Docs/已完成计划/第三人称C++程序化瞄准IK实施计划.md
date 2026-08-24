@@ -1,5 +1,116 @@
 # 第三人称 C++ 程序化瞄准 IK 实施计划
 
+> 状态：Rifle 既定闭环已完成并归档（2026-08-24）。原 C3 全上半身多骨骼分摊分支未继续执行，因为人工验收认为大部分上半身姿势已可接受；后续改为只处理左手握持约束与同步响应速度。
+
+## 0. 2026-08-23 执行顺序修订（优先于后文旧顺序）
+
+本节依据当前已提交实现、未提交资产状态和双客户端 Debug 实测追加。若本节与后文 C3 / C4 顺序、第一轮执行指令或提交拆分冲突，以本节为准。
+
+### 0.1 当前证据与修订结论
+
+- d21d2de 已建立 Runtime / Editor 自定义 AnimNode；1660edb 已实现 Rifle 本地 hand_r 单骨骼数学闭环。
+- 观察端青线已经从角色 Mesh 的 UShooterThirdPersonAnimInstance 读取 AimDirectionWorld。
+- 当前 C++ 对非本地角色仍写入 Character->GetActorForwardVector()。
+- 实测 AimVsActorForward 几乎为 0°；青线和黄线终点 EndDistance 为几十厘米，在线长 10000 cm 下视觉近似共点。
+- 蓝线即使收敛青线，也只证明 IK 正确追踪了错误的远端输入，不能证明枪口对应服务器认可的瞄准点。
+
+原顺序“C2 → 可选 C3 → C4”停止执行。后续强制顺序改为：
+
+~~~text
+C2 已有实现只读复核
+→ C2.5 表现目标有效性与消费角色修复
+→ C4 Rifle 远端 AimDirection 闭环
+→ Rifle 几何 / 网络 / 视觉重新验收
+→ 只有姿势仍不自然时才进入 C3
+~~~
+
+在 ActorForward 输入上调整 clavicle_r / upperarm_r / hand_r，会把临时回退固化成姿势补偿，因此 C3 当前冻结。
+
+### 0.2 C2.5：当前实现的针对性修复
+
+#### 稳态目标有效性
+
+UpdatePresentationAimSmoothing 当前以 LastPresentationAimUpdateTime 超过 PresentationAimFallbackDelay 作为回退条件，但该时间只在 OnRep_PresentationAimTarget 更新，服务器又只在属性发生足够变化时修改复制值。“没有收到重复属性更新”表示值可能没有变化，不能证明目标失效。
+
+首选规则：
+
+~~~text
+已收到的 PresentationAimTarget 持续有效
+→ 仅在死亡、复活、切枪、传送、Pawn 重建等明确生命周期事件重置
+→ 使用明确的本地有效标记
+→ 不用 ZeroVector 或无变化超时长期充当失效判据
+~~~
+
+禁止用每 Tick Reliable RPC、重复强推相同世界点或无条件 ForceNetUpdate 掩盖问题。
+
+#### 观察角色覆盖
+
+“观察者”不只等于 ROLE_SimulatedProxy：
+
+~~~text
+拥有者本地 Pawn → 即时 GetBaseAimRotation
+普通客户端远端 Pawn（SimulatedProxy）→ 复制目标 + 本地平滑
+Listen Server 的远端客户端 Pawn（Authority 且非 LocallyControlled）
+→ 服务器表现目标 + 本地表现平滑或等价稳定消费
+Dedicated Server → 不增加不可见动画的高成本表现工作
+~~~
+
+GetAimPresentationAngles 与 IK 必须消费同一份有效目标语义，不能一个使用平滑目标、另一个回退 ActorForward。
+
+#### IK 开关
+
+FTransform::Identity 仍是 Valid Transform。无武器时只检查 Mesh 和 HandToMuzzle.IsValid()，可能错误得到 bAimIKEnabled=true。启用条件至少证明 Character、CurrentWeapon、ThirdPersonMesh / Muzzle、HandToMuzzle 和非零有限 AimDirection 全部有效。
+
+ABP_TP_Rifle 必须让 bAimIKEnabled 真正控制 Shooter Aim IK 的 Alpha 或等价开关，不得保留永久 Alpha=1 的伪开关。
+
+C2.5 自动门槛：
+
+- 稳定目标超过旧 PresentationAimFallbackDelay 后仍有效。
+- 死亡、复活、切枪和传送正确重置。
+- SimulatedProxy 使用平滑目标。
+- Listen Server 观察远端客户端不走仅 ActorForward 的旧路径。
+- 无 CurrentWeapon 时 bAimIKEnabled=false。
+
+### 0.3 C4：Rifle 远端 AimDirection 针对性方案
+
+复用已有服务器表现目标，不新增第二套客户端 Aim RPC：
+
+~~~text
+服务器 ControlRotation
+→ ComputePreSpreadAimTarget
+→ PresentationAimTarget（COND_SkipOwner）
+→ 观察实例稳定 / 平滑目标
+→ (Target - ThirdPersonMuzzleLocation).GetSafeNormal()
+→ UShooterThirdPersonAnimInstance::AimDirectionWorld
+→ Shooter Aim IK
+~~~
+
+AimOffset 可以从 View / Aim Pivot 指向目标计算局部角度；枪口 IK 必须从 ThirdPerson Muzzle 指向同一目标。本地拥有者继续使用即时 GetBaseAimRotation().Vector()；远端目标、武器或方向无效时优先关闭 IK，只有记录过的临时路径才允许回退 ActorForward。
+
+C4 同时复核 HandToMuzzle 的 Attach 后建立时机、挂接重建刷新、MaxCorrectionAngle 的真实语义，以及 AimOffset / Arms Slot 与 IK 是否消费同向目标。
+
+### 0.4 同一远端 Pawn 的验收
+
+青线使用 AnimInstance.AimDirectionWorld，蓝线使用 ThirdPerson Muzzle Forward，目标点使用当前有效的 StablePresentationAimTarget。输出 ActorName、Role、IsLocallyControlled、PresentationTargetValidity、AimVsActorForward、MuzzleVsAimDirection 和 MuzzleToPresentationTargetAngle。
+
+- 上下瞄准时 AimVsActorForward 不得长期为 0°。
+- 稳定瞄准超过旧 0.5 秒窗口后，青线不得跳回 ActorForward。
+- Rifle 静止中距离稳定后，蓝线与青线目标约 <=3°～5°。
+- 快速转向允许网络 / 平滑滞后，但不得世界锁死、左右反转或永久侧翻。
+- 近点和远点使用同一个服务器表现目标分别记录视差。
+
+### 0.5 C3 重新开放条件
+
+~~~text
+蓝线与青线夹角仍大 → 返回 C4、空间、HandToMuzzle 与缓存排查
+夹角已小但手腕 / 前臂 / 肩部明显难看 → 才进入 C3
+几何和姿势均可接受 → 跳过 C3，直接收尾 Rifle
+~~~
+
+### 0.6 下一位 Agent 的首轮边界
+
+首轮只执行 C2 当前实现与资产只读复核、C2.5 C++ / 测试修复、Editor Build 和 Focused Tests。完成后停止汇报，不得自动进入 C4 / C3，也不得修改、清理或提交当前用户的 AimOffset、AnimBP、Control Rig 和 Debug 蓝图实验资产。
+
 ## 1. 计划定位
 
 本计划承接 `第三人称瞄准表现同步实施计划` 中 B5“按误差门槛决定是否增加程序化校正”。

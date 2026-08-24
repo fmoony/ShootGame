@@ -31,9 +31,8 @@ namespace ShooterGameplayEffectStaticsImpl
 
 	UGameplayEffect* CreateInitHealthEffect()
 	{
-		UGameplayEffect* Effect = NewObject<UGameplayEffect>(
-			GetTransientPackage(),
-			TEXT("ShooterInitHealthEffect"));
+		// 热重载时旧模块可能仍强引用缓存对象；唯一名避免覆盖同名 UObject。
+		UGameplayEffect* Effect = NewObject<UGameplayEffect>(GetTransientPackage());
 		Effect->DurationPolicy = EGameplayEffectDurationType::Instant;
 		Effect->Modifiers.Add(MakeModifier(
 			UShooterAttributeSet::GetMaxHealthAttribute(),
@@ -48,9 +47,7 @@ namespace ShooterGameplayEffectStaticsImpl
 
 	UGameplayEffect* CreateDamageEffect()
 	{
-		UGameplayEffect* Effect = NewObject<UGameplayEffect>(
-			GetTransientPackage(),
-			TEXT("ShooterDamageEffect"));
+		UGameplayEffect* Effect = NewObject<UGameplayEffect>(GetTransientPackage());
 		Effect->DurationPolicy = EGameplayEffectDurationType::Instant;
 		Effect->Modifiers.Add(MakeModifier(
 			UShooterAttributeSet::GetHealthAttribute(),

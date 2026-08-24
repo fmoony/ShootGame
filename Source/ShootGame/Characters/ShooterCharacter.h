@@ -167,6 +167,18 @@ protected:
 	/** 观察端每帧平滑表现目标（Tick）。 */
 	virtual void Tick(float DeltaSeconds) override;
 
+	/** 绘制只读瞄准调试；实现集中在 Characters/Debug/ShooterAimDebug.cpp。 */
+	void DrawAimDebug() const;
+
+	/** 与权威开火共用的目标 Trace；可选输出仅供只读调试复用命中信息。 */
+	static FVector TracePreSpreadAimTarget(
+		UWorld* World,
+		const FVector& Start,
+		const FVector& End,
+		const AActor* IgnoredActor,
+		FHitResult* OutHit = nullptr,
+		bool* bOutPawnHit = nullptr);
+
 	/** 服务器（含监听主机）在占有发生时建立 ASC ActorInfo。 */
 	virtual void PossessedBy(AController* NewController) override;
 
@@ -212,8 +224,10 @@ protected:
 	/** 观察端当前平滑目标（本地成员，不复制）：每帧向最新网络目标指数插值。 */
 	FVector SmoothedPresentationAimTarget = FVector::ZeroVector;
 
-	/** 观察端最近一次收到网络目标的世界时间（回退判据）。 */
-	float LastPresentationAimUpdateTime = -1.0f;
+	/** 观察端本地有效标记（不复制）：
+	 *  一旦收到有效的 PresentationAimTarget 就保持有效，直到死亡、切枪、传送等生命周期事件显式重置；
+	 *  不再把“复制值未变化 / 未收到新包”当作目标失效。 */
+	bool bPresentationAimTargetValid = false;
 
 	/** 观察端上一帧视点位置（传送/重生检测）。 */
 	FVector LastPresentationAimViewLocation = FVector::ZeroVector;
@@ -222,11 +236,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Aim", meta = (ClampMin = 0.0))
 	float PresentationAimSmoothingRate = 8.0f;
 
-	/** 超过该时长没有新的网络目标时，回退到角色 Forward + 当前远端 Pitch。 */
-	UPROPERTY(EditAnywhere, Category = "Aim", meta = (ClampMin = 0.1, Units = "s"))
-	float PresentationAimFallbackDelay = 0.5f;
-
-	/** 观察端每帧平滑更新（仅 ROLE_SimulatedProxy 且非拥有者）。 */
+	/** 观察端每帧平滑更新（SimulatedProxy，或 Listen Server 观察远端客户端 Pawn 的 Authority 非本地方）。 */
 	void UpdatePresentationAimSmoothing(float DeltaSeconds);
 
 	/** 重置平滑状态：武器切换、死亡、传送、首次初始化时直接采用最新目标，不从旧值插值。 */
@@ -293,6 +303,26 @@ public:
 
 	/** 只读访问观察端平滑后的表现目标（本地成员；观察端消费入口）。 */
 	const FVector& GetSmoothedPresentationAimTarget() const { return SmoothedPresentationAimTarget; }
+
+	/** 观察端本地有效标记（Debug / 自动化验证只读入口）。 */
+	bool IsPresentationAimTargetValid() const { return bPresentationAimTargetValid; }
+
+	/** 纯判定：PresentationAimTarget 是否可建立有效状态（有限且非零）。 */
+	static bool IsValidPresentationAimTargetValue(const FVector& Target);
+
+	/** 纯判定：该 Role / NetMode / 本地控制组合是否应运行表现目标平滑。
+	 *  SimulatedProxy 始终运行；Listen Server 观察远端客户端 Pawn 的 Authority 非本地方也运行；
+	 *  Dedicated Server 不运行（不增加不可见动画的高成本表现工作）。 */
+	static bool ShouldRunPresentationAimSmoothing(ENetRole LocalRole, ENetMode NetMode, bool bLocallyControlled);
+
+	UFUNCTION(BlueprintPure, Category = "Aim")
+	FVector GetPresentationAimTargetBP() const { return PresentationAimTarget; }
+
+	UFUNCTION(BlueprintPure, Category = "Aim|Debug")
+	FVector GetSmoothedPresentationAimTargetBP() const
+	{
+		return SmoothedPresentationAimTarget;
+	}
 
 	/** 观察端平滑后的表现角度（局部坐标，度）——AnimBP 数据契约出口（B3）。
 	 *  模拟代理：由平滑目标相对 Mesh 变换计算局部 AimYaw / AimPitch；

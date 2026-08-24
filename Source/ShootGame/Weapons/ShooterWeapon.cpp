@@ -464,3 +464,8 @@ FTransform AShooterWeapon::GetThirdPersonMuzzleWorldTransform() const
 
 	return GetActorTransform();
 }
+
+bool AShooterWeapon::HasThirdPersonMuzzleSocket() const
+{
+	return ThirdPersonMesh != nullptr && ThirdPersonMesh->DoesSocketExist(MuzzleSocketName);
+}
