@@ -7,6 +7,7 @@
 #include "Characters/Aim/ShooterAimPresentationComponent.h"
 #include "Characters/Equipment/ShooterEquipmentComponent.h"
 #include "Characters/Animation/ShooterThirdPersonAnimInstance.h"
+#include "Characters/Animation/ShooterFirstPersonAnimInstance.h"
 #include "Characters/ShooterCharacter.h"
 #include "Engine/Engine.h"
 #include "Engine/World.h"
@@ -111,8 +112,8 @@ bool FShooterArchitectureWeaponGrantSurfaceTest::RunTest(const FString& Paramete
 
 /**
  * R0 资产表面快照：五个 AnimBP 必须可加载，且记录当前父类分布。
- * R6.2 资产迁移提交会在此处把第一人称父类改为 UShooterFirstPersonAnimInstance、
- * 第三人称 Pistol 父类改为 UShooterThirdPersonAnimInstance。
+ * R6.2 资产迁移后：FP_Weapon / FP_Pistol 派生自 UShooterFirstPersonAnimInstance；
+ * TP_Rifle / TP_Pistol 派生自 UShooterThirdPersonAnimInstance；ABP_FP_Copy 是 Copy Pose 支撑资产，本轮不迁移。
  */
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FShooterArchitectureAnimBPSurfaceTest,
@@ -125,15 +126,16 @@ bool FShooterArchitectureAnimBPSurfaceTest::RunTest(const FString& Parameters)
 	{
 		const TCHAR* Path;
 		const TCHAR* Name;
+		bool bExpectedFirstPersonAnimInstance;
 		bool bExpectedThirdPersonAnimInstance;
 	};
 
 	const FAnimBPSnapshot Snapshots[] = {
-		{TEXT("/Game/Shooter/Animation/FirstPerson/ABP_FP_Weapon.ABP_FP_Weapon_C"), TEXT("ABP_FP_Weapon"), false},
-		{TEXT("/Game/Shooter/Animation/FirstPerson/ABP_FP_Pistol.ABP_FP_Pistol_C"), TEXT("ABP_FP_Pistol"), false},
-		{TEXT("/Game/Shooter/Animation/FirstPerson/ABP_FP_Copy.ABP_FP_Copy_C"), TEXT("ABP_FP_Copy"), false},
-		{TEXT("/Game/Shooter/Animation/ThirdPerson/ABP_TP_Rifle.ABP_TP_Rifle_C"), TEXT("ABP_TP_Rifle"), true},
-		{TEXT("/Game/Shooter/Animation/ThirdPerson/ABP_TP_Pistol.ABP_TP_Pistol_C"), TEXT("ABP_TP_Pistol"), false},
+		{TEXT("/Game/Shooter/Animation/FirstPerson/ABP_FP_Weapon.ABP_FP_Weapon_C"), TEXT("ABP_FP_Weapon"), true, false},
+		{TEXT("/Game/Shooter/Animation/FirstPerson/ABP_FP_Pistol.ABP_FP_Pistol_C"), TEXT("ABP_FP_Pistol"), true, false},
+		{TEXT("/Game/Shooter/Animation/FirstPerson/ABP_FP_Copy.ABP_FP_Copy_C"), TEXT("ABP_FP_Copy"), false, false},
+		{TEXT("/Game/Shooter/Animation/ThirdPerson/ABP_TP_Rifle.ABP_TP_Rifle_C"), TEXT("ABP_TP_Rifle"), false, true},
+		{TEXT("/Game/Shooter/Animation/ThirdPerson/ABP_TP_Pistol.ABP_TP_Pistol_C"), TEXT("ABP_TP_Pistol"), false, true},
 	};
 
 	for (const FAnimBPSnapshot& Snapshot : Snapshots)
@@ -150,7 +152,11 @@ bool FShooterArchitectureAnimBPSurfaceTest::RunTest(const FString& Parameters)
 			FString::Printf(TEXT("%s derives from UAnimInstance"), Snapshot.Name),
 			AnimClass->IsChildOf(UAnimInstance::StaticClass()));
 		TestEqual(
-			FString::Printf(TEXT("%s current ShooterThirdPersonAnimInstance parent surface matches snapshot"), Snapshot.Name),
+			FString::Printf(TEXT("%s FirstPersonAnimInstance parent surface matches snapshot"), Snapshot.Name),
+			AnimClass->IsChildOf(UShooterFirstPersonAnimInstance::StaticClass()),
+			Snapshot.bExpectedFirstPersonAnimInstance);
+		TestEqual(
+			FString::Printf(TEXT("%s ThirdPersonAnimInstance parent surface matches snapshot"), Snapshot.Name),
 			AnimClass->IsChildOf(UShooterThirdPersonAnimInstance::StaticClass()),
 			Snapshot.bExpectedThirdPersonAnimInstance);
 	}

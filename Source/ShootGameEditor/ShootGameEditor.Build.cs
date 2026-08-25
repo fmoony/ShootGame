@@ -24,6 +24,8 @@ public class ShootGameEditor : ModuleRules
 
 		PrivateDependencyModuleNames.AddRange(new string[] {
 			"UnrealEd",
+			"BlueprintEditorLibrary",
+			"Kismet",
 			"Slate",
 			"SlateCore"
 		});

@@ -13,7 +13,7 @@ class AShooterWeapon;
  * 第一/第三人称 AnimInstance 的薄公共基类。
  *
  * 只承载两个视角真正共享的只读表现快照：
- * GroundSpeed / bIsInAir / bHasEquippedWeapon / CurrentWeaponActor /
+ * LocomotionGroundSpeed / bIsInAir / bHasEquippedWeapon / CurrentWeaponActor /
  * State.Firing / State.Reloading / State.Equipping / State.Dead。
  * 不含摄像机、贴墙、Aim IK、HandToMuzzle、RPC 或任何权威写入。
  */
@@ -23,9 +23,9 @@ class SHOOTGAME_API UShooterAnimInstanceBase : public UAnimInstance
 	GENERATED_BODY()
 
 public:
-	/** 水平地面速度（cm/s）。 */
+	/** 水平地面速度（cm/s）。命名为 LocomotionGroundSpeed，避免与旧 AnimBP 变量 GroundSpeed 冲突。 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter|Base")
-	float GroundSpeed = 0.0f;
+	float LocomotionGroundSpeed = 0.0f;
 
 	/** 是否处于空中。 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter|Base")

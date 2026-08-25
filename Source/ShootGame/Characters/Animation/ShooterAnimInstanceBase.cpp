@@ -51,7 +51,7 @@ void UShooterAnimInstanceBase::RefreshCommonAnimationData()
 	// 移动基础值：只读采集，不产生权威结果。
 	const UCharacterMovementComponent* Movement = Character->GetCharacterMovement();
 	const FVector Velocity = Character->GetVelocity();
-	GroundSpeed = Velocity.Size2D();
+	LocomotionGroundSpeed = Velocity.Size2D();
 	bIsInAir = Movement != nullptr && Movement->IsFalling();
 
 	// 当前武器来自 Equipment 唯一权威。
@@ -84,7 +84,7 @@ void UShooterAnimInstanceBase::RefreshCommonAnimationData()
 
 void UShooterAnimInstanceBase::ClearCommonAnimationData()
 {
-	GroundSpeed = 0.0f;
+	LocomotionGroundSpeed = 0.0f;
 	bIsInAir = false;
 	bHasEquippedWeapon = false;
 	bIsFiring = false;

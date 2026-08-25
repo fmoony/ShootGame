@@ -4,6 +4,8 @@
 
 #include "Misc/AutomationTest.h"
 #include "Animation/AnimInstance.h"
+#include "Characters/Animation/ShooterFirstPersonAnimInstance.h"
+#include "Characters/Animation/ShooterThirdPersonAnimInstance.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "UObject/UnrealType.h"
 #include "ShooterCharacter.h"
@@ -228,6 +230,24 @@ namespace ShooterWeaponAutomationTests
 			TEXT("Third-person mesh is hidden from its owner"),
 			CharacterDefaults->GetMesh()->bOwnerNoSee);
 
+		const TCHAR* FirstPersonAnimClassPaths[] = {
+			TEXT("/Game/Shooter/Animation/FirstPerson/ABP_FP_Weapon.ABP_FP_Weapon_C"),
+			TEXT("/Game/Shooter/Animation/FirstPerson/ABP_FP_Pistol.ABP_FP_Pistol_C"),
+		};
+		for (const TCHAR* AnimClassPath : FirstPersonAnimClassPaths)
+		{
+			const UClass* AnimClass = LoadClass<UAnimInstance>(nullptr, AnimClassPath);
+			if (!Test.TestNotNull(
+				FString::Printf(TEXT("First-person AnimBP can be loaded: %s"), AnimClassPath),
+				AnimClass))
+			{
+				return false;
+			}
+			Test.TestTrue(
+				FString::Printf(TEXT("First-person AnimBP derives from UShooterFirstPersonAnimInstance: %s"), AnimClassPath),
+				AnimClass->IsChildOf(UShooterFirstPersonAnimInstance::StaticClass()));
+		}
+
 		const TCHAR* ThirdPersonAnimClassPaths[] = {
 			TEXT("/Game/Shooter/Animation/ThirdPerson/ABP_TP_Rifle.ABP_TP_Rifle_C"),
 			TEXT("/Game/Shooter/Animation/ThirdPerson/ABP_TP_Pistol.ABP_TP_Pistol_C"),
@@ -241,6 +261,9 @@ namespace ShooterWeaponAutomationTests
 			{
 				return false;
 			}
+			Test.TestTrue(
+				FString::Printf(TEXT("Third-person AnimBP derives from UShooterThirdPersonAnimInstance: %s"), AnimClassPath),
+				AnimClass->IsChildOf(UShooterThirdPersonAnimInstance::StaticClass()));
 		}
 
 		// B3 数据契约：AnimBP 的 AimOffset 俯仰输入不再依赖外部反射写入，

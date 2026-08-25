@@ -32,7 +32,7 @@ bool FShooterAnimInstanceHierarchyTest::RunTest(const FString& Parameters)
 
 	// 共享基类只承载两边都消费的值快照。
 	const TCHAR* SharedPropertyNames[] = {
-		TEXT("GroundSpeed"),
+		TEXT("LocomotionGroundSpeed"),
 		TEXT("bIsInAir"),
 		TEXT("bHasEquippedWeapon"),
 		TEXT("bIsFiring"),
