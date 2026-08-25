@@ -37,25 +37,43 @@ FTransform UShooterThirdPersonAnimInstance::ComputeLeftHandGripInRightHandSpace(
 	return InLeftHandGripWorld.GetRelativeTransform(InRightHandWorld);
 }
 
+FTransform UShooterThirdPersonAnimInstance::ComputeHandGripInLeftHandSpace(
+	const FTransform& InLeftHandWorld,
+	const FTransform& InHandGripWorld)
+{
+	if (!InLeftHandWorld.IsValid() || !InHandGripWorld.IsValid() ||
+		InLeftHandWorld.Equals(FTransform::Identity) || InHandGripWorld.Equals(FTransform::Identity))
+	{
+		return FTransform::Identity;
+	}
+
+	return InHandGripWorld.GetRelativeTransform(InLeftHandWorld);
+}
+
 bool UShooterThirdPersonAnimInstance::IsLeftHandIKEnabledForState(
 	bool bHasCharacter,
 	bool bHasThirdPersonMesh,
 	bool bHasCurrentWeapon,
 	bool bWeaponThirdPersonMeshAttached,
-	bool bHasThirdPersonHandSocket,
+	bool bHasRightHandBone,
+	bool bHasLeftHandBone,
+	bool bHasHandGripSocket,
 	bool bHasThirdPersonLeftHandGripSocket,
-	const FTransform& LeftHandGripInRightHandSpace)
+	const FTransform& LeftHandGripInRightHandSpace,
+	const FTransform& HandGripInLeftHandSpace)
 {
-	// 左手 IK 与 Aim IK 相互独立：它只需要“右手与握把之间的刚性关系”真实存在。
-	// Identity 虽然是 Valid Transform，但不能证明握把数据已建立。
+	// 左手 IK 与 Aim IK 相互独立，但必须同时具备角色手掌参考帧和武器握把参考帧。
 	if (!bHasCharacter || !bHasThirdPersonMesh || !bHasCurrentWeapon ||
-		!bWeaponThirdPersonMeshAttached || !bHasThirdPersonHandSocket ||
+		!bWeaponThirdPersonMeshAttached || !bHasRightHandBone ||
+		!bHasLeftHandBone || !bHasHandGripSocket ||
 		!bHasThirdPersonLeftHandGripSocket)
 	{
 		return false;
 	}
 	if (!LeftHandGripInRightHandSpace.IsValid() ||
-		LeftHandGripInRightHandSpace.Equals(FTransform::Identity))
+		LeftHandGripInRightHandSpace.Equals(FTransform::Identity) ||
+		!HandGripInLeftHandSpace.IsValid() ||
+		HandGripInLeftHandSpace.Equals(FTransform::Identity))
 	{
 		return false;
 	}
@@ -166,12 +184,15 @@ void UShooterThirdPersonAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		AimDirectionWorld = FVector::ZeroVector;
 		HandToMuzzle = FTransform::Identity;
 		LeftHandGripInRightHandSpace = FTransform::Identity;
+		HandGripInLeftHandSpace = FTransform::Identity;
 
 		CachedWeapon = nullptr;
 		CachedLeftHandGripWeapon = nullptr;
 		bCachedLeftHandGripThirdPersonMeshAttached = false;
 		bLeftHandGripCacheDirty = true;
 		bCachedThirdPersonHandSocketExists = false;
+		bCachedLeftHandBoneExists = false;
+		bCachedHandGripSocketExists = false;
 
 		bCachedWeaponThirdPersonMeshAttached = false;
 		bAimIKEnabled = false;
@@ -238,8 +259,13 @@ void UShooterThirdPersonAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		Weapon != nullptr &&
 		bThirdPersonMeshAttached &&
 		bHasThirdPersonLeftHandGrip &&
+		bCachedThirdPersonHandSocketExists &&
+		bCachedLeftHandBoneExists &&
+		bCachedHandGripSocketExists &&
 		(!LeftHandGripInRightHandSpace.IsValid() ||
-			LeftHandGripInRightHandSpace.Equals(FTransform::Identity));
+			LeftHandGripInRightHandSpace.Equals(FTransform::Identity) ||
+			!HandGripInLeftHandSpace.IsValid() ||
+			HandGripInLeftHandSpace.Equals(FTransform::Identity));
 
 	if (ShouldRefreshLeftHandGripCache(
 		bLeftHandGripCacheDirty,
@@ -252,15 +278,28 @@ void UShooterThirdPersonAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		bCachedThirdPersonHandSocketExists =
 			Character->GetMesh() != nullptr &&
 			Character->GetMesh()->DoesSocketExist(HandSocketName);
+		bCachedLeftHandBoneExists =
+			Character->GetMesh() != nullptr &&
+			Character->GetMesh()->DoesSocketExist(LeftHandBoneName);
+		bCachedHandGripSocketExists =
+			Character->GetMesh() != nullptr &&
+			Character->GetMesh()->DoesSocketExist(HandGripSocketName);
 		LeftHandGripInRightHandSpace = FTransform::Identity;
+		HandGripInLeftHandSpace = FTransform::Identity;
 		bLeftHandGripCacheDirty = false;
 
 		if (Weapon && bThirdPersonMeshAttached &&
-			bCachedThirdPersonHandSocketExists && bHasThirdPersonLeftHandGrip)
+			bCachedThirdPersonHandSocketExists &&
+			bCachedLeftHandBoneExists &&
+			bCachedHandGripSocketExists &&
+			bHasThirdPersonLeftHandGrip)
 		{
-			const FTransform HandWorld = GetHandWorldTransform(Character, HandSocketName);
+			const FTransform RightHandWorld = GetHandWorldTransform(Character, HandSocketName);
+			const FTransform LeftHandWorld = GetHandWorldTransform(Character, LeftHandBoneName);
+			const FTransform HandGripWorld = GetHandWorldTransform(Character, HandGripSocketName);
 			const FTransform GripWorld = Weapon->GetThirdPersonLeftHandGripWorldTransform();
-			LeftHandGripInRightHandSpace = ComputeLeftHandGripInRightHandSpace(HandWorld, GripWorld);
+			LeftHandGripInRightHandSpace = ComputeLeftHandGripInRightHandSpace(RightHandWorld, GripWorld);
+			HandGripInLeftHandSpace = ComputeHandGripInLeftHandSpace(LeftHandWorld, HandGripWorld);
 		}
 	}
 
@@ -298,7 +337,10 @@ void UShooterThirdPersonAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		Weapon != nullptr,
 		bThirdPersonMeshAttached,
 		bCachedThirdPersonHandSocketExists,
+		bCachedLeftHandBoneExists,
+		bCachedHandGripSocketExists,
 		bHasThirdPersonLeftHandGrip,
-		LeftHandGripInRightHandSpace);
+		LeftHandGripInRightHandSpace,
+		HandGripInLeftHandSpace);
 
 }

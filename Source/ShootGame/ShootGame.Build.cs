@@ -26,7 +26,7 @@ public class ShootGame : ModuleRules
 			"GameplayTasks"
 		});
 
-		PrivateDependencyModuleNames.AddRange(new string[] { "Niagara" });
+		PrivateDependencyModuleNames.AddRange(new string[] { "AnimationCore", "Niagara" });
 
 		PublicIncludePaths.AddRange(new string[] {
 			"ShootGame",

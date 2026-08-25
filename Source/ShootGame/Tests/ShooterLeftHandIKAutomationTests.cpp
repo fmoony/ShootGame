@@ -4,6 +4,7 @@
 
 #include "Misc/AutomationTest.h"
 #include "Characters/Animation/ShooterThirdPersonAnimInstance.h"
+#include "Characters/Animation/AnimNodes/ShooterLeftHandIKMath.h"
 
 namespace ShooterLeftHandIKAutomationTests
 {
@@ -11,24 +12,34 @@ namespace ShooterLeftHandIKAutomationTests
 		FQuat(FRotator(0.0f, 0.0f, 15.0f)),
 		FVector(12.0f, 4.0f, 3.0f),
 		FVector::OneVector);
+	const FTransform NonIdentityHandGripInLeftHandSpace(
+		FQuat(FRotator(5.0f, -10.0f, 20.0f)),
+		FVector(8.0f, 1.0f, -2.0f),
+		FVector::OneVector);
 
 	bool HasCompleteLeftHandIKState(
 		bool bHasCharacter,
 		bool bHasThirdPersonMesh,
 		bool bHasCurrentWeapon,
 		bool bWeaponThirdPersonMeshAttached,
-		bool bHasThirdPersonHandSocket,
+		bool bHasRightHandBone,
+		bool bHasLeftHandBone,
+		bool bHasHandGripSocket,
 		bool bHasThirdPersonLeftHandGripSocket,
-		const FTransform& GripInRightHandSpace)
+		const FTransform& GripInRightHandSpace,
+		const FTransform& HandGripInLeftHandSpace)
 	{
 		return UShooterThirdPersonAnimInstance::IsLeftHandIKEnabledForState(
 			bHasCharacter,
 			bHasThirdPersonMesh,
 			bHasCurrentWeapon,
 			bWeaponThirdPersonMeshAttached,
-			bHasThirdPersonHandSocket,
+			bHasRightHandBone,
+			bHasLeftHandBone,
+			bHasHandGripSocket,
 			bHasThirdPersonLeftHandGripSocket,
-			GripInRightHandSpace);
+			GripInRightHandSpace,
+			HandGripInLeftHandSpace);
 	}
 }
 
@@ -93,6 +104,55 @@ bool FShooterLeftHandGripTransformTest::RunTest(const FString& Parameters)
 		TEXT("computed grip transform equals rigid relative transform"),
 		ComputedGrip.Equals(ExpectedGrip, 1e-4f));
 
+	const FTransform ValidLeftHandWorld(
+		FRotator(2.0f, 15.0f, -8.0f),
+		FVector(80.0f, 35.0f, 70.0f));
+	const FTransform ValidHandGripWorld = NonIdentityHandGripInLeftHandSpace * ValidLeftHandWorld;
+	TestTrue(
+		TEXT("character palm frame is cached relative to hand_l"),
+		UShooterThirdPersonAnimInstance::ComputeHandGripInLeftHandSpace(
+			ValidLeftHandWorld,
+			ValidHandGripWorld).Equals(NonIdentityHandGripInLeftHandSpace, 1e-4f));
+
+	return true;
+}
+
+/** 双参考帧闭环：求出的 hand_l 必须让 HandGrip_L 与武器握把位置和旋转同时重合。 */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FShooterLeftHandFrameAlignmentTest,
+	"ShootGame.Aim.LeftHandFrameAlignment",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FShooterLeftHandFrameAlignmentTest::RunTest(const FString& Parameters)
+{
+	using namespace ShooterLeftHandIKAutomationTests;
+
+	const FTransform RightHandCS(
+		FRotator(12.0f, 35.0f, -4.0f),
+		FVector(42.0f, 18.0f, 120.0f));
+	FTransform DesiredLeftHandCS;
+	TestTrue(
+		TEXT("valid grip frames produce a left hand target"),
+		FShooterLeftHandIKMath::CalculateDesiredLeftHandTransform(
+			RightHandCS,
+			NonIdentityLeftHandGripInRightHandSpace,
+			NonIdentityHandGripInLeftHandSpace,
+			DesiredLeftHandCS));
+
+	const FTransform TargetWeaponGripCS = NonIdentityLeftHandGripInRightHandSpace * RightHandCS;
+	const FTransform ReconstructedHandGripCS = NonIdentityHandGripInLeftHandSpace * DesiredLeftHandCS;
+	TestTrue(
+		TEXT("HandGrip_L location and rotation align with the weapon grip"),
+		ReconstructedHandGripCS.Equals(TargetWeaponGripCS, 1e-4f));
+
+	TestFalse(
+		TEXT("missing character palm frame fails soft"),
+		FShooterLeftHandIKMath::CalculateDesiredLeftHandTransform(
+			RightHandCS,
+			NonIdentityLeftHandGripInRightHandSpace,
+			FTransform::Identity,
+			DesiredLeftHandCS));
+
 	return true;
 }
 
@@ -114,31 +174,53 @@ bool FShooterLeftHandIKEnabledStateTest::RunTest(const FString& Parameters)
 	TestFalse(
 		TEXT("no character disables left hand IK"),
 		HasCompleteLeftHandIKState(
-			false, true, true, true, true, true, NonIdentityLeftHandGripInRightHandSpace));
+			false, true, true, true, true, true, true, true,
+			NonIdentityLeftHandGripInRightHandSpace, NonIdentityHandGripInLeftHandSpace));
 	TestFalse(
 		TEXT("no third-person mesh disables left hand IK"),
 		HasCompleteLeftHandIKState(
-			true, false, true, true, true, true, NonIdentityLeftHandGripInRightHandSpace));
+			true, false, true, true, true, true, true, true,
+			NonIdentityLeftHandGripInRightHandSpace, NonIdentityHandGripInLeftHandSpace));
 	TestFalse(
 		TEXT("no current weapon disables left hand IK"),
 		HasCompleteLeftHandIKState(
-			true, true, false, false, true, false, NonIdentityLeftHandGripInRightHandSpace));
+			true, true, false, false, true, true, true, false,
+			NonIdentityLeftHandGripInRightHandSpace, NonIdentityHandGripInLeftHandSpace));
 	TestFalse(
 		TEXT("weapon third-person mesh not attached disables left hand IK"),
 		HasCompleteLeftHandIKState(
-			true, true, true, false, true, true, NonIdentityLeftHandGripInRightHandSpace));
+			true, true, true, false, true, true, true, true,
+			NonIdentityLeftHandGripInRightHandSpace, NonIdentityHandGripInLeftHandSpace));
 	TestFalse(
-		TEXT("missing character hand socket disables left hand IK"),
+		TEXT("missing right hand bone disables left hand IK"),
 		HasCompleteLeftHandIKState(
-			true, true, true, true, false, true, NonIdentityLeftHandGripInRightHandSpace));
+			true, true, true, true, false, true, true, true,
+			NonIdentityLeftHandGripInRightHandSpace, NonIdentityHandGripInLeftHandSpace));
+	TestFalse(
+		TEXT("missing left hand bone disables left hand IK"),
+		HasCompleteLeftHandIKState(
+			true, true, true, true, true, false, true, true,
+			NonIdentityLeftHandGripInRightHandSpace, NonIdentityHandGripInLeftHandSpace));
+	TestFalse(
+		TEXT("missing character HandGrip_L disables left hand IK"),
+		HasCompleteLeftHandIKState(
+			true, true, true, true, true, true, false, true,
+			NonIdentityLeftHandGripInRightHandSpace, NonIdentityHandGripInLeftHandSpace));
 	TestFalse(
 		TEXT("missing weapon grip socket disables left hand IK"),
 		HasCompleteLeftHandIKState(
-			true, true, true, true, true, false, NonIdentityLeftHandGripInRightHandSpace));
+			true, true, true, true, true, true, true, false,
+			NonIdentityLeftHandGripInRightHandSpace, NonIdentityHandGripInLeftHandSpace));
 	TestFalse(
-		TEXT("identity grip transform disables left hand IK despite being valid"),
+		TEXT("identity weapon grip transform disables left hand IK despite being valid"),
 		HasCompleteLeftHandIKState(
-			true, true, true, true, true, true, FTransform::Identity));
+			true, true, true, true, true, true, true, true,
+			FTransform::Identity, NonIdentityHandGripInLeftHandSpace));
+	TestFalse(
+		TEXT("identity character palm transform disables left hand IK"),
+		HasCompleteLeftHandIKState(
+			true, true, true, true, true, true, true, true,
+			NonIdentityLeftHandGripInRightHandSpace, FTransform::Identity));
 
 	const FTransform InvalidGripTransform(
 		FQuat(NAN, 0.0f, 0.0f, 1.0f),
@@ -147,13 +229,15 @@ bool FShooterLeftHandIKEnabledStateTest::RunTest(const FString& Parameters)
 	TestFalse(
 		TEXT("nan grip transform disables left hand IK"),
 		HasCompleteLeftHandIKState(
-			true, true, true, true, true, true, InvalidGripTransform));
+			true, true, true, true, true, true, true, true,
+			InvalidGripTransform, NonIdentityHandGripInLeftHandSpace));
 
 	// 正向用例：所有真实数据齐备时开启；与 AimIK 是否开启无关。
 	TestTrue(
 		TEXT("complete valid state enables left hand IK"),
 		HasCompleteLeftHandIKState(
-			true, true, true, true, true, true, NonIdentityLeftHandGripInRightHandSpace));
+			true, true, true, true, true, true, true, true,
+			NonIdentityLeftHandGripInRightHandSpace, NonIdentityHandGripInLeftHandSpace));
 
 	return true;
 }
