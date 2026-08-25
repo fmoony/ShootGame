@@ -5,6 +5,7 @@
 #include "Abilities/Tasks/AbilityTask_WaitDelay.h"
 #include "AbilitySystemComponent.h"
 #include "GameplayTagContainer.h"
+#include "Characters/Equipment/ShooterEquipmentComponent.h"
 #include "ShooterAbilitySystemComponent.h"
 #include "ShooterCharacter.h"
 #include "ShooterGameplayTags.h"
@@ -264,7 +265,10 @@ void UShooterGameplayAbility_Equip::HandleEquipWaitFinished()
 
 	AShooterCharacter* Character = Cast<AShooterCharacter>(
 		GetShooterAvatarActor());
-	if (!Character || !Character->CommitActiveWeapon(TargetInstanceId))
+	UShooterEquipmentComponent* Equipment = Character
+		? Character->GetEquipmentComponent()
+		: nullptr;
+	if (!Equipment || !Equipment->EquipWeapon(TargetInstanceId))
 	{
 		UE_LOG(
 			LogShootGame,

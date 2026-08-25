@@ -18,6 +18,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Abilities/GameplayAbility.h"
 #include "AbilitySystemComponent.h"
+#include "Characters/Equipment/ShooterEquipmentComponent.h"
 #include "ShooterAbilitySystemComponent.h"
 #include "ShooterAttributeSet.h"
 #include "ShooterGameplayAbility_Fire.h"
@@ -145,7 +146,7 @@ bool AShooterNetworkTestCoordinator::ReplaceInventoryWeaponForReloadTest(
 	Weapon->SetBoundInstanceId(InstanceId);
 	Weapon->SetActorHiddenInGame(true);
 	Inventory->RegisterWeaponActor(Weapon);
-	Character->HandleWeaponAddedToInventory(InstanceId);
+	Character->GetEquipmentComponent()->EquipWeapon(InstanceId);
 	return true;
 }
 
@@ -509,14 +510,14 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			InventoryComponent->TryAddWeapon(RifleClass, ServerInventoryFirstId);
 		if (RifleResult == EShooterInventoryAddResult::Added)
 		{
-			Character->HandleWeaponAddedToInventory(ServerInventoryFirstId);
+			Character->GetEquipmentComponent()->EquipWeapon(ServerInventoryFirstId);
 		}
 
 		const EShooterInventoryAddResult PistolResult =
 			InventoryComponent->TryAddWeapon(PistolClass, ServerInventorySecondId);
 		if (PistolResult == EShooterInventoryAddResult::Added)
 		{
-			Character->HandleWeaponAddedToInventory(ServerInventorySecondId);
+			Character->GetEquipmentComponent()->EquipWeapon(ServerInventorySecondId);
 		}
 
 		// SingleGrant：同一 WeaponClass 不能第二次授予。
@@ -3571,7 +3572,7 @@ void AShooterNetworkTestCoordinator::RunAimRotationServerPhase()
 			RifleClass,
 			RifleInstanceId) == EShooterInventoryAddResult::Added)
 		{
-			Character->HandleWeaponAddedToInventory(RifleInstanceId);
+			Character->GetEquipmentComponent()->EquipWeapon(RifleInstanceId);
 			bServerInventoryPrepared = true;
 		}
 		return;

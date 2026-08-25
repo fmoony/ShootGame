@@ -5,6 +5,7 @@
 #include "Components/SceneComponent.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Characters/Equipment/ShooterEquipmentComponent.h"
 #include "ShooterCharacter.h"
 #include "ShooterInventoryComponent.h"
 #include "ShooterWeapon.h"
@@ -97,7 +98,14 @@ void AShooterPickup::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
 		Inventory->TryAddWeapon(WeaponClass, GrantedInstanceId);
 	if (AddResult == EShooterInventoryAddResult::Added)
 	{
-		ShooterCharacter->HandleWeaponAddedToInventory(GrantedInstanceId);
+		// R3：拾取后的“立即装备”只通过 Equipment facade 提交，不再直接调用 Character 装备事务。
+		UShooterEquipmentComponent* Equipment = ShooterCharacter->GetEquipmentComponent();
+		if (!Equipment || !Equipment->EquipWeapon(GrantedInstanceId))
+		{
+			// 理论不可达：Inventory 刚成功创建了 Actor；失败时明确不消费 Pickup。
+			bPickupAvailable = true;
+			return;
+		}
 
 		// hide this mesh
 		SetActorHiddenInGame(true);

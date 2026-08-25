@@ -3,6 +3,7 @@
 
 #include "ShooterCharacter.h"
 #include "Characters/Aim/ShooterAimPresentationComponent.h"
+#include "Characters/Equipment/ShooterEquipmentComponent.h"
 #include "ShooterWeapon.h"
 #include "ShooterInventoryComponent.h"
 #include "AbilitySystemComponent.h"
@@ -144,6 +145,9 @@ AShooterCharacter::AShooterCharacter()
 
 	// 表现瞄准链路由静态 Component 承接：采样、RPC、复制、平滑与调试不再落在 Character。
 	AimPresentationComponent = CreateDefaultSubobject<UShooterAimPresentationComponent>(TEXT("AimPresentationComponent"));
+
+	// R3 先建立装备 facade；R4 把 CurrentWeapon 与 ActiveWeaponInstanceId 迁入该组件。
+	EquipmentComponent = CreateDefaultSubobject<UShooterEquipmentComponent>(TEXT("EquipmentComponent"));
 
 	bReplicates = true;
 }
@@ -830,8 +834,12 @@ void AShooterCharacter::AddWeaponClass(const TSubclassOf<AShooterWeapon>& Weapon
 		return;
 	}
 
-	// 进入现有装备处理入口，保持“拾取/授予后立即装备”的旧行为。
-	HandleWeaponAddedToInventory(GrantedInstanceId);
+	// R3：进入 Equipment facade，保持“拾取/授予后立即装备”的旧行为；
+	// Character 不再被外部系统直接调用装备提交事务。
+	if (EquipmentComponent)
+	{
+		EquipmentComponent->EquipWeapon(GrantedInstanceId);
+	}
 }
 
 void AShooterCharacter::OnRep_CurrentWeapon(AShooterWeapon* PreviousWeapon)

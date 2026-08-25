@@ -5,6 +5,7 @@
 #include "Misc/AutomationTest.h"
 #include "Animation/AnimInstance.h"
 #include "Characters/Aim/ShooterAimPresentationComponent.h"
+#include "Characters/Equipment/ShooterEquipmentComponent.h"
 #include "Characters/Animation/ShooterThirdPersonAnimInstance.h"
 #include "Characters/ShooterCharacter.h"
 #include "Engine/Engine.h"
@@ -183,6 +184,14 @@ bool FShooterArchitectureOwnershipSurfaceTest::RunTest(const FString& Parameters
 		return false;
 	}
 	TestTrue(TEXT("AimPresentationComponent is replicated"), AimPresentationComponent->GetIsReplicated());
+
+	const UShooterEquipmentComponent* EquipmentComponent =
+		CharacterDefaults->GetEquipmentComponent();
+	TestNotNull(TEXT("Character creates EquipmentComponent facade"), EquipmentComponent);
+	if (EquipmentComponent)
+	{
+		TestFalse(TEXT("R3 Equipment facade does not replicate its own fields yet"), EquipmentComponent->GetIsReplicated());
+	}
 
 	const FProperty* CurrentWeaponProperty = FindFProperty<FProperty>(
 		AShooterCharacter::StaticClass(),

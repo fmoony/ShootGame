@@ -16,6 +16,7 @@ class UPawnNoiseEmitterComponent;
 class USkeletalMeshComponent;
 class UCameraComponent;
 class UShooterInventoryComponent;
+class UShooterEquipmentComponent;
 class UShooterAimPresentationComponent;
 struct FInputActionValue;
 struct FOnAttributeChangeData;
@@ -115,6 +116,10 @@ protected:
 	/** 表现瞄准组件宿主：采样、Server RPC、复制、远端平滑与调试。 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Aim", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UShooterAimPresentationComponent> AimPresentationComponent;
+
+	/** 装备组件宿主：R3 先建立 facade，R4 迁入当前武器唯一权威。 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Equipment", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UShooterEquipmentComponent> EquipmentComponent;
 
 	/** 兼容镜像：Inventory 建立后的 WeaponActor 列表；逻辑权威源是 Inventory WeaponInstances。 */
 	TArray<AShooterWeapon*> OwnedWeapons;
@@ -245,6 +250,9 @@ public:
 
 	/** 返回角色的表现瞄准组件；Character 只保留转发入口与生命周期协调。 */
 	UShooterAimPresentationComponent* GetAimPresentationComponent() const { return AimPresentationComponent; }
+
+	/** 返回角色的装备组件；外部系统只通过该入口提交装备事务。 */
+	UShooterEquipmentComponent* GetEquipmentComponent() const { return EquipmentComponent; }
 
 	// ---- R2 迁移期转发接口：AnimBP / 旧测试 / 调试继续通过 Character 读 Component。 ----
 
