@@ -205,10 +205,9 @@ bool UShooterThirdPersonAnimInstance::IsAimIKEnabledForState(
 	return true;
 }
 
-void UShooterThirdPersonAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
+void UShooterThirdPersonAnimInstance::UpdateShooterAnimationData(float DeltaSeconds)
 {
-	Super::NativeUpdateAnimation(DeltaSeconds);
-
+	// 公共 GroundSpeed / 空中 / 装备 / ASC 表现 Tag 已由 UShooterAnimInstanceBase 采集。
 	const AShooterCharacter* Character = Cast<AShooterCharacter>(GetOwningActor());
 	if (!Character)
 	{

@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Animation/AnimInstance.h"
+#include "Characters/Animation/ShooterAnimInstanceBase.h"
 #include "ShooterThirdPersonAnimInstance.generated.h"
 
 class AShooterCharacter;
@@ -24,7 +24,7 @@ class AShooterWeapon;
  * 只承载表现数据，不修改骨骼；骨骼修改由 FAnimNode_ShooterAimIK 完成。
  */
 UCLASS(Blueprintable)
-class SHOOTGAME_API UShooterThirdPersonAnimInstance : public UAnimInstance
+class SHOOTGAME_API UShooterThirdPersonAnimInstance : public UShooterAnimInstanceBase
 {
 	GENERATED_BODY()
 
@@ -156,7 +156,8 @@ public:
 
 
 protected:
-	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
+	/** 基类完成公共快照后采集第三人称专用数据。 */
+	virtual void UpdateShooterAnimationData(float DeltaSeconds) override;
 
 private:
 	/** 已缓存武器引用；变化时刷新 HandToMuzzle。 */
