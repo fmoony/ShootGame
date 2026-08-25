@@ -3,10 +3,10 @@
 #include "ShooterGameplayAbility_Fire.h"
 
 #include "AbilitySystemComponent.h"
+#include "Characters/Equipment/ShooterEquipmentComponent.h"
 #include "GameplayTagContainer.h"
 #include "ShooterCharacter.h"
 #include "ShooterGameplayTags.h"
-#include "ShooterNPC.h"
 #include "ShooterWeapon.h"
 #include "ShooterWeaponHolder.h"
 #include "ShootGame.h"
@@ -95,27 +95,19 @@ bool UShooterGameplayAbility_Fire::CanActivateAbility(
 		return false;
 	}
 
-	// 服务器完整校验：Avatar 必须是 ASC 当前 Avatar、玩家 / NPC 未死亡、
+	// 服务器完整校验：Avatar 必须是 ASC 当前 Avatar、State.Dead 未挂载、
 	// 当前 WeaponActor 有效且属于该 Avatar，并且存在可消耗弹药。
+	// 死亡判断统一使用 ASC Tag，不再 Cast Character/NPC 读各自 IsDead()。
 	const UAbilitySystemComponent* AbilitySystemComponent =
 		ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
-	const IShooterWeaponHolder* WeaponHolder =
-		Cast<IShooterWeaponHolder>(AvatarActor);
-	const AShooterWeapon* Weapon = WeaponHolder
-		? WeaponHolder->GetCurrentWeapon()
-		: nullptr;
-
-	const AShooterCharacter* Character = Cast<AShooterCharacter>(AvatarActor);
-	const AShooterNPC* Npc = Cast<AShooterNPC>(AvatarActor);
-	const bool bHolderAlive = Character
-		? !Character->IsDead()
-		: Npc
-			? !Npc->IsDead()
-			: false;
+	const AShooterWeapon* Weapon = GetCurrentWeaponForAvatar(
+		const_cast<AActor*>(AvatarActor));
+	const bool bDead = AbilitySystemComponent &&
+		AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Dead);
 
 	return AbilitySystemComponent &&
 		AbilitySystemComponent->GetAvatarActor() == AvatarActor &&
-		bHolderAlive &&
+		!bDead &&
 		IsValid(Weapon) &&
 		Weapon->GetOwner() == AvatarActor &&
 		!Weapon->IsHidden() &&
@@ -136,15 +128,12 @@ void UShooterGameplayAbility_Fire::ActivateAbility(
 	}
 
 	AActor* AvatarActor = ActorInfo ? ActorInfo->AvatarActor.Get() : nullptr;
-	AShooterCharacter* Character = Cast<AShooterCharacter>(AvatarActor);
-	AShooterNPC* Npc = Cast<AShooterNPC>(AvatarActor);
+	UAbilitySystemComponent* AbilitySystemComponent =
+		ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
 	AShooterWeapon* Weapon = GetCurrentWeaponForAvatar(AvatarActor);
-	const bool bHolderAlive = Character
-		? !Character->IsDead()
-		: Npc
-			? !Npc->IsDead()
-			: false;
-	if ((!Character && !Npc) || !IsValid(Weapon) || !bHolderAlive ||
+	const bool bDead = AbilitySystemComponent &&
+		AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Dead);
+	if (!AvatarActor || bDead || !IsValid(Weapon) ||
 		Weapon->GetOwner() != AvatarActor || Weapon->IsHidden() ||
 		!Weapon->CanConsumeAmmo())
 	{
@@ -162,7 +151,7 @@ void UShooterGameplayAbility_Fire::ActivateAbility(
 		LogShootGame,
 		Display,
 		TEXT("GA_Fire activated: Avatar=%s Weapon=%s Ammo=%d"),
-		*GetNameSafe(Character),
+		*GetNameSafe(AvatarActor),
 		*GetNameSafe(Weapon),
 		Weapon->GetBulletCount());
 }
@@ -240,20 +229,24 @@ void UShooterGameplayAbility_Fire::HandleWeaponOutOfAmmo(AShooterWeapon* Weapon)
 		false);
 }
 
-AShooterCharacter* UShooterGameplayAbility_Fire::GetShooterCharacter() const
-{
-	return Cast<AShooterCharacter>(GetShooterAvatarActor());
-}
-
-AShooterNPC* UShooterGameplayAbility_Fire::GetShooterNPC() const
-{
-	return Cast<AShooterNPC>(GetShooterAvatarActor());
-}
-
 AShooterWeapon* UShooterGameplayAbility_Fire::GetCurrentWeaponForAvatar(
 	AActor* AvatarActor) const
 {
-	// 玩家与 NPC 共用 IShooterWeaponHolder 的最小只读 CurrentWeapon 接口。
+	// 玩家优先走 EquipmentComponent；NPC 尚无 Equipment 时保留最小 IShooterWeaponHolder 回退。
+	if (AShooterCharacter* Character = Cast<AShooterCharacter>(AvatarActor))
+	{
+		if (UShooterEquipmentComponent* Equipment = Character->GetEquipmentComponent())
+		{
+			AShooterWeapon* Weapon = Equipment->GetCurrentWeaponActor();
+			if (IsValid(Weapon) && Weapon->GetOwner() == Character)
+			{
+				return Weapon;
+			}
+		}
+
+		return Character->GetCurrentWeapon();
+	}
+
 	const IShooterWeaponHolder* WeaponHolder =
 		Cast<IShooterWeaponHolder>(AvatarActor);
 	return WeaponHolder ? WeaponHolder->GetCurrentWeapon() : nullptr;

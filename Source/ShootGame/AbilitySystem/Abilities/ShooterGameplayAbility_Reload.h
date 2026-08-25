@@ -63,13 +63,13 @@ protected:
 		bool bWasCancelled) override;
 
 private:
-	/** 服务器完整校验与目标解析：目标必须是 Inventory Active 且当前可见的 WeaponActor。 */
+	/** 服务器完整校验与目标解析：目标必须是 Equipment Active 且当前可见的 WeaponActor。 */
 	bool ResolveReloadTarget(
 		const FGameplayAbilityActorInfo* ActorInfo,
 		AShooterWeapon*& OutWeapon,
 		FGuid& OutInstanceId) const;
 
-	/** 提交前二次校验：目标 InstanceId 仍是 Inventory Active 与 Character.CurrentWeapon。 */
+	/** 提交前二次校验：目标 InstanceId 仍是 Equipment Active，CurrentWeapon 仍指向缓存 Actor。 */
 	bool IsReloadTargetStillCurrent() const;
 
 	/** WaitDelay 到期：原子提交或失败结束；bReloadCommitted 保证一次 Ability 最多提交一次。 */

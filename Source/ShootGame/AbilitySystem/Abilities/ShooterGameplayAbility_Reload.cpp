@@ -5,6 +5,7 @@
 #include "Abilities/Tasks/AbilityTask_WaitDelay.h"
 #include "AbilitySystemComponent.h"
 #include "GameplayTagContainer.h"
+#include "Characters/Equipment/ShooterEquipmentComponent.h"
 #include "ShooterAbilitySystemComponent.h"
 #include "ShooterCharacter.h"
 #include "ShooterGameplayTags.h"
@@ -113,14 +114,17 @@ bool UShooterGameplayAbility_Reload::ResolveReloadTarget(
 		ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
 	if (!Character || !AbilitySystemComponent ||
 		AbilitySystemComponent->GetAvatarActor() != Character ||
-		Character->IsDead())
+		AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Dead))
 	{
 		return false;
 	}
 
 	UShooterInventoryComponent* Inventory = Character->GetInventoryComponent();
-	AShooterWeapon* Weapon = Character->GetCurrentWeapon();
-	if (!Inventory || !IsValid(Weapon) ||
+	UShooterEquipmentComponent* Equipment = Character->GetEquipmentComponent();
+	AShooterWeapon* Weapon = Equipment
+		? Equipment->GetCurrentWeaponActor()
+		: Character->GetCurrentWeapon();
+	if (!Inventory || !Equipment || !IsValid(Weapon) ||
 		Weapon->GetOwner() != Character ||
 		Weapon->IsHidden())
 	{
@@ -131,7 +135,7 @@ bool UShooterGameplayAbility_Reload::ResolveReloadTarget(
 	const FShooterWeaponInstanceData* Instance =
 		Inventory->FindWeaponInstance(InstanceId);
 	if (!Instance ||
-		Inventory->GetActiveWeaponInstanceId() != InstanceId ||
+		Equipment->GetActiveWeaponInstanceId() != InstanceId ||
 		Instance->MagazineAmmo >= Weapon->GetMagazineSize() ||
 		Instance->ReserveAmmo <= 0)
 	{
@@ -209,13 +213,19 @@ bool UShooterGameplayAbility_Reload::IsReloadTargetStillCurrent() const
 	UShooterInventoryComponent* Inventory = Character
 		? Character->GetInventoryComponent()
 		: nullptr;
-	if (!Character || Character->IsDead() || !Inventory ||
+	UShooterEquipmentComponent* Equipment = Character
+		? Character->GetEquipmentComponent()
+		: nullptr;
+	const UAbilitySystemComponent* AbilitySystemComponent =
+		Character ? Character->GetAbilitySystemComponent() : nullptr;
+	if (!Character || !Inventory || !Equipment || !AbilitySystemComponent ||
+		AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Dead) ||
 		!CachedWeapon.IsValid() ||
-		Character->GetCurrentWeapon() != CachedWeapon.Get() ||
+		Equipment->GetCurrentWeaponActor() != CachedWeapon.Get() ||
 		CachedWeapon->GetOwner() != Character ||
 		CachedWeapon->IsHidden() ||
 		CachedWeapon->GetBoundInstanceId() != TargetInstanceId ||
-		Inventory->GetActiveWeaponInstanceId() != TargetInstanceId ||
+		Equipment->GetActiveWeaponInstanceId() != TargetInstanceId ||
 		!Inventory->FindWeaponInstance(TargetInstanceId))
 	{
 		return false;

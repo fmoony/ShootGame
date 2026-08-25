@@ -15,7 +15,7 @@ class UAbilityTask_WaitDelay;
  *
  * 5C 闭环：激活时按 Slot 顺序计算下一个合法 InstanceId，取消 Fire / Reload，
  * 以 WeaponActor.EquipDuration 为服务器时钟等待，提交前二次确认目标仍存在，
- * 最后通过 Character.CommitActiveWeapon 原子提交 ActiveWeaponInstanceId 与 CurrentWeapon。
+ * 最后通过 Equipment.EquipWeapon 原子提交 ActiveWeaponInstanceId 与 CurrentWeaponActor。
  */
 UCLASS(NotBlueprintable)
 class SHOOTGAME_API UShooterGameplayAbility_Equip : public UShooterGameplayAbility
@@ -69,7 +69,7 @@ private:
 	/** 提交前二次校验：目标实例与 WeaponActor 仍有效，且没有其他事务改写当前武器。 */
 	bool IsEquipTargetStillValid() const;
 
-	/** WaitDelay 到期：原子提交 ActiveWeaponInstanceId 与 CurrentWeapon。 */
+	/** WaitDelay 到期：原子提交 ActiveWeaponInstanceId 与 CurrentWeaponActor。 */
 	UFUNCTION()
 	void HandleEquipWaitFinished();
 
@@ -82,7 +82,7 @@ private:
 	/** 激活前的 Active Instance 快照；提交前确认没有第三方切换。 */
 	FGuid PreviousInstanceId;
 
-	/** 激活前的 CurrentWeapon；EndAbility 只清理仍属于自己的引用。 */
+	/** 激活前的 CurrentWeaponActor；EndAbility 只清理仍属于自己的引用。 */
 	TWeakObjectPtr<AShooterWeapon> CachedPreviousWeapon;
 
 	/** 等待提交的目标 WeaponActor。 */
@@ -91,6 +91,6 @@ private:
 	/** 服务器权威时钟任务；等待期间被取消时由 EndAbility 清理。 */
 	TWeakObjectPtr<UAbilityTask_WaitDelay> EquipWaitTask;
 
-	/** 是否已经提交 CurrentWeapon；重复回调不得再次提交。 */
+	/** 是否已经提交装备事务；重复回调不得再次提交。 */
 	bool bEquipCommitted = false;
 };

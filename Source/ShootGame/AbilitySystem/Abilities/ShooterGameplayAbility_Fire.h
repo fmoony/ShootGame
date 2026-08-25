@@ -6,8 +6,6 @@
 #include "ShooterGameplayAbility.h"
 #include "ShooterGameplayAbility_Fire.generated.h"
 
-class AShooterCharacter;
-class AShooterNPC;
 class AShooterWeapon;
 
 /**
@@ -70,8 +68,7 @@ private:
 	/** WeaponActor 在 Fire 中确认弹药耗尽时回调。 */
 	void HandleWeaponOutOfAmmo(AShooterWeapon* Weapon);
 
-	AShooterCharacter* GetShooterCharacter() const;
-	AShooterNPC* GetShooterNPC() const;
+	/** Equipment 优先、IShooterWeaponHolder 作为 NPC 兼容回退的当前武器解析。 */
 	AShooterWeapon* GetCurrentWeaponForAvatar(AActor* AvatarActor) const;
 
 	/** 激活时缓存的武器；EndAbility 只清理仍指向自己的武器。 */

@@ -107,13 +107,14 @@ bool UShooterGameplayAbility_Equip::ResolveEquipTarget(
 		ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
 	if (!Character || !AbilitySystemComponent ||
 		AbilitySystemComponent->GetAvatarActor() != Character ||
-		Character->IsDead())
+		AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Dead))
 	{
 		return false;
 	}
 
 	UShooterInventoryComponent* Inventory = Character->GetInventoryComponent();
-	if (!Inventory || Inventory->GetWeaponCount() < 2)
+	UShooterEquipmentComponent* Equipment = Character->GetEquipmentComponent();
+	if (!Inventory || !Equipment || Inventory->GetWeaponCount() < 2)
 	{
 		return false;
 	}
@@ -121,7 +122,7 @@ bool UShooterGameplayAbility_Equip::ResolveEquipTarget(
 	// 按 Slot 顺序计算下一个合法实例；单武器或当前 Active 无效时明确拒绝。
 	FGuid NextInstanceId;
 	if (!Inventory->FindNextWeaponInstanceId(
-		Inventory->GetActiveWeaponInstanceId(),
+		Equipment->GetActiveWeaponInstanceId(),
 		NextInstanceId))
 	{
 		return false;
@@ -131,7 +132,7 @@ bool UShooterGameplayAbility_Equip::ResolveEquipTarget(
 	if (!IsValid(TargetWeapon) ||
 		TargetWeapon->GetOwner() != Character ||
 		TargetWeapon->IsActorBeingDestroyed() ||
-		TargetWeapon == Character->GetCurrentWeapon())
+		TargetWeapon == Equipment->GetCurrentWeaponActor())
 	{
 		return false;
 	}
@@ -163,13 +164,15 @@ void UShooterGameplayAbility_Equip::ActivateAbility(
 
 	AShooterCharacter* Character = Cast<AShooterCharacter>(
 		GetShooterAvatarActor());
-	UShooterInventoryComponent* Inventory = Character
-		? Character->GetInventoryComponent()
+	UShooterEquipmentComponent* Equipment = Character
+		? Character->GetEquipmentComponent()
 		: nullptr;
-	PreviousInstanceId = Inventory
-		? Inventory->GetActiveWeaponInstanceId()
+	PreviousInstanceId = Equipment
+		? Equipment->GetActiveWeaponInstanceId()
 		: FGuid();
-	CachedPreviousWeapon = Character ? Character->GetCurrentWeapon() : nullptr;
+	CachedPreviousWeapon = Equipment
+		? Equipment->GetCurrentWeaponActor()
+		: nullptr;
 	CachedTargetWeapon = TargetWeapon;
 
 	// 激活成功时 GAS 已挂上 State.Equipping；显式取消 Fire / Reload，保证切换期间旧武器停火。
@@ -211,25 +214,31 @@ bool UShooterGameplayAbility_Equip::IsEquipTargetStillValid() const
 	UShooterInventoryComponent* Inventory = Character
 		? Character->GetInventoryComponent()
 		: nullptr;
-	if (!Character || Character->IsDead() || !Inventory ||
+	UShooterEquipmentComponent* Equipment = Character
+		? Character->GetEquipmentComponent()
+		: nullptr;
+	const UAbilitySystemComponent* AbilitySystemComponent =
+		Character ? Character->GetAbilitySystemComponent() : nullptr;
+	if (!Character || !Inventory || !Equipment || !AbilitySystemComponent ||
+		AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Dead) ||
 		!CachedTargetWeapon.IsValid() ||
 		CachedTargetWeapon->IsActorBeingDestroyed() ||
 		CachedTargetWeapon->GetOwner() != Character ||
 		!Inventory->FindWeaponInstance(TargetInstanceId) ||
-		Inventory->GetActiveWeaponInstanceId() != PreviousInstanceId)
+		Equipment->GetActiveWeaponInstanceId() != PreviousInstanceId)
 	{
 		return false;
 	}
 
-	// 等待期间 CurrentWeapon 被其他路径改写则放弃提交，避免逻辑 ID 与 Actor 分离。
+	// 等待期间 Equipment.CurrentWeaponActor 被其他路径改写则放弃提交，避免逻辑 ID 与 Actor 分离。
 	if (CachedPreviousWeapon.IsValid())
 	{
-		if (Character->GetCurrentWeapon() != CachedPreviousWeapon.Get())
+		if (Equipment->GetCurrentWeaponActor() != CachedPreviousWeapon.Get())
 		{
 			return false;
 		}
 	}
-	else if (Character->GetCurrentWeapon() != nullptr)
+	else if (Equipment->GetCurrentWeaponActor() != nullptr)
 	{
 		return false;
 	}
