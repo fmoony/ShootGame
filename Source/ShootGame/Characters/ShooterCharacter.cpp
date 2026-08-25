@@ -1039,45 +1039,23 @@ bool AShooterCharacter::CommitActiveWeapon(const FGuid& InstanceId)
 
 void AShooterCharacter::AddWeaponClass(const TSubclassOf<AShooterWeapon>& WeaponClass)
 {
-	// 只有服务器可以生成并装备武器
-	if (!HasAuthority())
+	// R1：玩家武器只有 Inventory.TryAddWeapon 一条创建路径；
+	// 旧直生 Actor 路径已封死，重复定义 / 满槽 / 生成失败都由 Inventory 统一返回。
+	if (!HasAuthority() || !InventoryComponent || !WeaponClass)
 	{
 		return;
 	}
 
-	// 是否已经拥有该类型的武器？
-	AShooterWeapon* OwnedWeapon = FindWeaponOfType(WeaponClass);
-
-	if (!OwnedWeapon)
+	FGuid GrantedInstanceId;
+	const EShooterInventoryAddResult AddResult =
+		InventoryComponent->TryAddWeapon(WeaponClass, GrantedInstanceId);
+	if (AddResult != EShooterInventoryAddResult::Added)
 	{
-		// 生成新武器
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.Owner = this;
-		SpawnParams.Instigator = this;
-		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		SpawnParams.TransformScaleMethod = ESpawnActorScaleMethod::MultiplyWithRoot;
-
-		AShooterWeapon* AddedWeapon = GetWorld()->SpawnActor<AShooterWeapon>(WeaponClass, GetActorTransform(), SpawnParams);
-
-		if (AddedWeapon)
-		{
-			// 加入拥有列表（第一版仅服务器维护）
-			OwnedWeapons.Add(AddedWeapon);
-
-			// 已有武器时先停用旧武器
-			if (CurrentWeapon)
-			{
-				CurrentWeapon->DeactivateWeapon();
-			}
-
-			// 切换到新武器并刷新表现
-			CurrentWeapon = AddedWeapon;
-			ApplyCurrentWeapon();
-
-			// C2.5：Authority 切枪重置（Listen Server 观察远端客户端 Pawn 的消费路径）。
-			ResetPresentationAimSmoothing();
-		}
+		return;
 	}
+
+	// 进入现有装备处理入口，保持“拾取/授予后立即装备”的旧行为。
+	HandleWeaponAddedToInventory(GrantedInstanceId);
 }
 
 void AShooterCharacter::OnRep_CurrentWeapon(AShooterWeapon* PreviousWeapon)
