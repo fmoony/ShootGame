@@ -4,6 +4,7 @@
 
 #include "Misc/AutomationTest.h"
 #include "Animation/AnimInstance.h"
+#include "Characters/Aim/ShooterAimPresentationComponent.h"
 #include "Characters/Animation/ShooterThirdPersonAnimInstance.h"
 #include "Characters/ShooterCharacter.h"
 #include "Engine/Engine.h"
@@ -157,9 +158,9 @@ bool FShooterArchitectureAnimBPSurfaceTest::RunTest(const FString& Parameters)
 }
 
 /**
- * R0 所有权表快照：当前 Aim 网络属性与 RPC 位于 Character，
- * CurrentWeapon 与 Inventory.ActiveWeaponInstanceId 是并存的复制字段。
- * R2 / R4 会在相应阶段更新这里的唯一权威预期。
+ * R0/R2 所有权表快照：Aim 采样、Server RPC、复制属性与平滑状态已经由
+ * UShooterAimPresentationComponent 承接；Character 只保留转发 Getter。
+ * CurrentWeapon 与 Inventory.ActiveWeaponInstanceId 仍待 R4 统一到 Equipment。
  */
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FShooterArchitectureOwnershipSurfaceTest,
@@ -168,6 +169,21 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FShooterArchitectureOwnershipSurfaceTest::RunTest(const FString& Parameters)
 {
+	const AShooterCharacter* CharacterDefaults =
+		AShooterCharacter::StaticClass()->GetDefaultObject<AShooterCharacter>();
+	if (!TestNotNull(TEXT("Character has defaults"), CharacterDefaults))
+	{
+		return false;
+	}
+
+	const UShooterAimPresentationComponent* AimPresentationComponent =
+		CharacterDefaults->GetAimPresentationComponent();
+	if (!TestNotNull(TEXT("Character creates AimPresentationComponent"), AimPresentationComponent))
+	{
+		return false;
+	}
+	TestTrue(TEXT("AimPresentationComponent is replicated"), AimPresentationComponent->GetIsReplicated());
+
 	const FProperty* CurrentWeaponProperty = FindFProperty<FProperty>(
 		AShooterCharacter::StaticClass(),
 		TEXT("CurrentWeapon"));
@@ -181,24 +197,34 @@ bool FShooterArchitectureOwnershipSurfaceTest::RunTest(const FString& Parameters
 		CurrentWeaponProperty->RepNotifyFunc,
 		FName(TEXT("OnRep_CurrentWeapon")));
 
-	const FProperty* PresentationAimTargetProperty = FindFProperty<FProperty>(
-		AShooterCharacter::StaticClass(),
+	// R2：Character 不再持有 Aim 网络属性和 Server RPC。
+	TestNull(
+		TEXT("Character no longer owns PresentationAimTarget property"),
+		FindFProperty<FProperty>(AShooterCharacter::StaticClass(), TEXT("PresentationAimTarget")));
+	TestNull(
+		TEXT("Character no longer owns presentation aim Server RPC"),
+		AShooterCharacter::StaticClass()->FindFunctionByName(TEXT("ServerUpdatePresentationAimTarget")));
+
+	const FProperty* ComponentPresentationAimTargetProperty = FindFProperty<FProperty>(
+		UShooterAimPresentationComponent::StaticClass(),
 		TEXT("PresentationAimTarget"));
-	if (!TestNotNull(TEXT("Character exposes PresentationAimTarget"), PresentationAimTargetProperty))
+	if (!TestNotNull(TEXT("AimPresentationComponent exposes PresentationAimTarget"), ComponentPresentationAimTargetProperty))
 	{
 		return false;
 	}
-	TestTrue(TEXT("Character PresentationAimTarget is replicated"), PresentationAimTargetProperty->HasAnyPropertyFlags(CPF_Net));
+	TestTrue(
+		TEXT("AimPresentationComponent PresentationAimTarget is replicated"),
+		ComponentPresentationAimTargetProperty->HasAnyPropertyFlags(CPF_Net));
 	TestEqual(
-		TEXT("Character PresentationAimTarget uses OnRep_PresentationAimTarget"),
-		PresentationAimTargetProperty->RepNotifyFunc,
+		TEXT("AimPresentationComponent PresentationAimTarget uses OnRep_PresentationAimTarget"),
+		ComponentPresentationAimTargetProperty->RepNotifyFunc,
 		FName(TEXT("OnRep_PresentationAimTarget")));
 
-	const UFunction* AimServerRpc = AShooterCharacter::StaticClass()->FindFunctionByName(
+	const UFunction* AimServerRpc = UShooterAimPresentationComponent::StaticClass()->FindFunctionByName(
 		TEXT("ServerUpdatePresentationAimTarget"));
-	TestNotNull(TEXT("Character owns the presentation aim Server RPC on baseline"), AimServerRpc);
+	TestNotNull(TEXT("AimPresentationComponent owns the presentation aim Server RPC"), AimServerRpc);
 	TestTrue(
-		TEXT("Character presentation aim RPC is a server RPC"),
+		TEXT("AimPresentationComponent presentation aim RPC is a server RPC"),
 		AimServerRpc && AimServerRpc->HasAnyFunctionFlags(FUNC_NetServer));
 
 	const FProperty* ActiveWeaponInstanceIdProperty = FindFProperty<FProperty>(
@@ -216,5 +242,6 @@ bool FShooterArchitectureOwnershipSurfaceTest::RunTest(const FString& Parameters
 
 	return true;
 }
+
 
 #endif // WITH_DEV_AUTOMATION_TESTS

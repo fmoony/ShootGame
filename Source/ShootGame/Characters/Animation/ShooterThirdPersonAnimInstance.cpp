@@ -2,6 +2,7 @@
 
 #include "Characters/Animation/ShooterThirdPersonAnimInstance.h"
 #include "Characters/Animation/AnimNodes/ShooterAimIKMath.h"
+#include "Characters/Aim/ShooterAimPresentationComponent.h"
 #include "Characters/ShooterCharacter.h"
 #include "Weapons/ShooterWeapon.h"
 #include "Components/SkeletalMeshComponent.h"
@@ -336,20 +337,27 @@ void UShooterThirdPersonAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 	// C4 消费角色边界：
 	//  本地拥有者 → 即时 GetBaseAimRotation().Vector()；
-	//  SimulatedProxy / Listen Server 远端 → Muzzle → SmoothedPresentationAimTarget；
+	//  SimulatedProxy / Listen Server 远端 → Muzzle → Component.SmoothedPresentationAimTarget；
 	//  Dedicated Server / 无效数据 → 零向量并关闭 IK。
-	const bool bShouldRunPresentationSmoothing = AShooterCharacter::ShouldRunPresentationAimSmoothing(
-		Character->GetLocalRole(),
-		Character->GetNetMode(),
-		Character->IsLocallyControlled());
+	const UShooterAimPresentationComponent* AimPresentationComponent =
+		Character->GetAimPresentationComponent();
+	const bool bShouldRunPresentationSmoothing =
+		UShooterAimPresentationComponent::ShouldRunPresentationAimSmoothing(
+			Character->GetLocalRole(),
+			Character->GetNetMode(),
+			Character->IsLocallyControlled());
 	AimDirectionWorld = ComputeAimDirectionWorldForState(
 		Character->IsLocallyControlled(),
 		bShouldRunPresentationSmoothing,
-		Character->IsPresentationAimTargetValid(),
+		AimPresentationComponent
+			? AimPresentationComponent->IsPresentationAimTargetValid()
+			: false,
 		Character->GetBaseAimRotation().Vector(),
 		Character->GetPawnViewLocation(),
 		MuzzleWorld.GetLocation(),
-		Character->GetSmoothedPresentationAimTarget(),
+		AimPresentationComponent
+			? AimPresentationComponent->GetSmoothedPresentationAimTarget()
+			: FVector::ZeroVector,
 		bHasThirdPersonMuzzle,
 		MinimumRemoteAimTargetDistanceFromView);
 

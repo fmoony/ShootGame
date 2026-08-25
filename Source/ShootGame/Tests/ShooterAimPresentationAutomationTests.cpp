@@ -508,7 +508,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FShooterAimPresentationStateBehaviorTest::RunTest(const FString& Parameters)
 {
-	AShooterAimPresentationTestHarness* Harness = NewObject<AShooterAimPresentationTestHarness>();
+	UShooterAimPresentationTestHarness* Harness = NewObject<UShooterAimPresentationTestHarness>();
 	if (!TestNotNull(TEXT("test harness created"), Harness))
 	{
 		return false;
@@ -519,7 +519,9 @@ bool FShooterAimPresentationStateBehaviorTest::RunTest(const FString& Parameters
 	const FVector TargetB(4000.0, 9000.0, 1200.0);
 
 	// SimulatedProxy 观察端路径。
-	Harness->SetRole(ROLE_SimulatedProxy);
+	Harness->SetRoleOverrideForTest(ROLE_SimulatedProxy);
+	Harness->SetNetModeOverrideForTest(NM_Client);
+	Harness->SetLocallyControlledOverrideForTest(false);
 
 	// 稳态目标：第一次 Tick 直接采用，之后无论再跑多少 Tick（模拟超过旧 0.5s 回退窗口）
 	// 都保持有效，且平滑目标不跳回 ActorForward。
@@ -582,7 +584,7 @@ bool FShooterAimPresentationStateBehaviorTest::RunTest(const FString& Parameters
 		(Harness->GetSmoothedPresentationAimTargetForTest() - ViewLocation).GetSafeNormal();
 	FShooterAimMath::WorldDirectionToLocalAngles(
 		SmoothedDirection,
-		Harness->GetMesh()->GetComponentTransform(),
+		Harness->MeshTransformOverride,
 		ExpectedSimulatedYaw,
 		ExpectedSimulatedPitch);
 	TestTrue(
@@ -591,7 +593,9 @@ bool FShooterAimPresentationStateBehaviorTest::RunTest(const FString& Parameters
 		FMath::IsNearlyEqual(SimulatedPitch, ExpectedSimulatedPitch, 0.01f));
 
 	// 本地拥有者（Standalone Authority）：即使内存中存在远端/表现目标，角度仍来自本地基础瞄准旋转。
-	Harness->SetRole(ROLE_Authority);
+	Harness->SetRoleOverrideForTest(ROLE_Authority);
+	Harness->SetNetModeOverrideForTest(NM_Standalone);
+	Harness->SetLocallyControlledOverrideForTest(true);
 	Harness->SetPresentationAimTargetValidForTest(true);
 	Harness->SetPresentationAimTargetForTest(TargetB);
 	Harness->SetSmoothedPresentationAimTargetForTest(TargetB);
@@ -602,7 +606,7 @@ bool FShooterAimPresentationStateBehaviorTest::RunTest(const FString& Parameters
 	float ExpectedOwnerPitch = 0.0f;
 	FShooterAimMath::WorldDirectionToLocalAngles(
 		Harness->AimRotationOverride.Vector(),
-		Harness->GetMesh()->GetComponentTransform(),
+		Harness->MeshTransformOverride,
 		ExpectedOwnerYaw,
 		ExpectedOwnerPitch);
 	TestTrue(

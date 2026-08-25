@@ -16,6 +16,7 @@ class UPawnNoiseEmitterComponent;
 class USkeletalMeshComponent;
 class UCameraComponent;
 class UShooterInventoryComponent;
+class UShooterAimPresentationComponent;
 struct FInputActionValue;
 struct FOnAttributeChangeData;
 
@@ -107,9 +108,13 @@ protected:
 	/** 在服务器与客户端应用死亡后的本地状态和表现。 */
 	void ApplyDeathState();
 
-	/** Inventory 组件宿主：2A 只创建组件并暴露最薄访问入口，不接 Pickup。 */
+	/** Inventory 组件宿主：武器持有关系的逻辑权威源。 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Inventory", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UShooterInventoryComponent> InventoryComponent;
+
+	/** 表现瞄准组件宿主：采样、Server RPC、复制、远端平滑与调试。 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Aim", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UShooterAimPresentationComponent> AimPresentationComponent;
 
 	/** 兼容镜像：Inventory 建立后的 WeaponActor 列表；逻辑权威源是 Inventory WeaponInstances。 */
 	TArray<AShooterWeapon*> OwnedWeapons;
@@ -164,21 +169,6 @@ protected:
 	/** Gameplay initialization */
 	virtual void BeginPlay() override;
 
-	/** 观察端每帧平滑表现目标（Tick）。 */
-	virtual void Tick(float DeltaSeconds) override;
-
-	/** 绘制只读瞄准调试；实现集中在 Characters/Debug/ShooterAimDebug.cpp。 */
-	void DrawAimDebug() const;
-
-	/** 与权威开火共用的目标 Trace；可选输出仅供只读调试复用命中信息。 */
-	static FVector TracePreSpreadAimTarget(
-		UWorld* World,
-		const FVector& Start,
-		const FVector& End,
-		const AActor* IgnoredActor,
-		FHitResult* OutHit = nullptr,
-		bool* bOutPawnHit = nullptr);
-
 	/** 服务器（含监听主机）在占有发生时建立 ASC ActorInfo。 */
 	virtual void PossessedBy(AController* NewController) override;
 
@@ -187,75 +177,6 @@ protected:
 
 	/** 幂等建立 PlayerState ASC 的 Owner/Avatar 关系。 */
 	void InitializeAbilityActorInfo();
-
-	/** 服务器表现目标：本地拥有者以受限频率提交无散布视线目标，服务器校验后保存。
-	 *  表现快照，不是命中缓存：开火时仍由 GetWeaponTargetLocation 现场重算权威目标。
-	 *  只复制给非拥有者（COND_SkipOwner）：拥有者继续使用本地即时视角。 */
-	UPROPERTY(ReplicatedUsing = OnRep_PresentationAimTarget, VisibleAnywhere, BlueprintReadOnly, Category = "Aim")
-	FVector_NetQuantize PresentationAimTarget = FVector::ZeroVector;
-
-	UFUNCTION()
-	void OnRep_PresentationAimTarget();
-
-	/** 本地拥有者表现目标采样间隔（秒）；默认 20Hz。 */
-	UPROPERTY(EditAnywhere, Category = "Aim", meta = (ClampMin = 0.02, Units = "s"))
-	float PresentationAimSampleInterval = 0.05f;
-
-	/** 表现目标变化门槛：目标位移小于该值且方向夹角小于门槛角度时跳过更新（减少无意义更新）。 */
-	UPROPERTY(EditAnywhere, Category = "Aim", meta = (ClampMin = 0, Units = "cm"))
-	float PresentationAimMinChangeDistance = 20.0f;
-
-	/** 表现目标变化门槛：方向夹角（度）。 */
-	UPROPERTY(EditAnywhere, Category = "Aim", meta = (ClampMin = 0, ClampMax = 90, Units = "Degrees"))
-	float PresentationAimMinChangeAngle = 1.0f;
-
-	/** 即使目标未越过变化门槛，也按该间隔重新提交一次，帮助 Unreliable 路径从丢包中恢复。 */
-	UPROPERTY(EditAnywhere, Category = "Aim", meta = (ClampMin = 0.05, Units = "s"))
-	float PresentationAimKeepAliveInterval = 0.2f;
-
-	/** 本地拥有者表现目标采样定时器。 */
-	FTimerHandle PresentationAimTimer;
-
-	/** 本地拥有者启动受限频率的表现目标采样；可重复调用。 */
-	void StartPresentationAimSampling();
-
-	/** 本地拥有者采样一次表现目标；监听主机直接提交，客户端通过 Unreliable Server RPC 提交。 */
-	void SamplePresentationAimTarget();
-
-	/** 高频、可丢失的表现输入；只更新服务器表现快照，不参与权威开火。 */
-	UFUNCTION(Server, Unreliable)
-	void ServerUpdatePresentationAimTarget(FVector_NetQuantize NewTarget, uint16 ClientSequence);
-
-	FVector LastSubmittedPresentationAimTarget = FVector::ZeroVector;
-	float LastPresentationAimSubmitTime = -1.0f;
-	uint16 NextPresentationAimSequence = 0;
-
-	float LastAcceptedPresentationAimServerTime = -1.0f;
-	uint16 LastAcceptedPresentationAimSequence = 0;
-	bool bHasAcceptedPresentationAimSequence = false;
-
-	// ---- B3 观察端平滑与数据契约 ----
-
-	/** 观察端当前平滑目标（本地成员，不复制）：每帧向最新网络目标指数插值。 */
-	FVector SmoothedPresentationAimTarget = FVector::ZeroVector;
-
-	/** 观察端本地有效标记（不复制）：
-	 *  一旦收到有效的 PresentationAimTarget 就保持有效，直到死亡、切枪、传送等生命周期事件显式重置；
-	 *  不再把“复制值未变化 / 未收到新包”当作目标失效。 */
-	bool bPresentationAimTargetValid = false;
-
-	/** 观察端上一帧视点位置（传送/重生检测）。 */
-	FVector LastPresentationAimViewLocation = FVector::ZeroVector;
-
-	/** 平滑指数速率（1/s）：越大收敛越快。B3 调试起点，最终值由 B6 观感验收决定。 */
-	UPROPERTY(EditAnywhere, Category = "Aim", meta = (ClampMin = 0.0))
-	float PresentationAimSmoothingRate = 20.0f;
-
-	/** 观察端每帧平滑更新（SimulatedProxy，或 Listen Server 观察远端客户端 Pawn 的 Authority 非本地方）。 */
-	void UpdatePresentationAimSmoothing(float DeltaSeconds);
-
-	/** 重置平滑状态：武器切换、死亡、传送、首次初始化时直接采用最新目标，不从旧值插值。 */
-	void ResetPresentationAimSmoothing();
 
 	/** Gameplay cleanup */
 	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
@@ -287,6 +208,15 @@ protected:
 
 public:
 
+	/** 与权威开火共用的目标 Trace；可选输出仅供只读调试复用命中信息。 */
+	static FVector TracePreSpreadAimTarget(
+		UWorld* World,
+		const FVector& Start,
+		const FVector& End,
+		const AActor* IgnoredActor,
+		FHitResult* OutHit = nullptr,
+		bool* bOutPawnHit = nullptr);
+
 	/** Handle incoming damage */
 	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
@@ -313,19 +243,24 @@ public:
 	/** 返回角色的 Inventory 组件；该组件是武器持有关系的逻辑权威源。 */
 	UShooterInventoryComponent* GetInventoryComponent() const { return InventoryComponent; }
 
+	/** 返回角色的表现瞄准组件；Character 只保留转发入口与生命周期协调。 */
+	UShooterAimPresentationComponent* GetAimPresentationComponent() const { return AimPresentationComponent; }
+
+	// ---- R2 迁移期转发接口：AnimBP / 旧测试 / 调试继续通过 Character 读 Component。 ----
+
 	/** 只读访问服务器表现目标（观察端读取复制值；拥有者始终为零向量）。 */
-	const FVector& GetPresentationAimTarget() const { return PresentationAimTarget; }
+	const FVector& GetPresentationAimTarget() const;
 
 	/** 只读访问观察端平滑后的表现目标（本地成员；观察端消费入口）。 */
-	const FVector& GetSmoothedPresentationAimTarget() const { return SmoothedPresentationAimTarget; }
+	const FVector& GetSmoothedPresentationAimTarget() const;
 
 	/** 观察端本地有效标记（Debug / 自动化验证只读入口）。 */
-	bool IsPresentationAimTargetValid() const { return bPresentationAimTargetValid; }
+	bool IsPresentationAimTargetValid() const;
 
-	/** 纯判定：PresentationAimTarget 是否可建立有效状态（有限且非零）。 */
+	/** 纯判定转发：PresentationAimTarget 是否可建立有效状态。 */
 	static bool IsValidPresentationAimTargetValue(const FVector& Target);
 
-	/** 纯判定：本地表现目标是否越过发送门槛或到达保活间隔。 */
+	/** 纯判定转发：本地表现目标是否越过发送门槛或到达保活间隔。 */
 	static bool ShouldSubmitPresentationAimTarget(
 		const FVector& NewTarget,
 		const FVector& PreviousTarget,
@@ -335,39 +270,30 @@ public:
 		float MinChangeAngle,
 		float KeepAliveInterval);
 
-	/** 纯判定：客户端提交的表现目标是否有限且位于允许的最大视距内。 */
+	/** 纯判定转发：客户端提交的表现目标是否位于允许视距内。 */
 	static bool IsClientPresentationAimTargetWithinBounds(
 		const FVector& Target,
 		const FVector& ServerViewLocation,
 		float MaxDistance,
 		float DistanceTolerance);
 
-	/** 16 位递增序号比较，支持回绕并拒绝重复/过期 Unreliable RPC。 */
+	/** 16 位递增序号比较转发。 */
 	static bool IsNewerPresentationAimSequence(uint16 Candidate, uint16 Previous);
 
-	/** 纯判定：该 Role / NetMode / 本地控制组合是否应运行表现目标平滑。
-	 *  SimulatedProxy 始终运行；Listen Server 观察远端客户端 Pawn 的 Authority 非本地方也运行；
-	 *  Dedicated Server 不运行（不增加不可见动画的高成本表现工作）。 */
+	/** 平滑角色矩阵转发。 */
 	static bool ShouldRunPresentationAimSmoothing(ENetRole LocalRole, ENetMode NetMode, bool bLocallyControlled);
 
 	UFUNCTION(BlueprintPure, Category = "Aim")
-	FVector GetPresentationAimTargetBP() const { return PresentationAimTarget; }
+	FVector GetPresentationAimTargetBP() const;
 
 	UFUNCTION(BlueprintPure, Category = "Aim|Debug")
-	FVector GetSmoothedPresentationAimTargetBP() const
-	{
-		return SmoothedPresentationAimTarget;
-	}
+	FVector GetSmoothedPresentationAimTargetBP() const;
 
-	/** 观察端平滑后的表现角度（局部坐标，度）——AnimBP 数据契约出口（B3）。
-	 *  模拟代理：由平滑目标相对 Mesh 变换计算局部 AimYaw / AimPitch；
-	 *  拥有者或回退：基于 GetBaseAimRotation（本地视角 / 角色 Forward + 远端 Pitch）。 */
+	/** 观察端平滑后的表现角度——AnimBP 数据契约出口。 */
 	UFUNCTION(BlueprintCallable, Category = "Aim")
 	void GetAimPresentationAngles(float& OutAimYaw, float& OutAimPitch) const;
 
-	/** AO 就绪形式的垂直瞄准值（sin(radians(AimPitch))，值域 [-1, 1]）：
-	 *  与旧 PitchN 契约（瞄准前向与世界 Up 的点积）语义一致，供 AimOffset Y 轴直接消费。
-	 *  AnimBP 蓝图契约改造后，运行时不再需要外部反射写入。 */
+	/** AO 就绪形式的垂直瞄准值。 */
 	UFUNCTION(BlueprintCallable, Category = "Aim")
 	float GetAimPitchN() const;
 
