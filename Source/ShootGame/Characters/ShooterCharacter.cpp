@@ -306,7 +306,10 @@ void AShooterCharacter::EndPlay(EEndPlayReason::Type EndPlayReason)
 		}
 
 		OwnedWeapons.Empty();
-		CurrentWeapon = nullptr;
+		if (EquipmentComponent)
+		{
+			EquipmentComponent->ClearEquippedWeapon();
+		}
 	}
 
 	Super::EndPlay(EndPlayReason);
@@ -756,65 +759,32 @@ void AShooterCharacter::HandleWeaponAddedToInventory(const FGuid& InstanceId)
 	// OwnedWeapons 是兼容镜像，逻辑权威仍在 Inventory。
 	OwnedWeapons.AddUnique(AddedWeapon);
 
-	// 与旧 Pickup 表现一致：拾取新武器后立即装备。
-	if (CurrentWeapon)
+	// R4：装备事务唯一入口在 EquipmentComponent。
+	if (EquipmentComponent)
 	{
-		CurrentWeapon->DeactivateWeapon();
-	}
-
-	CurrentWeapon = AddedWeapon;
-	InventoryComponent->SetActiveWeaponInstanceId(InstanceId);
-	AddedWeapon->ActivateWeapon();
-	ApplyCurrentWeapon();
-
-	// Listen Server 观察远端客户端 Pawn 时，Authority 不会走 OnRep_CurrentWeapon；
-	// 切枪作为明确生命周期事件，由 AimPresentationComponent 重置表现目标平滑。
-	if (AimPresentationComponent)
-	{
-		AimPresentationComponent->ResetPresentationAimSmoothing();
+		EquipmentComponent->EquipWeapon(InstanceId);
 	}
 }
 
 bool AShooterCharacter::CommitActiveWeapon(const FGuid& InstanceId)
 {
-	if (!HasAuthority() || !InventoryComponent || !InstanceId.IsValid())
+	// R4 兼容入口：装备权威已经迁入 Equipment；外部仍可通过 Character 转发。
+	if (!EquipmentComponent)
 	{
 		return false;
 	}
 
-	AShooterWeapon* TargetWeapon = InventoryComponent->FindWeaponActor(InstanceId);
-	if (!IsValid(TargetWeapon) || TargetWeapon->GetOwner() != this)
-	{
-		return false;
-	}
+	return EquipmentComponent->EquipWeapon(InstanceId);
+}
 
-	// 旧武器先停火并隐藏；同一事务内更新 Inventory Active、公开 CurrentWeapon 与新武器可见性。
-	if (IsValid(CurrentWeapon) && CurrentWeapon != TargetWeapon)
-	{
-		CurrentWeapon->DeactivateWeapon();
-	}
+AShooterWeapon* AShooterCharacter::GetCurrentWeapon() const
+{
+	return EquipmentComponent ? EquipmentComponent->GetCurrentWeaponActor() : nullptr;
+}
 
-	InventoryComponent->SetActiveWeaponInstanceId(InstanceId);
-	CurrentWeapon = TargetWeapon;
-	TargetWeapon->ActivateWeapon();
-	ApplyCurrentWeapon();
-
-	// Authority 切枪重置（Listen Server 观察远端客户端 Pawn 的消费路径）。
-	if (AimPresentationComponent)
-	{
-		AimPresentationComponent->ResetPresentationAimSmoothing();
-	}
-
-	ForceNetUpdate();
-
-	UE_LOG(
-		LogShootGame,
-		Display,
-		TEXT("Character CommitActiveWeapon: Actor=%s InstanceId=%s Weapon=%s"),
-		*GetName(),
-		*InstanceId.ToString(),
-		*GetNameSafe(TargetWeapon));
-	return true;
+AShooterWeapon* AShooterCharacter::GetCurrentWeaponActor() const
+{
+	return GetCurrentWeapon();
 }
 
 void AShooterCharacter::AddWeaponClass(const TSubclassOf<AShooterWeapon>& WeaponClass)
@@ -842,43 +812,10 @@ void AShooterCharacter::AddWeaponClass(const TSubclassOf<AShooterWeapon>& Weapon
 	}
 }
 
-void AShooterCharacter::OnRep_CurrentWeapon(AShooterWeapon* PreviousWeapon)
-{
-	if (IsValid(PreviousWeapon) && PreviousWeapon != CurrentWeapon)
-	{
-		PreviousWeapon->DeactivateWeapon();
-	}
-
-	// 客户端根据复制的武器引用刷新表现
-	ApplyCurrentWeapon();
-
-	// 武器切换时重置观察端平滑，避免从旧武器/旧表现目标继续插值。
-	if (AimPresentationComponent)
-	{
-		AimPresentationComponent->ResetPresentationAimSmoothing();
-	}
-}
-
-void AShooterCharacter::ApplyCurrentWeapon()
-{
-	if (!CurrentWeapon)
-	{
-		return;
-	}
-
-	// 将武器网格附着到角色（幂等，可重复调用）
-	AttachWeaponMeshes(CurrentWeapon);
-
-	// 切换 AnimBP 并更新 HUD
-	OnWeaponActivated(CurrentWeapon);
-}
-
 void AShooterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	// 所有客户端都需要当前武器，以显示第三人称视角
-	DOREPLIFETIME(AShooterCharacter, CurrentWeapon);
 	DOREPLIFETIME(AShooterCharacter, CurrentHP);
 	DOREPLIFETIME(AShooterCharacter, bIsDead);
 }
@@ -935,17 +872,16 @@ void AShooterCharacter::Die(AController* KillerController)
 	CancelReloadAbility();
 	CancelEquipAbility();
 
-	// Death Clear：停火 -> 销毁全部 WeaponActor -> Inventory Clear -> Active Invalid -> CurrentWeapon null。
-	if (IsValid(CurrentWeapon))
+	// Death Clear：停火 -> 销毁全部 WeaponActor -> Inventory Clear -> Equipment 收敛为无装备。
+	if (AShooterWeapon* DeathWeapon = GetCurrentWeaponActor())
 	{
-		CurrentWeapon->StopFiring();
+		DeathWeapon->StopFiring();
 	}
 	if (InventoryComponent)
 	{
 		InventoryComponent->ClearInventory();
 	}
 	OwnedWeapons.Empty();
-	CurrentWeapon = nullptr;
 
 	bIsDead = true;
 	ApplyDeathState();
@@ -977,10 +913,10 @@ void AShooterCharacter::Die(AController* KillerController)
 
 void AShooterCharacter::ApplyDeathState()
 {
-	// deactivate the weapon
-	if (IsValid(CurrentWeapon))
+	// deactivate the weapon（Equipment 已由 Inventory Clear 事件清空；这里只处理客户端本地镜像）。
+	if (AShooterWeapon* DeathWeapon = GetCurrentWeaponActor())
 	{
-		CurrentWeapon->DeactivateWeapon();
+		DeathWeapon->DeactivateWeapon();
 	}
 
 	// stop character movement

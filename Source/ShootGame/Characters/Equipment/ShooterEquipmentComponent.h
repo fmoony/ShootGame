@@ -8,6 +8,7 @@
 
 class AShooterCharacter;
 class AShooterWeapon;
+class UShooterInventoryComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
 	FShooterEquippedWeaponChangedDelegate,
@@ -17,11 +18,11 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
 	Weapon);
 
 /**
- * 角色“当前正在使用哪把武器”的装备组件。
+ * 角色“当前正在使用哪把武器”的唯一装备权威。
  *
- * R3 阶段只建立 facade：EquipWeapon 仍转发现有的 Character.CommitActiveWeapon 旧事务，
- * 不移动字段、不改变复制结果；装备变化事件由旧事务完成后发布。
- * R4 会把 ActiveWeaponInstanceId / CurrentWeaponActor 及其完整事务迁入本组件。
+ * ActiveWeaponInstanceId 与 CurrentWeaponActor 是同一装备事务的
+ * “稳定身份 + 世界实体”原子对：两者同时有效或同时无效。
+ * CurrentWeaponActor 复制给所有观察者，完整身份只复制给 Owner。
  */
 UCLASS(ClassGroup=(Equipment), meta=(BlueprintSpawnableComponent))
 class SHOOTGAME_API UShooterEquipmentComponent : public UActorComponent
@@ -31,20 +32,59 @@ class SHOOTGAME_API UShooterEquipmentComponent : public UActorComponent
 public:
 	UShooterEquipmentComponent();
 
-	/** 服务器权威装备事务入口（R3 facade：转发 Character.CommitActiveWeapon）。 */
+	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+	/** 服务器权威：提交当前装备事务（Deactivate / Activate / Attach / AnimClass / Event / AimReset）。 */
 	bool EquipWeapon(const FGuid& InstanceId);
 
-	/** 当前装备身份；R3 从 Inventory 读取旧 Active 值。 */
-	FGuid GetActiveWeaponInstanceId() const;
+	/** 幂等清空当前装备；Inventory Remove/Clear 或死亡路径调用。 */
+	void ClearEquippedWeapon();
 
-	/** 当前装备 WeaponActor；R3 从 Character 读取旧 CurrentWeapon。 */
-	AShooterWeapon* GetCurrentWeaponActor() const;
+	/** 当前装备身份；无效 FGuid 表示未装备。 */
+	FGuid GetActiveWeaponInstanceId() const { return ActiveWeaponInstanceId; }
 
-	/** 装备变化事件；HUD 在迁移期可通过 Character 转发，最终由本地 Controller/UI 绑定。 */
+	/** 当前装备 WeaponActor；没有装备时为 nullptr。 */
+	AShooterWeapon* GetCurrentWeaponActor() const { return CurrentWeaponActor; }
+
+	/** WeaponActor 的 Owner / BoundInstanceId 晚到时，由 Weapon 回调本组件补做幂等应用。 */
+	void HandleWeaponActorReady(AShooterWeapon* Weapon);
+
+	/** Inventory 移除指定 Instance 后通知装备组件；命中当前装备时清空。 */
+	void NotifyWeaponInstanceRemoved(const FGuid& InstanceId);
+
+	/** Inventory Clear 后通知装备组件；始终清空当前装备。 */
+	void NotifyInventoryCleared();
+
+	/** 装备变化事件；Character 在迁移期转发给旧 HUD，最终由本地 Controller/UI 绑定。 */
 	UPROPERTY(BlueprintAssignable, Category = "Equipment")
 	FShooterEquippedWeaponChangedDelegate OnEquippedWeaponChanged;
 
+protected:
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	/** 当前装备 WeaponActor；所有客户端需要它显示第三人称持枪。 */
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentWeaponActor, VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
+	TObjectPtr<AShooterWeapon> CurrentWeaponActor;
+
+	/** 当前装备 Instance 身份；完整身份只复制给 Owner。 */
+	UPROPERTY(ReplicatedUsing = OnRep_ActiveWeaponInstanceId, VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
+	FGuid ActiveWeaponInstanceId;
+
+	UFUNCTION()
+	void OnRep_CurrentWeaponActor(AShooterWeapon* PreviousWeapon);
+
+	UFUNCTION()
+	void OnRep_ActiveWeaponInstanceId();
+
+	/** OnRep 与服务器本地修改共用的幂等表现应用：附着 + Activate + 事件。 */
+	void ApplyCurrentWeapon(AShooterWeapon* PreviousWeapon);
+
+	/** 装备切换时重置表现瞄准平滑；清空时使用 Clear。 */
+	void ResetAimPresentationForEquipChange();
+
 private:
-	/** R3 旧事务完成后的唯一事件发布入口。 */
+	AShooterCharacter* GetOwnerCharacter() const;
+	UShooterInventoryComponent* GetOwnerInventory() const;
 	void BroadcastEquippedWeaponChanged();
 };

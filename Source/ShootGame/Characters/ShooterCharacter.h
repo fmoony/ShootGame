@@ -124,18 +124,6 @@ protected:
 	/** 兼容镜像：Inventory 建立后的 WeaponActor 列表；逻辑权威源是 Inventory WeaponInstances。 */
 	TArray<AShooterWeapon*> OwnedWeapons;
 
-	/** 当前装备且可射击的武器。
-	 *  服务器权威：只有服务器能修改，客户端通过 OnRep 接收 */
-	UPROPERTY(ReplicatedUsing = OnRep_CurrentWeapon, VisibleAnywhere, BlueprintReadOnly, Category = "Weapons")
-	TObjectPtr<AShooterWeapon> CurrentWeapon;
-
-	/** 客户端收到服务器复制的当前武器时调用 */
-	UFUNCTION()
-	void OnRep_CurrentWeapon(AShooterWeapon* PreviousWeapon);
-
-	/** 在服务器和客户端应用当前武器的表现（附着 + AnimBP）。可重复调用，无副作用。 */
-	void ApplyCurrentWeapon();
-
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UPROPERTY(EditAnywhere, Category ="Destruction", meta = (ClampMin = 0, ClampMax = 10, Units = "s"))
@@ -234,15 +222,15 @@ public:
 	/** 当前是否处于已死亡状态。 */
 	bool IsDead() const { return bIsDead; }
 
-	/** 当前由服务器选择并复制给客户端的武器（IShooterWeaponHolder 最小只读接口）。 */
-	virtual AShooterWeapon* GetCurrentWeapon() const override { return CurrentWeapon; }
+	/** 当前由服务器选择并复制给客户端的武器（IShooterWeaponHolder 最小只读接口；R4 起转发 Equipment）。 */
+	virtual AShooterWeapon* GetCurrentWeapon() const override;
 
 	/** 公共表现侧命名：CurrentWeapon 即阶段计划中的 CurrentWeaponActor。 */
-	AShooterWeapon* GetCurrentWeaponActor() const { return CurrentWeapon; }
+	AShooterWeapon* GetCurrentWeaponActor() const;
 
 	/** 2B 桥接：Inventory 成功创建 WeaponActor 后，由 Pickup 路径调用以更新兼容列表与当前武器表现。 */
 	void HandleWeaponAddedToInventory(const FGuid& InstanceId);
-	/** 服务器权威：原子提交 ActiveWeaponInstanceId、Weapon 可见性与 CurrentWeapon。 */
+	/** R4 兼容入口：转发 Equipment.EquipWeapon；R8 删除。 */
 	bool CommitActiveWeapon(const FGuid& InstanceId);
 
 	/** 返回角色的 Inventory 组件；该组件是武器持有关系的逻辑权威源。 */

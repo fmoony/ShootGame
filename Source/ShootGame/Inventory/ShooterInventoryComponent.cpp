@@ -2,6 +2,8 @@
 
 #include "ShooterInventoryComponent.h"
 
+#include "Characters/Equipment/ShooterEquipmentComponent.h"
+#include "Characters/ShooterCharacter.h"
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
 #include "Net/UnrealNetwork.h"
@@ -166,10 +168,7 @@ bool UShooterInventoryComponent::RemoveWeaponInstance(const FGuid& InstanceId)
 			Weapon->Destroy();
 		}
 
-		if (ActiveWeaponInstanceId == InstanceId)
-		{
-			SetActiveWeaponInstanceId(FGuid());
-		}
+		OnWeaponInstanceRemovedFromInventory.Broadcast(InstanceId);
 
 		UE_LOG(
 			LogShootGame,
@@ -198,7 +197,7 @@ void UShooterInventoryComponent::ClearInventory()
 	}
 	BoundWeaponActors.Empty();
 	ReplicatedInventory.ClearItems();
-	SetActiveWeaponInstanceId(FGuid());
+	OnInventoryCleared.Broadcast();
 
 	UE_LOG(
 		LogShootGame,
@@ -409,43 +408,22 @@ void UShooterInventoryComponent::UnregisterWeaponActor(AShooterWeapon* Weapon)
 		*GetNameSafe(Weapon));
 }
 
-void UShooterInventoryComponent::SetActiveWeaponInstanceId(const FGuid& NewInstanceId)
+FGuid UShooterInventoryComponent::GetActiveWeaponInstanceId() const
 {
-	if (!GetOwner() || !GetOwner()->HasAuthority() || ActiveWeaponInstanceId == NewInstanceId)
-	{
-		return;
-	}
-
-	if (NewInstanceId.IsValid() && !ReplicatedInventory.FindItem(NewInstanceId))
-	{
-		UE_LOG(
-			LogShootGame,
-			Warning,
-			TEXT("Inventory SetActiveWeaponInstanceId rejected missing instance: Actor=%s InstanceId=%s"),
-			*GetNameSafe(GetOwner()),
-			*NewInstanceId.ToString());
-		return;
-	}
-
-	ActiveWeaponInstanceId = NewInstanceId;
-	GetOwner()->ForceNetUpdate();
-
-	UE_LOG(
-		LogShootGame,
-		Display,
-		TEXT("Inventory ActiveWeaponInstanceId changed: Actor=%s InstanceId=%s"),
-		*GetNameSafe(GetOwner()),
-		*ActiveWeaponInstanceId.ToString());
+	const AShooterCharacter* Character = Cast<AShooterCharacter>(GetOwner());
+	const UShooterEquipmentComponent* Equipment = Character
+		? Character->GetEquipmentComponent()
+		: nullptr;
+	return Equipment ? Equipment->GetActiveWeaponInstanceId() : FGuid();
 }
 
-void UShooterInventoryComponent::OnRep_ActiveWeaponInstanceId()
+AShooterWeapon* UShooterInventoryComponent::GetActiveWeaponActor() const
 {
-	UE_LOG(
-		LogShootGame,
-		Display,
-		TEXT("Inventory ActiveWeaponInstanceId replicated: Actor=%s InstanceId=%s"),
-		*GetNameSafe(GetOwner()),
-		*ActiveWeaponInstanceId.ToString());
+	const AShooterCharacter* Character = Cast<AShooterCharacter>(GetOwner());
+	const UShooterEquipmentComponent* Equipment = Character
+		? Character->GetEquipmentComponent()
+		: nullptr;
+	return Equipment ? Equipment->GetCurrentWeaponActor() : nullptr;
 }
 
 void UShooterInventoryComponent::GetLifetimeReplicatedProps(
@@ -453,8 +431,6 @@ void UShooterInventoryComponent::GetLifetimeReplicatedProps(
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	// 完整 Inventory 与逻辑 Active ID 都是 OwnerOnly：
-	// 远端客户端只通过 Character.CurrentWeaponActor 表现当前持枪。
+	// 完整 Inventory 只复制给 Owner；远端只通过 Equipment.CurrentWeaponActor 表现当前持枪。
 	DOREPLIFETIME_CONDITION(UShooterInventoryComponent, ReplicatedInventory, COND_OwnerOnly);
-	DOREPLIFETIME_CONDITION(UShooterInventoryComponent, ActiveWeaponInstanceId, COND_OwnerOnly);
 }

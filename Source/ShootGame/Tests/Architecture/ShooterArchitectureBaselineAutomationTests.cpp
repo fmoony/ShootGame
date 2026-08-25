@@ -159,9 +159,9 @@ bool FShooterArchitectureAnimBPSurfaceTest::RunTest(const FString& Parameters)
 }
 
 /**
- * R0/R2 所有权表快照：Aim 采样、Server RPC、复制属性与平滑状态已经由
- * UShooterAimPresentationComponent 承接；Character 只保留转发 Getter。
- * CurrentWeapon 与 Inventory.ActiveWeaponInstanceId 仍待 R4 统一到 Equipment。
+ * R0/R2/R4 所有权表快照：
+ * Aim 由 AimPresentationComponent 承接；CurrentWeaponActor 与 ActiveWeaponInstanceId
+ * 在 R4 统一迁入 EquipmentComponent；Inventory 只保留拥有关系与只读转发。
  */
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FShooterArchitectureOwnershipSurfaceTest,
@@ -187,24 +187,47 @@ bool FShooterArchitectureOwnershipSurfaceTest::RunTest(const FString& Parameters
 
 	const UShooterEquipmentComponent* EquipmentComponent =
 		CharacterDefaults->GetEquipmentComponent();
-	TestNotNull(TEXT("Character creates EquipmentComponent facade"), EquipmentComponent);
-	if (EquipmentComponent)
-	{
-		TestFalse(TEXT("R3 Equipment facade does not replicate its own fields yet"), EquipmentComponent->GetIsReplicated());
-	}
-
-	const FProperty* CurrentWeaponProperty = FindFProperty<FProperty>(
-		AShooterCharacter::StaticClass(),
-		TEXT("CurrentWeapon"));
-	if (!TestNotNull(TEXT("Character exposes CurrentWeapon"), CurrentWeaponProperty))
+	if (!TestNotNull(TEXT("Character creates EquipmentComponent"), EquipmentComponent))
 	{
 		return false;
 	}
-	TestTrue(TEXT("Character CurrentWeapon is replicated"), CurrentWeaponProperty->HasAnyPropertyFlags(CPF_Net));
+	TestTrue(TEXT("EquipmentComponent is replicated after R4"), EquipmentComponent->GetIsReplicated());
+
+	// R4：Character 不再拥有 CurrentWeapon 复制属性。
+	TestNull(
+		TEXT("Character no longer owns CurrentWeapon property"),
+		FindFProperty<FProperty>(AShooterCharacter::StaticClass(), TEXT("CurrentWeapon")));
+
+	const FProperty* EquipmentCurrentWeaponProperty = FindFProperty<FProperty>(
+		UShooterEquipmentComponent::StaticClass(),
+		TEXT("CurrentWeaponActor"));
+	if (!TestNotNull(TEXT("Equipment exposes CurrentWeaponActor"), EquipmentCurrentWeaponProperty))
+	{
+		return false;
+	}
+	TestTrue(TEXT("Equipment CurrentWeaponActor is replicated"), EquipmentCurrentWeaponProperty->HasAnyPropertyFlags(CPF_Net));
 	TestEqual(
-		TEXT("Character CurrentWeapon uses OnRep_CurrentWeapon"),
-		CurrentWeaponProperty->RepNotifyFunc,
-		FName(TEXT("OnRep_CurrentWeapon")));
+		TEXT("Equipment CurrentWeaponActor uses OnRep_CurrentWeaponActor"),
+		EquipmentCurrentWeaponProperty->RepNotifyFunc,
+		FName(TEXT("OnRep_CurrentWeaponActor")));
+
+	const FProperty* EquipmentActiveIdProperty = FindFProperty<FProperty>(
+		UShooterEquipmentComponent::StaticClass(),
+		TEXT("ActiveWeaponInstanceId"));
+	if (!TestNotNull(TEXT("Equipment exposes ActiveWeaponInstanceId"), EquipmentActiveIdProperty))
+	{
+		return false;
+	}
+	TestTrue(TEXT("Equipment ActiveWeaponInstanceId is replicated"), EquipmentActiveIdProperty->HasAnyPropertyFlags(CPF_Net));
+	TestEqual(
+		TEXT("Equipment ActiveWeaponInstanceId uses OnRep_ActiveWeaponInstanceId"),
+		EquipmentActiveIdProperty->RepNotifyFunc,
+		FName(TEXT("OnRep_ActiveWeaponInstanceId")));
+
+	// R4：Inventory 不再持有 Active 复制字段，只有 R4 迁移期只读转发入口。
+	TestNull(
+		TEXT("Inventory no longer owns ActiveWeaponInstanceId property"),
+		FindFProperty<FProperty>(UShooterInventoryComponent::StaticClass(), TEXT("ActiveWeaponInstanceId")));
 
 	// R2：Character 不再持有 Aim 网络属性和 Server RPC。
 	TestNull(
@@ -235,19 +258,6 @@ bool FShooterArchitectureOwnershipSurfaceTest::RunTest(const FString& Parameters
 	TestTrue(
 		TEXT("AimPresentationComponent presentation aim RPC is a server RPC"),
 		AimServerRpc && AimServerRpc->HasAnyFunctionFlags(FUNC_NetServer));
-
-	const FProperty* ActiveWeaponInstanceIdProperty = FindFProperty<FProperty>(
-		UShooterInventoryComponent::StaticClass(),
-		TEXT("ActiveWeaponInstanceId"));
-	if (!TestNotNull(TEXT("Inventory exposes ActiveWeaponInstanceId"), ActiveWeaponInstanceIdProperty))
-	{
-		return false;
-	}
-	TestTrue(TEXT("Inventory ActiveWeaponInstanceId is replicated"), ActiveWeaponInstanceIdProperty->HasAnyPropertyFlags(CPF_Net));
-	TestEqual(
-		TEXT("Inventory ActiveWeaponInstanceId uses OnRep_ActiveWeaponInstanceId"),
-		ActiveWeaponInstanceIdProperty->RepNotifyFunc,
-		FName(TEXT("OnRep_ActiveWeaponInstanceId")));
 
 	return true;
 }

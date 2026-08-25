@@ -540,9 +540,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			RifleActor->GetBoundInstanceId() == ServerInventoryFirstId &&
 			PistolActor->GetBoundInstanceId() == ServerInventorySecondId;
 
-		// Switch.InvalidInstance：不存在的 InstanceId 不能改写 Active 身份。
+		// Switch.InvalidInstance：不存在的 InstanceId 不能改写 Equipment 的 Active 身份。
 		const FGuid ActiveBeforeInvalid = InventoryComponent->GetActiveWeaponInstanceId();
-		InventoryComponent->SetActiveWeaponInstanceId(FGuid::NewGuid());
+		Character->GetEquipmentComponent()->EquipWeapon(FGuid::NewGuid());
 		const bool bInvalidInstanceRejected =
 			InventoryComponent->GetActiveWeaponInstanceId() == ActiveBeforeInvalid;
 
@@ -3427,16 +3427,8 @@ AShooterCharacter* AShooterNetworkTestCoordinator::GetShooterCharacter() const
 
 AShooterWeapon* AShooterNetworkTestCoordinator::GetCurrentWeapon(AShooterCharacter* Character) const
 {
-	if (!Character)
-	{
-		return nullptr;
-	}
-
-	const FObjectPropertyBase* CurrentWeaponProperty =
-		FindFProperty<FObjectPropertyBase>(Character->GetClass(), TEXT("CurrentWeapon"));
-	return CurrentWeaponProperty
-		? Cast<AShooterWeapon>(CurrentWeaponProperty->GetObjectPropertyValue_InContainer(Character))
-		: nullptr;
+	// R4：Character.CurrentWeapon 已迁移到 Equipment.CurrentWeaponActor；测试读取稳定 Getter。
+	return Character ? Character->GetCurrentWeaponActor() : nullptr;
 }
 
 int32 AShooterNetworkTestCoordinator::CountProjectilesForInstigator(

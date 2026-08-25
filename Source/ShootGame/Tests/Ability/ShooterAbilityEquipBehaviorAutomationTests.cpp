@@ -4,6 +4,7 @@
 
 #include "Misc/AutomationTest.h"
 #include "Abilities/GameplayAbility.h"
+#include "Characters/Equipment/ShooterEquipmentComponent.h"
 #include "ShooterCharacter.h"
 #include "ShooterGameplayAbility_Equip.h"
 #include "ShooterGameplayAbility_Fire.h"
@@ -172,24 +173,28 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FShooterAbilityEquipCurrentWeaponReplicationTest::RunTest(const FString& Parameters)
 {
-	const FProperty* CurrentWeaponProperty = FindFProperty<FProperty>(
-		AShooterCharacter::StaticClass(),
-		TEXT("CurrentWeapon"));
-	if (!TestNotNull(TEXT("Character exposes CurrentWeapon"), CurrentWeaponProperty))
+	// R4：CurrentWeaponActor 的复制权威迁入 EquipmentComponent。
+	TestNull(
+		TEXT("Character no longer owns CurrentWeapon property"),
+		FindFProperty<FProperty>(AShooterCharacter::StaticClass(), TEXT("CurrentWeapon")));
+
+	const FProperty* EquipmentCurrentWeaponProperty = FindFProperty<FProperty>(
+		UShooterEquipmentComponent::StaticClass(),
+		TEXT("CurrentWeaponActor"));
+	if (!TestNotNull(TEXT("Equipment exposes CurrentWeaponActor"), EquipmentCurrentWeaponProperty))
 	{
 		return false;
 	}
-
-	TestTrue(TEXT("CurrentWeapon is replicated"), CurrentWeaponProperty->HasAnyPropertyFlags(CPF_Net));
+	TestTrue(TEXT("Equipment CurrentWeaponActor is replicated"), EquipmentCurrentWeaponProperty->HasAnyPropertyFlags(CPF_Net));
 	TestEqual(
-		TEXT("CurrentWeapon uses OnRep_CurrentWeapon"),
-		CurrentWeaponProperty->RepNotifyFunc,
-		FName(TEXT("OnRep_CurrentWeapon")));
+		TEXT("Equipment CurrentWeaponActor uses OnRep_CurrentWeaponActor"),
+		EquipmentCurrentWeaponProperty->RepNotifyFunc,
+		FName(TEXT("OnRep_CurrentWeaponActor")));
 
 	const AShooterCharacter* CharacterDefaults = GetDefault<AShooterCharacter>();
 	TestNotNull(TEXT("Character has defaults"), CharacterDefaults);
 	TestEqual(
-		TEXT("GetCurrentWeaponActor mirrors CurrentWeapon"),
+		TEXT("GetCurrentWeaponActor mirrors GetCurrentWeapon"),
 		CharacterDefaults ? CharacterDefaults->GetCurrentWeaponActor() : nullptr,
 		CharacterDefaults ? CharacterDefaults->GetCurrentWeapon() : nullptr);
 	return true;

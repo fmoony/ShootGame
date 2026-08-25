@@ -8,6 +8,7 @@
 #include "UObject/CoreNet.h"
 #include "UObject/UnrealType.h"
 #include "ShooterCharacter.h"
+#include "Characters/Equipment/ShooterEquipmentComponent.h"
 #include "ShooterInventoryComponent.h"
 #include "ShooterInventoryTypes.h"
 #include "ShooterWeapon.h"
@@ -158,22 +159,26 @@ bool FShooterInventoryOwnerReplicationTest::RunTest(const FString& Parameters)
 		TEXT("Inventory FastArray item enables NetSerialize"),
 		TStructOpsTypeTraits<FShooterWeaponInstanceEntry>::WithNetSerializer);
 
-	const FProperty* ActiveIdProperty = FindFProperty<FProperty>(
-		UShooterInventoryComponent::StaticClass(),
-		TEXT("ActiveWeaponInstanceId"));
-	if (!TestNotNull(TEXT("InventoryComponent exposes ActiveWeaponInstanceId"), ActiveIdProperty))
+	// R4：Active 身份迁入 Equipment；Inventory 不再持有复制字段。
+	TestNull(
+		TEXT("Inventory no longer owns ActiveWeaponInstanceId property"),
+		FindFProperty<FProperty>(UShooterInventoryComponent::StaticClass(), TEXT("ActiveWeaponInstanceId")));
+
+	const FProperty* EquipmentCurrentWeaponProperty = FindFProperty<FProperty>(
+		UShooterEquipmentComponent::StaticClass(),
+		TEXT("CurrentWeaponActor"));
+	if (!TestNotNull(TEXT("Equipment exposes CurrentWeaponActor"), EquipmentCurrentWeaponProperty))
 	{
 		return false;
 	}
-	TestTrue(TEXT("ActiveWeaponInstanceId is replicated"), ActiveIdProperty->HasAnyPropertyFlags(CPF_Net));
+	TestTrue(TEXT("Equipment CurrentWeaponActor is replicated"), EquipmentCurrentWeaponProperty->HasAnyPropertyFlags(CPF_Net));
 	TestEqual(
-		TEXT("ActiveWeaponInstanceId uses OnRep_ActiveWeaponInstanceId"),
-		ActiveIdProperty->RepNotifyFunc,
-		FName(TEXT("OnRep_ActiveWeaponInstanceId")));
+		TEXT("Equipment CurrentWeaponActor uses OnRep_CurrentWeaponActor"),
+		EquipmentCurrentWeaponProperty->RepNotifyFunc,
+		FName(TEXT("OnRep_CurrentWeaponActor")));
 
-	// 完整 FastArray 与 Active ID 的 COND_OwnerOnly 登记属于网络运行时行为，
+	// 完整 FastArray 的 COND_OwnerOnly 登记属于网络运行时行为，
 	// 由 ShooterNetworkTestCoordinator 在 Listen / Dedicated 会话中验证。
-	// 这里只验证复制属性与 FastArray 序列化契约均已正确注册。
 	return true;
 }
 
@@ -287,24 +292,28 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FShooterInventorySwitchContractTest::RunTest(const FString& Parameters)
 {
-	const FProperty* CurrentWeaponProperty = FindFProperty<FProperty>(
-		AShooterCharacter::StaticClass(),
-		TEXT("CurrentWeapon"));
-	if (!TestNotNull(TEXT("Character exposes CurrentWeapon"), CurrentWeaponProperty))
+	// R4：CurrentWeaponActor 是 Equipment 的复制字段，Character 只有转发 Getter。
+	TestNull(
+		TEXT("Character no longer owns CurrentWeapon property"),
+		FindFProperty<FProperty>(AShooterCharacter::StaticClass(), TEXT("CurrentWeapon")));
+
+	const FProperty* EquipmentCurrentWeaponProperty = FindFProperty<FProperty>(
+		UShooterEquipmentComponent::StaticClass(),
+		TEXT("CurrentWeaponActor"));
+	if (!TestNotNull(TEXT("Equipment exposes CurrentWeaponActor"), EquipmentCurrentWeaponProperty))
 	{
 		return false;
 	}
-
-	TestTrue(TEXT("CurrentWeapon is replicated to all observers"), CurrentWeaponProperty->HasAnyPropertyFlags(CPF_Net));
+	TestTrue(TEXT("Equipment CurrentWeaponActor is replicated"), EquipmentCurrentWeaponProperty->HasAnyPropertyFlags(CPF_Net));
 	TestEqual(
-		TEXT("CurrentWeapon uses OnRep_CurrentWeapon"),
-		CurrentWeaponProperty->RepNotifyFunc,
-		FName(TEXT("OnRep_CurrentWeapon")));
+		TEXT("Equipment CurrentWeaponActor uses OnRep_CurrentWeaponActor"),
+		EquipmentCurrentWeaponProperty->RepNotifyFunc,
+		FName(TEXT("OnRep_CurrentWeaponActor")));
 
 	const AShooterCharacter* CharacterDefaults = GetDefault<AShooterCharacter>();
 	TestNotNull(TEXT("Character has defaults"), CharacterDefaults);
 	TestEqual(
-		TEXT("GetCurrentWeaponActor mirrors CurrentWeapon"),
+		TEXT("GetCurrentWeaponActor mirrors GetCurrentWeapon"),
 		CharacterDefaults ? CharacterDefaults->GetCurrentWeaponActor() : nullptr,
 		CharacterDefaults ? CharacterDefaults->GetCurrentWeapon() : nullptr);
 	return true;

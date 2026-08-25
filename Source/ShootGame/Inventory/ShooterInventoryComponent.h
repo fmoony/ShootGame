@@ -8,6 +8,10 @@
 #include "ShooterInventoryComponent.generated.h"
 
 class AShooterWeapon;
+class AShooterCharacter;
+
+DECLARE_MULTICAST_DELEGATE_OneParam(FShooterInventoryWeaponRemovedDelegate, const FGuid&);
+DECLARE_MULTICAST_DELEGATE(FShooterInventoryClearedDelegate);
 
 /** Inventory 新增武器结果。Pickup 与测试入口据此决定是否消费 Pickup。 */
 UENUM(BlueprintType)
@@ -29,7 +33,6 @@ enum class EShooterInventoryAddResult : uint8
  *
  * 职责边界：
  * - 持有并复制 WeaponInstance FastArray（OwnerOnly）；
- * - 持有 ActiveWeaponInstanceId 数据字段（OwnerOnly）；
  * - 提供服务器权威的数据增删、查找与 WeaponActor 绑定入口；
  * - 2B 起承接 Pickup 的最终授予路径。
  */
@@ -51,10 +54,10 @@ public:
 	/** 服务器权威：新增一条武器实例数据。InstanceId 与 SlotIndex 均必须唯一。 */
 	bool AddWeaponInstance(const FShooterWeaponInstanceData& InstanceData);
 
-	/** 服务器权威：按 InstanceId 移除武器实例。移除当前 Active 实例时同步清空 ActiveWeaponInstanceId。 */
+	/** 服务器权威：按 InstanceId 移除武器实例；移除事件由 Equipment 决定是否清空当前装备。 */
 	bool RemoveWeaponInstance(const FGuid& InstanceId);
 
-	/** 服务器权威：清空全部武器实例并清空 ActiveWeaponInstanceId。 */
+	/** 服务器权威：清空全部武器实例；清空事件由 Equipment 收敛当前装备。 */
 	void ClearInventory();
 
 	/** 按 InstanceId 查找武器实例；不存在时返回 nullptr。 */
@@ -79,8 +82,6 @@ public:
 	/** 返回绑定到指定 InstanceId 的 WeaponActor；不存在时返回 nullptr。 */
 	AShooterWeapon* FindWeaponActor(const FGuid& InstanceId) const;
 
-	/** 返回当前 Active Instance 绑定的 WeaponActor；不存在时返回 nullptr。 */
-	AShooterWeapon* GetActiveWeaponActor() const { return FindWeaponActor(ActiveWeaponInstanceId); }
 
 	/** 按 Slot 顺序返回 CurrentId 之后的下一个 InstanceId；失败时返回 false。 */
 	bool FindNextWeaponInstanceId(const FGuid& CurrentId, FGuid& OutNextId) const;
@@ -97,11 +98,17 @@ public:
 	/** 当前逻辑武器实例数量。 */
 	int32 GetWeaponCount() const { return ReplicatedInventory.Items.Num(); }
 
-	/** 当前逻辑武器实例 ID；无效 FGuid 表示未装备。 */
-	FGuid GetActiveWeaponInstanceId() const { return ActiveWeaponInstanceId; }
+	/** R4 迁移期只读转发：当前装备身份来自 Owner 的 EquipmentComponent。 */
+	FGuid GetActiveWeaponInstanceId() const;
 
-	/** 服务器权威：更新 ActiveWeaponInstanceId。传入有效 ID 时要求该实例已存在。 */
-	void SetActiveWeaponInstanceId(const FGuid& NewInstanceId);
+	/** R4 迁移期只读转发：当前装备 WeaponActor 来自 Owner 的 EquipmentComponent。 */
+	AShooterWeapon* GetActiveWeaponActor() const;
+
+	/** Equipment 订阅：指定 Instance 被移除（服务器与 Owner 客户端都会广播）。 */
+	FShooterInventoryWeaponRemovedDelegate OnWeaponInstanceRemovedFromInventory;
+
+	/** Equipment 订阅：Inventory 被整体清空（服务器与 Owner 客户端都会广播）。 */
+	FShooterInventoryClearedDelegate OnInventoryCleared;
 
 	/** 查询指定实例当前弹匣弹药；实例不存在时返回 0。 */
 	int32 GetMagazineAmmo(const FGuid& InstanceId) const;
@@ -142,10 +149,4 @@ protected:
 	UPROPERTY(Replicated)
 	FShooterWeaponInventoryList ReplicatedInventory;
 
-	/** 逻辑当前武器身份；2A 只建立数据字段。 */
-	UPROPERTY(ReplicatedUsing = OnRep_ActiveWeaponInstanceId)
-	FGuid ActiveWeaponInstanceId;
-
-	UFUNCTION()
-	void OnRep_ActiveWeaponInstanceId();
 };

@@ -5,6 +5,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/World.h"
+#include "Characters/Equipment/ShooterEquipmentComponent.h"
 #include "ShooterCharacter.h"
 #include "ShooterInventoryComponent.h"
 #include "ShooterProjectile.h"
@@ -85,6 +86,14 @@ void AShooterWeapon::InitializeWeaponOwner()
 		{
 			Inventory->RegisterWeaponActor(this);
 		}
+
+		// R4：玩家武器不再由 Weapon.BeginPlay/OwnerRep 自动附着；
+		// 是否附着/激活只由 Equipment 根据“是否当前装备”决定。
+		if (UShooterEquipmentComponent* Equipment = ShooterCharacter->GetEquipmentComponent())
+		{
+			Equipment->HandleWeaponActorReady(this);
+			return;
+		}
 	}
 
 	if (WeaponOwner)
@@ -101,6 +110,12 @@ void AShooterWeapon::OnRep_BoundInstanceId()
 			Inventory && BoundInstanceId.IsValid())
 		{
 			Inventory->RegisterWeaponActor(this);
+		}
+
+		// BoundInstanceId 到达后，当前武器若已复制到 Equipment，这里补做幂等应用。
+		if (UShooterEquipmentComponent* Equipment = ShooterCharacter->GetEquipmentComponent())
+		{
+			Equipment->HandleWeaponActorReady(this);
 		}
 	}
 }
