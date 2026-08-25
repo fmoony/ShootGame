@@ -144,8 +144,17 @@ namespace ShooterAnimBPGraphAudit
 		Graphs.Append(AnimBP->FunctionGraphs);
 		Graphs.Append(AnimBP->MacroGraphs);
 		Graphs.Append(AnimBP->DelegateSignatureGraphs);
-		for (const UEdGraph* Graph : Graphs)
+
+		TSet<const UEdGraph*> VisitedGraphs;
+		while (Graphs.Num() > 0)
 		{
+			UEdGraph* Graph = Graphs.Pop(EAllowShrinking::No);
+			if (!Graph || VisitedGraphs.Contains(Graph))
+			{
+				continue;
+			}
+			VisitedGraphs.Add(Graph);
+
 			UE_LOG(
 				LogShooterAnimBPGraphAudit,
 				Display,
@@ -155,6 +164,14 @@ namespace ShooterAnimBPGraphAudit
 				*Graph->GetClass()->GetName(),
 				Graph->Nodes.Num());
 			LogNodeList(AnimBP, Graph);
+
+			for (UEdGraph* SubGraph : Graph->SubGraphs)
+			{
+				if (SubGraph && !VisitedGraphs.Contains(SubGraph))
+				{
+					Graphs.Add(SubGraph);
+				}
+			}
 		}
 
 		UE_LOG(
