@@ -114,22 +114,52 @@ FVector UShooterThirdPersonAnimInstance::ComputeAimDirectionWorldForState(
 	bool bShouldRunPresentationSmoothing,
 	bool bPresentationTargetValid,
 	const FVector& LocalAimDirection,
+	const FVector& ViewWorldLocation,
 	const FVector& MuzzleWorldLocation,
 	const FVector& SmoothedPresentationTarget,
-	bool bHasThirdPersonMuzzle)
+	bool bHasThirdPersonMuzzle,
+	float MinimumTargetDistanceFromView)
 {
+	const FVector StableBaseDirection =
+		FShooterAimIKMath::IsFinite(LocalAimDirection) && !LocalAimDirection.IsNearlyZero()
+			? LocalAimDirection.GetSafeNormal()
+			: FVector::ZeroVector;
+
 	// 本地拥有者：即时基础瞄准方向，永远不消费远端表现目标。
 	if (bLocallyControlled)
 	{
-		return FShooterAimIKMath::IsFinite(LocalAimDirection) && !LocalAimDirection.IsNearlyZero()
-			? LocalAimDirection
-			: FVector::ZeroVector;
+		return StableBaseDirection;
 	}
 
-	// SimulatedProxy 与 Listen Server 观察远端 Pawn：都使用同一份平滑表现目标；
-	// 方向必须从 ThirdPerson Muzzle 指向该目标，不能用 ActorForward / ViewLocation 代替。
+	// SimulatedProxy 与 Listen Server 观察远端 Pawn：都使用同一份平滑表现目标。
+	// 近点或枪口后方目标会放大相机与枪口的视差，因此只把“姿势目标”沿基础视线向前投影到安全平面；
+	// 横向偏移仍保留，使枪口继续向相机瞄准射线汇聚，而不是突然退化为完全平行的基础方向。
 	if (bShouldRunPresentationSmoothing && bPresentationTargetValid && bHasThirdPersonMuzzle)
 	{
+		if (!FShooterAimIKMath::IsFinite(ViewWorldLocation) ||
+			!FShooterAimIKMath::IsFinite(MuzzleWorldLocation) ||
+			!FShooterAimIKMath::IsFinite(SmoothedPresentationTarget))
+		{
+			return StableBaseDirection;
+		}
+
+		if (!StableBaseDirection.IsNearlyZero())
+		{
+			const FVector ViewToTarget = SmoothedPresentationTarget - ViewWorldLocation;
+			const float TargetDepthOnViewRay = FVector::DotProduct(ViewToTarget, StableBaseDirection);
+			const float SafeMinimumTargetDepth = FMath::Max(
+				0.0f,
+				MinimumTargetDistanceFromView);
+
+			if (TargetDepthOnViewRay < SafeMinimumTargetDepth)
+			{
+				const FVector SafePresentationTarget =
+					SmoothedPresentationTarget +
+					StableBaseDirection * (SafeMinimumTargetDepth - TargetDepthOnViewRay);
+				return ComputeMuzzleToTargetDirection(MuzzleWorldLocation, SafePresentationTarget);
+			}
+		}
+
 		return ComputeMuzzleToTargetDirection(MuzzleWorldLocation, SmoothedPresentationTarget);
 	}
 
@@ -317,9 +347,11 @@ void UShooterThirdPersonAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		bShouldRunPresentationSmoothing,
 		Character->IsPresentationAimTargetValid(),
 		Character->GetBaseAimRotation().Vector(),
+		Character->GetPawnViewLocation(),
 		MuzzleWorld.GetLocation(),
 		Character->GetSmoothedPresentationAimTarget(),
-		bHasThirdPersonMuzzle);
+		bHasThirdPersonMuzzle,
+		MinimumRemoteAimTargetDistanceFromView);
 
 	// C2.5 IK 开关：所有条件都真实有效才允许启用；无武器时 Identity 不会错误开启 IK。
 	bAimIKEnabled = IsAimIKEnabledForState(

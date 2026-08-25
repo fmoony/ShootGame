@@ -60,6 +60,107 @@ bool FShooterAimPresentationTargetValidityTest::RunTest(const FString& Parameter
 }
 
 /**
+ * 阶段 3 纯策略测试：20Hz 本地提交的变化门槛、保活、服务端距离边界与 16 位包序号。
+ */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FShooterAimPresentationSubmitPolicyTest,
+	"ShootGame.Aim.PresentationSubmitPolicy",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FShooterAimPresentationSubmitPolicyTest::RunTest(const FString& Parameters)
+{
+	const FVector ViewLocation(100.0f, 200.0f, 300.0f);
+	const FVector PreviousTarget = ViewLocation + FVector::ForwardVector * 100.0f;
+
+	TestTrue(
+		TEXT("first valid target submits immediately"),
+		AShooterCharacter::ShouldSubmitPresentationAimTarget(
+			PreviousTarget,
+			FVector::ZeroVector,
+			ViewLocation,
+			-1.0f,
+			20.0f,
+			1.0f,
+			0.2f));
+
+	TestFalse(
+		TEXT("sub-threshold steady target does not submit before keepalive"),
+		AShooterCharacter::ShouldSubmitPresentationAimTarget(
+			PreviousTarget + FVector(1.0f, 0.0f, 0.0f),
+			PreviousTarget,
+			ViewLocation,
+			0.05f,
+			20.0f,
+			1.0f,
+			0.2f));
+
+	const FVector RotatedTarget =
+		ViewLocation + FRotator(0.0f, 2.0f, 0.0f).Vector() * 100.0f;
+	TestTrue(
+		TEXT("angle threshold submits fast view change"),
+		AShooterCharacter::ShouldSubmitPresentationAimTarget(
+			RotatedTarget,
+			PreviousTarget,
+			ViewLocation,
+			0.05f,
+			20.0f,
+			1.0f,
+			0.2f));
+
+	TestTrue(
+		TEXT("keepalive resubmits unchanged target"),
+		AShooterCharacter::ShouldSubmitPresentationAimTarget(
+			PreviousTarget,
+			PreviousTarget,
+			ViewLocation,
+			0.2f,
+			20.0f,
+			1.0f,
+			0.2f));
+
+	TestFalse(
+		TEXT("invalid target never submits"),
+		AShooterCharacter::ShouldSubmitPresentationAimTarget(
+			FVector(NAN, 0.0f, 0.0f),
+			PreviousTarget,
+			ViewLocation,
+			1.0f,
+			20.0f,
+			1.0f,
+			0.2f));
+
+	TestTrue(
+		TEXT("server accepts target inside max distance plus tolerance"),
+		AShooterCharacter::IsClientPresentationAimTargetWithinBounds(
+			ViewLocation + FVector::ForwardVector * 10499.0f,
+			ViewLocation,
+			10000.0f,
+			500.0f));
+	TestFalse(
+		TEXT("server rejects target outside max distance plus tolerance"),
+		AShooterCharacter::IsClientPresentationAimTargetWithinBounds(
+			ViewLocation + FVector::ForwardVector * 10501.0f,
+			ViewLocation,
+			10000.0f,
+			500.0f));
+
+	TestTrue(
+		TEXT("newer sequence is accepted"),
+		AShooterCharacter::IsNewerPresentationAimSequence(2, 1));
+	TestFalse(
+		TEXT("duplicate sequence is rejected"),
+		AShooterCharacter::IsNewerPresentationAimSequence(7, 7));
+	TestFalse(
+		TEXT("older sequence is rejected"),
+		AShooterCharacter::IsNewerPresentationAimSequence(6, 7));
+	TestTrue(
+		TEXT("sequence wraparound is accepted"),
+		AShooterCharacter::IsNewerPresentationAimSequence(0, MAX_uint16));
+
+	return true;
+}
+
+/**
  * C2.5 消费角色矩阵：SimulatedProxy 与 Listen Server 远端观察都使用平滑目标；
  * 本地拥有者和 Dedicated Server 不进入平滑/远端表现消费路径。
  */
@@ -223,6 +324,7 @@ bool FShooterAimDirectionSourceTest::RunTest(const FString& Parameters)
 			MuzzleLocation, FVector(NAN, 0.0f, 0.0f)).IsNearlyZero());
 
 	const FVector LocalAimDirection = FRotator(20.0f, 30.0f, 0.0f).Vector();
+	const FVector StableViewLocation = StableTarget - LocalAimDirection.GetSafeNormal() * 500.0f;
 	const bool bHasMuzzle = true;
 
 	// SimulatedProxy 观察端：应运行平滑且目标有效，消费 Muzzle → 稳定目标。
@@ -236,9 +338,92 @@ bool FShooterAimDirectionSourceTest::RunTest(const FString& Parameters)
 			bSimulatedProxyRunsSmoothing,
 			true,
 			LocalAimDirection,
+			StableViewLocation,
 			MuzzleLocation,
 			StableTarget,
 			bHasMuzzle).Equals(ExpectedMuzzleToTarget, 1e-3f));
+
+	// 第三人称近点安全门：沿原始视点射线把姿势目标投影到安全深度，同时保留横向偏移。
+	const FVector NearViewLocation = MuzzleLocation + FVector(-20.0f, 10.0f, 5.0f);
+	const FVector NearTarget =
+		NearViewLocation +
+		LocalAimDirection.GetSafeNormal() * 25.0f +
+		FVector(0.0f, 2.0f, 0.0f);
+	const float NearTargetForwardDistance = FVector::DotProduct(
+		NearTarget - NearViewLocation,
+		LocalAimDirection.GetSafeNormal());
+	const FVector ExpectedSafeNearTarget =
+		NearTarget +
+		LocalAimDirection.GetSafeNormal() * (150.0f - NearTargetForwardDistance);
+	const FVector ExpectedSafeNearDirection =
+		(ExpectedSafeNearTarget - MuzzleLocation).GetSafeNormal();
+	const FVector SafeNearDirection =
+		UShooterThirdPersonAnimInstance::ComputeAimDirectionWorldForState(
+			false,
+			bSimulatedProxyRunsSmoothing,
+			true,
+			LocalAimDirection,
+			NearViewLocation,
+			MuzzleLocation,
+			NearTarget,
+			bHasMuzzle,
+			150.0f);
+	TestTrue(
+		TEXT("remote near target projects onto safe forward plane"),
+		SafeNearDirection.Equals(ExpectedSafeNearDirection, 1e-3f));
+	TestFalse(
+		TEXT("remote near target keeps lateral convergence instead of collapsing to base direction"),
+		SafeNearDirection.Equals(LocalAimDirection.GetSafeNormal(), 1e-3f));
+
+	// 位于基础视线后方的目标同样投影到安全平面。
+	const FVector BehindTarget = NearViewLocation - LocalAimDirection.GetSafeNormal() * 500.0f;
+	const FVector ExpectedSafeBehindTarget =
+		NearViewLocation + LocalAimDirection.GetSafeNormal() * 150.0f;
+	TestTrue(
+		TEXT("remote target behind view direction projects onto safe forward plane"),
+		UShooterThirdPersonAnimInstance::ComputeAimDirectionWorldForState(
+			false,
+			bSimulatedProxyRunsSmoothing,
+			true,
+			LocalAimDirection,
+			NearViewLocation,
+			MuzzleLocation,
+			BehindTarget,
+			bHasMuzzle,
+			150.0f).Equals(
+				(ExpectedSafeBehindTarget - MuzzleLocation).GetSafeNormal(),
+				1e-3f));
+
+	// 安全平面边界必须连续：边界前后相同横向偏移不能产生可见方向跳变。
+	const FVector LateralOffset(0.0f, 20.0f, 0.0f);
+	const FVector DirectionJustInside =
+		UShooterThirdPersonAnimInstance::ComputeAimDirectionWorldForState(
+			false,
+			bSimulatedProxyRunsSmoothing,
+			true,
+			FVector::ForwardVector,
+			FVector::ZeroVector,
+			FVector::ZeroVector,
+			FVector(149.9f, 20.0f, 0.0f),
+			bHasMuzzle,
+			150.0f);
+	const FVector DirectionJustOutside =
+		UShooterThirdPersonAnimInstance::ComputeAimDirectionWorldForState(
+			false,
+			bSimulatedProxyRunsSmoothing,
+			true,
+			FVector::ForwardVector,
+			FVector::ZeroVector,
+			FVector(0.0f, 0.0f, 0.0f),
+			FVector(150.1f, LateralOffset.Y, LateralOffset.Z),
+			bHasMuzzle,
+			150.0f);
+	TestTrue(
+		TEXT("safe forward plane transition is directionally continuous"),
+		FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(
+			FVector::DotProduct(DirectionJustInside, DirectionJustOutside),
+			-1.0f,
+			1.0f))) < 0.1f);
 
 	// Listen Server 观察远端 Pawn（Authority 且非 LocallyControlled）：使用同一目标语义。
 	const bool bListenRemoteRunsSmoothing = AShooterCharacter::ShouldRunPresentationAimSmoothing(
@@ -251,6 +436,7 @@ bool FShooterAimDirectionSourceTest::RunTest(const FString& Parameters)
 			bListenRemoteRunsSmoothing,
 			true,
 			LocalAimDirection,
+			StableViewLocation,
 			MuzzleLocation,
 			StableTarget,
 			bHasMuzzle).Equals(ExpectedMuzzleToTarget, 1e-3f));
@@ -263,6 +449,7 @@ bool FShooterAimDirectionSourceTest::RunTest(const FString& Parameters)
 			bSimulatedProxyRunsSmoothing,
 			true,
 			LocalAimDirection,
+			StableViewLocation,
 			MuzzleLocation,
 			StableTarget,
 			bHasMuzzle).Equals(LocalAimDirection, 1e-3f));
@@ -275,6 +462,7 @@ bool FShooterAimDirectionSourceTest::RunTest(const FString& Parameters)
 			false,
 			true,
 			LocalAimDirection,
+			StableViewLocation,
 			MuzzleLocation,
 			StableTarget,
 			bHasMuzzle).IsNearlyZero());
@@ -285,6 +473,7 @@ bool FShooterAimDirectionSourceTest::RunTest(const FString& Parameters)
 			bSimulatedProxyRunsSmoothing,
 			false,
 			LocalAimDirection,
+			StableViewLocation,
 			MuzzleLocation,
 			StableTarget,
 			bHasMuzzle).IsNearlyZero());
@@ -295,6 +484,7 @@ bool FShooterAimDirectionSourceTest::RunTest(const FString& Parameters)
 			bSimulatedProxyRunsSmoothing,
 			true,
 			LocalAimDirection,
+			StableViewLocation,
 			MuzzleLocation,
 			StableTarget,
 			false).IsNearlyZero());

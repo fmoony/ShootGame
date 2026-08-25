@@ -156,6 +156,82 @@ bool FShooterLeftHandFrameAlignmentTest::RunTest(const FString& Parameters)
 	return true;
 }
 
+/** Joint Target 保留输入动画弯肘侧，并在旧肘点与新肩腕轴共线时提供稳定横向参考。 */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FShooterLeftHandStablePoleTest,
+	"ShootGame.Aim.LeftHandStablePole",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FShooterLeftHandStablePoleTest::RunTest(const FString& Parameters)
+{
+	const FVector Root(0.0f, 0.0f, 0.0f);
+	const FVector Joint(30.0f, 10.0f, 0.0f);
+	const FVector End(60.0f, 0.0f, 0.0f);
+	FVector PreferredPoleDirection;
+	FVector JointTarget;
+	FVector ResolvedPoleDirection;
+
+	TestTrue(
+		TEXT("source bend plane produces a preferred pole direction"),
+		FShooterLeftHandIKMath::CalculateSourcePoleDirection(
+			Root, Joint, End, PreferredPoleDirection));
+	TestTrue(
+		TEXT("source elbow side points toward positive Y"),
+		PreferredPoleDirection.Y > 0.0f);
+
+	const FVector BeforeSingularityEffector = FVector(0.5f, 50.0f, 0.0f);
+	TestTrue(
+		TEXT("preferred pole resolves before the projection singularity"),
+		FShooterLeftHandIKMath::CalculateLockedJointTarget(
+			Root,
+			Joint,
+			BeforeSingularityEffector,
+			PreferredPoleDirection,
+			FVector::ZeroVector,
+			5.0f,
+			JointTarget,
+			ResolvedPoleDirection));
+	const FVector BeforeDirection = ResolvedPoleDirection;
+
+	// 目标从缓存 Pole 的一侧越过另一侧时，直接投影会反号；上一帧半球锁应保持连续。
+	const FVector AfterSingularityEffector = FVector(-0.5f, 50.0f, 0.0f);
+	TestTrue(
+		TEXT("previous hemisphere resolves after the projection singularity"),
+		FShooterLeftHandIKMath::CalculateLockedJointTarget(
+			Root,
+			Joint,
+			AfterSingularityEffector,
+			PreferredPoleDirection,
+			BeforeDirection,
+			5.0f,
+			JointTarget,
+			ResolvedPoleDirection));
+	TestTrue(
+		TEXT("pole does not reverse hemisphere during a fast sweep"),
+		FVector::DotProduct(BeforeDirection, ResolvedPoleDirection) > 0.0f);
+	const FVector DesiredDirection = AfterSingularityEffector.GetSafeNormal();
+	const float LateralDistance = FVector::VectorPlaneProject(
+		JointTarget - Root,
+		DesiredDirection).Size();
+	TestTrue(
+		TEXT("resolved pole keeps a non-degenerate lateral offset"),
+		LateralDistance >= 5.0f - KINDA_SMALL_NUMBER);
+
+	TestFalse(
+		TEXT("invalid input fails soft"),
+		FShooterLeftHandIKMath::CalculateLockedJointTarget(
+			Root,
+			FVector(NAN, 0.0f, 0.0f),
+			AfterSingularityEffector,
+			PreferredPoleDirection,
+			BeforeDirection,
+			5.0f,
+			JointTarget,
+			ResolvedPoleDirection));
+
+	return true;
+}
+
 /**
  * 左手 IK 状态矩阵测试：无武器、无第三人称 Mesh、无握把 Socket、未附着或缓存无效时关闭。
  */

@@ -3582,6 +3582,7 @@ void AShooterNetworkTestCoordinator::RunAimRotationServerPhase()
 		// 所有玩家武器就绪后才开启阶段：两台客户端阶段启动时间差压到轮询粒度内，
 		// 观察端采样窗口与远端旋转/俯仰扫描窗口保持充分重叠。
 		bool bAllPlayersReady = true;
+		int32 ReadyPlayerCount = 0;
 		for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
 		{
 			const APlayerController* OtherController = It->Get();
@@ -3593,9 +3594,12 @@ void AShooterNetworkTestCoordinator::RunAimRotationServerPhase()
 				bAllPlayersReady = false;
 				break;
 			}
+			++ReadyPlayerCount;
 		}
 
-		if (Character->GetCurrentWeapon() && bAllPlayersReady)
+		// “当前所有玩家”在第二名玩家尚未连接时也会成立；AimRotation 是固定双人
+		// 观察测试，必须显式等到两名参与者，避免第一名提前跑完整个扫描窗口。
+		if (Character->GetCurrentWeapon() && bAllPlayersReady && ReadyPlayerCount >= 2)
 		{
 			bAimRotationPhaseActive = true;
 			AimRotationServerPhaseStartTime = GetWorld()->GetTimeSeconds();

@@ -188,8 +188,7 @@ protected:
 	/** 幂等建立 PlayerState ASC 的 Owner/Avatar 关系。 */
 	void InitializeAbilityActorInfo();
 
-	/** 服务器表现目标：服务器从 Pawn 视点沿当前 ControlRotation 做无散布 Visibility Trace，
-	 *  命中时保存 Impact Point，未命中时保存最大瞄准距离终点（B2）。
+	/** 服务器表现目标：本地拥有者以受限频率提交无散布视线目标，服务器校验后保存。
 	 *  表现快照，不是命中缓存：开火时仍由 GetWeaponTargetLocation 现场重算权威目标。
 	 *  只复制给非拥有者（COND_SkipOwner）：拥有者继续使用本地即时视角。 */
 	UPROPERTY(ReplicatedUsing = OnRep_PresentationAimTarget, VisibleAnywhere, BlueprintReadOnly, Category = "Aim")
@@ -198,26 +197,42 @@ protected:
 	UFUNCTION()
 	void OnRep_PresentationAimTarget();
 
-	/** 表现目标服务器采样间隔（秒）。B2 调试起点 10Hz；最终频率按网络模拟与带宽统计决定。 */
+	/** 本地拥有者表现目标采样间隔（秒）；默认 20Hz。 */
 	UPROPERTY(EditAnywhere, Category = "Aim", meta = (ClampMin = 0.02, Units = "s"))
-	float PresentationAimSampleInterval = 0.1f;
+	float PresentationAimSampleInterval = 0.05f;
 
 	/** 表现目标变化门槛：目标位移小于该值且方向夹角小于门槛角度时跳过更新（减少无意义更新）。 */
 	UPROPERTY(EditAnywhere, Category = "Aim", meta = (ClampMin = 0, Units = "cm"))
-	float PresentationAimMinChangeDistance = 50.0f;
+	float PresentationAimMinChangeDistance = 20.0f;
 
 	/** 表现目标变化门槛：方向夹角（度）。 */
 	UPROPERTY(EditAnywhere, Category = "Aim", meta = (ClampMin = 0, ClampMax = 90, Units = "Degrees"))
-	float PresentationAimMinChangeAngle = 3.0f;
+	float PresentationAimMinChangeAngle = 1.0f;
 
-	/** 服务器表现目标采样定时器。 */
+	/** 即使目标未越过变化门槛，也按该间隔重新提交一次，帮助 Unreliable 路径从丢包中恢复。 */
+	UPROPERTY(EditAnywhere, Category = "Aim", meta = (ClampMin = 0.05, Units = "s"))
+	float PresentationAimKeepAliveInterval = 0.2f;
+
+	/** 本地拥有者表现目标采样定时器。 */
 	FTimerHandle PresentationAimTimer;
 
-	/** 服务器启动受限频率的表现目标采样（BeginPlay，仅 Authority）。 */
+	/** 本地拥有者启动受限频率的表现目标采样；可重复调用。 */
 	void StartPresentationAimSampling();
 
-	/** 服务器采样一次表现目标：超过变化门槛才写入复制字段。 */
+	/** 本地拥有者采样一次表现目标；监听主机直接提交，客户端通过 Unreliable Server RPC 提交。 */
 	void SamplePresentationAimTarget();
+
+	/** 高频、可丢失的表现输入；只更新服务器表现快照，不参与权威开火。 */
+	UFUNCTION(Server, Unreliable)
+	void ServerUpdatePresentationAimTarget(FVector_NetQuantize NewTarget, uint16 ClientSequence);
+
+	FVector LastSubmittedPresentationAimTarget = FVector::ZeroVector;
+	float LastPresentationAimSubmitTime = -1.0f;
+	uint16 NextPresentationAimSequence = 0;
+
+	float LastAcceptedPresentationAimServerTime = -1.0f;
+	uint16 LastAcceptedPresentationAimSequence = 0;
+	bool bHasAcceptedPresentationAimSequence = false;
 
 	// ---- B3 观察端平滑与数据契约 ----
 
@@ -234,7 +249,7 @@ protected:
 
 	/** 平滑指数速率（1/s）：越大收敛越快。B3 调试起点，最终值由 B6 观感验收决定。 */
 	UPROPERTY(EditAnywhere, Category = "Aim", meta = (ClampMin = 0.0))
-	float PresentationAimSmoothingRate = 8.0f;
+	float PresentationAimSmoothingRate = 20.0f;
 
 	/** 观察端每帧平滑更新（SimulatedProxy，或 Listen Server 观察远端客户端 Pawn 的 Authority 非本地方）。 */
 	void UpdatePresentationAimSmoothing(float DeltaSeconds);
@@ -309,6 +324,26 @@ public:
 
 	/** 纯判定：PresentationAimTarget 是否可建立有效状态（有限且非零）。 */
 	static bool IsValidPresentationAimTargetValue(const FVector& Target);
+
+	/** 纯判定：本地表现目标是否越过发送门槛或到达保活间隔。 */
+	static bool ShouldSubmitPresentationAimTarget(
+		const FVector& NewTarget,
+		const FVector& PreviousTarget,
+		const FVector& ViewLocation,
+		float SecondsSinceLastSubmit,
+		float MinChangeDistance,
+		float MinChangeAngle,
+		float KeepAliveInterval);
+
+	/** 纯判定：客户端提交的表现目标是否有限且位于允许的最大视距内。 */
+	static bool IsClientPresentationAimTargetWithinBounds(
+		const FVector& Target,
+		const FVector& ServerViewLocation,
+		float MaxDistance,
+		float DistanceTolerance);
+
+	/** 16 位递增序号比较，支持回绕并拒绝重复/过期 Unreliable RPC。 */
+	static bool IsNewerPresentationAimSequence(uint16 Candidate, uint16 Previous);
 
 	/** 纯判定：该 Role / NetMode / 本地控制组合是否应运行表现目标平滑。
 	 *  SimulatedProxy 始终运行；Listen Server 观察远端客户端 Pawn 的 Authority 非本地方也运行；

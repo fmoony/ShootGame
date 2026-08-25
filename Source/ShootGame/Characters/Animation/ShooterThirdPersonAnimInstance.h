@@ -29,9 +29,17 @@ class SHOOTGAME_API UShooterThirdPersonAnimInstance : public UAnimInstance
 	GENERATED_BODY()
 
 public:
-	/** 世界空间瞄准方向（本地拥有者即时 AimRotation；观察端为 Muzzle → 平滑表现目标；无效状态为零向量）。 */
+	/** 世界空间瞄准方向（本地拥有者即时 AimRotation；观察端在安全距离外为 Muzzle → 平滑表现目标）。 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter Aim")
 	FVector AimDirectionWorld = FVector::ZeroVector;
+
+	/**
+	 * 观察端表现目标沿基础视线方向距 Pawn 视点小于该值时，
+	 * 将姿势目标沿基础视线向前投影到该安全距离，同时保留目标的横向偏移。
+	 * 这只稳定第三人称姿势，不改变相机 Trace、服务器命中或弹丸方向。
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter Aim", meta = (ClampMin = "0.0", Units = "cm"))
+	float MinimumRemoteAimTargetDistanceFromView = 150.0f;
 
 	/** 当前武器 Muzzle 相对角色 Mesh HandSocket 的刚性 Transform（武器/附着状态变化时刷新缓存）。 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter Aim")
@@ -79,15 +87,20 @@ public:
 		const FVector& MuzzleWorldLocation,
 		const FVector& TargetWorld);
 
-	/** C4 角色矩阵：按本地控制 / 消费角色 / 有效性决定 AimDirectionWorld 来源（纯计算，可被 Automation 验证）。 */
+	/**
+	 * C4 角色矩阵：按本地控制 / 消费角色 / 有效性决定 AimDirectionWorld 来源（纯计算，可被 Automation 验证）。
+	 * 远端目标沿基础视线离 Pawn 视点过近或位于后方时，把姿势目标投影到安全射线深度，避免近点奇异方向驱动 IK。
+	 */
 	static FVector ComputeAimDirectionWorldForState(
 		bool bLocallyControlled,
 		bool bShouldRunPresentationSmoothing,
 		bool bPresentationTargetValid,
 		const FVector& LocalAimDirection,
+		const FVector& ViewWorldLocation,
 		const FVector& MuzzleWorldLocation,
 		const FVector& SmoothedPresentationTarget,
-		bool bHasThirdPersonMuzzle);
+		bool bHasThirdPersonMuzzle,
+		float MinimumTargetDistanceFromView = 150.0f);
 
 	/** 纯判定：给定表现数据是否允许开启 Aim IK（可被 Automation 验证）。
 	 *  至少要求 Character、第三人称 Mesh、CurrentWeapon、第三人称 Muzzle socket、

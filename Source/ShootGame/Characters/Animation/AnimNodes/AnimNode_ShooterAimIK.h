@@ -32,7 +32,7 @@ struct SHOOTGAME_API FAnimNode_ShooterAimIK : public FAnimNode_SkeletalControlBa
 
 	/** 单帧最大校正角（度；C2 起生效）。 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shooter Aim IK", meta = (PinHiddenByDefault, DisplayName = "Max Correction Angle", ClampMin = "0.0", ClampMax = "180.0"))
-	float MaxCorrectionAngle = 30.0f;
+	float MaxCorrectionAngle = 12.0f;
 
 public:
 	FAnimNode_ShooterAimIK();

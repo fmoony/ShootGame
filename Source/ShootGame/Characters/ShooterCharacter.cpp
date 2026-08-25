@@ -153,8 +153,10 @@ void AShooterCharacter::BeginPlay()
 	{
 		CurrentHP = MaxHP;
 		bIsDead = false;
-		StartPresentationAimSampling();
 	}
+
+	// 若 BeginPlay 时已经建立本地控制关系，立即启动；否则 SetupPlayerInputComponent 会幂等补启。
+	StartPresentationAimSampling();
 
 	// update the HUD
 	OnDamaged.Broadcast(MaxHP > 0.0f ? CurrentHP / MaxHP : 0.0f);
@@ -175,6 +177,69 @@ bool AShooterCharacter::IsValidPresentationAimTargetValue(const FVector& Target)
 		FMath::IsFinite(Target.Y) &&
 		FMath::IsFinite(Target.Z) &&
 		!Target.IsNearlyZero();
+}
+
+bool AShooterCharacter::ShouldSubmitPresentationAimTarget(
+	const FVector& NewTarget,
+	const FVector& PreviousTarget,
+	const FVector& ViewLocation,
+	float SecondsSinceLastSubmit,
+	float MinChangeDistance,
+	float MinChangeAngle,
+	float KeepAliveInterval)
+{
+	if (!IsValidPresentationAimTargetValue(NewTarget) ||
+		!FMath::IsFinite(ViewLocation.X) ||
+		!FMath::IsFinite(ViewLocation.Y) ||
+		!FMath::IsFinite(ViewLocation.Z))
+	{
+		return false;
+	}
+
+	if (!IsValidPresentationAimTargetValue(PreviousTarget) || SecondsSinceLastSubmit < 0.0f)
+	{
+		return true;
+	}
+
+	if (SecondsSinceLastSubmit >= FMath::Max(0.0f, KeepAliveInterval))
+	{
+		return true;
+	}
+
+	const FVector OldDirection = (PreviousTarget - ViewLocation).GetSafeNormal();
+	const FVector NewDirection = (NewTarget - ViewLocation).GetSafeNormal();
+	const float DistanceDelta = FVector::Distance(NewTarget, PreviousTarget);
+	const float AngleDelta = !OldDirection.IsNearlyZero() && !NewDirection.IsNearlyZero()
+		? FMath::RadiansToDegrees(FMath::Acos(
+			FMath::Clamp(FVector::DotProduct(OldDirection, NewDirection), -1.0f, 1.0f)))
+		: 180.0f;
+
+	return DistanceDelta >= FMath::Max(0.0f, MinChangeDistance) ||
+		AngleDelta >= FMath::Max(0.0f, MinChangeAngle);
+}
+
+bool AShooterCharacter::IsClientPresentationAimTargetWithinBounds(
+	const FVector& Target,
+	const FVector& ServerViewLocation,
+	float MaxDistance,
+	float DistanceTolerance)
+{
+	if (!IsValidPresentationAimTargetValue(Target) ||
+		!FMath::IsFinite(ServerViewLocation.X) ||
+		!FMath::IsFinite(ServerViewLocation.Y) ||
+		!FMath::IsFinite(ServerViewLocation.Z))
+	{
+		return false;
+	}
+
+	const float AllowedDistance = FMath::Max(0.0f, MaxDistance) + FMath::Max(0.0f, DistanceTolerance);
+	return FVector::DistSquared(Target, ServerViewLocation) <= FMath::Square(AllowedDistance);
+}
+
+bool AShooterCharacter::IsNewerPresentationAimSequence(uint16 Candidate, uint16 Previous)
+{
+	const uint16 Delta = Candidate - Previous;
+	return Delta != 0 && Delta < 32768;
 }
 
 bool AShooterCharacter::ShouldRunPresentationAimSmoothing(
@@ -313,42 +378,92 @@ float AShooterCharacter::GetAimPitchN() const
 
 void AShooterCharacter::StartPresentationAimSampling()
 {
-	// B2：服务器受限频率采样表现目标（10Hz 调试起点 + 变化门槛）。
-	// 稳态不主动 ForceNetUpdate；复制字段仅在值变化时由引擎发送。
+	if (!IsLocallyControlled() || GetNetMode() == NM_Standalone || GetWorld() == nullptr)
+	{
+		return;
+	}
+
+	// 本地拥有者以 20Hz 起点采样；SetTimer 对同一 Handle 幂等替换，兼容 BeginPlay 与输入初始化先后顺序。
 	GetWorldTimerManager().SetTimer(
 		PresentationAimTimer,
 		this,
 		&AShooterCharacter::SamplePresentationAimTarget,
 		PresentationAimSampleInterval,
 		true,
-		PresentationAimSampleInterval);
+		0.0f);
 }
 
 void AShooterCharacter::SamplePresentationAimTarget()
 {
-	if (!HasAuthority() || bIsDead)
+	if (!IsLocallyControlled() || bIsDead || GetWorld() == nullptr)
 	{
 		return;
 	}
 
 	const FVector NewTarget = ComputePreSpreadAimTarget(this, MaxAimDistance);
-
-	// 变化门槛：目标位移与方向夹角都低于门槛时跳过，减少无意义更新。
 	const FVector ViewLocation = GetPawnViewLocation();
-	const FVector OldDirection = ((FVector)PresentationAimTarget - ViewLocation).GetSafeNormal();
-	const FVector NewDirection = (NewTarget - ViewLocation).GetSafeNormal();
-	const float DistanceDelta = FVector::Dist(NewTarget, (FVector)PresentationAimTarget);
-	const float AngleDelta = !OldDirection.IsNearlyZero() && !NewDirection.IsNearlyZero()
-		? FMath::RadiansToDegrees(FMath::Acos(
-			FMath::Clamp(FVector::DotProduct(OldDirection, NewDirection), -1.0f, 1.0f)))
-		: 180.0f;
-	if (DistanceDelta < PresentationAimMinChangeDistance &&
-		AngleDelta < PresentationAimMinChangeAngle)
+	const float Now = GetWorld()->GetTimeSeconds();
+	const float SecondsSinceLastSubmit = LastPresentationAimSubmitTime >= 0.0f
+		? Now - LastPresentationAimSubmitTime
+		: -1.0f;
+	if (!ShouldSubmitPresentationAimTarget(
+		NewTarget,
+		LastSubmittedPresentationAimTarget,
+		ViewLocation,
+		SecondsSinceLastSubmit,
+		PresentationAimMinChangeDistance,
+		PresentationAimMinChangeAngle,
+		PresentationAimKeepAliveInterval))
 	{
 		return;
 	}
 
+	LastSubmittedPresentationAimTarget = NewTarget;
+	LastPresentationAimSubmitTime = Now;
+	++NextPresentationAimSequence;
+
+	if (HasAuthority())
+	{
+		// Listen Server 本地玩家无需绕 RPC；仍只写表现属性并转发给其他连接。
+		PresentationAimTarget = NewTarget;
+		ForceNetUpdate();
+	}
+	else
+	{
+		ServerUpdatePresentationAimTarget(NewTarget, NextPresentationAimSequence);
+	}
+}
+
+void AShooterCharacter::ServerUpdatePresentationAimTarget_Implementation(
+	FVector_NetQuantize NewTarget,
+	uint16 ClientSequence)
+{
+	if (!HasAuthority() || bIsDead || GetWorld() == nullptr)
+	{
+		return;
+	}
+
+	const float Now = GetWorld()->GetTimeSeconds();
+	constexpr float MinimumServerReceiveInterval = 1.0f / 40.0f;
+	constexpr float TargetDistanceTolerance = 500.0f;
+	if ((LastAcceptedPresentationAimServerTime >= 0.0f &&
+		Now - LastAcceptedPresentationAimServerTime < MinimumServerReceiveInterval) ||
+		(bHasAcceptedPresentationAimSequence &&
+			!IsNewerPresentationAimSequence(ClientSequence, LastAcceptedPresentationAimSequence)) ||
+		!IsClientPresentationAimTargetWithinBounds(
+			NewTarget,
+			GetPawnViewLocation(),
+			MaxAimDistance,
+			TargetDistanceTolerance))
+	{
+		return;
+	}
+
+	LastAcceptedPresentationAimServerTime = Now;
+	LastAcceptedPresentationAimSequence = ClientSequence;
+	bHasAcceptedPresentationAimSequence = true;
 	PresentationAimTarget = NewTarget;
+	ForceNetUpdate();
 }
 
 void AShooterCharacter::OnRep_PresentationAimTarget()
@@ -535,6 +650,7 @@ void AShooterCharacter::HandleHealthAttributeChanged(const FOnAttributeChangeDat
 void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	StartPresentationAimSampling();
 
 	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))

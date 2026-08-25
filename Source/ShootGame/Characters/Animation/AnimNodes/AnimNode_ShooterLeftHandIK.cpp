@@ -44,8 +44,30 @@ void FAnimNode_ShooterLeftHandIK::EvaluateSkeletalControl_AnyThread(
 		return;
 	}
 
-	// 当前动画中的肘部位置作为 Pole Target，保留已有弯肘方向并避免写死角色轴向。
-	const FVector JointTargetCS = LowerArmCS.GetLocation();
+	if (CachedPreferredPoleDirectionCS.IsNearlyZero())
+	{
+		FShooterLeftHandIKMath::CalculateSourcePoleDirection(
+			UpperArmCS.GetLocation(),
+			LowerArmCS.GetLocation(),
+			LeftHandCS.GetLocation(),
+			CachedPreferredPoleDirectionCS);
+	}
+
+	// 缓存持枪基准并用上一帧锁定半球；失败时保留旧的当前肘点行为。
+	FVector JointTargetCS = LowerArmCS.GetLocation();
+	FVector ResolvedPoleDirectionCS;
+	if (FShooterLeftHandIKMath::CalculateLockedJointTarget(
+		UpperArmCS.GetLocation(),
+		LowerArmCS.GetLocation(),
+		DesiredLeftHandCS.GetLocation(),
+			CachedPreferredPoleDirectionCS,
+			PreviousPoleDirectionCS,
+			MinimumElbowPoleOffset,
+			JointTargetCS,
+		ResolvedPoleDirectionCS))
+	{
+		PreviousPoleDirectionCS = ResolvedPoleDirectionCS;
+	}
 	AnimationCore::SolveTwoBoneIK(
 		UpperArmCS,
 		LowerArmCS,
@@ -83,6 +105,8 @@ void FAnimNode_ShooterLeftHandIK::InitializeBoneReferences(const FBoneContainer&
 	RightHandBone.Initialize(RequiredBones);
 	CachedUpperArmIndex = FCompactPoseBoneIndex(INDEX_NONE);
 	CachedLowerArmIndex = FCompactPoseBoneIndex(INDEX_NONE);
+	CachedPreferredPoleDirectionCS = FVector::ZeroVector;
+	PreviousPoleDirectionCS = FVector::ZeroVector;
 
 	const FCompactPoseBoneIndex LeftHandIndex = LeftHandBone.GetCompactPoseIndex(RequiredBones);
 	if (LeftHandIndex != INDEX_NONE)

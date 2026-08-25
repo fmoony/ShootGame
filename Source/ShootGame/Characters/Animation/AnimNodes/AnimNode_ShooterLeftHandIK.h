@@ -31,6 +31,10 @@ struct SHOOTGAME_API FAnimNode_ShooterLeftHandIK : public FAnimNode_SkeletalCont
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shooter Left Hand IK", meta = (PinShownByDefault, DisplayName = "Hand Grip In Left Hand Space"))
 	FTransform HandGripInLeftHandSpace = FTransform::Identity;
 
+	/** Joint Target 与目标肩腕轴的最小横向距离；只防止接近共线，不改变握把目标。 */
+	UPROPERTY(EditAnywhere, Category = "Shooter Left Hand IK", meta = (ClampMin = "0.0", Units = "cm"))
+	float MinimumElbowPoleOffset = 5.0f;
+
 	FAnimNode_ShooterLeftHandIK();
 
 	// FAnimNode_SkeletalControlBase interface
@@ -42,4 +46,10 @@ struct SHOOTGAME_API FAnimNode_ShooterLeftHandIK : public FAnimNode_SkeletalCont
 private:
 	FCompactPoseBoneIndex CachedUpperArmIndex = FCompactPoseBoneIndex(INDEX_NONE);
 	FCompactPoseBoneIndex CachedLowerArmIndex = FCompactPoseBoneIndex(INDEX_NONE);
+
+	/** 首次有效 Rifle 姿势在角色组件空间中的弯肘方向。 */
+	FVector CachedPreferredPoleDirectionCS = FVector::ZeroVector;
+
+	/** 上一帧已采用的 Pole 方向，用于跨越共线区时保持同一半球。 */
+	FVector PreviousPoleDirectionCS = FVector::ZeroVector;
 };
