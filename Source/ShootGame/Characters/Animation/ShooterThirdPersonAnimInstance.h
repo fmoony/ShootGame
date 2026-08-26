@@ -41,6 +41,18 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter Aim", meta = (ClampMin = "0.0", Units = "cm"))
 	float MinimumRemoteAimTargetDistanceFromView = 150.0f;
 
+	/** 第三人称 AimOffset 俯仰输入（旧 AnimBP 的 PitchN 数据来源）。 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter Aim")
+	float AimPitchN = 0.0f;
+
+	/** 第三人称移动方向角（旧 AnimBP 的 Direction，含 ±45° 夹取逻辑）。 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter|Locomotion")
+	float MoveDirection = 0.0f;
+
+	/** 第三人称移动阈值开关（旧 AnimBP 的 ShouldMove：LocomotionGroundSpeed > 0.01）。 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter|Locomotion")
+	bool bShouldMove = false;
+
 	/** 当前武器 Muzzle 相对角色 Mesh HandSocket 的刚性 Transform（武器/附着状态变化时刷新缓存）。 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter Aim")
 	FTransform HandToMuzzle = FTransform::Identity;

@@ -50,7 +50,7 @@ void UShooterAnimInstanceBase::RefreshCommonAnimationData()
 
 	// 移动基础值：只读采集，不产生权威结果。
 	const UCharacterMovementComponent* Movement = Character->GetCharacterMovement();
-	const FVector Velocity = Character->GetVelocity();
+	Velocity = Character->GetVelocity();
 	LocomotionGroundSpeed = Velocity.Size2D();
 	bIsInAir = Movement != nullptr && Movement->IsFalling();
 
@@ -85,6 +85,7 @@ void UShooterAnimInstanceBase::RefreshCommonAnimationData()
 void UShooterAnimInstanceBase::ClearCommonAnimationData()
 {
 	LocomotionGroundSpeed = 0.0f;
+	Velocity = FVector::ZeroVector;
 	bIsInAir = false;
 	bHasEquippedWeapon = false;
 	bIsFiring = false;

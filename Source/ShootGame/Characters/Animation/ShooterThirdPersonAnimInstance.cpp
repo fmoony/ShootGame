@@ -6,6 +6,8 @@
 #include "Characters/ShooterCharacter.h"
 #include "Weapons/ShooterWeapon.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "KismetAnimationLibrary.h"
 
 FTransform UShooterThirdPersonAnimInstance::ComputeHandToMuzzleTransform(
 	const FTransform& InHandWorld,
@@ -212,6 +214,9 @@ void UShooterThirdPersonAnimInstance::UpdateShooterAnimationData(float DeltaSeco
 	if (!Character)
 	{
 		AimDirectionWorld = FVector::ZeroVector;
+		AimPitchN = 0.0f;
+		MoveDirection = 0.0f;
+		bShouldMove = false;
 		HandToMuzzle = FTransform::Identity;
 		LeftHandGripInRightHandSpace = FTransform::Identity;
 		HandGripInLeftHandSpace = FTransform::Identity;
@@ -230,6 +235,20 @@ void UShooterThirdPersonAnimInstance::UpdateShooterAnimationData(float DeltaSeco
 
 		return;
 	}
+
+	// R6.3：接管旧 EventGraph 的 ShouldMove / Direction / PitchN 重复计算。
+	// 来源与旧图逐项一致：Speed > 0.01；CalculateDirection 仅在非 OrientRotation 时夹取 ±45°；
+	// PitchN 直接读取 Character 的 GetAimPitchN（与旧图调用同一函数）。
+	const UCharacterMovementComponent* Movement = Character->GetCharacterMovement();
+	bShouldMove = LocomotionGroundSpeed > 0.01f;
+	MoveDirection = UKismetAnimationLibrary::CalculateDirection(
+		Velocity,
+		Character->GetActorRotation());
+	if (Movement != nullptr && !Movement->bOrientRotationToMovement)
+	{
+		MoveDirection = FMath::Clamp(MoveDirection, -45.0f, 45.0f);
+	}
+	AimPitchN = Character->GetAimPitchN();
 
 	AShooterWeapon* Weapon = Character->GetCurrentWeapon();
 	const bool bHasThirdPersonMuzzle = Weapon != nullptr && Weapon->HasThirdPersonMuzzleSocket();

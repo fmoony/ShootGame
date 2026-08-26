@@ -27,6 +27,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter|Base")
 	float LocomotionGroundSpeed = 0.0f;
 
+	/** 角色世界速度（cm/s）。第一/第三人称 EventGraph 都曾各自采集该值。 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter|Base")
+	FVector Velocity = FVector::ZeroVector;
+
 	/** 是否处于空中。 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter|Base")
 	bool bIsInAir = false;

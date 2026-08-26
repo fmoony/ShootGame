@@ -33,6 +33,7 @@ bool FShooterAnimInstanceHierarchyTest::RunTest(const FString& Parameters)
 	// 共享基类只承载两边都消费的值快照。
 	const TCHAR* SharedPropertyNames[] = {
 		TEXT("LocomotionGroundSpeed"),
+		TEXT("Velocity"),
 		TEXT("bIsInAir"),
 		TEXT("bHasEquippedWeapon"),
 		TEXT("bIsFiring"),
@@ -69,6 +70,24 @@ bool FShooterAnimInstanceHierarchyTest::RunTest(const FString& Parameters)
 	TestNull(
 		TEXT("HandToMuzzle is not leaked into shared base"),
 		FindFProperty<FProperty>(UShooterAnimInstanceBase::StaticClass(), TEXT("HandToMuzzle")));
+	TestNotNull(
+		TEXT("ThirdPersonAnimInstance exposes AimPitchN"),
+		FindFProperty<FProperty>(UShooterThirdPersonAnimInstance::StaticClass(), TEXT("AimPitchN")));
+	TestNotNull(
+		TEXT("ThirdPersonAnimInstance exposes MoveDirection"),
+		FindFProperty<FProperty>(UShooterThirdPersonAnimInstance::StaticClass(), TEXT("MoveDirection")));
+	TestNotNull(
+		TEXT("ThirdPersonAnimInstance exposes bShouldMove"),
+		FindFProperty<FBoolProperty>(UShooterThirdPersonAnimInstance::StaticClass(), TEXT("bShouldMove")));
+	TestNull(
+		TEXT("AimPitchN is not leaked into shared base"),
+		FindFProperty<FProperty>(UShooterAnimInstanceBase::StaticClass(), TEXT("AimPitchN")));
+	TestNull(
+		TEXT("MoveDirection is not leaked into shared base"),
+		FindFProperty<FProperty>(UShooterAnimInstanceBase::StaticClass(), TEXT("MoveDirection")));
+	TestNull(
+		TEXT("bShouldMove is not leaked into shared base"),
+		FindFProperty<FProperty>(UShooterAnimInstanceBase::StaticClass(), TEXT("bShouldMove")));
 
 	// 公共基类不得包含 RPC 或复制属性。
 	for (TFieldIterator<UFunction> It(UShooterAnimInstanceBase::StaticClass()); It; ++It)
