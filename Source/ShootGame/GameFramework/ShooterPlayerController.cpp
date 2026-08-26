@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 
 #include "ShooterPlayerController.h"
@@ -157,9 +157,7 @@ void AShooterPlayerController::BindToShooterCharacter(AShooterCharacter* Shooter
 		this,
 		&AShooterPlayerController::OnPawnDamaged);
 
-	OnPawnDamaged(BoundShooterCharacter->GetMaxHP() > 0.0f
-		? BoundShooterCharacter->GetCurrentHP() / BoundShooterCharacter->GetMaxHP()
-		: 0.0f);
+	OnPawnDamaged(BoundShooterCharacter->GetHealthRatio());
 	if (const AShooterWeapon* Weapon = BoundShooterCharacter->GetCurrentWeapon())
 	{
 		OnBulletCountUpdated(Weapon->GetMagazineSize(), Weapon->GetBulletCount());

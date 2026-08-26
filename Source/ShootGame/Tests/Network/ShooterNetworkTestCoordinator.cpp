@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "Tests/Network/ShooterNetworkTestCoordinator.h"
 
@@ -338,7 +338,7 @@ void AShooterNetworkTestCoordinator::TriggerEquipDeath()
 
 	UGameplayStatics::ApplyDamage(
 		Character,
-		Character->GetMaxHP() * 2.0f,
+		Character->GetMaxHealthAttributeValue() * 2.0f,
 		nullptr,
 		this,
 		nullptr);
@@ -1716,18 +1716,18 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		bSwitchCancelVerified && bNoAmmoRejectVerified &&
 		bReloadCancelDeathActiveObserved && !bPartialDamageApplied)
 	{
-		InitialHP = Character->GetCurrentHP();
+		InitialHP = Character->GetHealthAttributeValue();
 		// GAS：记录伤害前属性生命，随后验证部分伤害恰好只应用一次。
 		if (UAbilitySystemComponent* AbilitySystemComponent = Character->GetAbilitySystemComponent())
 		{
 			InitialAttributeHealth = AbilitySystemComponent->GetNumericAttribute(
 				UShooterAttributeSet::GetHealthAttribute());
 			ExpectedPartialHealth = InitialAttributeHealth -
-				FMath::Max(1.0f, Character->GetMaxHP() * 0.25f);
+				FMath::Max(1.0f, Character->GetMaxHealthAttributeValue() * 0.25f);
 		}
 		UGameplayStatics::ApplyDamage(
 			Character,
-			FMath::Max(1.0f, Character->GetMaxHP() * 0.25f),
+			FMath::Max(1.0f, Character->GetMaxHealthAttributeValue() * 0.25f),
 			nullptr,
 			this,
 			nullptr);
@@ -1788,7 +1788,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		CharacterBeforeDeath = Character;
 		UGameplayStatics::ApplyDamage(
 			Character,
-			Character->GetMaxHP() * 2.0f,
+			Character->GetMaxHealthAttributeValue() * 2.0f,
 			OpponentController,
 			this,
 			nullptr);
@@ -1929,7 +1929,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			{
 				UGameplayStatics::ApplyDamage(
 					OpponentCharacter,
-					OpponentCharacter->GetMaxHP() * 2.0f,
+					OpponentCharacter->GetMaxHealthAttributeValue() * 2.0f,
 					OwnerController,
 					this,
 					nullptr);
@@ -1942,7 +1942,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 	const bool bServerObservedRespawn = bLethalDamageApplied &&
 		Character != CharacterBeforeDeath.Get() &&
 		!Character->IsDead() &&
-		Character->GetCurrentHP() > 0.0f &&
+		Character->GetHealthAttributeValue() > 0.0f &&
 		Character->GetCharacterMovement()->MovementMode != MOVE_None &&
 		PlayerController && PlayerController->GetPawn() == Character &&
 		Character->GetController() == PlayerController;
@@ -2183,7 +2183,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			InitialBulletCount,
 			BulletCountAfterFire,
 			InitialHP,
-			Character->GetCurrentHP(),
+			Character->GetHealthAttributeValue(),
 			ObservedAimDot,
 			ObservedTeamId,
 			ObservedKills,
@@ -2329,7 +2329,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			bNpcFireQuiescenceConfirmed ? TEXT("true") : TEXT("false"),
 			InitialBulletCount,
 			CurrentBulletCount,
-			Character->GetCurrentHP(),
+			Character->GetHealthAttributeValue(),
 			TimeoutTeamId,
 			TimeoutPlayerState ? TimeoutPlayerState->GetKills() : INDEX_NONE,
 			TimeoutPlayerState ? TimeoutPlayerState->GetDeaths() : INDEX_NONE,
@@ -2881,8 +2881,8 @@ void AShooterNetworkTestCoordinator::PollClientState()
 	}
 	} // if (Weapon)
 
-	if (!bClientReportedDamage && Character->GetCurrentHP() > 0.0f &&
-		Character->GetCurrentHP() < Character->GetMaxHP())
+	if (!bClientReportedDamage && Character->GetHealthAttributeValue() > 0.0f &&
+		Character->GetHealthAttributeValue() < Character->GetMaxHealthAttributeValue())
 	{
 		bClientReportedDamage = true;
 		ServerReportClientObservedDamage();
@@ -2908,7 +2908,7 @@ void AShooterNetworkTestCoordinator::PollClientState()
 	}
 
 	if (bClientReportedDeath && !bClientReportedRespawn && !Character->IsDead() &&
-		Character->GetCurrentHP() > 0.0f && Character->IsLocallyControlled() &&
+		Character->GetHealthAttributeValue() > 0.0f && Character->IsLocallyControlled() &&
 		Character->GetCharacterMovement()->MovementMode != MOVE_None &&
 		PlayerController->GetPawn() == Character && Character->GetController() == PlayerController)
 	{

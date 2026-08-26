@@ -222,6 +222,15 @@ public:
 	/** 当前是否处于已死亡状态。 */
 	bool IsDead() const { return bIsDead; }
 
+	/** 从 ASC 权威读取当前 Health；ASC 不可用时回退到兼容镜像 CurrentHP。 */
+	float GetHealthAttributeValue() const;
+
+	/** 从 ASC 权威读取 MaxHealth；ASC 不可用时回退到配置 MaxHP。 */
+	float GetMaxHealthAttributeValue() const;
+
+	/** 从 ASC 权威读取 Health / MaxHealth 比例；ASC 不可用时回退到镜像。 */
+	float GetHealthRatio() const;
+
 	/** 当前由服务器选择并复制给客户端的武器（IShooterWeaponHolder 最小只读接口；R4 起转发 Equipment）。 */
 	virtual AShooterWeapon* GetCurrentWeapon() const override;
 

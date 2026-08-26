@@ -425,6 +425,34 @@ void AShooterCharacter::HandleHealthAttributeChanged(const FOnAttributeChangeDat
 	}
 }
 
+float AShooterCharacter::GetHealthAttributeValue() const
+{
+	if (const UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponent())
+	{
+		return AbilitySystemComponent->GetNumericAttribute(
+			UShooterAttributeSet::GetHealthAttribute());
+	}
+	return CurrentHP;
+}
+
+float AShooterCharacter::GetMaxHealthAttributeValue() const
+{
+	if (const UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponent())
+	{
+		return AbilitySystemComponent->GetNumericAttribute(
+			UShooterAttributeSet::GetMaxHealthAttribute());
+	}
+	return MaxHP;
+}
+
+float AShooterCharacter::GetHealthRatio() const
+{
+	const float MaxHealthValue = GetMaxHealthAttributeValue();
+	return MaxHealthValue > 0.0f
+		? GetHealthAttributeValue() / MaxHealthValue
+		: 0.0f;
+}
+
 void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);

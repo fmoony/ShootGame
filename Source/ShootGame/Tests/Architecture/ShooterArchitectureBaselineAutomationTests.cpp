@@ -12,6 +12,8 @@
 #include "Engine/Engine.h"
 #include "Engine/World.h"
 #include "Inventory/ShooterInventoryComponent.h"
+#include "AI/ShooterNPC.h"
+#include "AbilitySystem/ShooterAttributeSet.h"
 #include "ShooterArchitectureTestTypes.h"
 #include "UObject/UnrealType.h"
 #include "Weapons/ShooterWeapon.h"
@@ -264,6 +266,98 @@ bool FShooterArchitectureOwnershipSurfaceTest::RunTest(const FString& Parameters
 	TestTrue(
 		TEXT("AimPresentationComponent presentation aim RPC is a server RPC"),
 		AimServerRpc && AimServerRpc->HasAnyFunctionFlags(FUNC_NetServer));
+
+	return true;
+}
+
+/**
+ * R7 Health 读取收敛表面：
+ * ASC + ShooterAttributeSet 是唯一 Health / MaxHealth 权威；
+ * Character 的 CurrentHP / bIsDead 仍是复制表现镜像，MaxHP 只是服务器配置。
+ */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FShooterArchitectureHealthSurfaceTest,
+	"ShootGame.Architecture.Baseline.HealthSurface",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FShooterArchitectureHealthSurfaceTest::RunTest(const FString& Parameters)
+{
+	const FProperty* HealthProperty = FindFProperty<FProperty>(
+		UShooterAttributeSet::StaticClass(),
+		TEXT("Health"));
+	if (!TestNotNull(TEXT("ShooterAttributeSet exposes Health"), HealthProperty))
+	{
+		return false;
+	}
+	TestTrue(TEXT("AttributeSet Health is replicated"), HealthProperty->HasAnyPropertyFlags(CPF_Net));
+
+	const FProperty* MaxHealthProperty = FindFProperty<FProperty>(
+		UShooterAttributeSet::StaticClass(),
+		TEXT("MaxHealth"));
+	if (!TestNotNull(TEXT("ShooterAttributeSet exposes MaxHealth"), MaxHealthProperty))
+	{
+		return false;
+	}
+	TestTrue(TEXT("AttributeSet MaxHealth is replicated"), MaxHealthProperty->HasAnyPropertyFlags(CPF_Net));
+
+	const FProperty* CurrentHPProperty = FindFProperty<FProperty>(
+		AShooterCharacter::StaticClass(),
+		TEXT("CurrentHP"));
+	if (!TestNotNull(TEXT("Character exposes CurrentHP mirror"), CurrentHPProperty))
+	{
+		return false;
+	}
+	TestTrue(TEXT("CurrentHP mirror is BlueprintReadOnly"), CurrentHPProperty->HasAnyPropertyFlags(CPF_BlueprintReadOnly));
+	TestTrue(TEXT("CurrentHP mirror is replicated"), CurrentHPProperty->HasAnyPropertyFlags(CPF_Net));
+	TestEqual(
+		TEXT("CurrentHP mirror uses OnRep_CurrentHP"),
+		CurrentHPProperty->RepNotifyFunc,
+		FName(TEXT("OnRep_CurrentHP")));
+
+	const FProperty* bIsDeadProperty = FindFProperty<FProperty>(
+		AShooterCharacter::StaticClass(),
+		TEXT("bIsDead"));
+	if (!TestNotNull(TEXT("Character exposes bIsDead mirror"), bIsDeadProperty))
+	{
+		return false;
+	}
+	TestTrue(TEXT("bIsDead mirror is BlueprintReadOnly"), bIsDeadProperty->HasAnyPropertyFlags(CPF_BlueprintReadOnly));
+	TestTrue(TEXT("bIsDead mirror is replicated"), bIsDeadProperty->HasAnyPropertyFlags(CPF_Net));
+
+	const FProperty* MaxHPProperty = FindFProperty<FProperty>(
+		AShooterCharacter::StaticClass(),
+		TEXT("MaxHP"));
+	if (!TestNotNull(TEXT("Character exposes server-side MaxHP config"), MaxHPProperty))
+	{
+		return false;
+	}
+	TestFalse(TEXT("MaxHP config is not a replicated Health authority"), MaxHPProperty->HasAnyPropertyFlags(CPF_Net));
+
+	// 不存在第二套公开 Health 写入口。
+	TestNull(
+		TEXT("Character has no public SetCurrentHP"),
+		AShooterCharacter::StaticClass()->FindFunctionByName(TEXT("SetCurrentHP")));
+	TestNull(
+		TEXT("Character has no public SetMaxHP"),
+		AShooterCharacter::StaticClass()->FindFunctionByName(TEXT("SetMaxHP")));
+	TestNull(
+		TEXT("NPC has no public SetCurrentHP"),
+		AShooterNPC::StaticClass()->FindFunctionByName(TEXT("SetCurrentHP")));
+
+	// R7 读穿透：CDO 无 ASC 时，读穿透必须回退到兼容镜像。
+	const AShooterCharacter* CharacterDefaults =
+		AShooterCharacter::StaticClass()->GetDefaultObject<AShooterCharacter>();
+	if (TestNotNull(TEXT("Character has defaults"), CharacterDefaults))
+	{
+		TestEqual(
+			TEXT("GetHealthAttributeValue falls back to CurrentHP without ASC"),
+			CharacterDefaults->GetHealthAttributeValue(),
+			CharacterDefaults->GetCurrentHP());
+		TestEqual(
+			TEXT("GetMaxHealthAttributeValue falls back to MaxHP without ASC"),
+			CharacterDefaults->GetMaxHealthAttributeValue(),
+			CharacterDefaults->GetMaxHP());
+	}
 
 	return true;
 }
