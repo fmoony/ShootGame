@@ -1,4 +1,4 @@
-# Shooter 完整 Demo 最终路线规划
+﻿# Shooter 完整 Demo 最终路线规划
 
 ## 1. 文档定位
 
@@ -403,7 +403,7 @@ FastArray 是 Owner 的权威武器数据源，负责：
 - 拥有关系；
 - WeaponInstance；
 - Slot；
-- ActiveWeaponInstanceId。
+- 当前装备只读转发（GetActiveWeaponInstanceId / GetActiveWeaponActor 指向 Equipment）。
 
 完整 Inventory OwnerOnly。
 
@@ -431,7 +431,7 @@ InstanceId
 CurrentWeaponActor
 ```
 
-Character 对观察者复制 CurrentWeaponActor。
+EquipmentComponent 对观察者复制 CurrentWeaponActor；ActiveWeaponInstanceId 使用 OwnerOnly 条件复制。
 
 WeaponActor 可保存 BoundInstanceId，但 Actor 指针不作为永久武器身份。
 
@@ -498,6 +498,9 @@ WeaponActor
 
 Inventory
 = 所有权、WeaponInstance、Ammo、Slot
+
+Equipment
+= ActiveWeaponInstanceId、CurrentWeaponActor、装备事务与变化事件
 ```
 
 暂不冻结：

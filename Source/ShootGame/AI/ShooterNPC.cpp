@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 
 #include "ShooterNPC.h"
@@ -264,11 +264,6 @@ FVector AShooterNPC::GetWeaponTargetLocation()
 
 	// return either the impact point or the trace end
 	return OutHit.bBlockingHit ? OutHit.ImpactPoint : OutHit.TraceEnd;
-}
-
-void AShooterNPC::AddWeaponClass(const TSubclassOf<AShooterWeapon>& InWeaponClass)
-{
-	// unused
 }
 
 void AShooterNPC::OnWeaponActivated(AShooterWeapon* InWeapon)

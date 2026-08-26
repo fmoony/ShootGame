@@ -1,8 +1,9 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "Misc/AutomationTest.h"
+#include "Characters/Aim/ShooterAimPresentationComponent.h"
 #include "Characters/ShooterCharacter.h"
 #include "Characters/Animation/ShooterThirdPersonAnimInstance.h"
 #include "ShooterAimPresentationTestHarness.h"
@@ -29,23 +30,23 @@ bool FShooterAimPresentationTargetValidityTest::RunTest(const FString& Parameter
 {
 	TestTrue(
 		TEXT("finite non-zero target is valid"),
-		AShooterCharacter::IsValidPresentationAimTargetValue(FVector(100.0f, -200.0f, 300.0f)));
+		UShooterAimPresentationComponent::IsValidPresentationAimTargetValue(FVector(100.0f, -200.0f, 300.0f)));
 
 	TestFalse(
 		TEXT("zero vector is not a valid steady-state target"),
-		AShooterCharacter::IsValidPresentationAimTargetValue(FVector::ZeroVector));
+		UShooterAimPresentationComponent::IsValidPresentationAimTargetValue(FVector::ZeroVector));
 
 	TestFalse(
 		TEXT("nearly-zero vector is not valid"),
-		AShooterCharacter::IsValidPresentationAimTargetValue(FVector(KINDA_SMALL_NUMBER, 0.0f, 0.0f)));
+		UShooterAimPresentationComponent::IsValidPresentationAimTargetValue(FVector(KINDA_SMALL_NUMBER, 0.0f, 0.0f)));
 
 	TestFalse(
 		TEXT("NaN target is not valid"),
-		AShooterCharacter::IsValidPresentationAimTargetValue(FVector(NAN, 0.0f, 0.0f)));
+		UShooterAimPresentationComponent::IsValidPresentationAimTargetValue(FVector(NAN, 0.0f, 0.0f)));
 
 	TestFalse(
 		TEXT("infinite target is not valid"),
-		AShooterCharacter::IsValidPresentationAimTargetValue(
+		UShooterAimPresentationComponent::IsValidPresentationAimTargetValue(
 			FVector(INFINITY, 100.0f, 100.0f)));
 
 	// C2.5 核心回归：稳态有效性与“多久没收到新包”无关。
@@ -54,7 +55,7 @@ bool FShooterAimPresentationTargetValidityTest::RunTest(const FString& Parameter
 	const FVector SteadyTarget(10000.0f, 0.0f, 2000.0f);
 	TestTrue(
 		TEXT("steady target remains valid regardless of elapsed network silence"),
-		AShooterCharacter::IsValidPresentationAimTargetValue(SteadyTarget));
+		UShooterAimPresentationComponent::IsValidPresentationAimTargetValue(SteadyTarget));
 
 	return true;
 }
@@ -74,7 +75,7 @@ bool FShooterAimPresentationSubmitPolicyTest::RunTest(const FString& Parameters)
 
 	TestTrue(
 		TEXT("first valid target submits immediately"),
-		AShooterCharacter::ShouldSubmitPresentationAimTarget(
+		UShooterAimPresentationComponent::ShouldSubmitPresentationAimTarget(
 			PreviousTarget,
 			FVector::ZeroVector,
 			ViewLocation,
@@ -85,7 +86,7 @@ bool FShooterAimPresentationSubmitPolicyTest::RunTest(const FString& Parameters)
 
 	TestFalse(
 		TEXT("sub-threshold steady target does not submit before keepalive"),
-		AShooterCharacter::ShouldSubmitPresentationAimTarget(
+		UShooterAimPresentationComponent::ShouldSubmitPresentationAimTarget(
 			PreviousTarget + FVector(1.0f, 0.0f, 0.0f),
 			PreviousTarget,
 			ViewLocation,
@@ -98,7 +99,7 @@ bool FShooterAimPresentationSubmitPolicyTest::RunTest(const FString& Parameters)
 		ViewLocation + FRotator(0.0f, 2.0f, 0.0f).Vector() * 100.0f;
 	TestTrue(
 		TEXT("angle threshold submits fast view change"),
-		AShooterCharacter::ShouldSubmitPresentationAimTarget(
+		UShooterAimPresentationComponent::ShouldSubmitPresentationAimTarget(
 			RotatedTarget,
 			PreviousTarget,
 			ViewLocation,
@@ -109,7 +110,7 @@ bool FShooterAimPresentationSubmitPolicyTest::RunTest(const FString& Parameters)
 
 	TestTrue(
 		TEXT("keepalive resubmits unchanged target"),
-		AShooterCharacter::ShouldSubmitPresentationAimTarget(
+		UShooterAimPresentationComponent::ShouldSubmitPresentationAimTarget(
 			PreviousTarget,
 			PreviousTarget,
 			ViewLocation,
@@ -120,7 +121,7 @@ bool FShooterAimPresentationSubmitPolicyTest::RunTest(const FString& Parameters)
 
 	TestFalse(
 		TEXT("invalid target never submits"),
-		AShooterCharacter::ShouldSubmitPresentationAimTarget(
+		UShooterAimPresentationComponent::ShouldSubmitPresentationAimTarget(
 			FVector(NAN, 0.0f, 0.0f),
 			PreviousTarget,
 			ViewLocation,
@@ -131,14 +132,14 @@ bool FShooterAimPresentationSubmitPolicyTest::RunTest(const FString& Parameters)
 
 	TestTrue(
 		TEXT("server accepts target inside max distance plus tolerance"),
-		AShooterCharacter::IsClientPresentationAimTargetWithinBounds(
+		UShooterAimPresentationComponent::IsClientPresentationAimTargetWithinBounds(
 			ViewLocation + FVector::ForwardVector * 10499.0f,
 			ViewLocation,
 			10000.0f,
 			500.0f));
 	TestFalse(
 		TEXT("server rejects target outside max distance plus tolerance"),
-		AShooterCharacter::IsClientPresentationAimTargetWithinBounds(
+		UShooterAimPresentationComponent::IsClientPresentationAimTargetWithinBounds(
 			ViewLocation + FVector::ForwardVector * 10501.0f,
 			ViewLocation,
 			10000.0f,
@@ -146,16 +147,16 @@ bool FShooterAimPresentationSubmitPolicyTest::RunTest(const FString& Parameters)
 
 	TestTrue(
 		TEXT("newer sequence is accepted"),
-		AShooterCharacter::IsNewerPresentationAimSequence(2, 1));
+		UShooterAimPresentationComponent::IsNewerPresentationAimSequence(2, 1));
 	TestFalse(
 		TEXT("duplicate sequence is rejected"),
-		AShooterCharacter::IsNewerPresentationAimSequence(7, 7));
+		UShooterAimPresentationComponent::IsNewerPresentationAimSequence(7, 7));
 	TestFalse(
 		TEXT("older sequence is rejected"),
-		AShooterCharacter::IsNewerPresentationAimSequence(6, 7));
+		UShooterAimPresentationComponent::IsNewerPresentationAimSequence(6, 7));
 	TestTrue(
 		TEXT("sequence wraparound is accepted"),
-		AShooterCharacter::IsNewerPresentationAimSequence(0, MAX_uint16));
+		UShooterAimPresentationComponent::IsNewerPresentationAimSequence(0, MAX_uint16));
 
 	return true;
 }
@@ -174,37 +175,37 @@ bool FShooterAimPresentationSmoothingRoleTest::RunTest(const FString& Parameters
 	// 普通客户端观察其他玩家的 SimulatedProxy：运行平滑。
 	TestTrue(
 		TEXT("simulated proxy runs smoothing"),
-		AShooterCharacter::ShouldRunPresentationAimSmoothing(
+		UShooterAimPresentationComponent::ShouldRunPresentationAimSmoothing(
 			ROLE_SimulatedProxy, NM_Client, false));
 
 	// Listen Server 观察远端客户端 Pawn：Authority 且非 LocallyControlled，运行平滑。
 	TestTrue(
 		TEXT("listen server observing remote authority pawn runs smoothing"),
-		AShooterCharacter::ShouldRunPresentationAimSmoothing(
+		UShooterAimPresentationComponent::ShouldRunPresentationAimSmoothing(
 			ROLE_Authority, NM_ListenServer, false));
 
 	// Listen Server 主机自己的 Pawn：Authority 但 LocallyControlled，不得被表现缓存覆盖。
 	TestFalse(
 		TEXT("listen server local owner does not run smoothing"),
-		AShooterCharacter::ShouldRunPresentationAimSmoothing(
+		UShooterAimPresentationComponent::ShouldRunPresentationAimSmoothing(
 			ROLE_Authority, NM_ListenServer, true));
 
 	// 远端客户端自己的 Pawn：AutonomousProxy，使用本地即时视角。
 	TestFalse(
 		TEXT("autonomous proxy does not run smoothing"),
-		AShooterCharacter::ShouldRunPresentationAimSmoothing(
+		UShooterAimPresentationComponent::ShouldRunPresentationAimSmoothing(
 			ROLE_AutonomousProxy, NM_Client, true));
 
 	// Dedicated Server：不做不可见动画的高成本表现工作。
 	TestFalse(
 		TEXT("dedicated server does not run smoothing"),
-		AShooterCharacter::ShouldRunPresentationAimSmoothing(
+		UShooterAimPresentationComponent::ShouldRunPresentationAimSmoothing(
 			ROLE_Authority, NM_DedicatedServer, false));
 
 	// Standalone 本地 Pawn：Authority 且 LocallyControlled，同样不走平滑路径。
 	TestFalse(
 		TEXT("standalone local owner does not run smoothing"),
-		AShooterCharacter::ShouldRunPresentationAimSmoothing(
+		UShooterAimPresentationComponent::ShouldRunPresentationAimSmoothing(
 			ROLE_Authority, NM_Standalone, true));
 
 	return true;
@@ -328,7 +329,7 @@ bool FShooterAimDirectionSourceTest::RunTest(const FString& Parameters)
 	const bool bHasMuzzle = true;
 
 	// SimulatedProxy 观察端：应运行平滑且目标有效，消费 Muzzle → 稳定目标。
-	const bool bSimulatedProxyRunsSmoothing = AShooterCharacter::ShouldRunPresentationAimSmoothing(
+	const bool bSimulatedProxyRunsSmoothing = UShooterAimPresentationComponent::ShouldRunPresentationAimSmoothing(
 		ROLE_SimulatedProxy, NM_Client, false);
 	TestTrue(TEXT("simulated proxy runs presentation smoothing"), bSimulatedProxyRunsSmoothing);
 	TestTrue(
@@ -426,7 +427,7 @@ bool FShooterAimDirectionSourceTest::RunTest(const FString& Parameters)
 			1.0f))) < 0.1f);
 
 	// Listen Server 观察远端 Pawn（Authority 且非 LocallyControlled）：使用同一目标语义。
-	const bool bListenRemoteRunsSmoothing = AShooterCharacter::ShouldRunPresentationAimSmoothing(
+	const bool bListenRemoteRunsSmoothing = UShooterAimPresentationComponent::ShouldRunPresentationAimSmoothing(
 		ROLE_Authority, NM_ListenServer, false);
 	TestTrue(TEXT("listen server remote pawn runs presentation smoothing"), bListenRemoteRunsSmoothing);
 	TestTrue(

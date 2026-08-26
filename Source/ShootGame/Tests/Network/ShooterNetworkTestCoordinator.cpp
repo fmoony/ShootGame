@@ -19,6 +19,7 @@
 #include "Abilities/GameplayAbility.h"
 #include "AbilitySystemComponent.h"
 #include "Characters/Equipment/ShooterEquipmentComponent.h"
+#include "Characters/Aim/ShooterAimPresentationComponent.h"
 #include "ShooterAbilitySystemComponent.h"
 #include "ShooterAttributeSet.h"
 #include "ShooterGameplayAbility_Fire.h"
@@ -52,6 +53,43 @@ namespace ShooterNetworkTest
 	constexpr float AimRotationPitchToleranceDegrees = 20.0f;
 	/** 观察端 yaw 速率判据容差（°/s）：覆盖复制间隔、代理旋转平滑与阶段启动时间差。 */
 	constexpr float AimRotationObserverYawRateToleranceDegrees = 18.0f;
+
+	FVector GetPresentationAimTargetForTest(const AShooterCharacter* Character)
+	{
+		const UShooterAimPresentationComponent* AimPresentation = Character
+			? Character->GetAimPresentationComponent()
+			: nullptr;
+		return AimPresentation
+			? AimPresentation->GetPresentationAimTarget()
+			: FVector::ZeroVector;
+	}
+
+	FVector GetSmoothedPresentationAimTargetForTest(const AShooterCharacter* Character)
+	{
+		const UShooterAimPresentationComponent* AimPresentation = Character
+			? Character->GetAimPresentationComponent()
+			: nullptr;
+		return AimPresentation
+			? AimPresentation->GetSmoothedPresentationAimTarget()
+			: FVector::ZeroVector;
+	}
+
+	void GetAimPresentationAnglesForTest(
+		const AShooterCharacter* Character,
+		float& OutAimYaw,
+		float& OutAimPitch)
+	{
+		const UShooterAimPresentationComponent* AimPresentation = Character
+			? Character->GetAimPresentationComponent()
+			: nullptr;
+		if (AimPresentation)
+		{
+			AimPresentation->GetAimPresentationAngles(OutAimYaw, OutAimPitch);
+			return;
+		}
+		OutAimYaw = 0.0f;
+		OutAimPitch = 0.0f;
+	}
 }
 
 AShooterNetworkTestWeapon::AShooterNetworkTestWeapon()
@@ -3653,7 +3691,7 @@ void AShooterNetworkTestCoordinator::RunAimRotationServerPhase()
 		// 量化误差无法在服务器侧测量（FVector_NetQuantize 在序列化时量化，服务器内存中
 		// 保存原始值）；观察端收到的整数值即量化证据（见 B2_PRESENTATION_OBSERVER 的
 		// quantized 标志）。这里验证方向一致性、更新流动与目标量程。
-		const FVector PresentationTarget = Character->GetPresentationAimTarget();
+		const FVector PresentationTarget = ShooterNetworkTest::GetPresentationAimTargetForTest(Character);
 		const FVector ViewLocation = Character->GetPawnViewLocation();
 		const FVector PresentationDir = (PresentationTarget - ViewLocation).GetSafeNormal();
 		const FVector AimDir = ServerControlRotation.Vector().GetSafeNormal();
@@ -3804,7 +3842,7 @@ void AShooterNetworkTestCoordinator::RunAimRotationClientPhase()
 		// B2：拥有者不应收到表现目标（COND_SkipOwner），本地实例保持零向量。
 		if (!bAimRotationOwnerPresentationUntouched)
 		{
-			bAimRotationOwnerPresentationUntouched = Character->GetPresentationAimTarget().IsNearlyZero();
+			bAimRotationOwnerPresentationUntouched = ShooterNetworkTest::GetPresentationAimTargetForTest(Character).IsNearlyZero();
 		}
 
 		// 观察端判据：yaw 连续按 +30°/s 更新（≥3 个采样点），
@@ -3942,7 +3980,7 @@ void AShooterNetworkTestCoordinator::RunAimRotationObserverPhase()
 		// B2：观察端表现目标验证。远端复制到的 PresentationAimTarget 应非零，
 		// 其方向与远端瞄准方向一致（dot ≥ 0.9），且分量呈整数量化特征
 		// （FVector_NetQuantize 序列化量化到整数 cm 的直接证据）。
-		const FVector RemotePresentationTarget = RemoteCharacter->GetPresentationAimTarget();
+		const FVector RemotePresentationTarget = ShooterNetworkTest::GetPresentationAimTargetForTest(RemoteCharacter);
 		const FVector RemotePresentationDir =
 			(RemotePresentationTarget - RemoteCharacter->GetPawnViewLocation()).GetSafeNormal();
 		const bool bPresentationSeen = !RemotePresentationTarget.IsNearlyZero();
@@ -3978,7 +4016,7 @@ void AShooterNetworkTestCoordinator::RunAimRotationObserverPhase()
 		}
 
 		// B3：观察端平滑与局部角度契约验证。
-		const FVector SmoothedTarget = RemoteCharacter->GetSmoothedPresentationAimTarget();
+		const FVector SmoothedTarget = ShooterNetworkTest::GetSmoothedPresentationAimTargetForTest(RemoteCharacter);
 		const float SmoothGap = FVector::Dist(SmoothedTarget, RemotePresentationTarget);
 		AimRotationObserverMinSmoothGap = FMath::Min(AimRotationObserverMinSmoothGap, SmoothGap);
 		if (!SmoothedTarget.IsNearlyZero())
@@ -3987,7 +4025,7 @@ void AShooterNetworkTestCoordinator::RunAimRotationObserverPhase()
 		}
 		float LocalAimYaw = 0.0f;
 		float LocalAimPitch = 0.0f;
-		RemoteCharacter->GetAimPresentationAngles(LocalAimYaw, LocalAimPitch);
+		ShooterNetworkTest::GetAimPresentationAnglesForTest(RemoteCharacter, LocalAimYaw, LocalAimPitch);
 		const float RemotePitchNorm = FRotator::NormalizeAxis(RemoteAim.Pitch);
 		const float PitchDiff = FMath::Abs(FRotator::NormalizeAxis(LocalAimPitch - RemotePitchNorm));
 		if (PitchDiff <= 20.0f)

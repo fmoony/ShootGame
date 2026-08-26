@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 #if WITH_DEV_AUTOMATION_TESTS
 
@@ -82,12 +82,23 @@ bool FShooterArchitectureWeaponGrantSurfaceTest::RunTest(const FString& Paramete
 		return false;
 	}
 
-	// R1 完成条件：AddWeaponClass 必须进入 Inventory.TryAddWeapon 唯一创建路径，
-	// 并继续走 HandleWeaponAddedToInventory 的“授予后立即装备”入口。
-	Character->AddWeaponClass(AShooterArchitectureTestWeapon::StaticClass());
+	// R8 后 Character 已没有 AddWeaponClass / HandleWeaponAddedToInventory 兼容入口。
+	// 授予路径 = Inventory.TryAddWeapon；立即装备 = Equipment.EquipWeapon（重放 Pickup 的最小行为）。
+	UShooterEquipmentComponent* Equipment = Character->GetEquipmentComponent();
+	if (!TestNotNull(TEXT("Architecture test character owns EquipmentComponent"), Equipment))
+	{
+		DestroyArchitectureTestWorld(World);
+		return false;
+	}
+
+	FGuid GrantedInstanceId;
+	const EShooterInventoryAddResult FirstGrantResult =
+		Inventory->TryAddWeapon(AShooterArchitectureTestWeapon::StaticClass(), GrantedInstanceId);
+	TestEqual(TEXT("Inventory grants the first weapon"), static_cast<int32>(FirstGrantResult), static_cast<int32>(EShooterInventoryAddResult::Added));
+	TestTrue(TEXT("Equipment commits the granted weapon"), Equipment->EquipWeapon(GrantedInstanceId));
 
 	AShooterWeapon* CurrentWeapon = Character->GetCurrentWeaponActor();
-	TestNotNull(TEXT("AddWeaponClass still equips a weapon after R1"), CurrentWeapon);
+	TestNotNull(TEXT("Granted weapon is equipped"), CurrentWeapon);
 	if (CurrentWeapon)
 	{
 		TestTrue(TEXT("Granted weapon is owned by the character"), CurrentWeapon->GetOwner() == Character);
@@ -97,17 +108,22 @@ bool FShooterArchitectureWeaponGrantSurfaceTest::RunTest(const FString& Paramete
 			CurrentWeapon == Inventory->GetActiveWeaponActor());
 	}
 
-	TestEqual(TEXT("AddWeaponClass creates exactly one Inventory entry"), Inventory->GetWeaponCount(), 1);
+	TestEqual(TEXT("Grant creates exactly one Inventory entry"), Inventory->GetWeaponCount(), 1);
 	TestTrue(TEXT("Inventory ActiveWeaponInstanceId becomes valid"), Inventory->GetActiveWeaponInstanceId().IsValid());
 
-	// 重复授予同一类型不能产生第二把武器：R1 由 TryAddWeapon 的 DuplicateDefinition 拒绝。
-	Character->AddWeaponClass(AShooterArchitectureTestWeapon::StaticClass());
+	// 重复授予同一类型不能产生第二把武器：由 TryAddWeapon 的 DuplicateDefinition 拒绝。
+	FGuid DuplicateGrantedInstanceId;
+	const EShooterInventoryAddResult DuplicateGrantResult =
+		Inventory->TryAddWeapon(AShooterArchitectureTestWeapon::StaticClass(), DuplicateGrantedInstanceId);
+	TestEqual(
+		TEXT("Duplicate weapon grant is rejected"),
+		static_cast<int32>(DuplicateGrantResult),
+		static_cast<int32>(EShooterInventoryAddResult::DuplicateDefinition));
 	AShooterWeapon* CurrentWeaponAfterSecondGrant = Character->GetCurrentWeaponActor();
 	TestTrue(
 		TEXT("Duplicate weapon class grant keeps the same CurrentWeapon"),
 		CurrentWeaponAfterSecondGrant == CurrentWeapon);
 	TestEqual(TEXT("Duplicate grant keeps exactly one Inventory entry"), Inventory->GetWeaponCount(), 1);
-
 	DestroyArchitectureTestWorld(World);
 	return true;
 }

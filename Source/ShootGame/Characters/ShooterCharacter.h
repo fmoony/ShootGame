@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
@@ -121,9 +121,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Equipment", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UShooterEquipmentComponent> EquipmentComponent;
 
-	/** 兼容镜像：Inventory 建立后的 WeaponActor 列表；逻辑权威源是 Inventory WeaponInstances。 */
-	TArray<AShooterWeapon*> OwnedWeapons;
-
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UPROPERTY(EditAnywhere, Category ="Destruction", meta = (ClampMin = 0, ClampMax = 10, Units = "s"))
@@ -132,6 +129,8 @@ protected:
 	FTimerHandle RespawnTimer;
 
 public:
+
+	// ---- 表现事件转发：子弹与受伤只读广播 ----
 
 	/** Bullet count updated delegate */
 	FBulletCountUpdatedDelegate OnBulletCountUpdated;
@@ -159,6 +158,8 @@ public:
 
 protected:
 
+	// ---- 生命周期与 GAS Avatar ----
+
 	/** Gameplay initialization */
 	virtual void BeginPlay() override;
 
@@ -173,6 +174,8 @@ protected:
 
 	/** Gameplay cleanup */
 	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
+
+	// ---- 基础输入入口 ----
 
 	/** Called from Input Actions for movement input */
 	void MoveInput(const FInputActionValue& Value);
@@ -201,6 +204,8 @@ protected:
 
 public:
 
+	// ---- 权威开火目标与伤害入口 ----
+
 	/** 与权威开火共用的目标 Trace；可选输出仅供只读调试复用命中信息。 */
 	static FVector TracePreSpreadAimTarget(
 		UWorld* World,
@@ -212,6 +217,8 @@ public:
 
 	/** Handle incoming damage */
 	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+
+	// ---- Health 只读契约：ASC 读穿透 + 复制镜像 ----
 
 	/** 当前服务器权威生命值的本地副本。 */
 	float GetCurrentHP() const { return CurrentHP; }
@@ -231,16 +238,13 @@ public:
 	/** 从 ASC 权威读取 Health / MaxHealth 比例；ASC 不可用时回退到镜像。 */
 	float GetHealthRatio() const;
 
+	// ---- Inventory / Equipment / Aim 组件只读入口 ----
+
 	/** 当前由服务器选择并复制给客户端的武器（IShooterWeaponHolder 最小只读接口；R4 起转发 Equipment）。 */
 	virtual AShooterWeapon* GetCurrentWeapon() const override;
 
 	/** 公共表现侧命名：CurrentWeapon 即阶段计划中的 CurrentWeaponActor。 */
 	AShooterWeapon* GetCurrentWeaponActor() const;
-
-	/** 2B 桥接：Inventory 成功创建 WeaponActor 后，由 Pickup 路径调用以更新兼容列表与当前武器表现。 */
-	void HandleWeaponAddedToInventory(const FGuid& InstanceId);
-	/** R4 兼容入口：转发 Equipment.EquipWeapon；R8 删除。 */
-	bool CommitActiveWeapon(const FGuid& InstanceId);
 
 	/** 返回角色的 Inventory 组件；该组件是武器持有关系的逻辑权威源。 */
 	UShooterInventoryComponent* GetInventoryComponent() const { return InventoryComponent; }
@@ -251,52 +255,10 @@ public:
 	/** 返回角色的装备组件；外部系统只通过该入口提交装备事务。 */
 	UShooterEquipmentComponent* GetEquipmentComponent() const { return EquipmentComponent; }
 
-	// ---- R2 迁移期转发接口：AnimBP / 旧测试 / 调试继续通过 Character 读 Component。 ----
-
-	/** 只读访问服务器表现目标（观察端读取复制值；拥有者始终为零向量）。 */
-	const FVector& GetPresentationAimTarget() const;
-
-	/** 只读访问观察端平滑后的表现目标（本地成员；观察端消费入口）。 */
-	const FVector& GetSmoothedPresentationAimTarget() const;
-
-	/** 观察端本地有效标记（Debug / 自动化验证只读入口）。 */
-	bool IsPresentationAimTargetValid() const;
-
-	/** 纯判定转发：PresentationAimTarget 是否可建立有效状态。 */
-	static bool IsValidPresentationAimTargetValue(const FVector& Target);
-
-	/** 纯判定转发：本地表现目标是否越过发送门槛或到达保活间隔。 */
-	static bool ShouldSubmitPresentationAimTarget(
-		const FVector& NewTarget,
-		const FVector& PreviousTarget,
-		const FVector& ViewLocation,
-		float SecondsSinceLastSubmit,
-		float MinChangeDistance,
-		float MinChangeAngle,
-		float KeepAliveInterval);
-
-	/** 纯判定转发：客户端提交的表现目标是否位于允许视距内。 */
-	static bool IsClientPresentationAimTargetWithinBounds(
-		const FVector& Target,
-		const FVector& ServerViewLocation,
-		float MaxDistance,
-		float DistanceTolerance);
-
-	/** 16 位递增序号比较转发。 */
-	static bool IsNewerPresentationAimSequence(uint16 Candidate, uint16 Previous);
-
-	/** 平滑角色矩阵转发。 */
-	static bool ShouldRunPresentationAimSmoothing(ENetRole LocalRole, ENetMode NetMode, bool bLocallyControlled);
+	// ---- 表现瞄准只读出口：保留被旧 AnimBP / 自动化消费的 BP 数据契约。 ----
 
 	UFUNCTION(BlueprintPure, Category = "Aim")
 	FVector GetPresentationAimTargetBP() const;
-
-	UFUNCTION(BlueprintPure, Category = "Aim|Debug")
-	FVector GetSmoothedPresentationAimTargetBP() const;
-
-	/** 观察端平滑后的表现角度——AnimBP 数据契约出口。 */
-	UFUNCTION(BlueprintCallable, Category = "Aim")
-	void GetAimPresentationAngles(float& OutAimYaw, float& OutAimPitch) const;
 
 	/** AO 就绪形式的垂直瞄准值。 */
 	UFUNCTION(BlueprintCallable, Category = "Aim")
@@ -311,6 +273,8 @@ public:
 	static FVector ComputePreSpreadAimTarget(const APawn* Pawn, float MaxDistance);
 
 public:
+
+	// ---- 玩家武器输入入口 ----
 
 	/** 处理开火输入：本地只向服务器提交请求，由服务器权威执行 */
 	UFUNCTION(BlueprintCallable, Category="Input")
@@ -335,6 +299,8 @@ public:
 
 public:
 
+	// ---- IShooterWeaponHolder：ShooterWeapon 运行时回调最小边界 ----
+
 	//~Begin IShooterWeaponHolder interface
 
 	/** Attaches a weapon's meshes to the owner */
@@ -352,8 +318,6 @@ public:
 	/** Calculates and returns the aim location for the weapon */
 	virtual FVector GetWeaponTargetLocation() override;
 
-	/** Gives a weapon of this class to the owner */
-	virtual void AddWeaponClass(const TSubclassOf<AShooterWeapon>& WeaponClass) override;
 
 	/** Activates the passed weapon */
 	virtual void OnWeaponActivated(AShooterWeapon* Weapon) override;
@@ -368,8 +332,7 @@ public:
 
 protected:
 
-	/** Returns true if the character already owns a weapon of the given class */
-	AShooterWeapon* FindWeaponOfType(TSubclassOf<AShooterWeapon> WeaponClass) const;
+	// ---- 死亡、重生与 Ability 清理 ----
 
 	/** 本次伤害的击杀者；Health 归零桥接时用于现有 Death/Kill/计分闭环。 */
 	AController* PendingDeathInstigator = nullptr;

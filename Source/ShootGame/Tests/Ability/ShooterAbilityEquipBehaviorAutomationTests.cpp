@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 #if WITH_DEV_AUTOMATION_TESTS
 
@@ -209,11 +209,11 @@ bool FShooterAbilityEquipInstanceActorConsistencyTest::RunTest(const FString& Pa
 {
 	using namespace ShooterAbilityEquipBehaviorAutomationTests;
 
-	// CommitActiveWeapon 是服务器权威普通 C++ 入口，不是客户端可远程调用的 UFUNCTION。
+	// R8 后装备提交唯一入口是 EquipmentComponent::EquipWeapon（普通 C++ 方法，非 UFUNCTION）；
+	// Character 的 CommitActiveWeapon 兼容入口已删除。
 	TestNull(
-		TEXT("CommitActiveWeapon is not a remote-callable UFUNCTION"),
+		TEXT("Character no longer exposes CommitActiveWeapon"),
 		AShooterCharacter::StaticClass()->FindFunctionByName(TEXT("CommitActiveWeapon")));
-
 	const AShooterWeapon* WeaponDefaults = GetDefault<AShooterWeapon>();
 	if (TestNotNull(TEXT("AShooterWeapon has defaults"), WeaponDefaults))
 	{

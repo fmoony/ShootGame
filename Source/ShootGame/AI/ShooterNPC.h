@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
@@ -176,9 +176,6 @@ public:
 
 	/** 返回当前装备的 WeaponActor（IShooterWeaponHolder 最小只读接口）。 */
 	virtual AShooterWeapon* GetCurrentWeapon() const override { return Weapon; }
-
-	/** Gives a weapon of this class to the owner */
-	virtual void AddWeaponClass(const TSubclassOf<AShooterWeapon>& WeaponClass) override;
 
 	/** Activates the passed weapon */
 	virtual void OnWeaponActivated(AShooterWeapon* Weapon) override;

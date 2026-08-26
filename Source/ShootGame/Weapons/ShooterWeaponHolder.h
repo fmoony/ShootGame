@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
@@ -43,9 +43,6 @@ public:
 
 	/** 最小只读接口：返回持有者当前可开火的 WeaponActor；没有时为 nullptr。 */
 	virtual AShooterWeapon* GetCurrentWeapon() const = 0;
-
-	/** Gives a weapon of this class to the owner */
-	virtual void AddWeaponClass(const TSubclassOf<AShooterWeapon>& WeaponClass) = 0;
 
 	/** Activates the passed weapon */
 	virtual void OnWeaponActivated(AShooterWeapon* Weapon) = 0;

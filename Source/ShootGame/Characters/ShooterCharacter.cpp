@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 
 #include "ShooterCharacter.h"
@@ -152,100 +152,11 @@ AShooterCharacter::AShooterCharacter()
 	bReplicates = true;
 }
 
-const FVector& AShooterCharacter::GetPresentationAimTarget() const
-{
-	static const FVector ZeroTarget = FVector::ZeroVector;
-	return AimPresentationComponent
-		? AimPresentationComponent->GetPresentationAimTarget()
-		: ZeroTarget;
-}
-
-const FVector& AShooterCharacter::GetSmoothedPresentationAimTarget() const
-{
-	static const FVector ZeroTarget = FVector::ZeroVector;
-	return AimPresentationComponent
-		? AimPresentationComponent->GetSmoothedPresentationAimTarget()
-		: ZeroTarget;
-}
-
-bool AShooterCharacter::IsPresentationAimTargetValid() const
-{
-	return AimPresentationComponent && AimPresentationComponent->IsPresentationAimTargetValid();
-}
-
-bool AShooterCharacter::IsValidPresentationAimTargetValue(const FVector& Target)
-{
-	return UShooterAimPresentationComponent::IsValidPresentationAimTargetValue(Target);
-}
-
-bool AShooterCharacter::ShouldSubmitPresentationAimTarget(
-	const FVector& NewTarget,
-	const FVector& PreviousTarget,
-	const FVector& ViewLocation,
-	float SecondsSinceLastSubmit,
-	float MinChangeDistance,
-	float MinChangeAngle,
-	float KeepAliveInterval)
-{
-	return UShooterAimPresentationComponent::ShouldSubmitPresentationAimTarget(
-		NewTarget,
-		PreviousTarget,
-		ViewLocation,
-		SecondsSinceLastSubmit,
-		MinChangeDistance,
-		MinChangeAngle,
-		KeepAliveInterval);
-}
-
-bool AShooterCharacter::IsClientPresentationAimTargetWithinBounds(
-	const FVector& Target,
-	const FVector& ServerViewLocation,
-	float MaxDistance,
-	float DistanceTolerance)
-{
-	return UShooterAimPresentationComponent::IsClientPresentationAimTargetWithinBounds(
-		Target,
-		ServerViewLocation,
-		MaxDistance,
-		DistanceTolerance);
-}
-
-bool AShooterCharacter::IsNewerPresentationAimSequence(uint16 Candidate, uint16 Previous)
-{
-	return UShooterAimPresentationComponent::IsNewerPresentationAimSequence(Candidate, Previous);
-}
-
-bool AShooterCharacter::ShouldRunPresentationAimSmoothing(
-	ENetRole LocalRole,
-	ENetMode NetMode,
-	bool bLocallyControlled)
-{
-	return UShooterAimPresentationComponent::ShouldRunPresentationAimSmoothing(
-		LocalRole,
-		NetMode,
-		bLocallyControlled);
-}
-
 FVector AShooterCharacter::GetPresentationAimTargetBP() const
 {
-	return GetPresentationAimTarget();
-}
-
-FVector AShooterCharacter::GetSmoothedPresentationAimTargetBP() const
-{
-	return GetSmoothedPresentationAimTarget();
-}
-
-void AShooterCharacter::GetAimPresentationAngles(float& OutAimYaw, float& OutAimPitch) const
-{
-	if (AimPresentationComponent)
-	{
-		AimPresentationComponent->GetAimPresentationAngles(OutAimYaw, OutAimPitch);
-		return;
-	}
-
-	OutAimYaw = 0.0f;
-	OutAimPitch = 0.0f;
+	return AimPresentationComponent
+		? AimPresentationComponent->GetPresentationAimTarget()
+		: FVector::ZeroVector;
 }
 
 float AShooterCharacter::GetAimPitchN() const
@@ -305,7 +216,6 @@ void AShooterCharacter::EndPlay(EEndPlayReason::Type EndPlayReason)
 			InventoryComponent->ClearInventory();
 		}
 
-		OwnedWeapons.Empty();
 		if (EquipmentComponent)
 		{
 			EquipmentComponent->ClearEquippedWeapon();
@@ -771,40 +681,6 @@ FVector AShooterCharacter::ComputePreSpreadAimTarget(const APawn* Pawn, float Ma
 	return TracePreSpreadAimTarget(Pawn->GetWorld(), Start, End, Pawn);
 }
 
-void AShooterCharacter::HandleWeaponAddedToInventory(const FGuid& InstanceId)
-{
-	if (!HasAuthority() || !InventoryComponent)
-	{
-		return;
-	}
-
-	AShooterWeapon* AddedWeapon = InventoryComponent->FindWeaponActor(InstanceId);
-	if (!AddedWeapon)
-	{
-		return;
-	}
-
-	// OwnedWeapons 是兼容镜像，逻辑权威仍在 Inventory。
-	OwnedWeapons.AddUnique(AddedWeapon);
-
-	// R4：装备事务唯一入口在 EquipmentComponent。
-	if (EquipmentComponent)
-	{
-		EquipmentComponent->EquipWeapon(InstanceId);
-	}
-}
-
-bool AShooterCharacter::CommitActiveWeapon(const FGuid& InstanceId)
-{
-	// R4 兼容入口：装备权威已经迁入 Equipment；外部仍可通过 Character 转发。
-	if (!EquipmentComponent)
-	{
-		return false;
-	}
-
-	return EquipmentComponent->EquipWeapon(InstanceId);
-}
-
 AShooterWeapon* AShooterCharacter::GetCurrentWeapon() const
 {
 	return EquipmentComponent ? EquipmentComponent->GetCurrentWeaponActor() : nullptr;
@@ -813,31 +689,6 @@ AShooterWeapon* AShooterCharacter::GetCurrentWeapon() const
 AShooterWeapon* AShooterCharacter::GetCurrentWeaponActor() const
 {
 	return GetCurrentWeapon();
-}
-
-void AShooterCharacter::AddWeaponClass(const TSubclassOf<AShooterWeapon>& WeaponClass)
-{
-	// R1：玩家武器只有 Inventory.TryAddWeapon 一条创建路径；
-	// 旧直生 Actor 路径已封死，重复定义 / 满槽 / 生成失败都由 Inventory 统一返回。
-	if (!HasAuthority() || !InventoryComponent || !WeaponClass)
-	{
-		return;
-	}
-
-	FGuid GrantedInstanceId;
-	const EShooterInventoryAddResult AddResult =
-		InventoryComponent->TryAddWeapon(WeaponClass, GrantedInstanceId);
-	if (AddResult != EShooterInventoryAddResult::Added)
-	{
-		return;
-	}
-
-	// R3：进入 Equipment facade，保持“拾取/授予后立即装备”的旧行为；
-	// Character 不再被外部系统直接调用装备提交事务。
-	if (EquipmentComponent)
-	{
-		EquipmentComponent->EquipWeapon(GrantedInstanceId);
-	}
 }
 
 void AShooterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -868,22 +719,6 @@ void AShooterCharacter::OnSemiWeaponRefire()
 	// unused
 }
 
-AShooterWeapon* AShooterCharacter::FindWeaponOfType(TSubclassOf<AShooterWeapon> WeaponClass) const
-{
-	// check each owned weapon
-	for (AShooterWeapon* Weapon : OwnedWeapons)
-	{
-		if (Weapon->IsA(WeaponClass))
-		{
-			return Weapon;
-		}
-	}
-
-	// weapon not found
-	return nullptr;
-
-}
-
 void AShooterCharacter::Die(AController* KillerController)
 {
 	if (!HasAuthority() || bIsDead)
@@ -909,7 +744,7 @@ void AShooterCharacter::Die(AController* KillerController)
 	{
 		InventoryComponent->ClearInventory();
 	}
-	OwnedWeapons.Empty();
+
 
 	bIsDead = true;
 	ApplyDeathState();
