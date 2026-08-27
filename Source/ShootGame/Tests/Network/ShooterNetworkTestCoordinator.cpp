@@ -3,7 +3,11 @@
 #include "Tests/Network/ShooterNetworkTestCoordinator.h"
 
 #include "ShootGame.h"
+#include "Animation/AnimClassInterface.h"
 #include "Animation/AnimInstance.h"
+#include "Characters/Animation/AnimNodes/AnimNode_ShooterAimIK.h"
+#include "Characters/Animation/ShooterThirdPersonAnimInstance.h"
+#include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Engine/World.h"
@@ -11,10 +15,13 @@
 #include "TimerManager.h"
 #include "UObject/UnrealType.h"
 #include "GameFramework/PlayerController.h"
-#include "GameFramework/PlayerState.h"
 #include "GameFramework/GameStateBase.h"
+#include "GameFramework/PlayerState.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "HAL/PlatformProcess.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
 #include "Net/UnrealNetwork.h"
 #include "Abilities/GameplayAbility.h"
 #include "AbilitySystemComponent.h"
@@ -53,6 +60,84 @@ namespace ShooterNetworkTest
 	constexpr float AimRotationPitchToleranceDegrees = 20.0f;
 	/** 观察端 yaw 速率判据容差（°/s）：覆盖复制间隔、代理旋转平滑与阶段启动时间差。 */
 	constexpr float AimRotationObserverYawRateToleranceDegrees = 18.0f;
+
+	// ---- 快慢转向 CSV 诊断：慢速俯仰全扫，随后快速上下甩枪 ----
+	constexpr float AimTurnCsvSlowEndSeconds = 4.0f;
+	constexpr float AimTurnCsvSlowHoldEndSeconds = 4.5f;
+	constexpr float AimTurnCsvFastUpEndSeconds = 4.75f;
+	constexpr float AimTurnCsvFastHoldEndSeconds = 5.25f;
+	constexpr float AimTurnCsvFastDownEndSeconds = 5.5f;
+	constexpr float AimTurnCsvEndSeconds = 6.5f;
+	constexpr float AimTurnCsvHalfSweepDegrees = 80.0f;
+	constexpr float AimTurnCsvObstacleDistance = 100.0f;
+
+	float AimTurnCsvPitch(float PhaseTime)
+	{
+		if (PhaseTime <= AimTurnCsvSlowEndSeconds)
+		{
+			return FMath::Lerp(
+				AimTurnCsvHalfSweepDegrees,
+				-AimTurnCsvHalfSweepDegrees,
+				FMath::Clamp(PhaseTime / AimTurnCsvSlowEndSeconds, 0.0f, 1.0f));
+		}
+		if (PhaseTime <= AimTurnCsvSlowHoldEndSeconds)
+		{
+			return -AimTurnCsvHalfSweepDegrees;
+		}
+		if (PhaseTime <= AimTurnCsvFastUpEndSeconds)
+		{
+			const float Alpha = (PhaseTime - AimTurnCsvSlowHoldEndSeconds) /
+				(AimTurnCsvFastUpEndSeconds - AimTurnCsvSlowHoldEndSeconds);
+			return FMath::Lerp(
+				-AimTurnCsvHalfSweepDegrees,
+				AimTurnCsvHalfSweepDegrees,
+				FMath::Clamp(Alpha, 0.0f, 1.0f));
+		}
+		if (PhaseTime <= AimTurnCsvFastHoldEndSeconds)
+		{
+			return AimTurnCsvHalfSweepDegrees;
+		}
+		if (PhaseTime <= AimTurnCsvFastDownEndSeconds)
+		{
+			const float Alpha = (PhaseTime - AimTurnCsvFastHoldEndSeconds) /
+				(AimTurnCsvFastDownEndSeconds - AimTurnCsvFastHoldEndSeconds);
+			return FMath::Lerp(
+				AimTurnCsvHalfSweepDegrees,
+				-AimTurnCsvHalfSweepDegrees,
+				FMath::Clamp(Alpha, 0.0f, 1.0f));
+		}
+		return -AimTurnCsvHalfSweepDegrees;
+	}
+
+	const TCHAR* AimTurnCsvPhase(float PhaseTime)
+	{
+		if (PhaseTime <= AimTurnCsvSlowEndSeconds) return TEXT("slow_pitch");
+		if (PhaseTime <= AimTurnCsvSlowHoldEndSeconds) return TEXT("slow_hold");
+		if (PhaseTime <= AimTurnCsvFastUpEndSeconds) return TEXT("fast_up");
+		if (PhaseTime <= AimTurnCsvFastHoldEndSeconds) return TEXT("fast_hold");
+		if (PhaseTime <= AimTurnCsvFastDownEndSeconds) return TEXT("fast_down");
+		return TEXT("settle");
+	}
+
+	float AimTurnCsvAngleDegrees(const FVector& A, const FVector& B)
+	{
+		const FVector NormalA = A.GetSafeNormal();
+		const FVector NormalB = B.GetSafeNormal();
+		if (NormalA.IsNearlyZero() || NormalB.IsNearlyZero())
+		{
+			return 0.0f;
+		}
+		return FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(
+			FVector::DotProduct(NormalA, NormalB), -1.0f, 1.0f)));
+	}
+
+	float AimTurnCsvPitchDegrees(const FVector& Direction)
+	{
+		const FVector Normal = Direction.GetSafeNormal();
+		return Normal.IsNearlyZero()
+			? 0.0f
+			: FMath::RadiansToDegrees(FMath::Asin(FMath::Clamp(Normal.Z, -1.0f, 1.0f)));
+	}
 
 	FVector GetPresentationAimTargetForTest(const AShooterCharacter* Character)
 	{
@@ -114,10 +199,21 @@ AShooterNetworkTestNPC::AShooterNetworkTestNPC()
 
 AShooterNetworkTestCoordinator::AShooterNetworkTestCoordinator()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bStartWithTickEnabled = false;
 	bReplicates = true;
 	bOnlyRelevantToOwner = true;
 	SetReplicateMovement(false);
+
+	AimTurnCsvObstacleComponent = CreateDefaultSubobject<UBoxComponent>(
+		TEXT("Aim Turn CSV Obstacle"));
+	SetRootComponent(AimTurnCsvObstacleComponent);
+	AimTurnCsvObstacleComponent->SetBoxExtent(FVector(10.0f, 75.0f, 100.0f));
+	AimTurnCsvObstacleComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	AimTurnCsvObstacleComponent->SetCollisionObjectType(ECC_WorldDynamic);
+	AimTurnCsvObstacleComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
+	AimTurnCsvObstacleComponent->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+	AimTurnCsvObstacleComponent->SetGenerateOverlapEvents(false);
 	bRequireRemoteMontage = !FParse::Param(
 		FCommandLine::Get(),
 		TEXT("ShootGameSkipRemoteMontage"));
@@ -130,7 +226,10 @@ AShooterNetworkTestCoordinator::AShooterNetworkTestCoordinator()
 	bDisconnectEquipMode = FParse::Param(
 		FCommandLine::Get(),
 		TEXT("ShootGameDisconnectEquip"));
-	bAimRotationMode = FParse::Param(
+	bAimTurnCsvMode = FParse::Param(
+		FCommandLine::Get(),
+		TEXT("ShootGameAimTurnCsvTest"));
+	bAimRotationMode = bAimTurnCsvMode || FParse::Param(
 		FCommandLine::Get(),
 		TEXT("ShootGameAimRotationTest"));
 }
@@ -430,6 +529,7 @@ void AShooterNetworkTestCoordinator::VerifyEquipDeathCleanup()
 void AShooterNetworkTestCoordinator::BeginPlay()
 {
 	Super::BeginPlay();
+	SetActorTickEnabled(bAimTurnCsvMode);
 
 	TestStartTime = GetWorld()->GetTimeSeconds();
 	if (HasAuthority())
@@ -454,6 +554,17 @@ void AShooterNetworkTestCoordinator::BeginPlay()
 
 void AShooterNetworkTestCoordinator::EndPlay(EEndPlayReason::Type EndPlayReason)
 {
+	UnregisterAimTurnCsvPoseProbe(AimTurnCsvOwnerPoseProbe);
+	UnregisterAimTurnCsvPoseProbe(AimTurnCsvObserverPoseProbe);
+
+	if (bAimTurnCsvStarted && !bAimTurnCsvWritten && AimTurnCsvRowCount > 0)
+	{
+		bAimTurnCsvWritten = FFileHelper::SaveStringToFile(
+			AimTurnCsvBuffer,
+			*AimTurnCsvOutputPath,
+			FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM);
+	}
+
 	if (ActorSpawnedHandle.IsValid())
 	{
 		GetWorld()->RemoveOnActorSpawnedHandler(ActorSpawnedHandle);
@@ -463,6 +574,596 @@ void AShooterNetworkTestCoordinator::EndPlay(EEndPlayReason::Type EndPlayReason)
 	GetWorldTimerManager().ClearTimer(CleanupAbilityTimer);
 	GetWorldTimerManager().ClearTimer(EquipDeathVerifyTimer);
 	Super::EndPlay(EndPlayReason);
+}
+
+void AShooterNetworkTestCoordinator::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+	if (bAimTurnCsvMode)
+	{
+		RunAimTurnCsvFrame(DeltaSeconds);
+	}
+}
+
+void AShooterNetworkTestCoordinator::RunAimTurnCsvFrame(float DeltaSeconds)
+{
+	if (bAimTurnCsvWritten || !bAimRotationPhaseActive || !GetWorld())
+	{
+		return;
+	}
+
+	APlayerController* PlayerController = Cast<APlayerController>(GetOwner());
+	AShooterCharacter* LocalCharacter = GetShooterCharacter();
+	if (!PlayerController || !PlayerController->IsLocalController() || !LocalCharacter ||
+		!LocalCharacter->GetCurrentWeapon())
+	{
+		return;
+	}
+
+	if (!bAimTurnCsvStarted)
+	{
+		bAimTurnCsvStarted = true;
+		AimTurnCsvStartTime = GetWorld()->GetTimeSeconds();
+		AimTurnCsvStartRotation = PlayerController->GetControlRotation();
+		AimTurnCsvBuffer = TEXT(
+			"role,subject,subject_player_id,server_time,t,phase,dt,base_pitch,base_yaw,actor_yaw,trace_kind,trace_kind_changed,"
+			"hit_changed,hit_actor,hit_component,trace_x,trace_y,trace_z,trace_distance,trace_step,"
+			"raw_x,raw_y,raw_z,raw_step,smooth_x,smooth_y,smooth_z,smooth_step,"
+			"raw_smooth_gap,view_depth,muzzle_depth,safe_min_depth,safe_active,aim_ik_enabled,left_hand_ik_enabled,"
+			"aim_pitch_n,aim_pitch_delta,"
+			"aim_dir_x,aim_dir_y,aim_dir_z,aim_dir_delta,aim_world_pitch,aim_pitch_step,"
+			"muzzle_x,muzzle_y,muzzle_z,muzzle_move,"
+			"muzzle_forward_x,muzzle_forward_y,muzzle_forward_z,muzzle_forward_delta,muzzle_world_pitch,muzzle_pitch_step,residual_angle,"
+			"residual_over_12,target_range,finalized_frame,finalized_frame_age,"
+			"finalized_muzzle_x,finalized_muzzle_y,finalized_muzzle_z,finalized_muzzle_move,"
+			"finalized_hand_pitch,finalized_hand_yaw,finalized_hand_roll,"
+			"finalized_muzzle_forward_x,finalized_muzzle_forward_y,finalized_muzzle_forward_z,"
+			"reference_muzzle_x,reference_muzzle_y,reference_muzzle_z,"
+			"feedback_dir_x,feedback_dir_y,feedback_dir_z,feedback_pitch,feedback_pitch_step,"
+			"reference_dir_x,reference_dir_y,reference_dir_z,reference_pitch,reference_pitch_step,"
+			"actual_feedback_angle,actual_reference_angle,feedback_reference_angle\n");
+
+		const int32 PlayerId = PlayerController->PlayerState
+			? PlayerController->PlayerState->GetPlayerId()
+			: INDEX_NONE;
+		const FString OutputDirectory = FPaths::Combine(
+			FPaths::ProjectSavedDir(),
+			TEXT("Automation/AimTurnCsv"));
+		IFileManager::Get().MakeDirectory(*OutputDirectory, true);
+		AimTurnCsvOutputPath = FPaths::Combine(
+			OutputDirectory,
+			FString::Printf(
+				TEXT("AimTurn_%s_PID%u_Player%d.csv"),
+				*FDateTime::Now().ToString(TEXT("%Y%m%d_%H%M%S")),
+				FPlatformProcess::GetCurrentProcessId(),
+				PlayerId));
+
+		// 薄墙面约在视点前 90cm，专门复现枪贴近物体时的快速转向。
+		const FRotator FlatRotation(0.0f, AimTurnCsvStartRotation.Yaw, 0.0f);
+		SetActorLocationAndRotation(
+			LocalCharacter->GetPawnViewLocation() +
+			FlatRotation.Vector() * ShooterNetworkTest::AimTurnCsvObstacleDistance,
+			FlatRotation);
+		AimTurnCsvObstacleComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	}
+
+	const float PhaseTime = GetWorld()->GetTimeSeconds() - AimTurnCsvStartTime;
+	FRotator DrivenRotation = AimTurnCsvStartRotation;
+	DrivenRotation.Pitch = ShooterNetworkTest::AimTurnCsvPitch(PhaseTime);
+	PlayerController->SetControlRotation(DrivenRotation);
+
+	CaptureAimTurnCsvSubject(
+		TEXT("owner"),
+		LocalCharacter,
+		PhaseTime,
+		DeltaSeconds,
+		AimTurnCsvOwnerPrevious,
+		AimTurnCsvOwnerPoseProbe);
+
+	AShooterCharacter* RemoteCharacter = AimRotationObservedCharacter.Get();
+	if (!IsValid(RemoteCharacter))
+	{
+		RemoteCharacter = nullptr;
+		for (TActorIterator<AShooterCharacter> It(GetWorld()); It; ++It)
+		{
+			AShooterCharacter* Candidate = *It;
+			if (Candidate == LocalCharacter || Candidate->IsA<AShooterNPC>() ||
+				Candidate->GetLocalRole() != ROLE_SimulatedProxy)
+			{
+				continue;
+			}
+			RemoteCharacter = Candidate;
+			AimRotationObservedCharacter = Candidate;
+			break;
+		}
+	}
+
+	if (RemoteCharacter && RemoteCharacter->GetCurrentWeapon())
+	{
+		CaptureAimTurnCsvSubject(
+			TEXT("observer"),
+			RemoteCharacter,
+			PhaseTime,
+			DeltaSeconds,
+			AimTurnCsvObserverPrevious,
+			AimTurnCsvObserverPoseProbe);
+	}
+
+	if (PhaseTime >= ShooterNetworkTest::AimTurnCsvEndSeconds)
+	{
+		AimTurnCsvObstacleComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		FlushAimTurnCsv();
+		SetActorTickEnabled(false);
+	}
+}
+
+void AShooterNetworkTestCoordinator::CaptureAimTurnCsvSubject(
+	const TCHAR* SampleRole,
+	AShooterCharacter* Subject,
+	float PhaseTime,
+	float DeltaSeconds,
+	FAimTurnCsvPreviousSample& PreviousSample,
+	FAimTurnCsvPoseProbe& PoseProbe)
+{
+	if (!Subject || !GetWorld())
+	{
+		return;
+	}
+	EnsureAimTurnCsvPoseProbe(Subject, PoseProbe);
+
+	const FVector ViewLocation = Subject->GetPawnViewLocation();
+	const FRotator BaseAimRotation = Subject->GetBaseAimRotation();
+	const int32 SubjectPlayerId = Subject->GetPlayerState()
+		? Subject->GetPlayerState()->GetPlayerId()
+		: INDEX_NONE;
+	const AGameStateBase* GameState = GetWorld()->GetGameState();
+	const float ServerTime = GameState
+		? GameState->GetServerWorldTimeSeconds()
+		: GetWorld()->GetTimeSeconds();
+	FHitResult TraceHit;
+	bool bPawnHit = false;
+	const FVector TraceTarget = AShooterCharacter::TracePreSpreadAimTarget(
+		GetWorld(),
+		ViewLocation,
+		ViewLocation + BaseAimRotation.Vector() * Subject->GetMaxAimDistance(),
+		Subject,
+		&TraceHit,
+		&bPawnHit);
+	const FString TraceKind = TraceHit.bBlockingHit
+		? (bPawnHit ? TEXT("Pawn") : TEXT("Visibility"))
+		: TEXT("Fallback");
+
+	const UShooterAimPresentationComponent* AimPresentation =
+		Subject->GetAimPresentationComponent();
+	const FVector RawTarget = AimPresentation
+		? AimPresentation->GetPresentationAimTarget()
+		: FVector::ZeroVector;
+	const FVector SmoothedTarget = AimPresentation
+		? AimPresentation->GetSmoothedPresentationAimTarget()
+		: FVector::ZeroVector;
+
+	const UShooterThirdPersonAnimInstance* AnimInstance = Subject->GetMesh()
+		? Cast<UShooterThirdPersonAnimInstance>(Subject->GetMesh()->GetAnimInstance())
+		: nullptr;
+	if (USkeletalMeshComponent* SubjectMesh = Subject->GetMesh())
+	{
+		SubjectMesh->VisibilityBasedAnimTickOption =
+			EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
+		SubjectMesh->bEnableUpdateRateOptimizations = false;
+		SubjectMesh->SetForcedLOD(1);
+	}
+	const FVector AimDirection = AnimInstance
+		? AnimInstance->AimDirectionWorld
+		: FVector::ZeroVector;
+	const float AimPitchN = AnimInstance ? AnimInstance->AimPitchN : 0.0f;
+
+	const AShooterWeapon* Weapon = Subject->GetCurrentWeapon();
+	const bool bHasMuzzle = Weapon && Weapon->HasThirdPersonMuzzleSocket();
+	if (Weapon && Weapon->GetThirdPersonMesh())
+	{
+		Weapon->GetThirdPersonMesh()->VisibilityBasedAnimTickOption =
+			EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
+		Weapon->GetThirdPersonMesh()->bEnableUpdateRateOptimizations = false;
+	}
+	const FTransform MuzzleTransform = bHasMuzzle
+		? Weapon->GetThirdPersonMuzzleWorldTransform()
+		: FTransform::Identity;
+	const FVector MuzzleLocation = MuzzleTransform.GetLocation();
+	const FVector MuzzleForward = bHasMuzzle
+		? MuzzleTransform.GetUnitAxis(EAxis::X).GetSafeNormal()
+		: FVector::ZeroVector;
+
+	const FVector StableBaseDirection = BaseAimRotation.Vector().GetSafeNormal();
+	const float ViewDepth = FVector::DotProduct(
+		SmoothedTarget - ViewLocation,
+		StableBaseDirection);
+	const float MuzzleDepth = bHasMuzzle
+		? FVector::DotProduct(MuzzleLocation - ViewLocation, StableBaseDirection)
+		: 0.0f;
+	const float SafeMinimumDepth = AnimInstance
+		? FMath::Max3(
+			0.0f,
+			AnimInstance->MinimumRemoteAimTargetDistanceFromView,
+			MuzzleDepth + AnimInstance->MinimumRemoteAimTargetDistanceFromMuzzle)
+		: 0.0f;
+	const bool bSafeActive = FCString::Stricmp(SampleRole, TEXT("observer")) == 0 &&
+		AimPresentation && AimPresentation->IsPresentationAimTargetValid() &&
+		bHasMuzzle && !StableBaseDirection.IsNearlyZero() &&
+		ViewDepth < SafeMinimumDepth;
+
+	const float TraceStep = PreviousSample.bValid
+		? FVector::Distance(TraceTarget, PreviousSample.TraceTarget)
+		: 0.0f;
+	const float RawStep = PreviousSample.bValid
+		? FVector::Distance(RawTarget, PreviousSample.RawTarget)
+		: 0.0f;
+	const float SmoothedStep = PreviousSample.bValid
+		? FVector::Distance(SmoothedTarget, PreviousSample.SmoothedTarget)
+		: 0.0f;
+	const float AimDirectionDelta = PreviousSample.bValid
+		? ShooterNetworkTest::AimTurnCsvAngleDegrees(AimDirection, PreviousSample.AimDirection)
+		: 0.0f;
+	const float MuzzleMove = PreviousSample.bValid
+		? FVector::Distance(MuzzleLocation, PreviousSample.MuzzleLocation)
+		: 0.0f;
+	const float MuzzleForwardDelta = PreviousSample.bValid
+		? ShooterNetworkTest::AimTurnCsvAngleDegrees(MuzzleForward, PreviousSample.MuzzleForward)
+		: 0.0f;
+	const float AimPitchDelta = PreviousSample.bValid
+		? FMath::Abs(AimPitchN - PreviousSample.AimPitchN)
+		: 0.0f;
+	const float AimWorldPitch = ShooterNetworkTest::AimTurnCsvPitchDegrees(AimDirection);
+	const float AimWorldPitchStep = PreviousSample.bValid
+		? FMath::FindDeltaAngleDegrees(
+			ShooterNetworkTest::AimTurnCsvPitchDegrees(PreviousSample.AimDirection),
+			AimWorldPitch)
+		: 0.0f;
+	const float MuzzleWorldPitch = ShooterNetworkTest::AimTurnCsvPitchDegrees(MuzzleForward);
+	const float MuzzleWorldPitchStep = PreviousSample.bValid
+		? FMath::FindDeltaAngleDegrees(
+			ShooterNetworkTest::AimTurnCsvPitchDegrees(PreviousSample.MuzzleForward),
+			MuzzleWorldPitch)
+		: 0.0f;
+	const bool bTraceKindChanged = PreviousSample.bValid &&
+		TraceKind != PreviousSample.TraceKind;
+	const float ResidualAngle = ShooterNetworkTest::AimTurnCsvAngleDegrees(
+		MuzzleForward,
+		AimDirection);
+	const float TargetRange = bHasMuzzle
+		? FVector::Distance(MuzzleLocation, SmoothedTarget)
+		: 0.0f;
+
+	// FeedbackDirection 使用上一轮骨骼求值完成后的真实 hand_r → muzzle；
+	// ReferenceDirection 使用首次采样后冻结在 Mesh 空间的枪口基准，不再消费 Aim IK 的输出。
+	// 两者共享同一目标与安全距离规则，用于区分“目标输入跳变”和“IK 输出回灌下一帧输入”。
+	const bool bHasFinalizedMuzzle = PoseProbe.bHasFinalizedSample &&
+		PoseProbe.FinalizedMuzzleWorld.IsValid() &&
+		!PoseProbe.FinalizedMuzzleWorld.Equals(FTransform::Identity);
+	const FTransform ReferenceMuzzleWorld = PoseProbe.bHasReferenceMuzzle &&
+		Subject->GetMesh()
+		? PoseProbe.ReferenceMuzzleInMeshSpace * Subject->GetMesh()->GetComponentTransform()
+		: FTransform::Identity;
+	const bool bHasReferenceMuzzle = ReferenceMuzzleWorld.IsValid() &&
+		!ReferenceMuzzleWorld.Equals(FTransform::Identity);
+	const FVector FeedbackDirection = AnimInstance && bHasFinalizedMuzzle
+		? UShooterThirdPersonAnimInstance::ComputeAimDirectionWorldForState(
+			Subject->IsLocallyControlled(),
+			UShooterAimPresentationComponent::ShouldRunPresentationAimSmoothing(
+				Subject->GetLocalRole(), Subject->GetNetMode(), Subject->IsLocallyControlled()),
+			AimPresentation && AimPresentation->IsPresentationAimTargetValid(),
+			StableBaseDirection,
+			ViewLocation,
+			PoseProbe.FinalizedMuzzleWorld.GetLocation(),
+			SmoothedTarget,
+			true,
+			AnimInstance->MinimumRemoteAimTargetDistanceFromView,
+			AnimInstance->MinimumRemoteAimTargetDistanceFromMuzzle)
+		: FVector::ZeroVector;
+	const FVector ReferenceDirection = AnimInstance && bHasReferenceMuzzle
+		? UShooterThirdPersonAnimInstance::ComputeAimDirectionWorldForState(
+			Subject->IsLocallyControlled(),
+			UShooterAimPresentationComponent::ShouldRunPresentationAimSmoothing(
+				Subject->GetLocalRole(), Subject->GetNetMode(), Subject->IsLocallyControlled()),
+			AimPresentation && AimPresentation->IsPresentationAimTargetValid(),
+			StableBaseDirection,
+			ViewLocation,
+			ReferenceMuzzleWorld.GetLocation(),
+			SmoothedTarget,
+			true,
+			AnimInstance->MinimumRemoteAimTargetDistanceFromView,
+			AnimInstance->MinimumRemoteAimTargetDistanceFromMuzzle)
+		: FVector::ZeroVector;
+	const float FeedbackPitch = ShooterNetworkTest::AimTurnCsvPitchDegrees(FeedbackDirection);
+	const float ReferencePitch = ShooterNetworkTest::AimTurnCsvPitchDegrees(ReferenceDirection);
+	const float FeedbackPitchStep = PreviousSample.bValid
+		? FMath::FindDeltaAngleDegrees(
+			ShooterNetworkTest::AimTurnCsvPitchDegrees(PreviousSample.FeedbackDirection),
+			FeedbackPitch)
+		: 0.0f;
+	const float ReferencePitchStep = PreviousSample.bValid
+		? FMath::FindDeltaAngleDegrees(
+			ShooterNetworkTest::AimTurnCsvPitchDegrees(PreviousSample.ReferenceDirection),
+			ReferencePitch)
+		: 0.0f;
+	const float FinalizedMuzzleMove = PreviousSample.bValid && bHasFinalizedMuzzle
+		? FVector::Distance(
+			PoseProbe.FinalizedMuzzleWorld.GetLocation(),
+			PreviousSample.FinalizedMuzzleLocation)
+		: 0.0f;
+	const int64 FinalizedFrameAge = PoseProbe.bHasFinalizedSample && GFrameCounter >= PoseProbe.FinalizedFrame
+		? static_cast<int64>(GFrameCounter - PoseProbe.FinalizedFrame)
+		: -1;
+	const FRotator FinalizedHandRotation = PoseProbe.bHasFinalizedSample
+		? PoseProbe.FinalizedHandWorld.Rotator()
+		: FRotator::ZeroRotator;
+	const FVector FinalizedMuzzleForward = bHasFinalizedMuzzle
+		? PoseProbe.FinalizedMuzzleWorld.GetUnitAxis(EAxis::X).GetSafeNormal()
+		: FVector::ZeroVector;
+
+	FString HitActorName = TraceHit.bBlockingHit
+		? GetNameSafe(TraceHit.GetActor())
+		: TEXT("None");
+	FString HitComponentName = TraceHit.bBlockingHit
+		? GetNameSafe(TraceHit.GetComponent())
+		: TEXT("None");
+	HitActorName.ReplaceInline(TEXT(","), TEXT("_"));
+	HitComponentName.ReplaceInline(TEXT(","), TEXT("_"));
+	const FString HitIdentity = HitActorName + TEXT("/") + HitComponentName;
+	const bool bHitChanged = PreviousSample.bValid &&
+		HitIdentity != PreviousSample.HitIdentity;
+
+	AimTurnCsvBuffer += FString::Printf(
+		TEXT("%s,%s,%d,%.6f,%.6f,%s,%.6f,%.3f,%.3f,%.3f,%s,%d,%d,%s,%s,")
+		TEXT("%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,")
+		TEXT("%.3f,%.3f,%.3f,%.3f,%d,%d,%d,%.6f,%.6f,")
+		TEXT("%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.3f,%.3f,%.3f,%.3f,")
+		TEXT("%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%d,%.3f,")
+		TEXT("%llu,%lld,%.3f,%.3f,%.3f,%.3f,")
+		TEXT("%.3f,%.3f,%.3f,%.6f,%.6f,%.6f,%.3f,%.3f,%.3f,")
+		TEXT("%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,")
+		TEXT("%.6f,%.6f,%.6f\n"),
+		SampleRole,
+		*Subject->GetName(),
+		SubjectPlayerId,
+		ServerTime,
+		PhaseTime,
+		ShooterNetworkTest::AimTurnCsvPhase(PhaseTime),
+		DeltaSeconds,
+		BaseAimRotation.Pitch,
+		BaseAimRotation.Yaw,
+		Subject->GetActorRotation().Yaw,
+		*TraceKind,
+		bTraceKindChanged ? 1 : 0,
+		bHitChanged ? 1 : 0,
+		*HitActorName,
+		*HitComponentName,
+		TraceTarget.X, TraceTarget.Y, TraceTarget.Z,
+		TraceHit.bBlockingHit ? TraceHit.Distance : Subject->GetMaxAimDistance(),
+		TraceStep,
+		RawTarget.X, RawTarget.Y, RawTarget.Z, RawStep,
+		SmoothedTarget.X, SmoothedTarget.Y, SmoothedTarget.Z, SmoothedStep,
+		FVector::Distance(RawTarget, SmoothedTarget),
+		ViewDepth,
+		MuzzleDepth,
+		SafeMinimumDepth,
+		bSafeActive ? 1 : 0,
+		AnimInstance && AnimInstance->bAimIKEnabled ? 1 : 0,
+		AnimInstance && AnimInstance->bLeftHandIKEnabled ? 1 : 0,
+		AimPitchN,
+		AimPitchDelta,
+		AimDirection.X, AimDirection.Y, AimDirection.Z,
+		AimDirectionDelta,
+		AimWorldPitch,
+		AimWorldPitchStep,
+		MuzzleLocation.X, MuzzleLocation.Y, MuzzleLocation.Z,
+		MuzzleMove,
+		MuzzleForward.X, MuzzleForward.Y, MuzzleForward.Z,
+		MuzzleForwardDelta,
+		MuzzleWorldPitch,
+		MuzzleWorldPitchStep,
+		ResidualAngle,
+		ResidualAngle >= 11.9f ? 1 : 0,
+		TargetRange,
+		static_cast<unsigned long long>(PoseProbe.FinalizedFrame),
+		static_cast<long long>(FinalizedFrameAge),
+		PoseProbe.FinalizedMuzzleWorld.GetLocation().X,
+		PoseProbe.FinalizedMuzzleWorld.GetLocation().Y,
+		PoseProbe.FinalizedMuzzleWorld.GetLocation().Z,
+		FinalizedMuzzleMove,
+		FinalizedHandRotation.Pitch,
+		FinalizedHandRotation.Yaw,
+		FinalizedHandRotation.Roll,
+		FinalizedMuzzleForward.X,
+		FinalizedMuzzleForward.Y,
+		FinalizedMuzzleForward.Z,
+		ReferenceMuzzleWorld.GetLocation().X,
+		ReferenceMuzzleWorld.GetLocation().Y,
+		ReferenceMuzzleWorld.GetLocation().Z,
+		FeedbackDirection.X,
+		FeedbackDirection.Y,
+		FeedbackDirection.Z,
+		FeedbackPitch,
+		FeedbackPitchStep,
+		ReferenceDirection.X,
+		ReferenceDirection.Y,
+		ReferenceDirection.Z,
+		ReferencePitch,
+		ReferencePitchStep,
+		ShooterNetworkTest::AimTurnCsvAngleDegrees(AimDirection, FeedbackDirection),
+		ShooterNetworkTest::AimTurnCsvAngleDegrees(AimDirection, ReferenceDirection),
+		ShooterNetworkTest::AimTurnCsvAngleDegrees(FeedbackDirection, ReferenceDirection));
+	++AimTurnCsvRowCount;
+
+	PreviousSample.bValid = true;
+	PreviousSample.TraceTarget = TraceTarget;
+	PreviousSample.RawTarget = RawTarget;
+	PreviousSample.SmoothedTarget = SmoothedTarget;
+	PreviousSample.AimDirection = AimDirection;
+	PreviousSample.MuzzleLocation = MuzzleLocation;
+	PreviousSample.MuzzleForward = MuzzleForward;
+	PreviousSample.FinalizedMuzzleLocation = PoseProbe.FinalizedMuzzleWorld.GetLocation();
+	PreviousSample.FeedbackDirection = FeedbackDirection;
+	PreviousSample.ReferenceDirection = ReferenceDirection;
+	PreviousSample.AimPitchN = AimPitchN;
+	PreviousSample.TraceKind = TraceKind;
+	PreviousSample.HitIdentity = HitIdentity;
+}
+
+void AShooterNetworkTestCoordinator::EnsureAimTurnCsvPoseProbe(
+	AShooterCharacter* Subject,
+	FAimTurnCsvPoseProbe& PoseProbe)
+{
+	USkeletalMeshComponent* Mesh = Subject ? Subject->GetMesh() : nullptr;
+	if (!Mesh || (PoseProbe.Subject.Get() == Subject && PoseProbe.Mesh.Get() == Mesh &&
+		PoseProbe.DelegateHandle.IsValid()))
+	{
+		return;
+	}
+
+	UnregisterAimTurnCsvPoseProbe(PoseProbe);
+	PoseProbe.Subject = Subject;
+	PoseProbe.Mesh = Mesh;
+	PoseProbe.DelegateHandle = Mesh->RegisterOnBoneTransformsFinalizedDelegate(
+		FOnBoneTransformsFinalizedMultiCast::FDelegate::CreateUObject(
+			this,
+			&AShooterNetworkTestCoordinator::CaptureAimTurnCsvFinalizedPose,
+			&PoseProbe));
+}
+
+void AShooterNetworkTestCoordinator::CaptureAimTurnCsvFinalizedPose(
+	FAimTurnCsvPoseProbe* PoseProbe)
+{
+	if (!PoseProbe)
+	{
+		return;
+	}
+
+	AShooterCharacter* Subject = PoseProbe->Subject.Get();
+	USkeletalMeshComponent* Mesh = PoseProbe->Mesh.Get();
+	const UShooterThirdPersonAnimInstance* AnimInstance = Mesh
+		? Cast<UShooterThirdPersonAnimInstance>(Mesh->GetAnimInstance())
+		: nullptr;
+	if (AnimInstance && !PoseProbe->bLoggedAnimGraphClass)
+	{
+		PoseProbe->bLoggedAnimGraphClass = true;
+		int32 AimIKNodeCount = 0;
+		int32 AnimNodeCount = 0;
+		FString AimIKProperties;
+		FString AnimNodeTypes;
+		const IAnimClassInterface* AnimClassInterface =
+			IAnimClassInterface::GetFromClass(AnimInstance->GetClass());
+		if (AnimClassInterface)
+		{
+			const TArray<FStructProperty*>& AnimNodeProperties =
+				AnimClassInterface->GetAnimNodeProperties();
+			AnimNodeCount = AnimNodeProperties.Num();
+			for (const FStructProperty* StructProperty : AnimNodeProperties)
+			{
+				if (StructProperty && StructProperty->Struct)
+				{
+					if (!AnimNodeTypes.IsEmpty())
+					{
+						AnimNodeTypes += TEXT(",");
+					}
+					AnimNodeTypes += FString::Printf(
+						TEXT("%s:%s"),
+						*StructProperty->GetName(),
+						*StructProperty->Struct->GetPathName());
+				}
+				if (StructProperty && StructProperty->Struct &&
+					StructProperty->Struct->IsChildOf(FAnimNode_ShooterAimIK::StaticStruct()))
+				{
+					++AimIKNodeCount;
+					if (!AimIKProperties.IsEmpty())
+					{
+						AimIKProperties += TEXT(",");
+					}
+					AimIKProperties += StructProperty->GetName();
+				}
+			}
+		}
+
+		UE_LOG(
+			LogShootGame,
+			Display,
+			TEXT("AIM_IK_GRAPH_CLASS subject=%s local=%d class=%s anim_nodes=%d aim_ik_nodes=%d properties=%s types=%s"),
+			*GetNameSafe(Subject),
+			Subject && Subject->IsLocallyControlled() ? 1 : 0,
+			*GetPathNameSafe(AnimInstance->GetClass()),
+			AnimNodeCount,
+			AimIKNodeCount,
+			AimIKProperties.IsEmpty() ? TEXT("<none>") : *AimIKProperties,
+			AnimNodeTypes.IsEmpty() ? TEXT("<none>") : *AnimNodeTypes);
+	}
+	const AShooterWeapon* Weapon = Subject ? Subject->GetCurrentWeapon() : nullptr;
+	if (!Subject || !Mesh || !AnimInstance || !Weapon ||
+		!Weapon->HasThirdPersonMuzzleSocket() ||
+		!Mesh->DoesSocketExist(AnimInstance->HandSocketName) ||
+		!AnimInstance->HandToMuzzle.IsValid() ||
+		AnimInstance->HandToMuzzle.Equals(FTransform::Identity))
+	{
+		return;
+	}
+
+	PoseProbe->FinalizedHandWorld = Mesh->GetSocketTransform(
+		AnimInstance->HandSocketName,
+		RTS_World);
+	PoseProbe->FinalizedMuzzleWorld =
+		AnimInstance->HandToMuzzle * PoseProbe->FinalizedHandWorld;
+	PoseProbe->FinalizedFrame = GFrameCounter;
+	PoseProbe->bHasFinalizedSample = true;
+
+	if (!PoseProbe->bHasReferenceMuzzle)
+	{
+		PoseProbe->ReferenceMuzzleInMeshSpace =
+			PoseProbe->FinalizedMuzzleWorld.GetRelativeTransform(Mesh->GetComponentTransform());
+		PoseProbe->bHasReferenceMuzzle =
+			PoseProbe->ReferenceMuzzleInMeshSpace.IsValid() &&
+			!PoseProbe->ReferenceMuzzleInMeshSpace.Equals(FTransform::Identity);
+	}
+}
+
+void AShooterNetworkTestCoordinator::UnregisterAimTurnCsvPoseProbe(
+	FAimTurnCsvPoseProbe& PoseProbe)
+{
+	if (USkeletalMeshComponent* Mesh = PoseProbe.Mesh.Get();
+		Mesh && PoseProbe.DelegateHandle.IsValid())
+	{
+		Mesh->UnregisterOnBoneTransformsFinalizedDelegate(PoseProbe.DelegateHandle);
+	}
+	PoseProbe = FAimTurnCsvPoseProbe();
+}
+
+void AShooterNetworkTestCoordinator::FlushAimTurnCsv()
+{
+	if (bAimTurnCsvWritten || AimTurnCsvOutputPath.IsEmpty() || AimTurnCsvRowCount <= 0)
+	{
+		return;
+	}
+
+	bAimTurnCsvWritten = FFileHelper::SaveStringToFile(
+		AimTurnCsvBuffer,
+		*AimTurnCsvOutputPath,
+		FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM);
+	if (!bAimTurnCsvWritten)
+	{
+		FailTest(FString::Printf(
+			TEXT("Aim turn CSV could not be written: %s"),
+			*AimTurnCsvOutputPath));
+		return;
+	}
+
+	const APlayerController* PlayerController = Cast<APlayerController>(GetOwner());
+	const int32 PlayerId = PlayerController && PlayerController->PlayerState
+		? PlayerController->PlayerState->GetPlayerId()
+		: INDEX_NONE;
+	UE_LOG(
+		LogShootGame,
+		Display,
+		TEXT("AIM_TURN_CSV_READY PlayerId=%d Rows=%d Path=%s"),
+		PlayerId,
+		AimTurnCsvRowCount,
+		*AimTurnCsvOutputPath);
 }
 
 void AShooterNetworkTestCoordinator::GetLifetimeReplicatedProps(
@@ -3650,7 +4351,7 @@ void AShooterNetworkTestCoordinator::RunAimRotationServerPhase()
 		: FRotator::ZeroRotator;
 
 	// Listen 主机同时是拥有者客户端：服务器侧直接驱动本地视角，与远端客户端走同一调度。
-	if (Character->IsLocallyControlled())
+	if (!bAimTurnCsvMode && Character->IsLocallyControlled())
 	{
 		if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
 		{
@@ -3812,7 +4513,7 @@ void AShooterNetworkTestCoordinator::RunAimRotationClientPhase()
 	}
 
 	const float PhaseTime = GetWorld()->GetTimeSeconds() - AimRotationClientPhaseStartTime;
-	if (PhaseTime <= ShooterNetworkTest::AimRotationPitchDownSeconds)
+	if (!bAimTurnCsvMode && PhaseTime <= ShooterNetworkTest::AimRotationPitchDownSeconds)
 	{
 		FRotator Rot = AimRotationClientStartRotation;
 		Rot.Yaw = AimRotationExpectedYaw(PhaseTime);

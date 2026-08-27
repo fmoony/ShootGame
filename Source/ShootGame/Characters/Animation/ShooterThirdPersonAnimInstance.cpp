@@ -121,7 +121,8 @@ FVector UShooterThirdPersonAnimInstance::ComputeAimDirectionWorldForState(
 	const FVector& MuzzleWorldLocation,
 	const FVector& SmoothedPresentationTarget,
 	bool bHasThirdPersonMuzzle,
-	float MinimumTargetDistanceFromView)
+	float MinimumTargetDistanceFromView,
+	float MinimumTargetDistanceFromMuzzle)
 {
 	const FVector StableBaseDirection =
 		FShooterAimIKMath::IsFinite(LocalAimDirection) && !LocalAimDirection.IsNearlyZero()
@@ -150,9 +151,13 @@ FVector UShooterThirdPersonAnimInstance::ComputeAimDirectionWorldForState(
 		{
 			const FVector ViewToTarget = SmoothedPresentationTarget - ViewWorldLocation;
 			const float TargetDepthOnViewRay = FVector::DotProduct(ViewToTarget, StableBaseDirection);
-			const float SafeMinimumTargetDepth = FMath::Max(
+			const float MuzzleDepthOnViewRay = FVector::DotProduct(
+				MuzzleWorldLocation - ViewWorldLocation,
+				StableBaseDirection);
+			const float SafeMinimumTargetDepth = FMath::Max3(
 				0.0f,
-				MinimumTargetDistanceFromView);
+				MinimumTargetDistanceFromView,
+				MuzzleDepthOnViewRay + MinimumTargetDistanceFromMuzzle);
 
 			if (TargetDepthOnViewRay < SafeMinimumTargetDepth)
 			{
@@ -214,6 +219,8 @@ void UShooterThirdPersonAnimInstance::UpdateShooterAnimationData(float DeltaSeco
 	if (!Character)
 	{
 		AimDirectionWorld = FVector::ZeroVector;
+		AimTargetWorld = FVector::ZeroVector;
+		bAimTargetWorldValid = false;
 		AimPitchN = 0.0f;
 		MoveDirection = 0.0f;
 		bShouldMove = false;
@@ -244,10 +251,10 @@ void UShooterThirdPersonAnimInstance::UpdateShooterAnimationData(float DeltaSeco
 	MoveDirection = UKismetAnimationLibrary::CalculateDirection(
 		Velocity,
 		Character->GetActorRotation());
-	if (Movement != nullptr && !Movement->bOrientRotationToMovement)
-	{
-		MoveDirection = FMath::Clamp(MoveDirection, -45.0f, 45.0f);
-	}
+	//if (Movement != nullptr && !Movement->bOrientRotationToMovement)
+	//{
+	//	MoveDirection = FMath::Clamp(MoveDirection, -45.0f, 45.0f);
+	//}
 	AimPitchN = Character->GetAimPitchN();
 
 	AShooterWeapon* Weapon = Character->GetCurrentWeapon();
@@ -279,7 +286,6 @@ void UShooterThirdPersonAnimInstance::UpdateShooterAnimationData(float DeltaSeco
 	const bool bCachedHandToMuzzleInvalid =
 		CachedWeapon != nullptr &&
 		(!HandToMuzzle.IsValid() || HandToMuzzle.Equals(FTransform::Identity));
-
 	if (bWeaponChanged || bAttachStateChanged || bCachedHandToMuzzleInvalid)
 	{
 		CachedWeapon = Weapon;
@@ -364,20 +370,40 @@ void UShooterThirdPersonAnimInstance::UpdateShooterAnimationData(float DeltaSeco
 			Character->GetLocalRole(),
 			Character->GetNetMode(),
 			Character->IsLocallyControlled());
-	AimDirectionWorld = ComputeAimDirectionWorldForState(
-		Character->IsLocallyControlled(),
-		bShouldRunPresentationSmoothing,
-		AimPresentationComponent
-			? AimPresentationComponent->IsPresentationAimTargetValid()
-			: false,
-		Character->GetBaseAimRotation().Vector(),
-		Character->GetPawnViewLocation(),
-		MuzzleWorld.GetLocation(),
-		AimPresentationComponent
-			? AimPresentationComponent->GetSmoothedPresentationAimTarget()
-			: FVector::ZeroVector,
-		bHasThirdPersonMuzzle,
-		MinimumRemoteAimTargetDistanceFromView);
+	const FVector BaseAimDirection = Character->GetBaseAimRotation().Vector().GetSafeNormal();
+	AimDirectionWorld = FVector::ZeroVector;
+	AimTargetWorld = FVector::ZeroVector;
+	bAimTargetWorldValid = false;
+
+	if (Character->IsLocallyControlled())
+	{
+		AimDirectionWorld = BaseAimDirection;
+	}
+	else if (bShouldRunPresentationSmoothing &&
+		AimPresentationComponent &&
+		AimPresentationComponent->IsPresentationAimTargetValid() &&
+		FShooterAimIKMath::IsFinite(BaseAimDirection) &&
+		!BaseAimDirection.IsNearlyZero())
+	{
+		const FVector ViewWorldLocation = Character->GetPawnViewLocation();
+		FVector SafeTargetWorld = AimPresentationComponent->GetSmoothedPresentationAimTarget();
+		if (FShooterAimIKMath::IsFinite(ViewWorldLocation) &&
+			FShooterAimIKMath::IsFinite(SafeTargetWorld))
+		{
+			const float TargetDepthFromView = FVector::DotProduct(
+				SafeTargetWorld - ViewWorldLocation,
+				BaseAimDirection);
+			if (TargetDepthFromView < MinimumRemoteAimTargetDistanceFromView)
+			{
+				SafeTargetWorld += BaseAimDirection *
+					(MinimumRemoteAimTargetDistanceFromView - TargetDepthFromView);
+			}
+
+			AimDirectionWorld = BaseAimDirection;
+			AimTargetWorld = SafeTargetWorld;
+			bAimTargetWorldValid = true;
+		}
+	}
 
 	// C2.5 IK 开关：所有条件都真实有效才允许启用；无武器时 Identity 不会错误开启 IK。
 	bAimIKEnabled = IsAimIKEnabledForState(
@@ -386,7 +412,8 @@ void UShooterThirdPersonAnimInstance::UpdateShooterAnimationData(float DeltaSeco
 		Weapon != nullptr,
 		bHasThirdPersonMuzzle,
 		HandToMuzzle,
-		AimDirectionWorld);
+		AimDirectionWorld) &&
+		(Character->IsLocallyControlled() || bAimTargetWorldValid);
 
 	// 左手 IK 独立于 Aim IK：Rifle 配置握把 Socket 后启用，Pistol / 无武器 / 无握把时保持关闭。
 	bLeftHandIKEnabled = IsLeftHandIKEnabledForState(

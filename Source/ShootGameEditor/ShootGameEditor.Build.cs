@@ -8,9 +8,9 @@ public class ShootGameEditor : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-		// 与引擎 AnimGraph 模块（EngineDeveloper）一致：AnimGraphNode 放在 Developer 包中，
-		// 避免 AnimBP 编译时出现 "node is from an Editor Only module" 警告。
-		OverridePackageType = PackageOverrideType.GameDeveloper;
+		// 自定义 AnimGraphNode 只服务未烹饪资产的编辑与独立测试；正式烹饪后仅保留 Runtime AnimNode。
+		// 与 UE 动画插件的 GraphNode 模块一致，允许 UnrealEditor -game 反序列化节点绑定。
+		OverridePackageType = PackageOverrideType.GameUncookedOnly;
 
 		PublicDependencyModuleNames.AddRange(new string[] {
 			"Core",

@@ -13,6 +13,8 @@ class AShooterCharacter;
 class AShooterWeapon;
 class AShooterPlayerState;
 class UAbilitySystemComponent;
+class UBoxComponent;
+class USkeletalMeshComponent;
 class UShooterGameplayAbility_Equip;
 class UShooterGameplayAbility_Reload;
 struct FOnAttributeChangeData;
@@ -65,6 +67,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
+	virtual void Tick(float DeltaSeconds) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 private:
@@ -498,6 +501,72 @@ private:
 
 	/** B1 瞄准表现基线模式：-ShootGameAimRotationTest 开启。只测量，不新增网络字段。 */
 	bool bAimRotationMode = false;
+
+	/** 快慢转向 CSV 诊断模式：-ShootGameAimTurnCsvTest 开启；正常玩法与常规自动化均不运行。 */
+	bool bAimTurnCsvMode = false;
+
+	/** CSV 模式下只存在于拥有者进程的 Visibility 薄墙，用来稳定复现近命中/远端回退切换。 */
+	UPROPERTY(VisibleAnywhere, Category = "Automation|Aim Turn CSV")
+	TObjectPtr<UBoxComponent> AimTurnCsvObstacleComponent;
+
+	struct FAimTurnCsvPreviousSample
+	{
+		bool bValid = false;
+		FVector TraceTarget = FVector::ZeroVector;
+		FVector RawTarget = FVector::ZeroVector;
+		FVector SmoothedTarget = FVector::ZeroVector;
+		FVector AimDirection = FVector::ZeroVector;
+		FVector MuzzleLocation = FVector::ZeroVector;
+		FVector MuzzleForward = FVector::ZeroVector;
+		FVector FinalizedMuzzleLocation = FVector::ZeroVector;
+		FVector FeedbackDirection = FVector::ZeroVector;
+		FVector ReferenceDirection = FVector::ZeroVector;
+		float AimPitchN = 0.0f;
+		FString TraceKind;
+		FString HitIdentity;
+	};
+
+	/** 骨骼求值完成后的只读采样；只在 AimTurnCsv 诊断模式注册。 */
+	struct FAimTurnCsvPoseProbe
+	{
+		TWeakObjectPtr<AShooterCharacter> Subject;
+		TWeakObjectPtr<USkeletalMeshComponent> Mesh;
+		FDelegateHandle DelegateHandle;
+		FTransform FinalizedHandWorld = FTransform::Identity;
+		FTransform FinalizedMuzzleWorld = FTransform::Identity;
+		FTransform ReferenceMuzzleInMeshSpace = FTransform::Identity;
+		uint64 FinalizedFrame = 0;
+		bool bHasFinalizedSample = false;
+		bool bHasReferenceMuzzle = false;
+		bool bLoggedAnimGraphClass = false;
+	};
+
+	bool bAimTurnCsvStarted = false;
+	bool bAimTurnCsvWritten = false;
+	float AimTurnCsvStartTime = 0.0f;
+	FRotator AimTurnCsvStartRotation = FRotator::ZeroRotator;
+	FString AimTurnCsvBuffer;
+	FString AimTurnCsvOutputPath;
+	int32 AimTurnCsvRowCount = 0;
+	FAimTurnCsvPreviousSample AimTurnCsvOwnerPrevious;
+	FAimTurnCsvPreviousSample AimTurnCsvObserverPrevious;
+	FAimTurnCsvPoseProbe AimTurnCsvOwnerPoseProbe;
+	FAimTurnCsvPoseProbe AimTurnCsvObserverPoseProbe;
+
+	void RunAimTurnCsvFrame(float DeltaSeconds);
+	void CaptureAimTurnCsvSubject(
+		const TCHAR* SampleRole,
+		AShooterCharacter* Subject,
+		float PhaseTime,
+		float DeltaSeconds,
+		FAimTurnCsvPreviousSample& PreviousSample,
+		FAimTurnCsvPoseProbe& PoseProbe);
+	void EnsureAimTurnCsvPoseProbe(
+		AShooterCharacter* Subject,
+		FAimTurnCsvPoseProbe& PoseProbe);
+	void CaptureAimTurnCsvFinalizedPose(FAimTurnCsvPoseProbe* PoseProbe);
+	void UnregisterAimTurnCsvPoseProbe(FAimTurnCsvPoseProbe& PoseProbe);
+	void FlushAimTurnCsv();
 
 	/** 服务器开启瞄准旋转阶段后复制给客户端。 */
 	UPROPERTY(Replicated)

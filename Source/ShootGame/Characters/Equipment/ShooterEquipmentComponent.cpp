@@ -20,12 +20,8 @@ void UShooterEquipmentComponent::BeginPlay()
 
 	if (UShooterInventoryComponent* Inventory = GetOwnerInventory())
 	{
-		Inventory->OnWeaponInstanceRemovedFromInventory.AddUObject(
-			this,
-			&UShooterEquipmentComponent::NotifyWeaponInstanceRemoved);
-		Inventory->OnInventoryCleared.AddUObject(
-			this,
-			&UShooterEquipmentComponent::NotifyInventoryCleared);
+		Inventory->OnWeaponInstanceRemovedFromInventory.AddUObject(this, &UShooterEquipmentComponent::NotifyWeaponInstanceRemoved);
+		Inventory->OnInventoryCleared.AddUObject(this, &UShooterEquipmentComponent::NotifyInventoryCleared);
 	}
 
 	// 复制属性可能先于 BeginPlay 到达；补做一次幂等应用，避免漏掉初始装备。
@@ -54,9 +50,7 @@ bool UShooterEquipmentComponent::EquipWeapon(const FGuid& InstanceId)
 
 	// 事务目标必须真实存在于 Inventory，并且是绑定到本角色的 WeaponActor。
 	AShooterWeapon* TargetWeapon = Inventory->FindWeaponActor(InstanceId);
-	if (!IsValid(TargetWeapon) ||
-		TargetWeapon->GetOwner() != Character ||
-		TargetWeapon->IsActorBeingDestroyed())
+	if (!IsValid(TargetWeapon) || TargetWeapon->GetOwner() != Character || TargetWeapon->IsActorBeingDestroyed())
 	{
 		return false;
 	}
@@ -97,8 +91,7 @@ void UShooterEquipmentComponent::ClearEquippedWeapon()
 	if (AShooterCharacter* Character = GetOwnerCharacter())
 	{
 		// 清空是死亡 / Inventory Clear 生命周期，Aim 表现必须显式失效，不复用旧值。
-		if (UShooterAimPresentationComponent* AimPresentation =
-			Character->GetAimPresentationComponent())
+		if (UShooterAimPresentationComponent* AimPresentation = Character->GetAimPresentationComponent())
 		{
 			AimPresentation->ClearPresentationAimSmoothing();
 		}
@@ -165,8 +158,7 @@ void UShooterEquipmentComponent::ResetAimPresentationForEquipChange()
 {
 	if (AShooterCharacter* Character = GetOwnerCharacter())
 	{
-		if (UShooterAimPresentationComponent* AimPresentation =
-			Character->GetAimPresentationComponent())
+		if (UShooterAimPresentationComponent* AimPresentation = Character->GetAimPresentationComponent())
 		{
 			AimPresentation->ResetPresentationAimSmoothing();
 		}

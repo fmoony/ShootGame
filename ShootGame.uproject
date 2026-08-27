@@ -16,8 +16,8 @@
 		},
 		{
 			"Name": "ShootGameEditor",
-			"Type": "Editor",
-			"LoadingPhase": "Default",
+			"Type": "UncookedOnly",
+			"LoadingPhase": "PreDefault",
 			"AdditionalDependencies": [
 				"Engine",
 				"AnimGraph"

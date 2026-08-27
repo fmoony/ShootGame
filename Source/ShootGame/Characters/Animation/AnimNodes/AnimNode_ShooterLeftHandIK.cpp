@@ -10,9 +10,7 @@ FAnimNode_ShooterLeftHandIK::FAnimNode_ShooterLeftHandIK()
 	RightHandBone.BoneName = TEXT("hand_r");
 }
 
-void FAnimNode_ShooterLeftHandIK::EvaluateSkeletalControl_AnyThread(
-	FComponentSpacePoseContext& Output,
-	TArray<FBoneTransform>& OutBoneTransforms)
+void FAnimNode_ShooterLeftHandIK::EvaluateSkeletalControl_AnyThread(FComponentSpacePoseContext& Output, TArray<FBoneTransform>& OutBoneTransforms)
 {
 	DECLARE_SCOPE_HIERARCHICAL_COUNTER_ANIMNODE(EvaluateSkeletalControl_AnyThread)
 

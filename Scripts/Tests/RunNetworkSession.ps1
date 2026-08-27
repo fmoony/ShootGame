@@ -19,6 +19,9 @@ param(
     [string]$FailureMarker = "AUTOMATION_TEST_FAILURE",
     [string[]]$ServerExtraArgs = @(),
     [string[]]$ClientExtraArgs = @(),
+    [switch]$EnableClientRendering,
+    [switch]$VisibleClients,
+    [switch]$ParallelClientStartup,
     [ValidateRange(0, 8)]
     [int]$DisconnectClientIndex = 0,
     [ValidateRange(1, 300)]
@@ -159,6 +162,19 @@ $commonArguments = @(
     "-DDC-ForceMemoryCache",
     "-DisablePlugins=McpAutomationBridge"
 )
+$clientCommonArguments = if ($EnableClientRendering -or $VisibleClients)
+{
+    $renderingArguments = @($commonArguments | Where-Object { $_ -ne "-NullRHI" })
+    if (-not $VisibleClients)
+    {
+        $renderingArguments += "-RenderOffscreen"
+    }
+    $renderingArguments
+}
+else
+{
+    $commonArguments
+}
 
 try
 {
@@ -205,24 +221,48 @@ try
             "-game",
             "-client",
             "-ABSLOG=$clientLog"
-        ) + $commonArguments + $ClientExtraArgs
+        ) + $clientCommonArguments + $ClientExtraArgs
 
         Write-Host "[Network] Starting client $clientIndex of $ClientCount"
-        $clientProcess = Start-Process `
-            -FilePath $editorCommand `
-            -ArgumentList (ConvertTo-ProcessArgumentLine $clientArguments) `
-            -PassThru `
-            -WindowStyle Hidden
+        $clientStartParameters = @{
+            FilePath = $editorCommand
+            ArgumentList = ConvertTo-ProcessArgumentLine $clientArguments
+            PassThru = $true
+        }
+        if (-not $VisibleClients)
+        {
+            $clientStartParameters.WindowStyle = "Hidden"
+        }
+        $clientProcess = Start-Process @clientStartParameters
         $clientProcesses.Add($clientProcess)
 
-        Wait-ForLogPattern `
-            -Process $clientProcess `
-            -LogPath $clientLog `
-            -Pattern "Welcomed by server" `
-            -TimeoutSeconds $StartupTimeoutSeconds `
-            -Description "client $clientIndex connection"
+        if (-not $ParallelClientStartup)
+        {
+            Wait-ForLogPattern `
+                -Process $clientProcess `
+                -LogPath $clientLog `
+                -Pattern "Welcomed by server" `
+                -TimeoutSeconds $StartupTimeoutSeconds `
+                -Description "client $clientIndex connection"
 
-        Write-Host "[Network] Client $clientIndex connected."
+            Write-Host "[Network] Client $clientIndex connected."
+        }
+    }
+
+    if ($ParallelClientStartup)
+    {
+        for ($clientIndex = 1; $clientIndex -le $clientProcesses.Count; ++$clientIndex)
+        {
+            $clientLog = $allLogs[$clientIndex]
+            Wait-ForLogPattern `
+                -Process $clientProcesses[$clientIndex - 1] `
+                -LogPath $clientLog `
+                -Pattern "Welcomed by server" `
+                -TimeoutSeconds $StartupTimeoutSeconds `
+                -Description "client $clientIndex connection"
+
+            Write-Host "[Network] Client $clientIndex connected."
+        }
     }
 
     $sessionStartedAt = Get-Date

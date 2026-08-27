@@ -376,6 +376,32 @@ bool FShooterAimDirectionSourceTest::RunTest(const FString& Parameters)
 		TEXT("remote near target keeps lateral convergence instead of collapsing to base direction"),
 		SafeNearDirection.Equals(LocalAimDirection.GetSafeNormal(), 1e-3f));
 
+	// 长枪枪口接近视点安全平面时，安全目标还必须位于枪口前方并保留横向汇聚。
+	const FVector LongWeaponViewLocation = FVector::ZeroVector;
+	const FVector LongWeaponMuzzleLocation(140.0f, 0.0f, 0.0f);
+	const FVector LongWeaponNearTarget(100.0f, 10.0f, 0.0f);
+	const FVector ExpectedLongWeaponSafeTarget(190.0f, 10.0f, 0.0f);
+	const FVector LongWeaponSafeDirection =
+		UShooterThirdPersonAnimInstance::ComputeAimDirectionWorldForState(
+			false,
+			bSimulatedProxyRunsSmoothing,
+			true,
+			FVector::ForwardVector,
+			LongWeaponViewLocation,
+			LongWeaponMuzzleLocation,
+			LongWeaponNearTarget,
+			bHasMuzzle,
+			150.0f,
+			50.0f);
+	TestTrue(
+		TEXT("remote long weapon keeps safe target ahead of muzzle"),
+		LongWeaponSafeDirection.Equals(
+			(ExpectedLongWeaponSafeTarget - LongWeaponMuzzleLocation).GetSafeNormal(),
+			1e-3f));
+	TestFalse(
+		TEXT("remote long weapon keeps lateral convergence"),
+		LongWeaponSafeDirection.Equals(FVector::ForwardVector, 1e-3f));
+
 	// 位于基础视线后方的目标同样投影到安全平面。
 	const FVector BehindTarget = NearViewLocation - LocalAimDirection.GetSafeNormal() * 500.0f;
 	const FVector ExpectedSafeBehindTarget =

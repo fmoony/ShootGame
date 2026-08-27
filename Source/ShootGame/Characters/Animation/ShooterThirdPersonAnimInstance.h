@@ -13,8 +13,8 @@ class AShooterWeapon;
  * 第三人称 AnimBP 数据源（计划 C2.1 / C4）。
  *
  * 向 AnimGraph 提供：
- *   AimDirectionWorld —— 世界空间瞄准方向（本地拥有者：即时 GetBaseAimRotation；
- *                        SimulatedProxy / Listen Server 远端观察：Muzzle → 平滑表现目标，C4）；
+ *   AimDirectionWorld —— 即时基础视线方向；
+ *   AimTargetWorld    —— 观察端平滑后的世界目标点，由 Aim IK 使用预 IK 枪口求精确方向；
  *   HandToMuzzle      —— 当前武器 Muzzle 相对角色 Mesh hand socket 的刚性 Transform（附着状态变化时刷新并缓存）；
  *   bAimIKEnabled     —— 程序化 Aim IK 总开关（数据无效时自动关闭）。
  *   LeftHandGripInRightHandSpace —— 当前武器左手握把 Socket 相对 hand_r 的刚性 Transform（武器/附着事件重建并缓存）；
@@ -29,9 +29,17 @@ class SHOOTGAME_API UShooterThirdPersonAnimInstance : public UShooterAnimInstanc
 	GENERATED_BODY()
 
 public:
-	/** 世界空间瞄准方向（本地拥有者即时 AimRotation；观察端在安全距离外为 Muzzle → 平滑表现目标）。 */
+	/** 世界空间基础瞄准方向；本地拥有者直接使用，观察端用于目标安全投影与 IK 求解参考。 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter Aim")
 	FVector AimDirectionWorld = FVector::ZeroVector;
+
+	/** 观察端平滑并经过视点安全距离处理后的世界目标点。 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter Aim")
+	FVector AimTargetWorld = FVector::ZeroVector;
+
+	/** AimTargetWorld 是否可供 Aim IK 节点使用；本地拥有者保持 false。 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter Aim")
+	bool bAimTargetWorldValid = false;
 
 	/**
 	 * 观察端表现目标沿基础视线方向距 Pawn 视点小于该值时，
@@ -40,6 +48,13 @@ public:
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter Aim", meta = (ClampMin = "0.0", Units = "cm"))
 	float MinimumRemoteAimTargetDistanceFromView = 150.0f;
+
+	/**
+	 * 观察端安全姿势目标至少位于第三人称枪口前方该距离，
+	 * 避免长枪枪口接近视点安全平面时重新放大近点方向变化。
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter Aim", meta = (ClampMin = "0.0", Units = "cm"))
+	float MinimumRemoteAimTargetDistanceFromMuzzle = 50.0f;
 
 	/** 第三人称 AimOffset 俯仰输入（旧 AnimBP 的 PitchN 数据来源）。 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter Aim")
@@ -112,7 +127,8 @@ public:
 		const FVector& MuzzleWorldLocation,
 		const FVector& SmoothedPresentationTarget,
 		bool bHasThirdPersonMuzzle,
-		float MinimumTargetDistanceFromView = 150.0f);
+		float MinimumTargetDistanceFromView = 150.0f,
+		float MinimumTargetDistanceFromMuzzle = 50.0f);
 
 	/** 纯判定：给定表现数据是否允许开启 Aim IK（可被 Automation 验证）。
 	 *  至少要求 Character、第三人称 Mesh、CurrentWeapon、第三人称 Muzzle socket、
