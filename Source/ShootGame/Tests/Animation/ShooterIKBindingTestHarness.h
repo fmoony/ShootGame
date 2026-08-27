@@ -74,6 +74,19 @@ public:
 		RefreshIKEnabled(Character);
 	}
 
+	/** 完整生产序列（签名注入版）：镜像 UpdateShooterAnimationData 的调用顺序，绕过 Gather 的装备链路依赖。 */
+	void CallUpdateShooterAnimationDataForSignatures(
+		const FAimIKBindingSignature& AimSignature,
+		const FLeftHandIKBindingSignature& LeftHandSignature,
+		AShooterCharacter* Character,
+		float DeltaSeconds)
+	{
+		UpdateAimBinding(AimSignature, DeltaSeconds);
+		UpdateLeftHandBinding(LeftHandSignature, DeltaSeconds);
+		UpdateAimInputs(Character);
+		RefreshIKEnabled(Character);
+	}
+
 	void CallRefreshIKEnabled(AShooterCharacter* Character)
 	{
 		RefreshIKEnabled(Character);

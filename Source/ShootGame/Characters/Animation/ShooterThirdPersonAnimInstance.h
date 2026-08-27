@@ -370,7 +370,7 @@ protected:
 	/** 采集 AimDirectionWorld / AimTargetWorld / bAimTargetWorldValid（本地即时 / 远端平滑投影）。 */
 	void UpdateAimInputs(const AShooterCharacter* Character);
 
-	/** 刷新调试副本与 bAimIKEnabled / bLeftHandIKEnabled（实施计划 5.5）。 */
+	/** 刷新公开输出：发布三个缓存 Transform 到 AnimBP 接口，并刷新调试副本与 bAimIKEnabled / bLeftHandIKEnabled（实施计划 5.5）。 */
 	void RefreshIKEnabled(const AShooterCharacter* Character);
 
 	/** Aim 与 LeftHand 的 Binding 状态与缓存（不持有任何强引用）。 */

@@ -913,4 +913,74 @@ bool FShooterIKBindingLeftHandIdentityGripTest::RunTest(const FString& Parameter
 	return true;
 }
 
+/**
+ * 回归：Binding 私有缓存必须发布到 AnimBP 公开接口属性。
+ * 生产路径每帧由 RefreshIKEnabled 发布；“只写私有 Binding、不写公开属性”的回归
+ * 会让 AnimGraph 始终拿到初始 Identity（状态 Ready、Enabled true，但几何错误），
+ * 本测试通过公开属性 == 私有缓存断言拦截。
+ */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FShooterIKBindingPublicOutputPublishTest,
+	"ShootGame.Aim.Binding.PublicOutputPublish",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FShooterIKBindingPublicOutputPublishTest::RunTest(const FString& Parameters)
+{
+	FIKBindingTestScene Scene = CreateRifleScene(*this);
+	if (!TestNotNull(TEXT("harness created"), Scene.Harness))
+	{
+		return false;
+	}
+
+	// 无武器生产序列（Gather 走真实装备链路）：Unbound 时公开 Transform 必须保持 Identity。
+	Scene.Harness->CallUpdateShooterAnimationDataForCharacter(Scene.Character, 0.016f);
+	TestTrue(TEXT("no weapon sequence keeps public HandToMuzzle identity"),
+		Scene.Harness->HandToMuzzle.Equals(FTransform::Identity));
+	TestTrue(TEXT("no weapon sequence keeps public grips identity"),
+		Scene.Harness->LeftHandGripInRightHandSpace.Equals(FTransform::Identity) &&
+		Scene.Harness->HandGripInLeftHandSpace.Equals(FTransform::Identity));
+
+	// 完整生产序列：Binding → 输入 → 发布（签名注入版等价于 Gather 后的 UpdateShooterAnimationData）。
+	AttachWeaponMesh(Scene);
+	Scene.Harness->CallUpdateShooterAnimationDataForSignatures(
+		MakeAimSignature(Scene),
+		MakeLeftHandSignature(Scene),
+		Scene.Character,
+		0.016f);
+
+	TestTrue(TEXT("published sequence reaches Aim Ready"), Scene.Harness->GetAimState() == EIKBindingState::Ready);
+	TestTrue(TEXT("published sequence reaches LeftHand Ready"), Scene.Harness->GetLeftHandState() == EIKBindingState::Ready);
+
+	// 发布回归核心断言：公开属性必须等于私有 Binding 缓存，且几何结果真实。
+	TestTrue(TEXT("public HandToMuzzle equals binding cache"),
+		Scene.Harness->HandToMuzzle.Equals(Scene.Harness->GetHandToMuzzleForTest()));
+	TestTrue(TEXT("public HandToMuzzle is a real rigid transform"),
+		!Scene.Harness->HandToMuzzle.Equals(FTransform::Identity));
+	TestTrue(TEXT("public weapon grip equals binding cache"),
+		Scene.Harness->LeftHandGripInRightHandSpace.Equals(Scene.Harness->GetWeaponGripInRightHandSpaceForTest()));
+	TestTrue(TEXT("public weapon grip is a real rigid transform"),
+		!Scene.Harness->LeftHandGripInRightHandSpace.Equals(FTransform::Identity));
+	TestTrue(TEXT("public hand grip equals binding cache"),
+		Scene.Harness->HandGripInLeftHandSpace.Equals(Scene.Harness->GetHandGripInLeftHandSpaceForTest()));
+
+	// 帧级输入注入后 Enabled 组合成立（UpdateAimInputs 会重置输入，需在序列后重新注入）。
+	Scene.Harness->AimDirectionWorld = FVector(0.5f, 0.5f, 0.70710678f).GetSafeNormal();
+	Scene.Harness->bAimTargetWorldValid = true;
+	Scene.Harness->CallRefreshIKEnabled(Scene.Character);
+	TestTrue(TEXT("valid inputs enable aim ik after publish"), Scene.Harness->bAimIKEnabled);
+	TestTrue(TEXT("ready left hand enables left hand ik after publish"), Scene.Harness->bLeftHandIKEnabled);
+
+	// 复位：三个公开 Transform 回到 Identity，Enabled 关闭。
+	Scene.Harness->CallResetBindingsAndOutputs();
+	TestTrue(TEXT("reset clears public HandToMuzzle"),
+		Scene.Harness->HandToMuzzle.Equals(FTransform::Identity));
+	TestTrue(TEXT("reset clears public grips"),
+		Scene.Harness->LeftHandGripInRightHandSpace.Equals(FTransform::Identity) &&
+		Scene.Harness->HandGripInLeftHandSpace.Equals(FTransform::Identity));
+	TestFalse(TEXT("reset disables aim ik"), Scene.Harness->bAimIKEnabled);
+	TestFalse(TEXT("reset disables left hand ik"), Scene.Harness->bLeftHandIKEnabled);
+
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS

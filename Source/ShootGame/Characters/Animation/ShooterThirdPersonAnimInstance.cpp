@@ -548,6 +548,13 @@ void UShooterThirdPersonAnimInstance::UpdateAimInputs(const AShooterCharacter* C
 
 void UShooterThirdPersonAnimInstance::RefreshIKEnabled(const AShooterCharacter* Character)
 {
+	// 发布 Binding 缓存到 AnimBP 公开接口：AnimGraph 只消费公开属性，
+	// 几何数据必须从私有 Binding 复制出来，否则运行时永远是初始 Identity。
+	// 非 Ready 状态缓存已被 SetBindingState 清为 Identity，无条件复制不会泄露旧数据。
+	HandToMuzzle = AimBinding.HandToMuzzle;
+	LeftHandGripInRightHandSpace = LeftHandBinding.WeaponGripInRightHandSpace;
+	HandGripInLeftHandSpace = LeftHandBinding.HandGripInLeftHandSpace;
+
 	// 调试副本与 Enabled 同步刷新；AnimBP 调试面板只读显示。
 	AimBindingState = AimBinding.State;
 	AimBindingFailureReason = AimBinding.FailureReason;
