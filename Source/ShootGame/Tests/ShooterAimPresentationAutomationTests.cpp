@@ -1,4 +1,4 @@
-﻿// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright Epic Games, Inc. All Rights Reserved.
 
 #if WITH_DEV_AUTOMATION_TESTS
 
@@ -8,14 +8,6 @@
 #include "Characters/Animation/ShooterThirdPersonAnimInstance.h"
 #include "ShooterAimPresentationTestHarness.h"
 #include "Weapons/ShooterAimMath.h"
-
-namespace ShooterAimPresentationAutomationTests
-{
-	const FTransform NonIdentityHandToMuzzle(
-		FQuat(FRotator(0.0f, 0.0f, 15.0f)),
-		FVector(12.0f, 4.0f, 3.0f),
-		FVector::OneVector);
-}
 
 /**
  * C2.5 纯数据测试：PresentationAimTarget 本地有效状态。
@@ -207,84 +199,6 @@ bool FShooterAimPresentationSmoothingRoleTest::RunTest(const FString& Parameters
 		TEXT("standalone local owner does not run smoothing"),
 		UShooterAimPresentationComponent::ShouldRunPresentationAimSmoothing(
 			ROLE_Authority, NM_Standalone, true));
-
-	return true;
-}
-
-/**
- * C2.5 IK 开关：FTransform::Identity 虽然 IsValid()==true，但没有 CurrentWeapon /
- * Muzzle socket / 非 Identity HandToMuzzle / 有限非零 AimDirection 时不得开启 IK。
- */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterAimIKEnabledStateTest,
-	"ShootGame.Aim.IKEnabledState",
-	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
-
-bool FShooterAimIKEnabledStateTest::RunTest(const FString& Parameters)
-{
-	using namespace ShooterAimPresentationAutomationTests;
-
-	const FVector ValidAimDirection = FVector(0.5f, 0.5f, 0.70710678f).GetSafeNormal();
-
-	// 前提：Identity 确实是 Valid Transform，但不得因此开启 IK。
-	TestTrue(TEXT("FTransform::Identity is a valid transform"), FTransform::Identity.IsValid());
-
-	TestFalse(
-		TEXT("no character disables IK"),
-		UShooterThirdPersonAnimInstance::IsAimIKEnabledForState(
-			false, true, true, true, NonIdentityHandToMuzzle, ValidAimDirection));
-
-	TestFalse(
-		TEXT("no third-person mesh disables IK"),
-		UShooterThirdPersonAnimInstance::IsAimIKEnabledForState(
-			true, false, true, true, NonIdentityHandToMuzzle, ValidAimDirection));
-
-	TestFalse(
-		TEXT("no current weapon disables IK even when HandToMuzzle is identity-valid"),
-		UShooterThirdPersonAnimInstance::IsAimIKEnabledForState(
-			true, true, false, false, FTransform::Identity, ValidAimDirection));
-
-	TestFalse(
-		TEXT("missing third-person muzzle socket disables IK"),
-		UShooterThirdPersonAnimInstance::IsAimIKEnabledForState(
-			true, true, true, false, NonIdentityHandToMuzzle, ValidAimDirection));
-
-	TestFalse(
-		TEXT("identity HandToMuzzle disables IK despite being valid"),
-		UShooterThirdPersonAnimInstance::IsAimIKEnabledForState(
-			true, true, true, true, FTransform::Identity, ValidAimDirection));
-
-	TestFalse(
-		TEXT("zero aim direction disables IK"),
-		UShooterThirdPersonAnimInstance::IsAimIKEnabledForState(
-			true, true, true, true, NonIdentityHandToMuzzle, FVector::ZeroVector));
-
-	TestFalse(
-		TEXT("NaN aim direction disables IK"),
-		UShooterThirdPersonAnimInstance::IsAimIKEnabledForState(
-			true, true, true, true, NonIdentityHandToMuzzle, FVector(NAN, 0.0f, 0.0f)));
-
-	// C2.5 正向用例：Character / 第三人称 Mesh / CurrentWeapon / 第三人称 Muzzle /
-	// 非 Identity 且有效的 HandToMuzzle / 有限非零 AimDirection 全部成立时必须开启。
-	TestTrue(
-		TEXT("complete valid state enables IK"),
-		UShooterThirdPersonAnimInstance::IsAimIKEnabledForState(
-			true, true, true, true, NonIdentityHandToMuzzle, ValidAimDirection));
-
-	// C4：HandToMuzzle 缺失（Identity 输入）必须返回 Identity，不得得到“原点相对关系”后误开 IK。
-	TestTrue(
-		TEXT("identity hand world yields identity HandToMuzzle"),
-		UShooterThirdPersonAnimInstance::ComputeHandToMuzzleTransform(
-			FTransform::Identity,
-			FTransform(FVector(100.0, 200.0, 300.0))).Equals(FTransform::Identity));
-
-	const FTransform ValidHandWorld(FRotator(0.0f, 0.0f, 10.0f), FVector(100.0f, 50.0f, 80.0f));
-	const FTransform ValidMuzzleWorld(FRotator(0.0f, 5.0f, -5.0f), FVector(140.0f, 62.0f, 88.0f));
-	TestTrue(
-		TEXT("valid world transforms still compute rigid HandToMuzzle"),
-		UShooterThirdPersonAnimInstance::ComputeHandToMuzzleTransform(
-			ValidHandWorld, ValidMuzzleWorld).Equals(
-				ValidMuzzleWorld.GetRelativeTransform(ValidHandWorld), 1e-4f));
 
 	return true;
 }

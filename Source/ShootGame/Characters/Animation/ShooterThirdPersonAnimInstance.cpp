@@ -8,15 +8,15 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "KismetAnimationLibrary.h"
+#include "ShootGame.h"
 
 FTransform UShooterThirdPersonAnimInstance::ComputeHandToMuzzleTransform(
 	const FTransform& InHandWorld,
 	const FTransform& InMuzzleWorld)
 {
-	// Identity 是合法 Transform，但在这里只代表“缺失数据”或“尚未初始化”，
-	// 不能作为 Hand 与 Muzzle 的真实相对关系继续参与 IK。
-	if (!InHandWorld.IsValid() || !InMuzzleWorld.IsValid() ||
-		InHandWorld.Equals(FTransform::Identity) || InMuzzleWorld.Equals(FTransform::Identity))
+	// 只保留真正的数学防御：NaN/Inf 输入不参与计算。
+	// Identity 是合法 Transform，不再被当作“缺失数据”；是否可消费由 Binding.State == Ready 决定。
+	if (!InHandWorld.IsValid() || !InMuzzleWorld.IsValid())
 	{
 		return FTransform::Identity;
 	}
@@ -28,10 +28,7 @@ FTransform UShooterThirdPersonAnimInstance::ComputeLeftHandGripInRightHandSpace(
 	const FTransform& InRightHandWorld,
 	const FTransform& InLeftHandGripWorld)
 {
-	// Identity 是合法 Transform，但在这里只代表“缺失数据”或“尚未初始化”，
-	// 不能作为右手与左手握把的真实相对关系继续参与 IK。
-	if (!InRightHandWorld.IsValid() || !InLeftHandGripWorld.IsValid() ||
-		InRightHandWorld.Equals(FTransform::Identity) || InLeftHandGripWorld.Equals(FTransform::Identity))
+	if (!InRightHandWorld.IsValid() || !InLeftHandGripWorld.IsValid())
 	{
 		return FTransform::Identity;
 	}
@@ -44,56 +41,13 @@ FTransform UShooterThirdPersonAnimInstance::ComputeHandGripInLeftHandSpace(
 	const FTransform& InLeftHandWorld,
 	const FTransform& InHandGripWorld)
 {
-	if (!InLeftHandWorld.IsValid() || !InHandGripWorld.IsValid() ||
-		InLeftHandWorld.Equals(FTransform::Identity) || InHandGripWorld.Equals(FTransform::Identity))
+	if (!InLeftHandWorld.IsValid() || !InHandGripWorld.IsValid())
 	{
 		return FTransform::Identity;
 	}
 
 	return InHandGripWorld.GetRelativeTransform(InLeftHandWorld);
 }
-
-bool UShooterThirdPersonAnimInstance::IsLeftHandIKEnabledForState(
-	bool bHasCharacter,
-	bool bHasThirdPersonMesh,
-	bool bHasCurrentWeapon,
-	bool bWeaponThirdPersonMeshAttached,
-	bool bHasRightHandBone,
-	bool bHasLeftHandBone,
-	bool bHasHandGripSocket,
-	bool bHasThirdPersonLeftHandGripSocket,
-	const FTransform& LeftHandGripInRightHandSpace,
-	const FTransform& HandGripInLeftHandSpace)
-{
-	// 左手 IK 与 Aim IK 相互独立，但必须同时具备角色手掌参考帧和武器握把参考帧。
-	if (!bHasCharacter || !bHasThirdPersonMesh || !bHasCurrentWeapon ||
-		!bWeaponThirdPersonMeshAttached || !bHasRightHandBone ||
-		!bHasLeftHandBone || !bHasHandGripSocket ||
-		!bHasThirdPersonLeftHandGripSocket)
-	{
-		return false;
-	}
-	if (!LeftHandGripInRightHandSpace.IsValid() ||
-		LeftHandGripInRightHandSpace.Equals(FTransform::Identity) ||
-		!HandGripInLeftHandSpace.IsValid() ||
-		HandGripInLeftHandSpace.Equals(FTransform::Identity))
-	{
-		return false;
-	}
-	return true;
-}
-
-bool UShooterThirdPersonAnimInstance::ShouldRefreshLeftHandGripCache(
-	bool bCacheDirty,
-	bool bWeaponChanged,
-	bool bAttachStateChanged,
-	bool bCacheInvalid)
-{
-	// 只在这些状态事件或“数据应该存在但缓存仍无效”时重建；
-	// 已确认缺失 Socket 的稳定 Identity 状态不得触发逐帧重建。
-	return bCacheDirty || bWeaponChanged || bAttachStateChanged || bCacheInvalid;
-}
-
 
 FVector UShooterThirdPersonAnimInstance::ComputeMuzzleToTargetDirection(
 	const FVector& MuzzleWorldLocation,
@@ -187,182 +141,368 @@ FTransform UShooterThirdPersonAnimInstance::GetHandWorldTransform(
 	return InCharacter->GetMesh()->GetSocketTransform(InHandSocketName, RTS_World);
 }
 
-bool UShooterThirdPersonAnimInstance::IsAimIKEnabledForState(
-	bool bHasCharacter,
-	bool bHasThirdPersonMesh,
-	bool bHasCurrentWeapon,
-	bool bHasThirdPersonMuzzle,
-	const FTransform& HandToMuzzle,
-	const FVector& AimDirectionWorld)
+bool UShooterThirdPersonAnimInstance::IsMathematicallyValidBindingFrame(const FTransform& T)
 {
-	// FTransform::Identity 本身是 Valid Transform，不能作为“有 HandToMuzzle 数据”的证据；
-	// 必须同时验证角色、第三人称 Mesh、CurrentWeapon 和真实的第三人称 Muzzle socket。
-	if (!bHasCharacter || !bHasThirdPersonMesh || !bHasCurrentWeapon || !bHasThirdPersonMuzzle)
-	{
-		return false;
-	}
-	if (!HandToMuzzle.IsValid() || HandToMuzzle.Equals(FTransform::Identity))
-	{
-		return false;
-	}
-	if (!FShooterAimIKMath::IsFinite(AimDirectionWorld) || AimDirectionWorld.IsNearlyZero())
-	{
-		return false;
-	}
-	return true;
+	// 只查真正的非法数值 / 旋转 / Scale，不比较 Identity。
+	// FTransform::IsValid() 在本机 UE 5.6 中已覆盖 NaN/Inf 与 Rotation 归一化；Scale 由这里补查。
+	return T.IsValid() &&
+		T.GetScale3D().X > 0.0f &&
+		T.GetScale3D().Y > 0.0f &&
+		T.GetScale3D().Z > 0.0f;
 }
 
-void UShooterThirdPersonAnimInstance::UpdateShooterAnimationData(float DeltaSeconds)
+FAimIKBindingSignature UShooterThirdPersonAnimInstance::GatherAimSignature(
+	AShooterCharacter* Character) const
 {
-	// 公共 GroundSpeed / 空中 / 装备 / ASC 表现 Tag 已由 UShooterAnimInstanceBase 采集。
-	const AShooterCharacter* Character = Cast<AShooterCharacter>(GetOwningActor());
+	FAimIKBindingSignature Signature;
 	if (!Character)
 	{
-		AimDirectionWorld = FVector::ZeroVector;
-		AimTargetWorld = FVector::ZeroVector;
-		bAimTargetWorldValid = false;
-		AimPitchN = 0.0f;
-		MoveDirection = 0.0f;
-		bShouldMove = false;
-		HandToMuzzle = FTransform::Identity;
-		LeftHandGripInRightHandSpace = FTransform::Identity;
-		HandGripInLeftHandSpace = FTransform::Identity;
+		return Signature;
+	}
 
-		CachedWeapon = nullptr;
-		CachedLeftHandGripWeapon = nullptr;
-		bCachedLeftHandGripThirdPersonMeshAttached = false;
-		bLeftHandGripCacheDirty = true;
-		bCachedThirdPersonHandSocketExists = false;
-		bCachedLeftHandBoneExists = false;
-		bCachedHandGripSocketExists = false;
+	Signature.Character = Character;
+	Signature.CharacterMesh = Character->GetMesh();
+	Signature.CharacterMeshAsset =
+		Signature.CharacterMesh.IsValid() ? Signature.CharacterMesh->GetSkeletalMeshAsset() : nullptr;
 
-		bCachedWeaponThirdPersonMeshAttached = false;
-		bAimIKEnabled = false;
-		bLeftHandIKEnabled = false;
+	Signature.Weapon = Character->GetCurrentWeapon();
+	if (Signature.Weapon.IsValid())
+	{
+		// WeaponOwner / AttachParent / AttachSocketName 存在复制与时序：
+		// CurrentWeaponActor 先到而 Owner 未到时暂不附着，故必须纳入签名（实施计划第 1 节）。
+		Signature.WeaponOwner = Signature.Weapon->GetOwner();
+		Signature.WeaponMesh = Signature.Weapon->GetThirdPersonMesh();
+		Signature.WeaponMeshAsset =
+			Signature.WeaponMesh.IsValid() ? Signature.WeaponMesh->GetSkeletalMeshAsset() : nullptr;
+		Signature.WeaponMeshAttachParent =
+			Signature.WeaponMesh.IsValid() ? Signature.WeaponMesh->GetAttachParent() : nullptr;
+		Signature.WeaponMeshAttachSocketName =
+			Signature.WeaponMesh.IsValid() ? Signature.WeaponMesh->GetAttachSocketName() : NAME_None;
+		Signature.WeaponMuzzleSocketName = Signature.Weapon->GetMuzzleSocketName();
+	}
 
+	Signature.HandSocketName = HandSocketName;
+	return Signature;
+}
+
+FLeftHandIKBindingSignature UShooterThirdPersonAnimInstance::GatherLeftHandSignature(
+	AShooterCharacter* Character) const
+{
+	FLeftHandIKBindingSignature Signature;
+	if (!Character)
+	{
+		return Signature;
+	}
+
+	Signature.Character = Character;
+	Signature.CharacterMesh = Character->GetMesh();
+	Signature.CharacterMeshAsset =
+		Signature.CharacterMesh.IsValid() ? Signature.CharacterMesh->GetSkeletalMeshAsset() : nullptr;
+
+	Signature.Weapon = Character->GetCurrentWeapon();
+	if (Signature.Weapon.IsValid())
+	{
+		Signature.WeaponOwner = Signature.Weapon->GetOwner();
+		Signature.WeaponMesh = Signature.Weapon->GetThirdPersonMesh();
+		Signature.WeaponMeshAsset =
+			Signature.WeaponMesh.IsValid() ? Signature.WeaponMesh->GetSkeletalMeshAsset() : nullptr;
+		Signature.WeaponMeshAttachParent =
+			Signature.WeaponMesh.IsValid() ? Signature.WeaponMesh->GetAttachParent() : nullptr;
+		Signature.WeaponMeshAttachSocketName =
+			Signature.WeaponMesh.IsValid() ? Signature.WeaponMesh->GetAttachSocketName() : NAME_None;
+		Signature.WeaponLeftHandGripSocketName =
+			Signature.Weapon->GetThirdPersonLeftHandGripSocketName();
+	}
+
+	Signature.HandSocketName = HandSocketName;
+	Signature.LeftHandBoneName = LeftHandBoneName;
+	Signature.HandGripSocketName = HandGripSocketName;
+	return Signature;
+}
+
+void UShooterThirdPersonAnimInstance::UpdateAimBinding(
+	const FAimIKBindingSignature& Signature,
+	float DeltaSeconds)
+{
+	const EIKBindingState PreviousState = AimBinding.State;
+	const bool bSignatureChanged = !(Signature == AimBinding.StoredSignature);
+
+	if (bSignatureChanged)
+	{
+		AimBinding.StoredSignature = Signature;
+		RebuildAimBinding(Signature);
+	}
+	else if (AimBinding.State == EIKBindingState::Pending)
+	{
+		// 唯一签名不变仍每帧重建的状态；Pending 超时后也继续每帧 Rebuild，不降频。
+		RebuildAimBinding(Signature);
+	}
+
+	if (bSignatureChanged || AimBinding.State != PreviousState)
+	{
+		ResetBindingTimers(AimBinding);
+	}
+
+	TickBindingTimers(AimBinding, DeltaSeconds, WaitingForAttachWarningDelaySeconds);
+}
+
+void UShooterThirdPersonAnimInstance::UpdateLeftHandBinding(
+	const FLeftHandIKBindingSignature& Signature,
+	float DeltaSeconds)
+{
+	const EIKBindingState PreviousState = LeftHandBinding.State;
+	const bool bSignatureChanged = !(Signature == LeftHandBinding.StoredSignature);
+
+	if (bSignatureChanged)
+	{
+		LeftHandBinding.StoredSignature = Signature;
+		RebuildLeftHandBinding(Signature);
+	}
+	else if (LeftHandBinding.State == EIKBindingState::Pending)
+	{
+		RebuildLeftHandBinding(Signature);
+	}
+
+	if (bSignatureChanged || LeftHandBinding.State != PreviousState)
+	{
+		ResetBindingTimers(LeftHandBinding);
+	}
+
+	TickBindingTimers(LeftHandBinding, DeltaSeconds, WaitingForAttachWarningDelaySeconds);
+}
+
+void UShooterThirdPersonAnimInstance::RebuildAimBinding(const FAimIKBindingSignature& Signature)
+{
+	const AShooterCharacter* Character = Signature.Character.Get();
+	USkeletalMeshComponent* CharacterMesh = Signature.CharacterMesh.Get();
+	AShooterWeapon* Weapon = Signature.Weapon.Get();
+	USkeletalMeshComponent* WeaponMesh = Signature.WeaponMesh.Get();
+
+	// 判定链每层只决定一次，命中即退出（实施计划 5.2）。
+	if (!IsValid(Character) || !IsValid(CharacterMesh))
+	{
+		SetBindingState(AimBinding, EIKBindingState::Unbound, EIKBindingFailureReason::None, TEXT("Aim"));
 		return;
 	}
 
-	// R6.3：接管旧 EventGraph 的 ShouldMove / Direction / PitchN 重复计算。
-	// 来源与旧图逐项一致：Speed > 0.01；CalculateDirection 仅在非 OrientRotation 时夹取 ±45°；
-	// PitchN 直接读取 Character 的 GetAimPitchN（与旧图调用同一函数）。
-	const UCharacterMovementComponent* Movement = Character->GetCharacterMovement();
-	bShouldMove = LocomotionGroundSpeed > 0.01f;
-	MoveDirection = UKismetAnimationLibrary::CalculateDirection(
-		Velocity,
-		Character->GetActorRotation());
-	//if (Movement != nullptr && !Movement->bOrientRotationToMovement)
-	//{
-	//	MoveDirection = FMath::Clamp(MoveDirection, -45.0f, 45.0f);
-	//}
-	AimPitchN = Character->GetAimPitchN();
-
-	AShooterWeapon* Weapon = Character->GetCurrentWeapon();
-	const bool bHasThirdPersonMuzzle = Weapon != nullptr && Weapon->HasThirdPersonMuzzleSocket();
-	const FTransform MuzzleWorld = bHasThirdPersonMuzzle
-		? Weapon->GetThirdPersonMuzzleWorldTransform()
-		: FTransform::Identity;
-
-	// 左手握把只依赖武器自身配置和真实 Socket 存在性；Pistol 未配置时这里为 false。
-	const bool bHasThirdPersonLeftHandGrip = Weapon != nullptr && Weapon->HasThirdPersonLeftHandGripSocket();
-
-
-	// 武器第三人称 Mesh 必须已经附着到角色 Mesh。若 CurrentWeapon 先到、Attach 后发生，
-	// 本轮按“未附着”处理并把缓存置为 Identity；附着完成后状态变化会触发重建。
-	const USkeletalMeshComponent* WeaponThirdPersonMesh = Weapon ? Weapon->GetThirdPersonMesh() : nullptr;
-	const bool bThirdPersonMeshAttached =
-		WeaponThirdPersonMesh != nullptr &&
-		WeaponThirdPersonMesh->GetAttachParent() == Character->GetMesh();
-
-	// HandToMuzzle 缓存刷新条件：
-	//  1. 武器引用变化（切枪）；
-	//  2. 同一武器的第三人称 Mesh 附着状态变化（首次附着 / 重新挂接）；
-	//  3. 已缓存结果仍是 Identity（上一轮未附着或 Pose 尚未就绪），避免错误结果被永久缓存。
-	const bool bWeaponChanged = Weapon != CachedWeapon;
-	const bool bAttachStateChanged =
-		Weapon != nullptr &&
-		Weapon == CachedWeapon &&
-		bThirdPersonMeshAttached != bCachedWeaponThirdPersonMeshAttached;
-	const bool bCachedHandToMuzzleInvalid =
-		CachedWeapon != nullptr &&
-		(!HandToMuzzle.IsValid() || HandToMuzzle.Equals(FTransform::Identity));
-	if (bWeaponChanged || bAttachStateChanged || bCachedHandToMuzzleInvalid)
+	if (CharacterMesh->GetSkeletalMeshAsset() == nullptr)
 	{
-		CachedWeapon = Weapon;
-		bCachedWeaponThirdPersonMeshAttached = bThirdPersonMeshAttached;
-		HandToMuzzle = FTransform::Identity;
-
-		if (Weapon && bThirdPersonMeshAttached && bHasThirdPersonMuzzle)
-		{
-			const FTransform HandWorld = GetHandWorldTransform(Character, HandSocketName);
-			HandToMuzzle = ComputeHandToMuzzleTransform(HandWorld, MuzzleWorld);
-		}
+		SetBindingState(AimBinding, EIKBindingState::Unsupported, EIKBindingFailureReason::MissingCharacterMeshAsset, TEXT("Aim"));
+		return;
 	}
 
-	// LeftHandGripInRightHandSpace 缓存刷新条件：
-	//  1. 缓存尚未建立（首次进入 / 无角色复位）；
-	//  2. 武器引用变化（切枪，Rifle 与 Pistol 握把配置彼此独立）；
-	//  3. 同一武器的第三人称 Mesh 附着状态变化（首次附着 / 重新挂接）；
-	//  4. 数据应该存在但缓存仍是 Identity（上一轮未附着或握把尚未就绪）。
-	// 已确认缺失握把 Socket 的稳定 Identity 状态不会触发逐帧重建，也不追逐世界点。
-	const bool bLeftHandGripWeaponChanged = Weapon != CachedLeftHandGripWeapon;
-	const bool bLeftHandGripAttachStateChanged =
-		Weapon != nullptr &&
-		Weapon == CachedLeftHandGripWeapon &&
-		bThirdPersonMeshAttached != bCachedLeftHandGripThirdPersonMeshAttached;
-	const bool bLeftHandGripCacheInvalid =
-		Weapon != nullptr &&
-		bThirdPersonMeshAttached &&
-		bHasThirdPersonLeftHandGrip &&
-		bCachedThirdPersonHandSocketExists &&
-		bCachedLeftHandBoneExists &&
-		bCachedHandGripSocketExists &&
-		(!LeftHandGripInRightHandSpace.IsValid() ||
-			LeftHandGripInRightHandSpace.Equals(FTransform::Identity) ||
-			!HandGripInLeftHandSpace.IsValid() ||
-			HandGripInLeftHandSpace.Equals(FTransform::Identity));
-
-	if (ShouldRefreshLeftHandGripCache(
-		bLeftHandGripCacheDirty,
-		bLeftHandGripWeaponChanged,
-		bLeftHandGripAttachStateChanged,
-		bLeftHandGripCacheInvalid))
+	// 与 ShooterAnimInstanceBase 的 bHasEquippedWeapon 保持同一 Weapon 有效性判定。
+	if (!IsValid(Weapon) || Signature.WeaponOwner.Get() != Character)
 	{
-		CachedLeftHandGripWeapon = Weapon;
-		bCachedLeftHandGripThirdPersonMeshAttached = bThirdPersonMeshAttached;
-		bCachedThirdPersonHandSocketExists =
-			Character->GetMesh() != nullptr &&
-			Character->GetMesh()->DoesSocketExist(HandSocketName);
-		bCachedLeftHandBoneExists =
-			Character->GetMesh() != nullptr &&
-			Character->GetMesh()->DoesSocketExist(LeftHandBoneName);
-		bCachedHandGripSocketExists =
-			Character->GetMesh() != nullptr &&
-			Character->GetMesh()->DoesSocketExist(HandGripSocketName);
-		LeftHandGripInRightHandSpace = FTransform::Identity;
-		HandGripInLeftHandSpace = FTransform::Identity;
-		bLeftHandGripCacheDirty = false;
-
-		if (Weapon && bThirdPersonMeshAttached &&
-			bCachedThirdPersonHandSocketExists &&
-			bCachedLeftHandBoneExists &&
-			bCachedHandGripSocketExists &&
-			bHasThirdPersonLeftHandGrip)
-		{
-			const FTransform RightHandWorld = GetHandWorldTransform(Character, HandSocketName);
-			const FTransform LeftHandWorld = GetHandWorldTransform(Character, LeftHandBoneName);
-			const FTransform HandGripWorld = GetHandWorldTransform(Character, HandGripSocketName);
-			const FTransform GripWorld = Weapon->GetThirdPersonLeftHandGripWorldTransform();
-			LeftHandGripInRightHandSpace = ComputeLeftHandGripInRightHandSpace(RightHandWorld, GripWorld);
-			HandGripInLeftHandSpace = ComputeHandGripInLeftHandSpace(LeftHandWorld, HandGripWorld);
-		}
+		SetBindingState(AimBinding, EIKBindingState::Unbound, EIKBindingFailureReason::None, TEXT("Aim"));
+		return;
 	}
 
+	if (WeaponMesh == nullptr)
+	{
+		SetBindingState(AimBinding, EIKBindingState::Unsupported, EIKBindingFailureReason::MissingWeaponMeshComponent, TEXT("Aim"));
+		return;
+	}
 
-	// C4 消费角色边界：
-	//  本地拥有者 → 即时 GetBaseAimRotation().Vector()；
-	//  SimulatedProxy / Listen Server 远端 → Muzzle → Component.SmoothedPresentationAimTarget；
-	//  Dedicated Server / 无效数据 → 零向量并关闭 IK。
+	if (WeaponMesh->GetSkeletalMeshAsset() == nullptr)
+	{
+		SetBindingState(AimBinding, EIKBindingState::Unsupported, EIKBindingFailureReason::MissingWeaponMeshAsset, TEXT("Aim"));
+		return;
+	}
+
+	if (WeaponMesh->GetAttachParent() != CharacterMesh)
+	{
+		// Weapon 与 WeaponMesh 存在但尚未附着：等待，只走超时诊断，不进入 Rebuild。
+		SetBindingState(AimBinding, EIKBindingState::WaitingForAttach, EIKBindingFailureReason::None, TEXT("Aim"));
+		return;
+	}
+
+	const FName AttachSocketName = WeaponMesh->GetAttachSocketName();
+	if (AttachSocketName == NAME_None || !CharacterMesh->DoesSocketExist(AttachSocketName))
+	{
+		SetBindingState(AimBinding, EIKBindingState::Unsupported, EIKBindingFailureReason::MissingWeaponAttachSocket, TEXT("Aim"));
+		return;
+	}
+
+	if (!CharacterMesh->DoesSocketExist(Signature.HandSocketName))
+	{
+		SetBindingState(AimBinding, EIKBindingState::Unsupported, EIKBindingFailureReason::MissingRightHand, TEXT("Aim"));
+		return;
+	}
+
+	if (!Weapon->HasThirdPersonMuzzleSocket())
+	{
+		SetBindingState(AimBinding, EIKBindingState::Unsupported, EIKBindingFailureReason::MissingMuzzle, TEXT("Aim"));
+		return;
+	}
+
+	const FTransform HandWorld = CharacterMesh->GetSocketTransform(Signature.HandSocketName, RTS_World);
+	const FTransform MuzzleWorld = Weapon->GetThirdPersonMuzzleWorldTransform();
+	if (!IsMathematicallyValidBindingFrame(HandWorld) || !IsMathematicallyValidBindingFrame(MuzzleWorld))
+	{
+		SetBindingState(AimBinding, EIKBindingState::Pending, EIKBindingFailureReason::InvalidHandToMuzzle, TEXT("Aim"));
+		return;
+	}
+
+	const FTransform ComputedHandToMuzzle = ComputeHandToMuzzleTransform(HandWorld, MuzzleWorld);
+	if (!IsMathematicallyValidBindingFrame(ComputedHandToMuzzle))
+	{
+		SetBindingState(AimBinding, EIKBindingState::Pending, EIKBindingFailureReason::InvalidHandToMuzzle, TEXT("Aim"));
+		return;
+	}
+
+	// Ready：即使 HandToMuzzle == Identity 也允许（Identity 是合法 Transform）。
+	AimBinding.HandToMuzzle = ComputedHandToMuzzle;
+	SetBindingState(AimBinding, EIKBindingState::Ready, EIKBindingFailureReason::None, TEXT("Aim"));
+}
+
+void UShooterThirdPersonAnimInstance::RebuildLeftHandBinding(const FLeftHandIKBindingSignature& Signature)
+{
+	const AShooterCharacter* Character = Signature.Character.Get();
+	USkeletalMeshComponent* CharacterMesh = Signature.CharacterMesh.Get();
+	AShooterWeapon* Weapon = Signature.Weapon.Get();
+	USkeletalMeshComponent* WeaponMesh = Signature.WeaponMesh.Get();
+
+	// 前七层与 Aim 完全相同（实施计划 5.3）。
+	if (!IsValid(Character) || !IsValid(CharacterMesh))
+	{
+		SetBindingState(LeftHandBinding, EIKBindingState::Unbound, EIKBindingFailureReason::None, TEXT("LeftHand"));
+		return;
+	}
+
+	if (CharacterMesh->GetSkeletalMeshAsset() == nullptr)
+	{
+		SetBindingState(LeftHandBinding, EIKBindingState::Unsupported, EIKBindingFailureReason::MissingCharacterMeshAsset, TEXT("LeftHand"));
+		return;
+	}
+
+	if (!IsValid(Weapon) || Signature.WeaponOwner.Get() != Character)
+	{
+		SetBindingState(LeftHandBinding, EIKBindingState::Unbound, EIKBindingFailureReason::None, TEXT("LeftHand"));
+		return;
+	}
+
+	if (WeaponMesh == nullptr)
+	{
+		SetBindingState(LeftHandBinding, EIKBindingState::Unsupported, EIKBindingFailureReason::MissingWeaponMeshComponent, TEXT("LeftHand"));
+		return;
+	}
+
+	if (WeaponMesh->GetSkeletalMeshAsset() == nullptr)
+	{
+		SetBindingState(LeftHandBinding, EIKBindingState::Unsupported, EIKBindingFailureReason::MissingWeaponMeshAsset, TEXT("LeftHand"));
+		return;
+	}
+
+	if (WeaponMesh->GetAttachParent() != CharacterMesh)
+	{
+		SetBindingState(LeftHandBinding, EIKBindingState::WaitingForAttach, EIKBindingFailureReason::None, TEXT("LeftHand"));
+		return;
+	}
+
+	const FName AttachSocketName = WeaponMesh->GetAttachSocketName();
+	if (AttachSocketName == NAME_None || !CharacterMesh->DoesSocketExist(AttachSocketName))
+	{
+		SetBindingState(LeftHandBinding, EIKBindingState::Unsupported, EIKBindingFailureReason::MissingWeaponAttachSocket, TEXT("LeftHand"));
+		return;
+	}
+
+	if (!CharacterMesh->DoesSocketExist(Signature.HandSocketName))
+	{
+		SetBindingState(LeftHandBinding, EIKBindingState::Unsupported, EIKBindingFailureReason::MissingRightHand, TEXT("LeftHand"));
+		return;
+	}
+
+	if (!CharacterMesh->DoesSocketExist(Signature.LeftHandBoneName))
+	{
+		SetBindingState(LeftHandBinding, EIKBindingState::Unsupported, EIKBindingFailureReason::MissingLeftHand, TEXT("LeftHand"));
+		return;
+	}
+
+	if (!CharacterMesh->DoesSocketExist(Signature.HandGripSocketName))
+	{
+		SetBindingState(LeftHandBinding, EIKBindingState::Unsupported, EIKBindingFailureReason::MissingCharacterHandGrip, TEXT("LeftHand"));
+		return;
+	}
+
+	if (Signature.WeaponLeftHandGripSocketName == NAME_None)
+	{
+		// Pistol 等未配置左手握把：预期能力缺失，不 Warning。
+		SetBindingState(LeftHandBinding, EIKBindingState::Unsupported, EIKBindingFailureReason::WeaponLeftHandGripNotConfigured, TEXT("LeftHand"));
+		return;
+	}
+
+	if (!Weapon->HasThirdPersonLeftHandGripSocket())
+	{
+		SetBindingState(LeftHandBinding, EIKBindingState::Unsupported, EIKBindingFailureReason::WeaponLeftHandGripSocketMissing, TEXT("LeftHand"));
+		return;
+	}
+
+	const FTransform RightHandWorld = CharacterMesh->GetSocketTransform(Signature.HandSocketName, RTS_World);
+	const FTransform GripWorld = Weapon->GetThirdPersonLeftHandGripWorldTransform();
+	if (!IsMathematicallyValidBindingFrame(RightHandWorld) || !IsMathematicallyValidBindingFrame(GripWorld))
+	{
+		SetBindingState(LeftHandBinding, EIKBindingState::Pending, EIKBindingFailureReason::InvalidWeaponGripInRightHandSpace, TEXT("LeftHand"));
+		return;
+	}
+
+	const FTransform ComputedGripInRightHandSpace =
+		ComputeLeftHandGripInRightHandSpace(RightHandWorld, GripWorld);
+	if (!IsMathematicallyValidBindingFrame(ComputedGripInRightHandSpace))
+	{
+		SetBindingState(LeftHandBinding, EIKBindingState::Pending, EIKBindingFailureReason::InvalidWeaponGripInRightHandSpace, TEXT("LeftHand"));
+		return;
+	}
+
+	const FTransform LeftHandWorld = CharacterMesh->GetSocketTransform(Signature.LeftHandBoneName, RTS_World);
+	const FTransform HandGripWorld = CharacterMesh->GetSocketTransform(Signature.HandGripSocketName, RTS_World);
+	if (!IsMathematicallyValidBindingFrame(LeftHandWorld) || !IsMathematicallyValidBindingFrame(HandGripWorld))
+	{
+		SetBindingState(LeftHandBinding, EIKBindingState::Pending, EIKBindingFailureReason::InvalidHandGripInLeftHandSpace, TEXT("LeftHand"));
+		return;
+	}
+
+	const FTransform ComputedHandGripInLeftHandSpace =
+		ComputeHandGripInLeftHandSpace(LeftHandWorld, HandGripWorld);
+	if (!IsMathematicallyValidBindingFrame(ComputedHandGripInLeftHandSpace))
+	{
+		SetBindingState(LeftHandBinding, EIKBindingState::Pending, EIKBindingFailureReason::InvalidHandGripInLeftHandSpace, TEXT("LeftHand"));
+		return;
+	}
+
+	// Ready：即使任一结果为 Identity 也允许。
+	LeftHandBinding.WeaponGripInRightHandSpace = ComputedGripInRightHandSpace;
+	LeftHandBinding.HandGripInLeftHandSpace = ComputedHandGripInLeftHandSpace;
+	SetBindingState(LeftHandBinding, EIKBindingState::Ready, EIKBindingFailureReason::None, TEXT("LeftHand"));
+}
+
+void UShooterThirdPersonAnimInstance::ResetBindingsAndOutputs()
+{
+	AimBinding = FAimIKBinding();
+	LeftHandBinding = FLeftHandIKBinding();
+
+	AimDirectionWorld = FVector::ZeroVector;
+	AimTargetWorld = FVector::ZeroVector;
+	bAimTargetWorldValid = false;
+	AimPitchN = 0.0f;
+	MoveDirection = 0.0f;
+	bShouldMove = false;
+	HandToMuzzle = FTransform::Identity;
+	LeftHandGripInRightHandSpace = FTransform::Identity;
+	HandGripInLeftHandSpace = FTransform::Identity;
+	bAimIKEnabled = false;
+	bLeftHandIKEnabled = false;
+
+	AimBindingState = EIKBindingState::Unbound;
+	AimBindingFailureReason = EIKBindingFailureReason::None;
+	LeftHandBindingState = EIKBindingState::Unbound;
+	LeftHandBindingFailureReason = EIKBindingFailureReason::None;
+}
+
+void UShooterThirdPersonAnimInstance::UpdateAimInputs(const AShooterCharacter* Character)
+{
+	// 注意：远端 AimDirection / AimTarget 计算不消费 MuzzleWorld；
+	// 若未来引入 Muzzle 依赖，必须以 AimBinding.State == Ready 把关（实施计划 5.5）。
 	const UShooterAimPresentationComponent* AimPresentationComponent =
 		Character->GetAimPresentationComponent();
 	const bool bShouldRunPresentationSmoothing =
@@ -404,28 +544,242 @@ void UShooterThirdPersonAnimInstance::UpdateShooterAnimationData(float DeltaSeco
 			bAimTargetWorldValid = true;
 		}
 	}
+}
 
-	// C2.5 IK 开关：所有条件都真实有效才允许启用；无武器时 Identity 不会错误开启 IK。
-	bAimIKEnabled = IsAimIKEnabledForState(
-		Character != nullptr,
-		Character->GetMesh() != nullptr,
-		Weapon != nullptr,
-		bHasThirdPersonMuzzle,
-		HandToMuzzle,
-		AimDirectionWorld) &&
+void UShooterThirdPersonAnimInstance::RefreshIKEnabled(const AShooterCharacter* Character)
+{
+	// 调试副本与 Enabled 同步刷新；AnimBP 调试面板只读显示。
+	AimBindingState = AimBinding.State;
+	AimBindingFailureReason = AimBinding.FailureReason;
+	LeftHandBindingState = LeftHandBinding.State;
+	LeftHandBindingFailureReason = LeftHandBinding.FailureReason;
+
+	// AimDirection == Zero、AimTarget 本帧失效、死亡、Montage、快速转身都不得改变 Binding 状态，
+	// 只作为帧级输入追加在 Enabled 表达式尾部（实施计划 5.5）。
+	bAimIKEnabled =
+		AimBinding.State == EIKBindingState::Ready &&
+		FShooterAimIKMath::IsFinite(AimDirectionWorld) &&
+		!AimDirectionWorld.IsNearlyZero() &&
 		(Character->IsLocallyControlled() || bAimTargetWorldValid);
 
-	// 左手 IK 独立于 Aim IK：Rifle 配置握把 Socket 后启用，Pistol / 无武器 / 无握把时保持关闭。
-	bLeftHandIKEnabled = IsLeftHandIKEnabledForState(
-		Character != nullptr,
-		Character->GetMesh() != nullptr,
-		Weapon != nullptr,
-		bThirdPersonMeshAttached,
-		bCachedThirdPersonHandSocketExists,
-		bCachedLeftHandBoneExists,
-		bCachedHandGripSocketExists,
-		bHasThirdPersonLeftHandGrip,
-		LeftHandGripInRightHandSpace,
-		HandGripInLeftHandSpace);
+	bLeftHandIKEnabled = LeftHandBinding.State == EIKBindingState::Ready;
+}
 
+void UShooterThirdPersonAnimInstance::ForceRebuildIKBindings()
+{
+	AShooterCharacter* Character = Cast<AShooterCharacter>(GetOwningActor());
+	if (!Character)
+	{
+		ResetBindingsAndOutputs();
+		return;
+	}
+
+	// 清空两个 StoredSignature 并立即 Rebuild，唤醒 Unsupported / 重新评估依赖。
+	AimBinding.StoredSignature = FAimIKBindingSignature();
+	LeftHandBinding.StoredSignature = FLeftHandIKBindingSignature();
+
+	UpdateAimBinding(GatherAimSignature(Character), 0.0f);
+	UpdateLeftHandBinding(GatherLeftHandSignature(Character), 0.0f);
+	RefreshIKEnabled(Character);
+}
+
+void UShooterThirdPersonAnimInstance::ResetBindingTimers(FAimIKBinding& Binding)
+{
+	Binding.WaitingForAttachElapsedSeconds = 0.0f;
+	Binding.bWaitingForAttachWarningReported = false;
+	Binding.PendingElapsedSeconds = 0.0f;
+	Binding.bPendingTimeoutReported = false;
+}
+
+void UShooterThirdPersonAnimInstance::ResetBindingTimers(FLeftHandIKBinding& Binding)
+{
+	Binding.WaitingForAttachElapsedSeconds = 0.0f;
+	Binding.bWaitingForAttachWarningReported = false;
+	Binding.PendingElapsedSeconds = 0.0f;
+	Binding.bPendingTimeoutReported = false;
+}
+
+void UShooterThirdPersonAnimInstance::TickBindingTimers(
+	FAimIKBinding& Binding,
+	float DeltaSeconds,
+	float WaitingForAttachDelay)
+{
+	// 计时只累加 Max(DeltaSeconds, 0.0f)；同签名、同状态持续 Pending 时继续累加。
+	const float SafeDelta = FMath::Max(DeltaSeconds, 0.0f);
+
+	if (Binding.State == EIKBindingState::Pending)
+	{
+		Binding.PendingElapsedSeconds += SafeDelta;
+		if (!Binding.bPendingTimeoutReported && Binding.PendingElapsedSeconds >= PendingTimeoutSeconds)
+		{
+			Binding.bPendingTimeoutReported = true;
+			UE_LOG(
+				LogShootGame,
+				Error,
+				TEXT("[IKBinding][Aim] Pending exceeded %.2fs\n")
+				TEXT("    Reason=%s Elapsed=%.3fs\n")
+				TEXT("    Weapon=%s HandSocket=%s MuzzleSocket=%s"),
+				PendingTimeoutSeconds,
+				GetFailureReasonName(Binding.FailureReason),
+				Binding.PendingElapsedSeconds,
+				*GetNameSafe(Binding.StoredSignature.Weapon.Get()),
+				*Binding.StoredSignature.HandSocketName.ToString(),
+				*Binding.StoredSignature.WeaponMuzzleSocketName.ToString());
+		}
+	}
+	else if (Binding.State == EIKBindingState::WaitingForAttach)
+	{
+		Binding.WaitingForAttachElapsedSeconds += SafeDelta;
+		if (!Binding.bWaitingForAttachWarningReported &&
+			Binding.WaitingForAttachElapsedSeconds >= WaitingForAttachDelay)
+		{
+			Binding.bWaitingForAttachWarningReported = true;
+#if !UE_BUILD_SHIPPING
+			UE_LOG(
+				LogShootGame,
+				Warning,
+				TEXT("[IKBinding][Aim] WaitingForAttach exceeded %.2fs\n")
+				TEXT("    Character=%s CharacterMesh=%s Weapon=%s WeaponMesh=%s\n")
+				TEXT("    AttachParent=%s AttachSocketName=%s"),
+				WaitingForAttachDelay,
+				*GetNameSafe(Binding.StoredSignature.Character.Get()),
+				*GetNameSafe(Binding.StoredSignature.CharacterMesh.Get()),
+				*GetNameSafe(Binding.StoredSignature.Weapon.Get()),
+				*GetNameSafe(Binding.StoredSignature.WeaponMesh.Get()),
+				*GetNameSafe(Binding.StoredSignature.WeaponMeshAttachParent.Get()),
+				*Binding.StoredSignature.WeaponMeshAttachSocketName.ToString());
+#endif
+		}
+	}
+}
+
+void UShooterThirdPersonAnimInstance::TickBindingTimers(
+	FLeftHandIKBinding& Binding,
+	float DeltaSeconds,
+	float WaitingForAttachDelay)
+{
+	const float SafeDelta = FMath::Max(DeltaSeconds, 0.0f);
+
+	if (Binding.State == EIKBindingState::Pending)
+	{
+		Binding.PendingElapsedSeconds += SafeDelta;
+		if (!Binding.bPendingTimeoutReported && Binding.PendingElapsedSeconds >= PendingTimeoutSeconds)
+		{
+			Binding.bPendingTimeoutReported = true;
+			UE_LOG(
+				LogShootGame,
+				Error,
+				TEXT("[IKBinding][LeftHand] Pending exceeded %.2fs\n")
+				TEXT("    Reason=%s Elapsed=%.3fs\n")
+				TEXT("    Weapon=%s GripSocket=%s"),
+				PendingTimeoutSeconds,
+				GetFailureReasonName(Binding.FailureReason),
+				Binding.PendingElapsedSeconds,
+				*GetNameSafe(Binding.StoredSignature.Weapon.Get()),
+				*Binding.StoredSignature.WeaponLeftHandGripSocketName.ToString());
+		}
+	}
+	else if (Binding.State == EIKBindingState::WaitingForAttach)
+	{
+		Binding.WaitingForAttachElapsedSeconds += SafeDelta;
+		if (!Binding.bWaitingForAttachWarningReported &&
+			Binding.WaitingForAttachElapsedSeconds >= WaitingForAttachDelay)
+		{
+			Binding.bWaitingForAttachWarningReported = true;
+#if !UE_BUILD_SHIPPING
+			UE_LOG(
+				LogShootGame,
+				Warning,
+				TEXT("[IKBinding][LeftHand] WaitingForAttach exceeded %.2fs\n")
+				TEXT("    Character=%s CharacterMesh=%s Weapon=%s WeaponMesh=%s\n")
+				TEXT("    AttachParent=%s AttachSocketName=%s"),
+				WaitingForAttachDelay,
+				*GetNameSafe(Binding.StoredSignature.Character.Get()),
+				*GetNameSafe(Binding.StoredSignature.CharacterMesh.Get()),
+				*GetNameSafe(Binding.StoredSignature.Weapon.Get()),
+				*GetNameSafe(Binding.StoredSignature.WeaponMesh.Get()),
+				*GetNameSafe(Binding.StoredSignature.WeaponMeshAttachParent.Get()),
+				*Binding.StoredSignature.WeaponMeshAttachSocketName.ToString());
+#endif
+		}
+	}
+}
+
+const TCHAR* UShooterThirdPersonAnimInstance::GetFailureReasonName(EIKBindingFailureReason Reason)
+{
+	switch (Reason)
+	{
+	case EIKBindingFailureReason::None: return TEXT("None");
+	case EIKBindingFailureReason::MissingCharacterMeshAsset: return TEXT("MissingCharacterMeshAsset");
+	case EIKBindingFailureReason::MissingWeaponMeshComponent: return TEXT("MissingWeaponMeshComponent");
+	case EIKBindingFailureReason::MissingWeaponMeshAsset: return TEXT("MissingWeaponMeshAsset");
+	case EIKBindingFailureReason::MissingWeaponAttachSocket: return TEXT("MissingWeaponAttachSocket");
+	case EIKBindingFailureReason::MissingRightHand: return TEXT("MissingRightHand");
+	case EIKBindingFailureReason::MissingLeftHand: return TEXT("MissingLeftHand");
+	case EIKBindingFailureReason::MissingMuzzle: return TEXT("MissingMuzzle");
+	case EIKBindingFailureReason::MissingCharacterHandGrip: return TEXT("MissingCharacterHandGrip");
+	case EIKBindingFailureReason::WeaponLeftHandGripNotConfigured: return TEXT("WeaponLeftHandGripNotConfigured");
+	case EIKBindingFailureReason::WeaponLeftHandGripSocketMissing: return TEXT("WeaponLeftHandGripSocketMissing");
+	case EIKBindingFailureReason::InvalidHandToMuzzle: return TEXT("InvalidHandToMuzzle");
+	case EIKBindingFailureReason::InvalidWeaponGripInRightHandSpace: return TEXT("InvalidWeaponGripInRightHandSpace");
+	case EIKBindingFailureReason::InvalidHandGripInLeftHandSpace: return TEXT("InvalidHandGripInLeftHandSpace");
+	default: return TEXT("Unknown");
+	}
+}
+
+void UShooterThirdPersonAnimInstance::WarnOnUnexpectedUnsupported(
+	EIKBindingFailureReason Reason,
+	const TCHAR* Tag,
+	const AShooterWeapon* Weapon)
+{
+	// 异常类 Unsupported 在进入该状态时 Warning 一次；
+	// WeaponLeftHandGripNotConfigured 属于预期能力缺失，不 Warning。
+	if (Reason == EIKBindingFailureReason::WeaponLeftHandGripNotConfigured)
+	{
+		return;
+	}
+
+	UE_LOG(
+		LogShootGame,
+		Warning,
+		TEXT("[IKBinding][%s] Unsupported: Reason=%s\n")
+		TEXT("    Weapon=%s"),
+		Tag,
+		GetFailureReasonName(Reason),
+		*GetNameSafe(Weapon));
+}
+
+void UShooterThirdPersonAnimInstance::UpdateShooterAnimationData(float DeltaSeconds)
+{
+	// 公共 GroundSpeed / 空中 / 装备 / ASC 表现 Tag 已由 UShooterAnimInstanceBase 采集。
+	AShooterCharacter* Character = Cast<AShooterCharacter>(GetOwningActor());
+	if (!Character)
+	{
+		ResetBindingsAndOutputs();
+		return;
+	}
+
+	// R6.3：接管旧 EventGraph 的 ShouldMove / Direction / PitchN 重复计算。
+	// 来源与旧图逐项一致：Speed > 0.01；CalculateDirection 仅在非 OrientRotation 时夹取 ±45°；
+	// PitchN 直接读取 Character 的 GetAimPitchN（与旧图调用同一函数）。
+	const UCharacterMovementComponent* Movement = Character->GetCharacterMovement();
+	bShouldMove = LocomotionGroundSpeed > 0.01f;
+	MoveDirection = UKismetAnimationLibrary::CalculateDirection(
+		Velocity,
+		Character->GetActorRotation());
+	//if (Movement != nullptr && !Movement->bOrientRotationToMovement)
+	//{
+	//	MoveDirection = FMath::Clamp(MoveDirection, -45.0f, 45.0f);
+	//}
+	AimPitchN = Character->GetAimPitchN();
+
+	// 先 Binding，后 Aim 输入（实施计划 5.1）。
+	const FAimIKBindingSignature AimSignature = GatherAimSignature(Character);
+	const FLeftHandIKBindingSignature LeftHandSignature = GatherLeftHandSignature(Character);
+
+	UpdateAimBinding(AimSignature, DeltaSeconds);
+	UpdateLeftHandBinding(LeftHandSignature, DeltaSeconds);
+
+	UpdateAimInputs(Character);
+	RefreshIKEnabled(Character);
 }

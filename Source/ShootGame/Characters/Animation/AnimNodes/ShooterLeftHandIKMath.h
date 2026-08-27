@@ -41,6 +41,6 @@ public:
 		FVector& OutJointTarget,
 		FVector& OutPoleDirection);
 
-	/** Transform 有限且不是用于表示“无数据”的 Identity。 */
+	/** Transform 数学合法：有限（IsValid）且 Scale 各分量大于 0；Identity 是合法 Transform，不再当作“无数据”。 */
 	static bool IsUsableFrame(const FTransform& Transform);
 };

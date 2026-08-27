@@ -219,9 +219,12 @@ public:
 	UFUNCTION(BlueprintPure, Category="Weapon")
 	USkeletalMeshComponent* GetThirdPersonMesh() const { return ThirdPersonMesh; };
 
-	/** 返回第三人称网格 Muzzle socket 的世界变换；网格或 socket 缺失时回退到武器 Actor 变换。
-	 *  观察端调试与表现测量使用该变换读取“第三人称真实枪口 Forward”。 */
+	/** 返回第三人称网格 Muzzle socket 的世界变换；网格或 socket 缺失时返回 Identity（不回退 Actor 变换）。
+	 *  调用方必须先确认 HasThirdPersonMuzzleSocket() 为真。 */
 	FTransform GetThirdPersonMuzzleWorldTransform() const;
+
+	/** 返回 Muzzle socket 名（第一/第三人称共用配置；IK Binding 依赖签名使用）。 */
+	FName GetMuzzleSocketName() const { return MuzzleSocketName; }
 
 	/** 第三人称网格是否真实拥有 Muzzle socket（Aim IK 启用条件；不存在时不得回退启用）。 */
 	bool HasThirdPersonMuzzleSocket() const;

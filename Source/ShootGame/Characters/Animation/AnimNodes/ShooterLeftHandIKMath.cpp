@@ -127,5 +127,10 @@ bool FShooterLeftHandIKMath::CalculateLockedJointTarget(
 
 bool FShooterLeftHandIKMath::IsUsableFrame(const FTransform& Transform)
 {
-	return Transform.IsValid() && !Transform.Equals(FTransform::Identity);
+	// 只查真正的非法数值 / 旋转 / Scale，不比较 Identity；
+	// Identity 是否可消费由上层 Binding.State == Ready 决定。
+	return Transform.IsValid() &&
+		Transform.GetScale3D().X > 0.0f &&
+		Transform.GetScale3D().Y > 0.0f &&
+		Transform.GetScale3D().Z > 0.0f;
 }

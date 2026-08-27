@@ -472,12 +472,14 @@ const TSubclassOf<UAnimInstance>& AShooterWeapon::GetThirdPersonAnimInstanceClas
 
 FTransform AShooterWeapon::GetThirdPersonMuzzleWorldTransform() const
 {
+	// 与 GetThirdPersonLeftHandGripWorldTransform 一致：缺失时返回 Identity，不回退 Actor 变换，
+	// 否则会把错误的“原点枪口”喂给表现计算；Binding Rebuild 只在 HasThirdPersonMuzzleSocket() 为真后调用。
 	if (ThirdPersonMesh && ThirdPersonMesh->DoesSocketExist(MuzzleSocketName))
 	{
 		return ThirdPersonMesh->GetSocketTransform(MuzzleSocketName);
 	}
 
-	return GetActorTransform();
+	return FTransform::Identity;
 }
 
 bool AShooterWeapon::HasThirdPersonMuzzleSocket() const

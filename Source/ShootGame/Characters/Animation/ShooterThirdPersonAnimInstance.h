@@ -4,10 +4,162 @@
 
 #include "CoreMinimal.h"
 #include "Characters/Animation/ShooterAnimInstanceBase.h"
+#include <type_traits>
 #include "ShooterThirdPersonAnimInstance.generated.h"
 
 class AShooterCharacter;
 class AShooterWeapon;
+class USceneComponent;
+class USkeletalMesh;
+class USkeletalMeshComponent;
+
+/** IK Binding 状态机状态（第三人称 IK Binding 实施计划 4.1）。 */
+UENUM()
+enum class EIKBindingState : uint8
+{
+	Unbound,          // Character / CharacterMesh / CurrentWeapon / Owner 等依赖尚未建立
+	WaitingForAttach, // Weapon 与 WeaponMesh 存在，但 Mesh 尚未 Attach 到当前 CharacterMesh
+	Pending,          // 前置结构齐全，但本次 Transform 计算数学非法
+	Unsupported,      // 当前武器 / 骨架稳定地不提供该 IK 所需能力
+	Ready             // 所有依赖与缓存 Transform 已建立，可被本帧 Enabled 消费
+};
+
+/** IK Binding 失败原因（实施计划 4.2）；与 State 组合满足不变式。 */
+UENUM()
+enum class EIKBindingFailureReason : uint8
+{
+	None,
+
+	MissingCharacterMeshAsset,
+	MissingWeaponMeshComponent,
+	MissingWeaponMeshAsset,
+	MissingWeaponAttachSocket,
+
+	MissingRightHand,
+	MissingLeftHand,
+	MissingMuzzle,
+	MissingCharacterHandGrip,
+
+	WeaponLeftHandGripNotConfigured,
+	WeaponLeftHandGripSocketMissing,
+
+	InvalidHandToMuzzle,
+	InvalidWeaponGripInRightHandSpace,
+	InvalidHandGripInLeftHandSpace
+};
+
+/**
+ * 公共依赖签名：只用于观察依赖变化，不持有生命周期。
+ * 所有 UObject 字段使用 TWeakObjectPtr；两个都解析为 null 的弱指针视为相等，
+ * 因此“对象销毁”与“从未出现”统一为同一依赖缺失（实施计划 4.3）。
+ */
+struct FShooterIKBindingCommonSignature
+{
+	TWeakObjectPtr<AShooterCharacter> Character;
+	TWeakObjectPtr<USkeletalMeshComponent> CharacterMesh;
+	TWeakObjectPtr<USkeletalMesh> CharacterMeshAsset;       // CharacterMesh->GetSkeletalMeshAsset()
+
+	TWeakObjectPtr<AShooterWeapon> Weapon;
+	TWeakObjectPtr<AActor> WeaponOwner;                     // Weapon->GetOwner()
+	TWeakObjectPtr<USkeletalMeshComponent> WeaponMesh;
+	TWeakObjectPtr<USkeletalMesh> WeaponMeshAsset;          // WeaponMesh->GetSkeletalMeshAsset()
+
+	TWeakObjectPtr<USceneComponent> WeaponMeshAttachParent; // WeaponMesh->GetAttachParent()
+	FName WeaponMeshAttachSocketName;                       // WeaponMesh->GetAttachSocketName()
+
+	bool operator==(const FShooterIKBindingCommonSignature& Other) const
+	{
+		return Character == Other.Character &&
+			CharacterMesh == Other.CharacterMesh &&
+			CharacterMeshAsset == Other.CharacterMeshAsset &&
+			Weapon == Other.Weapon &&
+			WeaponOwner == Other.WeaponOwner &&
+			WeaponMesh == Other.WeaponMesh &&
+			WeaponMeshAsset == Other.WeaponMeshAsset &&
+			WeaponMeshAttachParent == Other.WeaponMeshAttachParent &&
+			WeaponMeshAttachSocketName == Other.WeaponMeshAttachSocketName;
+	}
+
+	bool operator!=(const FShooterIKBindingCommonSignature& Other) const
+	{
+		return !(*this == Other);
+	}
+};
+
+/** Aim IK 专属签名（实施计划 4.3）。 */
+struct FAimIKBindingSignature : public FShooterIKBindingCommonSignature
+{
+	FName HandSocketName;
+	FName WeaponMuzzleSocketName;
+
+	bool operator==(const FAimIKBindingSignature& Other) const
+	{
+		return FShooterIKBindingCommonSignature::operator==(Other) &&
+			HandSocketName == Other.HandSocketName &&
+			WeaponMuzzleSocketName == Other.WeaponMuzzleSocketName;
+	}
+
+	bool operator!=(const FAimIKBindingSignature& Other) const
+	{
+		return !(*this == Other);
+	}
+};
+
+/** LeftHand IK 专属签名（实施计划 4.3；握把以 hand_r 为参考，变化也影响左手）。 */
+struct FLeftHandIKBindingSignature : public FShooterIKBindingCommonSignature
+{
+	FName HandSocketName;
+	FName LeftHandBoneName;
+	FName HandGripSocketName;
+	FName WeaponLeftHandGripSocketName;
+
+	bool operator==(const FLeftHandIKBindingSignature& Other) const
+	{
+		return FShooterIKBindingCommonSignature::operator==(Other) &&
+			HandSocketName == Other.HandSocketName &&
+			LeftHandBoneName == Other.LeftHandBoneName &&
+			HandGripSocketName == Other.HandGripSocketName &&
+			WeaponLeftHandGripSocketName == Other.WeaponLeftHandGripSocketName;
+	}
+
+	bool operator!=(const FLeftHandIKBindingSignature& Other) const
+	{
+		return !(*this == Other);
+	}
+};
+
+/** Aim IK Binding：只保存状态、失败原因、签名、缓存 Transform 与计时/诊断字段，不保存任何强引用（实施计划 4.4）。 */
+struct FAimIKBinding
+{
+	EIKBindingState State = EIKBindingState::Unbound;
+	EIKBindingFailureReason FailureReason = EIKBindingFailureReason::None;
+
+	FAimIKBindingSignature StoredSignature;
+	FTransform HandToMuzzle = FTransform::Identity;
+
+	float WaitingForAttachElapsedSeconds = 0.0f;
+	bool bWaitingForAttachWarningReported = false;
+
+	float PendingElapsedSeconds = 0.0f;
+	bool bPendingTimeoutReported = false;
+};
+
+/** LeftHand IK Binding（实施计划 4.4）。 */
+struct FLeftHandIKBinding
+{
+	EIKBindingState State = EIKBindingState::Unbound;
+	EIKBindingFailureReason FailureReason = EIKBindingFailureReason::None;
+
+	FLeftHandIKBindingSignature StoredSignature;
+	FTransform WeaponGripInRightHandSpace = FTransform::Identity;
+	FTransform HandGripInLeftHandSpace = FTransform::Identity;
+
+	float WaitingForAttachElapsedSeconds = 0.0f;
+	bool bWaitingForAttachWarningReported = false;
+
+	float PendingElapsedSeconds = 0.0f;
+	bool bPendingTimeoutReported = false;
+};
 
 /**
  * 第三人称 AnimBP 数据源（计划 C2.1 / C4）。
@@ -15,11 +167,16 @@ class AShooterWeapon;
  * 向 AnimGraph 提供：
  *   AimDirectionWorld —— 即时基础视线方向；
  *   AimTargetWorld    —— 观察端平滑后的世界目标点，由 Aim IK 使用预 IK 枪口求精确方向；
- *   HandToMuzzle      —— 当前武器 Muzzle 相对角色 Mesh hand socket 的刚性 Transform（附着状态变化时刷新并缓存）；
- *   bAimIKEnabled     —— 程序化 Aim IK 总开关（数据无效时自动关闭）。
- *   LeftHandGripInRightHandSpace —— 当前武器左手握把 Socket 相对 hand_r 的刚性 Transform（武器/附着事件重建并缓存）；
+ *   HandToMuzzle      —— 当前武器 Muzzle 相对角色 Mesh hand socket 的刚性 Transform（Binding Ready 后缓存）；
+ *   bAimIKEnabled     —— 程序化 Aim IK 总开关（Binding 非 Ready 或 Aim 输入无效时自动关闭）。
+ *   LeftHandGripInRightHandSpace —— 当前武器左手握把 Socket 相对 hand_r 的刚性 Transform（Binding Ready 后缓存）；
  *   HandGripInLeftHandSpace —— 角色 HandGrip_L 相对 hand_l 的固定 Transform；
- *   bLeftHandIKEnabled     —— Shooter Left Hand IK 总开关（无有效双参考帧时自动关闭）。
+ *   bLeftHandIKEnabled     —— Shooter Left Hand IK 总开关（仅 LeftHand Binding Ready 时开启）。
+ *
+ * Aim IK 与 LeftHand IK 的依赖判定由统一五状态机（EIKBindingState）承担，
+ * 不再使用散落的缓存 bool 组合（第三人称 IK Binding 实施计划）。
+ * FTransform::Identity 是合法 Transform，不承载“无效 / 未计算 / 未就绪”含义；
+ * Transform 是否可消费只由 Binding.State == Ready 决定。
  *
  * 只承载表现数据，不修改骨骼；骨骼修改由 FAnimNode_ShooterAimIK 完成。
  */
@@ -68,11 +225,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter|Locomotion")
 	bool bShouldMove = false;
 
-	/** 当前武器 Muzzle 相对角色 Mesh HandSocket 的刚性 Transform（武器/附着状态变化时刷新缓存）。 */
+	/** 当前武器 Muzzle 相对角色 Mesh HandSocket 的刚性 Transform（仅 AimBinding Ready 时保留计算结果）。 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter Aim")
 	FTransform HandToMuzzle = FTransform::Identity;
 
-	/** 程序化 Aim IK 总开关；无有效角色 / 武器 / Muzzle / HandToMuzzle / AimDirection 时为 false。 */
+	/** 程序化 Aim IK 总开关；AimBinding 非 Ready 或 Aim 输入无效时为 false。 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter Aim")
 	bool bAimIKEnabled = false;
 
@@ -84,10 +241,38 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter Left Hand IK")
 	FTransform HandGripInLeftHandSpace = FTransform::Identity;
 
-	/** 左手 Two Bone IK 总开关；无有效角色 / 第三人称 Mesh / 武器 / 握把 Socket / 有效握把缓存时为 false。 */
+	/** 左手 Two Bone IK 总开关；仅 LeftHandBinding Ready 时为 true。 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter Left Hand IK")
 	bool bLeftHandIKEnabled = false;
 
+	/** Aim Binding 状态调试副本（AnimBP 调试面板只读显示；权威状态在私有 Binding 中）。 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter Aim")
+	EIKBindingState AimBindingState = EIKBindingState::Unbound;
+
+	/** Aim Binding 失败原因调试副本。 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter Aim")
+	EIKBindingFailureReason AimBindingFailureReason = EIKBindingFailureReason::None;
+
+	/** LeftHand Binding 状态调试副本。 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter Left Hand IK")
+	EIKBindingState LeftHandBindingState = EIKBindingState::Unbound;
+
+	/** LeftHand Binding 失败原因调试副本。 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter Left Hand IK")
+	EIKBindingFailureReason LeftHandBindingFailureReason = EIKBindingFailureReason::None;
+
+	/**
+	 * WaitingForAttach 超过该时长后开发期 Warning 一次（之后继续等待，不降频）。
+	 * 运行时按 DeltaSeconds 累计游戏时间，不按墙钟计时。
+	 */
+	UPROPERTY(EditAnywhere, Category = "Shooter Aim", meta = (ClampMin = "3.0", ClampMax = "5.0", Units = "s"))
+	float WaitingForAttachWarningDelaySeconds = 3.0f;
+
+	/**
+	 * 清空两个 StoredSignature 并立即 Rebuild：编辑器资产重导入、测试或 Debug 时唤醒 Unsupported。
+	 * 运行时正式逻辑不依赖它。
+	 */
+	void ForceRebuildIKBindings();
 
 	/** 角色 Mesh 上的手部 socket 名（与 FAnimNode_ShooterAimIK.HandBone 保持一致）。 */
 	UPROPERTY(EditAnywhere, Category = "Shooter Aim", meta = (DisplayName = "Hand Socket Name"))
@@ -101,8 +286,8 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Shooter Left Hand IK")
 	FName HandGripSocketName = TEXT("HandGrip_L");
 
-	/** 计算 Muzzle 相对 HandSocket 的刚性 Transform（纯数据路径，可被 Automation 验证）。
-	 *  任一输入为 Identity / 无效时返回 Identity，避免把“原点恒等”误当成有效相对关系。 */
+	/** 计算 Muzzle 相对 HandSocket 的刚性 Transform（纯几何计算，可被 Automation 验证）。
+	 *  调用方负责前置能力与数学合法性判定（Binding Rebuild）；本函数不再把 Identity 当作失败。 */
 	UFUNCTION(BlueprintPure, Category = "Shooter Aim")
 	static FTransform ComputeHandToMuzzleTransform(
 		const FTransform& InHandWorld,
@@ -130,23 +315,12 @@ public:
 		float MinimumTargetDistanceFromView = 150.0f,
 		float MinimumTargetDistanceFromMuzzle = 50.0f);
 
-	/** 纯判定：给定表现数据是否允许开启 Aim IK（可被 Automation 验证）。
-	 *  至少要求 Character、第三人称 Mesh、CurrentWeapon、第三人称 Muzzle socket、
-	 *  非 Identity 的 HandToMuzzle 与有限非零 AimDirection。 */
-	static bool IsAimIKEnabledForState(
-		bool bHasCharacter,
-		bool bHasThirdPersonMesh,
-		bool bHasCurrentWeapon,
-		bool bHasThirdPersonMuzzle,
-		const FTransform& HandToMuzzle,
-		const FVector& AimDirectionWorld);
-
 	/** 读取角色 Mesh 指定 socket 的世界变换；无角色 / 无 socket 时回退 Identity。 */
 	UFUNCTION(BlueprintPure, Category = "Shooter Aim")
 	static FTransform GetHandWorldTransform(const AShooterCharacter* InCharacter, FName InHandSocketName);
 
-	/** 计算左手握把相对右手 HandSocket 的刚性 Transform（纯数据路径，可被 Automation 验证）。
-	 *  任一输入为 Identity / 无效时返回 Identity，避免把“原点恒等”误当成有效握把关系。 */
+	/** 计算左手握把相对右手 HandSocket 的刚性 Transform（纯几何计算，可被 Automation 验证）。
+	 *  调用方负责前置能力与数学合法性判定（Binding Rebuild）；本函数不再把 Identity 当作失败。 */
 	UFUNCTION(BlueprintPure, Category = "Shooter Left Hand IK")
 	static FTransform ComputeLeftHandGripInRightHandSpace(
 		const FTransform& InRightHandWorld,
@@ -158,58 +332,103 @@ public:
 		const FTransform& InLeftHandWorld,
 		const FTransform& InHandGripWorld);
 
-	/** 纯判定：左手 IK 是否允许开启（可被 Automation 验证）。
-	 *  要求 Character、第三人称 Mesh、CurrentWeapon、第三人称武器 Mesh 已附着、
-	 *  HandSocket 与武器左手握把 Socket 真实存在，且握把缓存为有限非 Identity 的刚性 Transform。 */
-	static bool IsLeftHandIKEnabledForState(
-		bool bHasCharacter,
-		bool bHasThirdPersonMesh,
-		bool bHasCurrentWeapon,
-		bool bWeaponThirdPersonMeshAttached,
-		bool bHasRightHandBone,
-		bool bHasLeftHandBone,
-		bool bHasHandGripSocket,
-		bool bHasThirdPersonLeftHandGripSocket,
-		const FTransform& LeftHandGripInRightHandSpace,
-		const FTransform& HandGripInLeftHandSpace);
-
-	/** 纯判定：左手握把缓存是否需要重建（可被 Automation 验证）。
-	 *  缓存未建立、武器变化、同一武器第三人称 Mesh 附着状态变化或已缓存结果无效时返回 true；
-	 *  缺失 Socket 的稳定 Identity 状态不返回 true，避免每帧追逐世界点。 */
-	static bool ShouldRefreshLeftHandGripCache(
-		bool bCacheDirty,
-		bool bWeaponChanged,
-		bool bAttachStateChanged,
-		bool bCacheInvalid);
-
+	/**
+	 * 只查真正的非法数值 / 旋转 / Scale，不比较 Identity：
+	 * FTransform::IsValid() 已覆盖 NaN/Inf 与 Rotation 归一化；Scale 各分量必须大于 0。
+	 */
+	static bool IsMathematicallyValidBindingFrame(const FTransform& T);
 
 protected:
 	/** 基类完成公共快照后采集第三人称专用数据。 */
 	virtual void UpdateShooterAnimationData(float DeltaSeconds) override;
 
+	// ---- IK Binding 状态机实现层 ----
+	// 以下成员与函数仅供测试壳（Tests/Animation/ShooterIKBindingAutomationTests.cpp）访问，
+	// 不属于 AnimBP 接口；两个 Binding 不需要 UPROPERTY 参与 GC（不保存任何强引用）。
+
+	/** 从 Character 采集 Aim 依赖签名（含 WeaponOwner / AttachParent / AttachSocketName 等时序敏感项）。 */
+	FAimIKBindingSignature GatherAimSignature(AShooterCharacter* Character) const;
+
+	/** 从 Character 采集 LeftHand 依赖签名。 */
+	FLeftHandIKBindingSignature GatherLeftHandSignature(AShooterCharacter* Character) const;
+
+	/** 单帧更新 Aim Binding：签名变化或 Pending 时 Rebuild，随后计时与诊断（实施计划 5.1）。 */
+	void UpdateAimBinding(const FAimIKBindingSignature& Signature, float DeltaSeconds);
+
+	/** 单帧更新 LeftHand Binding。 */
+	void UpdateLeftHandBinding(const FLeftHandIKBindingSignature& Signature, float DeltaSeconds);
+
+	/** Aim Binding 判定链（实施计划 5.2）。 */
+	void RebuildAimBinding(const FAimIKBindingSignature& Signature);
+
+	/** LeftHand Binding 判定链（实施计划 5.3）。 */
+	void RebuildLeftHandBinding(const FLeftHandIKBindingSignature& Signature);
+
+	/** 无 Character 时复位两个 Binding、缓存 Transform、Enabled 与 Aim 输入输出。 */
+	void ResetBindingsAndOutputs();
+
+	/** 采集 AimDirectionWorld / AimTargetWorld / bAimTargetWorldValid（本地即时 / 远端平滑投影）。 */
+	void UpdateAimInputs(const AShooterCharacter* Character);
+
+	/** 刷新调试副本与 bAimIKEnabled / bLeftHandIKEnabled（实施计划 5.5）。 */
+	void RefreshIKEnabled(const AShooterCharacter* Character);
+
+	/** Aim 与 LeftHand 的 Binding 状态与缓存（不持有任何强引用）。 */
+	FAimIKBinding AimBinding;
+	FLeftHandIKBinding LeftHandBinding;
+
 private:
-	/** 已缓存武器引用；变化时刷新 HandToMuzzle。 */
-	UPROPERTY(Transient)
-	TObjectPtr<AShooterWeapon> CachedWeapon = nullptr;
+	/** Pending 超时诊断阈值（固定 1.0 秒，实施计划 5.4）。 */
+	static constexpr float PendingTimeoutSeconds = 1.0f;
 
-	/** 已缓存武器第三人称 Mesh 是否附着到角色 Mesh；附着状态变化时刷新 HandToMuzzle。 */
-	bool bCachedWeaponThirdPersonMeshAttached = false;
+	/** 统一设置 State / FailureReason；非 Ready 状态同时清空缓存 Transform 为 Identity（实施计划 5.3）。 */
+	template <typename TBinding>
+	static void SetBindingState(TBinding& Binding, EIKBindingState NewState, EIKBindingFailureReason NewReason, const TCHAR* Tag);
 
-	/** 已缓存左手握把所属武器；武器变化时重建左手握把缓存。 */
-	UPROPERTY(Transient)
-	TObjectPtr<AShooterWeapon> CachedLeftHandGripWeapon = nullptr;
+	/** 清零计时与报告标记（实施计划 5.4）。 */
+	static void ResetBindingTimers(FAimIKBinding& Binding);
+	static void ResetBindingTimers(FLeftHandIKBinding& Binding);
 
-	/** 左手握把缓存时的武器第三人称 Mesh 附着状态；附着状态变化时重建缓存。 */
-	bool bCachedLeftHandGripThirdPersonMeshAttached = false;
+	/** 按状态累加计时并输出一次性诊断日志（实施计划 5.4）。 */
+	static void TickBindingTimers(FAimIKBinding& Binding, float DeltaSeconds, float WaitingForAttachDelay);
+	static void TickBindingTimers(FLeftHandIKBinding& Binding, float DeltaSeconds, float WaitingForAttachDelay);
 
-	/** 左手握把缓存尚未建立；角色变化或武器清空后重新置脏。 */
-	bool bLeftHandGripCacheDirty = true;
+	/** 失败原因的可读名（日志与测试断言共用）。 */
+	static const TCHAR* GetFailureReasonName(EIKBindingFailureReason Reason);
 
-	/** 左手握把缓存重建时记录的 HandSocket 存在状态，避免动画更新每帧查询 Socket。 */
-	bool bCachedThirdPersonHandSocketExists = false;
-
-	/** 角色左手骨骼与手掌握持 Socket 的缓存有效性。 */
-	bool bCachedLeftHandBoneExists = false;
-	bool bCachedHandGripSocketExists = false;
-
+	/** 进入异常类 Unsupported 时 Warning 一次；WeaponLeftHandGripNotConfigured 属于预期能力缺失，不 Warning。 */
+	static void WarnOnUnexpectedUnsupported(EIKBindingFailureReason Reason, const TCHAR* Tag, const AShooterWeapon* Weapon);
 };
+
+template <typename TBinding>
+void UShooterThirdPersonAnimInstance::SetBindingState(
+	TBinding& Binding,
+	EIKBindingState NewState,
+	EIKBindingFailureReason NewReason,
+	const TCHAR* Tag)
+{
+	const bool bStateOrReasonChanged =
+		Binding.State != NewState || Binding.FailureReason != NewReason;
+
+	Binding.State = NewState;
+	Binding.FailureReason = NewReason;
+
+	// 每个 SetState 同时把缓存 Transform 重置为 Identity；只有 Ready 保留计算结果。
+	if (NewState != EIKBindingState::Ready)
+	{
+		if constexpr (std::is_same_v<TBinding, FAimIKBinding>)
+		{
+			Binding.HandToMuzzle = FTransform::Identity;
+		}
+		else
+		{
+			Binding.WeaponGripInRightHandSpace = FTransform::Identity;
+			Binding.HandGripInLeftHandSpace = FTransform::Identity;
+		}
+	}
+
+	if (NewState == EIKBindingState::Unsupported && bStateOrReasonChanged)
+	{
+		WarnOnUnexpectedUnsupported(NewReason, Tag, Binding.StoredSignature.Weapon.Get());
+	}
+}
