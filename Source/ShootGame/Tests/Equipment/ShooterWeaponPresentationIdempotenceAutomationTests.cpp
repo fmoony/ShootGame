@@ -355,4 +355,62 @@ bool FShooterWeaponPresentationAnimClassRepairAndPrivacyTest::RunTest(const FStr
 	return true;
 }
 
+/**
+ * 收尾回归：已应用 Weapon 在 Equipment 清空前先失效时，Character 仍发布一次空表现事件。
+ */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FShooterWeaponPresentationStaleWeaponClearTest,
+	"ShootGame.Equipment.Presentation.StaleWeaponClear",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FShooterWeaponPresentationStaleWeaponClearTest::RunTest(const FString& Parameters)
+{
+	using namespace ShooterWeaponPresentationIdempotenceAutomationTests;
+
+	UWorld* World = CreateIdempotenceTestWorld();
+	if (!TestNotNull(TEXT("Stale weapon test world created"), World))
+	{
+		return false;
+	}
+
+	AShooterWeaponPresentationTestCharacter* Character = SpawnIdempotenceTestCharacter(*this, World);
+	UShooterWeaponPresentationEventTestListener* Listener =
+		NewObject<UShooterWeaponPresentationEventTestListener>();
+	if (!Character || !TestNotNull(TEXT("Stale weapon listener created"), Listener))
+	{
+		DestroyIdempotenceTestWorld(World);
+		return false;
+	}
+	Character->OnWeaponPresentationChanged.AddDynamic(
+		Listener,
+		&UShooterWeaponPresentationEventTestListener::HandleWeaponPresentationChanged);
+
+	FGuid InstanceId;
+	AShooterWeapon* Weapon = GrantIdempotenceTestWeapon(
+		*this,
+		Character,
+		AShooterWeaponPresentationTestWeaponPrimary::StaticClass(),
+		InstanceId);
+	if (!Weapon)
+	{
+		DestroyIdempotenceTestWorld(World);
+		return false;
+	}
+
+	UShooterEquipmentComponent* Equipment = Character->GetEquipmentComponent();
+	TestTrue(TEXT("Stale test weapon is equipped"), Equipment->EquipWeapon(InstanceId));
+	TestEqual(TEXT("Equip publishes one presentation event"), Listener->EventCount, 1);
+
+	TestTrue(TEXT("Weapon is destroyed before Equipment clear"), Weapon->Destroy());
+	TestFalse(TEXT("Destroyed weapon is no longer valid"), IsValid(Weapon));
+	Equipment->ClearEquippedWeapon();
+
+	TestEqual(TEXT("Stale previous weapon still publishes one clear event"), Listener->EventCount, 2);
+	TestNull(TEXT("Stale clear cannot expose a destroyed Previous weapon"), Listener->LastPreviousWeapon.Get());
+	TestNull(TEXT("Stale clear Current weapon is null"), Listener->LastCurrentWeapon.Get());
+
+	DestroyIdempotenceTestWorld(World);
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS

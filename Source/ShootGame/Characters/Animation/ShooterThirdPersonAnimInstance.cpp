@@ -219,6 +219,9 @@ void UShooterThirdPersonAnimInstance::ReplayWeaponPresentationState(AShooterChar
 
 void UShooterThirdPersonAnimInstance::RebuildWeaponStaticBindings(AShooterWeapon* Weapon)
 {
+	// 新一次重建先消费旧 Pending；本次仍遇到瞬时数学失败时会在函数末尾重新置位。
+	bStaticBindingRebuildPending = false;
+
 	// 先清空上一把武器的全部缓存输出，避免重建失败时残留旧 Transform。
 	bAimIKBindingValid = false;
 	bLeftHandIKBindingValid = false;
@@ -402,6 +405,12 @@ void UShooterThirdPersonAnimInstance::UpdateShooterAnimationData(float DeltaSeco
 	else
 	{
 		AimPitchN = 0.0f;
+	}
+
+	// Weak 指针曾指向的 Weapon 已销毁时，不能让旧静态 Transform 与 IK 开关继续存活。
+	if (CachedPresentationWeapon.IsStale())
+	{
+		ClearWeaponStaticBindings();
 	}
 
 	// AnimInstance 不主动要求 Character 修复表现：

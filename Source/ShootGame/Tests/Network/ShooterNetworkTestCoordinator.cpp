@@ -1532,7 +1532,8 @@ void AShooterNetworkTestCoordinator::PollServerState()
 				CleanupAbilityTimer,
 				this,
 				TriggerFunction,
-				0.5f,
+				// 同阶段的初始 GA_Equip 自身持续 0.5 秒；留出余量，避免把“仍在切枪”误判为 Reload 前置失败。
+				1.0f,
 				false);
 			UE_LOG(
 				LogShootGame,

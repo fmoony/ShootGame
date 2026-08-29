@@ -62,7 +62,8 @@ bool UShooterEquipmentComponent::EquipWeapon(const FGuid& InstanceId)
 	const bool bChangedCurrentWeapon = PreviousWeapon != TargetWeapon;
 	if (bChangedCurrentWeapon && IsValid(PreviousWeapon))
 	{
-		PreviousWeapon->DeactivateWeapon();
+		// Equipment 只负责在逻辑提交前停止旧武器；隐藏与表现回调由 Character 表现层统一执行一次。
+		PreviousWeapon->StopFiring();
 	}
 
 	// 身份与实体必须作为同一事务原子提交。
@@ -92,7 +93,8 @@ void UShooterEquipmentComponent::ClearEquippedWeapon()
 	AShooterWeapon* PreviousWeapon = CurrentWeaponActor;
 	if (IsValid(PreviousWeapon))
 	{
-		PreviousWeapon->DeactivateWeapon();
+		// 保证逻辑清空时旧武器立即停火；本机隐藏与表现回调由 EnsureWeaponPresentation 收敛。
+		PreviousWeapon->StopFiring();
 	}
 
 	// 身份与实体必须作为同一事务原子清空。

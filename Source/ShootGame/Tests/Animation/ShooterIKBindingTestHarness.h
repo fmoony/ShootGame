@@ -89,8 +89,14 @@ public:
 		RefreshIKEnabled();
 	}
 
+	void CallUpdateShooterAnimationDataForTest(float DeltaSeconds)
+	{
+		UpdateShooterAnimationData(DeltaSeconds);
+	}
+
 	bool IsAimBindingValidForTest() const { return bAimIKBindingValid; }
 	bool IsLeftHandBindingValidForTest() const { return bLeftHandIKBindingValid; }
 	bool HasPendingRebuildForTest() const { return bStaticBindingRebuildPending; }
 	AShooterWeapon* GetCachedPresentationWeaponForTest() const { return CachedPresentationWeapon.Get(); }
+	bool IsCachedPresentationWeaponStaleForTest() const { return CachedPresentationWeapon.IsStale(); }
 };

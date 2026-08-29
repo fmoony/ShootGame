@@ -321,7 +321,23 @@ bool FShooterIKBindingEventPendingSingleRetryTest::RunTest(const FString& Parame
 	TestFalse(TEXT("invalid frame disables Aim binding"), Scene.Harness->IsAimBindingValidForTest());
 	TestFalse(TEXT("invalid frame disables LeftHand binding"), Scene.Harness->IsLeftHandBindingValidForTest());
 
-	// 恢复后只消费一次 Pending：成功并清空 Pending。
+	// 新表现事件成功重建时必须主动消费旧 Pending，不能把旧武器/旧帧的重试带到下一帧。
+	for (USkeletalMeshSocket* Socket : Scene.WeaponMeshAsset->GetMeshOnlySocketList())
+	{
+		Socket->RelativeScale = FVector::OneVector;
+	}
+	Scene.Harness->CallHandleWeaponPresentationChanged(Scene.Weapon, Scene.Weapon);
+	TestTrue(TEXT("successful event rebuilds Aim binding"), Scene.Harness->IsAimBindingValidForTest());
+	TestTrue(TEXT("successful event rebuilds LeftHand binding"), Scene.Harness->IsLeftHandBindingValidForTest());
+	TestFalse(TEXT("successful event clears old pending retry"), Scene.Harness->HasPendingRebuildForTest());
+
+	// 再制造一次瞬时失败，验证普通更新仍只消费一次 Pending。
+	for (USkeletalMeshSocket* Socket : Scene.WeaponMeshAsset->GetMeshOnlySocketList())
+	{
+		Socket->RelativeScale = FVector::ZeroVector;
+	}
+	Scene.Harness->CallHandleWeaponPresentationChanged(Scene.Weapon, Scene.Weapon);
+	TestTrue(TEXT("second invalid frame enters pending retry"), Scene.Harness->HasPendingRebuildForTest());
 	for (USkeletalMeshSocket* Socket : Scene.WeaponMeshAsset->GetMeshOnlySocketList())
 	{
 		Socket->RelativeScale = FVector::OneVector;
@@ -465,6 +481,39 @@ bool FShooterIKBindingEventInputSeparationTest::RunTest(const FString& Parameter
 	return true;
 }
 
+/**
+ * 收尾回归：缓存 Weapon 先失效且 Equipment 已为空时，普通动画更新必须清除旧静态 Binding。
+ */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FShooterIKBindingStaleWeaponClearsBindingsTest,
+	"ShootGame.Aim.Binding.StaleWeaponClearsBindings",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FShooterIKBindingStaleWeaponClearsBindingsTest::RunTest(const FString& Parameters)
+{
+	FIKBindingTestScene Scene = CreateRifleScene(*this);
+	if (!TestNotNull(TEXT("stale binding harness created"), Scene.Harness))
+	{
+		return false;
+	}
+
+	AttachWeaponMesh(Scene);
+	Scene.Harness->CallHandleWeaponPresentationChanged(nullptr, Scene.Weapon);
+	TestTrue(TEXT("initial Aim binding is valid"), Scene.Harness->IsAimBindingValidForTest());
+	TestTrue(TEXT("initial LeftHand binding is valid"), Scene.Harness->IsLeftHandBindingValidForTest());
+
+	Scene.Weapon->MarkAsGarbage();
+	TestTrue(TEXT("cached weapon becomes stale"), Scene.Harness->IsCachedPresentationWeaponStaleForTest());
+	Scene.Harness->CallUpdateShooterAnimationDataForTest(1.0f / 60.0f);
+
+	TestNull(TEXT("stale update clears cached weapon"), Scene.Harness->GetCachedPresentationWeaponForTest());
+	TestFalse(TEXT("stale update clears Aim binding"), Scene.Harness->IsAimBindingValidForTest());
+	TestFalse(TEXT("stale update clears LeftHand binding"), Scene.Harness->IsLeftHandBindingValidForTest());
+	TestFalse(TEXT("stale update clears pending retry"), Scene.Harness->HasPendingRebuildForTest());
+	TestTrue(TEXT("stale update clears HandToMuzzle"), Scene.Harness->HandToMuzzle.Equals(FTransform::Identity));
+
+	return true;
+}
 
 /**
  * 阶段 3：Equipment 当前值已变化但尚未发布表现事件时，AnimInstance 不得主动调用

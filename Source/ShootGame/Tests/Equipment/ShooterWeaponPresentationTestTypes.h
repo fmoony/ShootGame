@@ -22,6 +22,15 @@ UCLASS(Transient, NotBlueprintable)
 class AShooterWeaponPresentationTestCharacter : public AShooterCharacter
 {
 	GENERATED_BODY()
+
+public:
+	virtual void OnWeaponDeactivated(AShooterWeapon* Weapon) override
+	{
+		++WeaponDeactivatedCount;
+		Super::OnWeaponDeactivated(Weapon);
+	}
+
+	int32 WeaponDeactivatedCount = 0;
 };
 
 /** 表现测试主武器：配置第一/第三人称专用 AnimInstance。 */
@@ -39,6 +48,8 @@ public:
 	}
 
 	bool HasWeaponOwnerForTest() const { return WeaponOwner != nullptr; }
+	void SetFiringForTest(bool bInFiring) { bIsFiring = bInFiring; }
+	bool IsFiringForTest() const { return bIsFiring; }
 };
 
 /** 表现测试副武器：配置与主武器不同的公共 AnimInstance，用于验证 AnimClass 切换。 */

@@ -782,12 +782,13 @@ bool AShooterCharacter::EnsureWeaponPresentation(AShooterWeapon* ExpectedWeapon)
 	if (ExpectedWeapon == nullptr)
 	{
 		AShooterWeapon* PreviousWeapon = LastAppliedPresentationWeapon.Get();
+		// Weak 指针可能已经 stale；只要它不是显式空，就仍需发布一次清空事件。
+		const bool bHadAppliedWeapon = !LastAppliedPresentationWeapon.IsExplicitlyNull();
 		if (IsValid(PreviousWeapon))
 		{
 			PreviousWeapon->DeactivateWeapon();
 		}
 
-		const bool bHadAppliedWeapon = LastAppliedPresentationWeapon.IsValid();
 		LastAppliedPresentationWeapon.Reset();
 		if (bHadAppliedWeapon)
 		{
