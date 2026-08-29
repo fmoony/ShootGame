@@ -1,4 +1,4 @@
-﻿# Shooter 完整 Demo 最终路线规划
+# Shooter 完整 Demo 最终路线规划
 
 ## 1. 文档定位
 
@@ -631,6 +631,7 @@ GAS 基础生命闭环
 Weapon / Inventory 第二阶段基础闭环
 GA_Fire ServerOnly
 GA_Reload / GA_Equip ServerOnly
+武器装备表现事件收束与动画切换解耦
 ```
 
 当前状态：阶段复盘暂停，不自动进入客户端预测。
@@ -642,5 +643,9 @@ GA_Reload / GA_Equip ServerOnly
 已完成的 Reload / Equip 计划与验收证据见：
 
 [GA_Reload 与 GA_Equip ServerOnly 执行计划](../已完成计划/GA_Reload与GA_Equip_ServerOnly执行计划.md)
+
+武器装备表现事件收束与动画切换解耦的验收证据见：
+
+[武器装备表现事件收束与动画切换解耦执行计划](../已完成计划/武器装备表现事件收束与动画切换解耦执行计划.md)
 
 只有完成 ServerOnly 阶段复盘，并形成新的详细执行计划后，才实施 P1 的任何预测内容。

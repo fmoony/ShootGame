@@ -84,16 +84,6 @@ public:
 		ClearWeaponStaticBindings();
 	}
 
-	/** 消费一次 Pending：镜像生产 UpdateShooterAnimationData 的“下一次更新重试一次”。 */
-	void CallConsumePendingRebuildForTest(AShooterWeapon* Weapon)
-	{
-		bStaticBindingRebuildPending = false;
-		if (Weapon != nullptr)
-		{
-			RebuildWeaponStaticBindings(Weapon);
-		}
-	}
-
 	void CallRefreshIKEnabled(AShooterCharacter* Character)
 	{
 		RefreshIKEnabled(Character);
