@@ -9,12 +9,11 @@
 #include "ShooterIKBindingTestHarness.generated.h"
 
 /**
- * 第三人称 IK Binding 状态机测试壳（仅 Editor Automation 使用，实施计划第 8 节）。
+ * 第三人称事件驱动 IK Binding 测试壳（仅 Editor Automation 使用）。
  *
- * 测试武器具体化 abstract 的 AShooterWeapon；测试角色去掉 AShooterCharacter 的 abstract 标记；
- * 测试壳 AnimInstance 访问 protected 状态机层，绕过 GetOwningActor 依赖，
  * 用真实对象（NewObject 的 Character / Weapon / SkeletalMeshComponent）驱动
- * Unbound / WaitingForAttach / Pending / Unsupported / Ready 判定链。
+ * RebuildWeaponStaticBindings / HandleWeaponPresentationChanged / ClearWeaponStaticBindings，
+ * 覆盖表现事件到达、初始化回放、单次 Pending 重试与“永久缺失 Socket 不逐帧重试”。
  */
 
 /** 测试角色：AShooterCharacter 是 UCLASS(abstract)，测试需要可 NewObject 的具体子类。 */
@@ -24,7 +23,7 @@ class AShooterIKBindingTestCharacter : public AShooterCharacter
 	GENERATED_BODY()
 };
 
-/** 测试武器：具体化 abstract 的 AShooterWeapon（UCLASS 必须在文件顶层，UHT 不支持 namespace 内反射）。 */
+/** 测试武器：具体化 abstract 的 AShooterWeapon。 */
 UCLASS(Transient, NotBlueprintable)
 class AShooterIKBindingTestWeapon : public AShooterWeapon
 {
@@ -41,50 +40,58 @@ public:
 	void SetLeftHandGripSocketNameForTest(FName InName) { ThirdPersonLeftHandGripSocketName = InName; }
 };
 
-/** 测试壳 AnimInstance：访问 protected 状态机层。 */
+/** 测试壳 AnimInstance：访问 protected 事件驱动 Binding 层。 */
 UCLASS(Transient, NotBlueprintable)
 class UShooterIKBindingTestHarness : public UShooterThirdPersonAnimInstance
 {
 	GENERATED_BODY()
 
 public:
-	void CallUpdateAimBinding(const FAimIKBindingSignature& Signature, float DeltaSeconds)
+	void CallNativeInitializeAnimationForTest()
 	{
-		UpdateAimBinding(Signature, DeltaSeconds);
+		NativeInitializeAnimation();
 	}
 
-	void CallUpdateLeftHandBinding(const FLeftHandIKBindingSignature& Signature, float DeltaSeconds)
+	void CallProductionPendingRetryForTest(AShooterWeapon* LogicalWeapon)
 	{
-		UpdateLeftHandBinding(Signature, DeltaSeconds);
+		// 镜像生产 UpdateShooterAnimationData 中“身份一致 + 只消费一次 Pending”的规则。
+		if (bStaticBindingRebuildPending &&
+			LogicalWeapon != nullptr &&
+			CachedPresentationWeapon.Get() == LogicalWeapon)
+		{
+			bStaticBindingRebuildPending = false;
+			RebuildWeaponStaticBindings(LogicalWeapon);
+		}
 	}
 
-	void CallResetBindingsAndOutputs()
+	void CallHandleWeaponPresentationChanged(AShooterWeapon* PreviousWeapon, AShooterWeapon* CurrentWeapon)
 	{
-		ResetBindingsAndOutputs();
+		HandleWeaponPresentationChanged(PreviousWeapon, CurrentWeapon);
 	}
 
-	/** 与生产 UpdateShooterAnimationData 相同的调用序列（Binding → 输入 → Enabled），Character 由测试注入。 */
-	void CallUpdateShooterAnimationDataForCharacter(AShooterCharacter* Character, float DeltaSeconds)
+	void CallReplayWeaponPresentationState(AShooterCharacter* Character)
 	{
-		const FAimIKBindingSignature AimSignature = GatherAimSignature(Character);
-		const FLeftHandIKBindingSignature LeftHandSignature = GatherLeftHandSignature(Character);
-		UpdateAimBinding(AimSignature, DeltaSeconds);
-		UpdateLeftHandBinding(LeftHandSignature, DeltaSeconds);
-		UpdateAimInputs(Character);
-		RefreshIKEnabled(Character);
+		ReplayWeaponPresentationState(Character);
 	}
 
-	/** 完整生产序列（签名注入版）：镜像 UpdateShooterAnimationData 的调用顺序，绕过 Gather 的装备链路依赖。 */
-	void CallUpdateShooterAnimationDataForSignatures(
-		const FAimIKBindingSignature& AimSignature,
-		const FLeftHandIKBindingSignature& LeftHandSignature,
-		AShooterCharacter* Character,
-		float DeltaSeconds)
+	void CallRebuildWeaponStaticBindings(AShooterWeapon* Weapon)
 	{
-		UpdateAimBinding(AimSignature, DeltaSeconds);
-		UpdateLeftHandBinding(LeftHandSignature, DeltaSeconds);
-		UpdateAimInputs(Character);
-		RefreshIKEnabled(Character);
+		RebuildWeaponStaticBindings(Weapon);
+	}
+
+	void CallClearWeaponStaticBindings()
+	{
+		ClearWeaponStaticBindings();
+	}
+
+	/** 消费一次 Pending：镜像生产 UpdateShooterAnimationData 的“下一次更新重试一次”。 */
+	void CallConsumePendingRebuildForTest(AShooterWeapon* Weapon)
+	{
+		bStaticBindingRebuildPending = false;
+		if (Weapon != nullptr)
+		{
+			RebuildWeaponStaticBindings(Weapon);
+		}
 	}
 
 	void CallRefreshIKEnabled(AShooterCharacter* Character)
@@ -92,51 +99,8 @@ public:
 		RefreshIKEnabled(Character);
 	}
 
-	/** 清空 StoredSignature 强制下一次 Update 走完整 Rebuild（模拟依赖签名变化 / ForceRebuild 唤醒）。 */
-	void CallClearAimSignatureForTest()
-	{
-		AimBinding.StoredSignature = FAimIKBindingSignature();
-	}
-
-	void CallClearLeftHandSignatureForTest()
-	{
-		LeftHandBinding.StoredSignature = FLeftHandIKBindingSignature();
-	}
-
-	void CallForceRebuildForTest(AShooterCharacter* Character)
-	{
-		AimBinding.StoredSignature = FAimIKBindingSignature();
-		LeftHandBinding.StoredSignature = FLeftHandIKBindingSignature();
-		UpdateAimBinding(GatherAimSignature(Character), 0.0f);
-		UpdateLeftHandBinding(GatherLeftHandSignature(Character), 0.0f);
-		RefreshIKEnabled(Character);
-	}
-
-	EIKBindingState GetAimState() const { return AimBinding.State; }
-	EIKBindingFailureReason GetAimReason() const { return AimBinding.FailureReason; }
-	EIKBindingState GetLeftHandState() const { return LeftHandBinding.State; }
-	EIKBindingFailureReason GetLeftHandReason() const { return LeftHandBinding.FailureReason; }
-
-	const FTransform& GetHandToMuzzleForTest() const { return AimBinding.HandToMuzzle; }
-	const FTransform& GetWeaponGripInRightHandSpaceForTest() const { return LeftHandBinding.WeaponGripInRightHandSpace; }
-	const FTransform& GetHandGripInLeftHandSpaceForTest() const { return LeftHandBinding.HandGripInLeftHandSpace; }
-
-	float GetAimPendingElapsed() const { return AimBinding.PendingElapsedSeconds; }
-	bool GetAimPendingReported() const { return AimBinding.bPendingTimeoutReported; }
-	float GetAimWaitingElapsed() const { return AimBinding.WaitingForAttachElapsedSeconds; }
-	bool GetAimWaitingReported() const { return AimBinding.bWaitingForAttachWarningReported; }
-	float GetLeftHandPendingElapsed() const { return LeftHandBinding.PendingElapsedSeconds; }
-	bool GetLeftHandPendingReported() const { return LeftHandBinding.bPendingTimeoutReported; }
-	bool GetLeftHandWaitingReported() const { return LeftHandBinding.bWaitingForAttachWarningReported; }
-
-	/** 等待计时：从当前状态累积注入，覆盖 Pending 超时 / WaitingForAttach 诊断阈值。 */
-	void RunAimWaitingFrames(float DeltaSeconds, int32 FrameCount)
-	{
-		for (int32 Frame = 0; Frame < FrameCount; ++Frame)
-		{
-			CallUpdateAimBinding(GetAimStoredSignature(), DeltaSeconds);
-		}
-	}
-
-	const FAimIKBindingSignature& GetAimStoredSignature() const { return AimBinding.StoredSignature; }
+	bool IsAimBindingValidForTest() const { return bAimIKBindingValid; }
+	bool IsLeftHandBindingValidForTest() const { return bLeftHandIKBindingValid; }
+	bool HasPendingRebuildForTest() const { return bStaticBindingRebuildPending; }
+	AShooterWeapon* GetCachedPresentationWeaponForTest() const { return CachedPresentationWeapon.Get(); }
 };
