@@ -450,15 +450,17 @@ bool FShooterIKBindingEventInputSeparationTest::RunTest(const FString& Parameter
 
 	Scene.Harness->AimDirectionWorld = FVector::ZeroVector;
 	Scene.Harness->bAimTargetWorldValid = true;
-	Scene.Harness->CallRefreshIKEnabled(Scene.Character);
+	Scene.Harness->CallRefreshIKEnabled();
 	TestFalse(TEXT("zero aim direction disables only bAimIKEnabled"), Scene.Harness->bAimIKEnabled);
 	TestTrue(TEXT("zero aim direction keeps static Aim binding"), Scene.Harness->IsAimBindingValidForTest());
 	TestTrue(TEXT("left hand static binding is independent"), Scene.Harness->bLeftHandIKEnabled);
 
+	// Refresh 不再解释网络角色或直接读取 bAimTargetWorldValid；
+	// 动态输入有效性由 ResolveAimPresentationInput 统一表达为非零有限 AimDirectionWorld。
 	Scene.Harness->AimDirectionWorld = FVector(0.5f, 0.5f, 0.70710678f).GetSafeNormal();
-	Scene.Harness->bAimTargetWorldValid = true;
-	Scene.Harness->CallRefreshIKEnabled(Scene.Character);
-	TestTrue(TEXT("valid frame input enables bAimIKEnabled"), Scene.Harness->bAimIKEnabled);
+	Scene.Harness->bAimTargetWorldValid = false;
+	Scene.Harness->CallRefreshIKEnabled();
+	TestTrue(TEXT("valid dynamic direction enables bAimIKEnabled"), Scene.Harness->bAimIKEnabled);
 
 	return true;
 }

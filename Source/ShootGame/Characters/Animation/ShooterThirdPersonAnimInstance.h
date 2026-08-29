@@ -17,8 +17,8 @@ class USkeletalMeshComponent;
  * 只在两个时机重建：
  *   1. 本机武器表现完成事件 OnWeaponPresentationChanged 到达；
  *   2. NativeInitializeAnimation 后从 Equipment.CurrentWeaponActor 主动回放。
- * NativeUpdateAnimation 不再逐帧扫描静态附着签名；只保留移动、Aim、Tag 动态采集，
- * 以及表现身份变化的廉价校验和一次性的 bStaticBindingRebuildPending 重试。
+ * NativeUpdateAnimation 不再逐帧扫描静态附着签名；
+ * 只保留移动、Aim、Tag 动态采集、WeakPtr stale 清理和一次性的 bStaticBindingRebuildPending 重试。
  */
 UCLASS(Blueprintable)
 class SHOOTGAME_API UShooterThirdPersonAnimInstance : public UShooterAnimInstanceBase
@@ -157,11 +157,11 @@ protected:
 	/** 清空 Weapon 弱引用、静态 Binding、IK 开关与帧级 Aim 输出。 */
 	void ClearWeaponStaticBindings();
 
-	/** 采集 AimDirectionWorld / AimTargetWorld / bAimTargetWorldValid（本地即时 / 远端平滑投影）。 */
+	/** 调用 AimPresentationComponent 的最终解析接口，把结果写入三个 AnimGraph 输出属性。 */
 	void UpdateAimInputs(const AShooterCharacter* Character);
 
-	/** 由静态 Binding 有效性与帧级 Aim 输入计算两个 IK 总开关。 */
-	void RefreshIKEnabled(const AShooterCharacter* Character);
+	/** 只组合静态 Binding 有效性与本帧动态瞄准输入有效性，不再解释网络角色。 */
+	void RefreshIKEnabled();
 
 	/** 当前表现身份弱引用；只用于身份比较与事件重放，不逐帧做结构扫描。 */
 	TWeakObjectPtr<AShooterWeapon> CachedPresentationWeapon;

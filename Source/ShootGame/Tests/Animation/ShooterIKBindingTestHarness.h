@@ -84,9 +84,9 @@ public:
 		ClearWeaponStaticBindings();
 	}
 
-	void CallRefreshIKEnabled(AShooterCharacter* Character)
+	void CallRefreshIKEnabled()
 	{
-		RefreshIKEnabled(Character);
+		RefreshIKEnabled();
 	}
 
 	bool IsAimBindingValidForTest() const { return bAimIKBindingValid; }

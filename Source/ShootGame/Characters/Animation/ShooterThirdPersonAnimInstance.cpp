@@ -350,57 +350,31 @@ void UShooterThirdPersonAnimInstance::ClearWeaponStaticBindings()
 
 void UShooterThirdPersonAnimInstance::UpdateAimInputs(const AShooterCharacter* Character)
 {
-	const UShooterAimPresentationComponent* AimPresentationComponent =
-		Character->GetAimPresentationComponent();
-	const bool bShouldRunPresentationSmoothing =
-		UShooterAimPresentationComponent::ShouldRunPresentationAimSmoothing(
-			Character->GetLocalRole(),
-			Character->GetNetMode(),
-			Character->IsLocallyControlled());
-	const FVector BaseAimDirection = Character->GetBaseAimRotation().Vector().GetSafeNormal();
 	AimDirectionWorld = FVector::ZeroVector;
 	AimTargetWorld = FVector::ZeroVector;
 	bAimTargetWorldValid = false;
 
-	if (Character->IsLocallyControlled())
+	// 网络角色、本地/远端数据源选择、目标有效性与视点安全深度全部收口到 Component。
+	const UShooterAimPresentationComponent* AimPresentationComponent =
+		Character->GetAimPresentationComponent();
+	if (AimPresentationComponent)
 	{
-		AimDirectionWorld = BaseAimDirection;
-	}
-	else if (bShouldRunPresentationSmoothing &&
-		AimPresentationComponent &&
-		AimPresentationComponent->IsPresentationAimTargetValid() &&
-		FShooterAimIKMath::IsFinite(BaseAimDirection) &&
-		!BaseAimDirection.IsNearlyZero())
-	{
-		const FVector ViewWorldLocation = Character->GetPawnViewLocation();
-		FVector SafeTargetWorld = AimPresentationComponent->GetSmoothedPresentationAimTarget();
-		if (FShooterAimIKMath::IsFinite(ViewWorldLocation) &&
-			FShooterAimIKMath::IsFinite(SafeTargetWorld))
-		{
-			const float TargetDepthFromView = FVector::DotProduct(
-				SafeTargetWorld - ViewWorldLocation,
-				BaseAimDirection);
-			if (TargetDepthFromView < MinimumRemoteAimTargetDistanceFromView)
-			{
-				SafeTargetWorld += BaseAimDirection *
-					(MinimumRemoteAimTargetDistanceFromView - TargetDepthFromView);
-			}
-
-			AimDirectionWorld = BaseAimDirection;
-			AimTargetWorld = SafeTargetWorld;
-			bAimTargetWorldValid = true;
-		}
+		AimPresentationComponent->ResolveAimPresentationInput(
+			AimDirectionWorld,
+			AimTargetWorld,
+			bAimTargetWorldValid,
+			MinimumRemoteAimTargetDistanceFromView);
 	}
 }
 
-void UShooterThirdPersonAnimInstance::RefreshIKEnabled(const AShooterCharacter* Character)
+void UShooterThirdPersonAnimInstance::RefreshIKEnabled()
 {
-	// 帧级 Aim 输入只参与 Enabled 表达式，不改变静态 Binding 判定。
+	// 只组合静态 Binding 与动态输入：ResolveAimPresentationInput 保证无效远端目标输出零方向，
+	// 因此“有限且非零的 AimDirectionWorld”就是本帧动态瞄准输入有效的统一表达。
 	bAimIKEnabled =
 		bAimIKBindingValid &&
 		FShooterAimIKMath::IsFinite(AimDirectionWorld) &&
-		!AimDirectionWorld.IsNearlyZero() &&
-		(Character->IsLocallyControlled() || bAimTargetWorldValid);
+		!AimDirectionWorld.IsNearlyZero();
 
 	bLeftHandIKEnabled = bLeftHandIKBindingValid;
 }
@@ -419,7 +393,16 @@ void UShooterThirdPersonAnimInstance::UpdateShooterAnimationData(float DeltaSeco
 	MoveDirection = UKismetAnimationLibrary::CalculateDirection(
 		Velocity,
 		Character->GetActorRotation());
-	AimPitchN = Character->GetAimPitchN();
+	// AimPitchN 与最终世界输入都从 AimPresentationComponent 的统一口径获取。
+	if (const UShooterAimPresentationComponent* AimPresentationComponent =
+		Character->GetAimPresentationComponent())
+	{
+		AimPitchN = AimPresentationComponent->GetAimPitchN();
+	}
+	else
+	{
+		AimPitchN = 0.0f;
+	}
 
 	// 廉价身份校验：缓存身份与 Equipment 不一致时只请求重新收敛，不自行决定换枪。
 	AShooterWeapon* LogicalWeapon = Character->GetCurrentWeaponActor();
@@ -439,5 +422,5 @@ void UShooterThirdPersonAnimInstance::UpdateShooterAnimationData(float DeltaSeco
 	}
 
 	UpdateAimInputs(Character);
-	RefreshIKEnabled(Character);
+	RefreshIKEnabled();
 }

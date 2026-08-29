@@ -57,6 +57,24 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Aim")
 	float GetAimPitchN() const;
 
+	/**
+	 * 第三人称 AnimInstance 的最终瞄准表现输入解析。
+	 *
+	 * 本组件在此统一负责：
+	 * - LocalRole / NetMode / IsLocallyControlled 判断；
+	 * - 本地即时方向与观察端平滑目标的数据源选择；
+	 * - 平滑目标有效性检查；
+	 * - 距 PawnViewLocation 的最小安全深度投影。
+	 *
+	 * 本地拥有者：OutAimDirectionWorld = BaseAimDirection，Target 无效；
+	 * 观察端（SimulatedProxy 或 Listen Server 观察远端 Pawn）：有效平滑目标才输出 Target。
+	 */
+	void ResolveAimPresentationInput(
+		FVector& OutAimDirectionWorld,
+		FVector& OutAimTargetWorld,
+		bool& bOutAimTargetWorldValid,
+		float MinimumTargetDistanceFromView = 150.0f) const;
+
 	/** 纯判定：PresentationAimTarget 是否可建立有效状态（有限且非零）。 */
 	static bool IsValidPresentationAimTargetValue(const FVector& Target);
 

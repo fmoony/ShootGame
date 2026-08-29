@@ -268,6 +268,64 @@ float UShooterAimPresentationComponent::GetAimPitchN() const
 	return FMath::Sin(FMath::DegreesToRadians(AimPitch));
 }
 
+void UShooterAimPresentationComponent::ResolveAimPresentationInput(
+	FVector& OutAimDirectionWorld,
+	FVector& OutAimTargetWorld,
+	bool& bOutAimTargetWorldValid,
+	float MinimumTargetDistanceFromView) const
+{
+	OutAimDirectionWorld = FVector::ZeroVector;
+	OutAimTargetWorld = FVector::ZeroVector;
+	bOutAimTargetWorldValid = false;
+
+	const bool bLocallyControlled = IsPresentationOwnerLocallyControlled();
+	const FVector BaseAimDirection = GetPresentationBaseAimRotation().Vector().GetSafeNormal();
+
+	// 本地拥有者：即时基础方向，永远不消费远端表现目标。
+	if (bLocallyControlled)
+	{
+		OutAimDirectionWorld = BaseAimDirection;
+		return;
+	}
+
+	// 观察端：SimulatedProxy 与 Listen Server 观察远端 Pawn 都使用同一份平滑目标。
+	if (!ShouldRunPresentationAimSmoothingForContext() ||
+		!bPresentationAimTargetValid ||
+		!FMath::IsFinite(BaseAimDirection.X) ||
+		!FMath::IsFinite(BaseAimDirection.Y) ||
+		!FMath::IsFinite(BaseAimDirection.Z) ||
+		BaseAimDirection.IsNearlyZero())
+	{
+		return;
+	}
+
+	const FVector ViewWorldLocation = GetPresentationPawnViewLocation();
+	FVector SafeTargetWorld = SmoothedPresentationAimTarget;
+	if (!FMath::IsFinite(ViewWorldLocation.X) ||
+		!FMath::IsFinite(ViewWorldLocation.Y) ||
+		!FMath::IsFinite(ViewWorldLocation.Z) ||
+		!FMath::IsFinite(SafeTargetWorld.X) ||
+		!FMath::IsFinite(SafeTargetWorld.Y) ||
+		!FMath::IsFinite(SafeTargetWorld.Z))
+	{
+		return;
+	}
+
+	// 距视点最小安全深度：近点目标沿基础视线向前投影，保留横向偏移。
+	const float TargetDepthFromView = FVector::DotProduct(
+		SafeTargetWorld - ViewWorldLocation,
+		BaseAimDirection);
+	if (TargetDepthFromView < MinimumTargetDistanceFromView)
+	{
+		SafeTargetWorld += BaseAimDirection *
+			(MinimumTargetDistanceFromView - TargetDepthFromView);
+	}
+
+	OutAimDirectionWorld = BaseAimDirection;
+	OutAimTargetWorld = SafeTargetWorld;
+	bOutAimTargetWorldValid = true;
+}
+
 ENetRole UShooterAimPresentationComponent::GetPresentationLocalRole() const
 {
 	return GetOwner() ? GetOwner()->GetLocalRole() : ROLE_None;
