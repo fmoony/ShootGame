@@ -701,12 +701,169 @@ void AShooterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 
 void AShooterCharacter::OnWeaponActivated(AShooterWeapon* Weapon)
 {
-	// update the bullet counter
-	OnBulletCountUpdated.Broadcast(Weapon->GetMagazineSize(), Weapon->GetBulletCount());
+	// HUD 只在 Activate 时更新；AnimClass 应用与幂等修复共用同一私有入口。
+	UpdateWeaponHUD(Weapon->GetMagazineSize(), Weapon->GetBulletCount());
+	ApplyWeaponAnimClasses(Weapon);
+}
 
-	// set the character mesh AnimInstances
-	GetFirstPersonMesh()->SetAnimInstanceClass(Weapon->GetFirstPersonAnimInstanceClass());
-	GetMesh()->SetAnimInstanceClass(Weapon->GetThirdPersonAnimInstanceClass());
+bool AShooterCharacter::HasCompleteWeaponPresentation(const AShooterWeapon* Weapon) const
+{
+	if (!IsValid(Weapon) || Weapon->IsActorBeingDestroyed() || Weapon->GetOwner() != this)
+	{
+		return false;
+	}
+
+	const USkeletalMeshComponent* WeaponFirstPersonMesh = Weapon->GetFirstPersonMesh();
+	const USkeletalMeshComponent* WeaponThirdPersonMesh = Weapon->GetThirdPersonMesh();
+	if (!WeaponFirstPersonMesh || !WeaponThirdPersonMesh || !FirstPersonMesh || !GetMesh())
+	{
+		return false;
+	}
+
+	if (WeaponFirstPersonMesh->GetAttachParent() != FirstPersonMesh ||
+		WeaponFirstPersonMesh->GetAttachSocketName() != FirstPersonWeaponSocket)
+	{
+		return false;
+	}
+
+	if (WeaponThirdPersonMesh->GetAttachParent() != GetMesh() ||
+		WeaponThirdPersonMesh->GetAttachSocketName() != ThirdPersonWeaponSocket)
+	{
+		return false;
+	}
+
+	if (Weapon->IsHidden())
+	{
+		return false;
+	}
+
+	if (FirstPersonMesh->GetAnimClass() != Weapon->GetFirstPersonAnimInstanceClass().Get())
+	{
+		return false;
+	}
+
+	if (GetMesh()->GetAnimClass() != Weapon->GetThirdPersonAnimInstanceClass().Get())
+	{
+		return false;
+	}
+
+	return true;
+}
+
+void AShooterCharacter::ApplyWeaponAnimClasses(AShooterWeapon* Weapon)
+{
+	if (!IsValid(Weapon))
+	{
+		return;
+	}
+
+	if (FirstPersonMesh)
+	{
+		FirstPersonMesh->SetAnimInstanceClass(Weapon->GetFirstPersonAnimInstanceClass());
+	}
+	if (GetMesh())
+	{
+		GetMesh()->SetAnimInstanceClass(Weapon->GetThirdPersonAnimInstanceClass());
+	}
+}
+
+bool AShooterCharacter::EnsureWeaponPresentation(AShooterWeapon* ExpectedWeapon)
+{
+	// 唯一事实来源是 Equipment.CurrentWeaponActor；传入值与它不一致时以它为准。
+	AShooterWeapon* LogicalWeapon = EquipmentComponent
+		? EquipmentComponent->GetCurrentWeaponActor()
+		: nullptr;
+	if (ExpectedWeapon != LogicalWeapon)
+	{
+		ExpectedWeapon = LogicalWeapon;
+	}
+
+	// 空武器：清空本地表现缓存与事件，不把 AnimClass 设为 nullptr（计划 6.3 / 10.4）。
+	if (ExpectedWeapon == nullptr)
+	{
+		AShooterWeapon* PreviousWeapon = LastAppliedPresentationWeapon.Get();
+		if (IsValid(PreviousWeapon))
+		{
+			PreviousWeapon->DeactivateWeapon();
+		}
+
+		const bool bHadAppliedWeapon = LastAppliedPresentationWeapon.IsValid();
+		LastAppliedPresentationWeapon.Reset();
+		if (bHadAppliedWeapon)
+		{
+			OnWeaponPresentationChanged.Broadcast(PreviousWeapon, nullptr);
+		}
+		return true;
+	}
+
+	// Weapon 有效性 / Owner 是表现应用的前置条件；条件不足时等待 HandleWeaponActorReady 补做。
+	if (!IsValid(ExpectedWeapon) ||
+		ExpectedWeapon->GetOwner() != this ||
+		ExpectedWeapon->IsActorBeingDestroyed())
+	{
+		return false;
+	}
+
+	const bool bMatchesLastApplied = LastAppliedPresentationWeapon.Get() == ExpectedWeapon;
+	const bool bWasComplete = HasCompleteWeaponPresentation(ExpectedWeapon);
+
+	// 对象相同且全部后置条件成立：不重复 Attach / Activate / HUD / AnimClass / 事件。
+	if (bMatchesLastApplied && bWasComplete)
+	{
+		return true;
+	}
+
+	AShooterWeapon* PreviousWeapon = LastAppliedPresentationWeapon.Get();
+	if (!bMatchesLastApplied && IsValid(PreviousWeapon) && PreviousWeapon != ExpectedWeapon)
+	{
+		PreviousWeapon->DeactivateWeapon();
+	}
+
+	if (!bWasComplete)
+	{
+		const USkeletalMeshComponent* WeaponFirstPersonMesh = ExpectedWeapon->GetFirstPersonMesh();
+		const USkeletalMeshComponent* WeaponThirdPersonMesh = ExpectedWeapon->GetThirdPersonMesh();
+		if (!WeaponFirstPersonMesh || !WeaponThirdPersonMesh || !FirstPersonMesh || !GetMesh())
+		{
+			return false;
+		}
+
+		const bool bNeedsAttach =
+			WeaponFirstPersonMesh->GetAttachParent() != FirstPersonMesh ||
+			WeaponFirstPersonMesh->GetAttachSocketName() != FirstPersonWeaponSocket ||
+			WeaponThirdPersonMesh->GetAttachParent() != GetMesh() ||
+			WeaponThirdPersonMesh->GetAttachSocketName() != ThirdPersonWeaponSocket;
+
+		if (bNeedsAttach)
+		{
+			AttachWeaponMeshes(ExpectedWeapon);
+		}
+
+		if (ExpectedWeapon->IsHidden())
+		{
+			// Activate 只在这里发生：包含 HUD 与 AnimClass 应用。
+			ExpectedWeapon->ActivateWeapon();
+		}
+		else
+		{
+			// 只修复 AnimClass，不重复 HUD / Activate 副作用。
+			ApplyWeaponAnimClasses(ExpectedWeapon);
+		}
+	}
+
+	if (!HasCompleteWeaponPresentation(ExpectedWeapon))
+	{
+		return false;
+	}
+
+	LastAppliedPresentationWeapon = ExpectedWeapon;
+
+	// 只有“未完成 -> 完成”或对象变化时才发布一次本机表现完成事件。
+	if (!bMatchesLastApplied || !bWasComplete)
+	{
+		OnWeaponPresentationChanged.Broadcast(PreviousWeapon, ExpectedWeapon);
+	}
+	return true;
 }
 
 void AShooterCharacter::OnWeaponDeactivated(AShooterWeapon* Weapon)

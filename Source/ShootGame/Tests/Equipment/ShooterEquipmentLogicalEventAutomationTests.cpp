@@ -9,6 +9,7 @@
 #include "Engine/World.h"
 #include "GameFramework/WorldSettings.h"
 #include "Inventory/ShooterInventoryComponent.h"
+#include "UObject/UnrealType.h"
 #include "Weapons/ShooterWeapon.h"
 #include "ShooterWeaponPresentationTestTypes.h"
 
@@ -283,33 +284,49 @@ bool FShooterEquipmentCurrentWeaponOnRepSemanticsTest::RunTest(const FString& Pa
 		return false;
 	}
 
-	UShooterEquipmentTestHarnessComponent* Harness =
-		NewObject<UShooterEquipmentTestHarnessComponent>(Character);
+	// E3 起 OnRep 会进入 Character::EnsureWeaponPresentation，该入口只认角色真实 EquipmentComponent；
+	// 这里直接驱动角色自带 Equipment 的 OnRep（UFUNCTION 受保护，测试用 ProcessEvent 调用）。
+	UShooterEquipmentComponent* Equipment = Character->GetEquipmentComponent();
 	UShooterEquipmentEventTestListener* Listener = NewObject<UShooterEquipmentEventTestListener>();
-	if (!TestNotNull(TEXT("Equipment harness created"), Harness) ||
+	if (!TestNotNull(TEXT("Character Equipment created"), Equipment) ||
 		!TestNotNull(TEXT("Equipment CurrentWeapon listener created"), Listener))
 	{
 		DestroyEquipmentEventTestWorld(World);
 		return false;
 	}
-	Harness->OnEquippedWeaponChanged.AddDynamic(
+	Equipment->OnEquippedWeaponChanged.AddDynamic(
 		Listener,
 		&UShooterEquipmentEventTestListener::HandleEquippedWeaponChanged);
 
-	Harness->SetCurrentWeaponActorForTest(Weapon);
-	Harness->CallOnRepCurrentWeaponActorForTest(nullptr);
+	UFunction* OnRepCurrentWeaponFunction = UShooterEquipmentComponent::StaticClass()->FindFunctionByName(
+		TEXT("OnRep_CurrentWeaponActor"));
+	FObjectProperty* CurrentWeaponProperty = FindFProperty<FObjectProperty>(
+		UShooterEquipmentComponent::StaticClass(),
+		TEXT("CurrentWeaponActor"));
+	if (!TestNotNull(TEXT("OnRep_CurrentWeaponActor function exists"), OnRepCurrentWeaponFunction) ||
+		!TestNotNull(TEXT("CurrentWeaponActor property exists"), CurrentWeaponProperty))
+	{
+		DestroyEquipmentEventTestWorld(World);
+		return false;
+	}
+
+	AShooterWeapon* PreviousWeapon = nullptr;
+	CurrentWeaponProperty->SetObjectPropertyValue_InContainer(Equipment, Weapon);
+	Equipment->ProcessEvent(OnRepCurrentWeaponFunction, &PreviousWeapon);
 	TestEqual(TEXT("CurrentWeapon null->weapon publishes once"), Listener->EventCount, 1);
 	TestNull(TEXT("OnRep equip PreviousWeapon is null"), Listener->LastPreviousWeapon.Get());
 	TestTrue(TEXT("OnRep equip CurrentWeapon is weapon"), Listener->LastCurrentWeapon == Weapon);
 	TestFalse(TEXT("OnRep equip applies visible presentation"), Weapon->IsHidden());
 
 	// 相同 Previous/Current 不是真实转移：不发布第二次逻辑事件。
-	Harness->CallOnRepCurrentWeaponActorForTest(Weapon);
+	PreviousWeapon = Weapon;
+	Equipment->ProcessEvent(OnRepCurrentWeaponFunction, &PreviousWeapon);
 	TestEqual(TEXT("Same Previous/Current does not publish again"), Listener->EventCount, 1);
 
 	// weapon -> null：Unequip 事件一次，旧武器表现被清空隐藏。
-	Harness->SetCurrentWeaponActorForTest(nullptr);
-	Harness->CallOnRepCurrentWeaponActorForTest(Weapon);
+	PreviousWeapon = Weapon;
+	CurrentWeaponProperty->SetObjectPropertyValue_InContainer(Equipment, nullptr);
+	Equipment->ProcessEvent(OnRepCurrentWeaponFunction, &PreviousWeapon);
 	TestEqual(TEXT("CurrentWeapon weapon->null publishes once"), Listener->EventCount, 2);
 	TestTrue(TEXT("OnRep unequip PreviousWeapon is weapon"), Listener->LastPreviousWeapon == Weapon);
 	TestNull(TEXT("OnRep unequip CurrentWeapon is null"), Listener->LastCurrentWeapon.Get());

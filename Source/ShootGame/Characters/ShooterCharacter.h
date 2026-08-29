@@ -1,4 +1,4 @@
-﻿// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
@@ -22,6 +22,12 @@ struct FInputActionValue;
 struct FOnAttributeChangeData;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FBulletCountUpdatedDelegate, int32, MagazineSize, int32, Bullets);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
+	FShooterWeaponPresentationChangedDelegate,
+	AShooterWeapon*,
+	PreviousWeapon,
+	AShooterWeapon*,
+	CurrentWeapon);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDamagedDelegate, float, LifePercent);
 
 /**
@@ -137,6 +143,11 @@ public:
 
 	/** Damaged delegate */
 	FDamagedDelegate OnDamaged;
+
+	/** 本机武器表现完成事件：只在本机附着 / 显隐 / AnimClass 后置条件达到时发布，不复制、不触发服务器事务。 */
+	UPROPERTY(BlueprintAssignable, Category = "Weapons")
+	FShooterWeaponPresentationChangedDelegate OnWeaponPresentationChanged;
+
 
 public:
 
@@ -255,6 +266,14 @@ public:
 	/** 返回角色的装备组件；外部系统只通过该入口提交装备事务。 */
 	UShooterEquipmentComponent* GetEquipmentComponent() const { return EquipmentComponent; }
 
+	/**
+	 * 本机武器表现收敛入口（幂等，本地 only）：
+	 * 以 Equipment.CurrentWeaponActor 为唯一输入，验证并修复附着 / 显隐 / AnimClass 后置条件，
+	 * 达到后更新私有 LastAppliedPresentationWeapon 并发布 OnWeaponPresentationChanged。
+	 */
+	bool EnsureWeaponPresentation(AShooterWeapon* ExpectedWeapon);
+
+
 	// ---- 表现瞄准只读出口：保留被旧 AnimBP / 自动化消费的 BP 数据契约。 ----
 
 	UFUNCTION(BlueprintPure, Category = "Aim")
@@ -355,4 +374,15 @@ protected:
 
 	/** Called from the respawn timer to destroy this character and force the PC to respawn */
 	void OnRespawn();
+
+private:
+	/** 本机表现缓存：只用于幂等跳过与事件 Previous，不复制、不保存、不暴露给 Gameplay 读取方。 */
+	TWeakObjectPtr<AShooterWeapon> LastAppliedPresentationWeapon;
+
+	/** 非空表现后置条件是否已全部满足（含附着 Socket、可见性与 FP/TP AnimClass）。 */
+	bool HasCompleteWeaponPresentation(const AShooterWeapon* Weapon) const;
+
+	/** 仅应用 FP/TP Mesh AnimClass；不更新 HUD、不广播表现事件。 */
+	void ApplyWeaponAnimClasses(AShooterWeapon* Weapon);
+
 };

@@ -77,8 +77,7 @@ protected:
 	UFUNCTION()
 	void OnRep_ActiveWeaponInstanceId();
 
-	/** E2 迁移期表现应用：只做附着 + Activate，不广播逻辑事件；E3 由 Character::EnsureWeaponPresentation 取代。 */
-	void ApplyCurrentWeapon(AShooterWeapon* PreviousWeapon);
+
 
 	/** 装备切换时重置表现瞄准平滑；清空时使用 Clear。 */
 	void ResetAimPresentationForEquipChange();

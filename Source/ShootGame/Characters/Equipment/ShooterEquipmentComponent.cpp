@@ -24,8 +24,11 @@ void UShooterEquipmentComponent::BeginPlay()
 		Inventory->OnInventoryCleared.AddUObject(this, &UShooterEquipmentComponent::NotifyInventoryCleared);
 	}
 
-	// 复制属性可能先于 BeginPlay 到达；补做一次幂等应用，避免漏掉初始装备。
-	ApplyCurrentWeapon(nullptr);
+	// 复制属性可能先于 BeginPlay 到达；补做一次幂等表现回放，不发布逻辑事件。
+	if (AShooterCharacter* Character = GetOwnerCharacter())
+	{
+		Character->EnsureWeaponPresentation(CurrentWeaponActor);
+	}
 }
 
 void UShooterEquipmentComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -69,8 +72,8 @@ bool UShooterEquipmentComponent::EquipWeapon(const FGuid& InstanceId)
 	// E2：逻辑变化只在真实转移时发布；相同武器重复提交不再重复广播。
 	BroadcastEquippedWeaponChanged(PreviousWeapon, TargetWeapon);
 
-	// E3 前仍走迁移期表现应用；本函数不再附带任何逻辑事件。
-	ApplyCurrentWeapon(nullptr);
+	// 逻辑事件发布后进入同一幂等表现收敛入口；重复提交不重复 Attach / Activate / HUD。
+	Character->EnsureWeaponPresentation(TargetWeapon);
 	ResetAimPresentationForEquipChange();
 	Character->ForceNetUpdate();
 
@@ -101,6 +104,9 @@ void UShooterEquipmentComponent::ClearEquippedWeapon()
 
 	if (AShooterCharacter* Character = GetOwnerCharacter())
 	{
+		// 清空本地表现缓存并发布 (Previous, nullptr)，不把 AnimClass 设为 nullptr。
+		Character->EnsureWeaponPresentation(nullptr);
+
 		// 清空是死亡 / Inventory Clear 生命周期，Aim 表现必须显式失效，不复用旧值。
 		if (UShooterAimPresentationComponent* AimPresentation = Character->GetAimPresentationComponent())
 		{
@@ -121,8 +127,11 @@ void UShooterEquipmentComponent::HandleWeaponActorReady(AShooterWeapon* Weapon)
 {
 	if (IsValid(Weapon) && Weapon == CurrentWeaponActor)
 	{
-		// WeaponActor 的 Owner / BoundInstanceId 晚到时补做幂等表现应用。
-		ApplyCurrentWeapon(nullptr);
+		// WeaponActor 的 Owner / BoundInstanceId 晚到时补做幂等表现收敛，不发布逻辑事件。
+		if (AShooterCharacter* Character = GetOwnerCharacter())
+		{
+			Character->EnsureWeaponPresentation(Weapon);
+		}
 	}
 }
 
@@ -137,29 +146,6 @@ void UShooterEquipmentComponent::NotifyWeaponInstanceRemoved(const FGuid& Instan
 void UShooterEquipmentComponent::NotifyInventoryCleared()
 {
 	ClearEquippedWeapon();
-}
-
-void UShooterEquipmentComponent::ApplyCurrentWeapon(AShooterWeapon* PreviousWeapon)
-{
-	if (IsValid(PreviousWeapon) && PreviousWeapon != CurrentWeaponActor)
-	{
-		PreviousWeapon->DeactivateWeapon();
-	}
-
-	AShooterCharacter* Character = GetOwnerCharacter();
-	if (!Character || !IsValid(CurrentWeaponActor))
-	{
-		return;
-	}
-
-	// 幂等：WeaponActor 的所有权信息尚未到达时暂不附着，待 HandleWeaponActorReady 补做。
-	if (CurrentWeaponActor->GetOwner() != Character)
-	{
-		return;
-	}
-
-	Character->AttachWeaponMeshes(CurrentWeaponActor);
-	CurrentWeaponActor->ActivateWeapon();
 }
 
 void UShooterEquipmentComponent::ResetAimPresentationForEquipChange()
@@ -200,9 +186,12 @@ void UShooterEquipmentComponent::BroadcastEquippedWeaponChanged(
 
 void UShooterEquipmentComponent::OnRep_CurrentWeaponActor(AShooterWeapon* PreviousWeapon)
 {
-	// E2：逻辑事件只由 CurrentWeaponActor 真实转移产生；表现应用随后幂等补做。
+	// E2：逻辑事件只由 CurrentWeaponActor 真实转移产生；表现随后进入同一幂等入口。
 	BroadcastEquippedWeaponChanged(PreviousWeapon, CurrentWeaponActor);
-	ApplyCurrentWeapon(PreviousWeapon);
+	if (AShooterCharacter* Character = GetOwnerCharacter())
+	{
+		Character->EnsureWeaponPresentation(CurrentWeaponActor);
+	}
 
 	// 装备到新武器时重置平滑；Unequip 时显式清空，不复用旧目标。
 	if (CurrentWeaponActor != nullptr)
