@@ -38,6 +38,7 @@ public class ShootGame : ModuleRules
 			"ShootGame/Weapons",
 			"ShootGame/Inventory",
 			"ShootGame/Tests/Inventory",
+		"ShootGame/Tests/Equipment",
 			"ShootGame/UI",
 			"ShootGame/AbilitySystem",
 			"ShootGame/AbilitySystem/Abilities"

@@ -162,13 +162,14 @@ bool UShooterInventoryComponent::RemoveWeaponInstance(const FGuid& InstanceId)
 	const bool bRemoved = ReplicatedInventory.RemoveItem(InstanceId);
 	if (bRemoved)
 	{
+		// E1 顺序：先广播移除，让 Equipment 在 WeaponActor Destroy 前清理当前装备。
+		OnWeaponInstanceRemovedFromInventory.Broadcast(InstanceId);
+
 		if (AShooterWeapon* Weapon = FindWeaponActor(InstanceId))
 		{
 			UnregisterWeaponActor(Weapon);
 			Weapon->Destroy();
 		}
-
-		OnWeaponInstanceRemovedFromInventory.Broadcast(InstanceId);
 
 		UE_LOG(
 			LogShootGame,
@@ -188,16 +189,34 @@ void UShooterInventoryComponent::ClearInventory()
 		return;
 	}
 
+	// E1 顺序：冻结待销毁 WeaponActor，先清逻辑 Entries 并广播，
+	// 让 Equipment 在 Destroy 前清理当前装备，最后统一解绑与销毁。
+	TArray<AShooterWeapon*> WeaponsToDestroy;
 	for (AShooterWeapon* Weapon : BoundWeaponActors)
 	{
 		if (IsValid(Weapon))
 		{
+			WeaponsToDestroy.Add(Weapon);
+		}
+	}
+
+	if (ReplicatedInventory.Items.Num() == 0 && WeaponsToDestroy.Num() == 0)
+	{
+		// 重复 Clear / 空 Inventory 幂等返回，不重复广播错误状态。
+		return;
+	}
+
+	ReplicatedInventory.ClearItems();
+	OnInventoryCleared.Broadcast();
+
+	for (AShooterWeapon* Weapon : WeaponsToDestroy)
+	{
+		if (IsValid(Weapon))
+		{
+			UnregisterWeaponActor(Weapon);
 			Weapon->Destroy();
 		}
 	}
-	BoundWeaponActors.Empty();
-	ReplicatedInventory.ClearItems();
-	OnInventoryCleared.Broadcast();
 
 	UE_LOG(
 		LogShootGame,

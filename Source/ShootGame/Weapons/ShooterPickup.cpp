@@ -10,6 +10,7 @@
 #include "ShooterInventoryComponent.h"
 #include "ShooterWeapon.h"
 #include "Engine/World.h"
+#include "ShootGame.h"
 #include "TimerManager.h"
 
 AShooterPickup::AShooterPickup()
@@ -102,7 +103,20 @@ void AShooterPickup::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
 		UShooterEquipmentComponent* Equipment = ShooterCharacter->GetEquipmentComponent();
 		if (!Equipment || !Equipment->EquipWeapon(GrantedInstanceId))
 		{
-			// 理论不可达：Inventory 刚成功创建了 Actor；失败时明确不消费 Pickup。
+			// 回滚后恢复可拾取，不隐藏 Pickup。
+
+			// E1：本次 Pickup 新增的 Instance 与 WeaponActor 必须完整回滚，
+			// 不能同时留下“已进入 Inventory 的武器”和“仍可拾取的 Pickup”。
+			if (!Inventory->RemoveWeaponInstance(GrantedInstanceId))
+			{
+				UE_LOG(
+					LogShootGame,
+					Warning,
+					TEXT("Pickup equip rollback failed to remove granted instance: Actor=%s InstanceId=%s"),
+					*GetNameSafe(ShooterCharacter),
+					*GrantedInstanceId.ToString());
+			}
+
 			bPickupAvailable = true;
 			return;
 		}
