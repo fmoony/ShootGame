@@ -12,10 +12,10 @@ class UShooterInventoryComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
 	FShooterEquippedWeaponChangedDelegate,
-	const FGuid&,
-	InstanceId,
 	AShooterWeapon*,
-	Weapon);
+	PreviousWeapon,
+	AShooterWeapon*,
+	CurrentWeapon);
 
 /**
  * 角色“当前正在使用哪把武器”的唯一装备权威。
@@ -56,7 +56,7 @@ public:
 	/** Inventory Clear 后通知装备组件；始终清空当前装备。 */
 	void NotifyInventoryCleared();
 
-	/** 装备变化事件；Character 在迁移期转发给旧 HUD，最终由本地 Controller/UI 绑定。 */
+	/** 逻辑装备变化事件：只在 CurrentWeaponActor 真实转移时广播 (Previous, Current)；Current == nullptr 表示 Unequip。 */
 	UPROPERTY(BlueprintAssignable, Category = "Equipment")
 	FShooterEquippedWeaponChangedDelegate OnEquippedWeaponChanged;
 
@@ -77,7 +77,7 @@ protected:
 	UFUNCTION()
 	void OnRep_ActiveWeaponInstanceId();
 
-	/** OnRep 与服务器本地修改共用的幂等表现应用：附着 + Activate + 事件。 */
+	/** E2 迁移期表现应用：只做附着 + Activate，不广播逻辑事件；E3 由 Character::EnsureWeaponPresentation 取代。 */
 	void ApplyCurrentWeapon(AShooterWeapon* PreviousWeapon);
 
 	/** 装备切换时重置表现瞄准平滑；清空时使用 Clear。 */
@@ -86,5 +86,7 @@ protected:
 private:
 	AShooterCharacter* GetOwnerCharacter() const;
 	UShooterInventoryComponent* GetOwnerInventory() const;
-	void BroadcastEquippedWeaponChanged();
+
+	/** 仅在 Previous != Current 时发布逻辑装备变化事件。 */
+	void BroadcastEquippedWeaponChanged(AShooterWeapon* PreviousWeapon, AShooterWeapon* CurrentWeapon);
 };

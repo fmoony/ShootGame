@@ -56,7 +56,8 @@ bool UShooterEquipmentComponent::EquipWeapon(const FGuid& InstanceId)
 	}
 
 	AShooterWeapon* PreviousWeapon = CurrentWeaponActor;
-	if (IsValid(PreviousWeapon) && PreviousWeapon != TargetWeapon)
+	const bool bChangedCurrentWeapon = PreviousWeapon != TargetWeapon;
+	if (bChangedCurrentWeapon && IsValid(PreviousWeapon))
 	{
 		PreviousWeapon->DeactivateWeapon();
 	}
@@ -64,6 +65,11 @@ bool UShooterEquipmentComponent::EquipWeapon(const FGuid& InstanceId)
 	// 身份与实体必须作为同一事务原子提交。
 	ActiveWeaponInstanceId = InstanceId;
 	CurrentWeaponActor = TargetWeapon;
+
+	// E2：逻辑变化只在真实转移时发布；相同武器重复提交不再重复广播。
+	BroadcastEquippedWeaponChanged(PreviousWeapon, TargetWeapon);
+
+	// E3 前仍走迁移期表现应用；本函数不再附带任何逻辑事件。
 	ApplyCurrentWeapon(nullptr);
 	ResetAimPresentationForEquipChange();
 	Character->ForceNetUpdate();
@@ -80,13 +86,18 @@ bool UShooterEquipmentComponent::EquipWeapon(const FGuid& InstanceId)
 
 void UShooterEquipmentComponent::ClearEquippedWeapon()
 {
-	if (IsValid(CurrentWeaponActor))
+	AShooterWeapon* PreviousWeapon = CurrentWeaponActor;
+	if (IsValid(PreviousWeapon))
 	{
-		CurrentWeaponActor->DeactivateWeapon();
+		PreviousWeapon->DeactivateWeapon();
 	}
 
+	// 身份与实体必须作为同一事务原子清空。
 	CurrentWeaponActor = nullptr;
 	ActiveWeaponInstanceId = FGuid();
+
+	// E2：Unequip 也是真实逻辑转移；重复 Clear 不重复发布。
+	BroadcastEquippedWeaponChanged(PreviousWeapon, nullptr);
 
 	if (AShooterCharacter* Character = GetOwnerCharacter())
 	{
@@ -98,8 +109,6 @@ void UShooterEquipmentComponent::ClearEquippedWeapon()
 
 		Character->ForceNetUpdate();
 	}
-
-	BroadcastEquippedWeaponChanged();
 
 	UE_LOG(
 		LogShootGame,
@@ -151,7 +160,6 @@ void UShooterEquipmentComponent::ApplyCurrentWeapon(AShooterWeapon* PreviousWeap
 
 	Character->AttachWeaponMeshes(CurrentWeaponActor);
 	CurrentWeaponActor->ActivateWeapon();
-	BroadcastEquippedWeaponChanged();
 }
 
 void UShooterEquipmentComponent::ResetAimPresentationForEquipChange()
@@ -176,15 +184,38 @@ UShooterInventoryComponent* UShooterEquipmentComponent::GetOwnerInventory() cons
 	return Character ? Character->GetInventoryComponent() : nullptr;
 }
 
-void UShooterEquipmentComponent::BroadcastEquippedWeaponChanged()
+void UShooterEquipmentComponent::BroadcastEquippedWeaponChanged(
+	AShooterWeapon* PreviousWeapon,
+	AShooterWeapon* CurrentWeapon)
 {
-	OnEquippedWeaponChanged.Broadcast(ActiveWeaponInstanceId, CurrentWeaponActor);
+	// E2 语义：只有 CurrentWeaponActor 真实转移才发布逻辑装备变化；
+	// Ready 补偿、BeginPlay 回放与 ActiveInstanceId OnRep 都不得进入这里。
+	if (PreviousWeapon == CurrentWeapon)
+	{
+		return;
+	}
+
+	OnEquippedWeaponChanged.Broadcast(PreviousWeapon, CurrentWeapon);
 }
 
 void UShooterEquipmentComponent::OnRep_CurrentWeaponActor(AShooterWeapon* PreviousWeapon)
 {
+	// E2：逻辑事件只由 CurrentWeaponActor 真实转移产生；表现应用随后幂等补做。
+	BroadcastEquippedWeaponChanged(PreviousWeapon, CurrentWeaponActor);
 	ApplyCurrentWeapon(PreviousWeapon);
-	ResetAimPresentationForEquipChange();
+
+	// 装备到新武器时重置平滑；Unequip 时显式清空，不复用旧目标。
+	if (CurrentWeaponActor != nullptr)
+	{
+		ResetAimPresentationForEquipChange();
+	}
+	else if (AShooterCharacter* Character = GetOwnerCharacter())
+	{
+		if (UShooterAimPresentationComponent* AimPresentation = Character->GetAimPresentationComponent())
+		{
+			AimPresentation->ClearPresentationAimSmoothing();
+		}
+	}
 
 	UE_LOG(
 		LogShootGame,
@@ -197,12 +228,8 @@ void UShooterEquipmentComponent::OnRep_CurrentWeaponActor(AShooterWeapon* Previo
 
 void UShooterEquipmentComponent::OnRep_ActiveWeaponInstanceId()
 {
-	// Active 身份可能先于或晚于 WeaponActor 到达；两者都到达后由 Apply / HandleReady 幂等补做。
-	if (IsValid(CurrentWeaponActor))
-	{
-		ApplyCurrentWeapon(nullptr);
-	}
-
+	// E2：Owner 身份可以单独消费该值，但它不再触发表现应用或逻辑事件。
+	// 表现只由 CurrentWeaponActor OnRep / BeginPlay / HandleWeaponActorReady 幂等补做。
 	UE_LOG(
 		LogShootGame,
 		Display,
