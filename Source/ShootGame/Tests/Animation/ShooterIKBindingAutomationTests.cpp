@@ -465,4 +465,52 @@ bool FShooterIKBindingEventInputSeparationTest::RunTest(const FString& Parameter
 	return true;
 }
 
+
+/**
+ * 阶段 3：Equipment 当前值已变化但尚未发布表现事件时，AnimInstance 不得主动调用
+ * Character::EnsureWeaponPresentation 做反向表现修复；表现收敛只由生命周期入口负责。
+ */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FShooterIKBindingNoReversePresentationRepairTest,
+	"ShootGame.Aim.Binding.NoReversePresentationRepair",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FShooterIKBindingNoReversePresentationRepairTest::RunTest(const FString& Parameters)
+{
+	FIKBindingTestScene Scene = CreateRifleScene(*this);
+	if (!TestNotNull(TEXT("no reverse repair harness created"), Scene.Harness))
+	{
+		return false;
+	}
+
+	AttachWeaponMesh(Scene);
+	Scene.Harness->CallHandleWeaponPresentationChanged(nullptr, Scene.Weapon);
+	TestTrue(TEXT("event establishes Aim binding"), Scene.Harness->IsAimBindingValidForTest());
+	TestTrue(TEXT("event establishes LeftHand binding"), Scene.Harness->IsLeftHandBindingValidForTest());
+	TestFalse(TEXT("weapon starts visible for stale/repair observation"), Scene.Weapon->IsHidden());
+
+	// 把 Equipment 逻辑当前值改为 null，但不广播表现完成事件：
+	// 这模拟“AnimInstance 每帧先看到逻辑变化，生命周期事件尚未到达”的窗口。
+	FObjectProperty* CurrentWeaponProperty = FindFProperty<FObjectProperty>(
+		UShooterEquipmentComponent::StaticClass(),
+		TEXT("CurrentWeaponActor"));
+	if (!TestNotNull(TEXT("Equipment exposes CurrentWeaponActor for mismatch injection"), CurrentWeaponProperty))
+	{
+		return false;
+	}
+	CurrentWeaponProperty->SetObjectPropertyValue_InContainer(
+		Scene.Character->GetEquipmentComponent(),
+		nullptr);
+	TestNull(TEXT("logical current weapon becomes null"), Scene.Character->GetCurrentWeaponActor());
+
+	Scene.Harness->CallUpdateShooterAnimationDataForTest(1.0f / 60.0f);
+
+	TestTrue(TEXT("tick keeps cached weapon without reverse repair"), Scene.Harness->GetCachedPresentationWeaponForTest() == Scene.Weapon);
+	TestTrue(TEXT("tick keeps Aim binding until lifecycle event"), Scene.Harness->IsAimBindingValidForTest());
+	TestTrue(TEXT("tick keeps LeftHand binding until lifecycle event"), Scene.Harness->IsLeftHandBindingValidForTest());
+	TestFalse(TEXT("tick does not deactivate/hide weapon through Character"), Scene.Weapon->IsHidden());
+
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS

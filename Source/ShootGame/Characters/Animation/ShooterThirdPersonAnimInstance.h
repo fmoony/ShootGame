@@ -17,7 +17,7 @@ class USkeletalMeshComponent;
  * 只在两个时机重建：
  *   1. 本机武器表现完成事件 OnWeaponPresentationChanged 到达；
  *   2. NativeInitializeAnimation 后从 Equipment.CurrentWeaponActor 主动回放。
- * NativeUpdateAnimation 不再逐帧扫描静态附着签名；
+ * NativeUpdateAnimation 不再逐帧扫描静态附着签名，也不主动要求 Character 修复表现；
  * 只保留移动、Aim、Tag 动态采集、WeakPtr stale 清理和一次性的 bStaticBindingRebuildPending 重试。
  */
 UCLASS(Blueprintable)

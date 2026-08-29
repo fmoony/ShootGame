@@ -404,12 +404,9 @@ void UShooterThirdPersonAnimInstance::UpdateShooterAnimationData(float DeltaSeco
 		AimPitchN = 0.0f;
 	}
 
-	// 廉价身份校验：缓存身份与 Equipment 不一致时只请求重新收敛，不自行决定换枪。
+	// AnimInstance 不主动要求 Character 修复表现：
+	// 装备变化、Unequip 和武器销毁统一由 Equipment OnRep / 生命周期入口发布表现完成事件。
 	AShooterWeapon* LogicalWeapon = Character->GetCurrentWeaponActor();
-	if (CachedPresentationWeapon.Get() != LogicalWeapon)
-	{
-		Character->EnsureWeaponPresentation(LogicalWeapon);
-	}
 
 	// 事件重建时骨骼 Transform 暂时不可用：只允许下一次更新重试一次。
 	if (bStaticBindingRebuildPending)
