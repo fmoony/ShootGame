@@ -503,7 +503,7 @@ bool FShooterIKBindingNoReversePresentationRepairTest::RunTest(const FString& Pa
 		nullptr);
 	TestNull(TEXT("logical current weapon becomes null"), Scene.Character->GetCurrentWeaponActor());
 
-	Scene.Harness->CallUpdateShooterAnimationDataForTest(1.0f / 60.0f);
+	Scene.Harness->NativeUpdateAnimation(1.0f / 60.0f);
 
 	TestTrue(TEXT("tick keeps cached weapon without reverse repair"), Scene.Harness->GetCachedPresentationWeaponForTest() == Scene.Weapon);
 	TestTrue(TEXT("tick keeps Aim binding until lifecycle event"), Scene.Harness->IsAimBindingValidForTest());
