@@ -345,10 +345,22 @@ void UShooterThirdPersonAnimInstance::ClearWeaponStaticBindings()
 	HandGripInLeftHandSpace = FTransform::Identity;
 	bAimIKEnabled = false;
 	bLeftHandIKEnabled = false;
+	AimIKPresentationAlpha = 0.0f;
+	LeftHandIKPresentationAlpha = 0.0f;
+	bReloadPresentationRecovering = false;
 
 	AimDirectionWorld = FVector::ZeroVector;
 	AimTargetWorld = FVector::ZeroVector;
 	bAimTargetWorldValid = false;
+}
+
+void UShooterThirdPersonAnimInstance::BeginReloadPresentationRecovery()
+{
+	// Notify 可能在低权重混合或取消后的残余帧到达；只接受仍处于权威 Reload 表现期的事件。
+	if (bIsReloading)
+	{
+		bReloadPresentationRecovering = true;
+	}
 }
 
 void UShooterThirdPersonAnimInstance::UpdateAimInputs(const AShooterCharacter* Character)
@@ -382,6 +394,60 @@ void UShooterThirdPersonAnimInstance::RefreshIKEnabled()
 	bLeftHandIKEnabled = bLeftHandIKBindingValid;
 }
 
+void UShooterThirdPersonAnimInstance::UpdateLeftHandIKPresentationAlpha(float DeltaSeconds)
+{
+	const float ReloadCurveAlpha = FMath::Clamp(
+		GetCurveValue(ReloadIKAlphaCurveName),
+		0.0f,
+		1.0f);
+	const float ReloadGateAlpha = bIsReloading && !bReloadPresentationRecovering
+		? ReloadCurveAlpha
+		: 1.0f;
+	const float TargetAlpha = bLeftHandIKEnabled ? ReloadGateAlpha : 0.0f;
+	const float BlendTime = TargetAlpha > LeftHandIKPresentationAlpha
+		? LeftHandIKBlendInTime
+		: LeftHandIKBlendOutTime;
+
+	if (BlendTime <= UE_KINDA_SMALL_NUMBER || DeltaSeconds <= 0.0f)
+	{
+		LeftHandIKPresentationAlpha = TargetAlpha;
+		return;
+	}
+
+	LeftHandIKPresentationAlpha = FMath::FInterpConstantTo(
+		LeftHandIKPresentationAlpha,
+		TargetAlpha,
+		DeltaSeconds,
+		1.0f / BlendTime);
+}
+
+void UShooterThirdPersonAnimInstance::UpdateAimIKPresentationAlpha(float DeltaSeconds)
+{
+	const float ReloadCurveAlpha = FMath::Clamp(
+		GetCurveValue(ReloadIKAlphaCurveName),
+		0.0f,
+		1.0f);
+	const float ReloadGateAlpha = bIsReloading && !bReloadPresentationRecovering
+		? ReloadCurveAlpha
+		: 1.0f;
+	const float TargetAlpha = bAimIKEnabled ? ReloadGateAlpha : 0.0f;
+	const float BlendTime = TargetAlpha > AimIKPresentationAlpha
+		? AimIKBlendInTime
+		: AimIKBlendOutTime;
+
+	if (BlendTime <= UE_KINDA_SMALL_NUMBER || DeltaSeconds <= 0.0f)
+	{
+		AimIKPresentationAlpha = TargetAlpha;
+		return;
+	}
+
+	AimIKPresentationAlpha = FMath::FInterpConstantTo(
+		AimIKPresentationAlpha,
+		TargetAlpha,
+		DeltaSeconds,
+		1.0f / BlendTime);
+}
+
 void UShooterThirdPersonAnimInstance::UpdateShooterAnimationData(float DeltaSeconds)
 {
 	AShooterCharacter* Character = GetCachedShooterCharacter();
@@ -398,13 +464,21 @@ void UShooterThirdPersonAnimInstance::UpdateShooterAnimationData(float DeltaSeco
 		Character->GetActorRotation());
 	// AimPitchN 与最终世界输入都从 AimPresentationComponent 的统一口径获取。
 	if (const UShooterAimPresentationComponent* AimPresentationComponent =
-		Character->GetAimPresentationComponent())
+			Character->GetAimPresentationComponent())
 	{
 		AimPitchN = AimPresentationComponent->GetAimPitchN();
+		AimPitchDegrees = FMath::RadiansToDegrees(FMath::Asin(FMath::Clamp(AimPitchN, -1.0f, 1.0f)));
 	}
 	else
 	{
 		AimPitchN = 0.0f;
+		AimPitchDegrees = 0.0f;
+	}
+
+	// Gameplay Reload 结束后清除本地表现闩锁；下一次 Reload 才能重新进入动作状态。
+	if (!bIsReloading)
+	{
+		bReloadPresentationRecovering = false;
 	}
 
 	// Weak 指针曾指向的 Weapon 已销毁时，不能让旧静态 Transform 与 IK 开关继续存活。
@@ -429,4 +503,6 @@ void UShooterThirdPersonAnimInstance::UpdateShooterAnimationData(float DeltaSeco
 
 	UpdateAimInputs(Character);
 	RefreshIKEnabled();
+	UpdateAimIKPresentationAlpha(DeltaSeconds);
+	UpdateLeftHandIKPresentationAlpha(DeltaSeconds);
 }

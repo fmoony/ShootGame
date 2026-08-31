@@ -50,6 +50,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter Aim")
 	float AimPitchN = 0.0f;
 
+	/** 与 AimPitchN 同源的有符号角度值，供 Reload 躯干骨骼控制使用。 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Shooter Aim", meta = (Units = "deg"))
+	float AimPitchDegrees = 0.0f;
+
 	/** 第三人称移动方向角。 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter|Locomotion")
 	float MoveDirection = 0.0f;
@@ -66,6 +70,32 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter Aim")
 	bool bAimIKEnabled = false;
 
+	/** Aim IK 最终表现权重；换弹时平滑释放，结束后平滑恢复。 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Shooter Aim")
+	float AimIKPresentationAlpha = 0.0f;
+
+	/** Reload Sequence 上控制两套 IK 的表现曲线；缺失时换弹期间保持 0。 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter|Reload")
+	FName ReloadIKAlphaCurveName = TEXT("ReloadIKAlpha");
+
+	/** 本次换弹表现已进入收尾；只用于阻止 WeaponAction 重返 Reload，不复制、不参与权威逻辑。 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Shooter|Reload")
+	bool bReloadPresentationRecovering = false;
+
+	/** 由 Reload Sequence 的表现收尾 Notify 调用。 */
+	UFUNCTION(BlueprintCallable, Category = "Shooter|Reload")
+	void BeginReloadPresentationRecovery();
+
+	/** 进入换弹时把 Aim IK 从当前权重释放到 0 所需的近似时长。 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter Aim",
+		meta = (ClampMin = "0.0", Units = "s"))
+	float AimIKBlendOutTime = 0.10f;
+
+	/** Reload 曲线末段或换弹结束后，把 Aim IK 恢复到目标权重所需的近似时长。 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter Aim",
+		meta = (ClampMin = "0.0", Units = "s"))
+	float AimIKBlendInTime = 0.15f;
+
 	/** 当前武器第三人称左手握把 Socket 相对角色 Mesh HandSocket 的刚性 Transform。 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter Left Hand IK")
 	FTransform LeftHandGripInRightHandSpace = FTransform::Identity;
@@ -77,6 +107,20 @@ public:
 	/** 左手 Two Bone IK 总开关；仅 LeftHand 静态 Binding 有效时为 true。 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter Left Hand IK")
 	bool bLeftHandIKEnabled = false;
+
+	/** 左手 IK 最终表现权重；换弹时平滑释放，结束后平滑恢复，不改变 Binding 有效性。 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Shooter Left Hand IK")
+	float LeftHandIKPresentationAlpha = 0.0f;
+
+	/** 进入换弹时把左手 IK 从当前权重释放到 0 所需的近似时长。 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter Left Hand IK",
+		meta = (ClampMin = "0.0", Units = "s"))
+	float LeftHandIKBlendOutTime = 0.10f;
+
+	/** Reload 曲线末段或换弹结束后，把左手 IK 恢复到目标权重所需的近似时长。 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter Left Hand IK",
+		meta = (ClampMin = "0.0", Units = "s"))
+	float LeftHandIKBlendInTime = 0.15f;
 
 	/** 角色 Mesh 上的手部 socket 名（与 FAnimNode_ShooterAimIK.HandBone 保持一致）。 */
 	UPROPERTY(EditAnywhere, Category = "Shooter Aim", meta = (DisplayName = "Hand Socket Name"))
@@ -162,6 +206,12 @@ protected:
 
 	/** 只组合静态 Binding 有效性与本帧动态瞄准输入有效性，不再解释网络角色。 */
 	void RefreshIKEnabled();
+
+	/** 根据 Reload 表现状态平滑更新左手 IK 最终权重。 */
+	void UpdateLeftHandIKPresentationAlpha(float DeltaSeconds);
+
+	/** 根据 Reload 表现状态平滑更新 hand_r 瞄准校正的最终权重。 */
+	void UpdateAimIKPresentationAlpha(float DeltaSeconds);
 
 	/** 当前表现身份弱引用；只用于身份比较与事件重放，不逐帧做结构扫描。 */
 	TWeakObjectPtr<AShooterWeapon> CachedPresentationWeapon;

@@ -3,7 +3,9 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "Misc/AutomationTest.h"
+#include "Animation/AnimBlueprint.h"
 #include "Animation/AnimInstance.h"
+#include "Animation/AnimSequence.h"
 #include "Characters/Animation/ShooterFirstPersonAnimInstance.h"
 #include "Characters/Animation/ShooterThirdPersonAnimInstance.h"
 #include "Components/SkeletalMeshComponent.h"
@@ -280,6 +282,45 @@ namespace ShooterWeaponAutomationTests
 
 		return true;
 	}
+
+	bool TestRifleReloadAnimationConfiguration(FAutomationTestBase& Test)
+	{
+		const UClass* RifleClass = LoadClass<AShooterWeapon>(
+			nullptr,
+			TEXT("/Game/Shooter/Blueprints/Weapons/BP_ShooterWeapon_Rifle.BP_ShooterWeapon_Rifle_C"));
+		if (!Test.TestNotNull(TEXT("Rifle class can be loaded for reload animation validation"), RifleClass))
+		{
+			return false;
+		}
+
+		const AShooterWeapon* RifleDefaults = RifleClass->GetDefaultObject<AShooterWeapon>();
+		const UAnimSequence* ReloadSequence = LoadObject<UAnimSequence>(
+			nullptr,
+			TEXT("/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_Reload.MM_Rifle_Reload"));
+		const UAnimBlueprint* RifleAnimBlueprint = LoadObject<UAnimBlueprint>(
+			nullptr,
+			TEXT("/Game/Shooter/Animation/ThirdPerson/ABP_TP_Rifle.ABP_TP_Rifle"));
+		if (!Test.TestNotNull(TEXT("Rifle reload sequence can be loaded"), ReloadSequence) ||
+			!Test.TestNotNull(TEXT("Rifle defaults can be loaded for reload animation validation"), RifleDefaults) ||
+			!Test.TestNotNull(TEXT("Rifle third-person AnimBP can be loaded"), RifleAnimBlueprint))
+		{
+			return false;
+		}
+
+		Test.TestTrue(
+			*FString::Printf(
+				TEXT("Rifle authoritative ReloadDuration (%.3fs) covers reload sequence (%.3fs)"),
+				RifleDefaults->GetReloadDuration(),
+				ReloadSequence->GetPlayLength()),
+			RifleDefaults->GetReloadDuration() + 0.01f >= ReloadSequence->GetPlayLength());
+
+		Test.TestTrue(
+			TEXT("Rifle reload sequence uses the third-person AnimBP target skeleton"),
+			RifleAnimBlueprint->TargetSkeleton &&
+			ReloadSequence->GetSkeleton() == RifleAnimBlueprint->TargetSkeleton);
+
+		return true;
+	}
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
@@ -303,6 +344,7 @@ bool FShooterWeaponConfigurationTest::RunTest(const FString& Parameters)
 	bSucceeded &= TestCharacterReplication(*this);
 	bSucceeded &= TestMatchStateReplication(*this);
 	bSucceeded &= TestAnimationConfiguration(*this);
+	bSucceeded &= TestRifleReloadAnimationConfiguration(*this);
 
 	return bSucceeded;
 }
