@@ -92,7 +92,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Aim", meta = (ClampMin = 0, ClampMax = 100))
 	float FiringRecoil = 0.0f;
 
-	/** Name of the first person muzzle socket where projectiles will spawn */
+	/** 第一/第三人称武器共用的枪口 Socket；权威弹丸优先从第三人称世界表现枪口生成。 */
 	UPROPERTY(EditAnywhere, Category="Aim")
 	FName MuzzleSocketName;
 

@@ -39,7 +39,7 @@ struct SHOOTGAME_API FAnimNode_ShooterAimIK : public FAnimNode_SkeletalControlBa
 
 	/** 单帧最大校正角（度） */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shooter Aim IK", meta = (PinHiddenByDefault, DisplayName = "Max Correction Angle", ClampMin = "0.0", ClampMax = "180.0"))
-	float MaxCorrectionAngle = 12.0f;
+	float MaxCorrectionAngle = 0.0f;
 
 	/** 目标至少位于预 IK 枪口沿基础视线前方该距离，避免目标进入枪口后方。 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shooter Aim IK", meta = (PinHiddenByDefault, DisplayName = "Minimum Target Distance From Muzzle", ClampMin = "0.0", Units = "cm"))

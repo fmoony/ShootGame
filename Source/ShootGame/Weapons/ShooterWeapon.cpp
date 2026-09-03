@@ -396,8 +396,12 @@ void AShooterWeapon::FireProjectile(const FVector& TargetLocation)
 
 FTransform AShooterWeapon::CalculateProjectileSpawnTransform(const FVector& TargetLocation) const
 {
-	// find the muzzle location
-	const FVector MuzzleLoc = FirstPersonMesh->GetSocketLocation(MuzzleSocketName);
+	// 弹丸是服务器权威的世界对象，生成基点应来自第三人称世界表现枪口。
+	// 第一人称网格只属于拥有者视图；远端玩家在服务器上的该网格并不是可靠的世界枪口来源。
+	// 旧资产若暂时没有第三人称 Muzzle socket，则保留第一人称回退，避免直接落到世界原点。
+	const FVector MuzzleLoc = HasThirdPersonMuzzleSocket()
+		? GetThirdPersonMuzzleWorldTransform().GetLocation()
+		: FirstPersonMesh->GetSocketLocation(MuzzleSocketName);
 	const FVector ControlForward = PawnOwner
 		? PawnOwner->GetControlRotation().Vector().GetSafeNormal()
 		: FVector::ZeroVector;

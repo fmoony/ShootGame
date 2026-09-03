@@ -42,6 +42,13 @@ namespace ShooterWeaponAutomationTests
 		Test.TestTrue(
 			FString::Printf(TEXT("%s magazine size is positive"), WeaponName),
 			WeaponDefaults->GetMagazineSize() > 0);
+		Test.TestTrue(
+			FString::Printf(TEXT("%s first-person mesh has configured muzzle socket"), WeaponName),
+			WeaponDefaults->GetFirstPersonMesh() &&
+			WeaponDefaults->GetFirstPersonMesh()->DoesSocketExist(WeaponDefaults->GetMuzzleSocketName()));
+		Test.TestTrue(
+			FString::Printf(TEXT("%s third-person mesh has authoritative muzzle socket"), WeaponName),
+			WeaponDefaults->HasThirdPersonMuzzleSocket());
 
 		const FProperty* CurrentBulletsProperty =
 			FindFProperty<FProperty>(WeaponClass, TEXT("CurrentBullets"));
