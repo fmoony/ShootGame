@@ -101,20 +101,23 @@ void FAnimNode_ShooterAimIK::EvaluateSkeletalControl_AnyThread(FComponentSpacePo
 		if (PreAimIKMuzzleWorld.IsValid())
 		{
 			const FVector BaseDirectionWorld = AimDirectionWorld.GetSafeNormal();
-			FVector SafeTargetWorld = AimTargetWorld;
-			const float TargetDepthFromMuzzle = FVector::DotProduct(
-				SafeTargetWorld - PreAimIKMuzzleWorld.GetLocation(),
-				BaseDirectionWorld);
-			if (TargetDepthFromMuzzle < MinimumTargetDistanceFromMuzzle)
+			FVector SafeTargetWorld;
+			float TargetDepthFromMuzzle = 0.0f;
+			bool bTargetProjected = false;
+			if (FShooterAimIKMath::ProjectTargetToMinimumForwardDepth(
+					AimTargetWorld,
+					PreAimIKMuzzleWorld.GetLocation(),
+					BaseDirectionWorld,
+					MinimumTargetDistanceFromMuzzle,
+					SafeTargetWorld,
+					TargetDepthFromMuzzle,
+					bTargetProjected))
 			{
-				SafeTargetWorld += BaseDirectionWorld *
-					(MinimumTargetDistanceFromMuzzle - TargetDepthFromMuzzle);
-			}
-
-			const FVector MuzzleToTarget = SafeTargetWorld - PreAimIKMuzzleWorld.GetLocation();
-			if (FShooterAimIKMath::IsFinite(MuzzleToTarget) && !MuzzleToTarget.IsNearlyZero())
-			{
-				DesiredAimDirectionWorld = MuzzleToTarget.GetSafeNormal();
+				const FVector MuzzleToTarget = SafeTargetWorld - PreAimIKMuzzleWorld.GetLocation();
+				if (!MuzzleToTarget.IsNearlyZero())
+				{
+					DesiredAimDirectionWorld = MuzzleToTarget.GetSafeNormal();
+				}
 			}
 		}
 	}

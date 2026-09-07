@@ -17,6 +17,22 @@
 class SHOOTGAME_API FShooterAimIKMath
 {
 public:
+	/** Shooter Aim IK 节点使用的枪口最小安全深度默认值。 */
+	static constexpr float DefaultMinimumTargetDistanceFromMuzzle = 50.0f;
+
+	/**
+	 * 将目标沿基础瞄准方向投影到指定 Origin 前方的最小深度。
+	 * 横向偏移保持不变；OutOriginalDepth 返回投影前的有符号前向深度。
+	 */
+	static bool ProjectTargetToMinimumForwardDepth(
+		const FVector& InTargetWorld,
+		const FVector& InOriginWorld,
+		const FVector& InForwardDirectionWorld,
+		float InMinimumDepth,
+		FVector& OutSafeTargetWorld,
+		float& OutOriginalDepth,
+		bool& bOutProjected);
+
 	/**
 	 * 计算施加给 HandBone 的最短校正旋转（Component Space）。
 	 *

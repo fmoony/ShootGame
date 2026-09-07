@@ -161,4 +161,46 @@ bool FShooterAimIKMathTest::RunTest(const FString& Parameters)
 	return true;
 }
 
+/** 视点与枪口共用的最小前向深度投影规则。 */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FShooterAimSafeTargetProjectionTest,
+	"ShootGame.Aim.IKMath.SafeTargetProjection",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FShooterAimSafeTargetProjectionTest::RunTest(const FString& Parameters)
+{
+	const FVector Origin(100.0, 200.0, 300.0);
+	const FVector Forward = FVector::ForwardVector;
+	FVector SafeTarget;
+	float OriginalDepth = 0.0f;
+	bool bProjected = false;
+
+	const FVector NearTarget = Origin + FVector(20.0, 35.0, -10.0);
+	TestTrue(
+		TEXT("近点输入有效"),
+		FShooterAimIKMath::ProjectTargetToMinimumForwardDepth(
+			NearTarget, Origin, Forward, 50.0f, SafeTarget, OriginalDepth, bProjected));
+	TestTrue(TEXT("近点发生投影"), bProjected);
+	TestTrue(TEXT("记录投影前深度"), FMath::IsNearlyEqual(OriginalDepth, 20.0f));
+	TestTrue(TEXT("投影到最小前向深度"), FMath::IsNearlyEqual(
+		FVector::DotProduct(SafeTarget - Origin, Forward), 50.0f));
+	TestTrue(TEXT("投影保留横向偏移"), FMath::IsNearlyEqual(SafeTarget.Y, NearTarget.Y));
+	TestTrue(TEXT("投影保留垂直偏移"), FMath::IsNearlyEqual(SafeTarget.Z, NearTarget.Z));
+
+	const FVector FarTarget = Origin + FVector(80.0, -15.0, 5.0);
+	TestTrue(
+		TEXT("远点输入有效"),
+		FShooterAimIKMath::ProjectTargetToMinimumForwardDepth(
+			FarTarget, Origin, Forward, 50.0f, SafeTarget, OriginalDepth, bProjected));
+	TestFalse(TEXT("远点不投影"), bProjected);
+	TestTrue(TEXT("远点保持不变"), SafeTarget.Equals(FarTarget));
+
+	TestFalse(
+		TEXT("零方向输入无效"),
+		FShooterAimIKMath::ProjectTargetToMinimumForwardDepth(
+			FarTarget, Origin, FVector::ZeroVector, 50.0f, SafeTarget, OriginalDepth, bProjected));
+
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS

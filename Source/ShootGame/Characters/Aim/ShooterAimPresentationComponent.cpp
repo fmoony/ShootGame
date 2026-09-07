@@ -3,6 +3,8 @@
 #include "Characters/Aim/ShooterAimPresentationComponent.h"
 
 #include "Camera/CameraComponent.h"
+#include "Characters/Animation/AnimNodes/ShooterAimIKMath.h"
+#include "Characters/Animation/ShooterThirdPersonAnimInstance.h"
 #include "Characters/ShooterCharacter.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "DrawDebugHelpers.h"
@@ -87,6 +89,66 @@ namespace ShooterAimPresentationDebug
 	{
 		return FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(
 			FVector::DotProduct(A, B), -1.0, 1.0)));
+	}
+
+	struct FAimSafetyDebugMetrics
+	{
+		FVector ViewSafeTarget = FVector::ZeroVector;
+		FVector FinalSafeTarget = FVector::ZeroVector;
+		double HitDistanceFromView = 0.0;
+		double HitDistanceFromMuzzle = 0.0;
+		float HitDepthFromView = 0.0f;
+		float HitDepthFromMuzzle = 0.0f;
+		float ViewSafeDepthFromMuzzle = 0.0f;
+		bool bWithinViewMinimum = false;
+		bool bWithinMuzzleMinimum = false;
+	};
+
+	bool ComputeAimSafetyDebugMetrics(
+		const FVector& HitTarget,
+		const FVector& ViewLocation,
+		const FVector& MuzzleLocation,
+		const FVector& BaseAimDirection,
+		float MinimumViewDepth,
+		float MinimumMuzzleDepth,
+		FAimSafetyDebugMetrics& OutMetrics)
+	{
+		OutMetrics = FAimSafetyDebugMetrics();
+		OutMetrics.HitDistanceFromView = FVector::Distance(HitTarget, ViewLocation);
+		OutMetrics.HitDistanceFromMuzzle = FVector::Distance(HitTarget, MuzzleLocation);
+		OutMetrics.HitDepthFromMuzzle = FVector::DotProduct(
+			HitTarget - MuzzleLocation,
+			BaseAimDirection.GetSafeNormal());
+
+		bool bViewProjected = false;
+		if (!FShooterAimIKMath::ProjectTargetToMinimumForwardDepth(
+				HitTarget,
+				ViewLocation,
+				BaseAimDirection,
+				MinimumViewDepth,
+				OutMetrics.ViewSafeTarget,
+				OutMetrics.HitDepthFromView,
+				bViewProjected))
+		{
+			return false;
+		}
+
+		bool bMuzzleProjected = false;
+		if (!FShooterAimIKMath::ProjectTargetToMinimumForwardDepth(
+				OutMetrics.ViewSafeTarget,
+				MuzzleLocation,
+				BaseAimDirection,
+				MinimumMuzzleDepth,
+				OutMetrics.FinalSafeTarget,
+				OutMetrics.ViewSafeDepthFromMuzzle,
+				bMuzzleProjected))
+		{
+			return false;
+		}
+
+		OutMetrics.bWithinViewMinimum = bViewProjected;
+		OutMetrics.bWithinMuzzleMinimum = bMuzzleProjected;
+		return true;
 	}
 }
 
@@ -300,25 +362,20 @@ void UShooterAimPresentationComponent::ResolveAimPresentationInput(
 	}
 
 	const FVector ViewWorldLocation = GetPresentationPawnViewLocation();
-	FVector SafeTargetWorld = SmoothedPresentationAimTarget;
-	if (!FMath::IsFinite(ViewWorldLocation.X) ||
-		!FMath::IsFinite(ViewWorldLocation.Y) ||
-		!FMath::IsFinite(ViewWorldLocation.Z) ||
-		!FMath::IsFinite(SafeTargetWorld.X) ||
-		!FMath::IsFinite(SafeTargetWorld.Y) ||
-		!FMath::IsFinite(SafeTargetWorld.Z))
+	// 距视点最小安全深度：近点目标沿基础视线向前投影，保留横向偏移。
+	FVector SafeTargetWorld;
+	float TargetDepthFromView = 0.0f;
+	bool bTargetProjected = false;
+	if (!FShooterAimIKMath::ProjectTargetToMinimumForwardDepth(
+			SmoothedPresentationAimTarget,
+			ViewWorldLocation,
+			BaseAimDirection,
+			MinimumTargetDistanceFromView,
+			SafeTargetWorld,
+			TargetDepthFromView,
+			bTargetProjected))
 	{
 		return;
-	}
-
-	// 距视点最小安全深度：近点目标沿基础视线向前投影，保留横向偏移。
-	const float TargetDepthFromView = FVector::DotProduct(
-		SafeTargetWorld - ViewWorldLocation,
-		BaseAimDirection);
-	if (TargetDepthFromView < MinimumTargetDistanceFromView)
-	{
-		SafeTargetWorld += BaseAimDirection *
-			(MinimumTargetDistanceFromView - TargetDepthFromView);
 	}
 
 	OutAimDirectionWorld = BaseAimDirection;
@@ -617,6 +674,37 @@ void UShooterAimPresentationComponent::DrawAimDebug() const
 		bPresentationAimTargetValid && IsValidPresentationAimTargetValue(SmoothedPresentationAimTarget);
 	const AShooterWeapon* Weapon = Character->GetCurrentWeapon();
 	const bool bHasMuzzle = Weapon && Weapon->HasThirdPersonMuzzleSocket();
+	const UShooterThirdPersonAnimInstance* ThirdPersonAnimInstance = Character->GetMesh()
+		? Cast<UShooterThirdPersonAnimInstance>(Character->GetMesh()->GetAnimInstance())
+		: nullptr;
+	const float MinimumViewDepth = ThirdPersonAnimInstance
+		? ThirdPersonAnimInstance->MinimumRemoteAimTargetDistanceFromView
+		: 150.0f;
+	const float MinimumMuzzleDepth = ThirdPersonAnimInstance
+		? ThirdPersonAnimInstance->MinimumRemoteAimTargetDistanceFromMuzzle
+		: FShooterAimIKMath::DefaultMinimumTargetDistanceFromMuzzle;
+	const FVector BaseAimDirection = ThirdPersonAnimInstance &&
+		FShooterAimIKMath::IsFinite(ThirdPersonAnimInstance->AimDirectionWorld) &&
+		!ThirdPersonAnimInstance->AimDirectionWorld.IsNearlyZero()
+		? ThirdPersonAnimInstance->AimDirectionWorld.GetSafeNormal()
+		: GetPresentationBaseAimRotation().Vector().GetSafeNormal();
+
+	FTransform MuzzleTransform = FTransform::Identity;
+	ShooterAimPresentationDebug::FAimSafetyDebugMetrics SafetyMetrics;
+	bool bSafetyMetricsValid = false;
+	if (bSmoothedTargetValid && bHasMuzzle)
+	{
+		MuzzleTransform = Weapon->GetThirdPersonMuzzleWorldTransform();
+		bSafetyMetricsValid = MuzzleTransform.IsValid() &&
+			ShooterAimPresentationDebug::ComputeAimSafetyDebugMetrics(
+				SmoothedPresentationAimTarget,
+				GetPresentationPawnViewLocation(),
+				MuzzleTransform.GetLocation(),
+				BaseAimDirection,
+				MinimumViewDepth,
+				MinimumMuzzleDepth,
+				SafetyMetrics);
+	}
 
 	// 模式 1：只选择本地视野最接近中心的一个远端角色，避免多世界、多角色调试线互相覆盖。
 	if (DebugMode == 1)
@@ -627,10 +715,9 @@ void UShooterAimPresentationComponent::DrawAimDebug() const
 		}
 
 		FString PoseText = FString::Printf(TEXT("POSE AUDIT  %s"), *Character->GetName());
-		if (bSmoothedTargetValid && bHasMuzzle)
+		if (bSafetyMetricsValid)
 		{
-			const FVector AimTarget = SmoothedPresentationAimTarget;
-			const FTransform MuzzleTransform = Weapon->GetThirdPersonMuzzleWorldTransform();
+			const FVector AimTarget = SafetyMetrics.FinalSafeTarget;
 			const FVector MuzzleLocation = MuzzleTransform.GetLocation();
 			const FVector TargetDelta = AimTarget - MuzzleLocation;
 			const double TargetRange = TargetDelta.Size();
@@ -656,8 +743,18 @@ void UShooterAimPresentationComponent::DrawAimDebug() const
 
 				PoseText += FString::Printf(
 					TEXT("\nDemand Yaw/Pitch=(%.1f, %.1f) deg")
-					TEXT("\nFinalMuzzle Angle=%.2f deg  Miss=%.1f cm  Range=%.1f cm"),
-					AimYaw, AimPitch, MuzzleAngle, MissDistance, TargetRange);
+					TEXT("\nFinalMuzzle Angle=%.2f deg  Miss=%.1f cm  SafeRange=%.1f cm")
+					TEXT("\nHitDist View=%.1f cm  Muzzle=%.1f cm")
+					TEXT("\nSafeDepth View=%.1f/%.1f Within=%d  Muzzle=%.1f/%.1f Within=%d"),
+					AimYaw, AimPitch, MuzzleAngle, MissDistance, TargetRange,
+					SafetyMetrics.HitDistanceFromView,
+					SafetyMetrics.HitDistanceFromMuzzle,
+					SafetyMetrics.HitDepthFromView,
+					MinimumViewDepth,
+					SafetyMetrics.bWithinViewMinimum ? 1 : 0,
+					SafetyMetrics.ViewSafeDepthFromMuzzle,
+					MinimumMuzzleDepth,
+					SafetyMetrics.bWithinMuzzleMinimum ? 1 : 0);
 			}
 		}
 		else
@@ -786,10 +883,9 @@ void UShooterAimPresentationComponent::DrawAimDebug() const
 			RawTarget.X, RawTarget.Y, RawTarget.Z);
 	}
 
-	if (bSmoothedTargetValid && bHasMuzzle)
+	if (bSafetyMetricsValid)
 	{
-		const FVector AimTarget = SmoothedPresentationAimTarget;
-		const FTransform MuzzleTransform = Weapon->GetThirdPersonMuzzleWorldTransform();
+		const FVector AimTarget = SafetyMetrics.FinalSafeTarget;
 		const FVector MuzzleLocation = MuzzleTransform.GetLocation();
 		const FVector TargetDelta = AimTarget - MuzzleLocation;
 		const double TargetRange = TargetDelta.Size();
@@ -809,9 +905,20 @@ void UShooterAimPresentationComponent::DrawAimDebug() const
 			DrawDebugLine(World, MuzzleLocation, ClosestPoint, FColor::Blue, false, 0.0f, 0, 0.0f);
 			DrawDebugLine(World, ClosestPoint, AimTarget, FColor::Red, false, 0.0f, 0, 0.0f);
 			DebugText += FString::Printf(
-				TEXT("\nRawVsSmooth=%.1f cm  Angle=%.2f deg  Miss=%.1f cm  Range=%.1f cm"),
-				bRawTargetValid ? FVector::Distance(RawTarget, AimTarget) : -1.0,
-				AngleDegrees, MissDistance, TargetRange);
+				TEXT("\nRawVsSmooth=%.1f cm  Angle=%.2f deg  Miss=%.1f cm  SafeRange=%.1f cm")
+				TEXT("\nHitDist View=%.1f cm  Muzzle=%.1f cm  HitMuzzleDepth=%.1f cm")
+				TEXT("\nSafeDepth View=%.1f/%.1f Within=%d  Muzzle=%.1f/%.1f Within=%d"),
+				bRawTargetValid ? FVector::Distance(RawTarget, SmoothedPresentationAimTarget) : -1.0,
+				AngleDegrees, MissDistance, TargetRange,
+				SafetyMetrics.HitDistanceFromView,
+				SafetyMetrics.HitDistanceFromMuzzle,
+				SafetyMetrics.HitDepthFromMuzzle,
+				SafetyMetrics.HitDepthFromView,
+				MinimumViewDepth,
+				SafetyMetrics.bWithinViewMinimum ? 1 : 0,
+				SafetyMetrics.ViewSafeDepthFromMuzzle,
+				MinimumMuzzleDepth,
+				SafetyMetrics.bWithinMuzzleMinimum ? 1 : 0);
 		}
 	}
 	else

@@ -218,6 +218,66 @@ bool FShooterLeftHandStablePoleTest::RunTest(const FString& Parameters)
 	return true;
 }
 
+/** 正常区域由当前动画肘点决定；历史 Pole 只能在接近共线时兜底。 */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FShooterLeftHandCurrentPosePoleTest,
+	"ShootGame.Aim.LeftHandCurrentPosePole",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FShooterLeftHandCurrentPosePoleTest::RunTest(const FString& Parameters)
+{
+	const FVector Root(0.0f, 0.0f, 0.0f);
+	const FVector Joint(30.0f, 12.0f, 4.0f);
+	const FVector Effector(52.0f, -8.0f, 10.0f);
+	FVector FirstJointTarget;
+	FVector FirstPole;
+	FVector SecondJointTarget;
+	FVector SecondPole;
+
+	TestTrue(
+		TEXT("current pose resolves with first initialization history"),
+		FShooterLeftHandIKMath::CalculateCurrentPoseJointTarget(
+			Root,
+			Joint,
+			Effector,
+			FVector(0.0f, 1.0f, 0.0f),
+			5.0f,
+			FirstJointTarget,
+			FirstPole));
+	TestTrue(
+		TEXT("current pose resolves with opposite initialization history"),
+		FShooterLeftHandIKMath::CalculateCurrentPoseJointTarget(
+			Root,
+			Joint,
+			Effector,
+			FVector(0.0f, -1.0f, 0.0f),
+			5.0f,
+			SecondJointTarget,
+			SecondPole));
+	TestTrue(
+		TEXT("reliable current elbow overrides opposite initialization histories"),
+		FirstJointTarget.Equals(SecondJointTarget, 1e-4f) &&
+		FirstPole.Equals(SecondPole, 1e-4f));
+
+	const FVector NearlyStraightJoint(30.0f, 0.1f, 0.0f);
+	TestTrue(
+		TEXT("previous pole resolves a nearly straight current pose"),
+		FShooterLeftHandIKMath::CalculateCurrentPoseJointTarget(
+			Root,
+			NearlyStraightJoint,
+			FVector(60.0f, 0.0f, 0.0f),
+			FVector(0.0f, -1.0f, 0.0f),
+			5.0f,
+			FirstJointTarget,
+			FirstPole));
+	TestTrue(TEXT("near-singular pose keeps previous pole side"), FirstPole.Y < 0.0f);
+	TestTrue(
+		TEXT("near-singular joint target keeps minimum lateral offset"),
+		FMath::Abs(FirstJointTarget.Y) >= 5.0f - KINDA_SMALL_NUMBER);
+
+	return true;
+}
+
 /**
  * 左手 IK 状态矩阵 / 握把缓存重建判定已迁移：
  * 原 IsLeftHandIKEnabledForState / ShouldRefreshLeftHandGripCache 随第三人称 IK Binding

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Characters/Animation/AnimNodes/ShooterAimIKMath.h"
 #include "Characters/Animation/ShooterAnimInstanceBase.h"
 #include "ShooterThirdPersonAnimInstance.generated.h"
 
@@ -42,9 +43,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter Aim", meta = (ClampMin = "0.0", Units = "cm"))
 	float MinimumRemoteAimTargetDistanceFromView = 150.0f;
 
-	/** 观察端安全姿势目标至少位于第三人称枪口前方该距离。 */
+	/** 观察端安全姿势目标至少位于第三人称枪口前方该距离；同时供 AnimNode 与 Debug 消费。 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter Aim", meta = (ClampMin = "0.0", Units = "cm"))
-	float MinimumRemoteAimTargetDistanceFromMuzzle = 50.0f;
+	float MinimumRemoteAimTargetDistanceFromMuzzle = FShooterAimIKMath::DefaultMinimumTargetDistanceFromMuzzle;
 
 	/** 第三人称 AimOffset 俯仰输入。 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter Aim")
@@ -157,7 +158,7 @@ public:
 		const FVector& SmoothedPresentationTarget,
 		bool bHasThirdPersonMuzzle,
 		float MinimumTargetDistanceFromView = 150.0f,
-		float MinimumTargetDistanceFromMuzzle = 50.0f);
+		float MinimumTargetDistanceFromMuzzle = FShooterAimIKMath::DefaultMinimumTargetDistanceFromMuzzle);
 
 	/** 读取角色 Mesh 指定 socket 的世界变换；无角色 / 无 socket 时回退 Identity。 */
 	UFUNCTION(BlueprintPure, Category = "Shooter Aim")

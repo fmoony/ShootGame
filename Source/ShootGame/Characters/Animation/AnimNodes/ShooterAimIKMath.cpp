@@ -12,6 +12,42 @@ bool FShooterAimIKMath::IsFinite(const FVector& InV)
 	return FMath::IsFinite(InV.X) && FMath::IsFinite(InV.Y) && FMath::IsFinite(InV.Z);
 }
 
+bool FShooterAimIKMath::ProjectTargetToMinimumForwardDepth(
+	const FVector& InTargetWorld,
+	const FVector& InOriginWorld,
+	const FVector& InForwardDirectionWorld,
+	float InMinimumDepth,
+	FVector& OutSafeTargetWorld,
+	float& OutOriginalDepth,
+	bool& bOutProjected)
+{
+	OutSafeTargetWorld = InTargetWorld;
+	OutOriginalDepth = 0.0f;
+	bOutProjected = false;
+
+	if (!IsFinite(InTargetWorld) ||
+		!IsFinite(InOriginWorld) ||
+		!IsFinite(InForwardDirectionWorld) ||
+		InForwardDirectionWorld.IsNearlyZero() ||
+		!FMath::IsFinite(InMinimumDepth))
+	{
+		return false;
+	}
+
+	const FVector ForwardDirectionWorld = InForwardDirectionWorld.GetSafeNormal();
+	const float MinimumDepth = FMath::Max(InMinimumDepth, 0.0f);
+	OutOriginalDepth = FVector::DotProduct(
+		InTargetWorld - InOriginWorld,
+		ForwardDirectionWorld);
+	if (OutOriginalDepth < MinimumDepth)
+	{
+		OutSafeTargetWorld += ForwardDirectionWorld * (MinimumDepth - OutOriginalDepth);
+		bOutProjected = true;
+	}
+
+	return IsFinite(OutSafeTargetWorld);
+}
+
 bool FShooterAimIKMath::SolveHandCorrection(
 	const FVector& InAimDirectionWorld,
 	const FTransform& InComponentTransform,

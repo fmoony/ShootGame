@@ -47,9 +47,15 @@ private:
 	FCompactPoseBoneIndex CachedUpperArmIndex = FCompactPoseBoneIndex(INDEX_NONE);
 	FCompactPoseBoneIndex CachedLowerArmIndex = FCompactPoseBoneIndex(INDEX_NONE);
 
-	/** 首次有效 Rifle 姿势在角色组件空间中的弯肘方向。 */
-	FVector CachedPreferredPoleDirectionCS = FVector::ZeroVector;
-
-	/** 上一帧已采用的 Pole 方向，用于跨越共线区时保持同一半球。 */
+	/** 上一帧已采用的 Pole 方向，只在当前动画肘点接近共线时兜底。 */
 	FVector PreviousPoleDirectionCS = FVector::ZeroVector;
+
+	/** 仅用于 ShootGame.LeftHandIK.Diag 的实例级日志节流。 */
+	uint32 DiagnosticEvaluationCounter = 0;
+
+	/** 上一次诊断求值的输入，用于区分目标跳变与基础姿势滞后；不参与 IK 求解。 */
+	bool bHasPreviousDiagnosticSample = false;
+	FVector PreviousDiagnosticDesiredHandLocationCS = FVector::ZeroVector;
+	FVector PreviousDiagnosticSourceHandLocationCS = FVector::ZeroVector;
+	FQuat PreviousDiagnosticRightHandRotationCS = FQuat::Identity;
 };

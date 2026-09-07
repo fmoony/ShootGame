@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "BoneControllers/AnimNode_SkeletalControlBase.h"
+#include "Characters/Animation/AnimNodes/ShooterAimIKMath.h"
 #include "AnimNode_ShooterAimIK.generated.h"
 
 /**
@@ -41,9 +42,9 @@ struct SHOOTGAME_API FAnimNode_ShooterAimIK : public FAnimNode_SkeletalControlBa
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shooter Aim IK", meta = (PinHiddenByDefault, DisplayName = "Max Correction Angle", ClampMin = "0.0", ClampMax = "180.0"))
 	float MaxCorrectionAngle = 0.0f;
 
-	/** 目标至少位于预 IK 枪口沿基础视线前方该距离，避免目标进入枪口后方。 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shooter Aim IK", meta = (PinHiddenByDefault, DisplayName = "Minimum Target Distance From Muzzle", ClampMin = "0.0", Units = "cm"))
-	float MinimumTargetDistanceFromMuzzle = 50.0f;
+	/** 目标至少位于预 IK 枪口沿基础视线前方该距离；应连接 AnimInstance 的同名配置。 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shooter Aim IK", meta = (PinShownByDefault, DisplayName = "Minimum Target Distance From Muzzle", ClampMin = "0.0", Units = "cm"))
+	float MinimumTargetDistanceFromMuzzle = FShooterAimIKMath::DefaultMinimumTargetDistanceFromMuzzle;
 
 public:
 	FAnimNode_ShooterAimIK();

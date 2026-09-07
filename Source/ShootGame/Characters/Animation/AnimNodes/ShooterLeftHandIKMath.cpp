@@ -59,6 +59,63 @@ bool FShooterLeftHandIKMath::CalculateSourcePoleDirection(
 	return OutPoleDirection.Normalize();
 }
 
+bool FShooterLeftHandIKMath::CalculateCurrentPoseJointTarget(
+	const FVector& RootLocation,
+	const FVector& JointLocation,
+	const FVector& EffectorLocation,
+	const FVector& PreviousPoleDirection,
+	float MinimumPoleOffset,
+	FVector& OutJointTarget,
+	FVector& OutPoleDirection)
+{
+	OutJointTarget = JointLocation;
+	OutPoleDirection = FVector::ZeroVector;
+	if (!IsFiniteVector(RootLocation) ||
+		!IsFiniteVector(JointLocation) ||
+		!IsFiniteVector(EffectorLocation) ||
+		!IsFiniteVector(PreviousPoleDirection))
+	{
+		return false;
+	}
+
+	const FVector DesiredDirection = (EffectorLocation - RootLocation).GetSafeNormal();
+	if (DesiredDirection.IsNearlyZero())
+	{
+		return false;
+	}
+
+	const FVector SourceJointDelta = JointLocation - RootLocation;
+	FVector CurrentBend = FVector::VectorPlaneProject(SourceJointDelta, DesiredDirection);
+	const float CurrentLateralOffset = CurrentBend.Size();
+	const float StablePoleOffset = FMath::Max(MinimumPoleOffset, 0.01f);
+	if (CurrentLateralOffset >= StablePoleOffset)
+	{
+		// 正常区域完全服从进入节点前的动画肘点，不继承 AnimInstance 的初始化历史。
+		CurrentBend /= CurrentLateralOffset;
+	}
+	else
+	{
+		FVector PreviousOnPlane = FVector::VectorPlaneProject(
+			PreviousPoleDirection,
+			DesiredDirection);
+		if (PreviousOnPlane.Normalize())
+		{
+			CurrentBend = PreviousOnPlane;
+		}
+		else if (!CurrentBend.Normalize())
+		{
+			return false;
+		}
+	}
+
+	const float JointAxisDistance = FVector::DotProduct(SourceJointDelta, DesiredDirection);
+	OutJointTarget = RootLocation +
+		DesiredDirection * JointAxisDistance +
+		CurrentBend * FMath::Max(CurrentLateralOffset, StablePoleOffset);
+	OutPoleDirection = CurrentBend;
+	return IsFiniteVector(OutJointTarget) && IsFiniteVector(OutPoleDirection);
+}
+
 bool FShooterLeftHandIKMath::CalculateLockedJointTarget(
 	const FVector& RootLocation,
 	const FVector& JointLocation,

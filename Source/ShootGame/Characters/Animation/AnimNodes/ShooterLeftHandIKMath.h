@@ -28,6 +28,19 @@ public:
 		FVector& OutPoleDirection);
 
 	/**
+	 * 直接用当前输入动画的真实肘点定义目标弯曲平面。
+	 * 只有肘点接近肩—目标腕轴、当前平面退化时，才延续上一帧 Pole。
+	 */
+	static bool CalculateCurrentPoseJointTarget(
+		const FVector& RootLocation,
+		const FVector& JointLocation,
+		const FVector& EffectorLocation,
+		const FVector& PreviousPoleDirection,
+		float MinimumPoleOffset,
+		FVector& OutJointTarget,
+		FVector& OutPoleDirection);
+
+	/**
 	 * 将缓存 Pole 投影到当前目标肩腕平面，并按上一帧方向锁定同一半球。
 	 * 这样快速横扫经过共线区时，Joint Target 不会突然换到手臂另一侧。
 	 */

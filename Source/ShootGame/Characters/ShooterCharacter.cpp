@@ -120,10 +120,17 @@ AShooterCharacter::AShooterCharacter()
 	FirstPersonCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("First Person Camera"));
 	FirstPersonCameraComponent->SetupAttachment(FirstPersonMesh, FName("head"));
 	FirstPersonCameraComponent->SetRelativeLocationAndRotation(FVector(-2.8f, 5.89f, 0.0f), FRotator(0.0f, 90.0f, -90.0f));
+
+	//// 摄像机必须独立于动画骨骼；否则 Reload / Aim 姿势会通过 head 骨骼推动本地视点。
+	//FirstPersonCameraComponent->SetupAttachment(GetCapsuleComponent());
+	//FirstPersonCameraComponent->SetRelativeLocationAndRotation(
+	//	FVector(0.0f, 0.0f, BaseEyeHeight),
+	//	FRotator::ZeroRotator);
 	FirstPersonCameraComponent->bUsePawnControlRotation = true;
 	FirstPersonCameraComponent->bEnableFirstPersonFieldOfView = true;
 	FirstPersonCameraComponent->bEnableFirstPersonScale = true;
-	FirstPersonCameraComponent->FirstPersonFieldOfView = 70.0f;
+	// 第一人称专用投影与世界 FOV 对齐，避免 70 度窄视角放大武器和换弹位移。
+	FirstPersonCameraComponent->FirstPersonFieldOfView = 90.0f;
 	FirstPersonCameraComponent->FirstPersonScale = 0.6f;
 
 	// configure the character comps

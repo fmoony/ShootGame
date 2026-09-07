@@ -197,6 +197,7 @@ int32 UShooterAnimBPGraphAuditCommandlet::Main(const FString& Params)
 
 	const TCHAR* TargetAssets[] = {
 		TEXT("/Game/Shooter/Animation/FirstPerson/ABP_FP_Weapon.ABP_FP_Weapon"),
+		TEXT("/Game/Shooter/Animation/FirstPerson/ABP_FP_Rifle.ABP_FP_Rifle"),
 		TEXT("/Game/Shooter/Animation/FirstPerson/ABP_FP_Pistol.ABP_FP_Pistol"),
 		TEXT("/Game/Shooter/Animation/ThirdPerson/ABP_TP_Rifle.ABP_TP_Rifle"),
 		TEXT("/Game/Shooter/Animation/ThirdPerson/ABP_TP_Pistol.ABP_TP_Pistol"),
