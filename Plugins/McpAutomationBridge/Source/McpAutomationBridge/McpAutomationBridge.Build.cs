@@ -20,7 +20,15 @@ public class McpAutomationBridge : ModuleRules
             "DeveloperSettings",
             "Json",
             "Projects",
-            "Sockets"
+            "Sockets",
+            "UnrealEd",
+            "BlueprintGraph",
+            "Kismet",
+            "KismetCompiler",
+            "BlueprintEditorLibrary",
+            "AssetTools",
+            "Slate",
+            "SlateCore"
         });
     }
 }

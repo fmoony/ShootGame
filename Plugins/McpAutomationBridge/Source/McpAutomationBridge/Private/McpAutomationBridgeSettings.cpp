@@ -5,13 +5,14 @@
 UMcpAutomationBridgeSettings::UMcpAutomationBridgeSettings()
 {
     NativeMCPInstructions = TEXT(
-        "Read-only Unreal project access. Use manage_asset for asset names and folders, "
-        "and manage_blueprint for Blueprint graphs, nodes, pins, and links.");
+        "Unreal editor access. Use manage_asset for asset discovery, manage_editor_settings for effective configuration, "
+        "and manage_blueprint to inspect/edit Blueprints, compile/save and capture graph screenshots. "
+        "Inspect existing graphs before changes. Run editor mutations sequentially. Graph edits remain unsaved until save_blueprint.");
 }
 
 FText UMcpAutomationBridgeSettings::GetSectionText() const
 {
-    return NSLOCTEXT("McpAutomationBridge", "SettingsSection", "MCP Automation Bridge (Read Only)");
+    return NSLOCTEXT("McpAutomationBridge", "SettingsSection", "MCP Automation Bridge");
 }
 
 #if WITH_EDITOR

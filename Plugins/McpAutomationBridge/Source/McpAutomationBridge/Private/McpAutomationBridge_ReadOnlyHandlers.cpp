@@ -3,13 +3,20 @@
 #include "AssetRegistry/AssetData.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "AssetRegistry/IAssetRegistry.h"
+#include "Animation/AnimBlueprint.h"
+#include "Animation/Skeleton.h"
 #include "EdGraph/EdGraph.h"
 #include "EdGraph/EdGraphNode.h"
 #include "EdGraph/EdGraphPin.h"
 #include "Engine/Blueprint.h"
+#include "Engine/BlueprintGeneratedClass.h"
+#include "Engine/SimpleConstructionScript.h"
+#include "Engine/SCS_Node.h"
+#include "Components/ActorComponent.h"
 #include "Misc/PackageName.h"
 #include "Modules/ModuleManager.h"
 #include "UObject/SoftObjectPath.h"
+#include "UObject/UnrealType.h"
 
 namespace
 {
@@ -126,22 +133,7 @@ void GatherBlueprintGraphs(UBlueprint* Blueprint, TArray<UEdGraph*>& OutGraphs)
     {
         return;
     }
-    for (UEdGraph* Graph : Blueprint->UbergraphPages)
-    {
-        if (Graph) OutGraphs.Add(Graph);
-    }
-    for (UEdGraph* Graph : Blueprint->FunctionGraphs)
-    {
-        if (Graph) OutGraphs.Add(Graph);
-    }
-    for (UEdGraph* Graph : Blueprint->MacroGraphs)
-    {
-        if (Graph) OutGraphs.Add(Graph);
-    }
-    for (UEdGraph* Graph : Blueprint->DelegateSignatureGraphs)
-    {
-        if (Graph) OutGraphs.Add(Graph);
-    }
+    Blueprint->GetAllGraphs(OutGraphs);
 }
 
 FString GraphKind(const UBlueprint* Blueprint, const UEdGraph* Graph)
@@ -199,12 +191,18 @@ UEdGraph* FindGraph(UBlueprint* Blueprint, const FString& GraphName)
     GatherBlueprintGraphs(Blueprint, Graphs);
     for (UEdGraph* Graph : Graphs)
     {
+        if (Graph && (Graph->GetPathName(Blueprint) == GraphName || Graph->GetPathName() == GraphName)) return Graph;
+    }
+    UEdGraph* Match = nullptr;
+    for (UEdGraph* Graph : Graphs)
+    {
         if (Graph && Graph->GetName().Equals(GraphName, ESearchCase::IgnoreCase))
         {
-            return Graph;
+            if (Match) return nullptr;
+            Match = Graph;
         }
     }
-    return nullptr;
+    return Match;
 }
 
 FString NodeGuidString(const UEdGraphNode* Node)
@@ -510,6 +508,75 @@ bool UMcpAutomationBridgeSubsystem::HandleManageBlueprint(
     TArray<UEdGraph*> AllGraphs;
     GatherBlueprintGraphs(Blueprint, AllGraphs);
 
+    if (Action == TEXT("get_class_defaults"))
+    {
+        UBlueprintGeneratedClass* GeneratedClass = Cast<UBlueprintGeneratedClass>(Blueprint->GeneratedClass);
+        if (!GeneratedClass)
+        {
+            SendAutomationError(RequestId, TEXT("Blueprint has no generated class; compile it first"), TEXT("CLASS_NOT_READY"));
+            return true;
+        }
+        UObject* Defaults = GeneratedClass->GetDefaultObject();
+        FString ComponentName;
+        FString PropertyName;
+        Payload->TryGetStringField(TEXT("componentName"), ComponentName);
+        Payload->TryGetStringField(TEXT("propertyName"), PropertyName);
+        TMap<FName, UObject*> Templates;
+        TArray<UObject*> NativeSubobjects;
+        Defaults->GetDefaultSubobjects(NativeSubobjects);
+        for (UObject* Subobject : NativeSubobjects)
+            if (Subobject) Templates.Add(Subobject->GetFName(), Subobject);
+        for (UClass* Class = GeneratedClass; Class; Class = Class->GetSuperClass())
+        {
+            const UBlueprint* ParentBlueprint = Cast<UBlueprint>(Class->ClassGeneratedBy);
+            if (!ParentBlueprint || !ParentBlueprint->SimpleConstructionScript) continue;
+            for (USCS_Node* SCSNode : ParentBlueprint->SimpleConstructionScript->GetAllNodes())
+            {
+                if (SCSNode && !Templates.Contains(SCSNode->GetVariableName()))
+                    Templates.Add(SCSNode->GetVariableName(), SCSNode->GetActualComponentTemplate(GeneratedClass));
+            }
+        }
+        if (!ComponentName.IsEmpty())
+        {
+            UObject** Template = Templates.Find(FName(*ComponentName));
+            Defaults = Template ? *Template : nullptr;
+            if (!Defaults)
+            {
+                SendAutomationError(RequestId, TEXT("Component template not found; omit componentName to list available templates"), TEXT("COMPONENT_NOT_FOUND"));
+                return true;
+            }
+        }
+        TArray<TSharedPtr<FJsonValue>> Properties;
+        for (TFieldIterator<FProperty> It(Defaults->GetClass()); It; ++It)
+        {
+            FProperty* Property = *It;
+            if (!Property->HasAnyPropertyFlags(CPF_Edit | CPF_BlueprintVisible) ||
+                (!PropertyName.IsEmpty() && Property->GetName() != PropertyName)) continue;
+            FString Value;
+            Property->ExportText_InContainer(0, Value, Defaults, Defaults, Defaults, PPF_None);
+            TSharedPtr<FJsonObject> Entry = MakeShared<FJsonObject>();
+            Entry->SetStringField(TEXT("name"), Property->GetName());
+            Entry->SetStringField(TEXT("type"), Property->GetCPPType());
+            Entry->SetStringField(TEXT("valueText"), Value);
+            Properties.Add(MakeShared<FJsonValueObject>(Entry));
+        }
+        TArray<FName> Names;
+        Templates.GetKeys(Names);
+        Names.Sort(FNameLexicalLess());
+        TArray<TSharedPtr<FJsonValue>> Components;
+        for (FName Name : Names) Components.Add(MakeShared<FJsonValueString>(Name.ToString()));
+        TSharedPtr<FJsonObject> Result = MakeShared<FJsonObject>();
+        Result->SetStringField(TEXT("blueprintPath"), Blueprint->GetPathName());
+        Result->SetStringField(TEXT("source"), ComponentName.IsEmpty() ? TEXT("blueprint_class_default_object") : TEXT("blueprint_component_template"));
+        Result->SetStringField(TEXT("objectPath"), Defaults->GetPathName());
+        Result->SetBoolField(TEXT("found"), PropertyName.IsEmpty() || !Properties.IsEmpty());
+        Result->SetBoolField(TEXT("packageDirty"), Blueprint->GetOutermost()->IsDirty());
+        Result->SetArrayField(TEXT("components"), Components);
+        Result->SetArrayField(TEXT("properties"), Properties);
+        SendAutomationResponse(RequestId, true, TEXT("Blueprint configured defaults read; these are templates, not live actor values"), Result);
+        return true;
+    }
+
     if (Action == TEXT("get_blueprint"))
     {
         TArray<TSharedPtr<FJsonValue>> GraphValues;
@@ -517,6 +584,8 @@ bool UMcpAutomationBridgeSubsystem::HandleManageBlueprint(
         {
             TSharedPtr<FJsonObject> GraphJson = MakeShared<FJsonObject>();
             GraphJson->SetStringField(TEXT("name"), Graph->GetName());
+            GraphJson->SetStringField(TEXT("graphPath"), Graph->GetPathName(Blueprint));
+            GraphJson->SetStringField(TEXT("class"), Graph->GetClass()->GetPathName());
             GraphJson->SetStringField(TEXT("type"), GraphKind(Blueprint, Graph));
             GraphJson->SetNumberField(TEXT("nodeCount"), Graph->Nodes.Num());
             GraphValues.Add(MakeShared<FJsonValueObject>(GraphJson));
@@ -527,6 +596,11 @@ bool UMcpAutomationBridgeSubsystem::HandleManageBlueprint(
         Result->SetStringField(TEXT("path"), Blueprint->GetPathName());
         Result->SetNumberField(TEXT("graphCount"), GraphValues.Num());
         Result->SetArrayField(TEXT("graphs"), GraphValues);
+        if (UAnimBlueprint* AnimBP = Cast<UAnimBlueprint>(Blueprint))
+        {
+            Result->SetStringField(TEXT("skeleton"), GetPathNameSafe(AnimBP->TargetSkeleton));
+            Result->SetBoolField(TEXT("isTemplate"), AnimBP->bIsTemplate);
+        }
         if (Blueprint->ParentClass)
         {
             Result->SetStringField(TEXT("parentClass"), Blueprint->ParentClass->GetPathName());
@@ -606,6 +680,15 @@ bool UMcpAutomationBridgeSubsystem::HandleManageBlueprint(
         if (Action == TEXT("get_node_details"))
         {
             TSharedPtr<FJsonObject> Result = NodeToJson(Node, true);
+            TSharedPtr<FJsonObject> Settings = MakeShared<FJsonObject>();
+            for (TFieldIterator<FProperty> It(Node->GetClass()); It; ++It)
+            {
+                if (!It->HasAnyPropertyFlags(CPF_Edit) || It->HasAnyPropertyFlags(CPF_Transient)) continue;
+                FString Value;
+                It->ExportText_InContainer(0, Value, Node, Node, Node, PPF_None);
+                Settings->SetStringField(It->GetName(), Value);
+            }
+            Result->SetObjectField(TEXT("editableProperties"), Settings);
             Result->SetStringField(TEXT("blueprintPath"), Blueprint->GetPathName());
             Result->SetStringField(TEXT("graphName"), OwningGraph->GetName());
             SendAutomationResponse(RequestId, true, TEXT("Blueprint node inspected"), Result);

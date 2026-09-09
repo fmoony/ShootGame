@@ -11,6 +11,7 @@ bool IsCanonicalMcpToolName(const FString& Name)
 		TEXT("manage_tools"),
 		TEXT("manage_asset"),
 		TEXT("manage_blueprint"),
+		TEXT("manage_editor_settings"),
 		TEXT("control_actor"),
 		TEXT("control_editor"),
 		TEXT("manage_level"),

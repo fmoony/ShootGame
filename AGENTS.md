@@ -37,6 +37,8 @@ Source/ShootGame/
 
 ## 文档入口
 
+- [MCP 外部 Agent 使用契约与能力边界](Plugins/McpAutomationBridge/EXTERNAL_AGENT_GUIDE.md)：工具调用前必读；包含接口全表、读写与保存边界、动画复制限制、失败重试规则及验证范围。
+- [全量回归 AnimClassMapping 失败分析](Docs/全量回归AnimClassMapping失败分析.md)：2026-09-09 只读调查，区分已提交的 Rifle FP 配置与冻结测试基线，未实施修复。
 - [Shooter 模板蓝图分析](Docs/Shooter模板蓝图分析.md)：说明 Shooter 模板中的第一/第三人称动画蓝图、Control Rig、武器蓝图及其网络职责边界。
 - [FirstPerson 清理与架构审计](Docs/FirstPerson清理与架构审计.md)：记录旧模板资产依赖闭包、根目录 C++ 类去留和分步清理顺序。
 - [Shooter 完整 Demo 最终路线规划](Docs/执行计划/Shooter完整Demo最终路线规划.md)：记录最终 Demo 目标、系统边界、推荐实施顺序与当前阶段。

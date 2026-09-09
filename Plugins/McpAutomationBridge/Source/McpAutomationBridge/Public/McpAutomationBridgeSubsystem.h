@@ -60,6 +60,12 @@ private:
         const FString& RequestId,
         const TSharedPtr<FJsonObject>& Payload);
 
+    /** 在游戏线程执行蓝图编辑、编译保存和图表截图。 */
+    bool HandleBlueprintEdit(const FString& RequestId, const TSharedPtr<FJsonObject>& Payload);
+
+    /** 读取已加载的配置缓存及配置对象当前值，不写入配置。 */
+    bool HandleEditorSettings(const FString& RequestId, const TSharedPtr<FJsonObject>& Payload);
+
     TArray<FPendingRequest> PendingRequests;
     FCriticalSection PendingRequestsMutex;
     FTSTicker::FDelegateHandle TickHandle;

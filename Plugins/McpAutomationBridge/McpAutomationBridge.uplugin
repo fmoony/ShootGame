@@ -1,9 +1,9 @@
 {
   "FileVersion": 3,
-  "Version": 4,
-  "VersionName": "0.2.0-readonly",
-  "FriendlyName": "MCP Automation Bridge (Read Only)",
-  "Description": "Minimal editor-only MCP bridge for reading project assets, Content Browser folders, and Blueprint graphs.",
+  "Version": 5,
+  "VersionName": "0.3.0-editor-tools",
+  "FriendlyName": "MCP Automation Bridge",
+  "Description": "Editor-only MCP bridge for asset discovery, effective settings, Blueprint editing and graph screenshots on UE 5.6.",
   "Category": "Editor|Automation|AI",
   "CreatedBy": "ChiR24 / local minimal build",
   "CanContainContent": false,

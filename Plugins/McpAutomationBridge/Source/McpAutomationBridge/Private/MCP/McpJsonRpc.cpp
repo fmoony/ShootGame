@@ -108,10 +108,6 @@ TSharedPtr<FJsonObject> FMcpJsonRpc::BuildToolResult(
 	if (bSuccess)
 	{
 		Text = Message;
-		if (Data.IsValid())
-		{
-			Text += TEXT("\n\n") + JsonToString(Data);
-		}
 	}
 	else
 	{
@@ -123,6 +119,11 @@ TSharedPtr<FJsonObject> FMcpJsonRpc::BuildToolResult(
 		{
 			Text = FString::Printf(TEXT("Error [%s]: %s"), *ErrorCode, *Message);
 		}
+	}
+	// 编译/保存失败也必须保留诊断与已完成步骤，避免客户端误判资产状态。
+	if (Data.IsValid())
+	{
+		Text += TEXT("\n\n") + JsonToString(Data);
 	}
 
 	auto TextContent = MakeShared<FJsonObject>();

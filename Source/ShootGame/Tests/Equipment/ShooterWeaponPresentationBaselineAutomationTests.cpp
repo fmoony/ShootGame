@@ -67,7 +67,7 @@ bool FShooterWeaponPresentationAnimClassMappingTest::RunTest(const FString& Para
 		{
 			TEXT("/Game/Shooter/Blueprints/Weapons/BP_ShooterWeapon_Rifle.BP_ShooterWeapon_Rifle_C"),
 			TEXT("Rifle"),
-			TEXT("/Game/Shooter/Animation/FirstPerson/ABP_FP_Weapon.ABP_FP_Weapon_C"),
+			TEXT("/Game/Shooter/Animation/FirstPerson/ABP_FP_Rifle.ABP_FP_Rifle_C"),
 			TEXT("/Game/Shooter/Animation/ThirdPerson/ABP_TP_Rifle.ABP_TP_Rifle_C"),
 		},
 		{

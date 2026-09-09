@@ -4,7 +4,7 @@
 #include "Engine/DeveloperSettings.h"
 #include "McpAutomationBridgeSettings.generated.h"
 
-UCLASS(config=Game, defaultconfig, meta=(DisplayName="MCP Automation Bridge (Read Only)"))
+UCLASS(config=Game, defaultconfig, meta=(DisplayName="MCP Automation Bridge"))
 class MCPAUTOMATIONBRIDGE_API UMcpAutomationBridgeSettings : public UDeveloperSettings
 {
     GENERATED_BODY()

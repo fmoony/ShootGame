@@ -36,7 +36,7 @@ void UMcpAutomationBridgeSubsystem::Initialize(FSubsystemCollectionBase& Collect
                 Settings->bAllowNonLoopback))
         {
             UE_LOG(LogMcpAutomationBridgeSubsystem, Error,
-                TEXT("Failed to start read-only MCP server on %s:%d"),
+                TEXT("Failed to start MCP server on %s:%d"),
                 *Settings->ListenHost, Settings->NativeMCPPort);
             NativeTransport.Reset();
         }
@@ -115,13 +115,22 @@ void UMcpAutomationBridgeSubsystem::ProcessAutomationRequest(
 
     if (Action.Equals(TEXT("manage_blueprint"), ESearchCase::IgnoreCase))
     {
-        HandleManageBlueprint(RequestId, Payload);
+        if (!HandleBlueprintEdit(RequestId, Payload))
+        {
+            HandleManageBlueprint(RequestId, Payload);
+        }
+        return;
+    }
+
+    if (Action.Equals(TEXT("manage_editor_settings"), ESearchCase::IgnoreCase))
+    {
+        HandleEditorSettings(RequestId, Payload);
         return;
     }
 
     SendAutomationError(
         RequestId,
-        FString::Printf(TEXT("Unsupported read-only action: %s"), *Action),
+        FString::Printf(TEXT("Unsupported action: %s"), *Action),
         TEXT("ACTION_NOT_SUPPORTED"));
 }
 
