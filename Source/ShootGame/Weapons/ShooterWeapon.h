@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "ShooterAnimNotify_WeaponSound.h"
 #include "ShooterWeaponHolder.h"
 #include "Animation/AnimInstance.h"
 #include "ShooterWeapon.generated.h"
@@ -75,6 +76,18 @@ protected:
 	/** Sound to play when firing this weapon */
 	UPROPERTY(EditAnywhere, Category="Animation")
 	TObjectPtr<USoundBase> FireSound;
+
+	/** 换弹表现音效：弹匣退出阶段；由换弹 Sequence 内的 WeaponSound Notify 在各端本地触发。 */
+	UPROPERTY(EditAnywhere, Category="Sound")
+	TObjectPtr<USoundBase> ReloadMagazineOutSound;
+
+	/** 换弹表现音效：弹匣插入阶段。 */
+	UPROPERTY(EditAnywhere, Category="Sound")
+	TObjectPtr<USoundBase> ReloadMagazineInSound;
+
+	/** 换弹表现音效：拉枪机上膛阶段。 */
+	UPROPERTY(EditAnywhere, Category="Sound")
+	TObjectPtr<USoundBase> ReloadCockingSound;
 
 	/** AnimInstance class to set for the first person character mesh when this weapon is active */
 	UPROPERTY(EditAnywhere, Category="Animation")
@@ -241,6 +254,11 @@ public:
 
 	/** 返回服务器权威换弹事务等待时长。 */
 	float GetReloadDuration() const { return ReloadDuration; }
+
+	/** 在第三人称武器 Mesh 的 Muzzle Socket 位置本地播放指定阶段的换弹音效。
+	 *  纯本地表现，不经网络；各端由各自同步播放的换弹动画 Notify 触发。 */
+	UFUNCTION(BlueprintCallable, Category="Weapon")
+	void PlayReloadSoundStage(EShooterReloadSoundStage Stage);
 
 	/** 返回服务器权威切枪事务等待时长。 */
 	float GetEquipDuration() const { return EquipDuration; }

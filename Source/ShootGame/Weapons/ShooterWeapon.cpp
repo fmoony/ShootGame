@@ -5,6 +5,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/World.h"
+#include "ShootGame.h"
 #include "Characters/Equipment/ShooterEquipmentComponent.h"
 #include "ShooterCharacter.h"
 #include "ShooterInventoryComponent.h"
@@ -462,6 +463,45 @@ void AShooterWeapon::MulticastPlayFiringFX_Implementation()
 			FVector::ZeroVector, FRotator::ZeroRotator,
 			EAttachLocation::SnapToTarget, true);
 	}
+}
+
+void AShooterWeapon::PlayReloadSoundStage(EShooterReloadSoundStage Stage)
+{
+	// Dedicated 服务器没有监听者；换弹音效是可丢失的纯本地表现，各端各自触发。
+	if (IsRunningDedicatedServer())
+	{
+		return;
+	}
+
+	USoundBase* StageSound = nullptr;
+	switch (Stage)
+	{
+	case EShooterReloadSoundStage::MagazineOut:
+		StageSound = ReloadMagazineOutSound;
+		break;
+	case EShooterReloadSoundStage::MagazineIn:
+		StageSound = ReloadMagazineInSound;
+		break;
+	case EShooterReloadSoundStage::Cocking:
+		StageSound = ReloadCockingSound;
+		break;
+	}
+
+	// NoSound 网络会话下核对各端 Notify 触发时序的日志标记（含未配置音效的情况）。
+	UE_LOG(LogShootGame, Log, TEXT("%s: Reload sound stage %d triggered (Sound=%s)"),
+		*GetNameSafe(this), static_cast<int32>(Stage), *GetNameSafe(StageSound));
+
+	if (!StageSound || !ThirdPersonMesh)
+	{
+		return;
+	}
+
+	// 挂在第三人称武器 Mesh 的 Muzzle Socket（骨骼位置）上，随换弹动画移动；
+	// 本地与远端共用同一路径，距离衰减由音频系统处理。
+	UGameplayStatics::SpawnSoundAttached(
+		StageSound, ThirdPersonMesh, MuzzleSocketName,
+		FVector::ZeroVector, FRotator::ZeroRotator,
+		EAttachLocation::SnapToTargetIncludingScale, true);
 }
 
 const TSubclassOf<UAnimInstance>& AShooterWeapon::GetFirstPersonAnimInstanceClass() const

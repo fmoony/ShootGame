@@ -16,6 +16,7 @@
 #include "ShooterPlayerState.h"
 #include "ShooterProjectile.h"
 #include "ShooterWeapon.h"
+#include "Weapons/ShooterAnimNotify_WeaponSound.h"
 
 namespace ShooterWeaponAutomationTests
 {
@@ -92,6 +93,23 @@ namespace ShooterWeaponAutomationTests
 			FireSoundProperty
 				? FireSoundProperty->GetObjectPropertyValue_InContainer(WeaponDefaults)
 				: nullptr);
+
+		// 换弹音效配置：三个阶段都由武器蓝图声明资源，Notify 只在本端触发播放。
+		const TCHAR* ReloadSoundProperties[] = {
+			TEXT("ReloadMagazineOutSound"),
+			TEXT("ReloadMagazineInSound"),
+			TEXT("ReloadCockingSound"),
+		};
+		for (const TCHAR* PropertyName : ReloadSoundProperties)
+		{
+			const FObjectPropertyBase* ReloadSoundProperty =
+				FindFProperty<FObjectPropertyBase>(WeaponClass, PropertyName);
+			Test.TestNotNull(
+				FString::Printf(TEXT("%s has %s configured"), WeaponName, PropertyName),
+				ReloadSoundProperty
+					? ReloadSoundProperty->GetObjectPropertyValue_InContainer(WeaponDefaults)
+					: nullptr);
+		}
 
 		const FClassProperty* ProjectileClassProperty =
 			FindFProperty<FClassProperty>(WeaponClass, TEXT("ProjectileClass"));
@@ -328,6 +346,56 @@ namespace ShooterWeaponAutomationTests
 
 		return true;
 	}
+
+	bool TestReloadSequenceSoundNotifies(FAutomationTestBase& Test)
+	{
+		// 换弹音效由序列内 WeaponSound Notify 在各端本地触发；
+		// 序列资产无法用 MCP 只读校验，这里直接检查 Notifies 数组补上验证缺口。
+		struct FReloadSequencePath
+		{
+			const TCHAR* Name;
+			const TCHAR* Path;
+		};
+		const FReloadSequencePath Sequences[] = {
+			{TEXT("Rifle"), TEXT("/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_Reload.MM_Rifle_Reload")},
+			{TEXT("Pistol"), TEXT("/Game/Characters/Mannequins/Anims/Pistol/MM_Pistol_Reload.MM_Pistol_Reload")},
+		};
+
+		for (const FReloadSequencePath& Sequence : Sequences)
+		{
+			const UAnimSequence* ReloadSequence = LoadObject<UAnimSequence>(nullptr, Sequence.Path);
+			if (!Test.TestNotNull(
+				FString::Printf(TEXT("%s reload sequence can be loaded"), Sequence.Name),
+				ReloadSequence))
+			{
+				return false;
+			}
+
+			bool bStageSeen[static_cast<int32>(EShooterReloadSoundStage::Cocking) + 1] = {false};
+			for (const FAnimNotifyEvent& NotifyEvent : ReloadSequence->Notifies)
+			{
+				// NotifyState 与其他类型的 Notify 一并遍历，只统计 WeaponSound 实例。
+				const UShooterAnimNotify_WeaponSound* WeaponSoundNotify =
+					Cast<UShooterAnimNotify_WeaponSound>(NotifyEvent.Notify);
+				if (WeaponSoundNotify)
+				{
+					bStageSeen[static_cast<int32>(WeaponSoundNotify->Stage)] = true;
+				}
+			}
+
+			const TCHAR* StageNames[] = {TEXT("MagazineOut"), TEXT("MagazineIn"), TEXT("Cocking")};
+			for (int32 StageIndex = 0; StageIndex < UE_ARRAY_COUNT(StageNames); ++StageIndex)
+			{
+				Test.TestTrue(
+					FString::Printf(
+						TEXT("%s reload sequence covers %s weapon sound notify"),
+						Sequence.Name, StageNames[StageIndex]),
+					bStageSeen[StageIndex]);
+			}
+		}
+
+		return true;
+	}
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
@@ -352,6 +420,7 @@ bool FShooterWeaponConfigurationTest::RunTest(const FString& Parameters)
 	bSucceeded &= TestMatchStateReplication(*this);
 	bSucceeded &= TestAnimationConfiguration(*this);
 	bSucceeded &= TestRifleReloadAnimationConfiguration(*this);
+	bSucceeded &= TestReloadSequenceSoundNotifies(*this);
 
 	return bSucceeded;
 }
