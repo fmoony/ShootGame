@@ -10,6 +10,12 @@
 class AShooterWeapon;
 class AShooterCharacter;
 
+namespace ShooterInventory
+{
+	/** 初始备弹解析：武器显式声明 InitialReserveAmmo >=0 时直接采用；-1 保持 MagazineSize×3 兼容基线。 */
+	SHOOTGAME_API int32 GetInitialReserveAmmoForWeaponClass(TSubclassOf<AShooterWeapon> WeaponClass);
+}
+
 DECLARE_MULTICAST_DELEGATE_OneParam(FShooterInventoryWeaponRemovedDelegate, const FGuid&);
 DECLARE_MULTICAST_DELEGATE(FShooterInventoryClearedDelegate);
 

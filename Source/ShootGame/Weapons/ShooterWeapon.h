@@ -58,6 +58,12 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Ammo", meta = (ClampMin = 0, ClampMax = 100))
 	int32 MagazineSize = 10;
 
+	/** 有限备弹声明：本武器弹药经济是封闭模型——入库时按该值授予初始 ReserveAmmo，
+	 *  换弹只消耗备弹、不回复，备弹耗尽（ReserveAmmo <= 0）后换弹 Ability 直接拒绝。
+	 *  -1 表示自动（MagazineSize × 3，兼容既有资产基线）；>=0 为显式有限备弹值。 */
+	UPROPERTY(EditAnywhere, Category="Ammo", meta = (ClampMin = -1, ClampMax = 999))
+	int32 InitialReserveAmmo = -1;
+
 	/** 兼容镜像：Inventory 建立后复制 Inventory.MagazineAmmo；未绑定的旧路径仍直接使用该字段。 */
 	UPROPERTY(ReplicatedUsing=OnRep_CurrentBullets, VisibleAnywhere, Category="Ammo")
 	int32 CurrentBullets = 0;
@@ -279,6 +285,12 @@ public:
 
 	/** Returns the current bullet count；绑定 Inventory 时从 MagazineAmmo 读取。 */
 	int32 GetBulletCount() const;
+
+	/** 返回初始备弹声明值；-1 表示自动（MagazineSize × 3），>=0 为显式有限值。 */
+	int32 GetInitialReserveAmmo() const { return InitialReserveAmmo; }
+
+	/** 返回当前备弹；绑定 Inventory 时从权威 ReserveAmmo 读取，未绑定旧路径没有备弹概念、返回 0。 */
+	int32 GetReserveAmmo() const;
 
 	/** 返回绑定的 WeaponInstance ID；无效表示尚未接入 Inventory 的兼容路径。 */
 	FGuid GetBoundInstanceId() const { return BoundInstanceId; }

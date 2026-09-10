@@ -22,9 +22,17 @@ namespace ShooterInventory
 
 	int32 GetInitialReserveAmmoForWeaponClass(TSubclassOf<AShooterWeapon> WeaponClass)
 	{
-		// 兼容桥接：Definition 未落地前，备用弹药先按弹匣容量估算；后续由 WeaponDefinition 取代。
-		const AShooterWeapon* WeaponDefaults = WeaponClass->GetDefaultObject<AShooterWeapon>();
-		return WeaponDefaults ? FMath::Max(0, WeaponDefaults->GetMagazineSize() * 3) : 0;
+		// 有限备弹声明：武器显式配置 >=0 时直接采用；-1 保持 MagazineSize×3 的兼容基线。
+		const AShooterWeapon* WeaponDefaults = WeaponClass ? WeaponClass->GetDefaultObject<AShooterWeapon>() : nullptr;
+		if (!WeaponDefaults)
+		{
+			return 0;
+		}
+
+		const int32 DeclaredReserveAmmo = WeaponDefaults->GetInitialReserveAmmo();
+		return DeclaredReserveAmmo >= 0
+			? DeclaredReserveAmmo
+			: FMath::Max(0, WeaponDefaults->GetMagazineSize() * 3);
 	}
 }
 

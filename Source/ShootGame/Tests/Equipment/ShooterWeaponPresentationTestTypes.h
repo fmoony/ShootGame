@@ -154,7 +154,7 @@ class UShooterBulletCountEventTestListener : public UObject
 
 public:
 	UFUNCTION()
-	void HandleBulletCountUpdated(int32 MagazineSize, int32 Bullets)
+	void HandleBulletCountUpdated(int32 MagazineSize, int32 Bullets, int32 ReserveAmmo)
 	{
 		++EventCount;
 	}

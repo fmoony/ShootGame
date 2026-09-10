@@ -21,7 +21,14 @@ class UShooterAimPresentationComponent;
 struct FInputActionValue;
 struct FOnAttributeChangeData;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FBulletCountUpdatedDelegate, int32, MagazineSize, int32, Bullets);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(
+	FBulletCountUpdatedDelegate,
+	int32,
+	MagazineSize,
+	int32,
+	Bullets,
+	int32,
+	ReserveAmmo);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
 	FShooterWeaponPresentationChangedDelegate,
 	AShooterWeapon*,
@@ -335,7 +342,7 @@ public:
 	virtual void AddWeaponRecoil(float Recoil) override;
 
 	/** Updates the weapon's HUD with the current ammo count */
-	virtual void UpdateWeaponHUD(int32 CurrentAmmo, int32 MagazineSize) override;
+	virtual void UpdateWeaponHUD(int32 CurrentAmmo, int32 MagazineSize, int32 ReserveAmmo) override;
 
 	/** Calculates and returns the aim location for the weapon */
 	virtual FVector GetWeaponTargetLocation() override;

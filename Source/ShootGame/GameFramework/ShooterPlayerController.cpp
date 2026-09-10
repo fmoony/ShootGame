@@ -160,7 +160,7 @@ void AShooterPlayerController::BindToShooterCharacter(AShooterCharacter* Shooter
 	OnPawnDamaged(BoundShooterCharacter->GetHealthRatio());
 	if (const AShooterWeapon* Weapon = BoundShooterCharacter->GetCurrentWeapon())
 	{
-		OnBulletCountUpdated(Weapon->GetMagazineSize(), Weapon->GetBulletCount());
+		OnBulletCountUpdated(Weapon->GetMagazineSize(), Weapon->GetBulletCount(), Weapon->GetReserveAmmo());
 	}
 }
 
@@ -208,7 +208,7 @@ void AShooterPlayerController::OnPawnDestroyed(AActor* DestroyedActor)
 	// 只有本地控制器拥有 HUD；服务器复活由 ShooterGameMode 统一负责。
 	if (IsLocalController() && IsValid(BulletCounterUI))
 	{
-		BulletCounterUI->BP_UpdateBulletCounter(0, 0);
+		BulletCounterUI->UpdateBulletCounter(0, 0, 0);
 	}
 	if (DestroyedActor == BoundShooterCharacter)
 	{
@@ -216,12 +216,12 @@ void AShooterPlayerController::OnPawnDestroyed(AActor* DestroyedActor)
 	}
 }
 
-void AShooterPlayerController::OnBulletCountUpdated(int32 MagazineSize, int32 Bullets)
+void AShooterPlayerController::OnBulletCountUpdated(int32 MagazineSize, int32 Bullets, int32 ReserveAmmo)
 {
 	// update the UI
 	if (BulletCounterUI)
 	{
-		BulletCounterUI->BP_UpdateBulletCounter(MagazineSize, Bullets);
+		BulletCounterUI->UpdateBulletCounter(MagazineSize, Bullets, ReserveAmmo);
 	}
 }
 

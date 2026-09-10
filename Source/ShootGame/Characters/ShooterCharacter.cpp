@@ -680,9 +680,9 @@ void AShooterCharacter::AddWeaponRecoil(float Recoil)
 	AddControllerPitchInput(Recoil);
 }
 
-void AShooterCharacter::UpdateWeaponHUD(int32 CurrentAmmo, int32 MagazineSize)
+void AShooterCharacter::UpdateWeaponHUD(int32 CurrentAmmo, int32 MagazineSize, int32 ReserveAmmo)
 {
-	OnBulletCountUpdated.Broadcast(MagazineSize, CurrentAmmo);
+	OnBulletCountUpdated.Broadcast(MagazineSize, CurrentAmmo, ReserveAmmo);
 }
 
 FVector AShooterCharacter::GetWeaponTargetLocation()
@@ -729,7 +729,8 @@ void AShooterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 void AShooterCharacter::OnWeaponActivated(AShooterWeapon* Weapon)
 {
 	// HUD 只在 Activate 时更新；AnimClass 应用与幂等修复共用同一私有入口。
-	UpdateWeaponHUD(Weapon->GetMagazineSize(), Weapon->GetBulletCount());
+	// 注意接口参数顺序是 (CurrentAmmo, MagazineSize)，与两个 Getter 的阅读顺序相反。
+	UpdateWeaponHUD(Weapon->GetBulletCount(), Weapon->GetMagazineSize(), Weapon->GetReserveAmmo());
 	ApplyWeaponAnimClasses(Weapon);
 }
 
@@ -983,7 +984,7 @@ void AShooterCharacter::ApplyDeathState()
 	}
 
 	// reset the bullet counter UI
-	OnBulletCountUpdated.Broadcast(0, 0);
+	OnBulletCountUpdated.Broadcast(0, 0, 0);
 
 	// 专用服务器不执行纯表现蓝图。
 	if (GetNetMode() != NM_DedicatedServer)

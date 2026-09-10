@@ -218,7 +218,7 @@ void AShooterNPC::AddWeaponRecoil(float Recoil)
 	// unused
 }
 
-void AShooterNPC::UpdateWeaponHUD(int32 CurrentAmmo, int32 MagazineSize)
+void AShooterNPC::UpdateWeaponHUD(int32 CurrentAmmo, int32 MagazineSize, int32 ReserveAmmo)
 {
 	// unused
 }

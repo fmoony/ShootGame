@@ -93,7 +93,7 @@ protected:
 
 	/** Called when the bullet count on the possessed pawn is updated */
 	UFUNCTION()
-	void OnBulletCountUpdated(int32 MagazineSize, int32 Bullets);
+	void OnBulletCountUpdated(int32 MagazineSize, int32 Bullets, int32 ReserveAmmo);
 
 	/** Called when the possessed pawn is damaged */
 	UFUNCTION()

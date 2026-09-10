@@ -150,6 +150,20 @@ int32 AShooterWeapon::GetBulletCount() const
 	return CurrentBullets;
 }
 
+int32 AShooterWeapon::GetReserveAmmo() const
+{
+	if (BoundInstanceId.IsValid())
+	{
+		if (const FShooterWeaponInstanceData* Instance = ShooterWeaponInventory::FindInstance(this))
+		{
+			return Instance->ReserveAmmo;
+		}
+	}
+
+	// 未绑定 Inventory 的旧路径（如 NPC 自动补弹）没有备弹概念。
+	return 0;
+}
+
 bool AShooterWeapon::CanConsumeAmmo() const
 {
 	if (BoundInstanceId.IsValid())
@@ -203,7 +217,7 @@ void AShooterWeapon::RefreshAmmoMirror()
 	CurrentBullets = Instance->MagazineAmmo;
 	if (WeaponOwner && !IsHidden())
 	{
-		WeaponOwner->UpdateWeaponHUD(CurrentBullets, MagazineSize);
+		WeaponOwner->UpdateWeaponHUD(CurrentBullets, MagazineSize, Instance->ReserveAmmo);
 	}
 
 	if (HasAuthority())
@@ -228,7 +242,7 @@ void AShooterWeapon::OnRep_CurrentBullets()
 	IShooterWeaponHolder* OwnerHolder = Cast<IShooterWeaponHolder>(GetOwner());
 	if (OwnerPawn && OwnerPawn->IsLocallyControlled() && OwnerHolder)
 	{
-		OwnerHolder->UpdateWeaponHUD(CurrentBullets, MagazineSize);
+		OwnerHolder->UpdateWeaponHUD(CurrentBullets, MagazineSize, GetReserveAmmo());
 	}
 }
 
@@ -390,7 +404,7 @@ void AShooterWeapon::FireProjectile(const FVector& TargetLocation)
 			CurrentBullets = MagazineSize;
 		}
 
-		WeaponOwner->UpdateWeaponHUD(CurrentBullets, MagazineSize);
+		WeaponOwner->UpdateWeaponHUD(CurrentBullets, MagazineSize, GetReserveAmmo());
 		ForceNetUpdate();
 	}
 }
