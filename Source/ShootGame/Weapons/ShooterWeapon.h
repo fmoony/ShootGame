@@ -160,6 +160,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Perception")
 	FName ShotNoiseTag = FName("Shot");
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "First Person")
+	float FirstPersonCompositionDrop = 0.0f;
+
 public:	
 
 	/** Constructor */
@@ -291,4 +294,6 @@ public:
 
 	/** 弹药在 Fire 事务中耗尽时广播；GA_Fire 用它幂等结束 Ability。 */
 	FShooterWeaponOutOfAmmoDelegate OnOutOfAmmo;
+
+	float GetFirstPersonCompositionDrop() const { return FirstPersonCompositionDrop; }
 };

@@ -42,6 +42,9 @@ public:
 	float AimRigBlendInTime = 0.20f;
 
 protected:
+	virtual FAnimInstanceProxy* CreateAnimInstanceProxy() override;
+	virtual void DestroyAnimInstanceProxy(FAnimInstanceProxy* InProxy) override;
+
 	virtual void UpdateShooterAnimationData(float DeltaSeconds) override;
 
 private:

@@ -21,6 +21,7 @@
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "InputActionValue.h"
+#include "HAL/IConsoleManager.h"
 #include "TimerManager.h"
 #include "ShooterGameMode.h"
 #include "ShooterPlayerState.h"
@@ -31,6 +32,10 @@
 
 #include "Net/UnrealNetwork.h"
 #include "UObject/UnrealType.h"
+
+static TAutoConsoleVariable<float> CVarShooterFirstPersonNearClip(
+	TEXT("ShootGame.FirstPerson.NearClip"), 1.0f,
+	TEXT("Local first-person near clip distance in cm; <= 0 uses the global default."));
 
 namespace ShooterAimTrace
 {
@@ -157,6 +162,21 @@ AShooterCharacter::AShooterCharacter()
 	EquipmentComponent = CreateDefaultSubobject<UShooterEquipmentComponent>(TEXT("EquipmentComponent"));
 
 	bReplicates = true;
+}
+
+void AShooterCharacter::CalcCamera(float DeltaTime, FMinimalViewInfo& OutResult)
+{
+	Super::CalcCamera(DeltaTime, OutResult);
+	if (IsLocallyControlled() && !IsDead() && FirstPersonCameraComponent->IsActive() &&
+		OutResult.bUseFirstPersonParameters)
+	{
+		// 只改变当前游戏视图的投影，不移动相机、骨骼或服务器瞄准起点。
+		const float NearClip = CVarShooterFirstPersonNearClip.GetValueOnGameThread();
+		if (NearClip > 0.0f)
+		{
+			OutResult.PerspectiveNearClipPlane = FMath::Max(NearClip, 0.1f);
+		}
+	}
 }
 
 FVector AShooterCharacter::GetPresentationAimTargetBP() const

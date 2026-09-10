@@ -160,6 +160,9 @@ public:
 	/** Constructor */
 	AShooterCharacter();
 
+	/** 为本地第一人称视图保留近距离手臂与武器，避免使用全局 5cm 近裁剪面。 */
+	virtual void CalcCamera(float DeltaTime, FMinimalViewInfo& OutResult) override;
+
 	/** 返回 PlayerState 持有的玩家 ASC；PlayerState 或 ASC 不存在时返回 nullptr。 */
 	UAbilitySystemComponent* GetAbilitySystemComponent() const;
 
