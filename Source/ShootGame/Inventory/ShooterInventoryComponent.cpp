@@ -40,6 +40,11 @@ UShooterInventoryComponent::UShooterInventoryComponent()
 {
 	// 组件随 Character 一起复制；数组属性本身使用 COND_OwnerOnly。
 	SetIsReplicatedByDefault(true);
+
+	// UE5.6 不会因子类重写 InitializeComponent 而自动置位该标志；
+	// 不显式开启时 InitializeComponent 永不执行，Owner Client 的
+	// FastArray Add/Change/Remove 通知（备弹 HUD 刷新桥）不会被绑定。
+	bWantsInitializeComponent = true;
 }
 
 void UShooterInventoryComponent::InitializeComponent()

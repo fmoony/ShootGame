@@ -877,6 +877,19 @@ bool AShooterCharacter::EnsureWeaponPresentation(AShooterWeapon* ExpectedWeapon)
 		{
 			// 只修复 AnimClass，不重复 HUD / Activate 副作用。
 			ApplyWeaponAnimClasses(ExpectedWeapon);
+
+			// 拾取路径在 Owner Client 上的形态：武器通道送达时 bHidden 已是服务器
+			// Equip 同帧解除后的 false，永远走不到 ActivateWeapon/OnWeaponActivated 的 HUD 推送；
+			// 换武器完成表现时补一次 HUD，重复 Ensure 同一武器（bMatchesLastApplied）不重复推送。
+			// BoundInstanceId 尚未复制到时读不到权威弹药，跳过本次，等注册后的
+			// FastArray 回调（RefreshAmmoMirror）用新数据推送。
+			if (!bMatchesLastApplied && ExpectedWeapon->GetBoundInstanceId().IsValid())
+			{
+				UpdateWeaponHUD(
+					ExpectedWeapon->GetBulletCount(),
+					ExpectedWeapon->GetMagazineSize(),
+					ExpectedWeapon->GetReserveAmmo());
+			}
 		}
 	}
 

@@ -157,9 +157,15 @@ public:
 	void HandleBulletCountUpdated(int32 MagazineSize, int32 Bullets, int32 ReserveAmmo)
 	{
 		++EventCount;
+		LastMagazineSize = MagazineSize;
+		LastBullets = Bullets;
+		LastReserveAmmo = ReserveAmmo;
 	}
 
 	int32 EventCount = 0;
+	int32 LastMagazineSize = INDEX_NONE;
+	int32 LastBullets = INDEX_NONE;
+	int32 LastReserveAmmo = INDEX_NONE;
 };
 
 /** Equipment 测试壳：暴露 OnRep / 提交字段写入，模拟复制到达顺序。 */
