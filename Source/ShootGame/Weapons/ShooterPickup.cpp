@@ -152,6 +152,8 @@ void AShooterPickup::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
 
 void AShooterPickup::RespawnPickup()
 {
+	bPickupAvailable = true;
+
 	// unhide this pickup
 	SetActorHiddenInGame(false);
 

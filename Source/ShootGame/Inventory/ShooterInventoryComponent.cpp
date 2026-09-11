@@ -15,9 +15,7 @@ namespace ShooterInventory
 	FPrimaryAssetId MakeDefinitionIdForWeaponClass(TSubclassOf<AShooterWeapon> WeaponClass)
 	{
 		// WeaponDefinition 尚未正式 DataAsset 化；先以 WeaponClass 名建立稳定 DefinitionId 兼容桥接。
-		return FPrimaryAssetId(
-			FPrimaryAssetType(TEXT("ShooterWeapon")),
-			WeaponClass->GetFName());
+		return FPrimaryAssetId(FPrimaryAssetType(TEXT("ShooterWeapon")), WeaponClass->GetFName());
 	}
 
 	int32 GetInitialReserveAmmoForWeaponClass(TSubclassOf<AShooterWeapon> WeaponClass)
@@ -52,12 +50,8 @@ void UShooterInventoryComponent::InitializeComponent()
 	Super::InitializeComponent();
 
 	// Owner Client 的 FastArray Add/Change/Remove 回调驱动本地 WeaponActor 弹药镜像与 HUD。
-	ReplicatedInventory.OnInstanceChanged.AddUObject(
-		this,
-		&UShooterInventoryComponent::HandleInstanceChanged);
-	ReplicatedInventory.OnInstanceRemoved.AddUObject(
-		this,
-		&UShooterInventoryComponent::HandleInstanceRemoved);
+	ReplicatedInventory.OnInstanceChanged.AddUObject(this, &UShooterInventoryComponent::HandleInstanceChanged);
+	ReplicatedInventory.OnInstanceRemoved.AddUObject(this, &UShooterInventoryComponent::HandleInstanceRemoved);
 }
 
 EShooterInventoryAddResult UShooterInventoryComponent::TryAddWeapon(
@@ -259,8 +253,7 @@ const FShooterWeaponInstanceData* UShooterInventoryComponent::FindWeaponInstance
 		return nullptr;
 	}
 
-	const FShooterWeaponInstanceEntry* Entry =
-		ReplicatedInventory.FindItemByDefinitionId(DefinitionId);
+	const FShooterWeaponInstanceEntry* Entry = ReplicatedInventory.FindItemByDefinitionId(DefinitionId);
 	return Entry ? &Entry->InstanceData : nullptr;
 }
 

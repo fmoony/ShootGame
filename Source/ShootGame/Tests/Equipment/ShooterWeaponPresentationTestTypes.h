@@ -104,6 +104,15 @@ public:
 	{
 		OnOverlap(nullptr, OtherActor, nullptr, 0, false, FHitResult());
 	}
+
+	/** 直接驱动重生回调，等价于 RespawnTimer 到期；闸门恢复逻辑位于 RespawnPickup 内。 */
+	void TriggerRespawnForTest()
+	{
+		RespawnPickup();
+	}
+
+	/** 读取服务器授予闸门状态，验证隐藏期不重复授予、重生后闸门恢复。 */
+	bool IsPickupAvailableForTest() const { return bPickupAvailable; }
 };
 
 /** 逻辑装备变化事件监听器（OnEquippedWeaponChanged 的 Dynamic Delegate 订阅方）。 */
