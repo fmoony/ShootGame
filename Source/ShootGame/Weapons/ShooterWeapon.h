@@ -243,6 +243,12 @@ protected:
 	/** 返回本 Actor 所在 World 的对象池；World 不支持或已销毁时返回 nullptr。 */
 	UShooterActorPoolSubsystem* GetPoolSubsystem() const;
 
+	/**
+	 * 统一状态转换入口：状态未变化时是安全 no-op，真实变化时输出一条 Verbose 诊断。
+	 * 表现收敛会重复调用同一转换，诊断必须保持低噪声。
+	 */
+	void SetLifecycleState(EShooterWeaponLifecycleState NewState, const TCHAR* Reason);
+
 	/** 解析本 Actor 绑定的武器模板行；未绑定行名、表缺失或行缺失时返回 nullptr。 */
 	const FShooterWeaponConfigRow* ResolveWeaponRow() const;
 

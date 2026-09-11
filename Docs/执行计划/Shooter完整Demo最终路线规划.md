@@ -648,9 +648,33 @@ Weapon / Inventory 第二阶段基础闭环
 GA_Fire ServerOnly
 GA_Reload / GA_Equip ServerOnly
 武器装备表现事件收束与动画切换解耦
+单表武器配置纠偏（DT_WeaponData + WeaponRowName，撤销 WeaponDefinition 层）
+通用 Actor Pool 与 Poolable 契约（B1）
+WeaponActor 生命周期状态机与池化清理（B2）
+Inventory 授予 / 移除 / 死亡清理接入对象池（B3）
+兼容路径与可观测性收口（B4）
 ```
 
-当前状态：阶段复盘暂停，不自动进入客户端预测。
+当前状态：
+
+```text
+大阶段 B（通用池 + WeaponActor 生命周期 + Pickup / 死亡集成）实施完成
+→ 待执行大阶段 B 收口七阶段完整回归
+→ 正式架构验收
+→ 再进入 P1 Local Predicted 基础射击反馈
+```
+
+武器与 Inventory 当前的事实边界（生产路径）：
+
+```text
+武器模板：/Game/Shooter/Data/DT_WeaponData 一行（FShooterWeaponConfigRow）
+武器身份：FShooterWeaponInstanceData::WeaponRowName（类型）+ InstanceId（运行时句柄）
+世界实体：UShooterActorPoolSubsystem Acquire / Release
+生命周期：InPool → Holstered → Equipping → Equipped → Holstered → InPool
+```
+
+详细职责与两条世界实体路径（玩家正式路径 / NPC 兼容路径）见
+[Inventory 与武器数据架构](../架构/Inventory与武器数据架构.md) 第 13 节。
 
 默认后续候选：
 
@@ -664,4 +688,9 @@ GA_Reload / GA_Equip ServerOnly
 
 [武器装备表现事件收束与动画切换解耦执行计划](../已完成计划/武器装备表现事件收束与动画切换解耦执行计划.md)
 
-只有完成 ServerOnly 阶段复盘，并形成新的详细执行计划后，才实施 P1 的任何预测内容。
+武器与 Inventory 正式架构的当前阶段证据见：
+
+[武器与 Inventory 正式架构实施计划](武器与Inventory正式架构实施计划.md)、
+[单表武器配置纠偏小计划](单表武器配置纠偏小计划.md)。
+
+只有完成大阶段 B 收口回归与正式架构验收，并形成新的详细执行计划后，才实施 P1 的任何预测内容。

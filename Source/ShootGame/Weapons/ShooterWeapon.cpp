@@ -41,6 +41,22 @@ namespace ShooterWeaponInventory
 	}
 }
 
+namespace
+{
+	/** 生命周期状态名；用于低噪声状态转换诊断与非法转换拒绝日志。 */
+	const TCHAR* LifecycleStateToString(EShooterWeaponLifecycleState State)
+	{
+		switch (State)
+		{
+		case EShooterWeaponLifecycleState::InPool: return TEXT("InPool");
+		case EShooterWeaponLifecycleState::Holstered: return TEXT("Holstered");
+		case EShooterWeaponLifecycleState::Equipping: return TEXT("Equipping");
+		case EShooterWeaponLifecycleState::Equipped: return TEXT("Equipped");
+		default: return TEXT("Unknown");
+		}
+	}
+}
+
 AShooterWeapon::AShooterWeapon()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -129,7 +145,7 @@ void AShooterWeapon::OnRep_BoundInstanceId()
 	// 客户端状态镜像：绑定到达时 InPool -> Holstered；Equipped/Equipping 的表现状态不回退。
 	if (LifecycleState == EShooterWeaponLifecycleState::InPool && BoundInstanceId.IsValid())
 	{
-		LifecycleState = EShooterWeaponLifecycleState::Holstered;
+		SetLifecycleState(EShooterWeaponLifecycleState::Holstered, TEXT("ClientReplicatedBinding"));
 	}
 
 	if (AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(GetOwner()))
@@ -256,8 +272,8 @@ void AShooterWeapon::SetInstanceBinding(const FGuid& InInstanceId, FName InWeapo
 		UE_LOG(
 			LogShootGame,
 			Warning,
-			TEXT("WeaponActor SetInstanceBinding rejected in state %d: Weapon=%s NewId=%s Row=%s"),
-			static_cast<int32>(LifecycleState),
+			TEXT("WeaponActor SetInstanceBinding rejected in state %s: Weapon=%s NewId=%s Row=%s"),
+			LifecycleStateToString(LifecycleState),
 			*GetNameSafe(this),
 			*InInstanceId.ToString(),
 			*InWeaponRowName.ToString());
@@ -266,9 +282,19 @@ void AShooterWeapon::SetInstanceBinding(const FGuid& InInstanceId, FName InWeapo
 
 	BoundInstanceId = InInstanceId;
 	WeaponRowName = InWeaponRowName;
-	LifecycleState = InInstanceId.IsValid()
-		? EShooterWeaponLifecycleState::Holstered
-		: EShooterWeaponLifecycleState::InPool;
+	SetLifecycleState(
+		InInstanceId.IsValid()
+			? EShooterWeaponLifecycleState::Holstered
+			: EShooterWeaponLifecycleState::InPool,
+		TEXT("InstanceBinding"));
+
+	UE_LOG(
+		LogShootGame,
+		Verbose,
+		TEXT("WeaponActor instance bound: Weapon=%s InstanceId=%s Row=%s"),
+		*GetNameSafe(this),
+		*InInstanceId.ToString(),
+		*InWeaponRowName.ToString());
 
 	// 服务器与 Owner 客户端都必须在任何表现/开火消费之前应用行配置。
 	if (const FShooterWeaponConfigRow* Row = ResolveWeaponRow())
@@ -413,7 +439,7 @@ void AShooterWeapon::OnReleasedToPool()
 	FireBehaviorInstance = nullptr;
 	CurrentBullets = 0;
 	OnOutOfAmmo.Clear();
-	LifecycleState = EShooterWeaponLifecycleState::InPool;
+	SetLifecycleState(EShooterWeaponLifecycleState::InPool, TEXT("ReleasedToPool"));
 
 	UE_LOG(
 		LogShootGame,
@@ -427,7 +453,7 @@ void AShooterWeapon::BeginEquipTransaction()
 	switch (LifecycleState)
 	{
 	case EShooterWeaponLifecycleState::Holstered:
-		LifecycleState = EShooterWeaponLifecycleState::Equipping;
+		SetLifecycleState(EShooterWeaponLifecycleState::Equipping, TEXT("BeginEquipTransaction"));
 		break;
 	case EShooterWeaponLifecycleState::Equipping:
 		// 同一事务重复提交保持幂等。
@@ -436,11 +462,37 @@ void AShooterWeapon::BeginEquipTransaction()
 		UE_LOG(
 			LogShootGame,
 			Warning,
-			TEXT("WeaponActor BeginEquipTransaction rejected in state %d: Weapon=%s"),
-			static_cast<int32>(LifecycleState),
+			TEXT("WeaponActor BeginEquipTransaction rejected in state %s: Weapon=%s"),
+			LifecycleStateToString(LifecycleState),
 			*GetNameSafe(this));
 		break;
 	}
+}
+
+void AShooterWeapon::SetLifecycleState(
+	EShooterWeaponLifecycleState NewState,
+	const TCHAR* Reason)
+{
+	const EShooterWeaponLifecycleState PreviousState = LifecycleState;
+	if (PreviousState == NewState)
+	{
+		return;
+	}
+
+	LifecycleState = NewState;
+
+	// 低噪声诊断：只在状态真实变化时输出，表现收敛的重复调用不刷屏。
+	UE_LOG(
+		LogShootGame,
+		Verbose,
+		TEXT("WeaponActor lifecycle %s -> %s (%s): Weapon=%s Owner=%s InstanceId=%s Row=%s"),
+		LifecycleStateToString(PreviousState),
+		LifecycleStateToString(NewState),
+		Reason ? Reason : TEXT("Unspecified"),
+		*GetNameSafe(this),
+		*GetNameSafe(GetOwner()),
+		*BoundInstanceId.ToString(),
+		*WeaponRowName.ToString());
 }
 
 int32 AShooterWeapon::GetBulletCount() const
@@ -624,7 +676,7 @@ void AShooterWeapon::ActivateWeapon()
 		return;
 	}
 
-	LifecycleState = EShooterWeaponLifecycleState::Equipped;
+	SetLifecycleState(EShooterWeaponLifecycleState::Equipped, TEXT("ActivateWeapon"));
 
 	// unhide this weapon
 	SetActorHiddenInGame(false);
@@ -647,7 +699,7 @@ void AShooterWeapon::DeactivateWeapon()
 		return;
 	}
 
-	LifecycleState = EShooterWeaponLifecycleState::Holstered;
+	SetLifecycleState(EShooterWeaponLifecycleState::Holstered, TEXT("DeactivateWeapon"));
 
 	// ensure we're no longer firing this weapon while deactivated
 	StopFiring();

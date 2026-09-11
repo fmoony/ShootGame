@@ -305,6 +305,69 @@ IA_SwitchWeapon
 - 旧 `ServerSwitchWeapon` 已由 CodeGraph 确认无调用者并删除。
 - 候选 Mannequin Reload / Equip 资产经编辑器只读检查为 `AnimSequence` 而非 `UAnimMontage`，且 Skeleton 为 `SK_Mannequin`；本阶段不接入表现，列为 Demo Polish 遗留项。
 
+## 13. Actor Pool 与 WeaponActor 生命周期（B1～B4 已落地）
+
+正式架构计划大阶段 B 已落地 World 级通用对象池与 WeaponActor 生命周期状态机：
+
+```text
+UShooterActorPoolSubsystem（UWorldSubsystem，按 ActorClass 分池）
+├─ Acquire(Class, Transform, SpawnParams)   池命中复用 / 未命中生成，统一通用复位
+├─ Release(Actor)                           领域回调 → 隐藏 / 关碰撞 / 关 Tick / Detach / 清 Owner
+├─ Prewarm / SetClassCapacity / RegisterExisting
+└─ IsManaged（在池外使用中） / IsPooled（池内待复用）观测口
+
+IShooterPoolableActor
+├─ OnAcquiredFromPool   重新绑定 Owner 缓存，复位开火节拍
+└─ OnReleasedToPool     停 Timer、解 Delegate、清 Owner 缓存与 Instance/行绑定
+```
+
+WeaponActor 生命周期（服务器权威，客户端镜像）：
+
+```text
+InPool → Holstered → Equipping → Equipped → Holstered → InPool
+```
+
+- 状态拒绝（InPool 激活、装备中改写绑定、重复卸下）只在权威端执行：`BoundInstanceId` 是
+  `COND_OwnerOnly`，远端客户端读不到，在那里拒绝会破坏远端第三人称表现。
+- 可见性不属于状态机契约：隐藏由池归还清理、Inventory 授予后隐藏、表现收敛激活时解除。
+- 切枪只发生 `Equipped <-> Holstered`，不归还池；只有移除武器、装备回滚、死亡 / 断线清理才 `Release`。
+
+### 13.1 两条武器世界实体路径（B4 收口结论）
+
+玩家正式路径（生产）：
+
+```text
+Inventory.TryAddWeaponRow(WeaponRowName)
+→ 写入 WeaponInstance（InstanceId / WeaponRowName / Ammo / Slot）
+→ Pool.Acquire(Row.WeaponActorClass)
+→ WeaponActor.SetInstanceBinding(InstanceId, WeaponRowName)
+
+移除 / 装备回滚 / 死亡 / 断线
+→ 冻结待归还 Actor → 清 Entries 并广播 → Equipment 清空 Active/Current → Pool.Release(WeaponActor)
+```
+
+NPC 兼容路径（PvE 遗留项，明确保留、不伪装成已完成）：
+
+```text
+AShooterNPC → SpawnActor<AShooterWeapon>（不经池）
+→ SetWeaponRow(WeaponRowName) 只绑定模板行，不创建 WeaponInstance
+→ 弹药权威在 AShooterWeapon::CurrentBullets 兼容镜像（无 ReserveAmmo）
+→ 拥有者销毁 → OnOwnerDestroyed → 非池出生回落 Destroy
+```
+
+`Inventory.ReleaseWeaponActor` 对两条路径都成立：池化武器走 `Pool.Release`，非池出生（NPC /
+网络测试协调器直接 Spawn）走 `Unregister + Destroy`。兼容回退是受支持路径，不产生池 fail closed 警告。
+
+### 13.2 池化的已知边界
+
+- 池化武器归还后仍是 World 中的合法 Actor（隐藏、无 Owner、无绑定），不做 Net Dormancy；
+  远端客户端上它继续保持隐藏，复用时经 `CurrentWeaponActor` 复制重新收敛表现。
+- 不做 Projectile 池、跨 World 全局池、动态容量回收算法或客户端自主 Acquire。
+- 断线清理检查（`AShooterGameMode::Logout`）把池化武器单独计数（`PooledWeapons`），
+  不把它们误判为断线残留。
+
+---
+
 ## 相关文档与基线
 
 - [GA_Fire ServerOnly 执行计划](../执行计划/GA_Fire_ServerOnly执行计划.md)

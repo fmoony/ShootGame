@@ -26,7 +26,9 @@ GA_Fire / GA_Reload / GA_Equip ServerOnly 基线
 
 ## 2. 开始实施前的工作区门槛
 
-Pickup 重生逻辑门的生产修复已由用户完成，P1 不再负责修改。其定向验证、WeaponDefinition、Projectile FireBehavior、通用 Actor Pool、WeaponActor 生命周期和 Pickup Definition 接入统一由正式架构计划完成。
+Pickup 重生逻辑门的生产修复已由用户完成，P1 不再负责修改。其定向验证、武器模板行、Projectile
+FireBehavior、通用 Actor Pool、WeaponActor 生命周期和 Pickup 行接入统一由正式架构计划
+（含 [单表武器配置纠偏小计划](单表武器配置纠偏小计划.md) 纠偏插入项）完成。
 
 进入 P1 前必须证明：
 
@@ -39,7 +41,23 @@ Pickup 重生逻辑门的生产修复已由用户完成，P1 不再负责修改�
 → 同一重生周期没有重复授予
 ```
 
-此外，大阶段 A、B 的完整回归必须通过，且预测实现只能依赖已经冻结的 Definition / Instance / FireBehavior / WeaponActor Lifecycle API。
+此外，大阶段 A、B 的完整回归必须通过，且预测实现只能依赖已经冻结的
+`WeaponRowName` / `InstanceId` / FireBehavior / WeaponActor Lifecycle API。
+
+当前前置状态（2026-09-11，B4 收口时）：
+
+```text
+单表武器配置纠偏 C0～C4：已完成（含一次七阶段完整回归）
+大阶段 A 收口七阶段完整回归：已通过
+B1 通用 Actor Pool：已完成
+B2 WeaponActor 生命周期状态机：已完成
+B3 Inventory / 死亡清理接入对象池：已完成（含 Dedicated + 2 Clients 定向验证）
+B4 兼容路径与可观测性收口：已完成
+大阶段 B 收口七阶段完整回归：待执行
+正式架构验收：待执行
+```
+
+在大阶段 B 收口回归与正式架构验收完成前，不实施 P1 的任何预测内容。
 
 ---
 
