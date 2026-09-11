@@ -15,6 +15,7 @@
 #include "AI/ShooterNPC.h"
 #include "AbilitySystem/ShooterAttributeSet.h"
 #include "ShooterArchitectureTestTypes.h"
+#include "../Equipment/ShooterWeaponPresentationTestTypes.h"
 #include "UObject/UnrealType.h"
 #include "Weapons/ShooterWeapon.h"
 
@@ -49,7 +50,7 @@ namespace ShooterArchitectureBaselineAutomationTests
 
 /**
  * R0/R1 行为冻结：用真实 UWorld 驱动角色武器授予路径。
- * R1 后玩家武器只有 Inventory.TryAddWeapon 一条创建路径，且授予后仍立即装备。
+ * R1 后玩家武器只有 Inventory 授予入口一条创建路径，且授予后仍立即装备。
  */
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FShooterArchitectureWeaponGrantSurfaceTest,
@@ -83,7 +84,7 @@ bool FShooterArchitectureWeaponGrantSurfaceTest::RunTest(const FString& Paramete
 	}
 
 	// R8 后 Character 已没有 AddWeaponClass / HandleWeaponAddedToInventory 兼容入口。
-	// 授予路径 = Inventory.TryAddWeapon；立即装备 = Equipment.EquipWeapon（重放 Pickup 的最小行为）。
+	// 授予路径 = Inventory.TryAddWeaponDefinition；立即装备 = Equipment.EquipWeapon（重放 Pickup 的最小行为）。
 	UShooterEquipmentComponent* Equipment = Character->GetEquipmentComponent();
 	if (!TestNotNull(TEXT("Architecture test character owns EquipmentComponent"), Equipment))
 	{
@@ -93,7 +94,9 @@ bool FShooterArchitectureWeaponGrantSurfaceTest::RunTest(const FString& Paramete
 
 	FGuid GrantedInstanceId;
 	const EShooterInventoryAddResult FirstGrantResult =
-		Inventory->TryAddWeapon(AShooterArchitectureTestWeapon::StaticClass(), GrantedInstanceId);
+		Inventory->TryAddWeaponDefinition(
+			MakeShooterTestWeaponDefinition(TEXT("WD_ArchitectureWeapon"), AShooterArchitectureTestWeapon::StaticClass()),
+			GrantedInstanceId);
 	TestEqual(TEXT("Inventory grants the first weapon"), static_cast<int32>(FirstGrantResult), static_cast<int32>(EShooterInventoryAddResult::Added));
 	TestTrue(TEXT("Equipment commits the granted weapon"), Equipment->EquipWeapon(GrantedInstanceId));
 
@@ -111,10 +114,12 @@ bool FShooterArchitectureWeaponGrantSurfaceTest::RunTest(const FString& Paramete
 	TestEqual(TEXT("Grant creates exactly one Inventory entry"), Inventory->GetWeaponCount(), 1);
 	TestTrue(TEXT("Inventory ActiveWeaponInstanceId becomes valid"), Inventory->GetActiveWeaponInstanceId().IsValid());
 
-	// 重复授予同一类型不能产生第二把武器：由 TryAddWeapon 的 DuplicateDefinition 拒绝。
+	// 重复授予同一类型不能产生第二把武器：由授予入口的 DuplicateDefinition 拒绝。
 	FGuid DuplicateGrantedInstanceId;
 	const EShooterInventoryAddResult DuplicateGrantResult =
-		Inventory->TryAddWeapon(AShooterArchitectureTestWeapon::StaticClass(), DuplicateGrantedInstanceId);
+		Inventory->TryAddWeaponDefinition(
+			MakeShooterTestWeaponDefinition(TEXT("WD_ArchitectureWeapon"), AShooterArchitectureTestWeapon::StaticClass()),
+			DuplicateGrantedInstanceId);
 	TestEqual(
 		TEXT("Duplicate weapon grant is rejected"),
 		static_cast<int32>(DuplicateGrantResult),

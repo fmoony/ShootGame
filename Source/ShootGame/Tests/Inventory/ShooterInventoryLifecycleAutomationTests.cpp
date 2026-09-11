@@ -74,7 +74,10 @@ namespace ShooterInventoryLifecycleAutomationTests
 			return nullptr;
 		}
 
-		const EShooterInventoryAddResult AddResult = Inventory->TryAddWeapon(WeaponClass, OutInstanceId);
+		UShooterWeaponDefinition* Definition = MakeShooterTestWeaponDefinition(
+		FName(*FString::Printf(TEXT("WD_Lifecycle_%s"), *WeaponClass->GetName())),
+		WeaponClass);
+	const EShooterInventoryAddResult AddResult = Inventory->TryAddWeaponDefinition(Definition, OutInstanceId);
 		if (!Test.TestEqual(
 			TEXT("Lifecycle test weapon is granted"),
 			static_cast<int32>(AddResult),
@@ -144,7 +147,9 @@ bool FShooterInventoryPickupEquipFailureRollbackTest::RunTest(const FString& Par
 		DestroyLifecycleTestWorld(World);
 		return false;
 	}
-	Pickup->SetWeaponClassForTest(AShooterInventoryOrderTestWeapon::StaticClass());
+	Pickup->SetWeaponDefinitionForTest(MakeShooterTestWeaponDefinition(
+		TEXT("WD_PickupRollbackOrder"),
+		AShooterInventoryOrderTestWeapon::StaticClass()));
 
 	UShooterInventoryComponent* Inventory = Character->GetInventoryComponent();
 	TestEqual(TEXT("Inventory is empty before pickup"), Inventory->GetWeaponCount(), 0);

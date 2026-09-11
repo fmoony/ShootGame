@@ -11,30 +11,6 @@
 #include "ShooterWeapon.h"
 #include "Weapons/Definitions/ShooterWeaponDefinition.h"
 
-namespace ShooterInventory
-{
-	FPrimaryAssetId MakeDefinitionIdForWeaponClass(TSubclassOf<AShooterWeapon> WeaponClass)
-	{
-		// WeaponDefinition 尚未正式 DataAsset 化；先以 WeaponClass 名建立稳定 DefinitionId 兼容桥接。
-		return FPrimaryAssetId(FPrimaryAssetType(TEXT("ShooterWeapon")), WeaponClass->GetFName());
-	}
-
-	int32 GetInitialReserveAmmoForWeaponClass(TSubclassOf<AShooterWeapon> WeaponClass)
-	{
-		// 有限备弹声明：武器显式配置 >=0 时直接采用；-1 保持 MagazineSize×3 的兼容基线。
-		const AShooterWeapon* WeaponDefaults = WeaponClass ? WeaponClass->GetDefaultObject<AShooterWeapon>() : nullptr;
-		if (!WeaponDefaults)
-		{
-			return 0;
-		}
-
-		const int32 DeclaredReserveAmmo = WeaponDefaults->GetInitialReserveAmmo();
-		return DeclaredReserveAmmo >= 0
-			? DeclaredReserveAmmo
-			: FMath::Max(0, WeaponDefaults->GetMagazineSize() * 3);
-	}
-}
-
 UShooterInventoryComponent::UShooterInventoryComponent()
 {
 	// 组件随 Character 一起复制；数组属性本身使用 COND_OwnerOnly。
@@ -75,35 +51,6 @@ EShooterInventoryAddResult UShooterInventoryComponent::TryAddWeaponDefinition(
 		WeaponDefinition->WeaponActorClass,
 		WeaponDefinition->AmmoConfig.MagazineSize,
 		WeaponDefinition->AmmoConfig.ResolveInitialReserveAmmo(),
-		OutInstanceId);
-}
-
-EShooterInventoryAddResult UShooterInventoryComponent::TryAddWeapon(
-	TSubclassOf<AShooterWeapon> WeaponClass,
-	FGuid& OutInstanceId)
-{
-	OutInstanceId = FGuid();
-	if (!GetOwner() || !GetOwner()->HasAuthority())
-	{
-		return EShooterInventoryAddResult::NotAuthoritative;
-	}
-
-	if (!WeaponClass)
-	{
-		return EShooterInventoryAddResult::InvalidWeaponClass;
-	}
-
-	const AShooterWeapon* WeaponDefaults = WeaponClass->GetDefaultObject<AShooterWeapon>();
-	if (!WeaponDefaults || WeaponDefaults->GetMagazineSize() <= 0)
-	{
-		return EShooterInventoryAddResult::InvalidWeaponClass;
-	}
-
-	return TryAddWeaponInternal(
-		ShooterInventory::MakeDefinitionIdForWeaponClass(WeaponClass),
-		WeaponClass,
-		WeaponDefaults->GetMagazineSize(),
-		ShooterInventory::GetInitialReserveAmmoForWeaponClass(WeaponClass),
 		OutInstanceId);
 }
 
@@ -405,13 +352,7 @@ bool UShooterInventoryComponent::ReloadMagazine(
 		return false;
 	}
 
-	// 事务容量优先来自 Definition（正式路径）；Definition 无法解析时（旧适配入口的
-	// 伪造 DefinitionId）回落到绑定 WeaponActor 的 CDO 配置，A4 移除适配入口后删除回落。
-	const FShooterWeaponInstanceData* Instance = FindWeaponInstance(InstanceId);
-	const UShooterWeaponDefinition* Definition = Instance
-		? UShooterWeaponDefinition::ResolveDefinitionSync(Instance->DefinitionId)
-		: nullptr;
-
+	// 事务容量只经 WeaponActor 的统一入口获取：正式路径读 Definition，兼容路径读 CDO。
 	AShooterWeapon* Weapon = FindWeaponActor(InstanceId);
 	if (!IsValid(Weapon))
 	{
@@ -420,14 +361,14 @@ bool UShooterInventoryComponent::ReloadMagazine(
 
 	if (!ReplicatedInventory.ReloadMagazine(
 		InstanceId,
-		Definition ? Definition->AmmoConfig.MagazineSize : Weapon->GetMagazineSize(),
+		Weapon->GetMagazineCapacity(),
 		OutTransferredAmmo))
 	{
 		return false;
 	}
 
 	// 服务器本地立即刷新 WeaponActor 镜像与 Owner HUD；Owner 客户端由 FastArray Change 回调刷新。
-	if (Instance)
+	if (const FShooterWeaponInstanceData* Instance = FindWeaponInstance(InstanceId))
 	{
 		HandleInstanceChanged(*Instance);
 	}

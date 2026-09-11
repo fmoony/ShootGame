@@ -8,9 +8,27 @@
 #include "Characters/Animation/ShooterThirdPersonAnimInstance.h"
 #include "Characters/Equipment/ShooterEquipmentComponent.h"
 #include "Characters/ShooterCharacter.h"
+#include "UObject/Package.h"
+#include "Weapons/Definitions/ShooterWeaponDefinition.h"
 #include "Weapons/ShooterPickup.h"
 #include "Weapons/ShooterWeapon.h"
 #include "ShooterWeaponPresentationTestTypes.generated.h"
+
+/** 测试用内存 Definition：不进入 AssetManager；供 Definition 授予链路测试使用。 */
+inline UShooterWeaponDefinition* MakeShooterTestWeaponDefinition(
+	const FName& Name,
+	TSubclassOf<AShooterWeapon> WeaponActorClass,
+	int32 MagazineSize = 10,
+	int32 InitialReserveAmmo = -1)
+{
+	UShooterWeaponDefinition* Definition = NewObject<UShooterWeaponDefinition>(
+		GetTransientPackage(),
+		Name);
+	Definition->WeaponActorClass = WeaponActorClass;
+	Definition->AmmoConfig.MagazineSize = MagazineSize;
+	Definition->AmmoConfig.InitialReserveAmmo = InitialReserveAmmo;
+	return Definition;
+}
 
 /**
  * 武器装备表现事件收束与动画切换解耦执行计划的 Editor Automation 测试类型。
@@ -95,9 +113,10 @@ class AShooterWeaponPresentationTestPickup : public AShooterPickup
 	GENERATED_BODY()
 
 public:
-	void SetWeaponClassForTest(TSubclassOf<AShooterWeapon> InWeaponClass)
+	/** 直接写入 Definition 授予数据源，模拟数据表行复制结果。 */
+	void SetWeaponDefinitionForTest(UShooterWeaponDefinition* InDefinition)
 	{
-		WeaponClass = InWeaponClass;
+		WeaponDefinition = InDefinition;
 	}
 
 	void TriggerOverlapForTest(AActor* OtherActor)

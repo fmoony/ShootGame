@@ -86,8 +86,10 @@ bool FShooterAmmoHudRefreshPickupReloadFireTest::RunTest(const FString& Paramete
 
 	// --- 场景 1：拾取 = TryAddWeapon + 立即 EquipWeapon（与 AShooterPickup::OnOverlap 相同顺序） ---
 	FGuid InstanceId;
-	const EShooterInventoryAddResult AddResult = Inventory->TryAddWeapon(
-		AShooterWeaponPresentationTestWeaponPrimary::StaticClass(),
+	const EShooterInventoryAddResult AddResult = Inventory->TryAddWeaponDefinition(
+		MakeShooterTestWeaponDefinition(
+			TEXT("WD_HudRefreshPrimary"),
+			AShooterWeaponPresentationTestWeaponPrimary::StaticClass()),
 		InstanceId);
 	TestEqual(
 		TEXT("拾取授予成功"),

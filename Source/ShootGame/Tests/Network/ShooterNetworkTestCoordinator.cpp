@@ -39,6 +39,7 @@
 #include "ShooterPlayerState.h"
 #include "ShooterWeapon.h"
 #include "ShooterProjectile.h"
+#include "Weapons/Definitions/ShooterWeaponDefinition.h"
 #include "UObject/ConstructorHelpers.h"
 
 namespace ShooterNetworkTest
@@ -49,6 +50,11 @@ namespace ShooterNetworkTest
 		TEXT("/Game/Shooter/Blueprints/Weapons/BP_ShooterWeapon_Rifle.BP_ShooterWeapon_Rifle_C");
 	const TCHAR* PistolClassPath =
 		TEXT("/Game/Shooter/Blueprints/Weapons/BP_ShooterWeapon_Pistol.BP_ShooterWeapon_Pistol_C");
+	// A4 起授予数据源是正式 WeaponDefinition 资产；弹药与 ActorClass 只由 Definition 决定。
+	const TCHAR* RifleDefinitionPath =
+		TEXT("/Game/Shooter/Weapons/Definitions/WD_Rifle");
+	const TCHAR* PistolDefinitionPath =
+		TEXT("/Game/Shooter/Weapons/Definitions/WD_Pistol");
 
 	// ---- B1 瞄准表现基线：原地转视角调度与跟踪容差 ----
 	constexpr float AimRotationYawRateDegreesPerSecond = 30.0f;
@@ -1233,27 +1239,27 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			return;
 		}
 
-		const TSubclassOf<AShooterWeapon> RifleClass = LoadClass<AShooterWeapon>(
+		UShooterWeaponDefinition* RifleDefinition = LoadObject<UShooterWeaponDefinition>(
 			nullptr,
-			ShooterNetworkTest::RifleClassPath);
-		const TSubclassOf<AShooterWeapon> PistolClass = LoadClass<AShooterWeapon>(
+			ShooterNetworkTest::RifleDefinitionPath);
+		UShooterWeaponDefinition* PistolDefinition = LoadObject<UShooterWeaponDefinition>(
 			nullptr,
-			ShooterNetworkTest::PistolClassPath);
-		if (!RifleClass || !PistolClass)
+			ShooterNetworkTest::PistolDefinitionPath);
+		if (!RifleDefinition || !PistolDefinition)
 		{
-			FailTest(TEXT("Rifle or Pistol class could not be loaded"));
+			FailTest(TEXT("Rifle or Pistol WeaponDefinition could not be loaded"));
 			return;
 		}
 
 		const EShooterInventoryAddResult RifleResult =
-			InventoryComponent->TryAddWeapon(RifleClass, ServerInventoryFirstId);
+			InventoryComponent->TryAddWeaponDefinition(RifleDefinition, ServerInventoryFirstId);
 		if (RifleResult == EShooterInventoryAddResult::Added)
 		{
 			Character->GetEquipmentComponent()->EquipWeapon(ServerInventoryFirstId);
 		}
 
 		const EShooterInventoryAddResult PistolResult =
-			InventoryComponent->TryAddWeapon(PistolClass, ServerInventorySecondId);
+			InventoryComponent->TryAddWeaponDefinition(PistolDefinition, ServerInventorySecondId);
 		if (PistolResult == EShooterInventoryAddResult::Added)
 		{
 			Character->GetEquipmentComponent()->EquipWeapon(ServerInventorySecondId);
@@ -1262,14 +1268,19 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		// SingleGrant：同一 WeaponClass 不能第二次授予。
 		FGuid DuplicateInstanceId;
 		const EShooterInventoryAddResult DuplicateResult =
-			InventoryComponent->TryAddWeapon(RifleClass, DuplicateInstanceId);
+			InventoryComponent->TryAddWeaponDefinition(RifleDefinition, DuplicateInstanceId);
 
 		// SlotFull：临时把 Slot 上限设为 1，使用额外测试类验证唯一空位耗尽后明确 Reject。
 		const int32 PreviousMaxSlots = InventoryComponent->GetMaxWeaponSlots();
 		InventoryComponent->SetMaxWeaponSlots(1);
 		FGuid SlotFullInstanceId;
+		UShooterWeaponDefinition* SlotFillDefinition = NewObject<UShooterWeaponDefinition>(
+			GetTransientPackage(),
+			TEXT("WD_NetworkSlotFill"));
+		SlotFillDefinition->WeaponActorClass = AShooterNetworkTestWeapon::StaticClass();
+		SlotFillDefinition->AmmoConfig.MagazineSize = 10;
 		const EShooterInventoryAddResult SlotFullResult =
-			InventoryComponent->TryAddWeapon(AShooterNetworkTestWeapon::StaticClass(), SlotFullInstanceId);
+			InventoryComponent->TryAddWeaponDefinition(SlotFillDefinition, SlotFullInstanceId);
 		InventoryComponent->SetMaxWeaponSlots(PreviousMaxSlots);
 
 		// WeaponActorBinding：每个 InstanceId 必须与对应 Actor 的 BoundInstanceId 完全一致。
@@ -3244,14 +3255,14 @@ void AShooterNetworkTestCoordinator::PollClientState()
 	if (!bClientReportedPickupAuthority)
 	{
 		UShooterInventoryComponent* InventoryComponent = Character->GetInventoryComponent();
-		const TSubclassOf<AShooterWeapon> RifleClass = LoadClass<AShooterWeapon>(
+		UShooterWeaponDefinition* RifleDefinition = LoadObject<UShooterWeaponDefinition>(
 			nullptr,
-			ShooterNetworkTest::RifleClassPath);
-		if (InventoryComponent && RifleClass)
+			ShooterNetworkTest::RifleDefinitionPath);
+		if (InventoryComponent && RifleDefinition)
 		{
 			FGuid ClientAttemptInstanceId;
 			const EShooterInventoryAddResult ClientAttemptResult =
-				InventoryComponent->TryAddWeapon(RifleClass, ClientAttemptInstanceId);
+				InventoryComponent->TryAddWeaponDefinition(RifleDefinition, ClientAttemptInstanceId);
 			if (ClientAttemptResult == EShooterInventoryAddResult::NotAuthoritative &&
 				InventoryComponent->GetWeaponCount() == 2)
 			{
@@ -4295,18 +4306,18 @@ void AShooterNetworkTestCoordinator::RunAimRotationServerPhase()
 			return;
 		}
 
-		const TSubclassOf<AShooterWeapon> RifleClass = LoadClass<AShooterWeapon>(
+		UShooterWeaponDefinition* RifleWeaponDefinition = LoadObject<UShooterWeaponDefinition>(
 			nullptr,
-			ShooterNetworkTest::RifleClassPath);
-		if (!RifleClass)
+			ShooterNetworkTest::RifleDefinitionPath);
+		if (!RifleWeaponDefinition)
 		{
-			FailTest(TEXT("AimRotation Rifle class could not be loaded"));
+			FailTest(TEXT("AimRotation Rifle WeaponDefinition could not be loaded"));
 			return;
 		}
 
 		FGuid RifleInstanceId;
-		if (InventoryComponent->TryAddWeapon(
-			RifleClass,
+		if (InventoryComponent->TryAddWeaponDefinition(
+			RifleWeaponDefinition,
 			RifleInstanceId) == EShooterInventoryAddResult::Added)
 		{
 			Character->GetEquipmentComponent()->EquipWeapon(RifleInstanceId);

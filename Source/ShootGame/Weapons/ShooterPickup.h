@@ -11,6 +11,7 @@
 class USphereComponent;
 class UPrimitiveComponent;
 class AShooterWeapon;
+class UShooterWeaponDefinition;
 
 /**
  *  Holds information about a type of weapon pickup
@@ -24,9 +25,9 @@ struct FWeaponTableRow : public FTableRowBase
 	UPROPERTY(EditAnywhere)
 	TSoftObjectPtr<UStaticMesh> StaticMesh;
 
-	/** Weapon class to grant on pickup */
+	/** 正式授予数据源：武器定义资产软引用；丢失或非法配置时不消费 Pickup。 */
 	UPROPERTY(EditAnywhere)
-	TSubclassOf<AShooterWeapon> WeaponToSpawn;
+	TSoftObjectPtr<UShooterWeaponDefinition> WeaponDefinition;
 };
 
 /**
@@ -51,8 +52,8 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Pickup")
 	FDataTableRowHandle WeaponType;
 
-	/** Type to weapon to grant on pickup. Set from the weapon data table. */
-	TSubclassOf<AShooterWeapon> WeaponClass;
+	/** 正式授予数据源：武器定义资产软引用，BeginPlay 时从数据表行复制；授予时服务器同步加载。 */
+	TSoftObjectPtr<UShooterWeaponDefinition> WeaponDefinition;
 	
 	/** Time to wait before respawning this pickup */
 	UPROPERTY(EditAnywhere, Category="Pickup", meta = (ClampMin = 0, ClampMax = 120, Units = "s"))

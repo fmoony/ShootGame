@@ -181,8 +181,10 @@ bool FShooterWeaponPresentationBaselineTest::RunTest(const FString& Parameters)
 
 	FGuid PrimaryId;
 	FGuid SecondaryId;
-	const EShooterInventoryAddResult PrimaryAddResult = Inventory->TryAddWeapon(
-		AShooterWeaponPresentationTestWeaponPrimary::StaticClass(),
+	const EShooterInventoryAddResult PrimaryAddResult = Inventory->TryAddWeaponDefinition(
+		MakeShooterTestWeaponDefinition(
+			TEXT("WD_PresentationPrimary"),
+			AShooterWeaponPresentationTestWeaponPrimary::StaticClass()),
 		PrimaryId);
 	TestEqual(
 		TEXT("Primary weapon is granted"),
@@ -235,8 +237,10 @@ bool FShooterWeaponPresentationBaselineTest::RunTest(const FString& Parameters)
 			PrimaryWeapon->GetThirdPersonAnimInstanceClass().Get());
 
 	// 切枪：旧武器隐藏，新武器可见，AnimClass 同步切换。
-	const EShooterInventoryAddResult SecondaryAddResult = Inventory->TryAddWeapon(
-		AShooterWeaponPresentationTestWeaponSecondary::StaticClass(),
+	const EShooterInventoryAddResult SecondaryAddResult = Inventory->TryAddWeaponDefinition(
+		MakeShooterTestWeaponDefinition(
+			TEXT("WD_PresentationSecondary"),
+			AShooterWeaponPresentationTestWeaponSecondary::StaticClass()),
 		SecondaryId);
 	TestEqual(
 		TEXT("Secondary weapon is granted"),

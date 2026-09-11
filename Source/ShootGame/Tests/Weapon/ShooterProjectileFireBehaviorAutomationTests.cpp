@@ -235,18 +235,20 @@ bool FShooterProjectileFireBehaviorDefinitionWiringTest::RunTest(const FString& 
 			ProjectileBehavior->ProjectileClass == PistolBulletClass);
 	}
 
-	// 适配入口授予（伪造 DefinitionId 不可解析）：解析不到正式行为，回落旧路径。
-	FGuid AdapterGrantedId;
+	// 内存 Definition（ID 不在 AssetManager）授予：兼容路径，解析不到正式行为。
+	FGuid CompatGrantedId;
 	TestEqual(
-		TEXT("Adapter grant succeeds"),
-		static_cast<int32>(Inventory->TryAddWeapon(AShooterInventoryOrderTestWeapon::StaticClass(), AdapterGrantedId)),
+		TEXT("Compat grant succeeds"),
+		static_cast<int32>(Inventory->TryAddWeaponDefinition(
+			MakeShooterTestWeaponDefinition(TEXT("WD_FireBehaviorCompat"), AShooterInventoryOrderTestWeapon::StaticClass()),
+			CompatGrantedId)),
 		static_cast<int32>(EShooterInventoryAddResult::Added));
-	AShooterWeapon* AdapterWeapon = Inventory->FindWeaponActor(AdapterGrantedId);
-	if (TestNotNull(TEXT("Adapter weapon actor exists"), AdapterWeapon))
+	AShooterWeapon* CompatWeapon = Inventory->FindWeaponActor(CompatGrantedId);
+	if (TestNotNull(TEXT("Compat weapon actor exists"), CompatWeapon))
 	{
 		TestNull(
-			TEXT("Adapter-granted weapon resolves no formal behavior"),
-			AdapterWeapon->ResolveFireBehavior());
+			TEXT("Compat-granted weapon resolves no formal behavior"),
+			CompatWeapon->ResolveFireBehavior());
 	}
 
 	DestroyFireBehaviorTestWorld(World);

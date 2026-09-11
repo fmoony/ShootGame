@@ -100,7 +100,9 @@ bool FShooterPickupRespawnGateCrossRespawnTest::RunTest(const FString& Parameter
 		DestroyRespawnGateTestWorld(World);
 		return false;
 	}
-	Pickup->SetWeaponClassForTest(AShooterInventoryOrderTestWeapon::StaticClass());
+	Pickup->SetWeaponDefinitionForTest(MakeShooterTestWeaponDefinition(
+		TEXT("WD_PickupRespawnOrder"),
+		AShooterInventoryOrderTestWeapon::StaticClass()));
 
 	UShooterInventoryComponent* InventoryA = PlayerA->GetInventoryComponent();
 	UShooterInventoryComponent* InventoryB = PlayerB->GetInventoryComponent();
@@ -182,7 +184,9 @@ bool FShooterPickupRespawnGateSlotFullRetryTest::RunTest(const FString& Paramete
 		DestroyRespawnGateTestWorld(World);
 		return false;
 	}
-	Pickup->SetWeaponClassForTest(AShooterWeaponPresentationTestWeaponPrimary::StaticClass());
+	Pickup->SetWeaponDefinitionForTest(MakeShooterTestWeaponDefinition(
+		TEXT("WD_PickupRespawnPrimary"),
+		AShooterWeaponPresentationTestWeaponPrimary::StaticClass()));
 
 	UShooterInventoryComponent* FullInventory = FullPlayer->GetInventoryComponent();
 	UShooterInventoryComponent* EmptyInventory = EmptyPlayer->GetInventoryComponent();
@@ -197,9 +201,15 @@ bool FShooterPickupRespawnGateSlotFullRetryTest::RunTest(const FString& Paramete
 	FGuid FirstId;
 	FGuid SecondId;
 	FGuid ThirdId;
-	FullInventory->TryAddWeapon(AShooterInventoryOrderTestWeapon::StaticClass(), FirstId);
-	FullInventory->TryAddWeapon(AShooterWeaponPresentationTestWeaponPrimary::StaticClass(), SecondId);
-	FullInventory->TryAddWeapon(AShooterWeaponPresentationTestWeaponSecondary::StaticClass(), ThirdId);
+	FullInventory->TryAddWeaponDefinition(
+		MakeShooterTestWeaponDefinition(TEXT("WD_SlotFillOrder"), AShooterInventoryOrderTestWeapon::StaticClass()),
+		FirstId);
+	FullInventory->TryAddWeaponDefinition(
+		MakeShooterTestWeaponDefinition(TEXT("WD_SlotFillPrimary"), AShooterWeaponPresentationTestWeaponPrimary::StaticClass()),
+		SecondId);
+	FullInventory->TryAddWeaponDefinition(
+		MakeShooterTestWeaponDefinition(TEXT("WD_SlotFillSecondary"), AShooterWeaponPresentationTestWeaponSecondary::StaticClass()),
+		ThirdId);
 	TestEqual(TEXT("Full player fills all three slots"), FullInventory->GetWeaponCount(), 3);
 
 	// 满背包玩家拾取：SlotFull 被明确拒绝，Pickup 不隐藏、闸门保持开启。

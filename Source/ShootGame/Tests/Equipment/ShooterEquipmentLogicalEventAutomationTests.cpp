@@ -74,7 +74,10 @@ namespace ShooterEquipmentLogicalEventAutomationTests
 			return nullptr;
 		}
 
-		const EShooterInventoryAddResult AddResult = Inventory->TryAddWeapon(WeaponClass, OutInstanceId);
+		UShooterWeaponDefinition* Definition = MakeShooterTestWeaponDefinition(
+		FName(*FString::Printf(TEXT("WD_%s"), *WeaponClass->GetName())),
+		WeaponClass);
+	const EShooterInventoryAddResult AddResult = Inventory->TryAddWeaponDefinition(Definition, OutInstanceId);
 		if (!Test.TestEqual(
 			TEXT("Equipment event test weapon is granted"),
 			static_cast<int32>(AddResult),
@@ -390,7 +393,9 @@ bool FShooterPickupRejectReloadingTest::RunTest(const FString& Parameters)
 	UShooterEquipmentComponent* Equipment = Character->GetEquipmentComponent();
 	UShooterInventoryComponent* Inventory = Character->GetInventoryComponent();
 	TestTrue(TEXT("Primary equipped"), Equipment->EquipWeapon(PrimaryId));
-	Pickup->SetWeaponClassForTest(AShooterWeaponPresentationTestWeaponSecondary::StaticClass());
+	Pickup->SetWeaponDefinitionForTest(MakeShooterTestWeaponDefinition(
+		TEXT("WD_LogicalEventSecondary"),
+		AShooterWeaponPresentationTestWeaponSecondary::StaticClass()));
 	ASC->AddLooseGameplayTag(ShooterGameplayTags::State_Reloading);
 	for (int32 Attempt = 0; Attempt < 10; ++Attempt)
 	{

@@ -167,6 +167,21 @@ int32 AShooterWeapon::GetReserveAmmo() const
 	return 0;
 }
 
+int32 AShooterWeapon::GetMagazineCapacity() const
+{
+	// 正式路径：容量来自绑定实例 Definition；解析失败（兼容路径）回落 CDO。
+	if (const FShooterWeaponInstanceData* Instance = ShooterWeaponInventory::FindInstance(this))
+	{
+		if (const UShooterWeaponDefinition* Definition =
+			UShooterWeaponDefinition::ResolveDefinitionSync(Instance->DefinitionId))
+		{
+			return Definition->AmmoConfig.MagazineSize;
+		}
+	}
+
+	return MagazineSize;
+}
+
 bool AShooterWeapon::CanConsumeAmmo() const
 {
 	if (BoundInstanceId.IsValid())

@@ -20,6 +20,7 @@
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 #include "Weapons/ShooterWeapon.h"
+#include "../Equipment/ShooterWeaponPresentationTestTypes.h"
 #include "ShootGame.h"
 #include "UObject/UnrealType.h"
 
@@ -117,7 +118,11 @@ namespace ShooterFirstPersonCapture
 						Weapons[State->bExercise ? State->Case : State->Case / PitchCount]);
 					UClass* WeaponClass = LoadClass<AShooterWeapon>(nullptr, *ClassPath);
 					Character->GetInventoryComponent()->ClearInventory();
-					Character->GetInventoryComponent()->TryAddWeapon(WeaponClass, State->WeaponId);
+					Character->GetInventoryComponent()->TryAddWeaponDefinition(
+					MakeShooterTestWeaponDefinition(
+						FName(*FString::Printf(TEXT("WD_Capture_%s"), *WeaponClass->GetName())),
+						WeaponClass),
+					State->WeaponId);
 					Character->GetEquipmentComponent()->EquipWeapon(State->WeaponId);
 					Character->GetInventoryComponent()->ConsumeMagazineAmmo(State->WeaponId, 1);
 					AShooterWeapon* EquippedWeapon = Character->GetCurrentWeapon();

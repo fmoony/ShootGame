@@ -277,9 +277,9 @@ bool FShooterInventoryPickupGrantContractTest::RunTest(const FString& Parameters
 		MaxWeaponSlotsProperty && !MaxWeaponSlotsProperty->HasAnyPropertyFlags(CPF_Net));
 
 	const UFunction* TryAddWeaponFunction =
-		UShooterInventoryComponent::StaticClass()->FindFunctionByName(TEXT("TryAddWeapon"));
+		UShooterInventoryComponent::StaticClass()->FindFunctionByName(TEXT("TryAddWeaponDefinition"));
 	TestNull(
-		TEXT("TryAddWeapon is not exposed as a client-callable UFUNCTION"),
+		TEXT("TryAddWeaponDefinition is not exposed as a client-callable UFUNCTION"),
 		TryAddWeaponFunction);
 
 	return true;

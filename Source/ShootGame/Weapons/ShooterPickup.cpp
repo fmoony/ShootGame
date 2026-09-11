@@ -11,6 +11,7 @@
 #include "ShooterCharacter.h"
 #include "ShooterInventoryComponent.h"
 #include "ShooterWeapon.h"
+#include "Weapons/Definitions/ShooterWeaponDefinition.h"
 #include "Engine/World.h"
 #include "ShootGame.h"
 #include "TimerManager.h"
@@ -63,8 +64,8 @@ void AShooterPickup::BeginPlay()
 
 	if (FWeaponTableRow* WeaponData = WeaponType.GetRow<FWeaponTableRow>(FString()))
 	{
-		// copy the weapon class
-		WeaponClass = WeaponData->WeaponToSpawn;
+		// 授予数据源从数据表行复制；正式路径只读 WeaponDefinition 软引用。
+		WeaponDefinition = WeaponData->WeaponDefinition;
 	}
 }
 
@@ -104,9 +105,25 @@ void AShooterPickup::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
 	// 同一 Pickup 的连续 Overlap 只在服务器端处理一次；成功授予后才进入隐藏/重生流程。
 	bPickupAvailable = false;
 
+	// 正式授予数据源：软引用在此同步加载（第一版同步即可）；
+	// Definition 丢失或非法配置时 TryAddWeaponDefinition 明确 Reject，不消费 Pickup。
+	UShooterWeaponDefinition* Definition = WeaponDefinition.Get();
+	if (!Definition)
+	{
+		Definition = WeaponDefinition.LoadSynchronous();
+	}
+	if (!Definition)
+	{
+		UE_LOG(
+			LogShootGame,
+			Warning,
+			TEXT("Pickup %s references a missing WeaponDefinition; grant rejected"),
+			*GetNameSafe(this));
+	}
+
 	FGuid GrantedInstanceId;
 	const EShooterInventoryAddResult AddResult =
-		Inventory->TryAddWeapon(WeaponClass, GrantedInstanceId);
+		Inventory->TryAddWeaponDefinition(Definition, GrantedInstanceId);
 	if (AddResult == EShooterInventoryAddResult::Added)
 	{
 		// R3：拾取后的“立即装备”只通过 Equipment facade 提交，不再直接调用 Character 装备事务。

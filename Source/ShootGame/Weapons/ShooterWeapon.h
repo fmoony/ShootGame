@@ -292,6 +292,13 @@ public:
 	/** Returns the magazine size */
 	int32 GetMagazineSize() const { return MagazineSize; };
 
+	/**
+	 * 返回换弹事务容量：优先取绑定实例 Definition 的弹匣容量；
+	 * Definition 不可解析（NPC / 旧测试兼容路径）时回落 WeaponActor CDO 配置。
+	 * Inventory 的换弹事务只通过本入口获取容量，不再直接读取 CDO。
+	 */
+	int32 GetMagazineCapacity() const;
+
 	/** Returns the current bullet count；绑定 Inventory 时从 MagazineAmmo 读取。 */
 	int32 GetBulletCount() const;
 

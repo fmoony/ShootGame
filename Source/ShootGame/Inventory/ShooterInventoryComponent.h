@@ -11,12 +11,6 @@ class AShooterWeapon;
 class AShooterCharacter;
 class UShooterWeaponDefinition;
 
-namespace ShooterInventory
-{
-	/** 初始备弹解析：武器显式声明 InitialReserveAmmo >=0 时直接采用；-1 保持 MagazineSize×3 兼容基线。 */
-	SHOOTGAME_API int32 GetInitialReserveAmmoForWeaponClass(TSubclassOf<AShooterWeapon> WeaponClass);
-}
-
 DECLARE_MULTICAST_DELEGATE_OneParam(FShooterInventoryWeaponRemovedDelegate, const FGuid&);
 DECLARE_MULTICAST_DELEGATE(FShooterInventoryClearedDelegate);
 
@@ -25,7 +19,6 @@ UENUM(BlueprintType)
 enum class EShooterInventoryAddResult : uint8
 {
 	Added,
-	InvalidWeaponClass,
 	NotAuthoritative,
 	InvalidInstance,
 	DuplicateInstance,
@@ -57,18 +50,10 @@ public:
 	/**
 	 * 服务器权威：按正式 WeaponDefinition 创建 WeaponInstance 与 WeaponActor，并自动选择空 Slot。
 	 * 唯一生产授予入口：DefinitionId、WeaponActorClass 与初始弹药只由 Definition 决定，
-	 * 不再从 WeaponActor CDO 推导。
+	 * 不从 WeaponActor CDO 推导。
 	 */
 	EShooterInventoryAddResult TryAddWeaponDefinition(
 		const UShooterWeaponDefinition* WeaponDefinition,
-		FGuid& OutInstanceId);
-
-	/**
-	 * 兼容适配入口：以 WeaponClass 名伪造 DefinitionId，仅供资产迁移与旧测试使用。
-	 * 生产路径禁止调用；大阶段 A4 资产迁移完成后删除（实施计划 6.A2 / 6.A4）。
-	 */
-	EShooterInventoryAddResult TryAddWeapon(
-		TSubclassOf<AShooterWeapon> WeaponClass,
 		FGuid& OutInstanceId);
 
 	/** 服务器权威：新增一条武器实例数据。InstanceId 与 SlotIndex 均必须唯一。 */

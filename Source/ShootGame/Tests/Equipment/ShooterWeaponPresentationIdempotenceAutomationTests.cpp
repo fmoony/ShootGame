@@ -72,7 +72,10 @@ namespace ShooterWeaponPresentationIdempotenceAutomationTests
 			return nullptr;
 		}
 
-		const EShooterInventoryAddResult AddResult = Inventory->TryAddWeapon(WeaponClass, OutInstanceId);
+		UShooterWeaponDefinition* Definition = MakeShooterTestWeaponDefinition(
+		FName(*FString::Printf(TEXT("WD_%s"), *WeaponClass->GetName())),
+		WeaponClass);
+	const EShooterInventoryAddResult AddResult = Inventory->TryAddWeaponDefinition(Definition, OutInstanceId);
 		if (!Test.TestEqual(
 			TEXT("Idempotence test weapon is granted"),
 			static_cast<int32>(AddResult),
