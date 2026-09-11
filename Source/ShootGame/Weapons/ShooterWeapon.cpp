@@ -11,6 +11,8 @@
 #include "ShooterInventoryComponent.h"
 #include "ShooterProjectile.h"
 #include "ShooterWeaponHolder.h"
+#include "ShooterWeaponFireBehavior.h"
+#include "ShooterProjectileFireBehavior.h"
 #include "Components/SceneComponent.h"
 #include "TimerManager.h"
 #include "Animation/AnimInstance.h"
@@ -19,6 +21,7 @@
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
 #include "Net/UnrealNetwork.h"
+#include "Weapons/Definitions/ShooterWeaponDefinition.h"
 
 AShooterWeapon::AShooterWeapon()
 {
@@ -345,8 +348,8 @@ void AShooterWeapon::Fire()
 		return;
 	}
 
-	// fire a projectile at the target
-	FireProjectile(WeaponOwner->GetWeaponTargetLocation());
+	// 权威弹药消费成功后才执行开火行为与表现。
+	ExecuteFireAtTarget(WeaponOwner->GetWeaponTargetLocation());
 
 	// update the time of our last shot
 	TimeOfLastShot = GetWorld()->GetTimeSeconds();
@@ -373,19 +376,41 @@ void AShooterWeapon::FireCooldownExpired()
 	WeaponOwner->OnSemiWeaponRefire();
 }
 
-void AShooterWeapon::FireProjectile(const FVector& TargetLocation)
+UShooterWeaponFireBehavior* AShooterWeapon::ResolveFireBehavior() const
 {
-	// get the projectile transform
-	FTransform ProjectileTransform = CalculateProjectileSpawnTransform(TargetLocation);
-	
-	// spawn the projectile
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	SpawnParams.TransformScaleMethod = ESpawnActorScaleMethod::OverrideRootScale;
-	SpawnParams.Owner = GetOwner();
-	SpawnParams.Instigator = PawnOwner;
+	// 正式路径：行为由绑定实例的 Definition 决定，不从 WeaponActor CDO 读取。
+	const FShooterWeaponInstanceData* Instance = ShooterWeaponInventory::FindInstance(this);
+	if (!Instance)
+	{
+		return nullptr;
+	}
 
-	AShooterProjectile* Projectile = GetWorld()->SpawnActor<AShooterProjectile>(ProjectileClass, ProjectileTransform, SpawnParams);
+	const UShooterWeaponDefinition* Definition =
+		UShooterWeaponDefinition::ResolveDefinitionSync(Instance->DefinitionId);
+	return Definition ? Definition->FireBehavior.Get() : nullptr;
+}
+
+void AShooterWeapon::ExecuteFireAtTarget(const FVector& TargetLocation)
+{
+	// 攻击结果边界：Definition 行为命中时只委托行为；否则走 NPC / 旧测试兼容路径。
+	if (UShooterWeaponFireBehavior* Behavior = ResolveFireBehavior())
+	{
+		FShooterWeaponFireContext Context;
+		Context.WeaponActor = this;
+		Context.Instigator = PawnOwner;
+		Context.TargetLocation = TargetLocation;
+		Context.MuzzleTransform = CalculateProjectileSpawnTransform(TargetLocation);
+		if (const FShooterWeaponInstanceData* Instance = ShooterWeaponInventory::FindInstance(this))
+		{
+			Context.InstanceId = Instance->InstanceId;
+			Context.Definition = UShooterWeaponDefinition::ResolveDefinitionSync(Instance->DefinitionId);
+		}
+		Behavior->ExecuteFire(Context);
+	}
+	else
+	{
+		FireProjectile(TargetLocation);
+	}
 
 	// play the firing montage
 	WeaponOwner->PlayFiringMontage(FiringMontage);
@@ -407,6 +432,23 @@ void AShooterWeapon::FireProjectile(const FVector& TargetLocation)
 		WeaponOwner->UpdateWeaponHUD(CurrentBullets, MagazineSize, GetReserveAmmo());
 		ForceNetUpdate();
 	}
+}
+
+void AShooterWeapon::FireProjectile(const FVector& TargetLocation)
+{
+	// 兼容路径（PvE / 旧测试）：Definition 行为不可用时的旧弹丸生成实现。
+	// 仅服务器调用（Fire 入口已做权威校验）；正式玩家路径不进入本函数。
+	// get the projectile transform
+	FTransform ProjectileTransform = CalculateProjectileSpawnTransform(TargetLocation);
+
+	// spawn the projectile
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	SpawnParams.TransformScaleMethod = ESpawnActorScaleMethod::OverrideRootScale;
+	SpawnParams.Owner = GetOwner();
+	SpawnParams.Instigator = PawnOwner;
+
+	GetWorld()->SpawnActor<AShooterProjectile>(ProjectileClass, ProjectileTransform, SpawnParams);
 }
 
 FTransform AShooterWeapon::CalculateProjectileSpawnTransform(const FVector& TargetLocation) const

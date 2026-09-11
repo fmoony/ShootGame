@@ -10,6 +10,7 @@
 #include "UObject/Package.h"
 #include "UObject/SavePackage.h"
 #include "Weapons/Definitions/ShooterWeaponDefinition.h"
+#include "Weapons/ShooterProjectileFireBehavior.h"
 
 namespace ShooterWeaponDefinitionMigrationTool
 {
@@ -50,6 +51,25 @@ namespace ShooterWeaponDefinitionMigrationTool
 		Definition->AmmoConfig.InitialReserveAmmo = InitialReserveAmmo;
 		Definition->FireConfig.bFullAuto = bFullAuto;
 		Definition->FireConfig.RefireRate = RefireRate;
+
+		// A3：为测试 Definition 配置弹丸行为；弹丸类与 Rifle 常规弹丸刻意不同，
+		// 供 FireBehavior 测试证明弹丸类来自 Definition 行为而非 WeaponActor CDO。
+		if (!Definition->FireBehavior)
+		{
+			Definition->FireBehavior = NewObject<UShooterProjectileFireBehavior>(
+				Definition,
+				NAME_None,
+				RF_Transactional);
+		}
+		if (UShooterProjectileFireBehavior* ProjectileBehavior =
+			Cast<UShooterProjectileFireBehavior>(Definition->FireBehavior))
+		{
+			UClass* PistolBulletClass = LoadObject<UClass>(
+				nullptr,
+				TEXT("/Game/Shooter/Blueprints/Weapons/BP_ShooterProjectile_Bullet_Pistol.BP_ShooterProjectile_Bullet_Pistol_C"));
+			Test.TestTrue(TEXT("Pistol bullet class loaded"), PistolBulletClass != nullptr);
+			ProjectileBehavior->ProjectileClass = PistolBulletClass;
+		}
 		Definition->MarkPackageDirty();
 
 		const FString FileName = FPackageName::LongPackageNameToFilename(

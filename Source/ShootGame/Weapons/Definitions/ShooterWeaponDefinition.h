@@ -10,6 +10,7 @@ class AShooterWeapon;
 class UAnimInstance;
 class UAnimMontage;
 class UNiagaraSystem;
+class UShooterWeaponFireBehavior;
 class USkeletalMesh;
 class USoundBase;
 class UStaticMesh;
@@ -175,4 +176,11 @@ public:
 	/** 表现配置归档。 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Weapon")
 	FShooterWeaponPresentationConfig PresentationConfig;
+
+	/**
+	 * 开火行为边界：只回答"这一枪如何产生攻击结果"。
+	 * 第一版仅 UShooterProjectileFireBehavior；行为实例无复制、无持久可变状态。
+	 */
+	UPROPERTY(EditAnywhere, Instanced, BlueprintReadOnly, Category="Weapon")
+	TObjectPtr<UShooterWeaponFireBehavior> FireBehavior;
 };

@@ -11,6 +11,9 @@
 
 class IShooterWeaponHolder;
 class AShooterProjectile;
+class UShooterWeaponFireBehavior;
+class UShooterWeaponDefinition;
+struct FShooterWeaponFireContext;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FShooterWeaponOutOfAmmoDelegate, AShooterWeapon*);
 class USkeletalMeshComponent;
@@ -221,7 +224,13 @@ protected:
 	/** Called when the refire rate time has passed while shooting semi auto weapons */
 	void FireCooldownExpired();
 
-	/** Fire a projectile towards the target location */
+	/**
+	 * 服务器权威开火执行：Definition 命中时把弹丸生成委托给 FireBehavior，
+	 * 否则走 NPC / 旧测试兼容的 FireProjectile 路径；表现入口统一留在本 Actor。
+	 */
+	void ExecuteFireAtTarget(const FVector& TargetLocation);
+
+	/** 旧弹丸生成路径：仅在 Definition 行为不可用时执行（PvE / 测试兼容，B4 记录遗留边界）。 */
 	virtual void FireProjectile(const FVector& TargetLocation);
 
 	/** Broadcast firing effects (muzzle flash + sound) to all clients. Unreliable: dropping a flash is acceptable */
@@ -294,6 +303,12 @@ public:
 
 	/** 返回绑定的 WeaponInstance ID；无效表示尚未接入 Inventory 的兼容路径。 */
 	FGuid GetBoundInstanceId() const { return BoundInstanceId; }
+
+	/**
+	 * 解析本次开火应使用的正式行为：来自绑定实例 DefinitionId 对应的 Definition。
+	 * 返回空表示走兼容路径（NPC 未绑定 Inventory 或 Definition 未配置行为）。
+	 */
+	UShooterWeaponFireBehavior* ResolveFireBehavior() const;
 
 	/** 服务器在创建 WeaponActor 后写入绑定关系。 */
 	void SetBoundInstanceId(const FGuid& InInstanceId) { BoundInstanceId = InInstanceId; }
