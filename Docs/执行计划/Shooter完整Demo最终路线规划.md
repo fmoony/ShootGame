@@ -659,8 +659,8 @@ Inventory 授予 / 移除 / 死亡清理接入对象池（B3）
 
 ```text
 大阶段 B（通用池 + WeaponActor 生命周期 + Pickup / 死亡集成）实施完成
-→ 待执行大阶段 B 收口七阶段完整回归
-→ 正式架构验收
+→ 大阶段 B 收口七阶段完整回归已通过（Saved/Automation/Runs/20260911_173714/Summary.json）
+→ 待正式架构验收（计划第 10 节）
 → 再进入 P1 Local Predicted 基础射击反馈
 ```
 

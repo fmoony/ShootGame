@@ -637,7 +637,9 @@ void AShooterWeapon::OnOwnerDestroyed(AActor* DestroyedActor)
 {
 	// 池化武器由池接管回收：归还而不是销毁，否则池会留下 PendingKill 引用，
 	// 且该 Actor 只能等 GC 才能复用。Inventory 侧映射由归还清理统一解除。
-	if (UShooterActorPoolSubsystem* Pool = GetPoolSubsystem())
+	// 先判是否由池管理：非池出生（NPC / 测试直接 Spawn）是受支持的兼容路径，
+	// 不应触发池自身的 fail closed 警告。
+	if (UShooterActorPoolSubsystem* Pool = GetPoolSubsystem(); Pool && Pool->IsManaged(this))
 	{
 		if (Pool->Release(this))
 		{

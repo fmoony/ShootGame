@@ -53,7 +53,7 @@ B1 通用 Actor Pool：已完成
 B2 WeaponActor 生命周期状态机：已完成
 B3 Inventory / 死亡清理接入对象池：已完成（含 Dedicated + 2 Clients 定向验证）
 B4 兼容路径与可观测性收口：已完成
-大阶段 B 收口七阶段完整回归：待执行
+大阶段 B 收口七阶段完整回归：已通过（Saved/Automation/Runs/20260911_173714/Summary.json）
 正式架构验收：待执行
 ```
 

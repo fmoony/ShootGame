@@ -96,6 +96,7 @@ void AShooterGameMode::Logout(AController* Exiting)
 
 				int32 ActiveWeaponCount = 0;
 				int32 PooledWeaponCount = 0;
+				int32 DirtyPooledWeaponCount = 0;
 				int32 OrphanWeaponCount = 0;
 				const UShooterActorPoolSubsystem* WeaponPool =
 					TestWorld->GetSubsystem<UShooterActorPoolSubsystem>();
@@ -112,6 +113,30 @@ void AShooterGameMode::Logout(AController* Exiting)
 					if (WeaponPool && WeaponPool->IsPooled(*It))
 					{
 						++PooledWeaponCount;
+
+						// B3 收口：归还池的 Actor 必须处于干净的可复用状态，
+						// 否则下一次 Acquire 会把断线玩家的残留身份 / 表现串给后续玩家。
+						const bool bHasResidualState =
+							It->GetOwner() != nullptr ||
+							It->GetBoundInstanceId().IsValid() ||
+							!It->GetWeaponRowName().IsNone() ||
+							!It->IsHidden() ||
+							It->GetLifecycleState() != EShooterWeaponLifecycleState::InPool;
+						if (bHasResidualState)
+						{
+							++DirtyPooledWeaponCount;
+							UE_LOG(
+								LogShootGame,
+								Error,
+								TEXT("Pooled WeaponActor carries residual state: Weapon=%s Owner=%s InstanceId=%s Row=%s Hidden=%s Lifecycle=%d"),
+								*GetNameSafe(*It),
+								*GetNameSafe(It->GetOwner()),
+								*It->GetBoundInstanceId().ToString(),
+								*It->GetWeaponRowName().ToString(),
+								It->IsHidden() ? TEXT("true") : TEXT("false"),
+								static_cast<int32>(It->GetLifecycleState()));
+						}
+
 						continue;
 					}
 
@@ -158,15 +183,17 @@ void AShooterGameMode::Logout(AController* Exiting)
 					}
 				}
 
-				if (ActiveWeaponCount <= 0 || OrphanWeaponCount > 0 ||
+				if (ActiveWeaponCount <= 0 || OrphanWeaponCount > 0 || DirtyPooledWeaponCount > 0 ||
 					ActiveReloadAbilityCount > 0 || ReloadingTagCount > 0 ||
 					ActiveEquipAbilityCount > 0 || EquippingTagCount > 0)
 				{
 					UE_LOG(
 						LogShootGame,
 						Error,
-						TEXT("AUTOMATION_TEST_FAILURE: Disconnect left invalid weapon ownership Active=%d Orphans=%d ActiveReload=%d ReloadingTags=%d ActiveEquip=%d EquippingTags=%d"),
+						TEXT("AUTOMATION_TEST_FAILURE: Disconnect left invalid weapon ownership Active=%d Pooled=%d DirtyPooled=%d Orphans=%d ActiveReload=%d ReloadingTags=%d ActiveEquip=%d EquippingTags=%d"),
 						ActiveWeaponCount,
+						PooledWeaponCount,
+						DirtyPooledWeaponCount,
 						OrphanWeaponCount,
 						ActiveReloadAbilityCount,
 						ReloadingTagCount,
@@ -180,9 +207,10 @@ void AShooterGameMode::Logout(AController* Exiting)
 					UE_LOG(
 						LogShootGame,
 						Display,
-						TEXT("AUTOMATION_TEST_EQUIP_CLEANUP_SUCCESS Kind=Disconnect ActiveWeapons=%d PooledWeapons=%d Orphans=%d ActiveEquip=%d EquippingTags=%d"),
+						TEXT("AUTOMATION_TEST_EQUIP_CLEANUP_SUCCESS Kind=Disconnect ActiveWeapons=%d PooledWeapons=%d DirtyPooled=%d Orphans=%d ActiveEquip=%d EquippingTags=%d"),
 						ActiveWeaponCount,
 						PooledWeaponCount,
+						DirtyPooledWeaponCount,
 						OrphanWeaponCount,
 						ActiveEquipAbilityCount,
 						EquippingTagCount);
@@ -192,9 +220,10 @@ void AShooterGameMode::Logout(AController* Exiting)
 					UE_LOG(
 						LogShootGame,
 						Display,
-						TEXT("AUTOMATION_TEST_DISCONNECT_SUCCESS ActiveWeapons=%d PooledWeapons=%d Orphans=%d ActiveReload=%d ReloadingTags=%d ActiveEquip=%d EquippingTags=%d"),
+						TEXT("AUTOMATION_TEST_DISCONNECT_SUCCESS ActiveWeapons=%d PooledWeapons=%d DirtyPooled=%d Orphans=%d ActiveReload=%d ReloadingTags=%d ActiveEquip=%d EquippingTags=%d"),
 						ActiveWeaponCount,
 						PooledWeaponCount,
+						DirtyPooledWeaponCount,
 						OrphanWeaponCount,
 						ActiveReloadAbilityCount,
 						ReloadingTagCount,
