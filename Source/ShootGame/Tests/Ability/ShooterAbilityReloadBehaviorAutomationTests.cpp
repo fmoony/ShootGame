@@ -14,10 +14,35 @@
 #include "ShooterInventoryTypes.h"
 #include "ShooterPlayerState.h"
 #include "ShooterWeapon.h"
+#include "ShooterInventoryReserveTestTypes.h"
+#include "Tests/Pool/ShooterWeaponRuntimeTestTypes.h"
 #include "UObject/UnrealType.h"
 
 namespace ShooterAbilityReloadBehaviorAutomationTests
 {
+	/** 换弹数据契约测试用的裸 World：Spawn 的武器具备服务器权威语义。 */
+	UWorld* CreateReloadContractWorld(FAutomationTestBase& Test)
+	{
+		UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
+		if (!Test.TestNotNull(TEXT("Reload contract world created"), World) || !GEngine)
+		{
+			return nullptr;
+		}
+
+		FWorldContext& WorldContext = GEngine->CreateNewWorldContext(EWorldType::Game);
+		WorldContext.SetCurrentWorld(World);
+		return World;
+	}
+
+	void DestroyReloadContractWorld(UWorld* World)
+	{
+		if (World && GEngine)
+		{
+			GEngine->DestroyWorldContext(World);
+			World->DestroyWorld(false);
+		}
+	}
+
 	bool TestServerOnlyContract(FAutomationTestBase& Test)
 	{
 		const UShooterGameplayAbility_Reload* ReloadDefaults =
@@ -77,29 +102,34 @@ namespace ShooterAbilityReloadBehaviorAutomationTests
 
 	bool TestRejectFullMagazineDataContract(FAutomationTestBase& Test)
 	{
-		FShooterWeaponInventoryList Inventory;
-		FShooterWeaponInstanceData InstanceData;
-		InstanceData.InstanceId = FGuid::NewGuid();
-		// 武器类型身份是 DT_WeaponData 行名；本测试只构造数据契约，用唯一假行名。
-		InstanceData.WeaponRowName = FName(TEXT("TestWeapon_FullMagazine"));
-		InstanceData.MagazineAmmo = 30;
-		InstanceData.ReserveAmmo = 20;
-		InstanceData.SlotIndex = 0;
+		// S2 起换弹原子事务收敛在 WeaponActor（ReloadFromReserve）：满弹匣拒绝且弹药不变。
+		UWorld* World = CreateReloadContractWorld(Test);
+		if (!World)
+		{
+			return false;
+		}
 
-		Test.TestTrue(TEXT("Full magazine instance is added"), Inventory.AddItem(InstanceData));
+		AShooterWeapon* Weapon = World->SpawnActor<AShooterRuntimePoolTestWeapon>(
+			FVector::ZeroVector, FRotator::ZeroRotator);
+		if (!Test.TestNotNull(TEXT("Full magazine weapon spawned"), Weapon))
+		{
+			DestroyReloadContractWorld(World);
+			return false;
+		}
+		Weapon->DispatchBeginPlay();
+
+		// BeginPlay 权威初始化：弹匣回满、备弹回到声明值 → 满弹匣形态。
 		int32 TransferredAmmo = INDEX_NONE;
 		Test.TestFalse(
-			TEXT("Full magazine rejects the data transaction"),
-			Inventory.ReloadMagazine(InstanceData.InstanceId, 30, TransferredAmmo));
+			TEXT("Full magazine rejects the weapon transaction"),
+			Weapon->ReloadFromReserve(TransferredAmmo));
 		Test.TestEqual(TEXT("Full magazine transfers zero"), TransferredAmmo, 0);
 		Test.TestEqual(
 			TEXT("Full magazine keeps MagazineAmmo"),
-			Inventory.FindItem(InstanceData.InstanceId)->InstanceData.MagazineAmmo,
-			30);
-		Test.TestEqual(
-			TEXT("Full magazine keeps ReserveAmmo"),
-			Inventory.FindItem(InstanceData.InstanceId)->InstanceData.ReserveAmmo,
-			20);
+			Weapon->GetBulletCount(),
+			Weapon->GetMagazineSize());
+
+		DestroyReloadContractWorld(World);
 
 		// 服务器激活侧完整拒绝由 ShooterNetworkTestCoordinator 在真实会话中验证。
 		return true;
@@ -107,29 +137,41 @@ namespace ShooterAbilityReloadBehaviorAutomationTests
 
 	bool TestRejectNoReserveDataContract(FAutomationTestBase& Test)
 	{
-		FShooterWeaponInventoryList Inventory;
-		FShooterWeaponInstanceData InstanceData;
-		InstanceData.InstanceId = FGuid::NewGuid();
-		// 武器类型身份是 DT_WeaponData 行名；本测试只构造数据契约，用唯一假行名。
-		InstanceData.WeaponRowName = FName(TEXT("TestWeapon_NoReserve"));
-		InstanceData.MagazineAmmo = 5;
-		InstanceData.ReserveAmmo = 0;
-		InstanceData.SlotIndex = 0;
+		// 零备弹声明（纯弹匣经济）下换弹事务拒绝且不产生任何变化。
+		UWorld* World = CreateReloadContractWorld(Test);
+		if (!World)
+		{
+			return false;
+		}
 
-		Test.TestTrue(TEXT("No-reserve instance is added"), Inventory.AddItem(InstanceData));
+		AShooterWeapon* Weapon = World->SpawnActor<AShooterInventoryZeroReserveTestWeapon>(
+			FVector::ZeroVector, FRotator::ZeroRotator);
+		if (!Test.TestNotNull(TEXT("No-reserve weapon spawned"), Weapon))
+		{
+			DestroyReloadContractWorld(World);
+			return false;
+		}
+		Weapon->DispatchBeginPlay();
+		Test.TestEqual(
+			TEXT("No-reserve weapon starts with zero reserve"),
+			Weapon->GetReserveAmmo(),
+			0);
+
 		int32 TransferredAmmo = INDEX_NONE;
 		Test.TestFalse(
-			TEXT("No reserve rejects the data transaction"),
-			Inventory.ReloadMagazine(InstanceData.InstanceId, 30, TransferredAmmo));
+			TEXT("No reserve rejects the weapon transaction"),
+			Weapon->ReloadFromReserve(TransferredAmmo));
 		Test.TestEqual(TEXT("No reserve transfers zero"), TransferredAmmo, 0);
 		Test.TestEqual(
 			TEXT("No reserve keeps MagazineAmmo"),
-			Inventory.FindItem(InstanceData.InstanceId)->InstanceData.MagazineAmmo,
-			5);
+			Weapon->GetBulletCount(),
+			Weapon->GetMagazineSize());
 		Test.TestEqual(
 			TEXT("No reserve keeps ReserveAmmo"),
-			Inventory.FindItem(InstanceData.InstanceId)->InstanceData.ReserveAmmo,
+			Weapon->GetReserveAmmo(),
 			0);
+
+		DestroyReloadContractWorld(World);
 		return true;
 	}
 

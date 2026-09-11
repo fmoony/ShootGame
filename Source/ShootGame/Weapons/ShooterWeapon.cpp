@@ -95,7 +95,7 @@ void AShooterWeapon::BeginPlay()
 	// 弹药只由服务器初始化，拥有者客户端通过复制获得。
 	if (HasAuthority())
 	{
-		CurrentBullets = MagazineSize;
+		RestoreInitialAmmo();
 	}
 
 }
@@ -279,8 +279,8 @@ void AShooterWeapon::OnReleasedToWeaponPool()
 	// 解除 Owner 销毁委托并清空 Owner 侧缓存；通用隐藏/Detach/Owner 清空由池统一执行。
 	ClearWeaponOwner();
 
-	// 清空旧身份兼容镜像（S2 起弹药权威迁入本 Actor 后改为恢复初始弹药）。
-	CurrentBullets = 0;
+	// 恢复该武器的初始弹药：静态配置（WeaponId / MagazineSize / 行为实例）永久保留，不重复应用。
+	RestoreInitialAmmo();
 	OnOutOfAmmo.Clear();
 	SetLifecycleState(EShooterWeaponLifecycleState::InPool, TEXT("ReleasedToWeaponPool"));
 
@@ -382,10 +382,19 @@ void AShooterWeapon::ApplyWeaponRow(const FShooterWeaponConfigRow& Row)
 		ThirdPersonMesh->SetSkeletalMeshAsset(Row.ThirdPersonMesh.LoadSynchronous());
 	}
 
+	// 冻结完整配置快照：开火行为只读该快照，运行时不再解析任何配置资产。
+	ConfigSnapshot = Row;
+
 	// 行为实例按行创建；重复应用行配置时替换旧实例，避免残留上一行的行为类。
 	FireBehaviorInstance = Row.FireBehaviorClass
 		? NewObject<UShooterWeaponFireBehavior>(this, Row.FireBehaviorClass, NAME_None, RF_Transient)
 		: nullptr;
+
+	// 权威端应用新配置即回到该配置的初始弹药经济：绑定、复用与归还路径都经此收敛。
+	if (HasAuthority())
+	{
+		RestoreInitialAmmo();
+	}
 }
 
 void AShooterWeapon::SetInstanceBinding(const FGuid& InInstanceId, FName InWeaponRowName)
@@ -552,7 +561,7 @@ void AShooterWeapon::OnReleasedToPool()
 	// 解除 Owner 销毁委托并清空 Owner 侧缓存；通用隐藏/Detach/Owner 清空由池统一执行。
 	ClearWeaponOwner();
 
-	// 清空绑定（复制字段，Owner 客户端会收到清空）与弹药镜像，回到 InPool。
+	// 清空绑定（复制字段，Owner 客户端会收到清空）并恢复该武器的初始弹药，回到 InPool。
 	if (BoundInstanceId.IsValid())
 	{
 		BoundInstanceId = FGuid();
@@ -560,7 +569,7 @@ void AShooterWeapon::OnReleasedToPool()
 	// 行绑定与行为实例属于运行时状态：归还后不得跨绑定继承；模板行本身只读，不受影响。
 	WeaponRowName = NAME_None;
 	FireBehaviorInstance = nullptr;
-	CurrentBullets = 0;
+	RestoreInitialAmmo();
 	OnOutOfAmmo.Clear();
 	SetLifecycleState(EShooterWeaponLifecycleState::InPool, TEXT("ReleasedToPool"));
 
@@ -620,91 +629,92 @@ void AShooterWeapon::SetLifecycleState(
 
 int32 AShooterWeapon::GetBulletCount() const
 {
-	if (BoundInstanceId.IsValid())
-	{
-		if (const FShooterWeaponInstanceData* Instance = ShooterWeaponInventory::FindInstance(this))
-		{
-			return Instance->MagazineAmmo;
-		}
-	}
-
-	return CurrentBullets;
+	// 弹药权威在本 Actor；无 Inventory 的旧路径（NPC / 测试）同样直接读该值。
+	return MagazineAmmo;
 }
 
 int32 AShooterWeapon::GetReserveAmmo() const
 {
-	if (BoundInstanceId.IsValid())
-	{
-		if (const FShooterWeaponInstanceData* Instance = ShooterWeaponInventory::FindInstance(this))
-		{
-			return Instance->ReserveAmmo;
-		}
-	}
-
-	// 未绑定 Inventory 的旧路径（如 NPC 自动补弹）没有备弹概念。
-	return 0;
+	return ReserveAmmo;
 }
 
 bool AShooterWeapon::CanConsumeAmmo() const
 {
-	if (BoundInstanceId.IsValid())
-	{
-		if (UShooterInventoryComponent* Inventory = ShooterWeaponInventory::FindInventory(this))
-		{
-			return Inventory->CanConsumeMagazineAmmo(BoundInstanceId);
-		}
-	}
-
-	return CurrentBullets > 0;
+	return MagazineAmmo > 0;
 }
 
-bool AShooterWeapon::ConsumeAmmo()
+bool AShooterWeapon::ConsumeAmmo(int32 Amount)
 {
-	if (!HasAuthority())
+	if (!HasAuthority() || Amount <= 0 || MagazineAmmo < Amount)
 	{
 		return false;
 	}
 
-	if (BoundInstanceId.IsValid())
-	{
-		if (UShooterInventoryComponent* Inventory = ShooterWeaponInventory::FindInventory(this))
-		{
-			return Inventory->ConsumeMagazineAmmo(BoundInstanceId, 1);
-		}
-	}
-
-	if (CurrentBullets <= 0)
-	{
-		return false;
-	}
-
-	--CurrentBullets;
+	MagazineAmmo -= Amount;
+	PushAmmoToOwnerHud();
+	ForceNetUpdate();
 	return true;
 }
 
-void AShooterWeapon::RefreshAmmoMirror()
+void AShooterWeapon::RestoreInitialAmmo()
 {
-	if (!BoundInstanceId.IsValid())
+	if (!HasAuthority())
 	{
 		return;
 	}
 
-	const FShooterWeaponInstanceData* Instance = ShooterWeaponInventory::FindInstance(this);
-	if (!Instance)
+	// 入库/归还即回到该武器静态配置声明的初始弹药经济。
+	MagazineAmmo = MagazineSize;
+	ReserveAmmo = ResolveInitialReserveAmmo();
+	ForceNetUpdate();
+}
+
+bool AShooterWeapon::ReloadFromReserve(int32& OutTransferredAmmo)
+{
+	OutTransferredAmmo = 0;
+	if (!HasAuthority() || MagazineSize <= 0)
+	{
+		return false;
+	}
+
+	const int32 Need = FMath::Max(0, MagazineSize - MagazineAmmo);
+	const int32 Transfer = FMath::Min(Need, ReserveAmmo);
+	if (Transfer <= 0)
+	{
+		return false;
+	}
+
+	MagazineAmmo += Transfer;
+	ReserveAmmo -= Transfer;
+	OutTransferredAmmo = Transfer;
+
+	PushAmmoToOwnerHud();
+	ForceNetUpdate();
+
+	UE_LOG(
+		LogShootGame,
+		Display,
+		TEXT("WeaponActor reload committed: Weapon=%s WeaponId=%s Row=%s Transfer=%d Mag=%d Reserve=%d"),
+		*GetNameSafe(this),
+		*WeaponId.ToString(),
+		*WeaponRowName.ToString(),
+		Transfer,
+		MagazineAmmo,
+		ReserveAmmo);
+	return true;
+}
+
+void AShooterWeapon::PushAmmoToOwnerHud()
+{
+	// 弹药字段是 COND_OwnerOnly：OnRep 只在拥有端触发，服务器推送只发生在权威端，
+	// 因此无需再判 IsLocallyControlled（无控制器的测试角色同样需要 HUD 事件）。
+	// 未装备（隐藏）的武器不推 HUD：拾取入库阶段保持静默，装备表现收敛时统一推送。
+	if (!WeaponOwner || IsHidden())
 	{
 		return;
 	}
 
-	CurrentBullets = Instance->MagazineAmmo;
-	if (WeaponOwner && !IsHidden())
-	{
-		WeaponOwner->UpdateWeaponHUD(CurrentBullets, MagazineSize, Instance->ReserveAmmo);
-	}
-
-	if (HasAuthority())
-	{
-		ForceNetUpdate();
-	}
+	WeaponOwner->UpdateWeaponHUD(MagazineAmmo, MagazineSize, ReserveAmmo);
 }
 
 void AShooterWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -712,7 +722,8 @@ void AShooterWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	// 弹药只与拥有该武器的客户端相关。
-	DOREPLIFETIME_CONDITION(AShooterWeapon, CurrentBullets, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(AShooterWeapon, MagazineAmmo, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(AShooterWeapon, ReserveAmmo, COND_OwnerOnly);
 	// 只有 Owner 需要知道该 Actor 对应哪个 WeaponInstance；远端表现只看 Character.CurrentWeapon。
 	DOREPLIFETIME_CONDITION(AShooterWeapon, BoundInstanceId, COND_OwnerOnly);
 	// 武器模板行名是公共表现数据（第三人称 Mesh / AnimClass 由它恢复），复制给所有观察者。
@@ -721,14 +732,14 @@ void AShooterWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	DOREPLIFETIME(AShooterWeapon, WeaponId);
 }
 
-void AShooterWeapon::OnRep_CurrentBullets()
+void AShooterWeapon::OnRep_MagazineAmmo()
 {
-	APawn* OwnerPawn = Cast<APawn>(GetOwner());
-	IShooterWeaponHolder* OwnerHolder = Cast<IShooterWeaponHolder>(GetOwner());
-	if (OwnerPawn && OwnerPawn->IsLocallyControlled() && OwnerHolder)
-	{
-		OwnerHolder->UpdateWeaponHUD(CurrentBullets, MagazineSize, GetReserveAmmo());
-	}
+	PushAmmoToOwnerHud();
+}
+
+void AShooterWeapon::OnRep_ReserveAmmo()
+{
+	PushAmmoToOwnerHud();
 }
 
 void AShooterWeapon::EndPlay(EEndPlayReason::Type EndPlayReason)
@@ -945,10 +956,8 @@ void AShooterWeapon::ExecuteFireAtTarget(const FVector& TargetLocation)
 			Context.InstanceId = Instance->InstanceId;
 		}
 		Context.WeaponRowName = WeaponRowName;
-		if (const FShooterWeaponConfigRow* Row = ResolveWeaponRow())
-		{
-			Context.Config = *Row;
-		}
+		// 行为只读 Actor 冻结的配置快照，不再解析任何配置资产。
+		Context.Config = ConfigSnapshot;
 		Behavior->ExecuteFire(Context);
 	}
 	else
@@ -965,15 +974,15 @@ void AShooterWeapon::ExecuteFireAtTarget(const FVector& TargetLocation)
 	// add recoil
 	WeaponOwner->AddWeaponRecoil(FiringRecoil);
 
-	// 未绑定 Inventory 的旧路径（如 NPC）保留兼容镜像扣减与自动补弹。
+	// 未绑定 Inventory 的旧路径（如 NPC）保留自动补弹兼容：弹匣打空即回满。
 	if (!BoundInstanceId.IsValid())
 	{
-		if (CurrentBullets <= 0)
+		if (MagazineAmmo <= 0)
 		{
-			CurrentBullets = MagazineSize;
+			MagazineAmmo = MagazineSize;
 		}
 
-		WeaponOwner->UpdateWeaponHUD(CurrentBullets, MagazineSize, GetReserveAmmo());
+		WeaponOwner->UpdateWeaponHUD(MagazineAmmo, MagazineSize, ReserveAmmo);
 		ForceNetUpdate();
 	}
 }

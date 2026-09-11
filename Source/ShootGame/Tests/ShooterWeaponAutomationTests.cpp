@@ -95,21 +95,34 @@ namespace ShooterWeaponAutomationTests
 			FString::Printf(TEXT("%s third-person mesh has authoritative muzzle socket"), WeaponName),
 			ThirdPersonMesh && ThirdPersonMesh->FindSocket(Row->MuzzleSocketName) != nullptr);
 
-		const FProperty* CurrentBulletsProperty =
-			FindFProperty<FProperty>(WeaponClass, TEXT("CurrentBullets"));
+		// 弹药权威在 WeaponActor（S2）：弹匣与备弹必须复制且带 OnRep 推 HUD。
+		const FProperty* MagazineAmmoProperty =
+			FindFProperty<FProperty>(WeaponClass, TEXT("MagazineAmmo"));
+		const FProperty* ReserveAmmoProperty =
+			FindFProperty<FProperty>(WeaponClass, TEXT("ReserveAmmo"));
 		if (!Test.TestNotNull(
-			FString::Printf(TEXT("%s exposes CurrentBullets"), WeaponName),
-			CurrentBulletsProperty))
+			FString::Printf(TEXT("%s exposes MagazineAmmo"), WeaponName).GetCharArray().GetData(),
+			MagazineAmmoProperty) ||
+			!Test.TestNotNull(
+				FString::Printf(TEXT("%s exposes ReserveAmmo"), WeaponName).GetCharArray().GetData(),
+				ReserveAmmoProperty))
 		{
 			return false;
 		}
 		Test.TestTrue(
-			FString::Printf(TEXT("%s CurrentBullets is replicated"), WeaponName),
-			CurrentBulletsProperty->HasAnyPropertyFlags(CPF_Net));
+			FString::Printf(TEXT("%s MagazineAmmo is replicated"), WeaponName).GetCharArray().GetData(),
+			MagazineAmmoProperty->HasAnyPropertyFlags(CPF_Net));
 		Test.TestEqual(
-			FString::Printf(TEXT("%s CurrentBullets uses OnRep_CurrentBullets"), WeaponName),
-			CurrentBulletsProperty->RepNotifyFunc,
-			FName(TEXT("OnRep_CurrentBullets")));
+			FString::Printf(TEXT("%s MagazineAmmo uses OnRep_MagazineAmmo"), WeaponName).GetCharArray().GetData(),
+			MagazineAmmoProperty->RepNotifyFunc,
+			FName(TEXT("OnRep_MagazineAmmo")));
+		Test.TestTrue(
+			FString::Printf(TEXT("%s ReserveAmmo is replicated"), WeaponName).GetCharArray().GetData(),
+			ReserveAmmoProperty->HasAnyPropertyFlags(CPF_Net));
+		Test.TestEqual(
+			FString::Printf(TEXT("%s ReserveAmmo uses OnRep_ReserveAmmo"), WeaponName).GetCharArray().GetData(),
+			ReserveAmmoProperty->RepNotifyFunc,
+			FName(TEXT("OnRep_ReserveAmmo")));
 
 		Test.TestNotNull(
 			FString::Printf(TEXT("%s has fire sound configured"), WeaponName),

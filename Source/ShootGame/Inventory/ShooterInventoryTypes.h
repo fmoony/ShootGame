@@ -7,9 +7,6 @@
 #include "ShooterInventoryTypes.generated.h"
 
 DECLARE_MULTICAST_DELEGATE_OneParam(
-	FShooterWeaponInstanceChangedDelegate,
-	const FShooterWeaponInstanceData&);
-DECLARE_MULTICAST_DELEGATE_OneParam(
 	FShooterWeaponInstanceRemovedDelegate,
 	const FGuid&);
 
@@ -61,122 +58,61 @@ struct FShooterWeaponInstanceData
 
 struct FShooterWeaponInventoryList;
 
-/**
- * FastArray 单项：复制层身份 + WeaponInstanceData。
- * InstanceData 只含 UHT 反射字段（FGuid / FName / int32），因此恢复 UE 默认的
- * Struct Delta 序列化：服务器只发送真正变化的字段，不再手工维护整包 Payload。
- */
-USTRUCT()
-struct FShooterWeaponInstanceEntry : public FFastArraySerializerItem
-{
-	GENERATED_BODY()
-
-	/** 逻辑武器数据。 */
-	UPROPERTY()
-	FShooterWeaponInstanceData InstanceData;
-
-	void PreReplicatedRemove(const FShooterWeaponInventoryList& InArraySerializer);
-	void PostReplicatedAdd(const FShooterWeaponInventoryList& InArraySerializer);
-	void PostReplicatedChange(const FShooterWeaponInventoryList& InArraySerializer);
-
-	/** 调试字符串，供 LogNetFastTArray 使用。 */
-	FString GetDebugString() const
+	/**
+	 * FastArray 单项：复制层身份 + WeaponInstanceData。
+	 * InstanceData 只含 UHT 反射字段（FGuid / FName / int32），因此恢复 UE 默认的
+	 * Struct Delta 序列化：服务器只发送真正变化的字段，不再手工维护整包 Payload。
+	 * 弹药权威自 S2 起收敛到 WeaponActor（MagazineAmmo / ReserveAmmo），
+	 * 本结构体的弹药字段仅保留为授予时的只读快照，运行中不再写入。
+	 */
+	USTRUCT()
+	struct FShooterWeaponInstanceEntry : public FFastArraySerializerItem
 	{
-		return FString::Printf(
-			TEXT("InstanceId=%s Row=%s Slot=%d Mag=%d Reserve=%d"),
-			*InstanceData.InstanceId.ToString(),
-			*InstanceData.WeaponRowName.ToString(),
-			InstanceData.SlotIndex,
-			InstanceData.MagazineAmmo,
-			InstanceData.ReserveAmmo);
-	}
-};
+		GENERATED_BODY()
 
-/**
- * Inventory 的 FastArray 容器。
- * 增删改必须通过本结构体的 AddItem / RemoveItem / ClearItems，确保 MarkItemDirty / MarkArrayDirty 正确。
- */
-USTRUCT()
-struct FShooterWeaponInventoryList : public FFastArraySerializer
-{
-	GENERATED_BODY()
+		/** 逻辑武器数据。 */
+		UPROPERTY()
+		FShooterWeaponInstanceData InstanceData;
 
-	/** FastArray 要求的 Items 数组。 */
-	UPROPERTY()
-	TArray<FShooterWeaponInstanceEntry> Items;
+		void PreReplicatedRemove(const FShooterWeaponInventoryList& InArraySerializer);
+		void PostReplicatedAdd(const FShooterWeaponInventoryList& InArraySerializer);
+		void PostReplicatedChange(const FShooterWeaponInventoryList& InArraySerializer);
 
-	/** Owner Client 收到 Add/Change/Remove 后的表现桥接；由 InventoryComponent 绑定。 */
-	FShooterWeaponInstanceChangedDelegate OnInstanceChanged;
-	FShooterWeaponInstanceRemovedDelegate OnInstanceRemoved;
-
-	void NotifyInstanceChanged(const FShooterWeaponInstanceData& InstanceData) const
-	{
-		OnInstanceChanged.Broadcast(InstanceData);
-	}
-
-	void NotifyInstanceRemoved(const FGuid& InstanceId) const
-	{
-		OnInstanceRemoved.Broadcast(InstanceId);
-	}
-
-	/** 服务器权威扣减：当前弹匣不足时返回 false。 */
-	bool ConsumeMagazineAmmo(const FGuid& InstanceId, int32 Amount = 1)
-	{
-		if (!InstanceId.IsValid() || Amount <= 0)
+		/** 调试字符串，供 LogNetFastTArray 使用。 */
+		FString GetDebugString() const
 		{
-			return false;
+			return FString::Printf(
+				TEXT("InstanceId=%s Row=%s Slot=%d Mag=%d Reserve=%d"),
+				*InstanceData.InstanceId.ToString(),
+				*InstanceData.WeaponRowName.ToString(),
+				InstanceData.SlotIndex,
+				InstanceData.MagazineAmmo,
+				InstanceData.ReserveAmmo);
 		}
-
-		FShooterWeaponInstanceEntry* Entry = FindItem(InstanceId);
-		if (!Entry || Entry->InstanceData.MagazineAmmo < Amount)
-		{
-			return false;
-		}
-
-		Entry->InstanceData.MagazineAmmo -= Amount;
-		MarkItemDirty(*Entry);
-		return true;
-	}
+	};
 
 	/**
-	 * 服务器权威换弹原子事务：在同一次写入中把 ReserveAmmo 转移进 MagazineAmmo。
-	 * Transfer = Min(MagazineCapacity - MagazineAmmo, ReserveAmmo)；
-	 * Transfer 不大于 0（弹匣已满或无备用弹药）时返回 false 且不产生任何变化。
+	 * Inventory 的 FastArray 容器。
+	 * 增删改必须通过本结构体的 AddItem / RemoveItem / ClearItems，确保 MarkItemDirty / MarkArrayDirty 正确。
 	 */
-	bool ReloadMagazine(
-		const FGuid& InstanceId,
-		int32 MagazineCapacity,
-		int32& OutTransferredAmmo)
+	USTRUCT()
+	struct FShooterWeaponInventoryList : public FFastArraySerializer
 	{
-		OutTransferredAmmo = 0;
-		if (!InstanceId.IsValid() || MagazineCapacity <= 0)
+		GENERATED_BODY()
+
+		/** FastArray 要求的 Items 数组。 */
+		UPROPERTY()
+		TArray<FShooterWeaponInstanceEntry> Items;
+
+		/** Owner Client 收到 Remove 后的解绑桥接；由 InventoryComponent 绑定。 */
+		FShooterWeaponInstanceRemovedDelegate OnInstanceRemoved;
+
+		void NotifyInstanceRemoved(const FGuid& InstanceId) const
 		{
-			return false;
+			OnInstanceRemoved.Broadcast(InstanceId);
 		}
 
-		FShooterWeaponInstanceEntry* Entry = FindItem(InstanceId);
-		if (!Entry)
-		{
-			return false;
-		}
-
-		const int32 Need = FMath::Max(
-			0,
-			MagazineCapacity - Entry->InstanceData.MagazineAmmo);
-		const int32 Transfer = FMath::Min(Need, Entry->InstanceData.ReserveAmmo);
-		if (Transfer <= 0)
-		{
-			return false;
-		}
-
-		Entry->InstanceData.MagazineAmmo += Transfer;
-		Entry->InstanceData.ReserveAmmo -= Transfer;
-		MarkItemDirty(*Entry);
-		OutTransferredAmmo = Transfer;
-		return true;
-	}
-
-	bool NetDeltaSerialize(FNetDeltaSerializeInfo& DeltaParms)
+		bool NetDeltaSerialize(FNetDeltaSerializeInfo& DeltaParms)
 	{
 		return FFastArraySerializer::FastArrayDeltaSerialize<
 			FShooterWeaponInstanceEntry,
@@ -333,13 +269,12 @@ FORCEINLINE void FShooterWeaponInstanceEntry::PreReplicatedRemove(
 FORCEINLINE void FShooterWeaponInstanceEntry::PostReplicatedAdd(
 	const FShooterWeaponInventoryList& InArraySerializer)
 {
-	InArraySerializer.NotifyInstanceChanged(InstanceData);
+	// S2 起弹药权威在 WeaponActor 且随 Actor 复制；Add/Change 不再需要 Inventory 侧桥接。
 }
 
 FORCEINLINE void FShooterWeaponInstanceEntry::PostReplicatedChange(
 	const FShooterWeaponInventoryList& InArraySerializer)
 {
-	InArraySerializer.NotifyInstanceChanged(InstanceData);
 }
 
 template<>

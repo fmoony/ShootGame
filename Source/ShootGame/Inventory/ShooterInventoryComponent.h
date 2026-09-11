@@ -124,21 +124,21 @@ public:
 	/** Equipment 订阅：Inventory 被整体清空（服务器与 Owner 客户端都会广播）。 */
 	FShooterInventoryClearedDelegate OnInventoryCleared;
 
-	/** 查询指定实例当前弹匣弹药；实例不存在时返回 0。 */
+	/** 查询指定实例当前弹匣弹药；弹药权威在 WeaponActor，本入口只做转发。 */
 	int32 GetMagazineAmmo(const FGuid& InstanceId) const;
 
-	/** 查询指定实例当前备用弹药；实例不存在时返回 0。 */
+	/** 查询指定实例当前备用弹药；弹药权威在 WeaponActor，本入口只做转发。 */
 	int32 GetReserveAmmo(const FGuid& InstanceId) const;
 
-	/** 指定实例是否还有弹匣弹药。 */
+	/** 指定实例是否还有弹匣弹药；转发 WeaponActor 权威判定。 */
 	bool CanConsumeMagazineAmmo(const FGuid& InstanceId) const;
 
-	/** 服务器权威：从指定实例弹匣扣除 Amount；失败时不产生任何变化。 */
+	/** 服务器权威：从指定实例弹匣扣除一发；转发 WeaponActor::ConsumeAmmo。 */
 	bool ConsumeMagazineAmmo(const FGuid& InstanceId, int32 Amount = 1);
 
 	/**
-	 * 服务器权威换弹原子事务：按绑定 WeaponActor 的弹匣容量把 ReserveAmmo 一次性转进 MagazineAmmo。
-	 * 事务完成后统一刷新绑定 WeaponActor 的弹药镜像与 Owner HUD。
+	 * 服务器权威换弹原子事务：转发 WeaponActor::ReloadFromReserve，
+	 * 把 ReserveAmmo 一次性转进 MagazineAmmo 并推送 Owner HUD。
 	 */
 	bool ReloadMagazine(const FGuid& InstanceId, int32& OutTransferredAmmo);
 
@@ -159,9 +159,6 @@ protected:
 	 * 非池出生（NPC / 旧测试直接 Spawn）无法归还时回落销毁，保证不留悬挂引用。
 	 */
 	void ReleaseWeaponActor(AShooterWeapon* Weapon);
-
-	/** Owner Client FastArray 回调与服务器本地修改共用的表现刷新入口。 */
-	void HandleInstanceChanged(const FShooterWeaponInstanceData& InstanceData);
 
 	/** Owner Client FastArray 删除回调：同步解除对应 WeaponActor 绑定。 */
 	void HandleInstanceRemoved(const FGuid& InstanceId);

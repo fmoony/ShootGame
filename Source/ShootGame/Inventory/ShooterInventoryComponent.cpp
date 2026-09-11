@@ -29,8 +29,7 @@ void UShooterInventoryComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
 
-	// Owner Client 的 FastArray Add/Change/Remove 回调驱动本地 WeaponActor 弹药镜像与 HUD。
-	ReplicatedInventory.OnInstanceChanged.AddUObject(this, &UShooterInventoryComponent::HandleInstanceChanged);
+	// Owner Client 的 FastArray Remove 回调驱动本地 WeaponActor 解绑镜像。
 	ReplicatedInventory.OnInstanceRemoved.AddUObject(this, &UShooterInventoryComponent::HandleInstanceRemoved);
 }
 
@@ -366,38 +365,32 @@ void UShooterInventoryComponent::RegisterWeaponActor(AShooterWeapon* Weapon)
 
 int32 UShooterInventoryComponent::GetMagazineAmmo(const FGuid& InstanceId) const
 {
-	const FShooterWeaponInstanceData* Instance = FindWeaponInstance(InstanceId);
-	return Instance ? Instance->MagazineAmmo : 0;
+	// S2 起弹药权威在 WeaponActor；Inventory 只做 InstanceId -> Actor 的转发查询。
+	const AShooterWeapon* Weapon = FindWeaponActor(InstanceId);
+	return Weapon ? Weapon->GetBulletCount() : 0;
 }
 
 int32 UShooterInventoryComponent::GetReserveAmmo(const FGuid& InstanceId) const
 {
-	const FShooterWeaponInstanceData* Instance = FindWeaponInstance(InstanceId);
-	return Instance ? Instance->ReserveAmmo : 0;
+	const AShooterWeapon* Weapon = FindWeaponActor(InstanceId);
+	return Weapon ? Weapon->GetReserveAmmo() : 0;
 }
 
 bool UShooterInventoryComponent::CanConsumeMagazineAmmo(const FGuid& InstanceId) const
 {
-	return GetMagazineAmmo(InstanceId) > 0;
+	const AShooterWeapon* Weapon = FindWeaponActor(InstanceId);
+	return Weapon && Weapon->CanConsumeAmmo();
 }
 
 bool UShooterInventoryComponent::ConsumeMagazineAmmo(const FGuid& InstanceId, int32 Amount)
 {
-	if (!GetOwner() || !GetOwner()->HasAuthority())
+	if (!GetOwner() || !GetOwner()->HasAuthority() || Amount <= 0)
 	{
 		return false;
 	}
 
-	if (!ReplicatedInventory.ConsumeMagazineAmmo(InstanceId, Amount))
-	{
-		return false;
-	}
-
-	if (const FShooterWeaponInstanceData* Instance = FindWeaponInstance(InstanceId))
-	{
-		HandleInstanceChanged(*Instance);
-	}
-	return true;
+	AShooterWeapon* Weapon = FindWeaponActor(InstanceId);
+	return Weapon && Weapon->ConsumeAmmo(Amount);
 }
 
 bool UShooterInventoryComponent::ReloadMagazine(
@@ -410,25 +403,16 @@ bool UShooterInventoryComponent::ReloadMagazine(
 		return false;
 	}
 
-	// 事务容量只经 WeaponActor 的统一入口获取：绑定后该值就是武器模板行的弹匣容量。
+	// 换弹事务的容量与弹药全部来自 WeaponActor 自身的静态配置与权威弹药。
 	AShooterWeapon* Weapon = FindWeaponActor(InstanceId);
 	if (!IsValid(Weapon))
 	{
 		return false;
 	}
 
-	if (!ReplicatedInventory.ReloadMagazine(
-		InstanceId,
-		Weapon->GetMagazineSize(),
-		OutTransferredAmmo))
+	if (!Weapon->ReloadFromReserve(OutTransferredAmmo))
 	{
 		return false;
-	}
-
-	// 服务器本地立即刷新 WeaponActor 镜像与 Owner HUD；Owner 客户端由 FastArray Change 回调刷新。
-	if (const FShooterWeaponInstanceData* Instance = FindWeaponInstance(InstanceId))
-	{
-		HandleInstanceChanged(*Instance);
 	}
 
 	UE_LOG(
@@ -441,15 +425,6 @@ bool UShooterInventoryComponent::ReloadMagazine(
 		GetMagazineAmmo(InstanceId),
 		GetReserveAmmo(InstanceId));
 	return true;
-}
-
-void UShooterInventoryComponent::HandleInstanceChanged(
-	const FShooterWeaponInstanceData& InstanceData)
-{
-	if (AShooterWeapon* Weapon = FindWeaponActor(InstanceData.InstanceId))
-	{
-		Weapon->RefreshAmmoMirror();
-	}
 }
 
 void UShooterInventoryComponent::HandleInstanceRemoved(const FGuid& InstanceId)

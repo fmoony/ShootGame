@@ -3,27 +3,59 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "Misc/AutomationTest.h"
-#include "ShooterInventoryTypes.h"
+#include "Engine/Engine.h"
+#include "Engine/World.h"
+#include "ShooterInventoryReserveTestTypes.h"
+#include "ShooterWeapon.h"
 
+/**
+ * S2 起换弹原子事务收敛在 WeaponActor（ReloadFromReserve）。
+ * 本文件改为在裸权威测试世界中驱动 Actor 事务，覆盖：
+ * 转移量、容量截断、零备弹拒绝、满弹匣拒绝与多武器隔离。
+ */
 namespace ShooterInventoryReloadAutomationTests
 {
-	FShooterWeaponInstanceData MakeWeaponInstanceData(
-		const FGuid& InstanceId,
-		int32 SlotIndex,
+	UWorld* CreateReloadTestWorld(FAutomationTestBase& Test)
+	{
+		UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
+		if (!Test.TestNotNull(TEXT("Reload test world created"), World) || !GEngine)
+		{
+			return nullptr;
+		}
+
+		FWorldContext& WorldContext = GEngine->CreateNewWorldContext(EWorldType::Game);
+		WorldContext.SetCurrentWorld(World);
+		return World;
+	}
+
+	void DestroyReloadTestWorld(UWorld* World)
+	{
+		if (World && GEngine)
+		{
+			GEngine->DestroyWorldContext(World);
+			World->DestroyWorld(false);
+		}
+	}
+
+	AShooterInventoryReloadTestWeapon* SpawnReloadTestWeapon(
+		FAutomationTestBase& Test,
+		UWorld* World,
+		int32 MagazineSize,
 		int32 MagazineAmmo,
 		int32 ReserveAmmo)
 	{
-		FShooterWeaponInstanceData InstanceData;
-		InstanceData.InstanceId = InstanceId;
-		// 单表武器配置纠偏：武器类型身份由 DefinitionId 改为武器模板行名（DT_WeaponData 行），
-		// IsValid() 也要求行名非空，这里按 InstanceId 派生唯一行名。
-		InstanceData.WeaponRowName = FName(*FString::Printf(
-			TEXT("TestWeapon_%s"),
-			*InstanceId.ToString()));
-		InstanceData.MagazineAmmo = MagazineAmmo;
-		InstanceData.ReserveAmmo = ReserveAmmo;
-		InstanceData.SlotIndex = SlotIndex;
-		return InstanceData;
+		AShooterInventoryReloadTestWeapon* Weapon = World
+			? World->SpawnActor<AShooterInventoryReloadTestWeapon>(
+				FVector::ZeroVector, FRotator::ZeroRotator)
+			: nullptr;
+		if (!Test.TestNotNull(TEXT("Reload test weapon spawned"), Weapon))
+		{
+			return nullptr;
+		}
+
+		Weapon->SetMagazineSizeForTest(MagazineSize);
+		Weapon->SetAmmoForTest(MagazineAmmo, ReserveAmmo);
+		return Weapon;
 	}
 }
 
@@ -36,24 +68,24 @@ bool FShooterInventoryReloadTransferTest::RunTest(const FString& Parameters)
 {
 	using namespace ShooterInventoryReloadAutomationTests;
 
-	FShooterWeaponInventoryList Inventory;
-	const FGuid InstanceId = FGuid::NewGuid();
-	TestTrue(
-		TEXT("Weapon instance is added"),
-		Inventory.AddItem(MakeWeaponInstanceData(InstanceId, 0, 5, 20)));
+	UWorld* World = CreateReloadTestWorld(*this);
+	if (!World)
+	{
+		return false;
+	}
 
-	int32 TransferredAmmo = INDEX_NONE;
-	const bool bReloaded = Inventory.ReloadMagazine(InstanceId, 30, TransferredAmmo);
-	TestTrue(TEXT("Reload transaction commits"), bReloaded);
-	TestEqual(TEXT("Transfer equals available reserve"), TransferredAmmo, 20);
-	TestEqual(
-		TEXT("Magazine becomes 5 + 20"),
-		Inventory.FindItem(InstanceId)->InstanceData.MagazineAmmo,
-		25);
-	TestEqual(
-		TEXT("Reserve becomes 20 - 20"),
-		Inventory.FindItem(InstanceId)->InstanceData.ReserveAmmo,
-		0);
+	// 弹匣 5 / 备弹 20 / 容量 30：备弹不足剩余容量，全部转移。
+	AShooterInventoryReloadTestWeapon* Weapon = SpawnReloadTestWeapon(*this, World, 30, 5, 20);
+	if (Weapon)
+	{
+		int32 TransferredAmmo = INDEX_NONE;
+		TestTrue(TEXT("Reload transaction commits"), Weapon->ReloadFromReserve(TransferredAmmo));
+		TestEqual(TEXT("Transfer equals available reserve"), TransferredAmmo, 20);
+		TestEqual(TEXT("Magazine becomes 5 + 20"), Weapon->GetBulletCount(), 25);
+		TestEqual(TEXT("Reserve becomes 20 - 20"), Weapon->GetReserveAmmo(), 0);
+	}
+
+	DestroyReloadTestWorld(World);
 	return true;
 }
 
@@ -66,23 +98,24 @@ bool FShooterInventoryReloadClampCapacityTest::RunTest(const FString& Parameters
 {
 	using namespace ShooterInventoryReloadAutomationTests;
 
-	FShooterWeaponInventoryList Inventory;
-	const FGuid InstanceId = FGuid::NewGuid();
-	TestTrue(
-		TEXT("Weapon instance is added"),
-		Inventory.AddItem(MakeWeaponInstanceData(InstanceId, 0, 4, 20)));
+	UWorld* World = CreateReloadTestWorld(*this);
+	if (!World)
+	{
+		return false;
+	}
 
-	int32 TransferredAmmo = INDEX_NONE;
-	TestTrue(TEXT("Reload transaction commits"), Inventory.ReloadMagazine(InstanceId, 12, TransferredAmmo));
-	TestEqual(TEXT("Transfer is clamped by remaining capacity"), TransferredAmmo, 8);
-	TestEqual(
-		TEXT("Magazine is filled exactly to capacity"),
-		Inventory.FindItem(InstanceId)->InstanceData.MagazineAmmo,
-		12);
-	TestEqual(
-		TEXT("Reserve keeps the unneeded ammo"),
-		Inventory.FindItem(InstanceId)->InstanceData.ReserveAmmo,
-		12);
+	// 弹匣 4 / 备弹 20 / 容量 12：转移量被剩余容量截断为 8。
+	AShooterInventoryReloadTestWeapon* Weapon = SpawnReloadTestWeapon(*this, World, 12, 4, 20);
+	if (Weapon)
+	{
+		int32 TransferredAmmo = INDEX_NONE;
+		TestTrue(TEXT("Reload transaction commits"), Weapon->ReloadFromReserve(TransferredAmmo));
+		TestEqual(TEXT("Transfer is clamped by remaining capacity"), TransferredAmmo, 8);
+		TestEqual(TEXT("Magazine is filled exactly to capacity"), Weapon->GetBulletCount(), 12);
+		TestEqual(TEXT("Reserve keeps the unneeded ammo"), Weapon->GetReserveAmmo(), 12);
+	}
+
+	DestroyReloadTestWorld(World);
 	return true;
 }
 
@@ -95,23 +128,23 @@ bool FShooterInventoryReloadNoReserveTest::RunTest(const FString& Parameters)
 {
 	using namespace ShooterInventoryReloadAutomationTests;
 
-	FShooterWeaponInventoryList Inventory;
-	const FGuid InstanceId = FGuid::NewGuid();
-	TestTrue(
-		TEXT("Weapon instance is added"),
-		Inventory.AddItem(MakeWeaponInstanceData(InstanceId, 0, 5, 0)));
+	UWorld* World = CreateReloadTestWorld(*this);
+	if (!World)
+	{
+		return false;
+	}
 
-	int32 TransferredAmmo = INDEX_NONE;
-	TestFalse(TEXT("Reload with no reserve is rejected"), Inventory.ReloadMagazine(InstanceId, 30, TransferredAmmo));
-	TestEqual(TEXT("Transfer reports zero"), TransferredAmmo, 0);
-	TestEqual(
-		TEXT("Magazine is unchanged"),
-		Inventory.FindItem(InstanceId)->InstanceData.MagazineAmmo,
-		5);
-	TestEqual(
-		TEXT("Reserve is unchanged"),
-		Inventory.FindItem(InstanceId)->InstanceData.ReserveAmmo,
-		0);
+	AShooterInventoryReloadTestWeapon* Weapon = SpawnReloadTestWeapon(*this, World, 30, 5, 0);
+	if (Weapon)
+	{
+		int32 TransferredAmmo = INDEX_NONE;
+		TestFalse(TEXT("Reload with no reserve is rejected"), Weapon->ReloadFromReserve(TransferredAmmo));
+		TestEqual(TEXT("Transfer reports zero"), TransferredAmmo, 0);
+		TestEqual(TEXT("Magazine is unchanged"), Weapon->GetBulletCount(), 5);
+		TestEqual(TEXT("Reserve is unchanged"), Weapon->GetReserveAmmo(), 0);
+	}
+
+	DestroyReloadTestWorld(World);
 	return true;
 }
 
@@ -124,23 +157,23 @@ bool FShooterInventoryReloadFullMagazineTest::RunTest(const FString& Parameters)
 {
 	using namespace ShooterInventoryReloadAutomationTests;
 
-	FShooterWeaponInventoryList Inventory;
-	const FGuid InstanceId = FGuid::NewGuid();
-	TestTrue(
-		TEXT("Weapon instance is added"),
-		Inventory.AddItem(MakeWeaponInstanceData(InstanceId, 0, 30, 20)));
+	UWorld* World = CreateReloadTestWorld(*this);
+	if (!World)
+	{
+		return false;
+	}
 
-	int32 TransferredAmmo = INDEX_NONE;
-	TestFalse(TEXT("Full magazine rejects reload"), Inventory.ReloadMagazine(InstanceId, 30, TransferredAmmo));
-	TestEqual(TEXT("Transfer reports zero"), TransferredAmmo, 0);
-	TestEqual(
-		TEXT("Magazine is unchanged"),
-		Inventory.FindItem(InstanceId)->InstanceData.MagazineAmmo,
-		30);
-	TestEqual(
-		TEXT("Reserve is unchanged"),
-		Inventory.FindItem(InstanceId)->InstanceData.ReserveAmmo,
-		20);
+	AShooterInventoryReloadTestWeapon* Weapon = SpawnReloadTestWeapon(*this, World, 30, 30, 20);
+	if (Weapon)
+	{
+		int32 TransferredAmmo = INDEX_NONE;
+		TestFalse(TEXT("Full magazine rejects reload"), Weapon->ReloadFromReserve(TransferredAmmo));
+		TestEqual(TEXT("Transfer reports zero"), TransferredAmmo, 0);
+		TestEqual(TEXT("Magazine is unchanged"), Weapon->GetBulletCount(), 30);
+		TestEqual(TEXT("Reserve is unchanged"), Weapon->GetReserveAmmo(), 20);
+	}
+
+	DestroyReloadTestWorld(World);
 	return true;
 }
 
@@ -153,42 +186,35 @@ bool FShooterInventoryReloadInstanceIsolationTest::RunTest(const FString& Parame
 {
 	using namespace ShooterInventoryReloadAutomationTests;
 
-	FShooterWeaponInventoryList Inventory;
-	const FGuid FirstId = FGuid::NewGuid();
-	const FGuid SecondId = FGuid::NewGuid();
-	TestTrue(
-		TEXT("First weapon instance is added"),
-		Inventory.AddItem(MakeWeaponInstanceData(FirstId, 0, 5, 20)));
-	TestTrue(
-		TEXT("Second weapon instance is added"),
-		Inventory.AddItem(MakeWeaponInstanceData(SecondId, 1, 5, 20)));
+	UWorld* World = CreateReloadTestWorld(*this);
+	if (!World)
+	{
+		return false;
+	}
 
-	int32 TransferredAmmo = INDEX_NONE;
-	TestTrue(TEXT("Only first instance reloads"), Inventory.ReloadMagazine(FirstId, 30, TransferredAmmo));
-	TestEqual(TEXT("First instance receives the transfer"), TransferredAmmo, 20);
-	TestEqual(
-		TEXT("First magazine is modified"),
-		Inventory.FindItem(FirstId)->InstanceData.MagazineAmmo,
-		25);
-	TestEqual(
-		TEXT("First reserve is modified"),
-		Inventory.FindItem(FirstId)->InstanceData.ReserveAmmo,
-		0);
-	TestEqual(
-		TEXT("Second magazine is isolated"),
-		Inventory.FindItem(SecondId)->InstanceData.MagazineAmmo,
-		5);
-	TestEqual(
-		TEXT("Second reserve is isolated"),
-		Inventory.FindItem(SecondId)->InstanceData.ReserveAmmo,
-		20);
+	// 两把同状态武器：只对第一把提交换弹，第二把的弹药必须保持隔离。
+	AShooterInventoryReloadTestWeapon* First = SpawnReloadTestWeapon(*this, World, 30, 5, 20);
+	AShooterInventoryReloadTestWeapon* Second = SpawnReloadTestWeapon(*this, World, 30, 5, 20);
+	if (First && Second)
+	{
+		int32 TransferredAmmo = INDEX_NONE;
+		TestTrue(TEXT("Only the first weapon reloads"), First->ReloadFromReserve(TransferredAmmo));
+		TestEqual(TEXT("First weapon receives the transfer"), TransferredAmmo, 20);
+		TestEqual(TEXT("First magazine is modified"), First->GetBulletCount(), 25);
+		TestEqual(TEXT("First reserve is modified"), First->GetReserveAmmo(), 0);
+		TestEqual(TEXT("Second magazine is isolated"), Second->GetBulletCount(), 5);
+		TestEqual(TEXT("Second reserve is isolated"), Second->GetReserveAmmo(), 20);
 
-	int32 InvalidTransferAmmo = INDEX_NONE;
-	TestFalse(
-		TEXT("Invalid InstanceId is rejected"),
-		Inventory.ReloadMagazine(FGuid::NewGuid(), 30, InvalidTransferAmmo));
-	TestEqual(TEXT("Invalid transfer reports zero"), InvalidTransferAmmo, 0);
+		// 满弹匣后重复提交拒绝：换弹事务没有第二次转移。
+		int32 RepeatTransferAmmo = INDEX_NONE;
+		TestFalse(
+			TEXT("Repeat reload on the now-full magazine is rejected"),
+			First->ReloadFromReserve(RepeatTransferAmmo));
+		TestEqual(TEXT("Repeat transfer reports zero"), RepeatTransferAmmo, 0);
+	}
+
+	DestroyReloadTestWorld(World);
 	return true;
 }
 
-#endif
+#endif // WITH_DEV_AUTOMATION_TESTS

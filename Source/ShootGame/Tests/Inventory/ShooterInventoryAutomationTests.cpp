@@ -11,6 +11,7 @@
 #include "Characters/Equipment/ShooterEquipmentComponent.h"
 #include "ShooterInventoryComponent.h"
 #include "ShooterInventoryTypes.h"
+#include "ShooterInventoryReserveTestTypes.h"
 #include "ShooterWeapon.h"
 
 namespace ShooterInventoryAutomationTests
@@ -340,23 +341,43 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FShooterInventoryAmmoConsumeTest::RunTest(const FString& Parameters)
 {
-	FShooterWeaponInventoryList Inventory;
-	FShooterWeaponInstanceData InstanceData;
-	InstanceData.InstanceId = FGuid::NewGuid();
-	// 单表武器配置纠偏：武器类型身份改为武器模板行名，IsValid() 要求行名非空。
-	InstanceData.WeaponRowName = FName(TEXT("TestWeapon_AmmoConsume"));
-	InstanceData.MagazineAmmo = 2;
-	InstanceData.ReserveAmmo = 10;
-	InstanceData.SlotIndex = 0;
+	// S2 起弹药权威在 WeaponActor（ConsumeAmmo / MagazineAmmo）；
+	// FastArray 不再承载弹药写事务，本测试改为验证 Actor 权威扣减边界。
+	// 声明备弹测试武器：弹匣 4、显式备弹 7。
+	UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
+	if (!TestNotNull(TEXT("Ammo consume world created"), World) || !GEngine)
+	{
+		return false;
+	}
 
-	TestTrue(TEXT("Weapon instance is added"), Inventory.AddItem(InstanceData));
-	TestTrue(TEXT("First round can be consumed"), Inventory.ConsumeMagazineAmmo(InstanceData.InstanceId));
-	TestEqual(TEXT("Magazine decreases to 1"), Inventory.FindItem(InstanceData.InstanceId)->InstanceData.MagazineAmmo, 1);
-	TestTrue(TEXT("Second round can be consumed"), Inventory.ConsumeMagazineAmmo(InstanceData.InstanceId));
-	TestFalse(TEXT("Empty magazine cannot be consumed"), Inventory.ConsumeMagazineAmmo(InstanceData.InstanceId));
-	TestEqual(TEXT("Magazine remains 0"), Inventory.FindItem(InstanceData.InstanceId)->InstanceData.MagazineAmmo, 0);
-	TestFalse(TEXT("Invalid InstanceId is rejected"), Inventory.ConsumeMagazineAmmo(FGuid::NewGuid()));
-	TestEqual(TEXT("ReserveAmmo is untouched by magazine consumption"), Inventory.FindItem(InstanceData.InstanceId)->InstanceData.ReserveAmmo, 10);
+	FWorldContext& WorldContext = GEngine->CreateNewWorldContext(EWorldType::Game);
+	WorldContext.SetCurrentWorld(World);
+
+	AShooterWeapon* Weapon = World->SpawnActor<AShooterInventoryDeclaredReserveTestWeapon>(
+		FVector::ZeroVector, FRotator::ZeroRotator);
+	if (!TestNotNull(TEXT("Ammo consume weapon spawned"), Weapon))
+	{
+		GEngine->DestroyWorldContext(World);
+		World->DestroyWorld(false);
+		return false;
+	}
+	Weapon->DispatchBeginPlay();
+
+	TestEqual(TEXT("Weapon starts with a full magazine"), Weapon->GetBulletCount(), 4);
+	TestTrue(TEXT("First round can be consumed"), Weapon->ConsumeAmmo());
+	TestEqual(TEXT("Magazine decreases to 3"), Weapon->GetBulletCount(), 3);
+	TestTrue(TEXT("Second round can be consumed"), Weapon->ConsumeAmmo());
+	TestTrue(TEXT("Third round can be consumed"), Weapon->ConsumeAmmo());
+	TestTrue(TEXT("Fourth round can be consumed"), Weapon->ConsumeAmmo());
+	TestFalse(TEXT("Empty magazine cannot be consumed"), Weapon->ConsumeAmmo());
+	TestEqual(TEXT("Magazine remains 0"), Weapon->GetBulletCount(), 0);
+	TestEqual(
+		TEXT("ReserveAmmo is untouched by magazine consumption"),
+		Weapon->GetReserveAmmo(),
+		7);
+
+	GEngine->DestroyWorldContext(World);
+	World->DestroyWorld(false);
 	return true;
 }
 

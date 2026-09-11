@@ -8,6 +8,7 @@
 #include "ShooterWeaponHolder.h"
 #include "Animation/AnimInstance.h"
 #include "ShooterPoolableActor.h"
+#include "ShooterWeaponConfigRow.h"
 #include "ShooterWeapon.generated.h"
 
 class IShooterWeaponHolder;
@@ -98,6 +99,10 @@ protected:
 	UPROPERTY(Transient)
 	TObjectPtr<UShooterWeaponFireBehavior> FireBehaviorInstance;
 
+	/** ApplyWeaponRow 时冻结的完整配置快照；开火行为只读本快照，运行时不再查表。 */
+	UPROPERTY(Transient)
+	FShooterWeaponConfigRow ConfigSnapshot;
+
 	/** 生命周期状态；服务器权威，客户端经 OnRep 镜像，不复制。 */
 	EShooterWeaponLifecycleState LifecycleState = EShooterWeaponLifecycleState::InPool;
 
@@ -124,12 +129,19 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Ammo", meta = (ClampMin = -1, ClampMax = 999))
 	int32 InitialReserveAmmo = -1;
 
-	/** 兼容镜像：Inventory 建立后复制 Inventory.MagazineAmmo；未绑定的旧路径仍直接使用该字段。 */
-	UPROPERTY(ReplicatedUsing=OnRep_CurrentBullets, VisibleAnywhere, Category="Ammo")
-	int32 CurrentBullets = 0;
+	/** 当前弹匣弹药；服务器权威，OwnerOnly 复制，HUD 与本地表现只读该值。 */
+	UPROPERTY(ReplicatedUsing=OnRep_MagazineAmmo, VisibleAnywhere, BlueprintReadOnly, Category="Ammo")
+	int32 MagazineAmmo = 0;
+
+	/** 当前备用弹药；服务器权威，OwnerOnly 复制；换弹事务从这里转进弹匣，只消耗不回复。 */
+	UPROPERTY(ReplicatedUsing=OnRep_ReserveAmmo, VisibleAnywhere, BlueprintReadOnly, Category="Ammo")
+	int32 ReserveAmmo = 0;
 
 	UFUNCTION()
-	void OnRep_CurrentBullets();
+	void OnRep_MagazineAmmo();
+
+	UFUNCTION()
+	void OnRep_ReserveAmmo();
 	
 	/** Animation montage to play when firing this weapon */
 	UPROPERTY(EditAnywhere, Category="Animation")
@@ -282,8 +294,22 @@ protected:
 
 public:
 
-	/** 刷新本地 CurrentBullets 镜像与拥有者 HUD；Inventory 数据变化时由两边共同调用。 */
-	void RefreshAmmoMirror();
+	/** 服务器权威：按静态配置恢复初始弹药（弹匣回满、备弹回到声明值）。
+	 *  绑定/应用行配置与归还池时调用；复用租用不继承上一持有者的弹药。 */
+	void RestoreInitialAmmo();
+
+	/**
+	 * 服务器权威换弹原子事务：在同一次写入中把 ReserveAmmo 转进 MagazineAmmo。
+	 * Transfer = Min(MagazineSize - MagazineAmmo, ReserveAmmo)；
+	 * Transfer 不大于 0（弹匣已满或无备弹）时返回 false 且不产生任何变化。
+	 */
+	bool ReloadFromReserve(int32& OutTransferredAmmo);
+
+	/** 服务器扣弹 / 换弹提交与 Owner 客户端 OnRep 共用的 HUD 推送入口（装备可见时）。 */
+	void PushAmmoToOwnerHud();
+
+	/** 返回 ApplyWeaponRow 冻结的配置快照；未应用行配置前为结构默认值。 */
+	const FShooterWeaponConfigRow& GetConfigSnapshot() const { return ConfigSnapshot; }
 
 	/** 返回当前生命周期状态。 */
 	EShooterWeaponLifecycleState GetLifecycleState() const { return LifecycleState; }
@@ -371,24 +397,30 @@ public:
 	/** 返回服务器权威切枪事务等待时长。 */
 	float GetEquipDuration() const { return EquipDuration; }
 
-	/** Returns the current bullet count；绑定 Inventory 时从 MagazineAmmo 读取。 */
-
 	/** Returns the first person anim instance class */
 	const TSubclassOf<UAnimInstance>& GetFirstPersonAnimInstanceClass() const;
 
 	/** Returns the third person anim instance class */
 	const TSubclassOf<UAnimInstance>& GetThirdPersonAnimInstanceClass() const;
 
-	/** Returns the magazine size；绑定武器模板行后即为该行的弹匣容量。 */
+	/** Returns the magazine size；应用武器模板行后即为该行的弹匣容量。 */
 	int32 GetMagazineSize() const { return MagazineSize; };
 
-	/** Returns the current bullet count；绑定 Inventory 时从 MagazineAmmo 读取。 */
+	/** Returns the current bullet count；弹药权威在本 Actor 的 MagazineAmmo。 */
 	int32 GetBulletCount() const;
 
 	/** 返回初始备弹声明值；-1 表示自动（MagazineSize × 3），>=0 为显式有限值。 */
 	int32 GetInitialReserveAmmo() const { return InitialReserveAmmo; }
 
-	/** 返回当前备弹；绑定 Inventory 时从权威 ReserveAmmo 读取，未绑定旧路径没有备弹概念、返回 0。 */
+	/** 解析实际初始备弹：显式 >=0 直接采用，-1 回落 MagazineSize × 3。 */
+	int32 ResolveInitialReserveAmmo() const
+	{
+		return InitialReserveAmmo >= 0
+			? InitialReserveAmmo
+			: FMath::Max(0, MagazineSize * 3);
+	}
+
+	/** 返回当前备弹；弹药权威在本 Actor 的 ReserveAmmo。 */
 	int32 GetReserveAmmo() const;
 
 	/** 返回绑定的 WeaponInstance ID；无效表示尚未接入 Inventory 的兼容路径。 */
@@ -446,11 +478,11 @@ public:
 	virtual void OnReleasedToPool() override;
 	//~ End IShooterPoolableActor
 
-	/** 判断当前是否还有可发射弹药；绑定 Inventory 时检查权威 MagazineAmmo。 */
+	/** 判断当前是否还有可发射弹药；直接检查本 Actor 的 MagazineAmmo。 */
 	bool CanConsumeAmmo() const;
 
-	/** 服务器权威扣减一发；绑定 Inventory 时写入 WeaponInstanceData，否则保留旧 CurrentBullets 兼容路径。 */
-	bool ConsumeAmmo();
+	/** 服务器权威扣减并推送 Owner HUD；弹匣不足或 Amount 非法时不产生任何变化。 */
+	bool ConsumeAmmo(int32 Amount = 1);
 
 	/** 弹药在 Fire 事务中耗尽时广播；GA_Fire 用它幂等结束 Ability。 */
 	FShooterWeaponOutOfAmmoDelegate OnOutOfAmmo;

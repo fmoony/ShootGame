@@ -881,9 +881,9 @@ bool AShooterCharacter::EnsureWeaponPresentation(AShooterWeapon* ExpectedWeapon)
 			// 拾取路径在 Owner Client 上的形态：武器通道送达时 bHidden 已是服务器
 			// Equip 同帧解除后的 false，永远走不到 ActivateWeapon/OnWeaponActivated 的 HUD 推送；
 			// 换武器完成表现时补一次 HUD，重复 Ensure 同一武器（bMatchesLastApplied）不重复推送。
-			// BoundInstanceId 尚未复制到时读不到权威弹药，跳过本次，等注册后的
-			// FastArray 回调（RefreshAmmoMirror）用新数据推送。
-			if (!bMatchesLastApplied && ExpectedWeapon->GetBoundInstanceId().IsValid())
+			// S2 起弹药权威与复制都在 WeaponActor（MagazineAmmo / ReserveAmmo OwnerOnly），
+			// 弹药字段晚到时由 OnRep 再推一次收敛。
+			if (!bMatchesLastApplied)
 			{
 				UpdateWeaponHUD(
 					ExpectedWeapon->GetBulletCount(),

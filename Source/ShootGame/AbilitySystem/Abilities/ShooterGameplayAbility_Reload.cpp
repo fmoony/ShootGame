@@ -132,12 +132,13 @@ bool UShooterGameplayAbility_Reload::ResolveReloadTarget(
 	}
 
 	const FGuid InstanceId = Weapon->GetBoundInstanceId();
+	// 弹药权威在 WeaponActor（S2）：满弹匣或无备弹直接拒绝；Instance 存在性只验证 Inventory 成员关系。
 	const FShooterWeaponInstanceData* Instance =
 		Inventory->FindWeaponInstance(InstanceId);
 	if (!Instance ||
 		Equipment->GetActiveWeaponInstanceId() != InstanceId ||
-		Instance->MagazineAmmo >= Weapon->GetMagazineSize() ||
-		Instance->ReserveAmmo <= 0)
+		Weapon->GetBulletCount() >= Weapon->GetMagazineSize() ||
+		Weapon->GetReserveAmmo() <= 0)
 	{
 		return false;
 	}
@@ -191,9 +192,6 @@ void UShooterGameplayAbility_Reload::ActivateAbility(
 
 	const AShooterCharacter* ReloadCharacter = Cast<AShooterCharacter>(
 		GetShooterAvatarActor());
-	const int32 ReserveAmmo = ReloadCharacter && ReloadCharacter->GetInventoryComponent()
-		? ReloadCharacter->GetInventoryComponent()->GetReserveAmmo(TargetInstanceId)
-		: INDEX_NONE;
 	UE_LOG(
 		LogShootGame,
 		Display,
@@ -203,7 +201,7 @@ void UShooterGameplayAbility_Reload::ActivateAbility(
 		*TargetInstanceId.ToString(),
 		ReloadDuration,
 		Weapon->GetBulletCount(),
-		ReserveAmmo);
+		Weapon->GetReserveAmmo());
 }
 
 bool UShooterGameplayAbility_Reload::IsReloadTargetStillCurrent() const

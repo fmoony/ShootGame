@@ -80,12 +80,11 @@ void AShooterNPC::BeginPlay()
 	// 空行名的兼容/测试路径继续使用 WeaponClass 与 WeaponActor 自身默认配置。
 	//
 	// B4 明确的 NPC 兼容边界（与玩家正式路径的差异，属 PvE 遗留项而非未完成项）：
-	// - NPC 没有 UShooterInventoryComponent，不创建 WeaponInstance，也没有 InstanceId / ReserveAmmo；
+	// - NPC 没有 UShooterInventoryComponent，不创建 WeaponInstance，也没有 InstanceId；
 	// - 因此本武器不经过对象池：直接 Spawn，拥有者销毁时由 AShooterWeapon::OnOwnerDestroyed
-	//   走「非池出生 → Destroy」回落路径；
-	// - 弹药权威保存在 AShooterWeapon::CurrentBullets 兼容镜像，而非 WeaponInstance.MagazineAmmo；
-	// - 备弹经济不适用：AShooterWeapon::GetReserveAmmo 在未绑定时返回 0。
-	// 玩家路径（Inventory.TryAddWeaponRow → Pool.Acquire → SetInstanceBinding → Pool.Release）不受影响。
+	//   走「非池出生 → Destroy」回落路径（S4 迁移为同一 WeaponId 池租用）；
+	// - 弹药权威在 AShooterWeapon::MagazineAmmo（S2 起与玩家同源）；NPC 无换弹 Ability，
+	//   保留弹匣打空自动回满的 PvE 兼容行为。
 	const FShooterWeaponConfigRow* WeaponRow = ShooterWeaponTable::FindWeaponRow(
 		ShooterWeaponTable::ResolveWeaponTable(),
 		WeaponRowName);

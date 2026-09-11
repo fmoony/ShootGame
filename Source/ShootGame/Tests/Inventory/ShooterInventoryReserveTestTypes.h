@@ -46,3 +46,25 @@ public:
 		InitialReserveAmmo = 0;
 	}
 };
+
+/**
+ * 换弹事务测试武器（S2 起事务收敛在 WeaponActor::ReloadFromReserve）：
+ * 暴露受保护的弹药与容量写入口，构造任意弹匣/备弹状态。
+ */
+UCLASS(NotBlueprintable, Transient)
+class AShooterInventoryReloadTestWeapon : public AShooterWeapon
+{
+	GENERATED_BODY()
+
+public:
+	void SetMagazineSizeForTest(int32 InMagazineSize)
+	{
+		MagazineSize = InMagazineSize;
+	}
+
+	void SetAmmoForTest(int32 InMagazineAmmo, int32 InReserveAmmo)
+	{
+		MagazineAmmo = InMagazineAmmo;
+		ReserveAmmo = InReserveAmmo;
+	}
+};
