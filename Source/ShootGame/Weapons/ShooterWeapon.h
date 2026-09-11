@@ -13,7 +13,7 @@
 class IShooterWeaponHolder;
 class AShooterProjectile;
 class UShooterWeaponFireBehavior;
-class UShooterWeaponDefinition;
+struct FShooterWeaponConfigRow;
 struct FShooterWeaponFireContext;
 
 /**
@@ -74,11 +74,25 @@ protected:
 	UPROPERTY(ReplicatedUsing = OnRep_BoundInstanceId, VisibleAnywhere, BlueprintReadOnly, Category="Inventory")
 	FGuid BoundInstanceId;
 
+	/**
+	 * 武器模板行名；复制给所有端，客户端与服务器通过同一张 DT_WeaponData 恢复只读配置。
+	 * 空名表示尚未绑定模板行（NPC / 测试兼容路径），此时沿用 WeaponActor 自身的默认配置。
+	 */
+	UPROPERTY(ReplicatedUsing = OnRep_WeaponRowName, VisibleAnywhere, BlueprintReadOnly, Category="Inventory")
+	FName WeaponRowName;
+
+	/** 行配置实例化出的开火行为；无持久可变状态，不复制，两端各自按行创建。 */
+	UPROPERTY(Transient)
+	TObjectPtr<UShooterWeaponFireBehavior> FireBehaviorInstance;
+
 	/** 生命周期状态；服务器权威，客户端经 OnRep 镜像，不复制。 */
 	EShooterWeaponLifecycleState LifecycleState = EShooterWeaponLifecycleState::InPool;
 
 	UFUNCTION()
 	void OnRep_BoundInstanceId();
+
+	UFUNCTION()
+	void OnRep_WeaponRowName();
 
 	/** Type of projectiles this weapon will shoot */
 	UPROPERTY(EditAnywhere, Category="Ammo")
@@ -148,7 +162,6 @@ protected:
 	/** 第三人称左手握把 Socket 名；空名表示该武器没有左手握把配置，左手 IK 自动关闭。 */
 	UPROPERTY(EditAnywhere, Category="Aim")
 	FName ThirdPersonLeftHandGripSocketName = NAME_None;
-
 
 	/** Distance ahead of the muzzle that bullets will spawn at */
 	UPROPERTY(EditAnywhere, Category="Aim", meta = (ClampMin = 0, ClampMax = 1000, Units = "cm"))
@@ -226,6 +239,16 @@ protected:
 	/** 幂等绑定当前 Owner；允许 Owner 晚于武器 BeginPlay 到达客户端。 */
 	void InitializeWeaponOwner();
 
+	/** 解析本 Actor 绑定的武器模板行；未绑定行名、表缺失或行缺失时返回 nullptr。 */
+	const FShooterWeaponConfigRow* ResolveWeaponRow() const;
+
+	/**
+	 * 把武器模板行的只读配置应用到本 Actor 的运行时镜像（网格、动画类、表现资产、
+	 * 弹药经济、开火节奏、时序、Socket、视角参数）并实例化行的 FireBehaviorClass。
+	 * 模板数据本身只读：本函数只写 Actor 自身状态，不修改行或表。
+	 */
+	void ApplyWeaponRow(const FShooterWeaponConfigRow& Row);
+
 public:
 
 	/** 刷新本地 CurrentBullets 镜像与拥有者 HUD；Inventory 数据变化时由两边共同调用。 */
@@ -261,12 +284,12 @@ protected:
 	void FireCooldownExpired();
 
 	/**
-	 * 服务器权威开火执行：Definition 命中时把弹丸生成委托给 FireBehavior，
+	 * 服务器权威开火执行：绑定武器模板行且该行配置了行为类时把弹丸生成委托给行为，
 	 * 否则走 NPC / 旧测试兼容的 FireProjectile 路径；表现入口统一留在本 Actor。
 	 */
 	void ExecuteFireAtTarget(const FVector& TargetLocation);
 
-	/** 旧弹丸生成路径：仅在 Definition 行为不可用时执行（PvE / 测试兼容，B4 记录遗留边界）。 */
+	/** 旧弹丸生成路径：仅在武器模板行未配置行为类时执行（NPC / 测试兼容，B4 记录遗留边界）。 */
 	virtual void FireProjectile(const FVector& TargetLocation);
 
 	/** Broadcast firing effects (muzzle flash + sound) to all clients. Unreliable: dropping a flash is acceptable */
@@ -325,15 +348,8 @@ public:
 	/** Returns the third person anim instance class */
 	const TSubclassOf<UAnimInstance>& GetThirdPersonAnimInstanceClass() const;
 
-	/** Returns the magazine size */
+	/** Returns the magazine size；绑定武器模板行后即为该行的弹匣容量。 */
 	int32 GetMagazineSize() const { return MagazineSize; };
-
-	/**
-	 * 返回换弹事务容量：优先取绑定实例 Definition 的弹匣容量；
-	 * Definition 不可解析（NPC / 旧测试兼容路径）时回落 WeaponActor CDO 配置。
-	 * Inventory 的换弹事务只通过本入口获取容量，不再直接读取 CDO。
-	 */
-	int32 GetMagazineCapacity() const;
 
 	/** Returns the current bullet count；绑定 Inventory 时从 MagazineAmmo 读取。 */
 	int32 GetBulletCount() const;
@@ -347,18 +363,34 @@ public:
 	/** 返回绑定的 WeaponInstance ID；无效表示尚未接入 Inventory 的兼容路径。 */
 	FGuid GetBoundInstanceId() const { return BoundInstanceId; }
 
+	/** 返回武器模板行名；空名表示尚未绑定模板行（NPC / 测试兼容路径）。 */
+	FName GetWeaponRowName() const { return WeaponRowName; }
+
 	/**
-	 * 解析本次开火应使用的正式行为：来自绑定实例 DefinitionId 对应的 Definition。
-	 * 返回空表示走兼容路径（NPC 未绑定 Inventory 或 Definition 未配置行为）。
+	 * 解析本次开火应使用的正式行为：绑定模板行时由行的 FireBehaviorClass 实例化。
+	 * 返回空表示走兼容路径（未绑定模板行或该行未配置行为类）。
 	 */
 	UShooterWeaponFireBehavior* ResolveFireBehavior() const;
 
 	/**
-	 * 服务器写入 Instance 绑定并驱动 InPool <-> Holstered 转换。
+	 * 服务器写入 Instance 与武器模板行绑定，并驱动 InPool <-> Holstered 转换。
+	 * 行名有效时立即把该行的只读配置应用到本 Actor；
 	 * 权威端在 Equipped/Equipping 状态下拒绝改写（非法转换 fail closed）；
-	 * 客户端只镜像（远端读不到 OwnerOnly 的 BoundInstanceId）。
+	 * 客户端只镜像（远端读不到 OwnerOnly 的 BoundInstanceId，行名按复制顺序各自应用）。
 	 */
-	void SetBoundInstanceId(const FGuid& InInstanceId);
+	void SetInstanceBinding(const FGuid& InInstanceId, FName InWeaponRowName = NAME_None);
+
+	/**
+	 * 把本 Actor 当前的配置镜像导出为一条武器模板行。
+	 * 只服务一次性资产迁移工具与自动化测试构造行数据，不参与运行时游戏逻辑。
+	 */
+	FShooterWeaponConfigRow CaptureWeaponConfigRow() const;
+
+	/**
+	 * 服务器权威：只绑定武器模板行、不建立 Inventory 实例（NPC 等无 Inventory 的拥有者），
+	 * 并立即把该行的只读配置应用到本 Actor。空行名表示继续使用 WeaponActor 自身默认配置。
+	 */
+	void SetWeaponRow(FName InWeaponRowName);
 
 	//~ Begin IShooterPoolableActor
 	/** 池取出复位：清零开火节拍等运行时状态，并重新绑定新 Owner；Instance 绑定由 Inventory 在取出后写入。 */

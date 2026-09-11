@@ -80,9 +80,8 @@ namespace ShooterAbilityReloadBehaviorAutomationTests
 		FShooterWeaponInventoryList Inventory;
 		FShooterWeaponInstanceData InstanceData;
 		InstanceData.InstanceId = FGuid::NewGuid();
-		InstanceData.DefinitionId = FPrimaryAssetId(
-			FPrimaryAssetType(TEXT("ShooterTest")),
-			FName(TEXT("Weapon")));
+		// 武器类型身份是 DT_WeaponData 行名；本测试只构造数据契约，用唯一假行名。
+		InstanceData.WeaponRowName = FName(TEXT("TestWeapon_FullMagazine"));
 		InstanceData.MagazineAmmo = 30;
 		InstanceData.ReserveAmmo = 20;
 		InstanceData.SlotIndex = 0;
@@ -111,9 +110,8 @@ namespace ShooterAbilityReloadBehaviorAutomationTests
 		FShooterWeaponInventoryList Inventory;
 		FShooterWeaponInstanceData InstanceData;
 		InstanceData.InstanceId = FGuid::NewGuid();
-		InstanceData.DefinitionId = FPrimaryAssetId(
-			FPrimaryAssetType(TEXT("ShooterTest")),
-			FName(TEXT("Weapon")));
+		// 武器类型身份是 DT_WeaponData 行名；本测试只构造数据契约，用唯一假行名。
+		InstanceData.WeaponRowName = FName(TEXT("TestWeapon_NoReserve"));
 		InstanceData.MagazineAmmo = 5;
 		InstanceData.ReserveAmmo = 0;
 		InstanceData.SlotIndex = 0;

@@ -12,7 +12,9 @@
 #include "GameFramework/WorldSettings.h"
 #include "Inventory/ShooterInventoryComponent.h"
 #include "UObject/UnrealType.h"
+#include "../Weapon/ShooterWeaponTestTableTypes.h"
 #include "Weapons/ShooterWeapon.h"
+#include "Weapons/ShooterWeaponTable.h"
 #include "ShooterWeaponPresentationTestTypes.h"
 
 namespace ShooterWeaponPresentationBaselineAutomationTests
@@ -43,7 +45,7 @@ namespace ShooterWeaponPresentationBaselineAutomationTests
 
 	struct FExpectedWeaponAnimClasses
 	{
-		const TCHAR* WeaponClassPath;
+		const TCHAR* WeaponRowName;
 		const TCHAR* WeaponName;
 		const TCHAR* ExpectedFirstPersonAnimClassPath;
 		const TCHAR* ExpectedThirdPersonAnimClassPath;
@@ -65,13 +67,13 @@ bool FShooterWeaponPresentationAnimClassMappingTest::RunTest(const FString& Para
 
 	const FExpectedWeaponAnimClasses Expected[] = {
 		{
-			TEXT("/Game/Shooter/Blueprints/Weapons/BP_ShooterWeapon_Rifle.BP_ShooterWeapon_Rifle_C"),
+			TEXT("Rifle"),
 			TEXT("Rifle"),
 			TEXT("/Game/Shooter/Animation/FirstPerson/ABP_FP_Rifle.ABP_FP_Rifle_C"),
 			TEXT("/Game/Shooter/Animation/ThirdPerson/ABP_TP_Rifle.ABP_TP_Rifle_C"),
 		},
 		{
-			TEXT("/Game/Shooter/Blueprints/Weapons/BP_ShooterWeapon_Pistol.BP_ShooterWeapon_Pistol_C"),
+			TEXT("Pistol"),
 			TEXT("Pistol"),
 			TEXT("/Game/Shooter/Animation/FirstPerson/ABP_FP_Pistol.ABP_FP_Pistol_C"),
 			TEXT("/Game/Shooter/Animation/ThirdPerson/ABP_TP_Pistol.ABP_TP_Pistol_C"),
@@ -80,18 +82,13 @@ bool FShooterWeaponPresentationAnimClassMappingTest::RunTest(const FString& Para
 
 	for (const FExpectedWeaponAnimClasses& Snapshot : Expected)
 	{
-		const UClass* WeaponClass = LoadClass<AShooterWeapon>(nullptr, Snapshot.WeaponClassPath);
+		// 单表纠偏后 AnimClass 基线保存在武器模板行，不再读取 WeaponActor 蓝图默认值。
+		const FShooterWeaponConfigRow* Row = ShooterWeaponTable::FindWeaponRow(
+			ShooterWeaponTable::ResolveWeaponTable(),
+			FName(Snapshot.WeaponRowName));
 		if (!TestNotNull(
-			FString::Printf(TEXT("%s weapon class loads"), Snapshot.WeaponName),
-			WeaponClass))
-		{
-			continue;
-		}
-
-		const AShooterWeapon* WeaponDefaults = WeaponClass->GetDefaultObject<AShooterWeapon>();
-		if (!TestNotNull(
-			FString::Printf(TEXT("%s weapon has defaults"), Snapshot.WeaponName),
-			WeaponDefaults))
+			FString::Printf(TEXT("%s weapon row resolves"), Snapshot.WeaponName),
+			Row))
 		{
 			continue;
 		}
@@ -114,10 +111,10 @@ bool FShooterWeaponPresentationAnimClassMappingTest::RunTest(const FString& Para
 
 		TestTrue(
 			FString::Printf(TEXT("%s FP AnimClass matches baseline"), Snapshot.WeaponName),
-			WeaponDefaults->GetFirstPersonAnimInstanceClass() == ExpectedFirstPersonClass);
+			Row->FirstPersonAnimInstanceClass == ExpectedFirstPersonClass);
 		TestTrue(
 			FString::Printf(TEXT("%s TP AnimClass matches baseline"), Snapshot.WeaponName),
-			WeaponDefaults->GetThirdPersonAnimInstanceClass() == ExpectedThirdPersonClass);
+			Row->ThirdPersonAnimInstanceClass == ExpectedThirdPersonClass);
 	}
 
 	// 订阅审计的反射面：OnEquippedWeaponChanged 仍是 BlueprintAssignable 动态委托。
@@ -181,11 +178,14 @@ bool FShooterWeaponPresentationBaselineTest::RunTest(const FString& Parameters)
 
 	FGuid PrimaryId;
 	FGuid SecondaryId;
-	const EShooterInventoryAddResult PrimaryAddResult = Inventory->TryAddWeaponDefinition(
-		MakeShooterTestWeaponDefinition(
-			TEXT("WD_PresentationPrimary"),
-			AShooterWeaponPresentationTestWeaponPrimary::StaticClass()),
-		PrimaryId);
+	EShooterInventoryAddResult PrimaryAddResult = EShooterInventoryAddResult::NotAuthoritative;
+	GrantTestWeaponRow(
+		Inventory,
+		AShooterWeaponPresentationTestWeaponPrimary::StaticClass(),
+		PrimaryId,
+		/*MagazineSize*/ 10,
+		/*InitialReserveAmmo*/ -1,
+		&PrimaryAddResult);
 	TestEqual(
 		TEXT("Primary weapon is granted"),
 		static_cast<int32>(PrimaryAddResult),
@@ -237,11 +237,14 @@ bool FShooterWeaponPresentationBaselineTest::RunTest(const FString& Parameters)
 			PrimaryWeapon->GetThirdPersonAnimInstanceClass().Get());
 
 	// 切枪：旧武器隐藏，新武器可见，AnimClass 同步切换。
-	const EShooterInventoryAddResult SecondaryAddResult = Inventory->TryAddWeaponDefinition(
-		MakeShooterTestWeaponDefinition(
-			TEXT("WD_PresentationSecondary"),
-			AShooterWeaponPresentationTestWeaponSecondary::StaticClass()),
-		SecondaryId);
+	EShooterInventoryAddResult SecondaryAddResult = EShooterInventoryAddResult::NotAuthoritative;
+	GrantTestWeaponRow(
+		Inventory,
+		AShooterWeaponPresentationTestWeaponSecondary::StaticClass(),
+		SecondaryId,
+		/*MagazineSize*/ 10,
+		/*InitialReserveAmmo*/ -1,
+		&SecondaryAddResult);
 	TestEqual(
 		TEXT("Secondary weapon is granted"),
 		static_cast<int32>(SecondaryAddResult),

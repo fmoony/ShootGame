@@ -11,24 +11,6 @@
 class USphereComponent;
 class UPrimitiveComponent;
 class AShooterWeapon;
-class UShooterWeaponDefinition;
-
-/**
- *  Holds information about a type of weapon pickup
- */
-USTRUCT(BlueprintType)
-struct FWeaponTableRow : public FTableRowBase
-{
-	GENERATED_BODY()
-
-	/** Mesh to display on the pickup */
-	UPROPERTY(EditAnywhere)
-	TSoftObjectPtr<UStaticMesh> StaticMesh;
-
-	/** 正式授予数据源：武器定义资产软引用；丢失或非法配置时不消费 Pickup。 */
-	UPROPERTY(EditAnywhere)
-	TSoftObjectPtr<UShooterWeaponDefinition> WeaponDefinition;
-};
 
 /**
  *  Simple shooter game weapon pickup
@@ -48,12 +30,9 @@ class SHOOTGAME_API AShooterPickup : public AActor
 	
 protected:
 
-	/** Data on the type of picked weapon and visuals of this pickup */
+	/** 武器模板选择：唯一配置入口，蓝图或关卡实例在这里选择 DT_WeaponData 的一行。 */
 	UPROPERTY(EditAnywhere, Category="Pickup")
 	FDataTableRowHandle WeaponType;
-
-	/** 正式授予数据源：武器定义资产软引用，BeginPlay 时从数据表行复制；授予时服务器同步加载。 */
-	TSoftObjectPtr<UShooterWeaponDefinition> WeaponDefinition;
 	
 	/** Time to wait before respawning this pickup */
 	UPROPERTY(EditAnywhere, Category="Pickup", meta = (ClampMin = 0, ClampMax = 120, Units = "s"))

@@ -112,19 +112,22 @@ namespace ShooterFirstPersonCapture
 					State->bReloadSent = false;
 					State->bFireSent = false;
 					State->bStopSent = false;
-					const FString ClassPath = FString::Printf(
-						TEXT("/Game/Shooter/Blueprints/Weapons/BP_ShooterWeapon_%s.BP_ShooterWeapon_%s_C"),
-						Weapons[State->bExercise ? State->Case : State->Case / PitchCount],
-						Weapons[State->bExercise ? State->Case : State->Case / PitchCount]);
-					UClass* WeaponClass = LoadClass<AShooterWeapon>(nullptr, *ClassPath);
-					Character->GetInventoryComponent()->ClearInventory();
-					Character->GetInventoryComponent()->TryAddWeaponDefinition(
-					MakeShooterTestWeaponDefinition(
-						FName(*FString::Printf(TEXT("WD_Capture_%s"), *WeaponClass->GetName())),
-						WeaponClass),
-					State->WeaponId);
+					const TCHAR* WeaponRowName = Weapons[State->bExercise ? State->Case : State->Case / PitchCount];
+					UShooterInventoryComponent* CaptureInventory = Character->GetInventoryComponent();
+					CaptureInventory->ClearInventory();
+					// 单表纠偏后授予只接受武器模板行名：Capture 直接使用 DT_WeaponData 的正式行，
+					// 与生产路径读取完全相同的配置（含网格、AnimClass 与构图下沉量）。
+					if (CaptureInventory->TryAddWeaponRow(FName(WeaponRowName), State->WeaponId)
+						!= EShooterInventoryAddResult::Added)
+					{
+						UE_LOG(
+							LogShootGame,
+							Warning,
+							TEXT("FIRST_PERSON_CAPTURE_GRANT_REJECTED Row=%s"),
+							WeaponRowName);
+					}
 					Character->GetEquipmentComponent()->EquipWeapon(State->WeaponId);
-					Character->GetInventoryComponent()->ConsumeMagazineAmmo(State->WeaponId, 1);
+					CaptureInventory->ConsumeMagazineAmmo(State->WeaponId, 1);
 					AShooterWeapon* EquippedWeapon = Character->GetCurrentWeapon();
 					float DropOverride = -1.0f;
 					if (EquippedWeapon && FParse::Value(FCommandLine::Get(), TEXT("ShootGameCaptureDrop="), DropOverride) && DropOverride >= 0.0f)

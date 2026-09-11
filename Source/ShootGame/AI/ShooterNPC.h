@@ -1,4 +1,4 @@
-﻿// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
@@ -97,9 +97,31 @@ protected:
 	/** Pointer to the equipped weapon */
 	TObjectPtr<AShooterWeapon> Weapon;
 
-	/** Type of weapon to spawn for this character */
+	/** Type of weapon to spawn for this character（仅作无行名时的兼容/测试路径） */
 	UPROPERTY(EditAnywhere, Category="Weapon")
 	TSubclassOf<AShooterWeapon> WeaponClass;
+
+	/**
+	 * 武器模板行名：从 DT_WeaponData 选择一整行，由该行同时决定 WeaponActorClass 与全部配置。
+	 * 留空时才回落到 WeaponClass 与 WeaponActor 自身默认配置（自动化测试兼容路径）。
+	 */
+	UPROPERTY(EditAnywhere, Category="Weapon")
+	FName WeaponRowName;
+
+public:
+	/** 返回本 NPC 配置的武器模板行名；空名表示走 WeaponClass 兼容路径。 */
+	FName GetWeaponRowName() const { return WeaponRowName; }
+
+	/** 写入武器模板行名；供蓝图子类默认值与一次性迁移工具使用。 */
+	void SetWeaponRowName(FName InWeaponRowName) { WeaponRowName = InWeaponRowName; }
+
+	/** 返回兼容路径的武器类；仅在 WeaponRowName 为空或无法解析时使用。 */
+	TSubclassOf<AShooterWeapon> GetWeaponClass() const { return WeaponClass; }
+
+	/** 写入兼容路径的武器类。 */
+	void SetWeaponClass(TSubclassOf<AShooterWeapon> InWeaponClass) { WeaponClass = InWeaponClass; }
+
+protected:
 
 	/** Name of the first person mesh weapon socket */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category ="Weapons")
@@ -127,7 +149,6 @@ protected:
 
 	/** Actor currently being targeted */
 	TObjectPtr<AActor> CurrentAimTarget;
-
 	/** If true, this character is currently shooting its weapon */
 	bool bIsShooting = false;
 

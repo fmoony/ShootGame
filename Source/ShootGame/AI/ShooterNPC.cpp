@@ -1,8 +1,10 @@
-﻿// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright Epic Games, Inc. All Rights Reserved.
 
 
 #include "ShooterNPC.h"
 #include "ShooterWeapon.h"
+#include "ShooterWeaponConfigRow.h"
+#include "ShooterWeaponTable.h"
 #include "ShootGame.h"
 #include "Abilities/GameplayAbility.h"
 #include "GameplayEffectTypes.h"
@@ -74,13 +76,35 @@ void AShooterNPC::BeginPlay()
 		GrantFireAbility();
 	}
 
-	// spawn the weapon
+	// 武器来源：WeaponRowName 有效时由 DT_WeaponData 那一行同时决定 ActorClass 与全部配置；
+	// 空行名的兼容/测试路径继续使用 WeaponClass 与 WeaponActor 自身默认配置。
+	const FShooterWeaponConfigRow* WeaponRow = ShooterWeaponTable::FindWeaponRow(
+		ShooterWeaponTable::ResolveWeaponTable(),
+		WeaponRowName);
+	const TSubclassOf<AShooterWeapon> SpawnClass =
+		(WeaponRow && WeaponRow->WeaponActorClass) ? WeaponRow->WeaponActorClass : WeaponClass;
+	if (!SpawnClass)
+	{
+		UE_LOG(
+			LogShootGame,
+			Warning,
+			TEXT("NPC weapon spawn rejected: NPC=%s Row=%s has no resolvable WeaponActorClass"),
+			*GetNameSafe(this),
+			*WeaponRowName.ToString());
+		return;
+	}
+
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = this;
 	SpawnParams.Instigator = this;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-	Weapon = GetWorld()->SpawnActor<AShooterWeapon>(WeaponClass, GetActorTransform(), SpawnParams);
+	Weapon = GetWorld()->SpawnActor<AShooterWeapon>(SpawnClass, GetActorTransform(), SpawnParams);
+	if (Weapon && !WeaponRowName.IsNone())
+	{
+		// NPC 没有 Inventory：只绑定模板行并应用只读配置，不创建 WeaponInstance。
+		Weapon->SetWeaponRow(WeaponRowName);
+	}
 }
 
 void AShooterNPC::GrantFireAbility()

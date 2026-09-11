@@ -362,7 +362,23 @@ Owner = Avatar = ShooterNPC
 
 这些是当前架构假设，后续实现中允许根据真实问题调整。
 
-### 10.1 WeaponDefinition
+### 10.1 武器模板（已由单表纠偏取代 Definition）
+
+2026-09-11 的 [单表武器配置纠偏小计划](单表武器配置纠偏小计划.md) 撤销了
+`UShooterWeaponDefinition` 配置层；武器模板改为 `DT_WeaponData` 一行：
+
+```text
+FShooterWeaponConfigRow（DT_WeaponData 行）
+├─ WeaponActorClass
+├─ Ammo / Fire / Timing / Attack / Socket
+├─ Mesh / Anim / FX
+└─ View（FiringRecoil / FirstPersonCompositionDrop）
+```
+
+配置只保留一处来源，经 `ShooterWeaponTable` 集中解析；详细边界见
+[Inventory 与武器数据架构](../架构/Inventory与武器数据架构.md)。
+
+### 10.1.1 原 WeaponDefinition 假设（历史记录）
 
 ```text
 ShooterWeaponDefinition
@@ -389,7 +405,7 @@ USTRUCT + FastArray Item
 至少包含：
 ```text
 InstanceId
-DefinitionId
+WeaponRowName（单表纠偏前为 DefinitionId）
 MagazineAmmo
 ReserveAmmo
 SlotIndex

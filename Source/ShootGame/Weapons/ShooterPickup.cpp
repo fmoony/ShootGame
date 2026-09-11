@@ -11,7 +11,7 @@
 #include "ShooterCharacter.h"
 #include "ShooterInventoryComponent.h"
 #include "ShooterWeapon.h"
-#include "Weapons/Definitions/ShooterWeaponDefinition.h"
+#include "ShooterWeaponConfigRow.h"
 #include "Engine/World.h"
 #include "ShootGame.h"
 #include "TimerManager.h"
@@ -51,10 +51,10 @@ void AShooterPickup::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
 
-	if (FWeaponTableRow* WeaponData = WeaponType.GetRow<FWeaponTableRow>(FString()))
+	// Pickup 只负责把所选行的预览网格贴到自己的 Mesh 上；行本身仍是唯一配置来源。
+	if (const FShooterWeaponConfigRow* WeaponData = WeaponType.GetRow<FShooterWeaponConfigRow>(FString()))
 	{
-		// set the mesh
-		Mesh->SetStaticMesh(WeaponData->StaticMesh.LoadSynchronous());
+		Mesh->SetStaticMesh(WeaponData->PickupMesh.LoadSynchronous());
 	}
 }
 
@@ -62,10 +62,15 @@ void AShooterPickup::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (FWeaponTableRow* WeaponData = WeaponType.GetRow<FWeaponTableRow>(FString()))
+	// 行选择完全由 WeaponType 表达；缺失行在 Overlap 时 fail closed，这里不复制任何配置。
+	if (!WeaponType.GetRow<FShooterWeaponConfigRow>(FString()))
 	{
-		// 授予数据源从数据表行复制；正式路径只读 WeaponDefinition 软引用。
-		WeaponDefinition = WeaponData->WeaponDefinition;
+		UE_LOG(
+			LogShootGame,
+			Warning,
+			TEXT("Pickup %s has no resolvable weapon row: Row=%s"),
+			*GetNameSafe(this),
+			*WeaponType.RowName.ToString());
 	}
 }
 
@@ -105,25 +110,11 @@ void AShooterPickup::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
 	// 同一 Pickup 的连续 Overlap 只在服务器端处理一次；成功授予后才进入隐藏/重生流程。
 	bPickupAvailable = false;
 
-	// 正式授予数据源：软引用在此同步加载（第一版同步即可）；
-	// Definition 丢失或非法配置时 TryAddWeaponDefinition 明确 Reject，不消费 Pickup。
-	UShooterWeaponDefinition* Definition = WeaponDefinition.Get();
-	if (!Definition)
-	{
-		Definition = WeaponDefinition.LoadSynchronous();
-	}
-	if (!Definition)
-	{
-		UE_LOG(
-			LogShootGame,
-			Warning,
-			TEXT("Pickup %s references a missing WeaponDefinition; grant rejected"),
-			*GetNameSafe(this));
-	}
-
+	// 正式授予数据源：Inventory 按所选行名解析模板行；行名称为空、行缺失或行非法时明确
+	// Reject（InvalidWeaponRow），不消费 Pickup。
 	FGuid GrantedInstanceId;
 	const EShooterInventoryAddResult AddResult =
-		Inventory->TryAddWeaponDefinition(Definition, GrantedInstanceId);
+		Inventory->TryAddWeaponRow(WeaponType.RowName, GrantedInstanceId);
 	if (AddResult == EShooterInventoryAddResult::Added)
 	{
 		// R3：拾取后的“立即装备”只通过 Equipment facade 提交，不再直接调用 Character 装备事务。

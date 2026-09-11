@@ -8,6 +8,8 @@
 #include "ShooterGameplayAbility_Fire.h"
 #include "ShooterPlayerState.h"
 #include "ShooterWeapon.h"
+#include "ShooterWeaponConfigRow.h"
+#include "ShooterWeaponTable.h"
 #include "UObject/UnrealType.h"
 
 namespace ShooterAbilityFireBehaviorAutomationTests
@@ -99,36 +101,21 @@ namespace ShooterAbilityFireBehaviorAutomationTests
 
 	bool TestFullAutoScenarioConfiguration(FAutomationTestBase& Test)
 	{
-		const UClass* RifleClass = LoadClass<AShooterWeapon>(
-			nullptr,
-			TEXT("/Game/Shooter/Blueprints/Weapons/BP_ShooterWeapon_Rifle.BP_ShooterWeapon_Rifle_C"));
-		if (!Test.TestNotNull(TEXT("Rifle class can be loaded"), RifleClass))
-		{
-			return false;
-		}
-
-		const AShooterWeapon* RifleDefaults = RifleClass->GetDefaultObject<AShooterWeapon>();
-		if (!Test.TestNotNull(TEXT("Rifle has defaults"), RifleDefaults))
-		{
-			return false;
-		}
-
-		const FBoolProperty* FullAutoProperty =
-			FindFProperty<FBoolProperty>(RifleClass, TEXT("bFullAuto"));
-		const FFloatProperty* RefireRateProperty =
-			FindFProperty<FFloatProperty>(RifleClass, TEXT("RefireRate"));
-		if (!Test.TestNotNull(TEXT("Rifle exposes bFullAuto"), FullAutoProperty) ||
-			!Test.TestNotNull(TEXT("Rifle exposes RefireRate"), RefireRateProperty))
+		// 单表纠偏后全自动场景配置来自 Rifle 武器模板行，不再读取 WeaponActor 蓝图默认值。
+		const FShooterWeaponConfigRow* RifleRow = ShooterWeaponTable::FindWeaponRow(
+			ShooterWeaponTable::ResolveWeaponTable(),
+			FName(TEXT("Rifle")));
+		if (!Test.TestNotNull(TEXT("Rifle weapon row resolves"), RifleRow))
 		{
 			return false;
 		}
 
 		Test.TestTrue(
 			TEXT("Rifle is full-auto for the release scenario"),
-			FullAutoProperty->GetPropertyValue_InContainer(RifleDefaults));
+			RifleRow->bFullAuto);
 		Test.TestTrue(
 			TEXT("Rifle refire rate is positive"),
-			RefireRateProperty->GetPropertyValue_InContainer(RifleDefaults) > 0.0f);
+			RifleRow->RefireRate > 0.0f);
 		return true;
 	}
 }

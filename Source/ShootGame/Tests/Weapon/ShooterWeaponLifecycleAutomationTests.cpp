@@ -104,7 +104,7 @@ bool FShooterWeaponLifecycleTransitionTest::RunTest(const FString& Parameters)
 
 	// 绑定 -> Holstered；装备事务 -> Equipping；激活 -> Equipped。
 	const FGuid InstanceId = FGuid::NewGuid();
-	Weapon->SetBoundInstanceId(InstanceId);
+	Weapon->SetInstanceBinding(InstanceId);
 	TestEqual(TEXT("Binding moves to Holstered"), static_cast<int32>(Weapon->GetLifecycleState()), static_cast<int32>(EShooterWeaponLifecycleState::Holstered));
 	TestEqual(TEXT("Binding recorded"), Weapon->GetBoundInstanceId(), InstanceId);
 
@@ -112,7 +112,7 @@ bool FShooterWeaponLifecycleTransitionTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("Equip transaction enters Equipping"), static_cast<int32>(Weapon->GetLifecycleState()), static_cast<int32>(EShooterWeaponLifecycleState::Equipping));
 
 	// Equipping 状态下改写绑定被拒绝。
-	Weapon->SetBoundInstanceId(FGuid::NewGuid());
+	Weapon->SetInstanceBinding(FGuid::NewGuid());
 	TestEqual(TEXT("Rewriting binding in Equipping rejected"), Weapon->GetBoundInstanceId(), InstanceId);
 
 	Weapon->ActivateWeapon();
@@ -124,7 +124,7 @@ bool FShooterWeaponLifecycleTransitionTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("Repeated activation stays Equipped"), static_cast<int32>(Weapon->GetLifecycleState()), static_cast<int32>(EShooterWeaponLifecycleState::Equipped));
 
 	// Equipped 状态下改写绑定被拒绝。
-	Weapon->SetBoundInstanceId(FGuid::NewGuid());
+	Weapon->SetInstanceBinding(FGuid::NewGuid());
 	TestEqual(TEXT("Rewriting binding in Equipped rejected"), Weapon->GetBoundInstanceId(), InstanceId);
 
 	// 卸下 -> Holstered；重复卸下幂等。
@@ -135,7 +135,7 @@ bool FShooterWeaponLifecycleTransitionTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("Repeated deactivation stays Holstered"), static_cast<int32>(Weapon->GetLifecycleState()), static_cast<int32>(EShooterWeaponLifecycleState::Holstered));
 
 	// 解绑 -> InPool。
-	Weapon->SetBoundInstanceId(FGuid());
+	Weapon->SetInstanceBinding(FGuid());
 	TestEqual(TEXT("Unbinding returns to InPool"), static_cast<int32>(Weapon->GetLifecycleState()), static_cast<int32>(EShooterWeaponLifecycleState::InPool));
 	TestFalse(TEXT("Unbound instance id"), Weapon->GetBoundInstanceId().IsValid());
 
@@ -187,7 +187,7 @@ bool FShooterWeaponLifecyclePoolReleaseTest::RunTest(const FString& Parameters)
 
 	// 绑定并进入装备态，布置待清理的 Timer。
 	const FGuid InstanceId = FGuid::NewGuid();
-	Weapon->SetBoundInstanceId(InstanceId);
+	Weapon->SetInstanceBinding(InstanceId);
 	Weapon->BeginEquipTransaction();
 	Weapon->ActivateWeapon();
 	Weapon->ArmRefireTimerForTest();
@@ -266,18 +266,31 @@ bool FShooterWeaponLifecycleSwitchKeepsHolsteredTest::RunTest(const FString& Par
 	}
 
 	FGuid PrimaryId;
-	FGuid SecondaryId;
+	EShooterInventoryAddResult PrimaryAddResult = EShooterInventoryAddResult::NotAuthoritative;
+	GrantTestWeaponRow(
+		Inventory,
+		AShooterInventoryOrderTestWeapon::StaticClass(),
+		PrimaryId,
+		/*MagazineSize*/ 10,
+		/*InitialReserveAmmo*/ -1,
+		&PrimaryAddResult);
 	TestEqual(
 		TEXT("Primary weapon granted"),
-		static_cast<int32>(Inventory->TryAddWeaponDefinition(
-			MakeShooterTestWeaponDefinition(TEXT("WD_LifecycleSwitchPrimary"), AShooterInventoryOrderTestWeapon::StaticClass()),
-			PrimaryId)),
+		static_cast<int32>(PrimaryAddResult),
 		static_cast<int32>(EShooterInventoryAddResult::Added));
+
+	FGuid SecondaryId;
+	EShooterInventoryAddResult SecondaryAddResult = EShooterInventoryAddResult::NotAuthoritative;
+	GrantTestWeaponRow(
+		Inventory,
+		AShooterWeaponPresentationTestWeaponSecondary::StaticClass(),
+		SecondaryId,
+		/*MagazineSize*/ 10,
+		/*InitialReserveAmmo*/ -1,
+		&SecondaryAddResult);
 	TestEqual(
 		TEXT("Secondary weapon granted"),
-		static_cast<int32>(Inventory->TryAddWeaponDefinition(
-			MakeShooterTestWeaponDefinition(TEXT("WD_LifecycleSwitchSecondary"), AShooterWeaponPresentationTestWeaponSecondary::StaticClass()),
-			SecondaryId)),
+		static_cast<int32>(SecondaryAddResult),
 		static_cast<int32>(EShooterInventoryAddResult::Added));
 
 	TestTrue(TEXT("Primary equipped"), Equipment->EquipWeapon(PrimaryId));

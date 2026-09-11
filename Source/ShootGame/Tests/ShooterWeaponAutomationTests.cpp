@@ -9,6 +9,8 @@
 #include "Characters/Animation/ShooterFirstPersonAnimInstance.h"
 #include "Characters/Animation/ShooterThirdPersonAnimInstance.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Engine/DataTable.h"
+#include "Engine/SkeletalMesh.h"
 #include "UObject/UnrealType.h"
 #include "ShooterCharacter.h"
 #include "ShooterGameMode.h"
@@ -16,17 +18,53 @@
 #include "ShooterPlayerState.h"
 #include "ShooterProjectile.h"
 #include "ShooterWeapon.h"
+#include "ShooterWeaponConfigRow.h"
+#include "ShooterWeaponTable.h"
 #include "Weapons/ShooterAnimNotify_WeaponSound.h"
 
 namespace ShooterWeaponAutomationTests
 {
+	/** 四个正式武器行：行名与显示名一致，配置只来自 DT_WeaponData。 */
+	struct FProductionWeaponRow
+	{
+		const TCHAR* Name;
+		const TCHAR* RowName;
+	};
+
+	const FProductionWeaponRow ProductionWeaponRows[] = {
+		{TEXT("Rifle"), TEXT("Rifle")},
+		{TEXT("Pistol"), TEXT("Pistol")},
+		{TEXT("AWP"), TEXT("AWP")},
+		{TEXT("GrenadeLauncher"), TEXT("GrenadeLauncher")},
+	};
+
+	/**
+	 * 单表纠偏后的武器配置校验：配置一律从 DT_WeaponData 行读取，
+	 * 不再读取 WeaponActor 蓝图默认值（蓝图 CDO 已不再承载可表格化配置）。
+	 */
 	bool TestWeaponConfiguration(
 		FAutomationTestBase& Test,
 		const TCHAR* WeaponName,
-		const TCHAR* WeaponClassPath)
+		const TCHAR* WeaponRowName)
 	{
-		UClass* WeaponClass = LoadClass<AShooterWeapon>(nullptr, WeaponClassPath);
-		if (!Test.TestNotNull(FString::Printf(TEXT("%s class can be loaded"), WeaponName), WeaponClass))
+		const FShooterWeaponConfigRow* Row = ShooterWeaponTable::FindWeaponRow(
+			ShooterWeaponTable::ResolveWeaponTable(),
+			FName(WeaponRowName));
+		if (!Test.TestNotNull(
+			FString::Printf(TEXT("%s weapon row %s resolves"), WeaponName, WeaponRowName),
+			Row))
+		{
+			return false;
+		}
+
+		Test.TestTrue(
+			FString::Printf(TEXT("%s row is valid for grant"), WeaponName),
+			ShooterWeaponTable::IsRowValidForGrant(Row));
+
+		UClass* WeaponClass = Row->WeaponActorClass;
+		if (!Test.TestNotNull(
+			FString::Printf(TEXT("%s row WeaponActorClass can be loaded"), WeaponName),
+			WeaponClass))
 		{
 			return false;
 		}
@@ -42,14 +80,20 @@ namespace ShooterWeaponAutomationTests
 			WeaponDefaults->GetIsReplicated());
 		Test.TestTrue(
 			FString::Printf(TEXT("%s magazine size is positive"), WeaponName),
-			WeaponDefaults->GetMagazineSize() > 0);
+			Row->MagazineSize > 0);
+		Test.TestTrue(
+			FString::Printf(TEXT("%s refire rate is positive"), WeaponName),
+			Row->RefireRate > 0.0f);
+
+		// 网格与 Socket 都来自行：第一/第三人称网格必须真实拥有行配置的 Muzzle socket。
+		const USkeletalMesh* FirstPersonMesh = Row->FirstPersonMesh.LoadSynchronous();
+		const USkeletalMesh* ThirdPersonMesh = Row->ThirdPersonMesh.LoadSynchronous();
 		Test.TestTrue(
 			FString::Printf(TEXT("%s first-person mesh has configured muzzle socket"), WeaponName),
-			WeaponDefaults->GetFirstPersonMesh() &&
-			WeaponDefaults->GetFirstPersonMesh()->DoesSocketExist(WeaponDefaults->GetMuzzleSocketName()));
+			FirstPersonMesh && FirstPersonMesh->FindSocket(Row->MuzzleSocketName) != nullptr);
 		Test.TestTrue(
 			FString::Printf(TEXT("%s third-person mesh has authoritative muzzle socket"), WeaponName),
-			WeaponDefaults->HasThirdPersonMuzzleSocket());
+			ThirdPersonMesh && ThirdPersonMesh->FindSocket(Row->MuzzleSocketName) != nullptr);
 
 		const FProperty* CurrentBulletsProperty =
 			FindFProperty<FProperty>(WeaponClass, TEXT("CurrentBullets"));
@@ -67,55 +111,29 @@ namespace ShooterWeaponAutomationTests
 			CurrentBulletsProperty->RepNotifyFunc,
 			FName(TEXT("OnRep_CurrentBullets")));
 
-		const FFloatProperty* RefireRateProperty = FindFProperty<FFloatProperty>(WeaponClass, TEXT("RefireRate"));
-		if (!Test.TestNotNull(FString::Printf(TEXT("%s exposes RefireRate"), WeaponName), RefireRateProperty))
-		{
-			return false;
-		}
-
-		const float RefireRate = RefireRateProperty->GetPropertyValue_InContainer(WeaponDefaults);
-		Test.TestTrue(
-			FString::Printf(TEXT("%s refire rate is positive"), WeaponName),
-			RefireRate > 0.0f);
-
-		const FObjectPropertyBase* MuzzleFlashProperty =
-			FindFProperty<FObjectPropertyBase>(WeaponClass, TEXT("MuzzleFlash"));
-		Test.TestNotNull(
-			FString::Printf(TEXT("%s has muzzle flash configured"), WeaponName),
-			MuzzleFlashProperty
-				? MuzzleFlashProperty->GetObjectPropertyValue_InContainer(WeaponDefaults)
-				: nullptr);
-
-		const FObjectPropertyBase* FireSoundProperty =
-			FindFProperty<FObjectPropertyBase>(WeaponClass, TEXT("FireSound"));
 		Test.TestNotNull(
 			FString::Printf(TEXT("%s has fire sound configured"), WeaponName),
-			FireSoundProperty
-				? FireSoundProperty->GetObjectPropertyValue_InContainer(WeaponDefaults)
-				: nullptr);
+			Row->FireSound.Get());
 
-		// 换弹音效配置：三个阶段都由武器蓝图声明资源，Notify 只在本端触发播放。
-		const TCHAR* ReloadSoundProperties[] = {
+		// 换弹音效配置：三个阶段都由武器模板行声明资源，Notify 只在本端触发播放。
+		const TObjectPtr<USoundBase>* ReloadSounds[] = {
+			&Row->ReloadMagazineOutSound,
+			&Row->ReloadMagazineInSound,
+			&Row->ReloadCockingSound,
+		};
+		const TCHAR* ReloadSoundNames[] = {
 			TEXT("ReloadMagazineOutSound"),
 			TEXT("ReloadMagazineInSound"),
 			TEXT("ReloadCockingSound"),
 		};
-		for (const TCHAR* PropertyName : ReloadSoundProperties)
+		for (int32 SoundIndex = 0; SoundIndex < UE_ARRAY_COUNT(ReloadSounds); ++SoundIndex)
 		{
-			const FObjectPropertyBase* ReloadSoundProperty =
-				FindFProperty<FObjectPropertyBase>(WeaponClass, PropertyName);
 			Test.TestNotNull(
-				FString::Printf(TEXT("%s has %s configured"), WeaponName, PropertyName),
-				ReloadSoundProperty
-					? ReloadSoundProperty->GetObjectPropertyValue_InContainer(WeaponDefaults)
-					: nullptr);
+				FString::Printf(TEXT("%s has %s configured"), WeaponName, ReloadSoundNames[SoundIndex]),
+				ReloadSounds[SoundIndex]->Get());
 		}
 
-		const FClassProperty* ProjectileClassProperty =
-			FindFProperty<FClassProperty>(WeaponClass, TEXT("ProjectileClass"));
-		const UClass* ProjectileClass = ProjectileClassProperty
-			? Cast<UClass>(ProjectileClassProperty->GetObjectPropertyValue_InContainer(WeaponDefaults))
-			: nullptr;
+		const UClass* ProjectileClass = Row->ProjectileClass.Get();
 		if (!Test.TestNotNull(
 			FString::Printf(TEXT("%s has projectile class configured"), WeaponName),
 			ProjectileClass))
@@ -310,15 +328,10 @@ namespace ShooterWeaponAutomationTests
 
 	bool TestRifleReloadAnimationConfiguration(FAutomationTestBase& Test)
 	{
-		const UClass* RifleClass = LoadClass<AShooterWeapon>(
-			nullptr,
-			TEXT("/Game/Shooter/Blueprints/Weapons/BP_ShooterWeapon_Rifle.BP_ShooterWeapon_Rifle_C"));
-		if (!Test.TestNotNull(TEXT("Rifle class can be loaded for reload animation validation"), RifleClass))
-		{
-			return false;
-		}
-
-		const AShooterWeapon* RifleDefaults = RifleClass->GetDefaultObject<AShooterWeapon>();
+		// 权威 ReloadDuration 只来自 Rifle 模板行；蓝图默认值不再承载可表格化时序。
+		const FShooterWeaponConfigRow* RifleRow = ShooterWeaponTable::FindWeaponRow(
+			ShooterWeaponTable::ResolveWeaponTable(),
+			FName(TEXT("Rifle")));
 		const UAnimSequence* ReloadSequence = LoadObject<UAnimSequence>(
 			nullptr,
 			TEXT("/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_Reload.MM_Rifle_Reload"));
@@ -326,7 +339,7 @@ namespace ShooterWeaponAutomationTests
 			nullptr,
 			TEXT("/Game/Shooter/Animation/ThirdPerson/ABP_TP_Rifle.ABP_TP_Rifle"));
 		if (!Test.TestNotNull(TEXT("Rifle reload sequence can be loaded"), ReloadSequence) ||
-			!Test.TestNotNull(TEXT("Rifle defaults can be loaded for reload animation validation"), RifleDefaults) ||
+			!Test.TestNotNull(TEXT("Rifle weapon row can be resolved for reload animation validation"), RifleRow) ||
 			!Test.TestNotNull(TEXT("Rifle third-person AnimBP can be loaded"), RifleAnimBlueprint))
 		{
 			return false;
@@ -335,9 +348,9 @@ namespace ShooterWeaponAutomationTests
 		Test.TestTrue(
 			*FString::Printf(
 				TEXT("Rifle authoritative ReloadDuration (%.3fs) covers reload sequence (%.3fs)"),
-				RifleDefaults->GetReloadDuration(),
+				RifleRow->ReloadDuration,
 				ReloadSequence->GetPlayLength()),
-			RifleDefaults->GetReloadDuration() + 0.01f >= ReloadSequence->GetPlayLength());
+			RifleRow->ReloadDuration + 0.01f >= ReloadSequence->GetPlayLength());
 
 		Test.TestTrue(
 			TEXT("Rifle reload sequence uses the third-person AnimBP target skeleton"),
@@ -408,14 +421,10 @@ bool FShooterWeaponConfigurationTest::RunTest(const FString& Parameters)
 	using namespace ShooterWeaponAutomationTests;
 
 	bool bSucceeded = true;
-	bSucceeded &= TestWeaponConfiguration(
-		*this,
-		TEXT("Rifle"),
-		TEXT("/Game/Shooter/Blueprints/Weapons/BP_ShooterWeapon_Rifle.BP_ShooterWeapon_Rifle_C"));
-	bSucceeded &= TestWeaponConfiguration(
-		*this,
-		TEXT("Pistol"),
-		TEXT("/Game/Shooter/Blueprints/Weapons/BP_ShooterWeapon_Pistol.BP_ShooterWeapon_Pistol_C"));
+	for (const FProductionWeaponRow& Weapon : ProductionWeaponRows)
+	{
+		bSucceeded &= TestWeaponConfiguration(*this, Weapon.Name, Weapon.RowName);
+	}
 	bSucceeded &= TestCharacterReplication(*this);
 	bSucceeded &= TestMatchStateReplication(*this);
 	bSucceeded &= TestAnimationConfiguration(*this);

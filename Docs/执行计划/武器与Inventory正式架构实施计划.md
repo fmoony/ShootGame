@@ -16,6 +16,27 @@ Pickup 重生逻辑门定向验证（生产修复已由用户完成）
 
 本文只规划，不授权改写当前工作区中的用户修改。实际实施时，每个提交仍须遵守开发记录规范。
 
+## 1.1 纠偏插入项（2026-09-11）
+
+大阶段 A 的 `WeaponDefinition + PrimaryAssetId` 配置层已由
+[单表武器配置纠偏小计划](单表武器配置纠偏小计划.md) 撤销并完成实施：
+
+```text
+DT_WeaponData（唯一武器模板库）
+→ Pickup / NPC 只选择一行
+→ 该行决定 WeaponActorClass、玩法参数与表现资源
+```
+
+因此：
+
+- 本文第 3.1、4.1、4.2、4.5、6.2、6.4、10 节中关于 `UShooterWeaponDefinition`、
+  `FPrimaryAssetId DefinitionId`、AssetManager 扫描与 Definition 资产迁移的描述，
+  属于**已被纠偏取代的历史设计**，只保留为决策记录，不代表当前实现；
+- 当前实现以 [Inventory 与武器数据架构](../架构/Inventory与武器数据架构.md) 为准，
+  武器身份统一使用 `FName WeaponRowName`；
+- 第 7 节大阶段 B 的 B3 / B4 按原计划继续，但后续文档与测试统一使用 RowName 术语。
+
+
 ---
 
 ## 2. 当前基线与缺口

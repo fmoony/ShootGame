@@ -15,9 +15,11 @@ namespace ShooterInventoryReloadAutomationTests
 	{
 		FShooterWeaponInstanceData InstanceData;
 		InstanceData.InstanceId = InstanceId;
-		InstanceData.DefinitionId = FPrimaryAssetId(
-			FPrimaryAssetType(TEXT("ShooterTest")),
-			FName(TEXT("Weapon")));
+		// 单表武器配置纠偏：武器类型身份由 DefinitionId 改为武器模板行名（DT_WeaponData 行），
+		// IsValid() 也要求行名非空，这里按 InstanceId 派生唯一行名。
+		InstanceData.WeaponRowName = FName(*FString::Printf(
+			TEXT("TestWeapon_%s"),
+			*InstanceId.ToString()));
 		InstanceData.MagazineAmmo = MagazineAmmo;
 		InstanceData.ReserveAmmo = ReserveAmmo;
 		InstanceData.SlotIndex = SlotIndex;

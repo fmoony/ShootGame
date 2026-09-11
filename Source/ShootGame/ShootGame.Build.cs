@@ -28,6 +28,13 @@ public class ShootGame : ModuleRules
 
 		PrivateDependencyModuleNames.AddRange(new string[] { "AnimationCore", "Niagara" });
 
+		if (Target.bBuildEditor)
+		{
+			// 单表武器配置纠偏的一次性资产收口工具需要编辑器资产删除 API（ObjectTools）。
+			// 只在编辑器目标链接，Game 目标不引入 UnrealEd。
+			PrivateDependencyModuleNames.Add("UnrealEd");
+		}
+
 		PublicIncludePaths.AddRange(new string[] {
 			"ShootGame",
 			"ShootGame/GameFramework",
@@ -36,7 +43,6 @@ public class ShootGame : ModuleRules
 			"ShootGame/Characters/Animation/AnimNodes",
             "ShootGame/AI",
             "ShootGame/Weapons",
-            "ShootGame/Weapons/Definitions",
             "ShootGame/Pool",
             "ShootGame/Inventory",
 			"ShootGame/Tests/Inventory",

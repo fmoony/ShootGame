@@ -11,6 +11,7 @@
 #include "GameFramework/WorldSettings.h"
 #include "Inventory/ShooterInventoryComponent.h"
 #include "UObject/UnrealType.h"
+#include "../Weapon/ShooterWeaponTestTableTypes.h"
 #include "Weapons/ShooterWeapon.h"
 #include "ShooterWeaponPresentationTestTypes.h"
 
@@ -72,10 +73,15 @@ namespace ShooterWeaponPresentationIdempotenceAutomationTests
 			return nullptr;
 		}
 
-		UShooterWeaponDefinition* Definition = MakeShooterTestWeaponDefinition(
-		FName(*FString::Printf(TEXT("WD_%s"), *WeaponClass->GetName())),
-		WeaponClass);
-	const EShooterInventoryAddResult AddResult = Inventory->TryAddWeaponDefinition(Definition, OutInstanceId);
+		// 按武器模板行授予：行由测试助手写入注入的瞬态模板表，授予入口只接受行名。
+		EShooterInventoryAddResult AddResult = EShooterInventoryAddResult::NotAuthoritative;
+		GrantTestWeaponRow(
+			Inventory,
+			WeaponClass,
+			OutInstanceId,
+			/*MagazineSize*/ 10,
+			/*InitialReserveAmmo*/ -1,
+			&AddResult);
 		if (!Test.TestEqual(
 			TEXT("Idempotence test weapon is granted"),
 			static_cast<int32>(AddResult),

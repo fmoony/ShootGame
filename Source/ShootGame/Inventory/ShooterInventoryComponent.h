@@ -9,7 +9,8 @@
 
 class AShooterWeapon;
 class AShooterCharacter;
-class UShooterWeaponDefinition;
+class UDataTable;
+struct FShooterWeaponConfigRow;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FShooterInventoryWeaponRemovedDelegate, const FGuid&);
 DECLARE_MULTICAST_DELEGATE(FShooterInventoryClearedDelegate);
@@ -22,11 +23,11 @@ enum class EShooterInventoryAddResult : uint8
 	NotAuthoritative,
 	InvalidInstance,
 	DuplicateInstance,
-	DuplicateDefinition,
+	DuplicateWeaponRow,
 	SlotOccupied,
 	SlotFull,
 	SpawnFailed,
-	InvalidDefinition,
+	InvalidWeaponRow,
 };
 
 /**
@@ -48,12 +49,12 @@ public:
 	virtual void InitializeComponent() override;
 
 	/**
-	 * 服务器权威：按正式 WeaponDefinition 创建 WeaponInstance 与 WeaponActor，并自动选择空 Slot。
-	 * 唯一生产授予入口：DefinitionId、WeaponActorClass 与初始弹药只由 Definition 决定，
-	 * 不从 WeaponActor CDO 推导。
+	 * 服务器权威唯一生产授予入口：按 DT_WeaponData 行名创建 WeaponInstance 与 WeaponActor，并自动选择空 Slot。
+	 * WeaponActorClass、弹匣容量与初始备弹只由该行决定，不从 WeaponActor 默认值推导。
+	 * 表缺失、行名为空、行缺失或行非法时 fail closed，调用方不得消费 Pickup。
 	 */
-	EShooterInventoryAddResult TryAddWeaponDefinition(
-		const UShooterWeaponDefinition* WeaponDefinition,
+	EShooterInventoryAddResult TryAddWeaponRow(
+		FName WeaponRowName,
 		FGuid& OutInstanceId);
 
 	/** 服务器权威：新增一条武器实例数据。InstanceId 与 SlotIndex 均必须唯一。 */
@@ -68,12 +69,20 @@ public:
 	/** 按 InstanceId 查找武器实例；不存在时返回 nullptr。 */
 	const FShooterWeaponInstanceData* FindWeaponInstance(const FGuid& InstanceId) const;
 
-	/** 按 DefinitionId 查找武器实例；不存在时返回 nullptr。 */
-	const FShooterWeaponInstanceData* FindWeaponInstanceByDefinitionId(
-		const FPrimaryAssetId& DefinitionId) const;
+	/** 按武器模板行名查找武器实例；不存在时返回 nullptr。重复武器类型判定使用本入口。 */
+	const FShooterWeaponInstanceData* FindWeaponInstanceByRowName(FName WeaponRowName) const;
 
 	/** 按 SlotIndex 查找武器实例；不存在时返回 nullptr。 */
 	const FShooterWeaponInstanceData* FindWeaponInstanceBySlot(int32 SlotIndex) const;
+
+	/** 集中解析入口转发：RowName -> 武器模板行；未配置表、行名为空或行缺失时返回 nullptr。 */
+	const FShooterWeaponConfigRow* ResolveWeaponRow(FName WeaponRowName) const;
+
+	/** 返回本组件使用的武器模板表；未注入时使用固定的 DT_WeaponData。 */
+	UDataTable* GetWeaponTable() const;
+
+	/** 注入武器模板表；传 nullptr 恢复使用固定的 DT_WeaponData。 */
+	void SetWeaponTable(UDataTable* InWeaponTable);
 
 	/** 返回第一个空 SlotIndex；没有空位时返回 INDEX_NONE。 */
 	int32 FindFreeSlotIndex() const;
@@ -136,12 +145,10 @@ public:
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	/** 两个授予入口共用的实例创建与 WeaponActor 生成事务；参数已由各自入口完成校验。 */
+	/** 唯一授予入口的实例创建与 WeaponActor 生成事务；参数已由入口完成校验。 */
 	EShooterInventoryAddResult TryAddWeaponInternal(
-		const FPrimaryAssetId& DefinitionId,
-		TSubclassOf<AShooterWeapon> WeaponActorClass,
-		int32 MagazineSize,
-		int32 InitialReserveAmmo,
+		FName WeaponRowName,
+		const FShooterWeaponConfigRow& Row,
 		FGuid& OutInstanceId);
 
 	/** Owner Client FastArray 回调与服务器本地修改共用的表现刷新入口。 */
@@ -153,6 +160,13 @@ protected:
 	/** 第一版固定 Slot 上限。SlotFull 时 Pickup 必须明确 Reject。 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Inventory")
 	int32 MaxWeaponSlots = 3;
+
+	/**
+	 * 可选武器模板表注入。留空表示使用 ShooterWeaponTable 的固定 DT_WeaponData；
+	 * 用于蓝图配置覆盖与自动化测试隔离：测试注入的瞬态表由此保持强引用，不会被 GC 回收。
+	 */
+	UPROPERTY(EditDefaultsOnly, Category="Inventory")
+	TObjectPtr<UDataTable> WeaponTable;
 
 	/** 服务器维护的 InstanceId -> WeaponActor 绑定；客户端按需在 BoundInstanceId 到达时注册。 */
 	UPROPERTY(Transient)

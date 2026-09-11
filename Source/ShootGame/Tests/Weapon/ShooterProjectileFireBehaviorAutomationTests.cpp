@@ -11,10 +11,10 @@
 #include "EngineUtils.h"
 #include "GameFramework/WorldSettings.h"
 #include "Inventory/ShooterInventoryComponent.h"
-#include "Weapons/Definitions/ShooterWeaponDefinition.h"
 #include "Weapons/ShooterProjectile.h"
 #include "Weapons/ShooterProjectileFireBehavior.h"
 #include "Weapons/ShooterWeapon.h"
+#include "Weapons/ShooterWeaponConfigRow.h"
 #include "../Equipment/ShooterWeaponPresentationTestTypes.h"
 
 namespace ShooterProjectileFireBehaviorAutomationTests
@@ -66,6 +66,7 @@ namespace ShooterProjectileFireBehaviorAutomationTests
 /**
  * A3 验证：Projectile FireBehavior 是弹丸生成唯一正式边界。
  * 服务器上下文恰好生成一个配置类的弹丸；缺 WeaponActor / 缺弹丸类 / 非服务器全部 fail closed。
+ * 单表纠偏后弹丸类来自本次开火的武器模板行快照，行为实例本身保持无状态。
  */
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FShooterProjectileFireBehaviorSpawnTest,
@@ -111,12 +112,12 @@ bool FShooterProjectileFireBehaviorSpawnTest::RunTest(const FString& Parameters)
 
 	UShooterProjectileFireBehavior* Behavior =
 		NewObject<UShooterProjectileFireBehavior>(GetTransientPackage());
-	Behavior->ProjectileClass = PistolBulletClass;
 
 	FShooterWeaponFireContext Context;
 	Context.WeaponActor = nullptr;
 	Context.Instigator = InstigatorPawn;
 	Context.MuzzleTransform = FTransform(FRotator::ZeroRotator, FVector(10.0f, 0.0f, 80.0f));
+	Context.Config.ProjectileClass = PistolBulletClass;
 
 	// 缺 WeaponActor：不生成。
 	Behavior->ExecuteFire(Context);
@@ -130,14 +131,13 @@ bool FShooterProjectileFireBehaviorSpawnTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("Non-authority weapon spawns nothing"), CountProjectiles(World, PistolBulletClass), 0);
 	Weapon->SetRole(ROLE_Authority);
 
-	// 缺弹丸类：不生成。
-	TSubclassOf<AShooterProjectile> SavedClass = Behavior->ProjectileClass;
-	Behavior->ProjectileClass = nullptr;
+	// 行未配置弹丸类：不生成。
+	Context.Config.ProjectileClass = nullptr;
 	Behavior->ExecuteFire(Context);
 	TestEqual(TEXT("Missing projectile class spawns nothing"), CountProjectiles(World, PistolBulletClass), 0);
-	Behavior->ProjectileClass = SavedClass;
 
-	// 合法服务器上下文：恰好一个弹丸，且使用行为配置的类与上下文变换。
+	// 合法服务器上下文：恰好一个弹丸，且使用行配置的类与上下文变换。
+	Context.Config.ProjectileClass = PistolBulletClass;
 	Behavior->ExecuteFire(Context);
 	TestEqual(TEXT("Valid server context spawns exactly one projectile"), CountProjectiles(World, PistolBulletClass), 1);
 
@@ -154,37 +154,27 @@ bool FShooterProjectileFireBehaviorSpawnTest::RunTest(const FString& Parameters)
 }
 
 /**
- * A3 验证：WeaponActor 的开火行为解析完全由 Definition 驱动。
- * Definition 授予的武器解析到 Definition 内的行为实例（含其弹丸类）；
- * 适配入口（伪造 DefinitionId）授予的武器解析不到正式行为，回落旧路径。
+ * A3 / 单表纠偏验证：WeaponActor 的开火行为完全由武器模板行驱动。
+ * 行配置了 FireBehaviorClass 时，授予后的武器解析到该行实例化的行为；
+ * 行未配置行为类时解析不到正式行为，回落到兼容弹丸路径。
  */
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterProjectileFireBehaviorDefinitionWiringTest,
-	"ShootGame.Weapon.FireBehavior.DefinitionWiring",
+	FShooterProjectileFireBehaviorWeaponRowWiringTest,
+	"ShootGame.Weapon.FireBehavior.WeaponRowWiring",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
-bool FShooterProjectileFireBehaviorDefinitionWiringTest::RunTest(const FString& Parameters)
+bool FShooterProjectileFireBehaviorWeaponRowWiringTest::RunTest(const FString& Parameters)
 {
 	using namespace ShooterProjectileFireBehaviorAutomationTests;
 
-	const FPrimaryAssetId TestAutoId(
-		UShooterWeaponDefinition::GetWeaponDefinitionAssetType(),
-		FName(TEXT("WD_TestAuto")));
-	UShooterWeaponDefinition* TestAuto =
-		UShooterWeaponDefinition::ResolveDefinitionSync(TestAutoId);
-	if (!TestNotNull(
-		TEXT("WD_TestAuto resolves (run ShootGame.Tools.WeaponDefinition.CreateTestAsset first)"),
-		TestAuto))
-	{
-		return false;
-	}
-	if (!TestTrue(TEXT("WD_TestAuto configures a fire behavior"), TestAuto->FireBehavior != nullptr))
+	UClass* PistolBulletClass = LoadPistolBulletClass(*this);
+	if (!PistolBulletClass)
 	{
 		return false;
 	}
 
 	UWorld* World = CreateFireBehaviorTestWorld();
-	if (!TestNotNull(TEXT("Definition wiring world created"), World))
+	if (!TestNotNull(TEXT("Weapon row wiring world created"), World))
 	{
 		return false;
 	}
@@ -210,44 +200,64 @@ bool FShooterProjectileFireBehaviorDefinitionWiringTest::RunTest(const FString& 
 		return false;
 	}
 
-	// Definition 授予：解析到 Definition 的行为实例。
-	FGuid DefinitionGrantedId;
-	TestEqual(
-		TEXT("WD_TestAuto grant succeeds"),
-		static_cast<int32>(Inventory->TryAddWeaponDefinition(TestAuto, DefinitionGrantedId)),
-		static_cast<int32>(EShooterInventoryAddResult::Added));
-	AShooterWeapon* DefinitionWeapon = Inventory->FindWeaponActor(DefinitionGrantedId);
-	if (TestNotNull(TEXT("Definition weapon actor exists"), DefinitionWeapon))
+	UDataTable* TestTable = GetOrCreateTestWeaponTable(Inventory);
+	if (!TestNotNull(TEXT("Test weapon table injected"), TestTable))
 	{
-		TestTrue(
-			TEXT("Weapon resolves the definition fire behavior"),
-			DefinitionWeapon->ResolveFireBehavior() == TestAuto->FireBehavior.Get());
-
-		const UShooterProjectileFireBehavior* ProjectileBehavior =
-			Cast<UShooterProjectileFireBehavior>(DefinitionWeapon->ResolveFireBehavior());
-		TestTrue(
-			TEXT("Definition behavior is the projectile behavior"),
-			ProjectileBehavior != nullptr);
-		UClass* PistolBulletClass = LoadPistolBulletClass(*this);
-		TestTrue(
-			TEXT("Behavior projectile class matches the definition configuration"),
-			ProjectileBehavior && PistolBulletClass &&
-			ProjectileBehavior->ProjectileClass == PistolBulletClass);
+		DestroyFireBehaviorTestWorld(World);
+		return false;
 	}
 
-	// 内存 Definition（ID 不在 AssetManager）授予：兼容路径，解析不到正式行为。
+	// 行 A：配置了正式行为类与弹丸类。
+	FShooterWeaponConfigRow BehaviorRow = MakeTestWeaponRow(
+		AShooterInventoryOrderTestWeapon::StaticClass());
+	BehaviorRow.FireBehaviorClass = UShooterProjectileFireBehavior::StaticClass();
+	BehaviorRow.ProjectileClass = PistolBulletClass;
+	const FName BehaviorRowName = AddTestWeaponRow(TestTable, BehaviorRow);
+
+	FGuid BehaviorGrantedId;
+	TestEqual(
+		TEXT("Row-configured grant succeeds"),
+		static_cast<int32>(Inventory->TryAddWeaponRow(BehaviorRowName, BehaviorGrantedId)),
+		static_cast<int32>(EShooterInventoryAddResult::Added));
+
+	AShooterWeapon* BehaviorWeapon = Inventory->FindWeaponActor(BehaviorGrantedId);
+	if (TestNotNull(TEXT("Row-configured weapon actor exists"), BehaviorWeapon))
+	{
+		const UShooterWeaponFireBehavior* Behavior = BehaviorWeapon->ResolveFireBehavior();
+		TestNotNull(TEXT("Weapon resolves the row fire behavior"), Behavior);
+		TestTrue(
+			TEXT("Resolved behavior uses the row FireBehaviorClass"),
+			Behavior && Behavior->GetClass() == BehaviorRow.FireBehaviorClass.Get());
+		TestTrue(
+			TEXT("Resolved behavior is the projectile behavior"),
+			Cast<UShooterProjectileFireBehavior>(Behavior) != nullptr);
+
+		// 行快照必须在绑定时完整落到 WeaponActor：弹丸类与行为类都能被重新导出。
+		const FShooterWeaponConfigRow Captured = BehaviorWeapon->CaptureWeaponConfigRow();
+		TestEqual(
+			TEXT("Weapon mirrors the row projectile class"),
+			Captured.ProjectileClass.Get(),
+			PistolBulletClass);
+		TestEqual(
+			TEXT("Weapon mirrors the row fire behavior class"),
+			Captured.FireBehaviorClass.Get(),
+			BehaviorRow.FireBehaviorClass.Get());
+	}
+
+	// 行 B：未配置行为类，必须回落兼容路径。
+	const FName CompatRowName = AddTestWeaponRow(
+		TestTable,
+		MakeTestWeaponRow(AShooterInventoryOrderTestWeapon::StaticClass()));
 	FGuid CompatGrantedId;
 	TestEqual(
-		TEXT("Compat grant succeeds"),
-		static_cast<int32>(Inventory->TryAddWeaponDefinition(
-			MakeShooterTestWeaponDefinition(TEXT("WD_FireBehaviorCompat"), AShooterInventoryOrderTestWeapon::StaticClass()),
-			CompatGrantedId)),
+		TEXT("Compat row grant succeeds"),
+		static_cast<int32>(Inventory->TryAddWeaponRow(CompatRowName, CompatGrantedId)),
 		static_cast<int32>(EShooterInventoryAddResult::Added));
 	AShooterWeapon* CompatWeapon = Inventory->FindWeaponActor(CompatGrantedId);
 	if (TestNotNull(TEXT("Compat weapon actor exists"), CompatWeapon))
 	{
 		TestNull(
-			TEXT("Compat-granted weapon resolves no formal behavior"),
+			TEXT("Row without a fire behavior class resolves no formal behavior"),
 			CompatWeapon->ResolveFireBehavior());
 	}
 

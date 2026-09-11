@@ -19,9 +19,11 @@ namespace ShooterInventoryAutomationTests
 	{
 		FShooterWeaponInstanceData InstanceData;
 		InstanceData.InstanceId = InstanceId;
-		InstanceData.DefinitionId = FPrimaryAssetId(
-			FPrimaryAssetType(TEXT("ShooterTest")),
-			FName(TEXT("Weapon")));
+		// 单表武器配置纠偏：武器类型身份由 DefinitionId 改为武器模板行名（DT_WeaponData 行），
+		// IsValid() 也要求行名非空，这里按 InstanceId 派生唯一行名。
+		InstanceData.WeaponRowName = FName(*FString::Printf(
+			TEXT("TestWeapon_%s"),
+			*InstanceId.ToString()));
 		InstanceData.MagazineAmmo = 24;
 		InstanceData.ReserveAmmo = 90;
 		InstanceData.SlotIndex = SlotIndex;
@@ -155,8 +157,11 @@ bool FShooterInventoryOwnerReplicationTest::RunTest(const FString& Parameters)
 	TestTrue(
 		TEXT("Inventory FastArray list enables NetDeltaSerialize"),
 		TStructOpsTypeTraits<FShooterWeaponInventoryList>::WithNetDeltaSerializer);
-	TestTrue(
-		TEXT("Inventory FastArray item enables NetSerialize"),
+	// 单表武器配置纠偏：Entry 只含 UHT 反射字段（FGuid / FName / int32），
+	// 因此恢复 UE 默认 Struct Delta 序列化：不再有手写 NetSerialize，也不再需要
+	// TStructOpsTypeTraits<FShooterWeaponInstanceEntry> 特化。
+	TestFalse(
+		TEXT("Inventory FastArray item no longer enables a manual NetSerialize"),
 		TStructOpsTypeTraits<FShooterWeaponInstanceEntry>::WithNetSerializer);
 
 	// R4：Active 身份迁入 Equipment；Inventory 不再持有复制字段。
@@ -192,27 +197,36 @@ bool FShooterInventoryRemoteHiddenTest::RunTest(const FString& Parameters)
 	using namespace ShooterInventoryAutomationTests;
 
 	// COND_OwnerOnly 的实际“远端不收到完整列表”由网络测试协调器在
-	// Listen / Dedicated 会话中验证；这里覆盖 FastArray Entry 的完整序列化闭环，
-	// 确保不依赖 UPROPERTY 反射的 DefinitionId 也能正确往返。
+	// Listen / Dedicated 会话中验证；这里覆盖 FastArray Entry 的序列化闭环。
+	//
+	// 单表武器配置纠偏：FShooterWeaponInstanceEntry 不再手写 NetSerialize，负载由 UE
+	// 默认的反射 Struct Delta 序列化承担（FShooterWeaponInventoryList 仍启用
+	// WithNetDeltaSerializer）。InstanceData 只含 FGuid / FName / int32 等 UHT 反射字段，
+	// 因此这里用 UScriptStruct::SerializeItem 走同一条默认反射序列化路径。
+	FShooterWeaponInventoryList SourceInventory;
 	const FShooterWeaponInstanceData Source = MakeWeaponInstanceData(FGuid::NewGuid(), 0);
+	TestTrue(TEXT("Source entry is added through AddItem"), SourceInventory.AddItem(Source));
+	TestEqual(TEXT("Source inventory holds one entry"), SourceInventory.Items.Num(), 1);
+	if (SourceInventory.Items.Num() != 1)
+	{
+		return false;
+	}
 
-	FShooterWeaponInstanceEntry SourceEntry;
-	SourceEntry.InstanceData = Source;
+	FShooterWeaponInstanceEntry* SourceEntry = &SourceInventory.Items[0];
 
 	TArray<uint8> Buffer;
 	FMemoryWriter Writer(Buffer, true);
-	bool bWriteSuccess = false;
-	SourceEntry.NetSerialize(Writer, nullptr, bWriteSuccess);
-	TestTrue(TEXT("Inventory entry serializes"), bWriteSuccess && !Writer.IsError());
+	FShooterWeaponInstanceEntry::StaticStruct()->SerializeItem(Writer, SourceEntry, nullptr);
+	TestFalse(TEXT("Inventory entry serializes without archive error"), Writer.IsError());
+	TestTrue(TEXT("Inventory entry writes a non-empty payload"), Buffer.Num() > 0);
 
 	FShooterWeaponInstanceEntry ReadEntry;
 	FMemoryReader Reader(Buffer, true);
-	bool bReadSuccess = false;
-	ReadEntry.NetSerialize(Reader, nullptr, bReadSuccess);
-	TestTrue(TEXT("Inventory entry deserializes"), bReadSuccess && !Reader.IsError());
+	FShooterWeaponInstanceEntry::StaticStruct()->SerializeItem(Reader, &ReadEntry, nullptr);
+	TestFalse(TEXT("Inventory entry deserializes without archive error"), Reader.IsError());
 
 	TestTrue(TEXT("InstanceId survives roundtrip"), ReadEntry.InstanceData.InstanceId == Source.InstanceId);
-	TestTrue(TEXT("DefinitionId survives roundtrip"), ReadEntry.InstanceData.DefinitionId == Source.DefinitionId);
+	TestTrue(TEXT("WeaponRowName survives roundtrip"), ReadEntry.InstanceData.WeaponRowName == Source.WeaponRowName);
 	TestEqual(TEXT("MagazineAmmo survives roundtrip"), ReadEntry.InstanceData.MagazineAmmo, Source.MagazineAmmo);
 	TestEqual(TEXT("ReserveAmmo survives roundtrip"), ReadEntry.InstanceData.ReserveAmmo, Source.ReserveAmmo);
 	TestEqual(TEXT("SlotIndex survives roundtrip"), ReadEntry.InstanceData.SlotIndex, Source.SlotIndex);
@@ -277,9 +291,9 @@ bool FShooterInventoryPickupGrantContractTest::RunTest(const FString& Parameters
 		MaxWeaponSlotsProperty && !MaxWeaponSlotsProperty->HasAnyPropertyFlags(CPF_Net));
 
 	const UFunction* TryAddWeaponFunction =
-		UShooterInventoryComponent::StaticClass()->FindFunctionByName(TEXT("TryAddWeaponDefinition"));
+		UShooterInventoryComponent::StaticClass()->FindFunctionByName(TEXT("TryAddWeaponRow"));
 	TestNull(
-		TEXT("TryAddWeaponDefinition is not exposed as a client-callable UFUNCTION"),
+		TEXT("TryAddWeaponRow is not exposed as a client-callable UFUNCTION"),
 		TryAddWeaponFunction);
 
 	return true;
@@ -329,9 +343,8 @@ bool FShooterInventoryAmmoConsumeTest::RunTest(const FString& Parameters)
 	FShooterWeaponInventoryList Inventory;
 	FShooterWeaponInstanceData InstanceData;
 	InstanceData.InstanceId = FGuid::NewGuid();
-	InstanceData.DefinitionId = FPrimaryAssetId(
-		FPrimaryAssetType(TEXT("ShooterTest")),
-		FName(TEXT("Weapon")));
+	// 单表武器配置纠偏：武器类型身份改为武器模板行名，IsValid() 要求行名非空。
+	InstanceData.WeaponRowName = FName(TEXT("TestWeapon_AmmoConsume"));
 	InstanceData.MagazineAmmo = 2;
 	InstanceData.ReserveAmmo = 10;
 	InstanceData.SlotIndex = 0;

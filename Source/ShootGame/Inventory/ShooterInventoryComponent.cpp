@@ -4,12 +4,14 @@
 
 #include "Characters/Equipment/ShooterEquipmentComponent.h"
 #include "Characters/ShooterCharacter.h"
+#include "Engine/DataTable.h"
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
 #include "Net/UnrealNetwork.h"
 #include "ShootGame.h"
 #include "ShooterWeapon.h"
-#include "Weapons/Definitions/ShooterWeaponDefinition.h"
+#include "ShooterWeaponConfigRow.h"
+#include "ShooterWeaponTable.h"
 
 UShooterInventoryComponent::UShooterInventoryComponent()
 {
@@ -31,8 +33,8 @@ void UShooterInventoryComponent::InitializeComponent()
 	ReplicatedInventory.OnInstanceRemoved.AddUObject(this, &UShooterInventoryComponent::HandleInstanceRemoved);
 }
 
-EShooterInventoryAddResult UShooterInventoryComponent::TryAddWeaponDefinition(
-	const UShooterWeaponDefinition* WeaponDefinition,
+EShooterInventoryAddResult UShooterInventoryComponent::TryAddWeaponRow(
+	FName WeaponRowName,
 	FGuid& OutInstanceId)
 {
 	OutInstanceId = FGuid();
@@ -41,31 +43,33 @@ EShooterInventoryAddResult UShooterInventoryComponent::TryAddWeaponDefinition(
 		return EShooterInventoryAddResult::NotAuthoritative;
 	}
 
-	if (!WeaponDefinition || !WeaponDefinition->IsValidForGrant())
+	// 表缺失、行名为空、行缺失或行非法都不消费 Pickup；错误原因在入口统一记录一次。
+	const FShooterWeaponConfigRow* Row = ResolveWeaponRow(WeaponRowName);
+	if (!ShooterWeaponTable::IsRowValidForGrant(Row))
 	{
-		return EShooterInventoryAddResult::InvalidDefinition;
+		UE_LOG(
+			LogShootGame,
+			Warning,
+			TEXT("Inventory TryAddWeaponRow rejected invalid row: Actor=%s Row=%s Table=%s"),
+			*GetNameSafe(GetOwner()),
+			*WeaponRowName.ToString(),
+			*GetNameSafe(GetWeaponTable()));
+		return EShooterInventoryAddResult::InvalidWeaponRow;
 	}
 
-	return TryAddWeaponInternal(
-		WeaponDefinition->GetDefinitionId(),
-		WeaponDefinition->WeaponActorClass,
-		WeaponDefinition->AmmoConfig.MagazineSize,
-		WeaponDefinition->AmmoConfig.ResolveInitialReserveAmmo(),
-		OutInstanceId);
+	return TryAddWeaponInternal(WeaponRowName, *Row, OutInstanceId);
 }
 
 EShooterInventoryAddResult UShooterInventoryComponent::TryAddWeaponInternal(
-	const FPrimaryAssetId& DefinitionId,
-	TSubclassOf<AShooterWeapon> WeaponActorClass,
-	int32 MagazineSize,
-	int32 InitialReserveAmmo,
+	FName WeaponRowName,
+	const FShooterWeaponConfigRow& Row,
 	FGuid& OutInstanceId)
 {
 	OutInstanceId = FGuid();
 
-	if (FindWeaponInstanceByDefinitionId(DefinitionId))
+	if (FindWeaponInstanceByRowName(WeaponRowName))
 	{
-		return EShooterInventoryAddResult::DuplicateDefinition;
+		return EShooterInventoryAddResult::DuplicateWeaponRow;
 	}
 
 	const int32 FreeSlot = FindFreeSlotIndex();
@@ -76,9 +80,9 @@ EShooterInventoryAddResult UShooterInventoryComponent::TryAddWeaponInternal(
 
 	FShooterWeaponInstanceData InstanceData;
 	InstanceData.InstanceId = FGuid::NewGuid();
-	InstanceData.DefinitionId = DefinitionId;
-	InstanceData.MagazineAmmo = MagazineSize;
-	InstanceData.ReserveAmmo = InitialReserveAmmo;
+	InstanceData.WeaponRowName = WeaponRowName;
+	InstanceData.MagazineAmmo = Row.MagazineSize;
+	InstanceData.ReserveAmmo = Row.ResolveInitialReserveAmmo();
 	InstanceData.SlotIndex = FreeSlot;
 
 	if (!AddWeaponInstance(InstanceData))
@@ -93,7 +97,7 @@ EShooterInventoryAddResult UShooterInventoryComponent::TryAddWeaponInternal(
 	SpawnParameters.TransformScaleMethod = ESpawnActorScaleMethod::MultiplyWithRoot;
 
 	AShooterWeapon* Weapon = GetWorld()->SpawnActor<AShooterWeapon>(
-		WeaponActorClass,
+		Row.WeaponActorClass,
 		GetOwner()->GetActorTransform(),
 		SpawnParameters);
 	if (!Weapon)
@@ -102,7 +106,8 @@ EShooterInventoryAddResult UShooterInventoryComponent::TryAddWeaponInternal(
 		return EShooterInventoryAddResult::SpawnFailed;
 	}
 
-	Weapon->SetBoundInstanceId(InstanceData.InstanceId);
+	// 绑定同时把该行的只读配置应用到 WeaponActor；此后 WeaponActor 不再读取 CDO 配置。
+	Weapon->SetInstanceBinding(InstanceData.InstanceId, WeaponRowName);
 	Weapon->SetActorHiddenInGame(true);
 	RegisterWeaponActor(Weapon);
 
@@ -117,9 +122,9 @@ bool UShooterInventoryComponent::AddWeaponInstance(const FShooterWeaponInstanceD
 		UE_LOG(
 			LogShootGame,
 			Warning,
-			TEXT("Inventory AddWeaponInstance rejected invalid data: InstanceId=%s Definition=%s Slot=%d Mag=%d Reserve=%d"),
+			TEXT("Inventory AddWeaponInstance rejected invalid data: InstanceId=%s Row=%s Slot=%d Mag=%d Reserve=%d"),
 			*InstanceData.InstanceId.ToString(),
-			*InstanceData.DefinitionId.ToString(),
+			*InstanceData.WeaponRowName.ToString(),
 			InstanceData.SlotIndex,
 			InstanceData.MagazineAmmo,
 			InstanceData.ReserveAmmo);
@@ -232,16 +237,33 @@ const FShooterWeaponInstanceData* UShooterInventoryComponent::FindWeaponInstance
 	return Entry ? &Entry->InstanceData : nullptr;
 }
 
-const FShooterWeaponInstanceData* UShooterInventoryComponent::FindWeaponInstanceByDefinitionId(
-	const FPrimaryAssetId& DefinitionId) const
+const FShooterWeaponInstanceData* UShooterInventoryComponent::FindWeaponInstanceByRowName(
+	FName WeaponRowName) const
 {
-	if (!DefinitionId.IsValid())
+	if (WeaponRowName.IsNone())
 	{
 		return nullptr;
 	}
 
-	const FShooterWeaponInstanceEntry* Entry = ReplicatedInventory.FindItemByDefinitionId(DefinitionId);
+	const FShooterWeaponInstanceEntry* Entry = ReplicatedInventory.FindItemByRowName(WeaponRowName);
 	return Entry ? &Entry->InstanceData : nullptr;
+}
+
+const FShooterWeaponConfigRow* UShooterInventoryComponent::ResolveWeaponRow(
+	FName WeaponRowName) const
+{
+	return ShooterWeaponTable::FindWeaponRow(GetWeaponTable(), WeaponRowName);
+}
+
+UDataTable* UShooterInventoryComponent::GetWeaponTable() const
+{
+	// 未注入时使用固定的 DT_WeaponData，保证武器模板表只有一个权威来源。
+	return WeaponTable ? WeaponTable.Get() : ShooterWeaponTable::ResolveWeaponTable();
+}
+
+void UShooterInventoryComponent::SetWeaponTable(UDataTable* InWeaponTable)
+{
+	WeaponTable = InWeaponTable;
 }
 
 const FShooterWeaponInstanceData* UShooterInventoryComponent::FindWeaponInstanceBySlot(
@@ -352,7 +374,7 @@ bool UShooterInventoryComponent::ReloadMagazine(
 		return false;
 	}
 
-	// 事务容量只经 WeaponActor 的统一入口获取：正式路径读 Definition，兼容路径读 CDO。
+	// 事务容量只经 WeaponActor 的统一入口获取：绑定后该值就是武器模板行的弹匣容量。
 	AShooterWeapon* Weapon = FindWeaponActor(InstanceId);
 	if (!IsValid(Weapon))
 	{
@@ -361,7 +383,7 @@ bool UShooterInventoryComponent::ReloadMagazine(
 
 	if (!ReplicatedInventory.ReloadMagazine(
 		InstanceId,
-		Weapon->GetMagazineCapacity(),
+		Weapon->GetMagazineSize(),
 		OutTransferredAmmo))
 	{
 		return false;
@@ -399,7 +421,7 @@ void UShooterInventoryComponent::HandleInstanceRemoved(const FGuid& InstanceId)
 	if (AShooterWeapon* Weapon = FindWeaponActor(InstanceId))
 	{
 		UnregisterWeaponActor(Weapon);
-		Weapon->SetBoundInstanceId(FGuid());
+		Weapon->SetInstanceBinding(FGuid());
 	}
 }
 

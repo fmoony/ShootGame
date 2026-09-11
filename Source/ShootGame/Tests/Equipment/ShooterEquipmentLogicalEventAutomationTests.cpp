@@ -13,6 +13,7 @@
 #include "GameFramework/WorldSettings.h"
 #include "Inventory/ShooterInventoryComponent.h"
 #include "UObject/UnrealType.h"
+#include "../Weapon/ShooterWeaponTestTableTypes.h"
 #include "Weapons/ShooterWeapon.h"
 #include "ShooterWeaponPresentationTestTypes.h"
 
@@ -74,10 +75,15 @@ namespace ShooterEquipmentLogicalEventAutomationTests
 			return nullptr;
 		}
 
-		UShooterWeaponDefinition* Definition = MakeShooterTestWeaponDefinition(
-		FName(*FString::Printf(TEXT("WD_%s"), *WeaponClass->GetName())),
-		WeaponClass);
-	const EShooterInventoryAddResult AddResult = Inventory->TryAddWeaponDefinition(Definition, OutInstanceId);
+		// 按武器模板行授予：行由测试助手写入注入的瞬态模板表，授予入口只接受行名。
+		EShooterInventoryAddResult AddResult = EShooterInventoryAddResult::NotAuthoritative;
+		GrantTestWeaponRow(
+			Inventory,
+			WeaponClass,
+			OutInstanceId,
+			/*MagazineSize*/ 10,
+			/*InitialReserveAmmo*/ -1,
+			&AddResult);
 		if (!Test.TestEqual(
 			TEXT("Equipment event test weapon is granted"),
 			static_cast<int32>(AddResult),
@@ -393,9 +399,12 @@ bool FShooterPickupRejectReloadingTest::RunTest(const FString& Parameters)
 	UShooterEquipmentComponent* Equipment = Character->GetEquipmentComponent();
 	UShooterInventoryComponent* Inventory = Character->GetInventoryComponent();
 	TestTrue(TEXT("Primary equipped"), Equipment->EquipWeapon(PrimaryId));
-	Pickup->SetWeaponDefinitionForTest(MakeShooterTestWeaponDefinition(
-		TEXT("WD_LogicalEventSecondary"),
-		AShooterWeaponPresentationTestWeaponSecondary::StaticClass()));
+	// Pickup 只选择武器模板行名，行必须存在于同一 Inventory 使用的模板表中。
+	UDataTable* PickupWeaponTable = GetOrCreateTestWeaponTable(Inventory);
+	const FName PickupRowName = AddTestWeaponRow(
+		PickupWeaponTable,
+		MakeTestWeaponRow(AShooterWeaponPresentationTestWeaponSecondary::StaticClass()));
+	Pickup->SetWeaponRowNameForTest(PickupRowName);
 	ASC->AddLooseGameplayTag(ShooterGameplayTags::State_Reloading);
 	for (int32 Attempt = 0; Attempt < 10; ++Attempt)
 	{

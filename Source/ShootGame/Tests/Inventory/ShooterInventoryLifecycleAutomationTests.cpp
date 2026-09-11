@@ -14,6 +14,7 @@
 #include "UObject/UnrealType.h"
 #include "Weapons/ShooterWeapon.h"
 #include "ShooterWeaponPresentationTestTypes.h"
+#include "../Weapon/ShooterWeaponTestTableTypes.h"
 
 namespace ShooterInventoryLifecycleAutomationTests
 {
@@ -74,10 +75,16 @@ namespace ShooterInventoryLifecycleAutomationTests
 			return nullptr;
 		}
 
-		UShooterWeaponDefinition* Definition = MakeShooterTestWeaponDefinition(
-		FName(*FString::Printf(TEXT("WD_Lifecycle_%s"), *WeaponClass->GetName())),
-		WeaponClass);
-	const EShooterInventoryAddResult AddResult = Inventory->TryAddWeaponDefinition(Definition, OutInstanceId);
+		// 单表武器配置纠偏：授予入口只接受武器模板行名（DT_WeaponData 行），
+		// 行由测试助手写入注入本 Inventory 的瞬态测试表；弹药参数保持旧 Definition 的默认值。
+		EShooterInventoryAddResult AddResult = EShooterInventoryAddResult::NotAuthoritative;
+		GrantTestWeaponRow(
+			Inventory,
+			WeaponClass,
+			OutInstanceId,
+			/*MagazineSize*/ 10,
+			/*InitialReserveAmmo*/ -1,
+			&AddResult);
 		if (!Test.TestEqual(
 			TEXT("Lifecycle test weapon is granted"),
 			static_cast<int32>(AddResult),
@@ -139,6 +146,13 @@ bool FShooterInventoryPickupEquipFailureRollbackTest::RunTest(const FString& Par
 	EquipmentProperty->SetObjectPropertyValue_InContainer(Character, nullptr);
 	TestNull(TEXT("Equipment is unavailable for the rollback scenario"), Character->GetEquipmentComponent());
 
+	UShooterInventoryComponent* Inventory = Character->GetInventoryComponent();
+	if (!TestNotNull(TEXT("Rollback test character owns Inventory"), Inventory))
+	{
+		DestroyLifecycleTestWorld(World);
+		return false;
+	}
+
 	AShooterWeaponPresentationTestPickup* Pickup = World->SpawnActor<AShooterWeaponPresentationTestPickup>(
 		FVector(0.0f, 0.0f, 100.0f),
 		FRotator::ZeroRotator);
@@ -147,11 +161,25 @@ bool FShooterInventoryPickupEquipFailureRollbackTest::RunTest(const FString& Par
 		DestroyLifecycleTestWorld(World);
 		return false;
 	}
-	Pickup->SetWeaponDefinitionForTest(MakeShooterTestWeaponDefinition(
-		TEXT("WD_PickupRollbackOrder"),
-		AShooterInventoryOrderTestWeapon::StaticClass()));
 
-	UShooterInventoryComponent* Inventory = Character->GetInventoryComponent();
+	// 单表武器配置纠偏：Pickup 只选择武器模板行名（WeaponType.RowName），行本身必须先存在。
+	// 这里显式往注入 Inventory 的测试表追加回滚场景需要的行，再交给 Pickup 选择。
+	UDataTable* PickupRowTable = GetOrCreateTestWeaponTable(Inventory);
+	if (!TestNotNull(TEXT("Rollback test weapon table injected"), PickupRowTable))
+	{
+		DestroyLifecycleTestWorld(World);
+		return false;
+	}
+
+	const FName PickupRowName = AddTestWeaponRow(
+		PickupRowTable,
+		MakeTestWeaponRow(
+			AShooterInventoryOrderTestWeapon::StaticClass(),
+			/*MagazineSize*/ 10,
+			/*InitialReserveAmmo*/ -1));
+	TestFalse(TEXT("Rollback test weapon row name is valid"), PickupRowName.IsNone());
+	Pickup->SetWeaponRowNameForTest(PickupRowName);
+
 	TestEqual(TEXT("Inventory is empty before pickup"), Inventory->GetWeaponCount(), 0);
 
 	Pickup->TriggerOverlapForTest(Character);

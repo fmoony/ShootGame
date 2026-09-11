@@ -100,10 +100,6 @@ bool FShooterPickupRespawnGateCrossRespawnTest::RunTest(const FString& Parameter
 		DestroyRespawnGateTestWorld(World);
 		return false;
 	}
-	Pickup->SetWeaponDefinitionForTest(MakeShooterTestWeaponDefinition(
-		TEXT("WD_PickupRespawnOrder"),
-		AShooterInventoryOrderTestWeapon::StaticClass()));
-
 	UShooterInventoryComponent* InventoryA = PlayerA->GetInventoryComponent();
 	UShooterInventoryComponent* InventoryB = PlayerB->GetInventoryComponent();
 	if (!TestNotNull(TEXT("Player A owns inventory"), InventoryA) ||
@@ -112,6 +108,16 @@ bool FShooterPickupRespawnGateCrossRespawnTest::RunTest(const FString& Parameter
 		DestroyRespawnGateTestWorld(World);
 		return false;
 	}
+
+	// Pickup 只持有武器模板行名；行必须存在于接收方 Inventory 的武器模板表中。
+	// A、B 都可能在本次流程中接收武器，因此两张测试表都要登记同一行名的行。
+	const FName PickupWeaponRowName = AddTestWeaponRow(
+		GetOrCreateTestWeaponTable(InventoryA),
+		MakeTestWeaponRow(AShooterInventoryOrderTestWeapon::StaticClass()));
+	GetOrCreateTestWeaponTable(InventoryB)->AddRow(
+		PickupWeaponRowName,
+		MakeTestWeaponRow(AShooterInventoryOrderTestWeapon::StaticClass()));
+	Pickup->SetWeaponRowNameForTest(PickupWeaponRowName);
 
 	// --- 玩家 A 首次拾取：授予成功并立即装备，Pickup 进入隐藏态。 ---
 	Pickup->TriggerOverlapForTest(PlayerA);
@@ -184,10 +190,6 @@ bool FShooterPickupRespawnGateSlotFullRetryTest::RunTest(const FString& Paramete
 		DestroyRespawnGateTestWorld(World);
 		return false;
 	}
-	Pickup->SetWeaponDefinitionForTest(MakeShooterTestWeaponDefinition(
-		TEXT("WD_PickupRespawnPrimary"),
-		AShooterWeaponPresentationTestWeaponPrimary::StaticClass()));
-
 	UShooterInventoryComponent* FullInventory = FullPlayer->GetInventoryComponent();
 	UShooterInventoryComponent* EmptyInventory = EmptyPlayer->GetInventoryComponent();
 	if (!TestNotNull(TEXT("Full player owns inventory"), FullInventory) ||
@@ -197,19 +199,23 @@ bool FShooterPickupRespawnGateSlotFullRetryTest::RunTest(const FString& Paramete
 		return false;
 	}
 
-	// 背包填满：三个不同武器类占满默认 3 个 Slot。
+	// Pickup 只持有武器模板行名；行必须存在于接收方 Inventory 的武器模板表中。
+	// 两个玩家都可能拾取同一 Pickup，因此两张测试表都要登记同一行名的行。
+	const FName PickupWeaponRowName = AddTestWeaponRow(
+		GetOrCreateTestWeaponTable(FullInventory),
+		MakeTestWeaponRow(AShooterWeaponPresentationTestWeaponPrimary::StaticClass()));
+	GetOrCreateTestWeaponTable(EmptyInventory)->AddRow(
+		PickupWeaponRowName,
+		MakeTestWeaponRow(AShooterWeaponPresentationTestWeaponPrimary::StaticClass()));
+	Pickup->SetWeaponRowNameForTest(PickupWeaponRowName);
+
+	// 背包填满：三个不同武器模板行占满默认 3 个 Slot。
 	FGuid FirstId;
 	FGuid SecondId;
 	FGuid ThirdId;
-	FullInventory->TryAddWeaponDefinition(
-		MakeShooterTestWeaponDefinition(TEXT("WD_SlotFillOrder"), AShooterInventoryOrderTestWeapon::StaticClass()),
-		FirstId);
-	FullInventory->TryAddWeaponDefinition(
-		MakeShooterTestWeaponDefinition(TEXT("WD_SlotFillPrimary"), AShooterWeaponPresentationTestWeaponPrimary::StaticClass()),
-		SecondId);
-	FullInventory->TryAddWeaponDefinition(
-		MakeShooterTestWeaponDefinition(TEXT("WD_SlotFillSecondary"), AShooterWeaponPresentationTestWeaponSecondary::StaticClass()),
-		ThirdId);
+	GrantTestWeaponRow(FullInventory, AShooterInventoryOrderTestWeapon::StaticClass(), FirstId);
+	GrantTestWeaponRow(FullInventory, AShooterWeaponPresentationTestWeaponPrimary::StaticClass(), SecondId);
+	GrantTestWeaponRow(FullInventory, AShooterWeaponPresentationTestWeaponSecondary::StaticClass(), ThirdId);
 	TestEqual(TEXT("Full player fills all three slots"), FullInventory->GetWeaponCount(), 3);
 
 	// 满背包玩家拾取：SlotFull 被明确拒绝，Pickup 不隐藏、闸门保持开启。

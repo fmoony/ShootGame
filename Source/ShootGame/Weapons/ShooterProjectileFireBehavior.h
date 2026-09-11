@@ -6,11 +6,9 @@
 #include "ShooterWeaponFireBehavior.h"
 #include "ShooterProjectileFireBehavior.generated.h"
 
-class AShooterProjectile;
-
 /**
  * 第一版唯一正式开火行为：在服务器上生成弹丸。
- * 弹丸类配置在本行为上，不再读取 WeaponActor CDO。
+ * 行为本身无状态：弹丸类来自本次开火的武器模板行快照，不保存在行为实例上。
  */
 UCLASS(EditInlineNew, DefaultToInstanced)
 class SHOOTGAME_API UShooterProjectileFireBehavior : public UShooterWeaponFireBehavior
@@ -19,8 +17,4 @@ class SHOOTGAME_API UShooterProjectileFireBehavior : public UShooterWeaponFireBe
 
 public:
 	virtual void ExecuteFire(const FShooterWeaponFireContext& Context) override;
-
-	/** 该行为生成的弹丸类。 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Projectile")
-	TSubclassOf<AShooterProjectile> ProjectileClass;
 };

@@ -1,4 +1,4 @@
-﻿// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "Tests/Network/ShooterNetworkTestCoordinator.h"
 
@@ -39,7 +39,9 @@
 #include "ShooterPlayerState.h"
 #include "ShooterWeapon.h"
 #include "ShooterProjectile.h"
-#include "Weapons/Definitions/ShooterWeaponDefinition.h"
+#include "Weapons/ShooterWeaponConfigRow.h"
+#include "Weapons/ShooterWeaponTable.h"
+#include "../Weapon/ShooterWeaponTestTableTypes.h"
 #include "UObject/ConstructorHelpers.h"
 
 namespace ShooterNetworkTest
@@ -50,11 +52,10 @@ namespace ShooterNetworkTest
 		TEXT("/Game/Shooter/Blueprints/Weapons/BP_ShooterWeapon_Rifle.BP_ShooterWeapon_Rifle_C");
 	const TCHAR* PistolClassPath =
 		TEXT("/Game/Shooter/Blueprints/Weapons/BP_ShooterWeapon_Pistol.BP_ShooterWeapon_Pistol_C");
-	// A4 起授予数据源是正式 WeaponDefinition 资产；弹药与 ActorClass 只由 Definition 决定。
-	const TCHAR* RifleDefinitionPath =
-		TEXT("/Game/Shooter/Weapons/Definitions/WD_Rifle");
-	const TCHAR* PistolDefinitionPath =
-		TEXT("/Game/Shooter/Weapons/Definitions/WD_Pistol");
+	// A4 起授予数据源是 DT_WeaponData 的正式武器模板行；
+	// 弹药、ActorClass 与全部只读配置都只由该行决定。
+	const FName RifleWeaponRowName(TEXT("Rifle"));
+	const FName PistolWeaponRowName(TEXT("Pistol"));
 
 	// ---- B1 瞄准表现基线：原地转视角调度与跟踪容差 ----
 	constexpr float AimRotationYawRateDegreesPerSecond = 30.0f;
@@ -260,9 +261,9 @@ bool AShooterNetworkTestCoordinator::ReplaceInventoryWeaponForReloadTest(
 
 	FShooterWeaponInstanceData InstanceData;
 	InstanceData.InstanceId = InstanceId;
-	InstanceData.DefinitionId = FPrimaryAssetId(
-		FPrimaryAssetType(TEXT("ShooterTestReload")),
-		FName(TEXT("ReloadWeapon")));
+	// 实例数据只要求行名非空；该假行名不需要存在于任何武器模板表里，
+	// 测试武器按自身默认配置工作（与下面的 SetInstanceBinding 不传行名一致）。
+	InstanceData.WeaponRowName = FName(TEXT("TestWeapon_ReloadInstance"));
 	InstanceData.MagazineAmmo = MagazineAmmo;
 	InstanceData.ReserveAmmo = ReserveAmmo;
 	InstanceData.SlotIndex = SlotIndex;
@@ -286,7 +287,7 @@ bool AShooterNetworkTestCoordinator::ReplaceInventoryWeaponForReloadTest(
 		return false;
 	}
 
-	Weapon->SetBoundInstanceId(InstanceId);
+	Weapon->SetInstanceBinding(InstanceId);
 	Weapon->SetActorHiddenInGame(true);
 	Inventory->RegisterWeaponActor(Weapon);
 	Character->GetEquipmentComponent()->EquipWeapon(InstanceId);
@@ -1239,48 +1240,77 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			return;
 		}
 
-		UShooterWeaponDefinition* RifleDefinition = LoadObject<UShooterWeaponDefinition>(
-			nullptr,
-			ShooterNetworkTest::RifleDefinitionPath);
-		UShooterWeaponDefinition* PistolDefinition = LoadObject<UShooterWeaponDefinition>(
-			nullptr,
-			ShooterNetworkTest::PistolDefinitionPath);
-		if (!RifleDefinition || !PistolDefinition)
+		// 单表武器配置纠偏后授予入口只接受 DT_WeaponData 行名；SlotFull 需要额外的测试行，
+		// 因此本流程给该 Inventory 注入一张瞬态测试表。注入表会覆盖生产表，所以必须先把生产
+		// Rifle / Pistol 两行按同名复制进来，让下面的正式授予与武器表现仍解析同一份生产配置。
+		UDataTable* TestWeaponTable = GetOrCreateTestWeaponTable(InventoryComponent);
+		const UDataTable* ProductionWeaponTable = ShooterWeaponTable::ResolveWeaponTable();
+		if (!TestWeaponTable || !ProductionWeaponTable)
 		{
-			FailTest(TEXT("Rifle or Pistol WeaponDefinition could not be loaded"));
+			FailTest(TEXT("Network test weapon table or production DT_WeaponData could not be resolved"));
 			return;
 		}
 
+		// 瞬态表由 Inventory 的 WeaponTable 强引用持有（TObjectPtr），无需额外保活。
+
+		const FName ProductionWeaponRowNames[] = {
+			ShooterNetworkTest::RifleWeaponRowName,
+			ShooterNetworkTest::PistolWeaponRowName,
+		};
+		for (const FName& ProductionWeaponRowName : ProductionWeaponRowNames)
+		{
+			const FShooterWeaponConfigRow* ProductionRow = ShooterWeaponTable::FindWeaponRow(
+				ProductionWeaponTable,
+				ProductionWeaponRowName);
+			if (!ProductionRow)
+			{
+				FailTest(FString::Printf(
+					TEXT("Production weapon row could not be resolved; Row=%s Table=%s"),
+					*ProductionWeaponRowName.ToString(),
+					ShooterWeaponTable::GetWeaponTablePath()));
+				return;
+			}
+
+			// AddTestWeaponRow 只生成 TestWeapon_N 行名；生产行必须在注入表里保留原行名。
+			TestWeaponTable->AddRow(ProductionWeaponRowName, *ProductionRow);
+		}
+
 		const EShooterInventoryAddResult RifleResult =
-			InventoryComponent->TryAddWeaponDefinition(RifleDefinition, ServerInventoryFirstId);
+			InventoryComponent->TryAddWeaponRow(
+				ShooterNetworkTest::RifleWeaponRowName,
+				ServerInventoryFirstId);
 		if (RifleResult == EShooterInventoryAddResult::Added)
 		{
 			Character->GetEquipmentComponent()->EquipWeapon(ServerInventoryFirstId);
 		}
 
 		const EShooterInventoryAddResult PistolResult =
-			InventoryComponent->TryAddWeaponDefinition(PistolDefinition, ServerInventorySecondId);
+			InventoryComponent->TryAddWeaponRow(
+				ShooterNetworkTest::PistolWeaponRowName,
+				ServerInventorySecondId);
 		if (PistolResult == EShooterInventoryAddResult::Added)
 		{
 			Character->GetEquipmentComponent()->EquipWeapon(ServerInventorySecondId);
 		}
 
-		// SingleGrant：同一 WeaponClass 不能第二次授予。
+		// SingleGrant：同一武器模板行不能第二次授予。
 		FGuid DuplicateInstanceId;
 		const EShooterInventoryAddResult DuplicateResult =
-			InventoryComponent->TryAddWeaponDefinition(RifleDefinition, DuplicateInstanceId);
+			InventoryComponent->TryAddWeaponRow(
+				ShooterNetworkTest::RifleWeaponRowName,
+				DuplicateInstanceId);
 
-		// SlotFull：临时把 Slot 上限设为 1，使用额外测试类验证唯一空位耗尽后明确 Reject。
+		// SlotFull：临时把 Slot 上限设为 1，使用额外测试行验证唯一空位耗尽后明确 Reject。
 		const int32 PreviousMaxSlots = InventoryComponent->GetMaxWeaponSlots();
 		InventoryComponent->SetMaxWeaponSlots(1);
 		FGuid SlotFullInstanceId;
-		UShooterWeaponDefinition* SlotFillDefinition = NewObject<UShooterWeaponDefinition>(
-			GetTransientPackage(),
-			TEXT("WD_NetworkSlotFill"));
-		SlotFillDefinition->WeaponActorClass = AShooterNetworkTestWeapon::StaticClass();
-		SlotFillDefinition->AmmoConfig.MagazineSize = 10;
+		const FName SlotFillRowName = AddTestWeaponRow(
+			TestWeaponTable,
+			MakeTestWeaponRow(
+				AShooterNetworkTestWeapon::StaticClass(),
+				/*MagazineSize*/ 10));
 		const EShooterInventoryAddResult SlotFullResult =
-			InventoryComponent->TryAddWeaponDefinition(SlotFillDefinition, SlotFullInstanceId);
+			InventoryComponent->TryAddWeaponRow(SlotFillRowName, SlotFullInstanceId);
 		InventoryComponent->SetMaxWeaponSlots(PreviousMaxSlots);
 
 		// WeaponActorBinding：每个 InstanceId 必须与对应 Actor 的 BoundInstanceId 完全一致。
@@ -1302,7 +1332,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		ServerInventoryActiveId = InventoryComponent->GetActiveWeaponInstanceId();
 		if (RifleResult != EShooterInventoryAddResult::Added ||
 			PistolResult != EShooterInventoryAddResult::Added ||
-			DuplicateResult != EShooterInventoryAddResult::DuplicateDefinition ||
+			DuplicateResult != EShooterInventoryAddResult::DuplicateWeaponRow ||
 			SlotFullResult != EShooterInventoryAddResult::SlotFull ||
 			InventoryComponent->GetWeaponCount() != 2 ||
 			ServerInventoryActiveId != ServerInventorySecondId ||
@@ -1310,7 +1340,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			!bInvalidInstanceRejected)
 		{
 			FailTest(FString::Printf(
-				TEXT("Server Inventory 2B preparation failed; Rifle=%d Pistol=%d Duplicate=%d SlotFull=%d Count=%d Active=%s ExpectedActive=%s Binding=%s InvalidInstanceRejected=%s"),
+				TEXT("Server Inventory 2B preparation failed; Rifle=%d Pistol=%d DuplicateRow=%d SlotFull=%d Count=%d Active=%s ExpectedActive=%s Binding=%s InvalidInstanceRejected=%s DuplicateRowName=%s"),
 				static_cast<int32>(RifleResult),
 				static_cast<int32>(PistolResult),
 				static_cast<int32>(DuplicateResult),
@@ -1319,7 +1349,8 @@ void AShooterNetworkTestCoordinator::PollServerState()
 				*ServerInventoryActiveId.ToString(),
 				*ServerInventorySecondId.ToString(),
 				bBindingOk ? TEXT("true") : TEXT("false"),
-				bInvalidInstanceRejected ? TEXT("true") : TEXT("false")));
+				bInvalidInstanceRejected ? TEXT("true") : TEXT("false"),
+				*ShooterNetworkTest::RifleWeaponRowName.ToString()));
 			return;
 		}
 
@@ -3255,14 +3286,15 @@ void AShooterNetworkTestCoordinator::PollClientState()
 	if (!bClientReportedPickupAuthority)
 	{
 		UShooterInventoryComponent* InventoryComponent = Character->GetInventoryComponent();
-		UShooterWeaponDefinition* RifleDefinition = LoadObject<UShooterWeaponDefinition>(
-			nullptr,
-			ShooterNetworkTest::RifleDefinitionPath);
-		if (InventoryComponent && RifleDefinition)
+		if (InventoryComponent)
 		{
+			// 客户端这里只验证权威拒绝，因此不注入测试表：客户端武器表现必须继续解析生产
+			// DT_WeaponData；且 TryAddWeaponRow 在非权威端解析行之前就返回 NotAuthoritative。
 			FGuid ClientAttemptInstanceId;
 			const EShooterInventoryAddResult ClientAttemptResult =
-				InventoryComponent->TryAddWeaponDefinition(RifleDefinition, ClientAttemptInstanceId);
+				InventoryComponent->TryAddWeaponRow(
+					ShooterNetworkTest::RifleWeaponRowName,
+					ClientAttemptInstanceId);
 			if (ClientAttemptResult == EShooterInventoryAddResult::NotAuthoritative &&
 				InventoryComponent->GetWeaponCount() == 2)
 			{
@@ -4306,23 +4338,23 @@ void AShooterNetworkTestCoordinator::RunAimRotationServerPhase()
 			return;
 		}
 
-		UShooterWeaponDefinition* RifleWeaponDefinition = LoadObject<UShooterWeaponDefinition>(
-			nullptr,
-			ShooterNetworkTest::RifleDefinitionPath);
-		if (!RifleWeaponDefinition)
+		// 授予数据源是生产 DT_WeaponData 的武器模板行；本流程不注入测试表。
+		FGuid RifleInstanceId;
+		const EShooterInventoryAddResult RifleResult =
+			InventoryComponent->TryAddWeaponRow(
+				ShooterNetworkTest::RifleWeaponRowName,
+				RifleInstanceId);
+		if (RifleResult != EShooterInventoryAddResult::Added)
 		{
-			FailTest(TEXT("AimRotation Rifle WeaponDefinition could not be loaded"));
+			FailTest(FString::Printf(
+				TEXT("AimRotation Rifle weapon row grant was rejected; Row=%s Result=%d"),
+				*ShooterNetworkTest::RifleWeaponRowName.ToString(),
+				static_cast<int32>(RifleResult)));
 			return;
 		}
 
-		FGuid RifleInstanceId;
-		if (InventoryComponent->TryAddWeaponDefinition(
-			RifleWeaponDefinition,
-			RifleInstanceId) == EShooterInventoryAddResult::Added)
-		{
-			Character->GetEquipmentComponent()->EquipWeapon(RifleInstanceId);
-			bServerInventoryPrepared = true;
-		}
+		Character->GetEquipmentComponent()->EquipWeapon(RifleInstanceId);
+		bServerInventoryPrepared = true;
 		return;
 	}
 

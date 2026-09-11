@@ -4,11 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
+#include "ShooterWeaponConfigRow.h"
 #include "ShooterWeaponFireBehavior.generated.h"
 
 class AShooterWeapon;
 class APawn;
-class UShooterWeaponDefinition;
 
 /**
  * 单次开火的执行上下文。
@@ -35,9 +35,16 @@ struct FShooterWeaponFireContext
 	UPROPERTY(BlueprintReadOnly, Category="Fire")
 	FVector TargetLocation = FVector::ZeroVector;
 
-	/** 本次开火对应的 Definition；NPC 兼容路径下为空。 */
+	/**
+	 * 本次开火使用的武器模板行快照；未绑定模板行的兼容路径下为行默认值。
+	 * 行为实现只读本快照，不再解析任何配置资产。
+	 */
 	UPROPERTY(BlueprintReadOnly, Category="Fire")
-	TObjectPtr<const UShooterWeaponDefinition> Definition = nullptr;
+	FShooterWeaponConfigRow Config;
+
+	/** 本次开火使用的武器模板行名；未绑定模板行时为空。 */
+	UPROPERTY(BlueprintReadOnly, Category="Fire")
+	FName WeaponRowName;
 
 	/** 本次开火的 WeaponInstance；未绑定 Inventory 的兼容路径下无效。 */
 	UPROPERTY(BlueprintReadOnly, Category="Fire")
@@ -47,8 +54,8 @@ struct FShooterWeaponFireContext
 /**
  * 开火行为边界：只回答"这一枪如何产生攻击结果"。
  *
- * 约束（实施计划 4.3）：
- * - 无复制、无持久可变状态；
+ * 约束（武器与 Inventory 正式架构实施计划 4.3）：
+ * - 无复制、无持久可变状态；武器参数全部来自 FShooterWeaponFireContext::Config；
  * - GA_Fire 管理 Ability 生命周期与激活条件；
  * - Inventory 管理弹药消耗；
  * - WeaponActor 负责 Muzzle、Mesh、Attach、表现入口与调用行为；

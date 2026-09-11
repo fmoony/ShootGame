@@ -9,6 +9,7 @@
 #include "Characters/Equipment/ShooterEquipmentComponent.h"
 #include "Characters/ShooterCharacter.h"
 #include "Inventory/ShooterInventoryComponent.h"
+#include "../Weapon/ShooterWeaponTestTableTypes.h"
 #include "ShooterWeaponPresentationTestTypes.h"
 
 /**
@@ -84,13 +85,16 @@ bool FShooterAmmoHudRefreshPickupReloadFireTest::RunTest(const FString& Paramete
 
 	const int32 BaseEventCount = Listener->EventCount;
 
-	// --- 场景 1：拾取 = TryAddWeapon + 立即 EquipWeapon（与 AShooterPickup::OnOverlap 相同顺序） ---
+	// --- 场景 1：拾取 = TryAddWeaponRow + 立即 EquipWeapon（与 AShooterPickup::OnOverlap 相同顺序） ---
 	FGuid InstanceId;
-	const EShooterInventoryAddResult AddResult = Inventory->TryAddWeaponDefinition(
-		MakeShooterTestWeaponDefinition(
-			TEXT("WD_HudRefreshPrimary"),
-			AShooterWeaponPresentationTestWeaponPrimary::StaticClass()),
-		InstanceId);
+	EShooterInventoryAddResult AddResult = EShooterInventoryAddResult::NotAuthoritative;
+	GrantTestWeaponRow(
+		Inventory,
+		AShooterWeaponPresentationTestWeaponPrimary::StaticClass(),
+		InstanceId,
+		/*MagazineSize*/ 10,
+		/*InitialReserveAmmo*/ -1,
+		&AddResult);
 	TestEqual(
 		TEXT("拾取授予成功"),
 		static_cast<int32>(AddResult),

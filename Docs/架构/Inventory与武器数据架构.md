@@ -30,7 +30,7 @@ AShooterCharacter
 
 2B 已落地：
 
-- Pickup 最终授予路径已迁移到 `UShooterInventoryComponent::TryAddWeapon`。
+- Pickup 最终授予路径已迁移到 `UShooterInventoryComponent::TryAddWeaponRow`（武器模板行名）。
 - 服务器创建 WeaponInstance 后同步创建并绑定 WeaponActor。
 - `AShooterWeapon::BoundInstanceId` 已建立，OwnerOnly 复制。
 - 重复 WeaponClass 授予与 Slot 满均明确 Reject。
@@ -54,7 +54,7 @@ AShooterCharacter
 ```text
 FShooterWeaponInstanceData
 ├─ FGuid InstanceId
-├─ FPrimaryAssetId DefinitionId
+├─ FName WeaponRowName
 ├─ int32 MagazineAmmo
 ├─ int32 ReserveAmmo
 └─ int32 SlotIndex
@@ -64,14 +64,21 @@ FShooterWeaponInstanceData
 
 - `Inventory`：当前生命中的武器逻辑数据权威源。
 - `WeaponInstanceData`：单把武器的运行时逻辑状态。
-- `InstanceId`：稳定逻辑身份，服务器生成且不可变。
-- `DefinitionId`：指向静态 WeaponDefinition 的资产身份。
+- `InstanceId`：稳定逻辑身份，服务器生成且不可变，只用于弹药、装备事务、Actor 池绑定与移除。
+- `WeaponRowName`：`DT_WeaponData` 行名，武器类型身份与唯一只读配置来源。
 - `ActiveWeaponInstanceId`：当前逻辑武器身份。
+
+单表武器配置（纠偏后已落地）：
+
+- `/Game/Shooter/Data/DT_WeaponData` 是唯一武器模板数据源，一行描述一类完整武器；
+- 行结构为 `FShooterWeaponConfigRow : FTableRowBase`，包含 `WeaponActorClass`、弹药、开火节奏、
+  时序、攻击、Socket、网格 / 动画、FX / 音频与视角参数；
+- `ShooterWeaponTable` 是 `RowName → ConfigRow` 的唯一集中解析入口；
+- Pickup 与 NPC 只选择行名，WeaponActor 在绑定时把行的只读配置应用到自身运行时镜像。
 
 当前尚未实现：
 
 - Local Predicted GA_Fire。
-- 正式 WeaponDefinition / FireBehavior 抽象。
 - Reload / Equip Montage 表现接点。
 
 在后续阶段落地前，不得在代码或文档中当作“已经存在”。
@@ -113,102 +120,72 @@ ActiveWeaponInstanceId     = COND_OwnerOnly
 
 - Add / 修改 Item：调用 `MarkItemDirty`。
 - Remove / Clear 等结构变化：调用 `MarkArrayDirty`。
-- 自定义的是 Item Payload 序列化，不是重新实现 FastArray。
+- Item Payload 使用 UE 默认反射序列化，不再手写 `NetSerialize`。
 
-当前自定义边界：
+当前边界：
 
-- `FShooterWeaponInventoryList::NetDeltaSerialize` 继续交给 UE 原生 `FastArrayDeltaSerialize`。
-- `FShooterWeaponInstanceEntry::NetSerialize` 只负责单个 Item 的 Payload 序列化。
+- `FShooterWeaponInventoryList::NetDeltaSerialize` 交给 UE 原生 `FastArrayDeltaSerialize`。
+- `FShooterWeaponInstanceEntry` 不再有自定义 `NetSerialize`，也不再声明 `WithNetSerializer`。
 
 ---
 
-## 5. FPrimaryAssetId 特殊约束
+## 5. 武器模板行取代 Definition 主资产
 
-UE5.6 当前使用的 `FPrimaryAssetId` 不是 UHT `USTRUCT` 反射类型，因此：
-
-```text
-FShooterWeaponInstanceData::DefinitionId
-```
-
-不能声明为 `UPROPERTY`。
-
-虽然 `FPrimaryAssetId` 支持普通 `FArchive <<` 序列化，但必须准确区分：
+纠偏前 `FShooterWeaponInstanceData::DefinitionId` 使用 `FPrimaryAssetId`，而 `FPrimaryAssetId`
+不是 UHT 反射类型，无法声明为 `UPROPERTY`，因此 Item Payload 必须手写 `NetSerialize`。
+单表武器配置纠偏撤销了 `UShooterWeaponDefinition` / AssetManager 扫描这一层，改为：
 
 ```text
-Archive Serialization
-≠
-UHT Reflection
-≠
-UPROPERTY
-≠
-默认属性网络复制
+FShooterWeaponInstanceData::WeaponRowName : FName
 ```
+
+`FName` 是标准 UHT 反射类型，带来的直接结果：
+
+- 武器类型身份可以声明为 `UPROPERTY`，进入默认属性网络复制；
+- 不再需要 `WithNetSerializer`，也不再需要 `SetDeltaSerializationEnabled(false)`；
+- 武器配置只复制行名，不复制整行配置：客户端与服务器通过同一张 `DT_WeaponData` 恢复只读配置。
 
 准确表述：
 
-> `FPrimaryAssetId` 不是当前 UHT 属性系统可直接声明为 UPROPERTY 的反射类型，因此不能依赖标准反射属性路径自动复制该字段。
+> `WeaponRowName` 是反射类型，走 UE 默认复制路径；是否需要恢复自定义序列化，
+> 只有在出现真实压缩或兼容需求时才重新评估。
 
-不要使用“FPrimaryAssetId 网络不支持”这类模糊说法。
-
----
-
-## 6. 为什么存在自定义 NetSerialize
-
-当前 `FShooterWeaponInstanceEntry::NetSerialize` 显式序列化：
-
-```text
-InstanceId
-DefinitionId
-MagazineAmmo
-ReserveAmmo
-SlotIndex
-```
-
-原因：
-
-- `DefinitionId` 不在 UPROPERTY 反射布局中。
-- 如果直接删除自定义 NetSerialize，默认反射序列化看不到 `DefinitionId`。
-
-因此：
-
-```text
-WithNetSerializer = true
-```
-
-是当前正确性的必要组成部分。
+不要使用"FName 不能复制"或"FastArray 必须手写 Payload"这类模糊说法。
 
 ---
 
-## 7. 为什么关闭 Struct Delta
+## 6. 为什么不再需要自定义 NetSerialize
 
-当前 `FShooterWeaponInventoryList` 调用：
+当前 `FShooterWeaponInstanceEntry` 只包含：
 
 ```text
-SetDeltaSerializationEnabled(false)
+InstanceId      FGuid
+WeaponRowName   FName
+MagazineAmmo    int32
+ReserveAmmo     int32
+SlotIndex       int32
 ```
 
-这并不是关闭整个 FastArray Delta Replication。
+全部字段都是 UHT 反射类型，因此：
 
-准确含义：
+- 删除 `FShooterWeaponInstanceEntry::NetSerialize`；
+- 删除 `TStructOpsTypeTraits<FShooterWeaponInstanceEntry>` 的 `WithNetSerializer` 特化；
+- 恢复 Item 内部 Struct Delta，由反射布局自动比较字段差异。
 
-- FastArray 仍然按 Item 的 Add / Change / Remove 工作。
-- 关闭的是 Item 内部 Struct Delta 路径。
+---
+
+## 7. Struct Delta 开关状态
+
+当前 `FShooterWeaponInventoryList` **不再**调用 `SetDeltaSerializationEnabled(false)`。
+
+- FastArray 仍按 Item 的 Add / Change / Remove 工作；
+- Item 内部 Struct Delta 也恢复为 UE 默认行为。
 
 原因：
 
-- Struct Delta 的字段差异检测依赖反射属性。
-- `DefinitionId` 不属于反射字段。
-- 如果只改变 `DefinitionId`，而其他 UPROPERTY 没有变化，Struct Delta 可能无法可靠识别该变化。
-
-因此当前强制 Item 走完整自定义 NetSerialize Payload。
-
-错误表述需要避免：
-
-> “关闭 FastArray Delta”
-
-这是不准确的。正确表述是：
-
-> “保留 FastArray Item Delta，关闭 Item 内部 Struct Delta。”
+- 关闭 Struct Delta 的唯一理由是 `DefinitionId` 不是反射字段；
+- 改为 `FName WeaponRowName` 后该理由消失；
+- 保留关闭状态会让每个 dirty Item 走完整 Payload，属于没有收益的协议放大。
 
 ---
 
@@ -216,48 +193,45 @@ SetDeltaSerializationEnabled(false)
 
 > **IMPORTANT**
 >
-> `FShooterWeaponInstanceEntry` 当前维护完整 WeaponInstance 网络 Payload。
+> 任何新增到 `FShooterWeaponInstanceData` 且需要复制给 Owner Client 的字段，
+> 必须声明为 UHT 反射类型并通过 `UPROPERTY` 暴露，同时补充对应网络复制测试。
 >
-> 任何新增到 `FShooterWeaponInstanceData` 且需要复制给 Owner Client 的字段，都必须：
->
-> 1. 更新 `FShooterWeaponInstanceData`；
-> 2. 同步更新 `FShooterWeaponInstanceEntry::NetSerialize`；
-> 3. 同步更新对应网络复制测试。
->
-> 新增字段不能仅仅写入 `UPROPERTY` 后就认为已经进入当前网络协议。
+> 只有在字段确实无法声明为 UPROPERTY，或存在明确压缩 / 兼容需求时，
+> 才重新引入自定义 `NetSerialize`，并在本文档说明理由与删除条件。
 
 失败模式：
 
-> 如果只加 UPROPERTY 而不更新 NetSerialize，可能出现“服务器存在该字段、Owner Client 静默缺失”的问题。
+> 引入非反射字段而忘记更新序列化，会出现“服务器存在该字段、Owner Client 静默缺失”。
 
 ---
 
-## 9. 为什么当前不改成自定义 DefinitionId USTRUCT
+## 9. 单表配置的取舍记录
 
-理论上可以建立反射兼容的：
-
-- `FShooterWeaponDefinitionId`
-- 或使用两个 `FName`：`DefinitionType` + `DefinitionName`
-
-从而恢复完全依赖默认反射序列化。但当前选择继续保留：
+本项目的武器规模是“一张表 + 少量武器类型”，没有独立 Definition 资产生命周期需求，因此选择：
 
 ```text
-FPrimaryAssetId DefinitionId
+DT_WeaponData（唯一武器模板库）
+→ Pickup / NPC 只选择一行
+→ 该行决定 WeaponActorClass、玩法参数与表现资源
 ```
 
-理由：
+取舍理由：
 
-- 直接表达 UE Primary Asset 身份。
-- 与 AssetManager 语义一致。
-- 不需要建立额外转换类型。
-- 当前特殊处理只限制在 Replication Boundary。
-- 已通过 Dedicated / Listen 网络测试。
+- 一处配置、一次选择，避免“表、Definition、蓝图默认值”三份来源；
+- 不需要 AssetManager 扫描、PrimaryAssetId 解析或额外的迁移工具链；
+- `FDataTableRowHandle` 与行结构足以表达“一行完整武器”。
 
-原则：
+已明确放弃：
 
-> 优先使用 UE 原生数据语义；原生机制存在局部连接缺口时，在边界做最小定制；不要仅为了消除少量自定义序列化代码而扭曲上层 Gameplay 数据模型。
+- `UShooterWeaponDefinition`、`FPrimaryAssetId DefinitionId` 与 AssetManager 扫描配置；
+- 武器蓝图默认值中的可表格化字段（已从蓝图 CDO 移除，行是唯一权威来源）。
 
-如果未来反射、Blueprint、SaveGame、通用 Property 工具等大量系统都需要直接访问 `DefinitionId`，可以重新评估项目级可反射包装类型。
+`BP_ShooterWeapon_*` 目前仍作为 `WeaponActorClass` 候选保留，只承载确有必要的结构或逻辑差异；
+是否合并为通用武器蓝图由后续计划单独评估，不属于本次纠偏。
+
+依据参考：
+[Data Driven Gameplay Elements](https://dev.epicgames.com/documentation/en-us/unreal-engine/data-driven-gameplay-elements-in-unreal-engine?application_version=5.6)、
+[Asset Management](https://dev.epicgames.com/documentation/en-us/unreal-engine/asset-management-in-unreal-engine?application_version=5.6)。
 
 ---
 

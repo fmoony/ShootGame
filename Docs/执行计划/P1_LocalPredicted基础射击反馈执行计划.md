@@ -6,7 +6,12 @@
 
 ```text
 GA_Fire / GA_Reload / GA_Equip ServerOnly 基线
-→ WeaponDefinition / FireBehavior / WeaponActor Pool 正式化
+→ 武器模板 / FireBehavior / WeaponActor Pool 正式化
+
+> 纠偏说明（2026-09-11）：武器模板层已由
+> [单表武器配置纠偏小计划](单表武器配置纠偏小计划.md) 收敛为 `DT_WeaponData` 单表，
+> 本文后续出现的 `WeaponDefinition` / `DefinitionId` 术语统一按
+> 「武器模板行 / `WeaponRowName`」理解。
 → 正式架构大阶段 A、B 验收
 → P1 Local Predicted 基础射击反馈
 ```

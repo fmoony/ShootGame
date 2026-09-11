@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Net/Serialization/FastArraySerializer.h"
-#include "UObject/PrimaryAssetId.h"
 #include "ShooterInventoryTypes.generated.h"
 
 DECLARE_MULTICAST_DELEGATE_OneParam(
@@ -31,12 +30,11 @@ struct FShooterWeaponInstanceData
 	FGuid InstanceId;
 
 	/**
-	 * 武器定义资产主 ID。
-	 * UE5.6 的 FPrimaryAssetId 不是 UHT 反射类型，不能声明为 UPROPERTY；
-	 * 它支持普通 FArchive << 序列化，但该能力不等于默认属性网络复制。
-	 * 当前由 FShooterWeaponInstanceEntry::NetSerialize 显式序列化本字段。
+	 * 武器模板表（DT_WeaponData）行名：武器类型身份与唯一只读配置来源。
+	 * FName 是 UHT 反射类型，直接进入默认属性网络复制，不再需要手写 NetSerialize。
 	 */
-	FPrimaryAssetId DefinitionId;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Inventory")
+	FName WeaponRowName;
 
 	/** 当前弹匣弹药，权威位置在本结构体。 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Inventory")
@@ -54,22 +52,19 @@ struct FShooterWeaponInstanceData
 	bool IsValid() const
 	{
 		return InstanceId.IsValid() &&
-			DefinitionId.IsValid() &&
+			!WeaponRowName.IsNone() &&
 			MagazineAmmo >= 0 &&
 			ReserveAmmo >= 0 &&
 			SlotIndex >= 0;
 	}
-
-	FPrimaryAssetId GetDefinitionId() const { return DefinitionId; }
-	void SetDefinitionId(const FPrimaryAssetId& InDefinitionId) { DefinitionId = InDefinitionId; }
 };
 
 struct FShooterWeaponInventoryList;
 
 /**
  * FastArray 单项：复制层身份 + WeaponInstanceData。
- * 保留 FastArray 的 Item Add/Change/Remove Delta；关闭的是 Item 内部 Struct Delta，
- * 保证非反射字段 DefinitionId 也被完整复制。
+ * InstanceData 只含 UHT 反射字段（FGuid / FName / int32），因此恢复 UE 默认的
+ * Struct Delta 序列化：服务器只发送真正变化的字段，不再手工维护整包 Payload。
  */
 USTRUCT()
 struct FShooterWeaponInstanceEntry : public FFastArraySerializerItem
@@ -80,34 +75,6 @@ struct FShooterWeaponInstanceEntry : public FFastArraySerializerItem
 	UPROPERTY()
 	FShooterWeaponInstanceData InstanceData;
 
-	/**
-	 * IMPORTANT：当前手动维护完整的 WeaponInstance 网络 Payload。
-	 *
-	 * 根因：UE5.6 的 FPrimaryAssetId 不是 UHT 反射类型，因此
-	 * FShooterWeaponInstanceData::DefinitionId 不能声明为 UPROPERTY，
-	 * 默认反射序列化看不到该字段。
-	 *
-	 * 维护约束：
-	 * 1. 任何新增到 FShooterWeaponInstanceData 且需要复制给 Owner Client 的字段，
-	 *    必须同步写入本函数；
-	 * 2. 同时更新 Inventory / 网络复制自动化测试；
-	 * 3. 不能因为字段已标记 UPROPERTY 就认为它已进入当前网络协议。
-	 *
-	 * 未来若 DefinitionId 改为项目可反射包装类型，再评估删除 WithNetSerializer
-	 * 与恢复默认 Struct Delta；当前不执行该重构。
-	 */
-	bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess)
-	{
-		Ar << InstanceData.InstanceId;
-		Ar << InstanceData.DefinitionId;
-		Ar << InstanceData.MagazineAmmo;
-		Ar << InstanceData.ReserveAmmo;
-		Ar << InstanceData.SlotIndex;
-
-		bOutSuccess = !Ar.IsError();
-		return true;
-	}
-
 	void PreReplicatedRemove(const FShooterWeaponInventoryList& InArraySerializer);
 	void PostReplicatedAdd(const FShooterWeaponInventoryList& InArraySerializer);
 	void PostReplicatedChange(const FShooterWeaponInventoryList& InArraySerializer);
@@ -116,9 +83,9 @@ struct FShooterWeaponInstanceEntry : public FFastArraySerializerItem
 	FString GetDebugString() const
 	{
 		return FString::Printf(
-			TEXT("InstanceId=%s Definition=%s Slot=%d Mag=%d Reserve=%d"),
+			TEXT("InstanceId=%s Row=%s Slot=%d Mag=%d Reserve=%d"),
 			*InstanceData.InstanceId.ToString(),
-			*InstanceData.DefinitionId.ToString(),
+			*InstanceData.WeaponRowName.ToString(),
 			InstanceData.SlotIndex,
 			InstanceData.MagazineAmmo,
 			InstanceData.ReserveAmmo);
@@ -133,14 +100,6 @@ USTRUCT()
 struct FShooterWeaponInventoryList : public FFastArraySerializer
 {
 	GENERATED_BODY()
-
-	FShooterWeaponInventoryList()
-	{
-		// 保留 FastArray 的 Item Add/Change/Remove Delta；这里关闭的只是 Item 内部 Struct Delta。
-		// Struct Delta 只比较 UPROPERTY 反射字段，而 DefinitionId 是非反射字段；
-		// 为可靠复制 DefinitionId-only 变更，强制每个 dirty Item 走完整 NetSerialize Payload。
-		SetDeltaSerializationEnabled(false);
-	}
 
 	/** FastArray 要求的 Items 数组。 */
 	UPROPERTY()
@@ -297,11 +256,17 @@ struct FShooterWeaponInventoryList : public FFastArraySerializer
 		return nullptr;
 	}
 
-	const FShooterWeaponInstanceEntry* FindItemByDefinitionId(const FPrimaryAssetId& DefinitionId) const
+	/** 按武器模板行名查找实例；不存在时返回 nullptr。重复类型判定也使用本入口。 */
+	const FShooterWeaponInstanceEntry* FindItemByRowName(FName WeaponRowName) const
 	{
+		if (WeaponRowName.IsNone())
+		{
+			return nullptr;
+		}
+
 		for (const FShooterWeaponInstanceEntry& Entry : Items)
 		{
-			if (Entry.InstanceData.DefinitionId == DefinitionId)
+			if (Entry.InstanceData.WeaponRowName == WeaponRowName)
 			{
 				return &Entry;
 			}
@@ -376,16 +341,6 @@ FORCEINLINE void FShooterWeaponInstanceEntry::PostReplicatedChange(
 {
 	InArraySerializer.NotifyInstanceChanged(InstanceData);
 }
-
-/** WithNetSerializer：DefinitionId 是非反射字段，必须由 NetSerialize 手工复制；当前正确性依赖此配置。 */
-template<>
-struct TStructOpsTypeTraits<FShooterWeaponInstanceEntry> : public TStructOpsTypeTraitsBase2<FShooterWeaponInstanceEntry>
-{
-	enum
-	{
-		WithNetSerializer = true,
-	};
-};
 
 template<>
 struct TStructOpsTypeTraits<FShooterWeaponInventoryList> : public TStructOpsTypeTraitsBase2<FShooterWeaponInventoryList>

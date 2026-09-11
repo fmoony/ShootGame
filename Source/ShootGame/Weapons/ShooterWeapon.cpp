@@ -21,7 +21,8 @@
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
 #include "Net/UnrealNetwork.h"
-#include "Weapons/Definitions/ShooterWeaponDefinition.h"
+#include "ShooterWeaponConfigRow.h"
+#include "ShooterWeaponTable.h"
 
 AShooterWeapon::AShooterWeapon()
 {
@@ -130,7 +131,103 @@ void AShooterWeapon::OnRep_BoundInstanceId()
 	}
 }
 
-void AShooterWeapon::SetBoundInstanceId(const FGuid& InInstanceId)
+void AShooterWeapon::OnRep_WeaponRowName()
+{
+	// 客户端与服务器通过同一张表恢复只读配置；行名先于或晚于 BoundInstanceId 到达都能收敛。
+	if (const FShooterWeaponConfigRow* Row = ResolveWeaponRow())
+	{
+		ApplyWeaponRow(*Row);
+	}
+	else if (!WeaponRowName.IsNone())
+	{
+		UE_LOG(
+			LogShootGame,
+			Warning,
+			TEXT("WeaponActor cannot apply weapon row: Weapon=%s Row=%s"),
+			*GetNameSafe(this),
+			*WeaponRowName.ToString());
+	}
+
+	// 行配置可能改变 AnimClass / Mesh，表现收敛走同一幂等入口补做。
+	if (AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(GetOwner()))
+	{
+		if (UShooterEquipmentComponent* Equipment = ShooterCharacter->GetEquipmentComponent())
+		{
+			Equipment->HandleWeaponActorReady(this);
+		}
+	}
+}
+
+const FShooterWeaponConfigRow* AShooterWeapon::ResolveWeaponRow() const
+{
+	if (WeaponRowName.IsNone())
+	{
+		return nullptr;
+	}
+
+	// 玩家武器经拥有者的 Inventory 解析，保证注入表（测试）与生产表口径一致。
+	if (const AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(GetOwner()))
+	{
+		if (const UShooterInventoryComponent* Inventory = ShooterCharacter->GetInventoryComponent())
+		{
+			return Inventory->ResolveWeaponRow(WeaponRowName);
+		}
+	}
+
+	// NPC 等没有 Inventory 的拥有者直接走集中解析入口。
+	return ShooterWeaponTable::FindWeaponRow(
+		ShooterWeaponTable::ResolveWeaponTable(),
+		WeaponRowName);
+}
+
+void AShooterWeapon::ApplyWeaponRow(const FShooterWeaponConfigRow& Row)
+{
+	// 运行时可写镜像：只覆盖 Actor 自身状态，行与表保持只读。
+	MagazineSize = Row.MagazineSize;
+	InitialReserveAmmo = Row.InitialReserveAmmo;
+	bFullAuto = Row.bFullAuto;
+	RefireRate = Row.RefireRate;
+	AimVariance = Row.AimVariance;
+	ShotLoudness = Row.ShotLoudness;
+	ShotNoiseRange = Row.ShotNoiseRange;
+	ShotNoiseTag = Row.ShotNoiseTag;
+	ReloadDuration = Row.ReloadDuration;
+	EquipDuration = Row.EquipDuration;
+	MuzzleOffset = Row.MuzzleOffset;
+	MuzzleSocketName = Row.MuzzleSocketName;
+	ThirdPersonLeftHandGripSocketName = Row.LeftHandGripSocketName;
+	FiringRecoil = Row.FiringRecoil;
+	FirstPersonCompositionDrop = Row.FirstPersonCompositionDrop;
+
+	FiringMontage = Row.FiringMontage;
+	MuzzleFlash = Row.MuzzleFlash;
+	FireSound = Row.FireSound;
+	ReloadMagazineOutSound = Row.ReloadMagazineOutSound;
+	ReloadMagazineInSound = Row.ReloadMagazineInSound;
+	ReloadCockingSound = Row.ReloadCockingSound;
+	FirstPersonAnimInstanceClass = Row.FirstPersonAnimInstanceClass;
+	ThirdPersonAnimInstanceClass = Row.ThirdPersonAnimInstanceClass;
+
+	// 兼容弹丸路径仍读 CDO 字段，这里同步为行值，保证两条路径的弹丸类一致。
+	ProjectileClass = Row.ProjectileClass;
+
+	// 网格沿用当前同步加载边界：行内为软引用，应用时同步加载。
+	if (FirstPersonMesh)
+	{
+		FirstPersonMesh->SetSkeletalMeshAsset(Row.FirstPersonMesh.LoadSynchronous());
+	}
+	if (ThirdPersonMesh)
+	{
+		ThirdPersonMesh->SetSkeletalMeshAsset(Row.ThirdPersonMesh.LoadSynchronous());
+	}
+
+	// 行为实例按行创建；重复应用行配置时替换旧实例，避免残留上一行的行为类。
+	FireBehaviorInstance = Row.FireBehaviorClass
+		? NewObject<UShooterWeaponFireBehavior>(this, Row.FireBehaviorClass, NAME_None, RF_Transient)
+		: nullptr;
+}
+
+void AShooterWeapon::SetInstanceBinding(const FGuid& InInstanceId, FName InWeaponRowName)
 {
 	// 装备中的武器改写绑定是非法转换；Equipment 必须先清空当前装备。
 	// 只有权威端执行该拒绝：远端客户端拿不到 OwnerOnly 的 BoundInstanceId，
@@ -142,17 +239,102 @@ void AShooterWeapon::SetBoundInstanceId(const FGuid& InInstanceId)
 		UE_LOG(
 			LogShootGame,
 			Warning,
-			TEXT("WeaponActor SetBoundInstanceId rejected in state %d: Weapon=%s NewId=%s"),
+			TEXT("WeaponActor SetInstanceBinding rejected in state %d: Weapon=%s NewId=%s Row=%s"),
 			static_cast<int32>(LifecycleState),
 			*GetNameSafe(this),
-			*InInstanceId.ToString());
+			*InInstanceId.ToString(),
+			*InWeaponRowName.ToString());
 		return;
 	}
 
 	BoundInstanceId = InInstanceId;
+	WeaponRowName = InWeaponRowName;
 	LifecycleState = InInstanceId.IsValid()
 		? EShooterWeaponLifecycleState::Holstered
 		: EShooterWeaponLifecycleState::InPool;
+
+	// 服务器与 Owner 客户端都必须在任何表现/开火消费之前应用行配置。
+	if (const FShooterWeaponConfigRow* Row = ResolveWeaponRow())
+	{
+		ApplyWeaponRow(*Row);
+	}
+	else if (!WeaponRowName.IsNone())
+	{
+		UE_LOG(
+			LogShootGame,
+			Warning,
+			TEXT("WeaponActor cannot apply weapon row on bind: Weapon=%s Row=%s"),
+			*GetNameSafe(this),
+			*WeaponRowName.ToString());
+	}
+}
+
+FShooterWeaponConfigRow AShooterWeapon::CaptureWeaponConfigRow() const
+{
+	FShooterWeaponConfigRow Row;
+
+	Row.WeaponActorClass = GetClass();
+	Row.MagazineSize = MagazineSize;
+	Row.InitialReserveAmmo = InitialReserveAmmo;
+	Row.bFullAuto = bFullAuto;
+	Row.RefireRate = RefireRate;
+	Row.AimVariance = AimVariance;
+	Row.ShotLoudness = ShotLoudness;
+	Row.ShotNoiseRange = ShotNoiseRange;
+	Row.ShotNoiseTag = ShotNoiseTag;
+	Row.ReloadDuration = ReloadDuration;
+	Row.EquipDuration = EquipDuration;
+	Row.ProjectileClass = ProjectileClass;
+	Row.MuzzleOffset = MuzzleOffset;
+	Row.MuzzleSocketName = MuzzleSocketName;
+	Row.LeftHandGripSocketName = ThirdPersonLeftHandGripSocketName;
+	Row.FirstPersonAnimInstanceClass = FirstPersonAnimInstanceClass;
+	Row.ThirdPersonAnimInstanceClass = ThirdPersonAnimInstanceClass;
+	Row.FiringMontage = FiringMontage;
+	Row.MuzzleFlash = MuzzleFlash;
+	Row.FireSound = FireSound;
+	Row.ReloadMagazineOutSound = ReloadMagazineOutSound;
+	Row.ReloadMagazineInSound = ReloadMagazineInSound;
+	Row.ReloadCockingSound = ReloadCockingSound;
+	Row.FiringRecoil = FiringRecoil;
+	Row.FirstPersonCompositionDrop = FirstPersonCompositionDrop;
+
+	if (FirstPersonMesh)
+	{
+		Row.FirstPersonMesh = FirstPersonMesh->GetSkeletalMeshAsset();
+	}
+	if (ThirdPersonMesh)
+	{
+		Row.ThirdPersonMesh = ThirdPersonMesh->GetSkeletalMeshAsset();
+	}
+	if (FireBehaviorInstance)
+	{
+		Row.FireBehaviorClass = FireBehaviorInstance->GetClass();
+	}
+
+	return Row;
+}
+
+void AShooterWeapon::SetWeaponRow(FName InWeaponRowName)
+{
+	WeaponRowName = InWeaponRowName;
+
+	if (const FShooterWeaponConfigRow* Row = ResolveWeaponRow())
+	{
+		ApplyWeaponRow(*Row);
+		return;
+	}
+
+	// 空行名是合法状态：保持 WeaponActor 自身默认配置（测试与旧 PvE 路径）。
+	if (!InWeaponRowName.IsNone())
+	{
+		UE_LOG(
+			LogShootGame,
+			Warning,
+			TEXT("WeaponActor cannot apply weapon row: Weapon=%s Row=%s"),
+			*GetNameSafe(this),
+			*InWeaponRowName.ToString());
+	}
 }
 
 void AShooterWeapon::OnAcquiredFromPool()
@@ -202,6 +384,9 @@ void AShooterWeapon::OnReleasedToPool()
 	{
 		BoundInstanceId = FGuid();
 	}
+	// 行绑定与行为实例属于运行时状态：归还后不得跨绑定继承；模板行本身只读，不受影响。
+	WeaponRowName = NAME_None;
+	FireBehaviorInstance = nullptr;
 	CurrentBullets = 0;
 	OnOutOfAmmo.Clear();
 	LifecycleState = EShooterWeaponLifecycleState::InPool;
@@ -277,21 +462,6 @@ int32 AShooterWeapon::GetReserveAmmo() const
 	return 0;
 }
 
-int32 AShooterWeapon::GetMagazineCapacity() const
-{
-	// 正式路径：容量来自绑定实例 Definition；解析失败（兼容路径）回落 CDO。
-	if (const FShooterWeaponInstanceData* Instance = ShooterWeaponInventory::FindInstance(this))
-	{
-		if (const UShooterWeaponDefinition* Definition =
-			UShooterWeaponDefinition::ResolveDefinitionSync(Instance->DefinitionId))
-		{
-			return Definition->AmmoConfig.MagazineSize;
-		}
-	}
-
-	return MagazineSize;
-}
-
 bool AShooterWeapon::CanConsumeAmmo() const
 {
 	if (BoundInstanceId.IsValid())
@@ -362,6 +532,8 @@ void AShooterWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	DOREPLIFETIME_CONDITION(AShooterWeapon, CurrentBullets, COND_OwnerOnly);
 	// 只有 Owner 需要知道该 Actor 对应哪个 WeaponInstance；远端表现只看 Character.CurrentWeapon。
 	DOREPLIFETIME_CONDITION(AShooterWeapon, BoundInstanceId, COND_OwnerOnly);
+	// 武器模板行名是公共表现数据（第三人称 Mesh / AnimClass 由它恢复），复制给所有观察者。
+	DOREPLIFETIME(AShooterWeapon, WeaponRowName);
 }
 
 void AShooterWeapon::OnRep_CurrentBullets()
@@ -535,21 +707,13 @@ void AShooterWeapon::FireCooldownExpired()
 
 UShooterWeaponFireBehavior* AShooterWeapon::ResolveFireBehavior() const
 {
-	// 正式路径：行为由绑定实例的 Definition 决定，不从 WeaponActor CDO 读取。
-	const FShooterWeaponInstanceData* Instance = ShooterWeaponInventory::FindInstance(this);
-	if (!Instance)
-	{
-		return nullptr;
-	}
-
-	const UShooterWeaponDefinition* Definition =
-		UShooterWeaponDefinition::ResolveDefinitionSync(Instance->DefinitionId);
-	return Definition ? Definition->FireBehavior.Get() : nullptr;
+	// 行为由绑定的武器模板行决定，不从 WeaponActor 默认值读取；未绑定模板行时返回空走兼容路径。
+	return FireBehaviorInstance;
 }
 
 void AShooterWeapon::ExecuteFireAtTarget(const FVector& TargetLocation)
 {
-	// 攻击结果边界：Definition 行为命中时只委托行为；否则走 NPC / 旧测试兼容路径。
+	// 攻击结果边界：绑定行且行配置了行为类时只委托行为；否则走 NPC / 旧测试兼容路径。
 	if (UShooterWeaponFireBehavior* Behavior = ResolveFireBehavior())
 	{
 		FShooterWeaponFireContext Context;
@@ -560,7 +724,11 @@ void AShooterWeapon::ExecuteFireAtTarget(const FVector& TargetLocation)
 		if (const FShooterWeaponInstanceData* Instance = ShooterWeaponInventory::FindInstance(this))
 		{
 			Context.InstanceId = Instance->InstanceId;
-			Context.Definition = UShooterWeaponDefinition::ResolveDefinitionSync(Instance->DefinitionId);
+		}
+		Context.WeaponRowName = WeaponRowName;
+		if (const FShooterWeaponConfigRow* Row = ResolveWeaponRow())
+		{
+			Context.Config = *Row;
 		}
 		Behavior->ExecuteFire(Context);
 	}

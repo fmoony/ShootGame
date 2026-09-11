@@ -1,4 +1,4 @@
-﻿// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright Epic Games, Inc. All Rights Reserved.
 
 #if WITH_DEV_AUTOMATION_TESTS
 
@@ -48,9 +48,10 @@ namespace ShooterAbilityEquipBehaviorAutomationTests
 	{
 		FShooterWeaponInstanceData InstanceData;
 		InstanceData.InstanceId = InstanceId;
-		InstanceData.DefinitionId = FPrimaryAssetId(
-			FPrimaryAssetType(TEXT("ShooterTest")),
-			FName(TEXT("Weapon")));
+		// 武器类型身份是 DT_WeaponData 行名；本测试只构造数据契约，用按 Slot 唯一的假行名。
+		InstanceData.WeaponRowName = FName(*FString::Printf(
+			TEXT("TestWeapon_%d"),
+			SlotIndex));
 		InstanceData.MagazineAmmo = 1;
 		InstanceData.ReserveAmmo = 1;
 		InstanceData.SlotIndex = SlotIndex;
