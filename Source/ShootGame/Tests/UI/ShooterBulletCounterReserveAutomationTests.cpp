@@ -5,10 +5,11 @@
 #include "Misc/AutomationTest.h"
 
 #include "Blueprint/UserWidget.h"
+#include "Blueprint/WidgetTree.h"
+#include "Components/TextBlock.h"
 #include "Engine/World.h"
 #include "Engine/Engine.h"
 #include "ShooterBulletCounterUI.h"
-#include "Components/TextBlock.h"
 
 namespace ShooterBulletCounterReserveAutomationTests
 {
@@ -39,7 +40,7 @@ namespace ShooterBulletCounterReserveAutomationTests
 
 /**
  * 有限备弹 HUD：真实 UI_ShooterBulletCounter 资产加载后，
- * 原生备弹文本挂接到根面板，且 UpdateBulletCounter 把 ReserveAmmo 写成数字。
+ * 蓝图设计器中的备弹文本存在，且 UpdateBulletCounter 把 ReserveAmmo 写成数字。
  */
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FShooterBulletCounterReserveTextTest,
@@ -72,27 +73,29 @@ bool FShooterBulletCounterReserveTextTest::RunTest(const FString& Parameters)
 		return false;
 	}
 
-	// CreateWidget 不会立即构建 Slate；TakeWidget 触发 OnWidgetRebuilt → NativePreConstruct。
+	// CreateWidget 不会立即构建 Slate；TakeWidget 触发蓝图 WidgetTree 实例化。
 	Widget->TakeWidget();
 
-	UTextBlock* ReserveText = Widget->GetReserveTextBlock();
-	if (!TestNotNull(TEXT("原生备弹文本已创建"), ReserveText))
+	UTextBlock* ReserveText = Widget->WidgetTree
+		? Cast<UTextBlock>(Widget->WidgetTree->FindWidget(TEXT("ReserveAmmoTextBlock")))
+		: nullptr;
+	if (!TestNotNull(TEXT("蓝图备弹文本存在"), ReserveText))
 	{
 		DestroyReserveTestWorld(World);
 		return false;
 	}
-	TestNotNull(TEXT("备弹文本已挂接到根面板"), ReserveText->GetParent());
+	TestNotNull(TEXT("蓝图备弹文本已挂接到设计器树"), ReserveText->GetParent());
 
 	Widget->UpdateBulletCounter(10, 3, 47);
 	TestEqual(
-		TEXT("备弹数字写入文本"),
-		Widget->GetReserveTextBlock()->GetText().ToString(),
+		TEXT("蓝图备弹数字写入文本"),
+		ReserveText->GetText().ToString(),
 		FString(TEXT("47")));
 
 	Widget->UpdateBulletCounter(10, 0, 0);
 	TestEqual(
-		TEXT("备弹耗尽归零"),
-		Widget->GetReserveTextBlock()->GetText().ToString(),
+		TEXT("蓝图备弹耗尽归零"),
+		ReserveText->GetText().ToString(),
 		FString(TEXT("0")));
 
 	DestroyReserveTestWorld(World);

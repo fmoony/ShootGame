@@ -39,3 +39,4 @@ Thumbs.db
 # Local agent task records
 /.reasonix/
 /reasonix.toml
+/.zcode/

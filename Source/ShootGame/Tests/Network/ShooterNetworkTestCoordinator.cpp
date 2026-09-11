@@ -3235,7 +3235,8 @@ void AShooterNetworkTestCoordinator::PollClientState()
 			ServerReportClientObservedInventory(
 				InventoryComponent->GetWeaponCount(),
 				ActiveId.ToString(),
-				true);
+				true,
+				InventoryComponent->HasBeenInitialized());
 		}
 	}
 
@@ -4068,7 +4069,8 @@ void AShooterNetworkTestCoordinator::ServerReportClientTriggeredEquipSingleRejec
 void AShooterNetworkTestCoordinator::ServerReportClientObservedInventory_Implementation(
 	int32 WeaponCount,
 	const FString& ActiveWeaponInstanceId,
-	bool bRemoteInventoryHidden)
+	bool bRemoteInventoryHidden,
+	bool bInventoryComponentInitialized)
 {
 	FGuid ObservedActiveId;
 	FGuid::Parse(ActiveWeaponInstanceId, ObservedActiveId);
@@ -4076,25 +4078,28 @@ void AShooterNetworkTestCoordinator::ServerReportClientObservedInventory_Impleme
 	// 初始 Owner Inventory 报告允许 Active 仍是第一或第二把：快速切换可能在报告前发生；
 	// 切换后的精确 Active 由 Switch client report 另行验证。
 	bClientObservedOwnerInventory = bServerInventoryPrepared &&
+		bInventoryComponentInitialized &&
 		WeaponCount == 2 &&
 		(ObservedActiveId == ServerInventoryFirstId ||
 			ObservedActiveId == ServerInventorySecondId);
 	bClientObservedRemoteInventoryHidden = bRemoteInventoryHidden;
 
-	UE_LOG(LogShootGame, Display, TEXT("Inventory client report: Count=%d Active=%s RemoteHidden=%s OwnerOk=%s"),
+	UE_LOG(LogShootGame, Display, TEXT("Inventory client report: Count=%d Active=%s RemoteHidden=%s Initialized=%s OwnerOk=%s"),
 		WeaponCount,
 		*ActiveWeaponInstanceId,
 		bRemoteInventoryHidden ? TEXT("true") : TEXT("false"),
+		bInventoryComponentInitialized ? TEXT("true") : TEXT("false"),
 		bClientObservedOwnerInventory ? TEXT("true") : TEXT("false"));
 
 	if (!bClientObservedOwnerInventory || !bClientObservedRemoteInventoryHidden)
 	{
 		FailTest(FString::Printf(
-			TEXT("Client Inventory observation invalid; Count=%d Active=%s ExpectedActive=%s RemoteHidden=%s"),
+			TEXT("Client Inventory observation invalid; Count=%d Active=%s ExpectedActive=%s RemoteHidden=%s Initialized=%s"),
 			WeaponCount,
 			*ActiveWeaponInstanceId,
 			*ServerInventoryActiveId.ToString(),
-			bRemoteInventoryHidden ? TEXT("true") : TEXT("false")));
+			bRemoteInventoryHidden ? TEXT("true") : TEXT("false"),
+			bInventoryComponentInitialized ? TEXT("true") : TEXT("false")));
 	}
 }
 

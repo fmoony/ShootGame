@@ -3,6 +3,9 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "Misc/AutomationTest.h"
+#include "AbilitySystemComponent.h"
+#include "ShooterGameplayTags.h"
+#include "ShooterPlayerState.h"
 #include "Characters/Equipment/ShooterEquipmentComponent.h"
 #include "Characters/ShooterCharacter.h"
 #include "Engine/Engine.h"
@@ -346,6 +349,66 @@ bool FShooterEquipmentCurrentWeaponOnRepSemanticsTest::RunTest(const FString& Pa
 	TestNull(TEXT("OnRep unequip CurrentWeapon is null"), Listener->LastCurrentWeapon.Get());
 	TestTrue(TEXT("OnRep unequip hides the previous weapon"), Weapon->IsHidden());
 
+	DestroyEquipmentEventTestWorld(World);
+	return true;
+}
+
+// 换弹状态下重复 Overlap 不应授予或切换武器；状态解除后同一 Pickup 仍可正常拾取。
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FShooterPickupRejectReloadingTest,
+	"ShootGame.Equipment.Pickup.RejectReloading",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FShooterPickupRejectReloadingTest::RunTest(const FString& Parameters)
+{
+	using namespace ShooterEquipmentLogicalEventAutomationTests;
+	UWorld* World = CreateEquipmentEventTestWorld();
+	if (!TestNotNull(TEXT("Pickup test world created"), World))
+	{
+		return false;
+	}
+	AShooterWeaponPresentationTestCharacter* Character = SpawnEquipmentEventTestCharacter(*this, World);
+	AShooterPlayerState* PlayerState = World->SpawnActor<AShooterPlayerState>();
+	AShooterWeaponPresentationTestPickup* Pickup = World->SpawnActor<AShooterWeaponPresentationTestPickup>();
+	if (!Character || !TestNotNull(TEXT("PlayerState created"), PlayerState) ||
+		!TestNotNull(TEXT("Pickup created"), Pickup))
+	{
+		DestroyEquipmentEventTestWorld(World);
+		return false;
+	}
+	Character->SetPlayerState(PlayerState);
+	PlayerState->InitializeAbilityActorInfo(Character);
+	UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent();
+	FGuid PrimaryId;
+	AShooterWeapon* Primary = GrantEquipmentEventTestWeapon(
+		*this, Character, AShooterWeaponPresentationTestWeaponPrimary::StaticClass(), PrimaryId);
+	if (!Primary || !TestNotNull(TEXT("Character ASC resolved"), ASC))
+	{
+		DestroyEquipmentEventTestWorld(World);
+		return false;
+	}
+	UShooterEquipmentComponent* Equipment = Character->GetEquipmentComponent();
+	UShooterInventoryComponent* Inventory = Character->GetInventoryComponent();
+	TestTrue(TEXT("Primary equipped"), Equipment->EquipWeapon(PrimaryId));
+	Pickup->SetWeaponClassForTest(AShooterWeaponPresentationTestWeaponSecondary::StaticClass());
+	ASC->AddLooseGameplayTag(ShooterGameplayTags::State_Reloading);
+	for (int32 Attempt = 0; Attempt < 10; ++Attempt)
+	{
+		Pickup->TriggerOverlapForTest(Character);
+	}
+	TestEqual(TEXT("Reloading pickup does not grant inventory items"), Inventory->GetWeaponCount(), 1);
+	TestTrue(TEXT("Reloading pickup keeps current weapon"), Equipment->GetCurrentWeaponActor() == Primary);
+	TestFalse(TEXT("Rejected pickup remains visible"), Pickup->IsHidden());
+	TestTrue(TEXT("Rejected pickup keeps collision"), Pickup->GetActorEnableCollision());
+	ASC->RemoveLooseGameplayTag(ShooterGameplayTags::State_Reloading);
+	Pickup->TriggerOverlapForTest(Character);
+	TestEqual(TEXT("Pickup succeeds after reload state ends"), Inventory->GetWeaponCount(), 2);
+	TestTrue(TEXT("Successful pickup equips secondary"),
+		Equipment->GetCurrentWeaponActor() &&
+		Equipment->GetCurrentWeaponActor()->IsA<AShooterWeaponPresentationTestWeaponSecondary>());
+	TestTrue(TEXT("Successful pickup is consumed"), Pickup->IsHidden());
+	Pickup->TriggerOverlapForTest(Character);
+	TestEqual(TEXT("Consumed pickup does not grant twice"), Inventory->GetWeaponCount(), 2);
 	DestroyEquipmentEventTestWorld(World);
 	return true;
 }

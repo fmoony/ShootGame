@@ -163,7 +163,8 @@ private:
 	void ServerReportClientObservedInventory(
 		int32 WeaponCount,
 		const FString& ActiveWeaponInstanceId,
-		bool bRemoteInventoryHidden);
+		bool bRemoteInventoryHidden,
+		bool bInventoryComponentInitialized);
 
 	UFUNCTION(Server, Reliable)
 	void ServerReportClientObservedPickupAuthority();

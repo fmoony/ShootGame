@@ -2,6 +2,8 @@
 
 
 #include "ShooterPickup.h"
+#include "AbilitySystemComponent.h"
+#include "ShooterGameplayTags.h"
 #include "Components/SceneComponent.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -87,6 +89,14 @@ void AShooterPickup::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
 		? ShooterCharacter->GetInventoryComponent()
 		: nullptr;
 	if (!Inventory || ShooterCharacter->IsDead())
+	{
+		return;
+	}
+
+	// 拾取会立即装备新武器，必须在授予 Inventory 和占用 Pickup 前拒绝换弹中的角色。
+	const UAbilitySystemComponent* AbilitySystemComponent = ShooterCharacter->GetAbilitySystemComponent();
+	if (AbilitySystemComponent &&
+		AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading))
 	{
 		return;
 	}
