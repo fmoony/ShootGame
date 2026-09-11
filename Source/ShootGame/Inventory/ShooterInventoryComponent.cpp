@@ -9,6 +9,7 @@
 #include "Net/UnrealNetwork.h"
 #include "ShootGame.h"
 #include "ShooterWeapon.h"
+#include "Weapons/Definitions/ShooterWeaponDefinition.h"
 
 namespace ShooterInventory
 {
@@ -54,6 +55,29 @@ void UShooterInventoryComponent::InitializeComponent()
 	ReplicatedInventory.OnInstanceRemoved.AddUObject(this, &UShooterInventoryComponent::HandleInstanceRemoved);
 }
 
+EShooterInventoryAddResult UShooterInventoryComponent::TryAddWeaponDefinition(
+	const UShooterWeaponDefinition* WeaponDefinition,
+	FGuid& OutInstanceId)
+{
+	OutInstanceId = FGuid();
+	if (!GetOwner() || !GetOwner()->HasAuthority())
+	{
+		return EShooterInventoryAddResult::NotAuthoritative;
+	}
+
+	if (!WeaponDefinition || !WeaponDefinition->IsValidForGrant())
+	{
+		return EShooterInventoryAddResult::InvalidDefinition;
+	}
+
+	return TryAddWeaponInternal(
+		WeaponDefinition->GetDefinitionId(),
+		WeaponDefinition->WeaponActorClass,
+		WeaponDefinition->AmmoConfig.MagazineSize,
+		WeaponDefinition->AmmoConfig.ResolveInitialReserveAmmo(),
+		OutInstanceId);
+}
+
 EShooterInventoryAddResult UShooterInventoryComponent::TryAddWeapon(
 	TSubclassOf<AShooterWeapon> WeaponClass,
 	FGuid& OutInstanceId)
@@ -75,7 +99,23 @@ EShooterInventoryAddResult UShooterInventoryComponent::TryAddWeapon(
 		return EShooterInventoryAddResult::InvalidWeaponClass;
 	}
 
-	const FPrimaryAssetId DefinitionId = ShooterInventory::MakeDefinitionIdForWeaponClass(WeaponClass);
+	return TryAddWeaponInternal(
+		ShooterInventory::MakeDefinitionIdForWeaponClass(WeaponClass),
+		WeaponClass,
+		WeaponDefaults->GetMagazineSize(),
+		ShooterInventory::GetInitialReserveAmmoForWeaponClass(WeaponClass),
+		OutInstanceId);
+}
+
+EShooterInventoryAddResult UShooterInventoryComponent::TryAddWeaponInternal(
+	const FPrimaryAssetId& DefinitionId,
+	TSubclassOf<AShooterWeapon> WeaponActorClass,
+	int32 MagazineSize,
+	int32 InitialReserveAmmo,
+	FGuid& OutInstanceId)
+{
+	OutInstanceId = FGuid();
+
 	if (FindWeaponInstanceByDefinitionId(DefinitionId))
 	{
 		return EShooterInventoryAddResult::DuplicateDefinition;
@@ -90,8 +130,8 @@ EShooterInventoryAddResult UShooterInventoryComponent::TryAddWeapon(
 	FShooterWeaponInstanceData InstanceData;
 	InstanceData.InstanceId = FGuid::NewGuid();
 	InstanceData.DefinitionId = DefinitionId;
-	InstanceData.MagazineAmmo = WeaponDefaults->GetMagazineSize();
-	InstanceData.ReserveAmmo = ShooterInventory::GetInitialReserveAmmoForWeaponClass(WeaponClass);
+	InstanceData.MagazineAmmo = MagazineSize;
+	InstanceData.ReserveAmmo = InitialReserveAmmo;
 	InstanceData.SlotIndex = FreeSlot;
 
 	if (!AddWeaponInstance(InstanceData))
@@ -106,7 +146,7 @@ EShooterInventoryAddResult UShooterInventoryComponent::TryAddWeapon(
 	SpawnParameters.TransformScaleMethod = ESpawnActorScaleMethod::MultiplyWithRoot;
 
 	AShooterWeapon* Weapon = GetWorld()->SpawnActor<AShooterWeapon>(
-		WeaponClass,
+		WeaponActorClass,
 		GetOwner()->GetActorTransform(),
 		SpawnParameters);
 	if (!Weapon)
@@ -365,7 +405,13 @@ bool UShooterInventoryComponent::ReloadMagazine(
 		return false;
 	}
 
-	// 事务容量只来自绑定 WeaponActor 的权威配置；没有 Actor 时不能执行表现不可收敛的换弹。
+	// 事务容量优先来自 Definition（正式路径）；Definition 无法解析时（旧适配入口的
+	// 伪造 DefinitionId）回落到绑定 WeaponActor 的 CDO 配置，A4 移除适配入口后删除回落。
+	const FShooterWeaponInstanceData* Instance = FindWeaponInstance(InstanceId);
+	const UShooterWeaponDefinition* Definition = Instance
+		? UShooterWeaponDefinition::ResolveDefinitionSync(Instance->DefinitionId)
+		: nullptr;
+
 	AShooterWeapon* Weapon = FindWeaponActor(InstanceId);
 	if (!IsValid(Weapon))
 	{
@@ -374,14 +420,14 @@ bool UShooterInventoryComponent::ReloadMagazine(
 
 	if (!ReplicatedInventory.ReloadMagazine(
 		InstanceId,
-		Weapon->GetMagazineSize(),
+		Definition ? Definition->AmmoConfig.MagazineSize : Weapon->GetMagazineSize(),
 		OutTransferredAmmo))
 	{
 		return false;
 	}
 
 	// 服务器本地立即刷新 WeaponActor 镜像与 Owner HUD；Owner 客户端由 FastArray Change 回调刷新。
-	if (const FShooterWeaponInstanceData* Instance = FindWeaponInstance(InstanceId))
+	if (Instance)
 	{
 		HandleInstanceChanged(*Instance);
 	}

@@ -9,6 +9,7 @@
 
 class AShooterWeapon;
 class AShooterCharacter;
+class UShooterWeaponDefinition;
 
 namespace ShooterInventory
 {
@@ -32,6 +33,7 @@ enum class EShooterInventoryAddResult : uint8
 	SlotOccupied,
 	SlotFull,
 	SpawnFailed,
+	InvalidDefinition,
 };
 
 /**
@@ -52,7 +54,19 @@ public:
 
 	virtual void InitializeComponent() override;
 
-	/** 服务器权威：按 WeaponClass 创建 WeaponInstance 与 WeaponActor，并自动选择空 Slot。 */
+	/**
+	 * 服务器权威：按正式 WeaponDefinition 创建 WeaponInstance 与 WeaponActor，并自动选择空 Slot。
+	 * 唯一生产授予入口：DefinitionId、WeaponActorClass 与初始弹药只由 Definition 决定，
+	 * 不再从 WeaponActor CDO 推导。
+	 */
+	EShooterInventoryAddResult TryAddWeaponDefinition(
+		const UShooterWeaponDefinition* WeaponDefinition,
+		FGuid& OutInstanceId);
+
+	/**
+	 * 兼容适配入口：以 WeaponClass 名伪造 DefinitionId，仅供资产迁移与旧测试使用。
+	 * 生产路径禁止调用；大阶段 A4 资产迁移完成后删除（实施计划 6.A2 / 6.A4）。
+	 */
 	EShooterInventoryAddResult TryAddWeapon(
 		TSubclassOf<AShooterWeapon> WeaponClass,
 		FGuid& OutInstanceId);
@@ -136,6 +150,14 @@ public:
 
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	/** 两个授予入口共用的实例创建与 WeaponActor 生成事务；参数已由各自入口完成校验。 */
+	EShooterInventoryAddResult TryAddWeaponInternal(
+		const FPrimaryAssetId& DefinitionId,
+		TSubclassOf<AShooterWeapon> WeaponActorClass,
+		int32 MagazineSize,
+		int32 InitialReserveAmmo,
+		FGuid& OutInstanceId);
 
 	/** Owner Client FastArray 回调与服务器本地修改共用的表现刷新入口。 */
 	void HandleInstanceChanged(const FShooterWeaponInstanceData& InstanceData);

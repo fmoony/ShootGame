@@ -23,16 +23,21 @@ namespace ShooterWeaponDefinitionMigrationTool
 		bool bFullAuto,
 		float RefireRate)
 	{
-		UPackage* Package = CreatePackage(*AssetPath);
-		if (!Test.TestNotNull(TEXT("Definition package created"), Package))
+		// 已存在的资产必须先完整加载再改写；在未加载包上直接 NewObject 会因
+		// “partially loaded”在保存时触发 Critical error。
+		const FString ObjectPath = AssetPath + TEXT(".") + FPackageName::GetShortName(AssetPath);
+		UShooterWeaponDefinition* Definition = LoadObject<UShooterWeaponDefinition>(nullptr, *ObjectPath);
+		UPackage* Package = Definition
+			? Definition->GetOutermost()
+			: CreatePackage(*AssetPath);
+		if (!Test.TestNotNull(TEXT("Definition package resolved"), Package))
 		{
 			return nullptr;
 		}
 
-		const FName AssetName = *FPackageName::GetShortName(AssetPath);
-		UShooterWeaponDefinition* Definition = FindObjectFast<UShooterWeaponDefinition>(Package, AssetName);
 		if (!Definition)
 		{
+			const FName AssetName = *FPackageName::GetShortName(AssetPath);
 			Definition = NewObject<UShooterWeaponDefinition>(
 				Package,
 				AssetName,
@@ -87,12 +92,14 @@ bool FShooterWeaponDefinitionCreateTestAssetTool::RunTest(const FString& Paramet
 		return false;
 	}
 
+	// 弹匣 7 / 备弹 21：与 BP_ShooterWeapon_Rifle 的 CDO 配置刻意不同，
+	// 供 Inventory 换弹容量测试证明容量来自 Definition 而非 WeaponActor CDO。
 	UShooterWeaponDefinition* Definition = CreateOrUpdateDefinitionAsset(
 		*this,
 		TEXT("/Game/Shooter/Weapons/Definitions/WD_TestAuto"),
 		RifleClass,
-		30,
-		90,
+		7,
+		21,
 		true,
 		0.1f);
 	if (!Definition)
