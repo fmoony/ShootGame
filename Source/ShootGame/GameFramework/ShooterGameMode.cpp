@@ -17,6 +17,7 @@
 #include "Weapons/ShooterWeaponHolder.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
+#include "Pool/ShooterActorPoolSubsystem.h"
 #include "Tests/Network/ShooterNetworkTestCoordinator.h"
 #include "TimerManager.h"
 
@@ -94,20 +95,34 @@ void AShooterGameMode::Logout(AController* Exiting)
 				}
 
 				int32 ActiveWeaponCount = 0;
+				int32 PooledWeaponCount = 0;
 				int32 OrphanWeaponCount = 0;
+				const UShooterActorPoolSubsystem* WeaponPool =
+					TestWorld->GetSubsystem<UShooterActorPoolSubsystem>();
 				for (TActorIterator<AShooterWeapon> It(TestWorld.Get()); It; ++It)
 				{
-					if (!It->IsActorBeingDestroyed())
+					if (It->IsActorBeingDestroyed())
 					{
-						++ActiveWeaponCount;
+						continue;
+					}
 
-						const AActor* WeaponOwner = It->GetOwner();
-						if (!IsValid(WeaponOwner)
-							|| WeaponOwner->IsActorBeingDestroyed()
-							|| !WeaponOwner->Implements<UShooterWeaponHolder>())
-						{
-							++OrphanWeaponCount;
-						}
+					// B3：断线清理把 WeaponActor 归还对象池，池化武器仍是 World 中的合法 Actor
+					// （隐藏、无 Owner、无 Instance 绑定）。它们不是断线残留，
+					// 必须与真正遗留的活动武器分开计数，否则会把池化回收误判为清理失败。
+					if (WeaponPool && WeaponPool->IsPooled(*It))
+					{
+						++PooledWeaponCount;
+						continue;
+					}
+
+					++ActiveWeaponCount;
+
+					const AActor* WeaponOwner = It->GetOwner();
+					if (!IsValid(WeaponOwner)
+						|| WeaponOwner->IsActorBeingDestroyed()
+						|| !WeaponOwner->Implements<UShooterWeaponHolder>())
+					{
+						++OrphanWeaponCount;
 					}
 				}
 
@@ -165,8 +180,9 @@ void AShooterGameMode::Logout(AController* Exiting)
 					UE_LOG(
 						LogShootGame,
 						Display,
-						TEXT("AUTOMATION_TEST_EQUIP_CLEANUP_SUCCESS Kind=Disconnect ActiveWeapons=%d Orphans=%d ActiveEquip=%d EquippingTags=%d"),
+						TEXT("AUTOMATION_TEST_EQUIP_CLEANUP_SUCCESS Kind=Disconnect ActiveWeapons=%d PooledWeapons=%d Orphans=%d ActiveEquip=%d EquippingTags=%d"),
 						ActiveWeaponCount,
+						PooledWeaponCount,
 						OrphanWeaponCount,
 						ActiveEquipAbilityCount,
 						EquippingTagCount);
@@ -176,8 +192,9 @@ void AShooterGameMode::Logout(AController* Exiting)
 					UE_LOG(
 						LogShootGame,
 						Display,
-						TEXT("AUTOMATION_TEST_DISCONNECT_SUCCESS ActiveWeapons=%d Orphans=%d ActiveReload=%d ReloadingTags=%d ActiveEquip=%d EquippingTags=%d"),
+						TEXT("AUTOMATION_TEST_DISCONNECT_SUCCESS ActiveWeapons=%d PooledWeapons=%d Orphans=%d ActiveReload=%d ReloadingTags=%d ActiveEquip=%d EquippingTags=%d"),
 						ActiveWeaponCount,
+						PooledWeaponCount,
 						OrphanWeaponCount,
 						ActiveReloadAbilityCount,
 						ReloadingTagCount,

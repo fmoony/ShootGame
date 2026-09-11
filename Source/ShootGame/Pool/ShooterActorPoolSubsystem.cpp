@@ -280,6 +280,24 @@ bool UShooterActorPoolSubsystem::IsManaged(AActor* Actor) const
 	return IsValid(Actor) && ManagedActors.Contains(Actor);
 }
 
+bool UShooterActorPoolSubsystem::IsPooled(const AActor* Actor) const
+{
+	if (!IsValid(Actor))
+	{
+		return false;
+	}
+
+	for (const TPair<TObjectPtr<UClass>, FShooterActorPool>& Pair : Pools)
+	{
+		if (Pair.Value.PooledActors.Contains(Actor))
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
 UShooterActorPoolSubsystem::FShooterActorPool& UShooterActorPoolSubsystem::FindOrAddPool(UClass* ActorClass)
 {
 	return Pools.FindOrAdd(ActorClass);

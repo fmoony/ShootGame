@@ -69,7 +69,7 @@ public:
 	}
 };
 
-/** 删除顺序测试武器：记录 DeactivateWeapon 是否发生在 Actor Destroy 之前。 */
+/** 归还顺序测试武器：暴露拥有者销毁回调，供池归还边界定向验证。 */
 UCLASS(Transient, NotBlueprintable)
 class AShooterInventoryOrderTestWeapon : public AShooterWeapon
 {
@@ -81,13 +81,16 @@ public:
 		MagazineSize = 10;
 	}
 
-	void DeactivateWeapon()
+	/**
+	 * 直接驱动拥有者销毁回调。
+	 * Editor 自动化测试世界（UWorld::CreateWorld 构造的无 GameMode World）不投递 Actor 销毁通知：
+	 * 实测 EndPlay 与 OnDestroyed 都不会到达这些 Actor，因此这里只验证「通知到达后的归还边界」，
+	 * 真正的通知投递由网络阶段的死亡 / DisconnectCleanup 场景覆盖。
+	 */
+	void SimulateOwnerDestroyedForTest()
 	{
-		bDeactivatedForTest = true;
-		Super::DeactivateWeapon();
+		OnOwnerDestroyed(GetOwner());
 	}
-
-	bool bDeactivatedForTest = false;
 };
 
 /** 生命周期测试武器：暴露 RefireTimer 与 WeaponOwner 供池化断言。 */

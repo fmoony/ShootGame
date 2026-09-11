@@ -78,6 +78,8 @@ bool FShooterActorPoolReuseTest::RunTest(const FString& Parameters)
 
 	TestTrue(TEXT("Acquired actor is visible"), !First->IsHidden());
 	TestTrue(TEXT("Acquired actor ticks"), First->IsActorTickEnabled());
+	TestTrue(TEXT("Acquired actor is managed"), Pool->IsManaged(First));
+	TestFalse(TEXT("Acquired actor is not sitting in the pool"), Pool->IsPooled(First));
 	TestEqual(TEXT("Acquire callback fired once"), First->AcquireCallbackCount, 1);
 	TestEqual(TEXT("First actor placed at requested transform"), First->GetActorLocation(), FVector(100.0f, 0.0f, 50.0f));
 
@@ -85,6 +87,8 @@ bool FShooterActorPoolReuseTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("Release callback fired once"), First->ReleaseCallbackCount, 1);
 	TestTrue(TEXT("Released actor is hidden"), First->IsHidden());
 	TestFalse(TEXT("Released actor does not tick"), First->IsActorTickEnabled());
+	TestFalse(TEXT("Released actor is no longer managed"), Pool->IsManaged(First));
+	TestTrue(TEXT("Released actor reports as pooled"), Pool->IsPooled(First));
 	TestEqual(TEXT("Pool holds one actor"), Pool->GetPooledCount(AShooterPoolTestActorA::StaticClass()), 1);
 
 	// 第二次获取必须复用同一实例，并完成通用复位。
@@ -98,6 +102,7 @@ bool FShooterActorPoolReuseTest::RunTest(const FString& Parameters)
 	{
 		TestEqual(TEXT("Acquire callback fired again"), Second->AcquireCallbackCount, 2);
 		TestTrue(TEXT("Reused actor is visible"), !Second->IsHidden());
+		TestFalse(TEXT("Reused actor is no longer pooled"), Pool->IsPooled(Second));
 		TestEqual(TEXT("Reused actor placed at new transform"), Second->GetActorLocation(), FVector(-100.0f, 20.0f, 80.0f));
 	}
 	TestEqual(TEXT("Pool is empty after reuse"), Pool->GetPooledCount(AShooterPoolTestActorA::StaticClass()), 0);

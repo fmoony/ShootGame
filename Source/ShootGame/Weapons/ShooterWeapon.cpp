@@ -21,8 +21,25 @@
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
 #include "Net/UnrealNetwork.h"
+#include "Pool/ShooterActorPoolSubsystem.h"
 #include "ShooterWeaponConfigRow.h"
 #include "ShooterWeaponTable.h"
+
+namespace ShooterWeaponInventory
+{
+	UShooterInventoryComponent* FindInventory(const AActor* WeaponActor)
+	{
+		const AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(
+			WeaponActor ? WeaponActor->GetOwner() : nullptr);
+		return ShooterCharacter ? ShooterCharacter->GetInventoryComponent() : nullptr;
+	}
+
+	const FShooterWeaponInstanceData* FindInstance(const AShooterWeapon* Weapon)
+	{
+		UShooterInventoryComponent* Inventory = FindInventory(Weapon);
+		return Inventory ? Inventory->FindWeaponInstance(Weapon->GetBoundInstanceId()) : nullptr;
+	}
+}
 
 AShooterWeapon::AShooterWeapon()
 {
@@ -357,6 +374,13 @@ void AShooterWeapon::OnAcquiredFromPool()
 
 void AShooterWeapon::OnReleasedToPool()
 {
+	// Inventory Actor 映射必须在这里解除：解除发生在清空 BoundInstanceId 之前，
+	// 让 Inventory 侧日志仍能看到被移除的 Instance 身份；重复解除是安全 no-op。
+	if (UShooterInventoryComponent* Inventory = ShooterWeaponInventory::FindInventory(this))
+	{
+		Inventory->UnregisterWeaponActor(this);
+	}
+
 	// 纵深防御：归还前必须已脱离装备态（B3 顺序由 Equipment 先清空）。
 	if (LifecycleState == EShooterWeaponLifecycleState::Equipped ||
 		LifecycleState == EShooterWeaponLifecycleState::Equipping)
@@ -416,22 +440,6 @@ void AShooterWeapon::BeginEquipTransaction()
 			static_cast<int32>(LifecycleState),
 			*GetNameSafe(this));
 		break;
-	}
-}
-
-namespace ShooterWeaponInventory
-{
-	UShooterInventoryComponent* FindInventory(const AActor* WeaponActor)
-	{
-		const AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(
-			WeaponActor ? WeaponActor->GetOwner() : nullptr);
-		return ShooterCharacter ? ShooterCharacter->GetInventoryComponent() : nullptr;
-	}
-
-	const FShooterWeaponInstanceData* FindInstance(const AShooterWeapon* Weapon)
-	{
-		UShooterInventoryComponent* Inventory = FindInventory(Weapon);
-		return Inventory ? Inventory->FindWeaponInstance(Weapon->GetBoundInstanceId()) : nullptr;
 	}
 }
 
@@ -551,13 +559,48 @@ void AShooterWeapon::EndPlay(EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 
 	// clear the refire timer
-	GetWorld()->GetTimerManager().ClearTimer(RefireTimer);
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(RefireTimer);
+	}
+
+	// teardown 幂等边界：World 销毁 / 拥有者销毁 / 池容量溢出销毁都走这里，
+	// 必须解除 Owner 销毁委托与 Inventory Actor 映射，避免留下指向已销毁 Actor 的引用。
+	// 注意这里不归还池：正在销毁的 Actor 只能被销毁，归还由 Inventory / 拥有者清理路径负责。
+	if (AActor* OwningActor = GetOwner())
+	{
+		OwningActor->OnDestroyed.RemoveAll(this);
+	}
+
+	if (UShooterInventoryComponent* Inventory = ShooterWeaponInventory::FindInventory(this))
+	{
+		Inventory->UnregisterWeaponActor(this);
+	}
+
+	bIsFiring = false;
+	OnOutOfAmmo.Clear();
 }
 
 void AShooterWeapon::OnOwnerDestroyed(AActor* DestroyedActor)
 {
-	// ensure this weapon is destroyed when the owner is destroyed
+	// 池化武器由池接管回收：归还而不是销毁，否则池会留下 PendingKill 引用，
+	// 且该 Actor 只能等 GC 才能复用。Inventory 侧映射由归还清理统一解除。
+	if (UShooterActorPoolSubsystem* Pool = GetPoolSubsystem())
+	{
+		if (Pool->Release(this))
+		{
+			return;
+		}
+	}
+
+	// 非池出生（NPC / 测试直接 Spawn）保持原有销毁语义。
 	Destroy();
+}
+
+UShooterActorPoolSubsystem* AShooterWeapon::GetPoolSubsystem() const
+{
+	const UWorld* World = GetWorld();
+	return World ? World->GetSubsystem<UShooterActorPoolSubsystem>() : nullptr;
 }
 
 void AShooterWeapon::ActivateWeapon()

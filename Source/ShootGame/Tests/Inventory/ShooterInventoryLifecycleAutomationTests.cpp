@@ -11,6 +11,7 @@
 #include "EngineUtils.h"
 #include "GameFramework/WorldSettings.h"
 #include "Inventory/ShooterInventoryComponent.h"
+#include "Pool/ShooterActorPoolSubsystem.h"
 #include "UObject/UnrealType.h"
 #include "Weapons/ShooterWeapon.h"
 #include "ShooterWeaponPresentationTestTypes.h"
@@ -188,20 +189,44 @@ bool FShooterInventoryPickupEquipFailureRollbackTest::RunTest(const FString& Par
 	TestNull(TEXT("Rollback clears the current weapon"), Character->GetCurrentWeaponActor());
 	TestFalse(TEXT("Pickup stays visible and available after rollback"), Pickup->IsHidden());
 
-	// 新授予的 WeaponActor 已随回滚销毁，不残留任何已绑定 Actor。
-	int32 RemainingWeaponActors = 0;
+	// B3：回滚把本次 Acquire 的 WeaponActor 归还对象池，而不是销毁；
+	// 世界实体仍存在但已脱离 Inventory、无 Owner、隐藏，可被后续授予复用。
+	UShooterActorPoolSubsystem* Pool = World->GetSubsystem<UShooterActorPoolSubsystem>();
+	if (!TestNotNull(TEXT("Rollback test world owns an actor pool"), Pool))
+	{
+		DestroyLifecycleTestWorld(World);
+		return false;
+	}
+
+	int32 RemainingBoundWeaponActors = 0;
+	int32 WorldWeaponActorCount = 0;
 	for (TActorIterator<AShooterInventoryOrderTestWeapon> It(World); It; ++It)
 	{
-		++RemainingWeaponActors;
+		++WorldWeaponActorCount;
+		TestTrue(TEXT("Rolled back WeaponActor is pooled"), Pool->IsPooled(*It));
+		TestFalse(TEXT("Rolled back WeaponActor is no longer in use"), Pool->IsManaged(*It));
+		TestTrue(TEXT("Rolled back WeaponActor is hidden"), It->IsHidden());
+		TestTrue(TEXT("Rolled back WeaponActor has no owner"), It->GetOwner() == nullptr);
+		TestFalse(TEXT("Rolled back WeaponActor has no instance binding"), It->GetBoundInstanceId().IsValid());
+
+		if (Inventory->FindWeaponActor(It->GetBoundInstanceId()) != nullptr)
+		{
+			++RemainingBoundWeaponActors;
+		}
 	}
-	TestEqual(TEXT("Rollback leaves no granted WeaponActor in the world"), RemainingWeaponActors, 0);
+	TestEqual(TEXT("Rollback leaves exactly one pooled WeaponActor"), WorldWeaponActorCount, 1);
+	TestEqual(TEXT("Rollback leaves no WeaponActor bound to the Inventory"), RemainingBoundWeaponActors, 0);
+	TestEqual(
+		TEXT("Rollback returns the WeaponActor to its class pool"),
+		Pool->GetPooledCount(AShooterInventoryOrderTestWeapon::StaticClass()),
+		1);
 
 	DestroyLifecycleTestWorld(World);
 	return true;
 }
 
 /**
- * E1 验证：移除当前装备时，Equipment Deactivate / Clear 必须先于 WeaponActor Destroy。
+ * E1 验证：移除当前装备时，Equipment Deactivate / Clear 必须先于 WeaponActor 归还对象池（B3）。
  */
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FShooterInventoryRemoveCurrentWeaponOrderTest,
@@ -215,6 +240,13 @@ bool FShooterInventoryRemoveCurrentWeaponOrderTest::RunTest(const FString& Param
 	UWorld* World = CreateLifecycleTestWorld();
 	if (!TestNotNull(TEXT("Lifecycle test world created"), World))
 	{
+		return false;
+	}
+
+	UShooterActorPoolSubsystem* Pool = World->GetSubsystem<UShooterActorPoolSubsystem>();
+	if (!TestNotNull(TEXT("Lifecycle test world owns an actor pool"), Pool))
+	{
+		DestroyLifecycleTestWorld(World);
 		return false;
 	}
 
@@ -242,13 +274,20 @@ bool FShooterInventoryRemoveCurrentWeaponOrderTest::RunTest(const FString& Param
 	UShooterInventoryComponent* Inventory = Character->GetInventoryComponent();
 	TestTrue(TEXT("Current weapon is equipped"), Equipment->EquipWeapon(CurrentId));
 	TestTrue(TEXT("Current weapon is visible before remove"), !CurrentWeapon->IsHidden());
-	TestFalse(TEXT("Current weapon has not been deactivated yet"), CurrentWeapon->bDeactivatedForTest);
+	TestEqual(TEXT("Current weapon has not been deactivated yet"), Character->WeaponDeactivatedCount, 0);
 
 	TestTrue(TEXT("Current weapon instance is removed"), Inventory->RemoveWeaponInstance(CurrentId));
 
-	// 广播先于 Destroy 的关键证据：DeactivateWeapon 的隐藏后置条件在 Destroy 前达成。
-	TestTrue(TEXT("Current weapon was hidden by deactivate before destroy"), CurrentWeapon->IsHidden());
-	TestTrue(TEXT("Current weapon was destroyed after deactivate"), CurrentWeapon->IsActorBeingDestroyed());
+	// 顺序证据：移除广播先驱动 Equipment 收敛并 Deactivate（经 IShooterWeaponHolder 回调可观测），
+	// 之后 WeaponActor 才归还池；归还发生在解绑与隐藏之后，池内对象不再属于 Inventory。
+	TestEqual(TEXT("Removal broadcast deactivated the current weapon exactly once"), Character->WeaponDeactivatedCount, 1);
+	TestTrue(TEXT("Current weapon was hidden by deactivate before release"), CurrentWeapon->IsHidden());
+	TestFalse(TEXT("Removed WeaponActor is not destroyed while pooled"), CurrentWeapon->IsActorBeingDestroyed());
+	TestTrue(TEXT("Removed WeaponActor is pooled"), Pool->IsPooled(CurrentWeapon));
+	TestFalse(TEXT("Removed WeaponActor is no longer in use"), Pool->IsManaged(CurrentWeapon));
+	TestNull(TEXT("Removed WeaponActor has no owner"), CurrentWeapon->GetOwner());
+	TestFalse(TEXT("Removed WeaponActor has no instance binding"), CurrentWeapon->GetBoundInstanceId().IsValid());
+	TestNull(TEXT("Remove unbinds the WeaponActor from Inventory"), Inventory->FindWeaponActor(CurrentId));
 	TestNull(TEXT("Remove clears Equipment CurrentWeaponActor"), Equipment->GetCurrentWeaponActor());
 	TestFalse(TEXT("Remove clears Equipment ActiveWeaponInstanceId"), Equipment->GetActiveWeaponInstanceId().IsValid());
 	TestEqual(TEXT("Remove empties Inventory entries"), Inventory->GetWeaponCount(), 0);
@@ -319,12 +358,12 @@ bool FShooterInventoryRemoveNonCurrentWeaponTest::RunTest(const FString& Paramet
 }
 
 /**
- * E1 验证：ClearInventory 先清逻辑 Entries 并广播，Equipment 清理完当前装备后再 Destroy 全部 WeaponActor；
- * 重复 Clear 幂等。
+ * E1 验证：ClearInventory 先清逻辑 Entries 并广播，Equipment 清理完当前装备后再把全部
+ * WeaponActor 归还对象池（B3）；重复 Clear 幂等。
  */
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FShooterInventoryClearWeaponOrderTest,
-	"ShootGame.Inventory.Clear.WeaponDestroyOrder",
+	"ShootGame.Inventory.Clear.WeaponReleaseOrder",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterInventoryClearWeaponOrderTest::RunTest(const FString& Parameters)
@@ -334,6 +373,13 @@ bool FShooterInventoryClearWeaponOrderTest::RunTest(const FString& Parameters)
 	UWorld* World = CreateLifecycleTestWorld();
 	if (!TestNotNull(TEXT("Lifecycle test world created"), World))
 	{
+		return false;
+	}
+
+	UShooterActorPoolSubsystem* Pool = World->GetSubsystem<UShooterActorPoolSubsystem>();
+	if (!TestNotNull(TEXT("Clear test world owns an actor pool"), Pool))
+	{
+		DestroyLifecycleTestWorld(World);
 		return false;
 	}
 
@@ -363,16 +409,30 @@ bool FShooterInventoryClearWeaponOrderTest::RunTest(const FString& Parameters)
 
 	Inventory->ClearInventory();
 
-	TestTrue(TEXT("Clear hid the current weapon by deactivate before destroy"), CurrentWeapon->IsHidden());
-	TestTrue(TEXT("Clear destroyed the current weapon after deactivate"), CurrentWeapon->IsActorBeingDestroyed());
+	// 顺序证据：Clear 先清逻辑 Entries 并广播，Equipment 收敛后 Deactivate 一次，最后才归还池。
+	TestEqual(TEXT("Clear broadcast deactivated the current weapon exactly once"), Character->WeaponDeactivatedCount, 1);
+	TestTrue(TEXT("Clear hid the current weapon by deactivate before release"), CurrentWeapon->IsHidden());
+	TestFalse(TEXT("Cleared WeaponActor is not destroyed while pooled"), CurrentWeapon->IsActorBeingDestroyed());
+	TestTrue(TEXT("Cleared WeaponActor is pooled"), Pool->IsPooled(CurrentWeapon));
+	TestFalse(TEXT("Cleared WeaponActor is no longer in use"), Pool->IsManaged(CurrentWeapon));
+	TestNull(TEXT("Cleared WeaponActor has no owner"), CurrentWeapon->GetOwner());
+	TestFalse(TEXT("Cleared WeaponActor has no instance binding"), CurrentWeapon->GetBoundInstanceId().IsValid());
+	TestEqual(
+		TEXT("Clear returns the WeaponActor to its class pool"),
+		Pool->GetPooledCount(AShooterInventoryOrderTestWeapon::StaticClass()),
+		1);
 	TestNull(TEXT("Clear empties Equipment CurrentWeaponActor"), Equipment->GetCurrentWeaponActor());
 	TestFalse(TEXT("Clear empties Equipment ActiveWeaponInstanceId"), Equipment->GetActiveWeaponInstanceId().IsValid());
 	TestEqual(TEXT("Clear empties Inventory entries"), Inventory->GetWeaponCount(), 0);
 
-	// 重复 Clear 幂等：不再销毁对象，也不产生错误状态。
+	// 重复 Clear 幂等：不重复归还，也不产生错误状态。
 	Inventory->ClearInventory();
 	TestNull(TEXT("Repeated clear keeps Equipment empty"), Equipment->GetCurrentWeaponActor());
 	TestEqual(TEXT("Repeated clear keeps Inventory empty"), Inventory->GetWeaponCount(), 0);
+	TestEqual(
+		TEXT("Repeated clear does not pool the same WeaponActor twice"),
+		Pool->GetPooledCount(AShooterInventoryOrderTestWeapon::StaticClass()),
+		1);
 
 	DestroyLifecycleTestWorld(World);
 	return true;

@@ -12,6 +12,7 @@
 
 class IShooterWeaponHolder;
 class AShooterProjectile;
+class UShooterActorPoolSubsystem;
 class UShooterWeaponFireBehavior;
 struct FShooterWeaponConfigRow;
 struct FShooterWeaponFireContext;
@@ -232,12 +233,15 @@ protected:
 
 protected:
 
-	/** Called when the weapon's owner is destroyed */
+	/** Called when the weapon's owner is destroyed（池化武器归还池，非池出生回落销毁） */
 	UFUNCTION()
 	void OnOwnerDestroyed(AActor* DestroyedActor);
 
 	/** 幂等绑定当前 Owner；允许 Owner 晚于武器 BeginPlay 到达客户端。 */
 	void InitializeWeaponOwner();
+
+	/** 返回本 Actor 所在 World 的对象池；World 不支持或已销毁时返回 nullptr。 */
+	UShooterActorPoolSubsystem* GetPoolSubsystem() const;
 
 	/** 解析本 Actor 绑定的武器模板行；未绑定行名、表缺失或行缺失时返回 nullptr。 */
 	const FShooterWeaponConfigRow* ResolveWeaponRow() const;

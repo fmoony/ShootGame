@@ -63,6 +63,12 @@ public:
 	/** 观测：指定 Actor 是否正被本池管理（在池外使用中）。 */
 	bool IsManaged(AActor* Actor) const;
 
+	/**
+	 * 观测：指定 Actor 当前是否停留在某个类池内（已归还、未复用）。
+	 * 用于区分「池化待复用」与「真正遗留」的世界实体，例如断线清理检查。
+	 */
+	bool IsPooled(const AActor* Actor) const;
+
 private:
 	struct FShooterActorPool
 	{

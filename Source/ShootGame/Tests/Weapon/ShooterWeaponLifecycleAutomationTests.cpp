@@ -310,7 +310,8 @@ bool FShooterWeaponLifecycleSwitchKeepsHolsteredTest::RunTest(const FString& Par
 
 	UShooterActorPoolSubsystem* Pool = World->GetSubsystem<UShooterActorPoolSubsystem>();
 	TestTrue(TEXT("Switch does not pool weapons"), Pool && Pool->GetPooledCount(AShooterInventoryOrderTestWeapon::StaticClass()) == 0);
-	TestFalse(TEXT("Switch keeps primary out of pool"), Pool && Pool->IsManaged(PrimaryWeapon));
+	TestFalse(TEXT("Switch keeps primary out of pool"), Pool && Pool->IsPooled(PrimaryWeapon));
+	TestTrue(TEXT("Switch keeps primary acquired from the pool"), Pool && Pool->IsManaged(PrimaryWeapon));
 
 	// 同武器重复提交幂等，状态不变。
 	TestTrue(TEXT("Re-equip secondary is idempotent"), Equipment->EquipWeapon(SecondaryId));

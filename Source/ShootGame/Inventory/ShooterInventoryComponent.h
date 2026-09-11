@@ -26,7 +26,7 @@ enum class EShooterInventoryAddResult : uint8
 	DuplicateWeaponRow,
 	SlotOccupied,
 	SlotFull,
-	SpawnFailed,
+	AcquireFailed,
 	InvalidWeaponRow,
 };
 
@@ -145,11 +145,20 @@ public:
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	/** 唯一授予入口的实例创建与 WeaponActor 生成事务；参数已由入口完成校验。 */
+	/**
+	 * 唯一授予入口的实例创建与 WeaponActor 获取事务；参数已由入口完成校验。
+	 * 服务器权威：实例写入成功后从对象池 Acquire WeaponActor；获取失败必须回滚实例。
+	 */
 	EShooterInventoryAddResult TryAddWeaponInternal(
 		FName WeaponRowName,
 		const FShooterWeaponConfigRow& Row,
 		FGuid& OutInstanceId);
+
+	/**
+	 * 归还 WeaponActor：池化武器走池 Release（Inventory Actor 映射由归还清理统一解除），
+	 * 非池出生（NPC / 旧测试直接 Spawn）无法归还时回落销毁，保证不留悬挂引用。
+	 */
+	void ReleaseWeaponActor(AShooterWeapon* Weapon);
 
 	/** Owner Client FastArray 回调与服务器本地修改共用的表现刷新入口。 */
 	void HandleInstanceChanged(const FShooterWeaponInstanceData& InstanceData);

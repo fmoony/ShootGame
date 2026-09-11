@@ -8,6 +8,7 @@
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
 #include "Net/UnrealNetwork.h"
+#include "Pool/ShooterActorPoolSubsystem.h"
 #include "ShootGame.h"
 #include "ShooterWeapon.h"
 #include "ShooterWeaponConfigRow.h"
@@ -90,26 +91,63 @@ EShooterInventoryAddResult UShooterInventoryComponent::TryAddWeaponInternal(
 		return EShooterInventoryAddResult::SlotOccupied;
 	}
 
+	// WeaponActor 统一由 World 级对象池提供：池命中即复用，未命中才生成。
+	UShooterActorPoolSubsystem* Pool = GetWorld()
+		? GetWorld()->GetSubsystem<UShooterActorPoolSubsystem>()
+		: nullptr;
+	if (!Pool)
+	{
+		// 没有池就不存在正式的 WeaponActor 生命周期边界：fail closed 并回滚实例。
+		ReplicatedInventory.RemoveItem(InstanceData.InstanceId);
+		UE_LOG(
+			LogShootGame,
+			Warning,
+			TEXT("Inventory TryAddWeaponRow rejected: actor pool unavailable. Actor=%s Row=%s"),
+			*GetNameSafe(GetOwner()),
+			*WeaponRowName.ToString());
+		return EShooterInventoryAddResult::AcquireFailed;
+	}
+
 	FActorSpawnParameters SpawnParameters;
 	SpawnParameters.Owner = GetOwner();
 	SpawnParameters.Instigator = Cast<APawn>(GetOwner());
 	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	SpawnParameters.TransformScaleMethod = ESpawnActorScaleMethod::MultiplyWithRoot;
 
-	AShooterWeapon* Weapon = GetWorld()->SpawnActor<AShooterWeapon>(
+	// Acquire 已完成通用复位（Owner / Instigator / 变换 / 可见性 / 碰撞 / Tick）；
+	// 行配置与 Instance 身份在下面的绑定入口一起写入。
+	AShooterWeapon* Weapon = Cast<AShooterWeapon>(Pool->Acquire(
 		Row.WeaponActorClass,
 		GetOwner()->GetActorTransform(),
-		SpawnParameters);
+		SpawnParameters));
 	if (!Weapon)
 	{
+		// Acquire 失败必须回滚刚写入的 WeaponInstance，不能留下只有逻辑数据的幽灵武器。
 		ReplicatedInventory.RemoveItem(InstanceData.InstanceId);
-		return EShooterInventoryAddResult::SpawnFailed;
+		UE_LOG(
+			LogShootGame,
+			Warning,
+			TEXT("Inventory TryAddWeaponRow rolled back after pool acquire failure: Actor=%s Row=%s Class=%s"),
+			*GetNameSafe(GetOwner()),
+			*WeaponRowName.ToString(),
+			*GetNameSafe(Row.WeaponActorClass));
+		return EShooterInventoryAddResult::AcquireFailed;
 	}
 
-	// 绑定同时把该行的只读配置应用到 WeaponActor；此后 WeaponActor 不再读取 CDO 配置。
+	// 绑定同时把该行的只读配置应用到 WeaponActor；此后 WeaponActor 不再读取默认配置。
 	Weapon->SetInstanceBinding(InstanceData.InstanceId, WeaponRowName);
 	Weapon->SetActorHiddenInGame(true);
 	RegisterWeaponActor(Weapon);
+
+	UE_LOG(
+		LogShootGame,
+		Display,
+		TEXT("Inventory TryAddWeaponRow acquired WeaponActor: Actor=%s InstanceId=%s Row=%s Weapon=%s Slot=%d"),
+		*GetNameSafe(GetOwner()),
+		*InstanceData.InstanceId.ToString(),
+		*WeaponRowName.ToString(),
+		*GetNameSafe(Weapon),
+		InstanceData.SlotIndex);
 
 	OutInstanceId = InstanceData.InstanceId;
 	return EShooterInventoryAddResult::Added;
@@ -161,13 +199,12 @@ bool UShooterInventoryComponent::RemoveWeaponInstance(const FGuid& InstanceId)
 	const bool bRemoved = ReplicatedInventory.RemoveItem(InstanceId);
 	if (bRemoved)
 	{
-		// E1 顺序：先广播移除，让 Equipment 在 WeaponActor Destroy 前清理当前装备。
+		// E1 顺序：先广播移除，让 Equipment 在 WeaponActor 归还池之前清理当前装备。
 		OnWeaponInstanceRemovedFromInventory.Broadcast(InstanceId);
 
 		if (AShooterWeapon* Weapon = FindWeaponActor(InstanceId))
 		{
-			UnregisterWeaponActor(Weapon);
-			Weapon->Destroy();
+			ReleaseWeaponActor(Weapon);
 		}
 
 		UE_LOG(
@@ -188,18 +225,18 @@ void UShooterInventoryComponent::ClearInventory()
 		return;
 	}
 
-	// E1 顺序：冻结待销毁 WeaponActor，先清逻辑 Entries 并广播，
-	// 让 Equipment 在 Destroy 前清理当前装备，最后统一解绑与销毁。
-	TArray<AShooterWeapon*> WeaponsToDestroy;
+	// E1 顺序：冻结待归还 WeaponActor，先清逻辑 Entries 并广播，
+	// 让 Equipment 在归还池之前清理当前装备，最后统一归还。
+	TArray<AShooterWeapon*> WeaponsToRelease;
 	for (AShooterWeapon* Weapon : BoundWeaponActors)
 	{
 		if (IsValid(Weapon))
 		{
-			WeaponsToDestroy.Add(Weapon);
+			WeaponsToRelease.Add(Weapon);
 		}
 	}
 
-	if (ReplicatedInventory.Items.Num() == 0 && WeaponsToDestroy.Num() == 0)
+	if (ReplicatedInventory.Items.Num() == 0 && WeaponsToRelease.Num() == 0)
 	{
 		// 重复 Clear / 空 Inventory 幂等返回，不重复广播错误状态。
 		return;
@@ -208,12 +245,11 @@ void UShooterInventoryComponent::ClearInventory()
 	ReplicatedInventory.ClearItems();
 	OnInventoryCleared.Broadcast();
 
-	for (AShooterWeapon* Weapon : WeaponsToDestroy)
+	for (AShooterWeapon* Weapon : WeaponsToRelease)
 	{
 		if (IsValid(Weapon))
 		{
-			UnregisterWeaponActor(Weapon);
-			Weapon->Destroy();
+			ReleaseWeaponActor(Weapon);
 		}
 	}
 
@@ -423,6 +459,45 @@ void UShooterInventoryComponent::HandleInstanceRemoved(const FGuid& InstanceId)
 		UnregisterWeaponActor(Weapon);
 		Weapon->SetInstanceBinding(FGuid());
 	}
+}
+
+void UShooterInventoryComponent::ReleaseWeaponActor(AShooterWeapon* Weapon)
+{
+	if (!IsValid(Weapon))
+	{
+		return;
+	}
+
+	// 身份必须在归还前取出：归还清理会清空 BoundInstanceId。
+	const FGuid ReleasedInstanceId = Weapon->GetBoundInstanceId();
+
+	UShooterActorPoolSubsystem* Pool = GetWorld()
+		? GetWorld()->GetSubsystem<UShooterActorPoolSubsystem>()
+		: nullptr;
+	// 先判是否由池管理：非池出生是受支持的兼容路径，不应触发池自身的 fail closed 警告。
+	if (Pool && Pool->IsManaged(Weapon) && Pool->Release(Weapon))
+	{
+		// 池归还已包含：停 Timer / 解委托 / 清绑定与弹药镜像 / 隐藏 / 关碰撞 / 关 Tick / 清 Owner。
+		UE_LOG(
+			LogShootGame,
+			Display,
+			TEXT("Inventory released WeaponActor to pool: Actor=%s InstanceId=%s Weapon=%s"),
+			*GetNameSafe(GetOwner()),
+			*ReleasedInstanceId.ToString(),
+			*GetNameSafe(Weapon));
+		return;
+	}
+
+	// 兼容路径：非池出生（NPC / 旧测试直接 Spawn）无法归还，只能销毁并显式解除映射。
+	UnregisterWeaponActor(Weapon);
+	Weapon->Destroy();
+	UE_LOG(
+		LogShootGame,
+		Display,
+		TEXT("Inventory destroyed non-pooled WeaponActor: Actor=%s InstanceId=%s Weapon=%s"),
+		*GetNameSafe(GetOwner()),
+		*ReleasedInstanceId.ToString(),
+		*GetNameSafe(Weapon));
 }
 
 void UShooterInventoryComponent::UnregisterWeaponActor(AShooterWeapon* Weapon)
