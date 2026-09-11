@@ -322,7 +322,7 @@ GAS 主要承担：
 普通 Gameplay 系统继续承担：
 - Inventory；
 - WeaponInstance；
-- WeaponDefinition；
+- WeaponConfigRow（`DT_WeaponData`）；
 - WeaponActor；
 - Object Pool；
 - Pickup；
@@ -659,9 +659,9 @@ Inventory 授予 / 移除 / 死亡清理接入对象池（B3）
 
 ```text
 大阶段 B（通用池 + WeaponActor 生命周期 + Pickup / 死亡集成）实施完成
-→ 大阶段 B 收口七阶段完整回归已通过（Saved/Automation/Runs/20260911_173714/Summary.json）
-→ 待正式架构验收（计划第 10 节）
-→ 再进入 P1 Local Predicted 基础射击反馈
+→ 客户端跨 Owner 池复用委托边界已收口
+→ 正式架构验收已通过（Saved/Automation/Runs/20260911_182343/Summary.json）
+→ 下一阶段：P1 Local Predicted 基础射击反馈
 ```
 
 武器与 Inventory 当前的事实边界（生产路径）：
@@ -693,4 +693,4 @@ Inventory 授予 / 移除 / 死亡清理接入对象池（B3）
 [武器与 Inventory 正式架构实施计划](武器与Inventory正式架构实施计划.md)、
 [单表武器配置纠偏小计划](单表武器配置纠偏小计划.md)。
 
-只有完成大阶段 B 收口回归与正式架构验收，并形成新的详细执行计划后，才实施 P1 的任何预测内容。
+大阶段 B 收口回归与正式架构验收已经完成；P1 具备详细执行计划，待用户批准后实施。

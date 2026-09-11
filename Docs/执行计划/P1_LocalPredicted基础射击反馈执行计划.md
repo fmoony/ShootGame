@@ -44,7 +44,7 @@ FireBehavior、通用 Actor Pool、WeaponActor 生命周期和 Pickup 行接入�
 此外，大阶段 A、B 的完整回归必须通过，且预测实现只能依赖已经冻结的
 `WeaponRowName` / `InstanceId` / FireBehavior / WeaponActor Lifecycle API。
 
-当前前置状态（2026-09-11，B4 收口时）：
+当前前置状态（2026-09-11，正式架构验收后）：
 
 ```text
 单表武器配置纠偏 C0～C4：已完成（含一次七阶段完整回归）
@@ -53,11 +53,12 @@ B1 通用 Actor Pool：已完成
 B2 WeaponActor 生命周期状态机：已完成
 B3 Inventory / 死亡清理接入对象池：已完成（含 Dedicated + 2 Clients 定向验证）
 B4 兼容路径与可观测性收口：已完成
-大阶段 B 收口七阶段完整回归：已通过（Saved/Automation/Runs/20260911_173714/Summary.json）
-正式架构验收：待执行
+大阶段 B 收口七阶段完整回归：已通过
+客户端跨 Owner 池复用委托边界：已修复并覆盖定向测试
+正式架构验收：已通过（Saved/Automation/Runs/20260911_182343/Summary.json）
 ```
 
-在大阶段 B 收口回归与正式架构验收完成前，不实施 P1 的任何预测内容。
+上述前置项已经完成；P1 可在用户批准本计划后开始实施。
 
 ---
 
@@ -193,7 +194,7 @@ Spread Random Seed 同步
 GA_Reload LocalPredicted
 GA_Equip LocalPredicted
 完整 GameplayCue 迁移
-FireBehavior / WeaponDefinition 重构
+FireBehavior / 武器配置架构重构（已在 P1 前置阶段完成）
 Weapon / Projectile Pool
 Lobby / Session / Match Flow
 ```

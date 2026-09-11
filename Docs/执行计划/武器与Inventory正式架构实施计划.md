@@ -8,7 +8,8 @@
 
 ```text
 Pickup 重生逻辑门定向验证（生产修复已由用户完成）
-→ 大阶段 A：WeaponDefinition + Inventory DefinitionId + Projectile FireBehavior
+→ 大阶段 A：首次正式化（历史实现，配置层随后由单表纠偏取代）
+→ 单表纠偏：DT_WeaponData + WeaponRowName
 → 大阶段 B：通用 Actor Pool + WeaponActor 生命周期 + Pickup/死亡集成
 → 正式架构验收
 → P1 Local Predicted 基础射击反馈
@@ -34,7 +35,7 @@ DT_WeaponData（唯一武器模板库）
   属于**已被纠偏取代的历史设计**，只保留为决策记录，不代表当前实现；
 - 当前实现以 [Inventory 与武器数据架构](../架构/Inventory与武器数据架构.md) 为准，
   武器身份统一使用 `FName WeaponRowName`；
-- 第 7 节大阶段 B 的 B3 / B4 按原计划继续，但后续文档与测试统一使用 RowName 术语。
+- 第 7 节大阶段 B 的 B1～B4 已按 RowName 架构完成，并通过收口回归与正式验收。
 
 
 ---
@@ -358,9 +359,9 @@ DisconnectCleanup
 
 实施：
 
-- WeaponActor 接入 Definition/Instance 绑定和生命周期状态；
+- WeaponActor 接入 WeaponRowName/Instance 绑定和生命周期状态；
 - 把 Activate/Deactivate 收敛为明确状态转换；
-- 每次 Acquire 重新绑定 Owner、Instigator、DefinitionId、InstanceId；
+- 每次 Acquire 重新绑定 Owner、Instigator、WeaponRowName、InstanceId；
 - 每次 Release 完整停止 Timer、解除 Delegate、隐藏、Detach 并清空绑定；
 - 保持 Equipment 的 Active Instance 与 Current Actor 原子提交语义。
 
@@ -386,7 +387,7 @@ DisconnectCleanup
 - 审计旧 `Destroy()`、直接 `SpawnActor<AShooterWeapon>`、WeaponClass 授予和 CDO 配置读取；
 - 删除本计划产生的临时桥接与调试入口；
 - NPC 的旧弹药镜像若仍被真实使用，保留为明确的 PvE 遗留项，不伪装成已完成；
-- 为 Acquire/Release、Definition/Instance 绑定和状态转换保留低噪声测试标记；
+- 为 Acquire/Release、WeaponRowName/Instance 绑定和状态转换保留低噪声测试标记；
 - 更新最终路线规划与 P1 前置状态。
 
 定向验证：生产 WeaponActor 只有池入口负责创建/复用；所有 Release 后引用收敛；无双重事件或旧武器残留。
@@ -456,13 +457,16 @@ Source/ 或 Plugins/ 有新增、删除、移动、重命名时，在该批结�
 
 ## 10. 最终验收与进入 P1 的门槛
 
-只有同时满足以下条件，才允许进入 P1：
+验收时间：2026-09-11。
+
+以下条件已全部满足，正式架构验收通过，允许进入 P1：
 
 ### 数据与身份
 
-- 所有正式武器都有可解析的 WeaponDefinition Primary Asset；
-- WeaponInstance 只保存稳定 DefinitionId 和实例可变数据；
-- Inventory 不再依赖 WeaponClass CDO 构造正式数据。
+- `/Game/Shooter/Data/DT_WeaponData` 是唯一正式武器模板库，所有正式行可解析；
+- WeaponInstance 只保存 `WeaponRowName / InstanceId` 和实例可变数据；
+- Inventory 不再依赖 WeaponClass CDO、WeaponDefinition 或 PrimaryAssetId 构造正式数据；
+- Pickup 只选择 `FDataTableRowHandle`，表行决定 WeaponActorClass、玩法参数与表现资源。
 
 ### 行为与权威
 
@@ -474,24 +478,26 @@ Source/ 或 Plugins/ 有新增、删除、移动、重命名时，在该批结�
 
 - WeaponActor 通过通用 Actor Pool Acquire/Release；
 - 切枪、移除、死亡、断线和复用均无 Timer、Delegate、Owner、Instance 或表现残留；
+- 客户端 Owner 复制切换会先解除旧 Pawn 的 OnDestroyed 委托，旧 Pawn 延迟销毁不影响已复用武器；
 - Actor 指针不替代 InstanceId 成为永久身份。
 
 ### Pickup 与网络
 
-- Pickup 使用 Definition 请求 Inventory 授予；
+- Pickup 使用 WeaponRowName 请求 Inventory 授予；
 - 玩家 A 拾取并重生后，玩家 B 可再次成功拾取；
 - Dedicated、Listen、Emulated 和 DisconnectCleanup 均通过。
 
 ### 回归证据
 
-- 大阶段 A、B 各有一份完整回归 Summary；
+- 单表纠偏 C4 与大阶段 B 均有完整回归 Summary；正式验收修复后的最终证据为
+  `Saved/Automation/Runs/20260911_182343/Summary.json`；
 - 最终工作区不含本计划产生的临时兼容代码；
-- 未解决的 NPC 兼容边界被明确记录，不阻塞玩家正式架构时必须有独立理由。
+- NPC 非池化兼容边界已在架构文档中明确记录，不阻塞玩家正式架构。
 
 验收后执行：
 
 ```text
-冻结 Definition / Instance / Behavior / Lifecycle API
+冻结 WeaponRowName / InstanceId / FireBehavior / WeaponActor Lifecycle API
 → 重新核对 P1 Local Predicted 计划的表现入口
 → 再开始预测实现
 ```

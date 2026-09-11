@@ -107,12 +107,17 @@ void AShooterWeapon::OnRep_Owner()
 
 void AShooterWeapon::InitializeWeaponOwner()
 {
+	// Owner 复制可能直接从 A 切到 B，也可能先到 nullptr；必须先解除缓存中的旧 Owner，
+	// 不能只从 GetOwner() 读取新值，否则旧 Pawn 销毁时仍会回调已经复用给新玩家的武器。
+	ClearWeaponOwner();
+
 	AActor* OwningActor = GetOwner();
 	if (!IsValid(OwningActor))
 	{
 		return;
 	}
 
+	CachedWeaponOwnerActor = OwningActor;
 	OwningActor->OnDestroyed.AddUniqueDynamic(this, &AShooterWeapon::OnOwnerDestroyed);
 	WeaponOwner = Cast<IShooterWeaponHolder>(OwningActor);
 	PawnOwner = Cast<APawn>(OwningActor);
@@ -138,6 +143,18 @@ void AShooterWeapon::InitializeWeaponOwner()
 	{
 		WeaponOwner->AttachWeaponMeshes(this);
 	}
+}
+
+void AShooterWeapon::ClearWeaponOwner()
+{
+	if (CachedWeaponOwnerActor)
+	{
+		CachedWeaponOwnerActor->OnDestroyed.RemoveAll(this);
+	}
+
+	CachedWeaponOwnerActor = nullptr;
+	WeaponOwner = nullptr;
+	PawnOwner = nullptr;
 }
 
 void AShooterWeapon::OnRep_BoundInstanceId()
@@ -422,12 +439,7 @@ void AShooterWeapon::OnReleasedToPool()
 	}
 
 	// 解除 Owner 销毁委托并清空 Owner 侧缓存；通用隐藏/Detach/Owner 清空由池统一执行。
-	if (AActor* OwningActor = GetOwner())
-	{
-		OwningActor->OnDestroyed.RemoveAll(this);
-	}
-	WeaponOwner = nullptr;
-	PawnOwner = nullptr;
+	ClearWeaponOwner();
 
 	// 清空绑定（复制字段，Owner 客户端会收到清空）与弹药镜像，回到 InPool。
 	if (BoundInstanceId.IsValid())
@@ -619,10 +631,7 @@ void AShooterWeapon::EndPlay(EEndPlayReason::Type EndPlayReason)
 	// teardown 幂等边界：World 销毁 / 拥有者销毁 / 池容量溢出销毁都走这里，
 	// 必须解除 Owner 销毁委托与 Inventory Actor 映射，避免留下指向已销毁 Actor 的引用。
 	// 注意这里不归还池：正在销毁的 Actor 只能被销毁，归还由 Inventory / 拥有者清理路径负责。
-	if (AActor* OwningActor = GetOwner())
-	{
-		OwningActor->OnDestroyed.RemoveAll(this);
-	}
+	ClearWeaponOwner();
 
 	if (UShooterInventoryComponent* Inventory = ShooterWeaponInventory::FindInventory(this))
 	{

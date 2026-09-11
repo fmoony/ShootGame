@@ -71,6 +71,10 @@ protected:
 	/** Cast pointer to the weapon owner */
 	IShooterWeaponHolder* WeaponOwner = nullptr;
 
+	/** 已完成领域绑定的 Owner；用于 Owner 复制切换时解除旧 OnDestroyed 委托。 */
+	UPROPERTY(Transient)
+	TObjectPtr<AActor> CachedWeaponOwnerActor;
+
 	/** 绑定的 Inventory WeaponInstance 身份；OwnerOnly 复制，远端表现不需要该数据。 */
 	UPROPERTY(ReplicatedUsing = OnRep_BoundInstanceId, VisibleAnywhere, BlueprintReadOnly, Category="Inventory")
 	FGuid BoundInstanceId;
@@ -237,8 +241,11 @@ protected:
 	UFUNCTION()
 	void OnOwnerDestroyed(AActor* DestroyedActor);
 
-	/** 幂等绑定当前 Owner；允许 Owner 晚于武器 BeginPlay 到达客户端。 */
+	/** 幂等绑定当前 Owner；绑定前先解除旧 Owner，允许 Owner 晚于武器 BeginPlay 到达客户端。 */
 	void InitializeWeaponOwner();
+
+	/** 解除旧 Owner 的销毁委托并清空领域缓存；服务器归还池和客户端 Owner RepNotify 共用。 */
+	void ClearWeaponOwner();
 
 	/** 返回本 Actor 所在 World 的对象池；World 不支持或已销毁时返回 nullptr。 */
 	UShooterActorPoolSubsystem* GetPoolSubsystem() const;

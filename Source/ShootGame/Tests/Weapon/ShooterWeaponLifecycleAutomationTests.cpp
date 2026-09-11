@@ -233,6 +233,61 @@ bool FShooterWeaponLifecyclePoolReleaseTest::RunTest(const FString& Parameters)
 	return true;
 }
 
+/** 客户端 Owner 复制切换必须解除旧 Pawn 委托，避免旧 Pawn 销毁作用到已复用武器。 */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FShooterWeaponLifecycleClientOwnerRebindTest,
+	"ShootGame.Weapon.Lifecycle.ClientOwnerRebindClearsPreviousDelegate",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FShooterWeaponLifecycleClientOwnerRebindTest::RunTest(const FString& Parameters)
+{
+	using namespace ShooterWeaponLifecycleAutomationTests;
+
+	UWorld* World = CreateLifecycleTestWorld();
+	if (!TestNotNull(TEXT("Client owner rebind world created"), World))
+	{
+		return false;
+	}
+
+	AShooterWeaponPresentationTestCharacter* FirstCharacter =
+		SpawnLifecycleTestCharacter(*this, World);
+	AShooterWeaponPresentationTestCharacter* SecondCharacter =
+		World->SpawnActor<AShooterWeaponPresentationTestCharacter>(
+			FVector(200.0f, 0.0f, 0.0f),
+			FRotator::ZeroRotator);
+	AShooterWeaponLifecycleTestWeapon* Weapon =
+		World->SpawnActor<AShooterWeaponLifecycleTestWeapon>(
+			FVector::ZeroVector,
+			FRotator::ZeroRotator);
+	if (!FirstCharacter ||
+		!TestNotNull(TEXT("Second client owner character spawned"), SecondCharacter) ||
+		!TestNotNull(TEXT("Client owner rebind weapon spawned"), Weapon))
+	{
+		DestroyLifecycleTestWorld(World);
+		return false;
+	}
+
+	// 模拟客户端先收到 Owner=A，再收到池化释放的 Owner=nullptr。
+	Weapon->SimulateOwnerReplicationForTest(FirstCharacter);
+	TestTrue(TEXT("First replicated owner is cached"), Weapon->HasCachedOwnerActorForTest(FirstCharacter));
+
+	Weapon->SimulateOwnerReplicationForTest(nullptr);
+	TestFalse(TEXT("Owner clear removes the first owner cache"), Weapon->HasCachedOwnerActorForTest(FirstCharacter));
+	TestFalse(TEXT("Owner clear removes the holder cache"), Weapon->HasWeaponOwnerCacheForTest());
+
+	// 同一 Actor 随后复用给 B；A 的延迟销毁通知不得再作用到该武器。
+	Weapon->SimulateOwnerReplicationForTest(SecondCharacter);
+	TestTrue(TEXT("Reused weapon caches the second owner"), Weapon->HasCachedOwnerActorForTest(SecondCharacter));
+
+	FirstCharacter->OnDestroyed.Broadcast(FirstCharacter);
+	TestFalse(TEXT("Old owner destruction does not destroy the reused weapon"), Weapon->IsActorBeingDestroyed());
+	TestTrue(TEXT("Old owner destruction keeps the new owner"), Weapon->GetOwner() == SecondCharacter);
+	TestTrue(TEXT("Old owner destruction keeps the new owner cache"), Weapon->HasCachedOwnerActorForTest(SecondCharacter));
+
+	DestroyLifecycleTestWorld(World);
+	return true;
+}
+
 /** 切枪语义：Inventory 内切枪只发生 Equipped <-> Holstered，不进入 InPool、不进池。 */
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FShooterWeaponLifecycleSwitchKeepsHolsteredTest,

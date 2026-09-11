@@ -122,6 +122,14 @@ public:
 	}
 
 	bool HasWeaponOwnerCacheForTest() const { return WeaponOwner != nullptr; }
+	bool HasCachedOwnerActorForTest(const AActor* Actor) const { return CachedWeaponOwnerActor == Actor; }
+
+	/** 模拟客户端收到 Owner 属性复制并执行 RepNotify。 */
+	void SimulateOwnerReplicationForTest(AActor* ReplicatedOwner)
+	{
+		SetOwner(ReplicatedOwner);
+		OnRep_Owner();
+	}
 };
 
 /** 测试 Pickup：暴露 OnOverlap 与 WeaponClass 写入，供自动化驱动 Pickup 事务。 */
