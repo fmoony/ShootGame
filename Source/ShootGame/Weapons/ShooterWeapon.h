@@ -14,6 +14,7 @@ class IShooterWeaponHolder;
 class AShooterProjectile;
 class UShooterActorPoolSubsystem;
 class UShooterWeaponFireBehavior;
+class UShooterWeaponRuntimeSubsystem;
 struct FShooterWeaponConfigRow;
 struct FShooterWeaponFireContext;
 
@@ -80,6 +81,13 @@ protected:
 	FGuid BoundInstanceId;
 
 	/**
+	 * 武器种类身份：由 WeaponRuntimeSubsystem 在创建时一次写入，此后永不改变。
+	 * 复制给所有端；客户端据此从启动快照恢复静态表现配置（不查询 DataTable）。
+	 */
+	UPROPERTY(ReplicatedUsing = OnRep_WeaponId, VisibleAnywhere, BlueprintReadOnly, Category="Inventory")
+	FName WeaponId;
+
+	/**
 	 * 武器模板行名；复制给所有端，客户端与服务器通过同一张 DT_WeaponData 恢复只读配置。
 	 * 空名表示尚未绑定模板行（NPC / 测试兼容路径），此时沿用 WeaponActor 自身的默认配置。
 	 */
@@ -95,6 +103,9 @@ protected:
 
 	UFUNCTION()
 	void OnRep_BoundInstanceId();
+
+	UFUNCTION()
+	void OnRep_WeaponId();
 
 	UFUNCTION()
 	void OnRep_WeaponRowName();
@@ -250,6 +261,9 @@ protected:
 	/** 返回本 Actor 所在 World 的对象池；World 不支持或已销毁时返回 nullptr。 */
 	UShooterActorPoolSubsystem* GetPoolSubsystem() const;
 
+	/** 返回本 Actor 所在 World 的武器运行时子系统；World 不支持或已销毁时返回 nullptr。 */
+	UShooterWeaponRuntimeSubsystem* GetWeaponRuntimeSubsystem() const;
+
 	/**
 	 * 统一状态转换入口：状态未变化时是安全 no-op，真实变化时输出一条 Verbose 诊断。
 	 * 表现收敛会重复调用同一转换，诊断必须保持低噪声。
@@ -402,6 +416,22 @@ public:
 	 * 只服务一次性资产迁移工具与自动化测试构造行数据，不参与运行时游戏逻辑。
 	 */
 	FShooterWeaponConfigRow CaptureWeaponConfigRow() const;
+
+	/**
+	 * 服务器在 WeaponRuntimeSubsystem 预创建 / 弹性 Spawn 后一次调用：
+	 * 写入永久 WeaponId，并从启动冻结的 RuntimeConfig 快照应用静态配置。
+	 * 身份写入后不再改写；测试注入的子系统快照缺失时保持 Actor 默认配置。
+	 */
+	void InitializeWeaponIdentity(FName InWeaponId);
+
+	/** 返回武器种类身份；空名表示尚未由 WeaponRuntimeSubsystem 创建身份。 */
+	FName GetWeaponId() const { return WeaponId; }
+
+	//~ 新 WeaponId 池路径的租用回调（与 IShooterPoolableActor 旧路径并存至 S4 收口）
+	/** 从 WeaponRuntimeSubsystem 取出后调用：复位开火节拍并重新绑定 Owner 缓存；静态配置与 WeaponId 不变。 */
+	void OnAcquiredFromWeaponPool();
+	/** 归还 WeaponRuntimeSubsystem 前调用：停 Timer、解委托、回 InPool；WeaponId 与静态配置永久保留。 */
+	void OnReleasedToWeaponPool();
 
 	/**
 	 * 服务器权威：只绑定武器模板行、不建立 Inventory 实例（NPC 等无 Inventory 的拥有者），

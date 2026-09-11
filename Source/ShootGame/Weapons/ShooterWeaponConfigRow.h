@@ -40,6 +40,15 @@ struct SHOOTGAME_API FShooterWeaponConfigRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Actor")
 	TSubclassOf<AShooterWeapon> WeaponActorClass;
 
+	// ---- Pool ----
+
+	/**
+	 * 启动预热数量：服务器在 World 开始时为本 WeaponId 预创建的 WeaponActor 数。
+	 * 只控制预热规模，不限制运行时增长；可用池耗尽后按本行冻结快照弹性 Spawn。
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Pool", meta=(ClampMin=1, ClampMax=32))
+	int32 InitialPoolSize = 2;
+
 	// ---- Ammo ----
 
 	/** 弹匣容量；<=0 是非法配置，授予路径必须 fail closed。 */

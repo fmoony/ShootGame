@@ -24,6 +24,7 @@
 #include "Pool/ShooterActorPoolSubsystem.h"
 #include "ShooterWeaponConfigRow.h"
 #include "ShooterWeaponTable.h"
+#include "ShooterWeaponRuntimeSubsystem.h"
 
 namespace ShooterWeaponInventory
 {
@@ -179,6 +180,116 @@ void AShooterWeapon::OnRep_BoundInstanceId()
 			Equipment->HandleWeaponActorReady(this);
 		}
 	}
+}
+
+void AShooterWeapon::InitializeWeaponIdentity(FName InWeaponId)
+{
+	if (!HasAuthority() || WeaponId == InWeaponId)
+	{
+		return;
+	}
+
+	WeaponId = InWeaponId;
+
+	// 静态配置只从 WeaponRuntimeSubsystem 的启动快照应用；快照缺失时保持 Actor 默认配置（测试兼容）。
+	if (UShooterWeaponRuntimeSubsystem* Runtime = GetWeaponRuntimeSubsystem())
+	{
+		if (const FShooterWeaponConfigRow* Config = Runtime->FindRuntimeConfig(WeaponId))
+		{
+			ApplyWeaponRow(*Config);
+		}
+	}
+}
+
+void AShooterWeapon::OnRep_WeaponId()
+{
+	// 客户端：WeaponId 是创建后不变的初始复制数据，静态表现从本地启动快照恢复（内存查询，非 DataTable）。
+	if (!WeaponId.IsNone())
+	{
+		if (UShooterWeaponRuntimeSubsystem* Runtime = GetWeaponRuntimeSubsystem())
+		{
+			if (const FShooterWeaponConfigRow* Config = Runtime->FindRuntimeConfig(WeaponId))
+			{
+				ApplyWeaponRow(*Config);
+			}
+			else
+			{
+				UE_LOG(
+					LogShootGame,
+					Warning,
+					TEXT("WeaponActor cannot apply runtime config: Weapon=%s WeaponId=%s"),
+					*GetNameSafe(this),
+					*WeaponId.ToString());
+			}
+		}
+	}
+
+	// 行配置可能改变 AnimClass / Mesh，表现收敛走同一幂等入口补做。
+	if (AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(GetOwner()))
+	{
+		if (UShooterEquipmentComponent* Equipment = ShooterCharacter->GetEquipmentComponent())
+		{
+			Equipment->HandleWeaponActorReady(this);
+		}
+	}
+}
+
+UShooterWeaponRuntimeSubsystem* AShooterWeapon::GetWeaponRuntimeSubsystem() const
+{
+	const UWorld* World = GetWorld();
+	return World ? World->GetSubsystem<UShooterWeaponRuntimeSubsystem>() : nullptr;
+}
+
+void AShooterWeapon::OnAcquiredFromWeaponPool()
+{
+	// 租用复位：开火节拍与开火标志不跨租用继承；WeaponId 与静态配置永久保留。
+	TimeOfLastShot = 0.0f;
+	bIsFiring = false;
+
+	// 池在调用本回调前已写入新 Owner，这里重新绑定 Owner/Instigator 缓存与销毁委托。
+	InitializeWeaponOwner();
+
+	SetLifecycleState(EShooterWeaponLifecycleState::Holstered, TEXT("AcquiredFromWeaponPool"));
+
+	UE_LOG(
+		LogShootGame,
+		Verbose,
+		TEXT("WeaponActor acquired from weapon runtime pool: Weapon=%s WeaponId=%s Owner=%s"),
+		*GetNameSafe(this),
+		*WeaponId.ToString(),
+		*GetNameSafe(GetOwner()));
+}
+
+void AShooterWeapon::OnReleasedToWeaponPool()
+{
+	// 纵深防御：归还前必须已脱离装备态（Equipment 先清空当前装备）。
+	if (LifecycleState == EShooterWeaponLifecycleState::Equipped ||
+		LifecycleState == EShooterWeaponLifecycleState::Equipping)
+	{
+		DeactivateWeapon();
+	}
+
+	// 完整停止开火与换弹相关 Timer / Delegate。
+	StopFiring();
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(RefireTimer);
+	}
+
+	// 解除 Owner 销毁委托并清空 Owner 侧缓存；通用隐藏/Detach/Owner 清空由池统一执行。
+	ClearWeaponOwner();
+
+	// 清空旧身份兼容镜像（S2 起弹药权威迁入本 Actor 后改为恢复初始弹药）。
+	CurrentBullets = 0;
+	OnOutOfAmmo.Clear();
+	SetLifecycleState(EShooterWeaponLifecycleState::InPool, TEXT("ReleasedToWeaponPool"));
+
+	UE_LOG(
+		LogShootGame,
+		Verbose,
+		TEXT("WeaponActor released to weapon runtime pool: Weapon=%s WeaponId=%s"),
+		*GetNameSafe(this),
+		*WeaponId.ToString());
 }
 
 void AShooterWeapon::OnRep_WeaponRowName()
@@ -606,6 +717,8 @@ void AShooterWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	DOREPLIFETIME_CONDITION(AShooterWeapon, BoundInstanceId, COND_OwnerOnly);
 	// 武器模板行名是公共表现数据（第三人称 Mesh / AnimClass 由它恢复），复制给所有观察者。
 	DOREPLIFETIME(AShooterWeapon, WeaponRowName);
+	// 武器种类身份是创建后不变的初始复制数据；客户端从启动快照恢复静态表现配置。
+	DOREPLIFETIME(AShooterWeapon, WeaponId);
 }
 
 void AShooterWeapon::OnRep_CurrentBullets()
