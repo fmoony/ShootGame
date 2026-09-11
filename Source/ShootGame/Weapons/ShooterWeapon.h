@@ -7,6 +7,7 @@
 #include "ShooterAnimNotify_WeaponSound.h"
 #include "ShooterWeaponHolder.h"
 #include "Animation/AnimInstance.h"
+#include "ShooterPoolableActor.h"
 #include "ShooterWeapon.generated.h"
 
 class IShooterWeaponHolder;
@@ -14,6 +15,29 @@ class AShooterProjectile;
 class UShooterWeaponFireBehavior;
 class UShooterWeaponDefinition;
 struct FShooterWeaponFireContext;
+
+/**
+ * WeaponActor 生命周期状态（实施计划 4.4）：InPool -> Holstered -> Equipping -> Equipped -> Holstered -> InPool。
+ *
+ * 权威边界：
+ * - 服务器权威端是唯一执行状态转换拒绝的一端（B2 验证项「非法状态转换被拒绝」只在权威端成立）；
+ * - 客户端状态是对复制结果的镜像。BoundInstanceId 是 COND_OwnerOnly，远端客户端永远读不到，
+ *   因此客户端不参与拒绝判定，避免破坏远端第三人称武器表现（B2 修正项）；
+ * - 可见性不属于本状态机契约：隐藏由池统一归还清理、Inventory 授予后隐藏、
+ *   Equipment / Character 表现收敛负责激活时解除隐藏。状态本身只表达身份与装备语义。
+ */
+UENUM()
+enum class EShooterWeaponLifecycleState : uint8
+{
+	/** 在池内：无 Instance 绑定、无 Owner 缓存。 */
+	InPool,
+	/** 已授予并绑定 Instance：有 Owner、未装备。 */
+	Holstered,
+	/** 装备事务提交中：第一版在 Equipment 原子提交内瞬态通过，是 GA_Equip 时序的扩展点。 */
+	Equipping,
+	/** 当前装备：激活并对外表现。 */
+	Equipped,
+};
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FShooterWeaponOutOfAmmoDelegate, AShooterWeapon*);
 class USkeletalMeshComponent;
@@ -29,7 +53,7 @@ class USoundBase;
  *  Interacts with the weapon owner through the ShooterWeaponHolder interface
  */
 UCLASS(abstract)
-class SHOOTGAME_API AShooterWeapon : public AActor
+class SHOOTGAME_API AShooterWeapon : public AActor, public IShooterPoolableActor
 {
 	GENERATED_BODY()
 	
@@ -49,6 +73,9 @@ protected:
 	/** 绑定的 Inventory WeaponInstance 身份；OwnerOnly 复制，远端表现不需要该数据。 */
 	UPROPERTY(ReplicatedUsing = OnRep_BoundInstanceId, VisibleAnywhere, BlueprintReadOnly, Category="Inventory")
 	FGuid BoundInstanceId;
+
+	/** 生命周期状态；服务器权威，客户端经 OnRep 镜像，不复制。 */
+	EShooterWeaponLifecycleState LifecycleState = EShooterWeaponLifecycleState::InPool;
 
 	UFUNCTION()
 	void OnRep_BoundInstanceId();
@@ -204,10 +231,19 @@ public:
 	/** 刷新本地 CurrentBullets 镜像与拥有者 HUD；Inventory 数据变化时由两边共同调用。 */
 	void RefreshAmmoMirror();
 
-	/** Activates this weapon and gets it ready to fire */
+	/** 返回当前生命周期状态。 */
+	EShooterWeaponLifecycleState GetLifecycleState() const { return LifecycleState; }
+
+	/**
+	 * 装备事务开始：Holstered -> Equipping。
+	 * 由 Equipment 在原子提交入口调用；表现完成（ActivateWeapon）后进入 Equipped。
+	 */
+	void BeginEquipTransaction();
+
+	/** Activates this weapon and gets it ready to fire（Holstered/Equipping -> Equipped，InPool 拒绝） */
 	void ActivateWeapon();
 
-	/** Deactivates this weapon */
+	/** Deactivates this weapon（Equipped/Equipping -> Holstered，InPool 拒绝） */
 	void DeactivateWeapon();
 
 	/** Start firing this weapon */
@@ -317,8 +353,19 @@ public:
 	 */
 	UShooterWeaponFireBehavior* ResolveFireBehavior() const;
 
-	/** 服务器在创建 WeaponActor 后写入绑定关系。 */
-	void SetBoundInstanceId(const FGuid& InInstanceId) { BoundInstanceId = InInstanceId; }
+	/**
+	 * 服务器写入 Instance 绑定并驱动 InPool <-> Holstered 转换。
+	 * 权威端在 Equipped/Equipping 状态下拒绝改写（非法转换 fail closed）；
+	 * 客户端只镜像（远端读不到 OwnerOnly 的 BoundInstanceId）。
+	 */
+	void SetBoundInstanceId(const FGuid& InInstanceId);
+
+	//~ Begin IShooterPoolableActor
+	/** 池取出复位：清零开火节拍等运行时状态，并重新绑定新 Owner；Instance 绑定由 Inventory 在取出后写入。 */
+	virtual void OnAcquiredFromPool() override;
+	/** 池归还幂等清理：停 Timer、解 Delegate、清 Owner 缓存与 Instance 绑定，回到 InPool。 */
+	virtual void OnReleasedToPool() override;
+	//~ End IShooterPoolableActor
 
 	/** 判断当前是否还有可发射弹药；绑定 Inventory 时检查权威 MagazineAmmo。 */
 	bool CanConsumeAmmo() const;

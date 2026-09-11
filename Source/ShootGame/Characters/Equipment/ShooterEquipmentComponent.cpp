@@ -66,6 +66,13 @@ bool UShooterEquipmentComponent::EquipWeapon(const FGuid& InstanceId)
 		PreviousWeapon->StopFiring();
 	}
 
+	// 生命周期状态机：装备事务 Holstered -> Equipping；表现完成（ActivateWeapon）后进入 Equipped。
+	// 同武器重复提交保持幂等，不重复进入事务。
+	if (bChangedCurrentWeapon)
+	{
+		TargetWeapon->BeginEquipTransaction();
+	}
+
 	// 身份与实体必须作为同一事务原子提交。
 	ActiveWeaponInstanceId = InstanceId;
 	CurrentWeaponActor = TargetWeapon;

@@ -108,6 +108,12 @@ void AShooterWeapon::InitializeWeaponOwner()
 
 void AShooterWeapon::OnRep_BoundInstanceId()
 {
+	// 客户端状态镜像：绑定到达时 InPool -> Holstered；Equipped/Equipping 的表现状态不回退。
+	if (LifecycleState == EShooterWeaponLifecycleState::InPool && BoundInstanceId.IsValid())
+	{
+		LifecycleState = EShooterWeaponLifecycleState::Holstered;
+	}
+
 	if (AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(GetOwner()))
 	{
 		if (UShooterInventoryComponent* Inventory = ShooterCharacter->GetInventoryComponent();
@@ -121,6 +127,110 @@ void AShooterWeapon::OnRep_BoundInstanceId()
 		{
 			Equipment->HandleWeaponActorReady(this);
 		}
+	}
+}
+
+void AShooterWeapon::SetBoundInstanceId(const FGuid& InInstanceId)
+{
+	// 装备中的武器改写绑定是非法转换；Equipment 必须先清空当前装备。
+	// 只有权威端执行该拒绝：远端客户端拿不到 OwnerOnly 的 BoundInstanceId，
+	// 那里的状态是尽力而为的镜像，拒绝会误伤表现收敛路径。
+	if (HasAuthority() &&
+		(LifecycleState == EShooterWeaponLifecycleState::Equipped ||
+			LifecycleState == EShooterWeaponLifecycleState::Equipping))
+	{
+		UE_LOG(
+			LogShootGame,
+			Warning,
+			TEXT("WeaponActor SetBoundInstanceId rejected in state %d: Weapon=%s NewId=%s"),
+			static_cast<int32>(LifecycleState),
+			*GetNameSafe(this),
+			*InInstanceId.ToString());
+		return;
+	}
+
+	BoundInstanceId = InInstanceId;
+	LifecycleState = InInstanceId.IsValid()
+		? EShooterWeaponLifecycleState::Holstered
+		: EShooterWeaponLifecycleState::InPool;
+}
+
+void AShooterWeapon::OnAcquiredFromPool()
+{
+	// 复用复位：开火节拍与开火标志不跨绑定继承；Instance 绑定由 Inventory 在取出后写入。
+	TimeOfLastShot = 0.0f;
+	bIsFiring = false;
+
+	// 池在调用本回调前已写入新 Owner，这里必须重新绑定 Owner/Instigator 缓存与销毁委托，
+	// 否则复用后的武器会保留空 WeaponOwner，导致 HUD 与表现回调静默丢失。
+	InitializeWeaponOwner();
+
+	UE_LOG(
+		LogShootGame,
+		Verbose,
+		TEXT("WeaponActor acquired from pool: Weapon=%s Owner=%s"),
+		*GetNameSafe(this),
+		*GetNameSafe(GetOwner()));
+}
+
+void AShooterWeapon::OnReleasedToPool()
+{
+	// 纵深防御：归还前必须已脱离装备态（B3 顺序由 Equipment 先清空）。
+	if (LifecycleState == EShooterWeaponLifecycleState::Equipped ||
+		LifecycleState == EShooterWeaponLifecycleState::Equipping)
+	{
+		DeactivateWeapon();
+	}
+
+	// 完整停止开火与换弹相关 Timer / Delegate。
+	StopFiring();
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(RefireTimer);
+	}
+
+	// 解除 Owner 销毁委托并清空 Owner 侧缓存；通用隐藏/Detach/Owner 清空由池统一执行。
+	if (AActor* OwningActor = GetOwner())
+	{
+		OwningActor->OnDestroyed.RemoveAll(this);
+	}
+	WeaponOwner = nullptr;
+	PawnOwner = nullptr;
+
+	// 清空绑定（复制字段，Owner 客户端会收到清空）与弹药镜像，回到 InPool。
+	if (BoundInstanceId.IsValid())
+	{
+		BoundInstanceId = FGuid();
+	}
+	CurrentBullets = 0;
+	OnOutOfAmmo.Clear();
+	LifecycleState = EShooterWeaponLifecycleState::InPool;
+
+	UE_LOG(
+		LogShootGame,
+		Verbose,
+		TEXT("WeaponActor released to pool: Weapon=%s"),
+		*GetNameSafe(this));
+}
+
+void AShooterWeapon::BeginEquipTransaction()
+{
+	switch (LifecycleState)
+	{
+	case EShooterWeaponLifecycleState::Holstered:
+		LifecycleState = EShooterWeaponLifecycleState::Equipping;
+		break;
+	case EShooterWeaponLifecycleState::Equipping:
+		// 同一事务重复提交保持幂等。
+		break;
+	default:
+		UE_LOG(
+			LogShootGame,
+			Warning,
+			TEXT("WeaponActor BeginEquipTransaction rejected in state %d: Weapon=%s"),
+			static_cast<int32>(LifecycleState),
+			*GetNameSafe(this));
+		break;
 	}
 }
 
@@ -280,6 +390,27 @@ void AShooterWeapon::OnOwnerDestroyed(AActor* DestroyedActor)
 
 void AShooterWeapon::ActivateWeapon()
 {
+	// 池内武器不可直接装备；必须先完成 Instance 绑定（Holstered）。
+	// 拒绝只在权威端生效：远端客户端的绑定是 OwnerOnly，状态停在 InPool 属于正常镜像，
+	// 若在那里拒绝会永久丢失远端第三人称武器的 AnimClass / 激活表现。
+	if (HasAuthority() && LifecycleState == EShooterWeaponLifecycleState::InPool)
+	{
+		UE_LOG(
+			LogShootGame,
+			Warning,
+			TEXT("WeaponActor ActivateWeapon rejected in InPool state: Weapon=%s"),
+			*GetNameSafe(this));
+		return;
+	}
+
+	// 重复激活保持幂等，表现收敛入口会多次调用。
+	if (LifecycleState == EShooterWeaponLifecycleState::Equipped)
+	{
+		return;
+	}
+
+	LifecycleState = EShooterWeaponLifecycleState::Equipped;
+
 	// unhide this weapon
 	SetActorHiddenInGame(false);
 
@@ -292,6 +423,17 @@ void AShooterWeapon::ActivateWeapon()
 
 void AShooterWeapon::DeactivateWeapon()
 {
+	// 权威端重复卸下幂等：池内或已收起时不重复触发表现回调。
+	// 客户端不做该提前返回，保持与池化前的本地隐藏时机一致。
+	if (HasAuthority() &&
+		(LifecycleState == EShooterWeaponLifecycleState::InPool ||
+			LifecycleState == EShooterWeaponLifecycleState::Holstered))
+	{
+		return;
+	}
+
+	LifecycleState = EShooterWeaponLifecycleState::Holstered;
+
 	// ensure we're no longer firing this weapon while deactivated
 	StopFiring();
 

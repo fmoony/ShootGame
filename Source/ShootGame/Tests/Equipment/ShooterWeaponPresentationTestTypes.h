@@ -106,6 +106,37 @@ public:
 	bool bDeactivatedForTest = false;
 };
 
+/** 生命周期测试武器：暴露 RefireTimer 与 WeaponOwner 供池化断言。 */
+UCLASS(Transient, NotBlueprintable)
+class AShooterWeaponLifecycleTestWeapon : public AShooterWeapon
+{
+	GENERATED_BODY()
+
+public:
+	AShooterWeaponLifecycleTestWeapon()
+	{
+		MagazineSize = 10;
+	}
+
+	bool IsRefireTimerActiveForTest() const
+	{
+		const UWorld* World = GetWorld();
+		return World && World->GetTimerManager().IsTimerActive(RefireTimer);
+	}
+
+	void ArmRefireTimerForTest()
+	{
+		GetWorld()->GetTimerManager().SetTimer(
+			RefireTimer,
+			this,
+			&AShooterWeaponLifecycleTestWeapon::FireCooldownExpired,
+			60.0f,
+			false);
+	}
+
+	bool HasWeaponOwnerCacheForTest() const { return WeaponOwner != nullptr; }
+};
+
 /** 测试 Pickup：暴露 OnOverlap 与 WeaponClass 写入，供自动化驱动 Pickup 事务。 */
 UCLASS(Transient, NotBlueprintable)
 class AShooterWeaponPresentationTestPickup : public AShooterPickup
