@@ -1,15 +1,19 @@
+# UE 风格基础排版；断行由 Docs/代码规范.md 的 120/140 规则决定。
+# ColumnLimit 为 0 表示 clang-format 不负责自动折行。
 BasedOnStyle: Microsoft
 Language: Cpp
 Standard: Latest
-ColumnLimit: 120
+ColumnLimit: 0
 IndentWidth: 4
 ContinuationIndentWidth: 4
 TabWidth: 4
 UseTab: ForIndentation
 BreakBeforeBraces: Allman
 BreakBeforeBinaryOperators: None
-BinPackArguments: false
-BinPackParameters: false
+BinPackArguments: true
+BinPackParameters: true
+AllowAllArgumentsOnNextLine: true
+AllowAllParametersOfDeclarationOnNextLine: true
 AllowShortFunctionsOnASingleLine: Inline
 AllowShortIfStatementsOnASingleLine: Never
 AllowShortLoopsOnASingleLine: false
