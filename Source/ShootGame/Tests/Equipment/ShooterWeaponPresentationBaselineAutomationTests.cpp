@@ -176,13 +176,11 @@ bool FShooterWeaponPresentationBaselineTest::RunTest(const FString& Parameters)
 		return false;
 	}
 
-	FGuid PrimaryId;
-	FGuid SecondaryId;
 	EShooterInventoryAddResult PrimaryAddResult = EShooterInventoryAddResult::NotAuthoritative;
-	GrantTestWeaponRow(
+	AShooterWeapon* PrimaryWeapon = GrantTestWeapon(
+		World,
 		Inventory,
 		AShooterWeaponPresentationTestWeaponPrimary::StaticClass(),
-		PrimaryId,
 		/*MagazineSize*/ 10,
 		/*InitialReserveAmmo*/ -1,
 		&PrimaryAddResult);
@@ -193,15 +191,15 @@ bool FShooterWeaponPresentationBaselineTest::RunTest(const FString& Parameters)
 
 	// 无网络驱动的测试 World 不会自动走 PostNetInit 的 BeginPlay 补偿；
 	// 这里显式补齐，使 WeaponOwner 初始化与生产服务器路径一致。
-	AShooterWeapon* SpawnedPrimaryWeapon = Inventory->FindWeaponActor(PrimaryId);
+	AShooterWeapon* SpawnedPrimaryWeapon = PrimaryWeapon;
 	if (SpawnedPrimaryWeapon && !SpawnedPrimaryWeapon->HasActorBegunPlay())
 	{
 		SpawnedPrimaryWeapon->DispatchBeginPlay();
 	}
 
-	TestTrue(TEXT("Primary weapon is equipped"), Equipment->EquipWeapon(PrimaryId));
+	TestTrue(TEXT("Primary weapon is equipped"), Equipment->EquipWeapon(PrimaryWeapon));
 
-	AShooterWeapon* PrimaryWeapon = Equipment->GetCurrentWeaponActor();
+	PrimaryWeapon = Equipment->GetCurrentWeaponActor();
 	if (!TestNotNull(TEXT("Primary weapon becomes current"), PrimaryWeapon))
 	{
 		DestroyPresentationTestWorld(World);
@@ -238,10 +236,10 @@ bool FShooterWeaponPresentationBaselineTest::RunTest(const FString& Parameters)
 
 	// 切枪：旧武器隐藏，新武器可见，AnimClass 同步切换。
 	EShooterInventoryAddResult SecondaryAddResult = EShooterInventoryAddResult::NotAuthoritative;
-	GrantTestWeaponRow(
+	AShooterWeapon* SecondaryWeapon = GrantTestWeapon(
+		World,
 		Inventory,
 		AShooterWeaponPresentationTestWeaponSecondary::StaticClass(),
-		SecondaryId,
 		/*MagazineSize*/ 10,
 		/*InitialReserveAmmo*/ -1,
 		&SecondaryAddResult);
@@ -250,15 +248,15 @@ bool FShooterWeaponPresentationBaselineTest::RunTest(const FString& Parameters)
 		static_cast<int32>(SecondaryAddResult),
 		static_cast<int32>(EShooterInventoryAddResult::Added));
 
-	AShooterWeapon* SpawnedSecondaryWeapon = Inventory->FindWeaponActor(SecondaryId);
+	AShooterWeapon* SpawnedSecondaryWeapon = SecondaryWeapon;
 	if (SpawnedSecondaryWeapon && !SpawnedSecondaryWeapon->HasActorBegunPlay())
 	{
 		SpawnedSecondaryWeapon->DispatchBeginPlay();
 	}
 
-	TestTrue(TEXT("Secondary weapon is equipped"), Equipment->EquipWeapon(SecondaryId));
+	TestTrue(TEXT("Secondary weapon is equipped"), Equipment->EquipWeapon(SecondaryWeapon));
 
-	AShooterWeapon* SecondaryWeapon = Equipment->GetCurrentWeaponActor();
+	SecondaryWeapon = Equipment->GetCurrentWeaponActor();
 	if (!TestNotNull(TEXT("Secondary weapon becomes current"), SecondaryWeapon))
 	{
 		DestroyPresentationTestWorld(World);

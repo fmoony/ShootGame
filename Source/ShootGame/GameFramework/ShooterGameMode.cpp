@@ -15,9 +15,9 @@
 #include "ShooterGameplayTags.h"
 #include "Weapons/ShooterWeapon.h"
 #include "Weapons/ShooterWeaponHolder.h"
+#include "Weapons/ShooterWeaponRuntimeSubsystem.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
-#include "Pool/ShooterActorPoolSubsystem.h"
 #include "Tests/Network/ShooterNetworkTestCoordinator.h"
 #include "TimerManager.h"
 
@@ -98,8 +98,8 @@ void AShooterGameMode::Logout(AController* Exiting)
 				int32 PooledWeaponCount = 0;
 				int32 DirtyPooledWeaponCount = 0;
 				int32 OrphanWeaponCount = 0;
-				const UShooterActorPoolSubsystem* WeaponPool =
-					TestWorld->GetSubsystem<UShooterActorPoolSubsystem>();
+				const UShooterWeaponRuntimeSubsystem* WeaponRuntime =
+					TestWorld->GetSubsystem<UShooterWeaponRuntimeSubsystem>();
 				for (TActorIterator<AShooterWeapon> It(TestWorld.Get()); It; ++It)
 				{
 					if (It->IsActorBeingDestroyed())
@@ -107,19 +107,18 @@ void AShooterGameMode::Logout(AController* Exiting)
 						continue;
 					}
 
-					// B3：断线清理把 WeaponActor 归还对象池，池化武器仍是 World 中的合法 Actor
-					// （隐藏、无 Owner、无 Instance 绑定）。它们不是断线残留，
+					// 断线清理把 WeaponActor 归还运行时池，池化武器仍是 World 中的合法 Actor
+					// （隐藏、无 Owner、InPool）。它们不是断线残留，
 					// 必须与真正遗留的活动武器分开计数，否则会把池化回收误判为清理失败。
-					if (WeaponPool && WeaponPool->IsPooled(*It))
+					if (WeaponRuntime && WeaponRuntime->IsPooled(*It))
 					{
 						++PooledWeaponCount;
 
-						// B3 收口：归还池的 Actor 必须处于干净的可复用状态，
+						// 归还池的 Actor 必须处于干净的可复用状态，
 						// 否则下一次 Acquire 会把断线玩家的残留身份 / 表现串给后续玩家。
+						// 注意：WeaponId 与静态配置在新模型下永久保留，不属于残留状态。
 						const bool bHasResidualState =
 							It->GetOwner() != nullptr ||
-							It->GetBoundInstanceId().IsValid() ||
-							!It->GetWeaponRowName().IsNone() ||
 							!It->IsHidden() ||
 							It->GetLifecycleState() != EShooterWeaponLifecycleState::InPool;
 						if (bHasResidualState)
@@ -128,11 +127,10 @@ void AShooterGameMode::Logout(AController* Exiting)
 							UE_LOG(
 								LogShootGame,
 								Error,
-								TEXT("Pooled WeaponActor carries residual state: Weapon=%s Owner=%s InstanceId=%s Row=%s Hidden=%s Lifecycle=%d"),
+								TEXT("Pooled WeaponActor carries residual state: Weapon=%s WeaponId=%s Owner=%s Hidden=%s Lifecycle=%d"),
 								*GetNameSafe(*It),
+								*It->GetWeaponId().ToString(),
 								*GetNameSafe(It->GetOwner()),
-								*It->GetBoundInstanceId().ToString(),
-								*It->GetWeaponRowName().ToString(),
 								It->IsHidden() ? TEXT("true") : TEXT("false"),
 								static_cast<int32>(It->GetLifecycleState()));
 						}

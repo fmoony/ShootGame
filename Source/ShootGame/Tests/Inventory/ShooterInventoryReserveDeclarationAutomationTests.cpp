@@ -80,28 +80,28 @@ namespace ShooterInventoryReserveDeclarationAutomationTests
 			return INDEX_NONE;
 		}
 
-		FGuid InstanceId;
 		EShooterInventoryAddResult AddResult = EShooterInventoryAddResult::NotAuthoritative;
-		GrantTestWeaponRow(
+		AShooterWeapon* Weapon = GrantTestWeapon(
+			Inventory->GetWorld(),
 			Inventory,
 			WeaponClass,
-			InstanceId,
 			/*MagazineSize*/ WeaponDefaults->GetMagazineSize(),
 			/*InitialReserveAmmo*/ WeaponDefaults->GetInitialReserveAmmo(),
 			&AddResult);
 		if (!Test.TestEqual(
 			GrantLabel,
 			static_cast<int32>(AddResult),
-			static_cast<int32>(EShooterInventoryAddResult::Added)))
+			static_cast<int32>(EShooterInventoryAddResult::Added)) ||
+			!Test.TestNotNull(TEXT("Reserve test weapon granted"), Weapon))
 		{
 			return INDEX_NONE;
 		}
 
 		Test.TestEqual(
-			TEXT("Granted instance magazine comes from the granted weapon row"),
-			Inventory->GetMagazineAmmo(InstanceId),
+			TEXT("Granted weapon magazine comes from the runtime snapshot"),
+			Weapon->GetBulletCount(),
 			WeaponDefaults->GetMagazineSize());
-		return Inventory->GetReserveAmmo(InstanceId);
+		return Weapon->GetReserveAmmo();
 	}
 }
 

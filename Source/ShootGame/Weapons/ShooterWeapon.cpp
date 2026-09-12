@@ -8,7 +8,6 @@
 #include "ShootGame.h"
 #include "Characters/Equipment/ShooterEquipmentComponent.h"
 #include "ShooterCharacter.h"
-#include "ShooterInventoryComponent.h"
 #include "ShooterProjectile.h"
 #include "ShooterWeaponHolder.h"
 #include "ShooterWeaponFireBehavior.h"
@@ -21,26 +20,9 @@
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
 #include "Net/UnrealNetwork.h"
-#include "Pool/ShooterActorPoolSubsystem.h"
 #include "ShooterWeaponConfigRow.h"
 #include "ShooterWeaponTable.h"
 #include "ShooterWeaponRuntimeSubsystem.h"
-
-namespace ShooterWeaponInventory
-{
-	UShooterInventoryComponent* FindInventory(const AActor* WeaponActor)
-	{
-		const AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(
-			WeaponActor ? WeaponActor->GetOwner() : nullptr);
-		return ShooterCharacter ? ShooterCharacter->GetInventoryComponent() : nullptr;
-	}
-
-	const FShooterWeaponInstanceData* FindInstance(const AShooterWeapon* Weapon)
-	{
-		UShooterInventoryComponent* Inventory = FindInventory(Weapon);
-		return Inventory ? Inventory->FindWeaponInstance(Weapon->GetBoundInstanceId()) : nullptr;
-	}
-}
 
 namespace
 {
@@ -125,12 +107,6 @@ void AShooterWeapon::InitializeWeaponOwner()
 
 	if (AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(OwningActor))
 	{
-		if (UShooterInventoryComponent* Inventory = ShooterCharacter->GetInventoryComponent();
-			Inventory && BoundInstanceId.IsValid())
-		{
-			Inventory->RegisterWeaponActor(this);
-		}
-
 		// R4：玩家武器不再由 Weapon.BeginPlay/OwnerRep 自动附着；
 		// 是否附着/激活只由 Equipment 根据“是否当前装备”决定。
 		if (UShooterEquipmentComponent* Equipment = ShooterCharacter->GetEquipmentComponent())
@@ -158,30 +134,6 @@ void AShooterWeapon::ClearWeaponOwner()
 	PawnOwner = nullptr;
 }
 
-void AShooterWeapon::OnRep_BoundInstanceId()
-{
-	// 客户端状态镜像：绑定到达时 InPool -> Holstered；Equipped/Equipping 的表现状态不回退。
-	if (LifecycleState == EShooterWeaponLifecycleState::InPool && BoundInstanceId.IsValid())
-	{
-		SetLifecycleState(EShooterWeaponLifecycleState::Holstered, TEXT("ClientReplicatedBinding"));
-	}
-
-	if (AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(GetOwner()))
-	{
-		if (UShooterInventoryComponent* Inventory = ShooterCharacter->GetInventoryComponent();
-			Inventory && BoundInstanceId.IsValid())
-		{
-			Inventory->RegisterWeaponActor(this);
-		}
-
-		// BoundInstanceId 到达后，当前武器若已复制到 Equipment，这里补做幂等应用。
-		if (UShooterEquipmentComponent* Equipment = ShooterCharacter->GetEquipmentComponent())
-		{
-			Equipment->HandleWeaponActorReady(this);
-		}
-	}
-}
-
 void AShooterWeapon::InitializeWeaponIdentity(FName InWeaponId)
 {
 	if (!HasAuthority() || WeaponId == InWeaponId)
@@ -197,6 +149,33 @@ void AShooterWeapon::InitializeWeaponIdentity(FName InWeaponId)
 		if (const FShooterWeaponConfigRow* Config = Runtime->FindRuntimeConfig(WeaponId))
 		{
 			ApplyWeaponRow(*Config);
+		}
+	}
+}
+
+void AShooterWeapon::OnRep_WeaponRowName()
+{
+	// NPC 兼容路径：客户端通过同一张表恢复只读配置（S4 迁移 NPC 入池后随字段一并删除）。
+	if (const FShooterWeaponConfigRow* Row = ResolveWeaponRow())
+	{
+		ApplyWeaponRow(*Row);
+	}
+	else if (!WeaponRowName.IsNone())
+	{
+		UE_LOG(
+			LogShootGame,
+			Warning,
+			TEXT("WeaponActor cannot apply weapon row: Weapon=%s Row=%s"),
+			*GetNameSafe(this),
+			*WeaponRowName.ToString());
+	}
+
+	// 行配置可能改变 AnimClass / Mesh，表现收敛走同一幂等入口补做。
+	if (AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(GetOwner()))
+	{
+		if (UShooterEquipmentComponent* Equipment = ShooterCharacter->GetEquipmentComponent())
+		{
+			Equipment->HandleWeaponActorReady(this);
 		}
 	}
 }
@@ -292,33 +271,6 @@ void AShooterWeapon::OnReleasedToWeaponPool()
 		*WeaponId.ToString());
 }
 
-void AShooterWeapon::OnRep_WeaponRowName()
-{
-	// 客户端与服务器通过同一张表恢复只读配置；行名先于或晚于 BoundInstanceId 到达都能收敛。
-	if (const FShooterWeaponConfigRow* Row = ResolveWeaponRow())
-	{
-		ApplyWeaponRow(*Row);
-	}
-	else if (!WeaponRowName.IsNone())
-	{
-		UE_LOG(
-			LogShootGame,
-			Warning,
-			TEXT("WeaponActor cannot apply weapon row: Weapon=%s Row=%s"),
-			*GetNameSafe(this),
-			*WeaponRowName.ToString());
-	}
-
-	// 行配置可能改变 AnimClass / Mesh，表现收敛走同一幂等入口补做。
-	if (AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(GetOwner()))
-	{
-		if (UShooterEquipmentComponent* Equipment = ShooterCharacter->GetEquipmentComponent())
-		{
-			Equipment->HandleWeaponActorReady(this);
-		}
-	}
-}
-
 const FShooterWeaponConfigRow* AShooterWeapon::ResolveWeaponRow() const
 {
 	if (WeaponRowName.IsNone())
@@ -326,16 +278,7 @@ const FShooterWeaponConfigRow* AShooterWeapon::ResolveWeaponRow() const
 		return nullptr;
 	}
 
-	// 玩家武器经拥有者的 Inventory 解析，保证注入表（测试）与生产表口径一致。
-	if (const AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(GetOwner()))
-	{
-		if (const UShooterInventoryComponent* Inventory = ShooterCharacter->GetInventoryComponent())
-		{
-			return Inventory->ResolveWeaponRow(WeaponRowName);
-		}
-	}
-
-	// NPC 等没有 Inventory 的拥有者直接走集中解析入口。
+	// NPC 兼容路径（S4 删除）：玩家正式路径不再查表，直接走集中解析入口。
 	return ShooterWeaponTable::FindWeaponRow(
 		ShooterWeaponTable::ResolveWeaponTable(),
 		WeaponRowName);
@@ -394,58 +337,6 @@ void AShooterWeapon::ApplyWeaponRow(const FShooterWeaponConfigRow& Row)
 	if (HasAuthority())
 	{
 		RestoreInitialAmmo();
-	}
-}
-
-void AShooterWeapon::SetInstanceBinding(const FGuid& InInstanceId, FName InWeaponRowName)
-{
-	// 装备中的武器改写绑定是非法转换；Equipment 必须先清空当前装备。
-	// 只有权威端执行该拒绝：远端客户端拿不到 OwnerOnly 的 BoundInstanceId，
-	// 那里的状态是尽力而为的镜像，拒绝会误伤表现收敛路径。
-	if (HasAuthority() &&
-		(LifecycleState == EShooterWeaponLifecycleState::Equipped ||
-			LifecycleState == EShooterWeaponLifecycleState::Equipping))
-	{
-		UE_LOG(
-			LogShootGame,
-			Warning,
-			TEXT("WeaponActor SetInstanceBinding rejected in state %s: Weapon=%s NewId=%s Row=%s"),
-			LifecycleStateToString(LifecycleState),
-			*GetNameSafe(this),
-			*InInstanceId.ToString(),
-			*InWeaponRowName.ToString());
-		return;
-	}
-
-	BoundInstanceId = InInstanceId;
-	WeaponRowName = InWeaponRowName;
-	SetLifecycleState(
-		InInstanceId.IsValid()
-			? EShooterWeaponLifecycleState::Holstered
-			: EShooterWeaponLifecycleState::InPool,
-		TEXT("InstanceBinding"));
-
-	UE_LOG(
-		LogShootGame,
-		Verbose,
-		TEXT("WeaponActor instance bound: Weapon=%s InstanceId=%s Row=%s"),
-		*GetNameSafe(this),
-		*InInstanceId.ToString(),
-		*InWeaponRowName.ToString());
-
-	// 服务器与 Owner 客户端都必须在任何表现/开火消费之前应用行配置。
-	if (const FShooterWeaponConfigRow* Row = ResolveWeaponRow())
-	{
-		ApplyWeaponRow(*Row);
-	}
-	else if (!WeaponRowName.IsNone())
-	{
-		UE_LOG(
-			LogShootGame,
-			Warning,
-			TEXT("WeaponActor cannot apply weapon row on bind: Weapon=%s Row=%s"),
-			*GetNameSafe(this),
-			*WeaponRowName.ToString());
 	}
 }
 
@@ -517,69 +408,6 @@ void AShooterWeapon::SetWeaponRow(FName InWeaponRowName)
 	}
 }
 
-void AShooterWeapon::OnAcquiredFromPool()
-{
-	// 复用复位：开火节拍与开火标志不跨绑定继承；Instance 绑定由 Inventory 在取出后写入。
-	TimeOfLastShot = 0.0f;
-	bIsFiring = false;
-
-	// 池在调用本回调前已写入新 Owner，这里必须重新绑定 Owner/Instigator 缓存与销毁委托，
-	// 否则复用后的武器会保留空 WeaponOwner，导致 HUD 与表现回调静默丢失。
-	InitializeWeaponOwner();
-
-	UE_LOG(
-		LogShootGame,
-		Verbose,
-		TEXT("WeaponActor acquired from pool: Weapon=%s Owner=%s"),
-		*GetNameSafe(this),
-		*GetNameSafe(GetOwner()));
-}
-
-void AShooterWeapon::OnReleasedToPool()
-{
-	// Inventory Actor 映射必须在这里解除：解除发生在清空 BoundInstanceId 之前，
-	// 让 Inventory 侧日志仍能看到被移除的 Instance 身份；重复解除是安全 no-op。
-	if (UShooterInventoryComponent* Inventory = ShooterWeaponInventory::FindInventory(this))
-	{
-		Inventory->UnregisterWeaponActor(this);
-	}
-
-	// 纵深防御：归还前必须已脱离装备态（B3 顺序由 Equipment 先清空）。
-	if (LifecycleState == EShooterWeaponLifecycleState::Equipped ||
-		LifecycleState == EShooterWeaponLifecycleState::Equipping)
-	{
-		DeactivateWeapon();
-	}
-
-	// 完整停止开火与换弹相关 Timer / Delegate。
-	StopFiring();
-	if (UWorld* World = GetWorld())
-	{
-		World->GetTimerManager().ClearTimer(RefireTimer);
-	}
-
-	// 解除 Owner 销毁委托并清空 Owner 侧缓存；通用隐藏/Detach/Owner 清空由池统一执行。
-	ClearWeaponOwner();
-
-	// 清空绑定（复制字段，Owner 客户端会收到清空）并恢复该武器的初始弹药，回到 InPool。
-	if (BoundInstanceId.IsValid())
-	{
-		BoundInstanceId = FGuid();
-	}
-	// 行绑定与行为实例属于运行时状态：归还后不得跨绑定继承；模板行本身只读，不受影响。
-	WeaponRowName = NAME_None;
-	FireBehaviorInstance = nullptr;
-	RestoreInitialAmmo();
-	OnOutOfAmmo.Clear();
-	SetLifecycleState(EShooterWeaponLifecycleState::InPool, TEXT("ReleasedToPool"));
-
-	UE_LOG(
-		LogShootGame,
-		Verbose,
-		TEXT("WeaponActor released to pool: Weapon=%s"),
-		*GetNameSafe(this));
-}
-
 void AShooterWeapon::BeginEquipTransaction()
 {
 	switch (LifecycleState)
@@ -617,14 +445,13 @@ void AShooterWeapon::SetLifecycleState(
 	UE_LOG(
 		LogShootGame,
 		Verbose,
-		TEXT("WeaponActor lifecycle %s -> %s (%s): Weapon=%s Owner=%s InstanceId=%s Row=%s"),
+		TEXT("WeaponActor lifecycle %s -> %s (%s): Weapon=%s Owner=%s WeaponId=%s"),
 		LifecycleStateToString(PreviousState),
 		LifecycleStateToString(NewState),
 		Reason ? Reason : TEXT("Unspecified"),
 		*GetNameSafe(this),
 		*GetNameSafe(GetOwner()),
-		*BoundInstanceId.ToString(),
-		*WeaponRowName.ToString());
+		*WeaponId.ToString());
 }
 
 int32 AShooterWeapon::GetBulletCount() const
@@ -724,9 +551,7 @@ void AShooterWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	// 弹药只与拥有该武器的客户端相关。
 	DOREPLIFETIME_CONDITION(AShooterWeapon, MagazineAmmo, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(AShooterWeapon, ReserveAmmo, COND_OwnerOnly);
-	// 只有 Owner 需要知道该 Actor 对应哪个 WeaponInstance；远端表现只看 Character.CurrentWeapon。
-	DOREPLIFETIME_CONDITION(AShooterWeapon, BoundInstanceId, COND_OwnerOnly);
-	// 武器模板行名是公共表现数据（第三人称 Mesh / AnimClass 由它恢复），复制给所有观察者。
+	// NPC 兼容路径的模板行名仍复制给所有端（S4 删除）。
 	DOREPLIFETIME(AShooterWeapon, WeaponRowName);
 	// 武器种类身份是创建后不变的初始复制数据；客户端从启动快照恢复静态表现配置。
 	DOREPLIFETIME(AShooterWeapon, WeaponId);
@@ -752,15 +577,10 @@ void AShooterWeapon::EndPlay(EEndPlayReason::Type EndPlayReason)
 		World->GetTimerManager().ClearTimer(RefireTimer);
 	}
 
-	// teardown 幂等边界：World 销毁 / 拥有者销毁 / 池容量溢出销毁都走这里，
-	// 必须解除 Owner 销毁委托与 Inventory Actor 映射，避免留下指向已销毁 Actor 的引用。
+	// teardown 幂等边界：World 销毁 / 拥有者销毁 / 池溢出销毁都走这里，
+	// 必须解除 Owner 销毁委托，避免留下指向已销毁 Actor 的引用。
 	// 注意这里不归还池：正在销毁的 Actor 只能被销毁，归还由 Inventory / 拥有者清理路径负责。
 	ClearWeaponOwner();
-
-	if (UShooterInventoryComponent* Inventory = ShooterWeaponInventory::FindInventory(this))
-	{
-		Inventory->UnregisterWeaponActor(this);
-	}
 
 	bIsFiring = false;
 	OnOutOfAmmo.Clear();
@@ -768,33 +588,25 @@ void AShooterWeapon::EndPlay(EEndPlayReason::Type EndPlayReason)
 
 void AShooterWeapon::OnOwnerDestroyed(AActor* DestroyedActor)
 {
-	// 池化武器由池接管回收：归还而不是销毁，否则池会留下 PendingKill 引用，
-	// 且该 Actor 只能等 GC 才能复用。Inventory 侧映射由归还清理统一解除。
-	// 先判是否由池管理：非池出生（NPC / 测试直接 Spawn）是受支持的兼容路径，
-	// 不应触发池自身的 fail closed 警告。
-	if (UShooterActorPoolSubsystem* Pool = GetPoolSubsystem(); Pool && Pool->IsManaged(this))
+	// 运行时池租出的武器由池接管回收：归还而不是销毁，否则池会留下 PendingKill 引用，
+	// 且该 Actor 只能等 GC 才能复用。归还前由 Inventory 清空 / Equipment 收敛。
+	if (UShooterWeaponRuntimeSubsystem* Runtime = GetWeaponRuntimeSubsystem();
+		Runtime && Runtime->IsLeased(this))
 	{
-		if (Pool->Release(this))
+		if (Runtime->ReleaseWeapon(this))
 		{
 			return;
 		}
 	}
 
-	// 非池出生（NPC / 测试直接 Spawn）保持原有销毁语义。
+	// 非池出生（NPC 兼容路径 / 测试直接 Spawn）保持原有销毁语义。
 	Destroy();
-}
-
-UShooterActorPoolSubsystem* AShooterWeapon::GetPoolSubsystem() const
-{
-	const UWorld* World = GetWorld();
-	return World ? World->GetSubsystem<UShooterActorPoolSubsystem>() : nullptr;
 }
 
 void AShooterWeapon::ActivateWeapon()
 {
-	// 池内武器不可直接装备；必须先完成 Instance 绑定（Holstered）。
-	// 拒绝只在权威端生效：远端客户端的绑定是 OwnerOnly，状态停在 InPool 属于正常镜像，
-	// 若在那里拒绝会永久丢失远端第三人称武器的 AnimClass / 激活表现。
+	// 池内武器不可直接装备；必须先由运行时池租出（Holstered）。
+	// 拒绝只在权威端生效：客户端状态是复制镜像，在那里拒绝会永久丢失远端第三人称表现。
 	if (HasAuthority() && LifecycleState == EShooterWeaponLifecycleState::InPool)
 	{
 		UE_LOG(
@@ -943,7 +755,7 @@ UShooterWeaponFireBehavior* AShooterWeapon::ResolveFireBehavior() const
 
 void AShooterWeapon::ExecuteFireAtTarget(const FVector& TargetLocation)
 {
-	// 攻击结果边界：绑定行且行配置了行为类时只委托行为；否则走 NPC / 旧测试兼容路径。
+	// 攻击结果边界：配置了行为类时只委托行为；否则走 NPC / 旧测试兼容路径。
 	if (UShooterWeaponFireBehavior* Behavior = ResolveFireBehavior())
 	{
 		FShooterWeaponFireContext Context;
@@ -951,11 +763,7 @@ void AShooterWeapon::ExecuteFireAtTarget(const FVector& TargetLocation)
 		Context.Instigator = PawnOwner;
 		Context.TargetLocation = TargetLocation;
 		Context.MuzzleTransform = CalculateProjectileSpawnTransform(TargetLocation);
-		if (const FShooterWeaponInstanceData* Instance = ShooterWeaponInventory::FindInstance(this))
-		{
-			Context.InstanceId = Instance->InstanceId;
-		}
-		Context.WeaponRowName = WeaponRowName;
+		Context.WeaponId = WeaponId;
 		// 行为只读 Actor 冻结的配置快照，不再解析任何配置资产。
 		Context.Config = ConfigSnapshot;
 		Behavior->ExecuteFire(Context);
@@ -974,8 +782,8 @@ void AShooterWeapon::ExecuteFireAtTarget(const FVector& TargetLocation)
 	// add recoil
 	WeaponOwner->AddWeaponRecoil(FiringRecoil);
 
-	// 未绑定 Inventory 的旧路径（如 NPC）保留自动补弹兼容：弹匣打空即回满。
-	if (!BoundInstanceId.IsValid())
+	// NPC 兼容路径（拥有者不是带 Inventory 的角色）保留自动补弹：弹匣打空即回满。
+	if (!Cast<AShooterCharacter>(GetOwner()))
 	{
 		if (MagazineAmmo <= 0)
 		{

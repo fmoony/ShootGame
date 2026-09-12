@@ -173,6 +173,42 @@ void UShooterWeaponRuntimeSubsystem::SetWeaponTableOverride(UDataTable* InWeapon
 	WeaponTableOverride = InWeaponTable;
 }
 
+void UShooterWeaponRuntimeSubsystem::InitializeWeaponRuntimeForTest()
+{
+	// 冻结租出实体：测试已授予的武器跨重导入存活，重建后放回对应 Bucket。
+	TArray<TObjectPtr<AShooterWeapon>> LeasedToKeep;
+	for (TPair<FName, FShooterWeaponRuntimeBucket>& Pair : Buckets)
+	{
+		for (AShooterWeapon* Pooled : Pair.Value.AvailableActors)
+		{
+			if (IsValid(Pooled))
+			{
+				Pooled->Destroy();
+			}
+		}
+
+		for (AShooterWeapon* Leased : Pair.Value.LeasedActors)
+		{
+			if (IsValid(Leased))
+			{
+				LeasedToKeep.Add(Leased);
+			}
+		}
+	}
+	Buckets.Empty();
+	bRuntimeInitialized = false;
+
+	InitializeWeaponRuntime();
+
+	for (TObjectPtr<AShooterWeapon>& Leased : LeasedToKeep)
+	{
+		if (FShooterWeaponRuntimeBucket* Bucket = FindBucket(Leased->GetWeaponId()))
+		{
+			Bucket->LeasedActors.Add(Leased);
+		}
+	}
+}
+
 AShooterWeapon* UShooterWeaponRuntimeSubsystem::SpawnPoolWeaponActor(FShooterWeaponRuntimeBucket& Bucket)
 {
 	UWorld* World = GetWorld();
@@ -382,6 +418,17 @@ bool UShooterWeaponRuntimeSubsystem::IsLeased(const AShooterWeapon* Weapon) cons
 
 	const FShooterWeaponRuntimeBucket* Bucket = FindBucket(Weapon->GetWeaponId());
 	return Bucket && Bucket->LeasedActors.Contains(Weapon);
+}
+
+bool UShooterWeaponRuntimeSubsystem::IsPooled(const AShooterWeapon* Weapon) const
+{
+	if (!IsValid(Weapon))
+	{
+		return false;
+	}
+
+	const FShooterWeaponRuntimeBucket* Bucket = FindBucket(Weapon->GetWeaponId());
+	return Bucket && Bucket->AvailableActors.Contains(Weapon);
 }
 
 FShooterWeaponRuntimeBucket* UShooterWeaponRuntimeSubsystem::FindBucket(FName WeaponId)

@@ -89,17 +89,14 @@ bool UShooterGameplayAbility_Equip::CanActivateAbility(
 	}
 
 	AShooterWeapon* Weapon = nullptr;
-	FGuid InstanceId;
-	return ResolveEquipTarget(ActorInfo, Weapon, InstanceId);
+	return ResolveEquipTarget(ActorInfo, Weapon);
 }
 
 bool UShooterGameplayAbility_Equip::ResolveEquipTarget(
 	const FGameplayAbilityActorInfo* ActorInfo,
-	AShooterWeapon*& OutWeapon,
-	FGuid& OutInstanceId) const
+	AShooterWeapon*& OutWeapon) const
 {
 	OutWeapon = nullptr;
-	OutInstanceId = FGuid();
 
 	const AShooterCharacter* Character = Cast<AShooterCharacter>(
 		ActorInfo ? ActorInfo->AvatarActor.Get() : nullptr);
@@ -119,16 +116,9 @@ bool UShooterGameplayAbility_Equip::ResolveEquipTarget(
 		return false;
 	}
 
-	// 按 Slot 顺序计算下一个合法实例；单武器或当前 Active 无效时明确拒绝。
-	FGuid NextInstanceId;
-	if (!Inventory->FindNextWeaponInstanceId(
-		Equipment->GetActiveWeaponInstanceId(),
-		NextInstanceId))
-	{
-		return false;
-	}
-
-	AShooterWeapon* TargetWeapon = Inventory->FindWeaponActor(NextInstanceId);
+	// 按 Slot 顺序计算下一个合法 Actor；单武器或当前装备无效时明确拒绝。
+	AShooterWeapon* TargetWeapon = Inventory->FindNextWeapon(
+		Equipment->GetCurrentWeaponActor());
 	if (!IsValid(TargetWeapon) ||
 		TargetWeapon->GetOwner() != Character ||
 		TargetWeapon->IsActorBeingDestroyed() ||
@@ -138,7 +128,6 @@ bool UShooterGameplayAbility_Equip::ResolveEquipTarget(
 	}
 
 	OutWeapon = TargetWeapon;
-	OutInstanceId = NextInstanceId;
 	return true;
 }
 
@@ -156,7 +145,7 @@ void UShooterGameplayAbility_Equip::ActivateAbility(
 	}
 
 	AShooterWeapon* TargetWeapon = nullptr;
-	if (!ResolveEquipTarget(ActorInfo, TargetWeapon, TargetInstanceId))
+	if (!ResolveEquipTarget(ActorInfo, TargetWeapon))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
@@ -167,9 +156,6 @@ void UShooterGameplayAbility_Equip::ActivateAbility(
 	UShooterEquipmentComponent* Equipment = Character
 		? Character->GetEquipmentComponent()
 		: nullptr;
-	PreviousInstanceId = Equipment
-		? Equipment->GetActiveWeaponInstanceId()
-		: FGuid();
 	CachedPreviousWeapon = Equipment
 		? Equipment->GetCurrentWeaponActor()
 		: nullptr;
@@ -199,11 +185,10 @@ void UShooterGameplayAbility_Equip::ActivateAbility(
 	UE_LOG(
 		LogShootGame,
 		Display,
-		TEXT("GA_Equip activated: Avatar=%s Target=%s TargetInstanceId=%s PreviousInstanceId=%s Duration=%.3f"),
+		TEXT("GA_Equip activated: Avatar=%s Target=%s TargetWeaponId=%s Duration=%.3f"),
 		*GetNameSafe(Character),
 		*GetNameSafe(TargetWeapon),
-		*TargetInstanceId.ToString(),
-		*PreviousInstanceId.ToString(),
+		*TargetWeapon->GetWeaponId().ToString(),
 		EquipDuration);
 }
 
@@ -224,13 +209,12 @@ bool UShooterGameplayAbility_Equip::IsEquipTargetStillValid() const
 		!CachedTargetWeapon.IsValid() ||
 		CachedTargetWeapon->IsActorBeingDestroyed() ||
 		CachedTargetWeapon->GetOwner() != Character ||
-		!Inventory->FindWeaponInstance(TargetInstanceId) ||
-		Equipment->GetActiveWeaponInstanceId() != PreviousInstanceId)
+		!Inventory->ContainsWeapon(CachedTargetWeapon.Get()))
 	{
 		return false;
 	}
 
-	// 等待期间 Equipment.CurrentWeaponActor 被其他路径改写则放弃提交，避免逻辑 ID 与 Actor 分离。
+	// 等待期间 Equipment.CurrentWeaponActor 被其他路径改写则放弃提交，避免抢占第三方事务结果。
 	if (CachedPreviousWeapon.IsValid())
 	{
 		if (Equipment->GetCurrentWeaponActor() != CachedPreviousWeapon.Get())
@@ -260,9 +244,9 @@ void UShooterGameplayAbility_Equip::HandleEquipWaitFinished()
 		UE_LOG(
 			LogShootGame,
 			Display,
-			TEXT("GA_Equip commit aborted: target no longer valid Avatar=%s InstanceId=%s"),
+			TEXT("GA_Equip commit aborted: target no longer valid Avatar=%s WeaponId=%s"),
 			*GetNameSafe(GetShooterAvatarActor()),
-			*TargetInstanceId.ToString());
+			*CachedTargetWeapon->GetWeaponId().ToString());
 		EndAbility(
 			GetCurrentAbilitySpecHandle(),
 			GetCurrentActorInfo(),
@@ -277,14 +261,14 @@ void UShooterGameplayAbility_Equip::HandleEquipWaitFinished()
 	UShooterEquipmentComponent* Equipment = Character
 		? Character->GetEquipmentComponent()
 		: nullptr;
-	if (!Equipment || !Equipment->EquipWeapon(TargetInstanceId))
+	if (!Equipment || !Equipment->EquipWeapon(CachedTargetWeapon.Get()))
 	{
 		UE_LOG(
 			LogShootGame,
 			Warning,
-			TEXT("GA_Equip commit failed: Avatar=%s InstanceId=%s"),
+			TEXT("GA_Equip commit failed: Avatar=%s WeaponId=%s"),
 			*GetNameSafe(Character),
-			*TargetInstanceId.ToString());
+			*CachedTargetWeapon->GetWeaponId().ToString());
 		EndAbility(
 			GetCurrentAbilitySpecHandle(),
 			GetCurrentActorInfo(),
@@ -298,9 +282,9 @@ void UShooterGameplayAbility_Equip::HandleEquipWaitFinished()
 	UE_LOG(
 		LogShootGame,
 		Display,
-		TEXT("GA_Equip committed: Avatar=%s InstanceId=%s Weapon=%s"),
+		TEXT("GA_Equip committed: Avatar=%s WeaponId=%s Weapon=%s"),
 		*GetNameSafe(Character),
-		*TargetInstanceId.ToString(),
+		*CachedTargetWeapon->GetWeaponId().ToString(),
 		*GetNameSafe(Character->GetCurrentWeapon()));
 
 	EndAbility(
@@ -321,8 +305,6 @@ void UShooterGameplayAbility_Equip::CleanupEquipTransaction()
 
 	CachedPreviousWeapon.Reset();
 	CachedTargetWeapon.Reset();
-	TargetInstanceId = FGuid();
-	PreviousInstanceId = FGuid();
 	bEquipCommitted = false;
 }
 

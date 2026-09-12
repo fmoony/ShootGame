@@ -72,6 +72,15 @@ public:
 	 */
 	void SetWeaponTableOverride(UDataTable* InWeaponTable);
 
+	/** 返回测试注入的武器表；未注入时返回 nullptr。 */
+	UDataTable* GetWeaponTableOverride() const { return WeaponTableOverride; }
+
+	/**
+	 * 测试专用：保留全部租出中的 Actor，销毁未租出实体并按当前注入表重建快照与预热。
+	 * 生产路径运行时禁止重读表；本入口只服务自动化测试在追加行后重建快照。
+	 */
+	void InitializeWeaponRuntimeForTest();
+
 	/**
 	 * 从指定 WeaponId 池取出一个已配置好的 WeaponActor 并绑定租用归属。
 	 * 池命中复用既有 Actor；耗尽时按冻结快照弹性 Spawn。
@@ -100,6 +109,9 @@ public:
 
 	/** 观测：指定 Actor 是否正被本池租出（测试与诊断）。 */
 	bool IsLeased(const AShooterWeapon* Weapon) const;
+
+	/** 观测：指定 Actor 是否停留在本池某个 Bucket 内（已归还、待复用；测试与诊断）。 */
+	bool IsPooled(const AShooterWeapon* Weapon) const;
 
 	/** 观测：启动导入是否已成功执行。 */
 	bool IsRuntimeInitialized() const { return bRuntimeInitialized; }

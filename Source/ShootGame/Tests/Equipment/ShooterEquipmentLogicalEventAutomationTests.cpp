@@ -15,6 +15,7 @@
 #include "UObject/UnrealType.h"
 #include "../Weapon/ShooterWeaponTestTableTypes.h"
 #include "Weapons/ShooterWeapon.h"
+#include "Weapons/ShooterWeaponRuntimeSubsystem.h"
 #include "ShooterWeaponPresentationTestTypes.h"
 
 namespace ShooterEquipmentLogicalEventAutomationTests
@@ -66,8 +67,7 @@ namespace ShooterEquipmentLogicalEventAutomationTests
 	AShooterWeapon* GrantEquipmentEventTestWeapon(
 		FAutomationTestBase& Test,
 		AShooterWeaponPresentationTestCharacter* Character,
-		TSubclassOf<AShooterWeapon> WeaponClass,
-		FGuid& OutInstanceId)
+		TSubclassOf<AShooterWeapon> WeaponClass)
 	{
 		UShooterInventoryComponent* Inventory = Character->GetInventoryComponent();
 		if (!Test.TestNotNull(TEXT("Equipment event test character owns Inventory"), Inventory))
@@ -75,25 +75,20 @@ namespace ShooterEquipmentLogicalEventAutomationTests
 			return nullptr;
 		}
 
-		// 按武器模板行授予：行由测试助手写入注入的瞬态模板表，授予入口只接受行名。
+		// S3 授予链：运行时池 Acquire + Inventory AddWeapon。
 		EShooterInventoryAddResult AddResult = EShooterInventoryAddResult::NotAuthoritative;
-		GrantTestWeaponRow(
+		AShooterWeapon* Weapon = GrantTestWeapon(
+			Character->GetWorld(),
 			Inventory,
 			WeaponClass,
-			OutInstanceId,
 			/*MagazineSize*/ 10,
 			/*InitialReserveAmmo*/ -1,
 			&AddResult);
 		if (!Test.TestEqual(
 			TEXT("Equipment event test weapon is granted"),
 			static_cast<int32>(AddResult),
-			static_cast<int32>(EShooterInventoryAddResult::Added)))
-		{
-			return nullptr;
-		}
-
-		AShooterWeapon* Weapon = Inventory->FindWeaponActor(OutInstanceId);
-		if (!Test.TestNotNull(TEXT("Granted equipment event weapon actor exists"), Weapon))
+			static_cast<int32>(EShooterInventoryAddResult::Added)) ||
+			!Test.TestNotNull(TEXT("Granted equipment event weapon actor exists"), Weapon))
 		{
 			return nullptr;
 		}
@@ -144,35 +139,31 @@ bool FShooterEquipmentLogicalEventSemanticsTest::RunTest(const FString& Paramete
 		Listener,
 		&UShooterEquipmentEventTestListener::HandleEquippedWeaponChanged);
 
-	FGuid PrimaryId;
 	AShooterWeapon* PrimaryWeapon = GrantEquipmentEventTestWeapon(
 		*this,
 		Character,
-		AShooterWeaponPresentationTestWeaponPrimary::StaticClass(),
-		PrimaryId);
+		AShooterWeaponPresentationTestWeaponPrimary::StaticClass());
 	if (!PrimaryWeapon)
 	{
 		DestroyEquipmentEventTestWorld(World);
 		return false;
 	}
 
-	TestTrue(TEXT("Primary weapon is equipped"), Equipment->EquipWeapon(PrimaryId));
+	TestTrue(TEXT("Primary weapon is equipped"), Equipment->EquipWeapon(PrimaryWeapon));
 	TestEqual(TEXT("First equip publishes exactly one logical change"), Listener->EventCount, 1);
 	TestNull(TEXT("First equip PreviousWeapon is null"), Listener->LastPreviousWeapon.Get());
 	TestTrue(TEXT("First equip CurrentWeapon is primary"), Listener->LastCurrentWeapon == PrimaryWeapon);
 	TestEqual(TEXT("First equip does not deactivate a previous weapon"), Character->WeaponDeactivatedCount, 0);
 
 	// 同一武器重复提交：不是真实转移，不发布第二次逻辑变化。
-	TestTrue(TEXT("Re-equipping the same weapon succeeds"), Equipment->EquipWeapon(PrimaryId));
+	TestTrue(TEXT("Re-equipping the same weapon succeeds"), Equipment->EquipWeapon(PrimaryWeapon));
 	TestEqual(TEXT("Re-equip does not publish a second logical change"), Listener->EventCount, 1);
 	TestEqual(TEXT("Re-equip does not deactivate the current weapon"), Character->WeaponDeactivatedCount, 0);
 
-	FGuid SecondaryId;
 	AShooterWeapon* SecondaryWeapon = GrantEquipmentEventTestWeapon(
 		*this,
 		Character,
-		AShooterWeaponPresentationTestWeaponSecondary::StaticClass(),
-		SecondaryId);
+		AShooterWeaponPresentationTestWeaponSecondary::StaticClass());
 	if (!SecondaryWeapon)
 	{
 		DestroyEquipmentEventTestWorld(World);
@@ -187,7 +178,7 @@ bool FShooterEquipmentLogicalEventSemanticsTest::RunTest(const FString& Paramete
 	}
 	PrimaryTestWeapon->SetFiringForTest(true);
 
-	TestTrue(TEXT("Secondary weapon is equipped"), Equipment->EquipWeapon(SecondaryId));
+	TestTrue(TEXT("Secondary weapon is equipped"), Equipment->EquipWeapon(SecondaryWeapon));
 	TestEqual(TEXT("Switch publishes exactly one logical change"), Listener->EventCount, 2);
 	TestTrue(TEXT("Switch PreviousWeapon is primary"), Listener->LastPreviousWeapon == PrimaryWeapon);
 	TestTrue(TEXT("Switch CurrentWeapon is secondary"), Listener->LastCurrentWeapon == SecondaryWeapon);
@@ -204,69 +195,6 @@ bool FShooterEquipmentLogicalEventSemanticsTest::RunTest(const FString& Paramete
 	Equipment->ClearEquippedWeapon();
 	TestEqual(TEXT("Repeated unequip does not publish a second logical change"), Listener->EventCount, 3);
 	TestEqual(TEXT("Inventory still holds both owned weapons"), Inventory->GetWeaponCount(), 2);
-
-	DestroyEquipmentEventTestWorld(World);
-	return true;
-}
-
-/**
- * E2 验证：ActiveWeaponInstanceId OnRep 不再触发表现应用或逻辑事件；
- * 当前 WeaponActor 保持隐藏，直到 CurrentWeaponActor OnRep / Ready 补偿。
- */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterEquipmentActiveInstanceIdOnRepTest,
-	"ShootGame.Equipment.OnRep.ActiveInstanceIdNoApply",
-	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
-
-bool FShooterEquipmentActiveInstanceIdOnRepTest::RunTest(const FString& Parameters)
-{
-	using namespace ShooterEquipmentLogicalEventAutomationTests;
-
-	UWorld* World = CreateEquipmentEventTestWorld();
-	if (!TestNotNull(TEXT("Equipment OnRep test world created"), World))
-	{
-		return false;
-	}
-
-	AShooterWeaponPresentationTestCharacter* Character = SpawnEquipmentEventTestCharacter(*this, World);
-	if (!Character)
-	{
-		DestroyEquipmentEventTestWorld(World);
-		return false;
-	}
-
-	FGuid InstanceId;
-	AShooterWeapon* Weapon = GrantEquipmentEventTestWeapon(
-		*this,
-		Character,
-		AShooterWeaponPresentationTestWeaponPrimary::StaticClass(),
-		InstanceId);
-	if (!Weapon)
-	{
-		DestroyEquipmentEventTestWorld(World);
-		return false;
-	}
-
-	UShooterEquipmentTestHarnessComponent* Harness =
-		NewObject<UShooterEquipmentTestHarnessComponent>(Character);
-	UShooterEquipmentEventTestListener* Listener = NewObject<UShooterEquipmentEventTestListener>();
-	if (!TestNotNull(TEXT("Equipment harness created"), Harness) ||
-		!TestNotNull(TEXT("Equipment OnRep listener created"), Listener))
-	{
-		DestroyEquipmentEventTestWorld(World);
-		return false;
-	}
-	Harness->OnEquippedWeaponChanged.AddDynamic(
-		Listener,
-		&UShooterEquipmentEventTestListener::HandleEquippedWeaponChanged);
-
-	TestTrue(TEXT("Granted weapon starts hidden"), Weapon->IsHidden());
-	Harness->SetCurrentWeaponActorForTest(Weapon);
-	Harness->SetActiveWeaponInstanceIdForTest(InstanceId);
-	Harness->CallOnRepActiveWeaponInstanceIdForTest();
-
-	TestTrue(TEXT("ActiveInstanceId OnRep keeps weapon hidden"), Weapon->IsHidden());
-	TestEqual(TEXT("ActiveInstanceId OnRep publishes no logical event"), Listener->EventCount, 0);
 
 	DestroyEquipmentEventTestWorld(World);
 	return true;
@@ -298,12 +226,10 @@ bool FShooterEquipmentCurrentWeaponOnRepSemanticsTest::RunTest(const FString& Pa
 		return false;
 	}
 
-	FGuid InstanceId;
 	AShooterWeapon* Weapon = GrantEquipmentEventTestWeapon(
 		*this,
 		Character,
-		AShooterWeaponPresentationTestWeaponPrimary::StaticClass(),
-		InstanceId);
+		AShooterWeaponPresentationTestWeaponPrimary::StaticClass());
 	if (!Weapon)
 	{
 		DestroyEquipmentEventTestWorld(World);
@@ -388,9 +314,8 @@ bool FShooterPickupRejectReloadingTest::RunTest(const FString& Parameters)
 	Character->SetPlayerState(PlayerState);
 	PlayerState->InitializeAbilityActorInfo(Character);
 	UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent();
-	FGuid PrimaryId;
 	AShooterWeapon* Primary = GrantEquipmentEventTestWeapon(
-		*this, Character, AShooterWeaponPresentationTestWeaponPrimary::StaticClass(), PrimaryId);
+		*this, Character, AShooterWeaponPresentationTestWeaponPrimary::StaticClass());
 	if (!Primary || !TestNotNull(TEXT("Character ASC resolved"), ASC))
 	{
 		DestroyEquipmentEventTestWorld(World);
@@ -398,12 +323,13 @@ bool FShooterPickupRejectReloadingTest::RunTest(const FString& Parameters)
 	}
 	UShooterEquipmentComponent* Equipment = Character->GetEquipmentComponent();
 	UShooterInventoryComponent* Inventory = Character->GetInventoryComponent();
-	TestTrue(TEXT("Primary equipped"), Equipment->EquipWeapon(PrimaryId));
-	// Pickup 只选择武器模板行名，行必须存在于同一 Inventory 使用的模板表中。
-	UDataTable* PickupWeaponTable = GetOrCreateTestWeaponTable(Inventory);
+	TestTrue(TEXT("Primary equipped"), Equipment->EquipWeapon(Primary));
+	// Pickup 只选择 WeaponId（S3 由 WeaponType.RowName 承载）；行必须先进入运行时快照。
+	UDataTable* PickupWeaponTable = GetOrInjectRuntimeTestTable(World);
 	const FName PickupRowName = AddTestWeaponRow(
 		PickupWeaponTable,
 		MakeTestWeaponRow(AShooterWeaponPresentationTestWeaponSecondary::StaticClass()));
+	World->GetSubsystem<UShooterWeaponRuntimeSubsystem>()->InitializeWeaponRuntimeForTest();
 	Pickup->SetWeaponRowNameForTest(PickupRowName);
 	ASC->AddLooseGameplayTag(ShooterGameplayTags::State_Reloading);
 	for (int32 Attempt = 0; Attempt < 10; ++Attempt)

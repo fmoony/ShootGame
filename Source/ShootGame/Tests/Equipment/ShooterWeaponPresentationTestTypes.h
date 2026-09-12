@@ -222,7 +222,7 @@ public:
 	int32 LastReserveAmmo = INDEX_NONE;
 };
 
-/** Equipment 测试壳：暴露 OnRep / 提交字段写入，模拟复制到达顺序。 */
+/** Equipment 测试壳：暴露 OnRep 与提交字段写入，模拟复制到达顺序。 */
 UCLASS(Transient, NotBlueprintable)
 class UShooterEquipmentTestHarnessComponent : public UShooterEquipmentComponent
 {
@@ -230,15 +230,9 @@ class UShooterEquipmentTestHarnessComponent : public UShooterEquipmentComponent
 
 public:
 	void SetCurrentWeaponActorForTest(AShooterWeapon* Weapon) { CurrentWeaponActor = Weapon; }
-	void SetActiveWeaponInstanceIdForTest(const FGuid& InstanceId) { ActiveWeaponInstanceId = InstanceId; }
 
 	void CallOnRepCurrentWeaponActorForTest(AShooterWeapon* PreviousWeapon)
 	{
 		OnRep_CurrentWeaponActor(PreviousWeapon);
-	}
-
-	void CallOnRepActiveWeaponInstanceIdForTest()
-	{
-		OnRep_ActiveWeaponInstanceId();
 	}
 };

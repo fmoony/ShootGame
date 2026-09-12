@@ -12,6 +12,7 @@
 #include "ShooterInventoryComponent.h"
 #include "ShooterWeapon.h"
 #include "ShooterWeaponConfigRow.h"
+#include "ShooterWeaponRuntimeSubsystem.h"
 #include "Engine/World.h"
 #include "ShootGame.h"
 #include "TimerManager.h"
@@ -107,55 +108,84 @@ void AShooterPickup::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
 		return;
 	}
 
+	// S3 授予链（重构方案 3.3 / 4.6）：行名值即 WeaponId（S4 由资产层把属性改为 WeaponId）。
+	const FName WeaponId = WeaponType.RowName;
+	if (WeaponId.IsNone())
+	{
+		return;
+	}
+
+	// 重复武器类型：不消费 Pickup，明确拒绝后允许后续合法拾取重试。
+	if (Inventory->HasWeaponId(WeaponId))
+	{
+		return;
+	}
+
+	UShooterWeaponRuntimeSubsystem* Runtime = GetWorld()
+		? GetWorld()->GetSubsystem<UShooterWeaponRuntimeSubsystem>()
+		: nullptr;
+	if (!Runtime || !Runtime->HasWeaponId(WeaponId))
+	{
+		// 未知 WeaponId：配置缺失，不消费 Pickup。
+		UE_LOG(
+			LogShootGame,
+			Warning,
+			TEXT("Pickup %s references unknown WeaponId=%s"),
+			*GetNameSafe(this),
+			*WeaponId.ToString());
+		return;
+	}
+
 	// 同一 Pickup 的连续 Overlap 只在服务器端处理一次；成功授予后才进入隐藏/重生流程。
 	bPickupAvailable = false;
 
-	// 正式授予数据源：Inventory 按所选行名解析模板行；行名称为空、行缺失或行非法时明确
-	// Reject（InvalidWeaponRow），不消费 Pickup。
-	FGuid GrantedInstanceId;
-	const EShooterInventoryAddResult AddResult =
-		Inventory->TryAddWeaponRow(WeaponType.RowName, GrantedInstanceId);
-	if (AddResult == EShooterInventoryAddResult::Added)
+	// 先 Acquire（池命中或弹性 Spawn）：失败不提交任何数据，Pickup 保持可拾取。
+	AShooterWeapon* Weapon = Runtime->AcquireWeapon(WeaponId, ShooterCharacter, ShooterCharacter);
+	if (!Weapon)
 	{
-		// R3：拾取后的“立即装备”只通过 Equipment facade 提交，不再直接调用 Character 装备事务。
-		UShooterEquipmentComponent* Equipment = ShooterCharacter->GetEquipmentComponent();
-		if (!Equipment || !Equipment->EquipWeapon(GrantedInstanceId))
+		bPickupAvailable = true;
+		return;
+	}
+
+	// 后提交：Inventory 校验（判重 / Slot）失败时把 Actor 归还池，Pickup 保持可拾取。
+	const EShooterInventoryAddResult AddResult = Inventory->AddWeapon(Weapon);
+	if (AddResult != EShooterInventoryAddResult::Added)
+	{
+		Runtime->ReleaseWeapon(Weapon);
+		bPickupAvailable = true;
+		return;
+	}
+
+	// 装备步骤意外失败（含 Equipment 缺失）只执行纵深防御：
+	// 移除未完成 Entry 并把 Actor 归还池，Pickup 恢复可拾取（重构方案 3.3）。
+	UShooterEquipmentComponent* Equipment = ShooterCharacter->GetEquipmentComponent();
+	if (!Equipment || !Equipment->EquipWeapon(Weapon))
+	{
+		if (!Inventory->RemoveWeapon(Weapon))
 		{
-			// 回滚后恢复可拾取，不隐藏 Pickup。
-
-			// E1：本次 Pickup 新增的 Instance 与 WeaponActor 必须完整回滚，
-			// 不能同时留下“已进入 Inventory 的武器”和“仍可拾取的 Pickup”。
-			if (!Inventory->RemoveWeaponInstance(GrantedInstanceId))
-			{
-				UE_LOG(
-					LogShootGame,
-					Warning,
-					TEXT("Pickup equip rollback failed to remove granted instance: Actor=%s InstanceId=%s"),
-					*GetNameSafe(ShooterCharacter),
-					*GrantedInstanceId.ToString());
-			}
-
-			bPickupAvailable = true;
-			return;
+			UE_LOG(
+				LogShootGame,
+				Warning,
+				TEXT("Pickup equip rollback failed to remove granted weapon: Actor=%s WeaponId=%s"),
+				*GetNameSafe(ShooterCharacter),
+				*WeaponId.ToString());
 		}
 
-		// hide this mesh
-		SetActorHiddenInGame(true);
-
-		// disable collision
-		SetActorEnableCollision(false);
-
-		// disable ticking
-		SetActorTickEnabled(false);
-
-		// schedule the respawn
-		GetWorld()->GetTimerManager().SetTimer(RespawnTimer, this, &AShooterPickup::RespawnPickup, RespawnTime, false);
-	}
-	else
-	{
-		// 明确 Reject：重复定义或 Slot 满时不消费 Pickup，允许后续合法拾取重试。
 		bPickupAvailable = true;
+		return;
 	}
+
+	// hide this mesh
+	SetActorHiddenInGame(true);
+
+	// disable collision
+	SetActorEnableCollision(false);
+
+	// disable ticking
+	SetActorTickEnabled(false);
+
+	// schedule the respawn
+	GetWorld()->GetTimerManager().SetTimer(RespawnTimer, this, &AShooterPickup::RespawnPickup, RespawnTime, false);
 }
 
 void AShooterPickup::RespawnPickup()

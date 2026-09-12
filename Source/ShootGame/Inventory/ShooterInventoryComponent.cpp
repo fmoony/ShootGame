@@ -4,15 +4,12 @@
 
 #include "Characters/Equipment/ShooterEquipmentComponent.h"
 #include "Characters/ShooterCharacter.h"
-#include "Engine/DataTable.h"
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
 #include "Net/UnrealNetwork.h"
-#include "Pool/ShooterActorPoolSubsystem.h"
 #include "ShootGame.h"
-#include "ShooterWeapon.h"
-#include "ShooterWeaponConfigRow.h"
-#include "ShooterWeaponTable.h"
+#include "Weapons/ShooterWeapon.h"
+#include "Weapons/ShooterWeaponRuntimeSubsystem.h"
 
 UShooterInventoryComponent::UShooterInventoryComponent()
 {
@@ -21,7 +18,7 @@ UShooterInventoryComponent::UShooterInventoryComponent()
 
 	// UE5.6 不会因子类重写 InitializeComponent 而自动置位该标志；
 	// 不显式开启时 InitializeComponent 永不执行，Owner Client 的
-	// FastArray Add/Change/Remove 通知（备弹 HUD 刷新桥）不会被绑定。
+	// FastArray Remove 通知（装备清空桥）不会被绑定。
 	bWantsInitializeComponent = true;
 }
 
@@ -29,47 +26,32 @@ void UShooterInventoryComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
 
-	// Owner Client 的 FastArray Remove 回调驱动本地 WeaponActor 解绑镜像。
-	ReplicatedInventory.OnInstanceRemoved.AddUObject(this, &UShooterInventoryComponent::HandleInstanceRemoved);
+	// Owner Client 的 FastArray Remove 回调驱动本地装备镜像清空。
+	ReplicatedInventory.OnWeaponEntryRemoved.AddUObject(
+		this,
+		&UShooterInventoryComponent::HandleWeaponEntryRemoved);
 }
 
-EShooterInventoryAddResult UShooterInventoryComponent::TryAddWeaponRow(
-	FName WeaponRowName,
-	FGuid& OutInstanceId)
+EShooterInventoryAddResult UShooterInventoryComponent::AddWeapon(AShooterWeapon* Weapon)
 {
-	OutInstanceId = FGuid();
 	if (!GetOwner() || !GetOwner()->HasAuthority())
 	{
 		return EShooterInventoryAddResult::NotAuthoritative;
 	}
 
-	// 表缺失、行名为空、行缺失或行非法都不消费 Pickup；错误原因在入口统一记录一次。
-	const FShooterWeaponConfigRow* Row = ResolveWeaponRow(WeaponRowName);
-	if (!ShooterWeaponTable::IsRowValidForGrant(Row))
+	// 只接收已经由 WeaponRuntimeSubsystem Acquire 配置好的实体：
+	// 必须有永久 WeaponId 身份、属于本角色且不处于池内。
+	if (!IsValid(Weapon) ||
+		Weapon->GetWeaponId().IsNone() ||
+		Weapon->GetOwner() != GetOwner() ||
+		Weapon->GetLifecycleState() == EShooterWeaponLifecycleState::InPool)
 	{
-		UE_LOG(
-			LogShootGame,
-			Warning,
-			TEXT("Inventory TryAddWeaponRow rejected invalid row: Actor=%s Row=%s Table=%s"),
-			*GetNameSafe(GetOwner()),
-			*WeaponRowName.ToString(),
-			*GetNameSafe(GetWeaponTable()));
-		return EShooterInventoryAddResult::InvalidWeaponRow;
+		return EShooterInventoryAddResult::InvalidWeapon;
 	}
 
-	return TryAddWeaponInternal(WeaponRowName, *Row, OutInstanceId);
-}
-
-EShooterInventoryAddResult UShooterInventoryComponent::TryAddWeaponInternal(
-	FName WeaponRowName,
-	const FShooterWeaponConfigRow& Row,
-	FGuid& OutInstanceId)
-{
-	OutInstanceId = FGuid();
-
-	if (FindWeaponInstanceByRowName(WeaponRowName))
+	if (FindWeaponByWeaponId(Weapon->GetWeaponId()))
 	{
-		return EShooterInventoryAddResult::DuplicateWeaponRow;
+		return EShooterInventoryAddResult::DuplicateWeapon;
 	}
 
 	const int32 FreeSlot = FindFreeSlotIndex();
@@ -78,140 +60,44 @@ EShooterInventoryAddResult UShooterInventoryComponent::TryAddWeaponInternal(
 		return EShooterInventoryAddResult::SlotFull;
 	}
 
-	FShooterWeaponInstanceData InstanceData;
-	InstanceData.InstanceId = FGuid::NewGuid();
-	InstanceData.WeaponRowName = WeaponRowName;
-	InstanceData.MagazineAmmo = Row.MagazineSize;
-	InstanceData.ReserveAmmo = Row.ResolveInitialReserveAmmo();
-	InstanceData.SlotIndex = FreeSlot;
-
-	if (!AddWeaponInstance(InstanceData))
+	if (!ReplicatedInventory.AddItem(Weapon, FreeSlot))
 	{
 		return EShooterInventoryAddResult::SlotOccupied;
 	}
 
-	// WeaponActor 统一由 World 级对象池提供：池命中即复用，未命中才生成。
-	UShooterActorPoolSubsystem* Pool = GetWorld()
-		? GetWorld()->GetSubsystem<UShooterActorPoolSubsystem>()
-		: nullptr;
-	if (!Pool)
-	{
-		// 没有池就不存在正式的 WeaponActor 生命周期边界：fail closed 并回滚实例。
-		ReplicatedInventory.RemoveItem(InstanceData.InstanceId);
-		UE_LOG(
-			LogShootGame,
-			Warning,
-			TEXT("Inventory TryAddWeaponRow rejected: actor pool unavailable. Actor=%s Row=%s"),
-			*GetNameSafe(GetOwner()),
-			*WeaponRowName.ToString());
-		return EShooterInventoryAddResult::AcquireFailed;
-	}
-
-	FActorSpawnParameters SpawnParameters;
-	SpawnParameters.Owner = GetOwner();
-	SpawnParameters.Instigator = Cast<APawn>(GetOwner());
-	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	SpawnParameters.TransformScaleMethod = ESpawnActorScaleMethod::MultiplyWithRoot;
-
-	// Acquire 已完成通用复位（Owner / Instigator / 变换 / 可见性 / 碰撞 / Tick）；
-	// 行配置与 Instance 身份在下面的绑定入口一起写入。
-	AShooterWeapon* Weapon = Cast<AShooterWeapon>(Pool->Acquire(
-		Row.WeaponActorClass,
-		GetOwner()->GetActorTransform(),
-		SpawnParameters));
-	if (!Weapon)
-	{
-		// Acquire 失败必须回滚刚写入的 WeaponInstance，不能留下只有逻辑数据的幽灵武器。
-		ReplicatedInventory.RemoveItem(InstanceData.InstanceId);
-		UE_LOG(
-			LogShootGame,
-			Warning,
-			TEXT("Inventory TryAddWeaponRow rolled back after pool acquire failure: Actor=%s Row=%s Class=%s"),
-			*GetNameSafe(GetOwner()),
-			*WeaponRowName.ToString(),
-			*GetNameSafe(Row.WeaponActorClass));
-		return EShooterInventoryAddResult::AcquireFailed;
-	}
-
-	// 绑定同时把该行的只读配置应用到 WeaponActor；此后 WeaponActor 不再读取默认配置。
-	Weapon->SetInstanceBinding(InstanceData.InstanceId, WeaponRowName);
-	Weapon->SetActorHiddenInGame(true);
-	RegisterWeaponActor(Weapon);
-
 	UE_LOG(
 		LogShootGame,
 		Display,
-		TEXT("Inventory TryAddWeaponRow acquired WeaponActor: Actor=%s InstanceId=%s Row=%s Weapon=%s Slot=%d"),
+		TEXT("Inventory AddWeapon committed: Actor=%s WeaponId=%s Weapon=%s Slot=%d Count=%d"),
 		*GetNameSafe(GetOwner()),
-		*InstanceData.InstanceId.ToString(),
-		*WeaponRowName.ToString(),
+		*Weapon->GetWeaponId().ToString(),
 		*GetNameSafe(Weapon),
-		InstanceData.SlotIndex);
-
-	OutInstanceId = InstanceData.InstanceId;
+		FreeSlot,
+		GetWeaponCount());
 	return EShooterInventoryAddResult::Added;
 }
 
-bool UShooterInventoryComponent::AddWeaponInstance(const FShooterWeaponInstanceData& InstanceData)
+bool UShooterInventoryComponent::RemoveWeapon(AShooterWeapon* Weapon)
 {
-	if (!InstanceData.IsValid())
-	{
-		UE_LOG(
-			LogShootGame,
-			Warning,
-			TEXT("Inventory AddWeaponInstance rejected invalid data: InstanceId=%s Row=%s Slot=%d Mag=%d Reserve=%d"),
-			*InstanceData.InstanceId.ToString(),
-			*InstanceData.WeaponRowName.ToString(),
-			InstanceData.SlotIndex,
-			InstanceData.MagazineAmmo,
-			InstanceData.ReserveAmmo);
-		return false;
-	}
-
-	if (!GetOwner() || !GetOwner()->HasAuthority())
+	if (!GetOwner() || !GetOwner()->HasAuthority() || !IsValid(Weapon))
 	{
 		return false;
 	}
 
-	const bool bAdded = ReplicatedInventory.AddItem(InstanceData);
-	if (bAdded)
-	{
-		UE_LOG(
-			LogShootGame,
-			Display,
-			TEXT("Inventory AddWeaponInstance succeeded: Actor=%s InstanceId=%s Slot=%d Count=%d"),
-			*GetNameSafe(GetOwner()),
-			*InstanceData.InstanceId.ToString(),
-			InstanceData.SlotIndex,
-			GetWeaponCount());
-	}
-	return bAdded;
-}
-
-bool UShooterInventoryComponent::RemoveWeaponInstance(const FGuid& InstanceId)
-{
-	if (!GetOwner() || !GetOwner()->HasAuthority() || !InstanceId.IsValid())
-	{
-		return false;
-	}
-
-	const bool bRemoved = ReplicatedInventory.RemoveItem(InstanceId);
+	const bool bRemoved = ReplicatedInventory.RemoveItem(Weapon);
 	if (bRemoved)
 	{
 		// E1 顺序：先广播移除，让 Equipment 在 WeaponActor 归还池之前清理当前装备。
-		OnWeaponInstanceRemovedFromInventory.Broadcast(InstanceId);
-
-		if (AShooterWeapon* Weapon = FindWeaponActor(InstanceId))
-		{
-			ReleaseWeaponActor(Weapon);
-		}
+		OnWeaponRemovedFromInventory.Broadcast(Weapon);
+		ReleaseWeaponActor(Weapon);
 
 		UE_LOG(
 			LogShootGame,
 			Display,
-			TEXT("Inventory RemoveWeaponInstance succeeded: Actor=%s InstanceId=%s Count=%d"),
+			TEXT("Inventory RemoveWeapon committed: Actor=%s WeaponId=%s Weapon=%s Count=%d"),
 			*GetNameSafe(GetOwner()),
-			*InstanceId.ToString(),
+			*Weapon->GetWeaponId().ToString(),
+			*GetNameSafe(Weapon),
 			GetWeaponCount());
 	}
 	return bRemoved;
@@ -227,11 +113,11 @@ void UShooterInventoryComponent::ClearInventory()
 	// E1 顺序：冻结待归还 WeaponActor，先清逻辑 Entries 并广播，
 	// 让 Equipment 在归还池之前清理当前装备，最后统一归还。
 	TArray<AShooterWeapon*> WeaponsToRelease;
-	for (AShooterWeapon* Weapon : BoundWeaponActors)
+	for (const FShooterInventoryWeaponEntry& Entry : ReplicatedInventory.Items)
 	{
-		if (IsValid(Weapon))
+		if (IsValid(Entry.Weapon))
 		{
-			WeaponsToRelease.Add(Weapon);
+			WeaponsToRelease.Add(Entry.Weapon);
 		}
 	}
 
@@ -255,57 +141,36 @@ void UShooterInventoryComponent::ClearInventory()
 	UE_LOG(
 		LogShootGame,
 		Display,
-		TEXT("Inventory ClearInventory: Actor=%s Count=%d"),
+		TEXT("Inventory ClearInventory: Actor=%s Released=%d"),
 		*GetNameSafe(GetOwner()),
-		GetWeaponCount());
+		WeaponsToRelease.Num());
 }
 
-const FShooterWeaponInstanceData* UShooterInventoryComponent::FindWeaponInstance(
-	const FGuid& InstanceId) const
+AShooterWeapon* UShooterInventoryComponent::FindWeaponByWeaponId(FName WeaponId) const
 {
-	if (!InstanceId.IsValid())
-	{
-		return nullptr;
-	}
-
-	const FShooterWeaponInstanceEntry* Entry = ReplicatedInventory.FindItem(InstanceId);
-	return Entry ? &Entry->InstanceData : nullptr;
+	const FShooterInventoryWeaponEntry* Entry = ReplicatedInventory.FindItemByWeaponId(WeaponId);
+	return Entry ? Entry->Weapon.Get() : nullptr;
 }
 
-const FShooterWeaponInstanceData* UShooterInventoryComponent::FindWeaponInstanceByRowName(
-	FName WeaponRowName) const
+bool UShooterInventoryComponent::HasWeaponId(FName WeaponId) const
 {
-	if (WeaponRowName.IsNone())
-	{
-		return nullptr;
-	}
-
-	const FShooterWeaponInstanceEntry* Entry = ReplicatedInventory.FindItemByRowName(WeaponRowName);
-	return Entry ? &Entry->InstanceData : nullptr;
+	return FindWeaponByWeaponId(WeaponId) != nullptr;
 }
 
-const FShooterWeaponConfigRow* UShooterInventoryComponent::ResolveWeaponRow(
-	FName WeaponRowName) const
+bool UShooterInventoryComponent::ContainsWeapon(const AShooterWeapon* Weapon) const
 {
-	return ShooterWeaponTable::FindWeaponRow(GetWeaponTable(), WeaponRowName);
+	return ReplicatedInventory.FindItem(Weapon) != nullptr;
 }
 
-UDataTable* UShooterInventoryComponent::GetWeaponTable() const
+AShooterWeapon* UShooterInventoryComponent::FindWeaponBySlot(int32 SlotIndex) const
 {
-	// 未注入时使用固定的 DT_WeaponData，保证武器模板表只有一个权威来源。
-	return WeaponTable ? WeaponTable.Get() : ShooterWeaponTable::ResolveWeaponTable();
+	const FShooterInventoryWeaponEntry* Entry = ReplicatedInventory.FindItemBySlot(SlotIndex);
+	return Entry ? Entry->Weapon.Get() : nullptr;
 }
 
-void UShooterInventoryComponent::SetWeaponTable(UDataTable* InWeaponTable)
+AShooterWeapon* UShooterInventoryComponent::FindNextWeapon(const AShooterWeapon* CurrentWeapon) const
 {
-	WeaponTable = InWeaponTable;
-}
-
-const FShooterWeaponInstanceData* UShooterInventoryComponent::FindWeaponInstanceBySlot(
-	int32 SlotIndex) const
-{
-	const FShooterWeaponInstanceEntry* Entry = ReplicatedInventory.FindItemBySlot(SlotIndex);
-	return Entry ? &Entry->InstanceData : nullptr;
+	return ReplicatedInventory.FindNextWeapon(CurrentWeapon);
 }
 
 int32 UShooterInventoryComponent::FindFreeSlotIndex() const
@@ -321,118 +186,17 @@ int32 UShooterInventoryComponent::FindFreeSlotIndex() const
 	return INDEX_NONE;
 }
 
-bool UShooterInventoryComponent::FindNextWeaponInstanceId(
-	const FGuid& CurrentId,
-	FGuid& OutNextId) const
+void UShooterInventoryComponent::HandleWeaponEntryRemoved(AShooterWeapon* Weapon)
 {
-	return ReplicatedInventory.FindNextItemId(CurrentId, OutNextId);
-}
-
-AShooterWeapon* UShooterInventoryComponent::FindWeaponActor(const FGuid& InstanceId) const
-{
-	if (!InstanceId.IsValid())
+	// Owner Client：背包 Entry 删除时，若它正是当前装备则清空本地装备镜像；
+	// WeaponActor 本体由服务器归还池，通过复制（Owner 清空 / 隐藏）收敛表现。
+	AShooterCharacter* Character = Cast<AShooterCharacter>(GetOwner());
+	UShooterEquipmentComponent* Equipment = Character
+		? Character->GetEquipmentComponent()
+		: nullptr;
+	if (Equipment && Equipment->GetCurrentWeaponActor() == Weapon)
 	{
-		return nullptr;
-	}
-
-	for (AShooterWeapon* Weapon : BoundWeaponActors)
-	{
-		if (IsValid(Weapon) && Weapon->GetBoundInstanceId() == InstanceId)
-		{
-			return Weapon;
-		}
-	}
-
-	return nullptr;
-}
-
-void UShooterInventoryComponent::RegisterWeaponActor(AShooterWeapon* Weapon)
-{
-	if (!IsValid(Weapon))
-	{
-		return;
-	}
-
-	BoundWeaponActors.AddUnique(Weapon);
-	UE_LOG(
-		LogShootGame,
-		Display,
-		TEXT("Inventory registered WeaponActor: Actor=%s InstanceId=%s Weapon=%s"),
-		*GetNameSafe(GetOwner()),
-		*Weapon->GetBoundInstanceId().ToString(),
-		*GetNameSafe(Weapon));
-}
-
-int32 UShooterInventoryComponent::GetMagazineAmmo(const FGuid& InstanceId) const
-{
-	// S2 起弹药权威在 WeaponActor；Inventory 只做 InstanceId -> Actor 的转发查询。
-	const AShooterWeapon* Weapon = FindWeaponActor(InstanceId);
-	return Weapon ? Weapon->GetBulletCount() : 0;
-}
-
-int32 UShooterInventoryComponent::GetReserveAmmo(const FGuid& InstanceId) const
-{
-	const AShooterWeapon* Weapon = FindWeaponActor(InstanceId);
-	return Weapon ? Weapon->GetReserveAmmo() : 0;
-}
-
-bool UShooterInventoryComponent::CanConsumeMagazineAmmo(const FGuid& InstanceId) const
-{
-	const AShooterWeapon* Weapon = FindWeaponActor(InstanceId);
-	return Weapon && Weapon->CanConsumeAmmo();
-}
-
-bool UShooterInventoryComponent::ConsumeMagazineAmmo(const FGuid& InstanceId, int32 Amount)
-{
-	if (!GetOwner() || !GetOwner()->HasAuthority() || Amount <= 0)
-	{
-		return false;
-	}
-
-	AShooterWeapon* Weapon = FindWeaponActor(InstanceId);
-	return Weapon && Weapon->ConsumeAmmo(Amount);
-}
-
-bool UShooterInventoryComponent::ReloadMagazine(
-	const FGuid& InstanceId,
-	int32& OutTransferredAmmo)
-{
-	OutTransferredAmmo = 0;
-	if (!GetOwner() || !GetOwner()->HasAuthority())
-	{
-		return false;
-	}
-
-	// 换弹事务的容量与弹药全部来自 WeaponActor 自身的静态配置与权威弹药。
-	AShooterWeapon* Weapon = FindWeaponActor(InstanceId);
-	if (!IsValid(Weapon))
-	{
-		return false;
-	}
-
-	if (!Weapon->ReloadFromReserve(OutTransferredAmmo))
-	{
-		return false;
-	}
-
-	UE_LOG(
-		LogShootGame,
-		Display,
-		TEXT("Inventory ReloadMagazine committed: Actor=%s InstanceId=%s Transfer=%d Mag=%d Reserve=%d"),
-		*GetNameSafe(GetOwner()),
-		*InstanceId.ToString(),
-		OutTransferredAmmo,
-		GetMagazineAmmo(InstanceId),
-		GetReserveAmmo(InstanceId));
-	return true;
-}
-
-void UShooterInventoryComponent::HandleInstanceRemoved(const FGuid& InstanceId)
-{
-	if (AShooterWeapon* Weapon = FindWeaponActor(InstanceId))
-	{
-		UnregisterWeaponActor(Weapon);
-		Weapon->SetInstanceBinding(FGuid());
+		Equipment->ClearEquippedWeapon();
 	}
 }
 
@@ -443,71 +207,31 @@ void UShooterInventoryComponent::ReleaseWeaponActor(AShooterWeapon* Weapon)
 		return;
 	}
 
-	// 身份必须在归还前取出：归还清理会清空 BoundInstanceId。
-	const FGuid ReleasedInstanceId = Weapon->GetBoundInstanceId();
-
-	UShooterActorPoolSubsystem* Pool = GetWorld()
-		? GetWorld()->GetSubsystem<UShooterActorPoolSubsystem>()
+	// 唯一归还入口：运行时池租出的实体归还对应 WeaponId Bucket。
+	UShooterWeaponRuntimeSubsystem* Runtime = GetWorld()
+		? GetWorld()->GetSubsystem<UShooterWeaponRuntimeSubsystem>()
 		: nullptr;
-	// 先判是否由池管理：非池出生是受支持的兼容路径，不应触发池自身的 fail closed 警告。
-	if (Pool && Pool->IsManaged(Weapon) && Pool->Release(Weapon))
+	if (Runtime && Runtime->ReleaseWeapon(Weapon))
 	{
-		// 池归还已包含：停 Timer / 解委托 / 清绑定与弹药镜像 / 隐藏 / 关碰撞 / 关 Tick / 清 Owner。
 		UE_LOG(
 			LogShootGame,
 			Display,
-			TEXT("Inventory released WeaponActor to pool: Actor=%s InstanceId=%s Weapon=%s"),
+			TEXT("Inventory released WeaponActor to runtime pool: Actor=%s WeaponId=%s Weapon=%s"),
 			*GetNameSafe(GetOwner()),
-			*ReleasedInstanceId.ToString(),
+			*Weapon->GetWeaponId().ToString(),
 			*GetNameSafe(Weapon));
 		return;
 	}
 
-	// 兼容路径：非池出生（NPC / 旧测试直接 Spawn）无法归还，只能销毁并显式解除映射。
-	UnregisterWeaponActor(Weapon);
+	// 兼容路径：非运行时池出生（NPC / 旧测试直接 Spawn）无法归还，只能销毁。
 	Weapon->Destroy();
 	UE_LOG(
 		LogShootGame,
 		Display,
-		TEXT("Inventory destroyed non-pooled WeaponActor: Actor=%s InstanceId=%s Weapon=%s"),
+		TEXT("Inventory destroyed non-pooled WeaponActor: Actor=%s WeaponId=%s Weapon=%s"),
 		*GetNameSafe(GetOwner()),
-		*ReleasedInstanceId.ToString(),
+		*Weapon->GetWeaponId().ToString(),
 		*GetNameSafe(Weapon));
-}
-
-void UShooterInventoryComponent::UnregisterWeaponActor(AShooterWeapon* Weapon)
-{
-	if (!IsValid(Weapon))
-	{
-		return;
-	}
-
-	BoundWeaponActors.Remove(Weapon);
-	UE_LOG(
-		LogShootGame,
-		Display,
-		TEXT("Inventory unregistered WeaponActor: Actor=%s InstanceId=%s Weapon=%s"),
-		*GetNameSafe(GetOwner()),
-		*Weapon->GetBoundInstanceId().ToString(),
-		*GetNameSafe(Weapon));
-}
-
-FGuid UShooterInventoryComponent::GetActiveWeaponInstanceId() const
-{
-	const AShooterCharacter* Character = Cast<AShooterCharacter>(GetOwner());
-	const UShooterEquipmentComponent* Equipment = Character
-		? Character->GetEquipmentComponent()
-		: nullptr;
-	return Equipment ? Equipment->GetActiveWeaponInstanceId() : FGuid();
-}
-
-AShooterWeapon* UShooterInventoryComponent::GetActiveWeaponActor() const
-{
-	const AShooterCharacter* Character = Cast<AShooterCharacter>(GetOwner());
-	const UShooterEquipmentComponent* Equipment = Character
-		? Character->GetEquipmentComponent()
-		: nullptr;
-	return Equipment ? Equipment->GetCurrentWeaponActor() : nullptr;
 }
 
 void UShooterInventoryComponent::GetLifetimeReplicatedProps(

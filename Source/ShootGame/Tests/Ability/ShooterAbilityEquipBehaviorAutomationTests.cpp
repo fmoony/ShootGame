@@ -5,16 +5,60 @@
 #include "Misc/AutomationTest.h"
 #include "Abilities/GameplayAbility.h"
 #include "Characters/Equipment/ShooterEquipmentComponent.h"
+#include "Engine/Engine.h"
+#include "Engine/World.h"
 #include "ShooterCharacter.h"
 #include "ShooterGameplayAbility_Equip.h"
 #include "ShooterGameplayAbility_Fire.h"
 #include "ShooterGameplayAbility_Reload.h"
 #include "ShooterInventoryTypes.h"
 #include "ShooterWeapon.h"
+#include "Tests/Pool/ShooterWeaponRuntimeTestTypes.h"
 #include "UObject/UnrealType.h"
 
 namespace ShooterAbilityEquipBehaviorAutomationTests
 {
+	/** Equip 数据契约测试用的裸 World 与测试武器。 */
+	UWorld* CreateEquipContractWorld(FAutomationTestBase& Test)
+	{
+		UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
+		if (!Test.TestNotNull(TEXT("Equip contract world created"), World) || !GEngine)
+		{
+			return nullptr;
+		}
+
+		FWorldContext& WorldContext = GEngine->CreateNewWorldContext(EWorldType::Game);
+		WorldContext.SetCurrentWorld(World);
+		return World;
+	}
+
+	void DestroyEquipContractWorld(UWorld* World)
+	{
+		if (World && GEngine)
+		{
+			GEngine->DestroyWorldContext(World);
+			World->DestroyWorld(false);
+		}
+	}
+
+	AShooterRuntimePoolTestWeapon* SpawnEquipContractWeapon(
+		FAutomationTestBase& Test,
+		UWorld* World,
+		FName WeaponId)
+	{
+		AShooterRuntimePoolTestWeapon* Weapon = World
+			? World->SpawnActor<AShooterRuntimePoolTestWeapon>(
+				FVector::ZeroVector, FRotator::ZeroRotator)
+			: nullptr;
+		if (!Test.TestNotNull(TEXT("Equip contract weapon spawned"), Weapon))
+		{
+			return nullptr;
+		}
+
+		Weapon->InitializeWeaponIdentity(WeaponId);
+		return Weapon;
+	}
+
 	bool TestServerOnlyContract(FAutomationTestBase& Test)
 	{
 		const UShooterGameplayAbility_Equip* EquipDefaults =
@@ -43,20 +87,6 @@ namespace ShooterAbilityEquipBehaviorAutomationTests
 			EquipDefaults->OwnsStateEquippingWhileActive());
 		return true;
 	}
-
-	FShooterWeaponInstanceData MakeInstance(const FGuid& InstanceId, int32 SlotIndex)
-	{
-		FShooterWeaponInstanceData InstanceData;
-		InstanceData.InstanceId = InstanceId;
-		// 武器类型身份是 DT_WeaponData 行名；本测试只构造数据契约，用按 Slot 唯一的假行名。
-		InstanceData.WeaponRowName = FName(*FString::Printf(
-			TEXT("TestWeapon_%d"),
-			SlotIndex));
-		InstanceData.MagazineAmmo = 1;
-		InstanceData.ReserveAmmo = 1;
-		InstanceData.SlotIndex = SlotIndex;
-		return InstanceData;
-	}
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
@@ -79,27 +109,46 @@ bool FShooterAbilityEquipNextSlotTest::RunTest(const FString& Parameters)
 {
 	using namespace ShooterAbilityEquipBehaviorAutomationTests;
 
-	FShooterWeaponInventoryList Inventory;
-	const FGuid Slot0 = FGuid::NewGuid();
-	const FGuid Slot1 = FGuid::NewGuid();
-	const FGuid Slot2 = FGuid::NewGuid();
-	TestTrue(TEXT("Slot 0 is added"), Inventory.AddItem(MakeInstance(Slot0, 0)));
-	TestTrue(TEXT("Slot 1 is added"), Inventory.AddItem(MakeInstance(Slot1, 1)));
-	TestTrue(TEXT("Slot 2 is added"), Inventory.AddItem(MakeInstance(Slot2, 2)));
+	UWorld* World = CreateEquipContractWorld(*this);
+	if (!World)
+	{
+		return false;
+	}
 
-	FGuid Next;
+	FShooterWeaponInventoryList Inventory;
+	AShooterRuntimePoolTestWeapon* Slot0 = SpawnEquipContractWeapon(*this, World, TEXT("EquipSlotWeapon_0"));
+	AShooterRuntimePoolTestWeapon* Slot1 = SpawnEquipContractWeapon(*this, World, TEXT("EquipSlotWeapon_1"));
+	AShooterRuntimePoolTestWeapon* Slot2 = SpawnEquipContractWeapon(*this, World, TEXT("EquipSlotWeapon_2"));
+	if (!Slot0 || !Slot1 || !Slot2)
+	{
+		DestroyEquipContractWorld(World);
+		return false;
+	}
+
+	TestTrue(TEXT("Slot 0 is added"), Inventory.AddItem(Slot0, 0));
+	TestTrue(TEXT("Slot 1 is added"), Inventory.AddItem(Slot1, 1));
+	TestTrue(TEXT("Slot 2 is added"), Inventory.AddItem(Slot2, 2));
+
 	TestTrue(
 		TEXT("Slot 0 advances to Slot 1"),
-		Inventory.FindNextItemId(Slot0, Next) && Next == Slot1);
+		Inventory.FindNextWeapon(Slot0) == Slot1);
 	TestTrue(
 		TEXT("Slot 1 advances to Slot 2"),
-		Inventory.FindNextItemId(Slot1, Next) && Next == Slot2);
+		Inventory.FindNextWeapon(Slot1) == Slot2);
 	TestTrue(
 		TEXT("Slot 2 wraps to Slot 0"),
-		Inventory.FindNextItemId(Slot2, Next) && Next == Slot0);
-	TestFalse(
-		TEXT("Missing current instance is rejected"),
-		Inventory.FindNextItemId(FGuid::NewGuid(), Next));
+		Inventory.FindNextWeapon(Slot2) == Slot0);
+
+	// 未入库的当前武器：明确拒绝。
+	AShooterRuntimePoolTestWeapon* Unlisted = SpawnEquipContractWeapon(*this, World, TEXT("EquipSlotWeapon_X"));
+	if (TestNotNull(TEXT("Unlisted weapon spawns"), Unlisted))
+	{
+		TestNull(
+			TEXT("Missing current weapon is rejected"),
+			Inventory.FindNextWeapon(Unlisted));
+	}
+
+	DestroyEquipContractWorld(World);
 	return true;
 }
 
@@ -144,11 +193,21 @@ bool FShooterAbilityEquipRejectSingleWeaponTest::RunTest(const FString& Paramete
 {
 	using namespace ShooterAbilityEquipBehaviorAutomationTests;
 
-	FShooterWeaponInventoryList Inventory;
-	const FGuid OnlyId = FGuid::NewGuid();
-	TestTrue(TEXT("Single weapon is added"), Inventory.AddItem(MakeInstance(OnlyId, 0)));
-	FGuid Next;
-	TestTrue(TEXT("Single weapon has no next slot"), Inventory.Items.Num() < 2);
+	UWorld* World = CreateEquipContractWorld(*this);
+	if (World)
+	{
+		FShooterWeaponInventoryList Inventory;
+		AShooterRuntimePoolTestWeapon* Only = SpawnEquipContractWeapon(*this, World, TEXT("EquipSingleWeapon"));
+		if (TestNotNull(TEXT("Single weapon spawns"), Only))
+		{
+			TestTrue(TEXT("Single weapon is added"), Inventory.AddItem(Only, 0));
+			TestNull(
+				TEXT("Single weapon has no next slot"),
+				Inventory.FindNextWeapon(Only));
+		}
+		DestroyEquipContractWorld(World);
+	}
+
 	// 服务器激活拒绝由网络协调器在单武器阶段验证。
 	return TestServerOnlyContract(*this);
 }
@@ -221,7 +280,7 @@ bool FShooterAbilityEquipInstanceActorConsistencyTest::RunTest(const FString& Pa
 		TestTrue(TEXT("Weapon EquipDuration is positive"), WeaponDefaults->GetEquipDuration() > 0.0f);
 	}
 
-	// 逻辑 InstanceId 与 CurrentWeapon Actor 的运行时一致性由网络协调器在切换提交后验证。
+	// CurrentWeaponActor 与 Inventory Entry Actor 的运行时一致性由网络协调器在切换提交后验证。
 	return TestServerOnlyContract(*this);
 }
 

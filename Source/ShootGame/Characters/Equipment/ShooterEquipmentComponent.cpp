@@ -20,7 +20,7 @@ void UShooterEquipmentComponent::BeginPlay()
 
 	if (UShooterInventoryComponent* Inventory = GetOwnerInventory())
 	{
-		Inventory->OnWeaponInstanceRemovedFromInventory.AddUObject(this, &UShooterEquipmentComponent::NotifyWeaponInstanceRemoved);
+		Inventory->OnWeaponRemovedFromInventory.AddUObject(this, &UShooterEquipmentComponent::NotifyWeaponRemoved);
 		Inventory->OnInventoryCleared.AddUObject(this, &UShooterEquipmentComponent::NotifyInventoryCleared);
 	}
 
@@ -35,25 +35,27 @@ void UShooterEquipmentComponent::EndPlay(const EEndPlayReason::Type EndPlayReaso
 {
 	if (UShooterInventoryComponent* Inventory = GetOwnerInventory())
 	{
-		Inventory->OnWeaponInstanceRemovedFromInventory.RemoveAll(this);
+		Inventory->OnWeaponRemovedFromInventory.RemoveAll(this);
 		Inventory->OnInventoryCleared.RemoveAll(this);
 	}
 
 	Super::EndPlay(EndPlayReason);
 }
 
-bool UShooterEquipmentComponent::EquipWeapon(const FGuid& InstanceId)
+bool UShooterEquipmentComponent::EquipWeapon(AShooterWeapon* TargetWeapon)
 {
 	AShooterCharacter* Character = GetOwnerCharacter();
 	UShooterInventoryComponent* Inventory = GetOwnerInventory();
-	if (!Character || !Character->HasAuthority() || !Inventory || !InstanceId.IsValid())
+	if (!Character || !Character->HasAuthority() || !Inventory || !IsValid(TargetWeapon))
 	{
 		return false;
 	}
 
-	// 事务目标必须真实存在于 Inventory，并且是绑定到本角色的 WeaponActor。
-	AShooterWeapon* TargetWeapon = Inventory->FindWeaponActor(InstanceId);
-	if (!IsValid(TargetWeapon) || TargetWeapon->GetOwner() != Character || TargetWeapon->IsActorBeingDestroyed())
+	// 事务目标必须真实存在于 Inventory、绑定到本角色且不在池内。
+	if (!Inventory->ContainsWeapon(TargetWeapon) ||
+		TargetWeapon->GetOwner() != Character ||
+		TargetWeapon->IsActorBeingDestroyed() ||
+		TargetWeapon->GetLifecycleState() == EShooterWeaponLifecycleState::InPool)
 	{
 		return false;
 	}
@@ -73,8 +75,6 @@ bool UShooterEquipmentComponent::EquipWeapon(const FGuid& InstanceId)
 		TargetWeapon->BeginEquipTransaction();
 	}
 
-	// 身份与实体必须作为同一事务原子提交。
-	ActiveWeaponInstanceId = InstanceId;
 	CurrentWeaponActor = TargetWeapon;
 
 	// E2：逻辑变化只在真实转移时发布；相同武器重复提交不再重复广播。
@@ -88,9 +88,9 @@ bool UShooterEquipmentComponent::EquipWeapon(const FGuid& InstanceId)
 	UE_LOG(
 		LogShootGame,
 		Display,
-		TEXT("Equipment EquipWeapon committed: Actor=%s InstanceId=%s Weapon=%s"),
+		TEXT("Equipment EquipWeapon committed: Actor=%s WeaponId=%s Weapon=%s"),
 		*GetNameSafe(Character),
-		*InstanceId.ToString(),
+		*TargetWeapon->GetWeaponId().ToString(),
 		*GetNameSafe(TargetWeapon));
 	return true;
 }
@@ -104,9 +104,7 @@ void UShooterEquipmentComponent::ClearEquippedWeapon()
 		PreviousWeapon->StopFiring();
 	}
 
-	// 身份与实体必须作为同一事务原子清空。
 	CurrentWeaponActor = nullptr;
-	ActiveWeaponInstanceId = FGuid();
 
 	// E2：Unequip 也是真实逻辑转移；重复 Clear 不重复发布。
 	BroadcastEquippedWeaponChanged(PreviousWeapon, nullptr);
@@ -136,7 +134,7 @@ void UShooterEquipmentComponent::HandleWeaponActorReady(AShooterWeapon* Weapon)
 {
 	if (IsValid(Weapon) && Weapon == CurrentWeaponActor)
 	{
-		// WeaponActor 的 Owner / BoundInstanceId 晚到时补做幂等表现收敛，不发布逻辑事件。
+		// WeaponActor 的 Owner / WeaponId 晚到时补做幂等表现收敛，不发布逻辑事件。
 		if (AShooterCharacter* Character = GetOwnerCharacter())
 		{
 			Character->EnsureWeaponPresentation(Weapon);
@@ -144,9 +142,9 @@ void UShooterEquipmentComponent::HandleWeaponActorReady(AShooterWeapon* Weapon)
 	}
 }
 
-void UShooterEquipmentComponent::NotifyWeaponInstanceRemoved(const FGuid& InstanceId)
+void UShooterEquipmentComponent::NotifyWeaponRemoved(AShooterWeapon* Weapon)
 {
-	if (ActiveWeaponInstanceId == InstanceId)
+	if (Weapon == CurrentWeaponActor)
 	{
 		ClearEquippedWeapon();
 	}
@@ -184,7 +182,7 @@ void UShooterEquipmentComponent::BroadcastEquippedWeaponChanged(
 	AShooterWeapon* CurrentWeapon)
 {
 	// E2 语义：只有 CurrentWeaponActor 真实转移才发布逻辑装备变化；
-	// Ready 补偿、BeginPlay 回放与 ActiveInstanceId OnRep 都不得进入这里。
+	// Ready 补偿与 BeginPlay 回放不得进入这里。
 	if (PreviousWeapon == CurrentWeapon)
 	{
 		return;
@@ -224,24 +222,11 @@ void UShooterEquipmentComponent::OnRep_CurrentWeaponActor(AShooterWeapon* Previo
 		*GetNameSafe(CurrentWeaponActor));
 }
 
-void UShooterEquipmentComponent::OnRep_ActiveWeaponInstanceId()
-{
-	// E2：Owner 身份可以单独消费该值，但它不再触发表现应用或逻辑事件。
-	// 表现只由 CurrentWeaponActor OnRep / BeginPlay / HandleWeaponActorReady 幂等补做。
-	UE_LOG(
-		LogShootGame,
-		Display,
-		TEXT("Equipment ActiveWeaponInstanceId replicated: Actor=%s InstanceId=%s"),
-		*GetNameSafe(GetOwner()),
-		*ActiveWeaponInstanceId.ToString());
-}
-
 void UShooterEquipmentComponent::GetLifetimeReplicatedProps(
 	TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	// 观察者只需要 CurrentWeaponActor；完整装备身份只发给拥有者。
+	// 观察者只需要 CurrentWeaponActor；不再存在只发给 Owner 的实例身份。
 	DOREPLIFETIME(UShooterEquipmentComponent, CurrentWeaponActor);
-	DOREPLIFETIME_CONDITION(UShooterEquipmentComponent, ActiveWeaponInstanceId, COND_OwnerOnly);
 }

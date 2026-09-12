@@ -241,56 +241,19 @@ AShooterNetworkTestCoordinator::AShooterNetworkTestCoordinator()
 		TEXT("ShootGameAimRotationTest"));
 }
 
-bool AShooterNetworkTestCoordinator::ReplaceInventoryWeaponForReloadTest(
-	AShooterCharacter* Character,
-	const FGuid& InstanceId,
-	int32 SlotIndex,
+bool AShooterNetworkTestCoordinator::SetReloadTestAmmo(
+	AShooterWeapon* Weapon,
 	int32 MagazineAmmo,
 	int32 ReserveAmmo)
 {
-	UShooterInventoryComponent* Inventory = Character
-		? Character->GetInventoryComponent()
-		: nullptr;
-	if (!Inventory || !InstanceId.IsValid())
+	if (!IsValid(Weapon) || !Weapon->HasAuthority())
 	{
 		return false;
 	}
 
-	// 先走正式移除路径销毁旧 Actor / 清空 Active，再以测试数据重建同一逻辑身份。
-	Inventory->RemoveWeaponInstance(InstanceId);
-
-	FShooterWeaponInstanceData InstanceData;
-	InstanceData.InstanceId = InstanceId;
-	// 实例数据只要求行名非空；该假行名不需要存在于任何武器模板表里，
-	// 测试武器按自身默认配置工作（与下面的 SetInstanceBinding 不传行名一致）。
-	InstanceData.WeaponRowName = FName(TEXT("TestWeapon_ReloadInstance"));
-	InstanceData.MagazineAmmo = MagazineAmmo;
-	InstanceData.ReserveAmmo = ReserveAmmo;
-	InstanceData.SlotIndex = SlotIndex;
-	if (!Inventory->AddWeaponInstance(InstanceData))
-	{
-		return false;
-	}
-
-	FActorSpawnParameters SpawnParameters;
-	SpawnParameters.Owner = Character;
-	SpawnParameters.Instigator = Character;
-	SpawnParameters.SpawnCollisionHandlingOverride =
-		ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	AShooterWeapon* Weapon = GetWorld()->SpawnActor<AShooterWeapon>(
-		AShooterNetworkTestReloadWeapon::StaticClass(),
-		Character->GetActorTransform(),
-		SpawnParameters);
-	if (!Weapon)
-	{
-		Inventory->RemoveWeaponInstance(InstanceId);
-		return false;
-	}
-
-	Weapon->SetInstanceBinding(InstanceId);
-	Weapon->SetActorHiddenInGame(true);
-	Inventory->RegisterWeaponActor(Weapon);
-	Character->GetEquipmentComponent()->EquipWeapon(InstanceId);
+	// 弹药权威在 WeaponActor（S2）：测试直接把权威弹药设置到换弹事务的起点值。
+	Weapon->SetAmmoForAutomationTest(MagazineAmmo, ReserveAmmo);
+	Weapon->ForceNetUpdate();
 	return true;
 }
 
@@ -353,10 +316,10 @@ void AShooterNetworkTestCoordinator::TriggerDisconnectReload()
 		return;
 	}
 
-	const FGuid ActiveInstanceId = Inventory->GetActiveWeaponInstanceId();
-	if (ActiveInstanceId.IsValid() && Inventory->GetMagazineAmmo(ActiveInstanceId) > 0)
+	AShooterWeapon* ActiveWeapon = Character->GetCurrentWeapon();
+	if (ActiveWeapon && ActiveWeapon->GetBulletCount() > 0)
 	{
-		Inventory->ConsumeMagazineAmmo(ActiveInstanceId, 1);
+		ActiveWeapon->ConsumeAmmo(1);
 	}
 
 	if (UAbilitySystemComponent* AbilitySystemComponent =
@@ -381,9 +344,9 @@ void AShooterNetworkTestCoordinator::TriggerDisconnectReload()
 		UE_LOG(
 			LogShootGame,
 			Display,
-			TEXT("AUTOMATION_TEST_DISCONNECT_RELOAD_READY Avatar=%s ActiveInstance=%s ActiveReload=true ReloadingTag=true"),
+			TEXT("AUTOMATION_TEST_DISCONNECT_RELOAD_READY Avatar=%s ActiveWeapon=%s ActiveReload=true ReloadingTag=true"),
 			*GetNameSafe(Character),
-			*ActiveInstanceId.ToString());
+			*GetNameSafe(ActiveWeapon));
 	}
 }
 
@@ -405,18 +368,16 @@ bool AShooterNetworkTestCoordinator::TriggerLongEquip(
 		return false;
 	}
 
-	FGuid TargetInstanceId;
-	if (!Inventory->FindNextWeaponInstanceId(
-		Inventory->GetActiveWeaponInstanceId(),
-		TargetInstanceId))
+	AShooterCharacter* LongEquipCharacter = Cast<AShooterCharacter>(Inventory->GetOwner());
+	AShooterWeapon* TargetWeapon = Inventory->FindNextWeapon(
+		LongEquipCharacter ? LongEquipCharacter->GetCurrentWeapon() : nullptr);
+	if (!TargetWeapon)
 	{
 		FailTest(FString::Printf(
-			TEXT("%s equip precondition could not resolve next instance"),
+			TEXT("%s equip precondition could not resolve next weapon"),
 			Context));
 		return false;
 	}
-
-	AShooterWeapon* TargetWeapon = Inventory->FindWeaponActor(TargetInstanceId);
 	FFloatProperty* EquipDurationProperty = TargetWeapon
 		? FindFProperty<FFloatProperty>(TargetWeapon->GetClass(), TEXT("EquipDuration"))
 		: nullptr;
@@ -505,7 +466,7 @@ void AShooterNetworkTestCoordinator::VerifyEquipDeathCleanup()
 		: nullptr;
 	const bool bClean = Character && Character->IsDead() && Inventory &&
 		Inventory->GetWeaponCount() == 0 &&
-		!Inventory->GetActiveWeaponInstanceId().IsValid() &&
+		Character->GetCurrentWeapon() == nullptr &&
 		Character->GetCurrentWeapon() == nullptr &&
 		AbilitySystemComponent &&
 		!HasActiveEquipAbility(Character) &&
@@ -517,7 +478,7 @@ void AShooterNetworkTestCoordinator::VerifyEquipDeathCleanup()
 			TEXT("Equip death cleanup invalid; Dead=%s Count=%d ActiveId=%s CurrentWeapon=%s ActiveEquip=%s EquippingTag=%s"),
 			Character && Character->IsDead() ? TEXT("true") : TEXT("false"),
 			Inventory ? Inventory->GetWeaponCount() : INDEX_NONE,
-			Inventory ? *Inventory->GetActiveWeaponInstanceId().ToString() : TEXT("null"),
+			*GetNameSafe(Character ? Character->GetCurrentWeapon() : nullptr),
 			*GetNameSafe(Character ? Character->GetCurrentWeapon() : nullptr),
 			Character && HasActiveEquipAbility(Character) ? TEXT("true") : TEXT("false"),
 			AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(
@@ -1240,10 +1201,10 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			return;
 		}
 
-		// 单表武器配置纠偏后授予入口只接受 DT_WeaponData 行名；SlotFull 需要额外的测试行，
-		// 因此本流程给该 Inventory 注入一张瞬态测试表。注入表会覆盖生产表，所以必须先把生产
-		// Rifle / Pistol 两行按同名复制进来，让下面的正式授予与武器表现仍解析同一份生产配置。
-		UDataTable* TestWeaponTable = GetOrCreateTestWeaponTable(InventoryComponent);
+		// S3 起授予走 World 级运行时快照；SlotFull 需要额外的测试行，因此本流程给运行时
+		// 注入一张瞬态测试表。注入表会覆盖生产表，所以必须先把生产 Rifle / Pistol 两行
+		// 按同名复制进来，让下面的正式授予与武器表现仍解析同一份生产配置。
+		UDataTable* TestWeaponTable = GetOrInjectRuntimeTestTable(GetWorld());
 		const UDataTable* ProductionWeaponTable = ShooterWeaponTable::ResolveWeaponTable();
 		if (!TestWeaponTable || !ProductionWeaponTable)
 		{
@@ -1251,7 +1212,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			return;
 		}
 
-		// 瞬态表由 Inventory 的 WeaponTable 强引用持有（TObjectPtr），无需额外保活。
+		// 瞬态表由 WeaponRuntimeSubsystem 的 Override 强引用持有（TObjectPtr），无需额外保活。
 
 		const FName ProductionWeaponRowNames[] = {
 			ShooterNetworkTest::RifleWeaponRowName,
@@ -1275,67 +1236,108 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			TestWeaponTable->AddRow(ProductionWeaponRowName, *ProductionRow);
 		}
 
-		const EShooterInventoryAddResult RifleResult =
-			InventoryComponent->TryAddWeaponRow(
-				ShooterNetworkTest::RifleWeaponRowName,
-				ServerInventoryFirstId);
+		// 生产行复制完成后重建快照，使 Rifle / Pistol 具备可租用的 Bucket。
+		GetWorld()->GetSubsystem<UShooterWeaponRuntimeSubsystem>()->InitializeWeaponRuntimeForTest();
+
+		UShooterWeaponRuntimeSubsystem* Runtime = GetWorld()
+			? GetWorld()->GetSubsystem<UShooterWeaponRuntimeSubsystem>()
+			: nullptr;
+		UShooterEquipmentComponent* Equipment = Character->GetEquipmentComponent();
+		if (!Runtime || !Equipment)
+		{
+			FailTest(TEXT("Inventory preparation missing weapon runtime or equipment"));
+			return;
+		}
+
+		// S3 授予链：Runtime.Acquire → Inventory.AddWeapon → Equipment.EquipWeapon。
+		AShooterWeapon* RifleActor = Runtime->AcquireWeapon(
+			ShooterNetworkTest::RifleWeaponRowName,
+			Character,
+			Character);
+		const EShooterInventoryAddResult RifleResult = RifleActor
+			? InventoryComponent->AddWeapon(RifleActor)
+			: EShooterInventoryAddResult::InvalidWeapon;
+		ServerInventoryFirstWeapon = RifleActor;
 		if (RifleResult == EShooterInventoryAddResult::Added)
 		{
-			Character->GetEquipmentComponent()->EquipWeapon(ServerInventoryFirstId);
+			Equipment->EquipWeapon(RifleActor);
 		}
 
-		const EShooterInventoryAddResult PistolResult =
-			InventoryComponent->TryAddWeaponRow(
-				ShooterNetworkTest::PistolWeaponRowName,
-				ServerInventorySecondId);
+		AShooterWeapon* PistolActor = Runtime->AcquireWeapon(
+			ShooterNetworkTest::PistolWeaponRowName,
+			Character,
+			Character);
+		const EShooterInventoryAddResult PistolResult = PistolActor
+			? InventoryComponent->AddWeapon(PistolActor)
+			: EShooterInventoryAddResult::InvalidWeapon;
+		ServerInventorySecondWeapon = PistolActor;
 		if (PistolResult == EShooterInventoryAddResult::Added)
 		{
-			Character->GetEquipmentComponent()->EquipWeapon(ServerInventorySecondId);
+			Equipment->EquipWeapon(PistolActor);
 		}
 
-		// SingleGrant：同一武器模板行不能第二次授予。
-		FGuid DuplicateInstanceId;
-		const EShooterInventoryAddResult DuplicateResult =
-			InventoryComponent->TryAddWeaponRow(
-				ShooterNetworkTest::RifleWeaponRowName,
-				DuplicateInstanceId);
+		// SingleGrant：同一 WeaponId 的第二把实体不能进入背包。
+		EShooterInventoryAddResult DuplicateResult = EShooterInventoryAddResult::InvalidWeapon;
+		if (AShooterWeapon* DuplicateWeapon = Runtime->AcquireWeapon(
+			ShooterNetworkTest::RifleWeaponRowName,
+			Character,
+			Character))
+		{
+			DuplicateResult = InventoryComponent->AddWeapon(DuplicateWeapon);
+			Runtime->ReleaseWeapon(DuplicateWeapon);
+		}
 
-		// SlotFull：临时把 Slot 上限设为 1，使用额外测试行验证唯一空位耗尽后明确 Reject。
+		// SlotFull：临时把 Slot 上限设为 1，使用额外 WeaponId 验证唯一空位耗尽后明确 Reject。
 		const int32 PreviousMaxSlots = InventoryComponent->GetMaxWeaponSlots();
 		InventoryComponent->SetMaxWeaponSlots(1);
-		FGuid SlotFullInstanceId;
 		const FName SlotFillRowName = AddTestWeaponRow(
 			TestWeaponTable,
 			MakeTestWeaponRow(
 				AShooterNetworkTestWeapon::StaticClass(),
 				/*MagazineSize*/ 10));
-		const EShooterInventoryAddResult SlotFullResult =
-			InventoryComponent->TryAddWeaponRow(SlotFillRowName, SlotFullInstanceId);
+		Runtime->InitializeWeaponRuntimeForTest();
+		EShooterInventoryAddResult SlotFullResult = EShooterInventoryAddResult::InvalidWeapon;
+		if (AShooterWeapon* SlotFullWeapon = Runtime->AcquireWeapon(SlotFillRowName, Character, Character))
+		{
+			SlotFullResult = InventoryComponent->AddWeapon(SlotFullWeapon);
+			if (SlotFullResult != EShooterInventoryAddResult::Added)
+			{
+				Runtime->ReleaseWeapon(SlotFullWeapon);
+			}
+		}
 		InventoryComponent->SetMaxWeaponSlots(PreviousMaxSlots);
 
-		// WeaponActorBinding：每个 InstanceId 必须与对应 Actor 的 BoundInstanceId 完全一致。
-		AShooterWeapon* RifleActor = InventoryComponent->FindWeaponActor(ServerInventoryFirstId);
-		AShooterWeapon* PistolActor = InventoryComponent->FindWeaponActor(ServerInventorySecondId);
+		// WeaponIdBinding：每把 Actor 的 WeaponId 必须与授予行一致。
 		const bool bBindingOk = IsValid(RifleActor) && IsValid(PistolActor) &&
-			RifleActor->GetBoundInstanceId() == ServerInventoryFirstId &&
-			PistolActor->GetBoundInstanceId() == ServerInventorySecondId;
+			RifleActor->GetWeaponId() == ShooterNetworkTest::RifleWeaponRowName &&
+			PistolActor->GetWeaponId() == ShooterNetworkTest::PistolWeaponRowName;
 
-		// Switch.InvalidInstance：不存在的 InstanceId 不能改写 Equipment 的 Active 身份。
-		const FGuid ActiveBeforeInvalid = InventoryComponent->GetActiveWeaponInstanceId();
-		Character->GetEquipmentComponent()->EquipWeapon(FGuid::NewGuid());
+		// Switch.InvalidTarget：不在背包中的 Actor 不能改写 Equipment 当前装备。
+		AShooterWeapon* ActiveBeforeInvalid = Equipment->GetCurrentWeaponActor();
+		FActorSpawnParameters InvalidSpawnParams;
+		InvalidSpawnParams.Owner = Character;
+		AShooterWeapon* UnlistedWeapon = GetWorld()->SpawnActor<AShooterWeapon>(
+			AShooterNetworkTestWeapon::StaticClass(),
+			Character->GetActorTransform(),
+			InvalidSpawnParams);
+		if (UnlistedWeapon)
+		{
+			Equipment->EquipWeapon(UnlistedWeapon);
+			UnlistedWeapon->Destroy();
+		}
 		const bool bInvalidInstanceRejected =
-			InventoryComponent->GetActiveWeaponInstanceId() == ActiveBeforeInvalid;
+			Equipment->GetCurrentWeaponActor() == ActiveBeforeInvalid;
 
-		InitialRifleMagazineAmmo = InventoryComponent->GetMagazineAmmo(ServerInventoryFirstId);
-		InitialPistolMagazineAmmo = InventoryComponent->GetMagazineAmmo(ServerInventorySecondId);
+		InitialRifleMagazineAmmo = RifleActor ? RifleActor->GetBulletCount() : INDEX_NONE;
+		InitialPistolMagazineAmmo = PistolActor ? PistolActor->GetBulletCount() : INDEX_NONE;
 
-		ServerInventoryActiveId = InventoryComponent->GetActiveWeaponInstanceId();
+		ServerInventoryActiveWeapon = Equipment->GetCurrentWeaponActor();
 		if (RifleResult != EShooterInventoryAddResult::Added ||
 			PistolResult != EShooterInventoryAddResult::Added ||
-			DuplicateResult != EShooterInventoryAddResult::DuplicateWeaponRow ||
+			DuplicateResult != EShooterInventoryAddResult::DuplicateWeapon ||
 			SlotFullResult != EShooterInventoryAddResult::SlotFull ||
 			InventoryComponent->GetWeaponCount() != 2 ||
-			ServerInventoryActiveId != ServerInventorySecondId ||
+			ServerInventoryActiveWeapon.Get() != PistolActor ||
 			!bBindingOk ||
 			!bInvalidInstanceRejected)
 		{
@@ -1346,8 +1348,8 @@ void AShooterNetworkTestCoordinator::PollServerState()
 				static_cast<int32>(DuplicateResult),
 				static_cast<int32>(SlotFullResult),
 				InventoryComponent->GetWeaponCount(),
-				*ServerInventoryActiveId.ToString(),
-				*ServerInventorySecondId.ToString(),
+				*GetNameSafe(ServerInventoryActiveWeapon.Get()),
+				*GetNameSafe(PistolActor),
 				bBindingOk ? TEXT("true") : TEXT("false"),
 				bInvalidInstanceRejected ? TEXT("true") : TEXT("false"),
 				*ShooterNetworkTest::RifleWeaponRowName.ToString()));
@@ -1747,8 +1749,8 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		UShooterInventoryComponent* EquipInventory = Character->GetInventoryComponent();
 		AShooterWeapon* EquippedWeapon = Character->GetCurrentWeapon();
 		bEquipInitialCommitConsistent = EquipInventory && EquippedWeapon &&
-			EquippedWeapon->GetBoundInstanceId() == ServerInventoryFirstId &&
-			EquipInventory->GetActiveWeaponInstanceId() == ServerInventoryFirstId;
+			EquippedWeapon == ServerInventoryFirstWeapon.Get() &&
+			Character->GetCurrentWeapon() == ServerInventoryFirstWeapon.Get();
 	}
 
 	// 初始切换阶段要求 CurrentWeapon 离开旧手枪；4C 切枪取消阶段会合法回到旧手枪，
@@ -1788,12 +1790,8 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		BulletCountAfterFire = CurrentBulletCount;
 
 		UShooterInventoryComponent* AmmoInventory = Character->GetInventoryComponent();
-		const int32 RifleAmmoAfterFire = AmmoInventory
-			? AmmoInventory->GetMagazineAmmo(ServerInventoryFirstId)
-			: INDEX_NONE;
-		const int32 PistolAmmoAfterFire = AmmoInventory
-			? AmmoInventory->GetMagazineAmmo(ServerInventorySecondId)
-			: INDEX_NONE;
+		const int32 RifleAmmoAfterFire = ServerInventoryFirstWeapon.IsValid() ? ServerInventoryFirstWeapon->GetBulletCount() : INDEX_NONE;
+		const int32 PistolAmmoAfterFire = ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetBulletCount() : INDEX_NONE;
 		bAmmoIsolationVerified =
 			InitialRifleMagazineAmmo != INDEX_NONE &&
 			InitialPistolMagazineAmmo != INDEX_NONE &&
@@ -1847,9 +1845,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		{
 			UShooterInventoryComponent* QuiescenceInventory =
 				Character->GetInventoryComponent();
-			const int32 RifleAmmoNow = QuiescenceInventory
-				? QuiescenceInventory->GetMagazineAmmo(ServerInventoryFirstId)
-				: INDEX_NONE;
+			const int32 RifleAmmoNow = ServerInventoryFirstWeapon.IsValid() ? ServerInventoryFirstWeapon->GetBulletCount() : INDEX_NONE;
 			bFullAutoQuiescentConfirmed =
 				ProjectileSpawnCount == ProjectileCountAfterRelease &&
 				RifleAmmoNow == AmmoAfterRelease;
@@ -1874,9 +1870,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		ProjectileCountBeforeSwitchCancel = ProjectileSpawnCount;
 		UShooterInventoryComponent* SwitchCancelInventory =
 			Character->GetInventoryComponent();
-		RifleAmmoBeforeSwitchCancel = SwitchCancelInventory
-			? SwitchCancelInventory->GetMagazineAmmo(ServerInventoryFirstId)
-			: INDEX_NONE;
+		RifleAmmoBeforeSwitchCancel = ServerInventoryFirstWeapon.IsValid() ? ServerInventoryFirstWeapon->GetBulletCount() : INDEX_NONE;
 		bServerReadyForSwitchCancel = true;
 		ForceNetUpdate();
 		return;
@@ -1900,17 +1894,14 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		{
 			UShooterInventoryComponent* SwitchCancelInventory =
 				Character->GetInventoryComponent();
-			const int32 RifleAmmoNow = SwitchCancelInventory
-				? SwitchCancelInventory->GetMagazineAmmo(ServerInventoryFirstId)
-				: INDEX_NONE;
+			const int32 RifleAmmoNow = ServerInventoryFirstWeapon.IsValid() ? ServerInventoryFirstWeapon->GetBulletCount() : INDEX_NONE;
 			AShooterWeapon* CurrentWeaponAfterSwitch =
 				Character->GetCurrentWeapon();
 			bSwitchCancelQuiescentConfirmed =
 				ProjectileSpawnCount == ProjectileCountAfterSwitchCancel &&
 				RifleAmmoNow == RifleAmmoAfterSwitchCancel &&
 				CurrentWeaponAfterSwitch &&
-				CurrentWeaponAfterSwitch->GetBoundInstanceId() ==
-					ServerInventorySecondId;
+				CurrentWeaponAfterSwitch == ServerInventorySecondWeapon.Get();
 			bSwitchCancelVerified = bSwitchCancelActiveObserved &&
 				bClientObservedSwitchCancel &&
 				bSwitchCancelQuiescentConfirmed;
@@ -1925,7 +1916,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 					ProjectileSpawnCount,
 					RifleAmmoAfterSwitchCancel,
 					RifleAmmoNow,
-					CurrentWeaponAfterSwitch && CurrentWeaponAfterSwitch->GetBoundInstanceId() == ServerInventorySecondId
+					CurrentWeaponAfterSwitch && CurrentWeaponAfterSwitch == ServerInventorySecondWeapon.Get()
 						? TEXT("pistol")
 						: TEXT("invalid")));
 				return;
@@ -1938,10 +1929,8 @@ void AShooterNetworkTestCoordinator::PollServerState()
 	if (bSwitchCancelVerified && !bReloadFullRejectPhaseTriggered)
 	{
 		bReloadFullRejectPhaseTriggered = true;
-		if (!ReplaceInventoryWeaponForReloadTest(
-			Character,
-			ServerInventorySecondId,
-			/*SlotIndex*/1,
+		if (!SetReloadTestAmmo(
+			ServerInventorySecondWeapon.Get(),
 			/*MagazineAmmo*/30,
 			/*ReserveAmmo*/20))
 		{
@@ -1950,12 +1939,8 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		}
 
 		UShooterInventoryComponent* ReloadInventory = Character->GetInventoryComponent();
-		ReloadMagazineBeforeFullReject = ReloadInventory
-			? ReloadInventory->GetMagazineAmmo(ServerInventorySecondId)
-			: INDEX_NONE;
-		ReloadReserveBeforeFullReject = ReloadInventory
-			? ReloadInventory->GetReserveAmmo(ServerInventorySecondId)
-			: INDEX_NONE;
+		ReloadMagazineBeforeFullReject = ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetBulletCount() : INDEX_NONE;
+		ReloadReserveBeforeFullReject = ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetReserveAmmo() : INDEX_NONE;
 		bClientTriggeredReload = false;
 		++ReloadInputRequestId;
 		ForceNetUpdate();
@@ -1977,9 +1962,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			UAbilitySystemComponent* AbilitySystemComponent =
 				Character->GetAbilitySystemComponent();
 			bReloadFullRejectVerified = ReloadInventory &&
-				ReloadInventory->GetMagazineAmmo(ServerInventorySecondId) ==
+				(ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetBulletCount() : INDEX_NONE) ==
 					ReloadMagazineBeforeFullReject &&
-				ReloadInventory->GetReserveAmmo(ServerInventorySecondId) ==
+				(ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetReserveAmmo() : INDEX_NONE) ==
 					ReloadReserveBeforeFullReject &&
 				!HasActiveReloadAbility(Character) &&
 				AbilitySystemComponent &&
@@ -1990,9 +1975,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 				FailTest(FString::Printf(
 					TEXT("Full-magazine reload was not rejected; Mag=%d->%d Reserve=%d->%d ActiveReload=%s Tag=%s"),
 					ReloadMagazineBeforeFullReject,
-					ReloadInventory ? ReloadInventory->GetMagazineAmmo(ServerInventorySecondId) : INDEX_NONE,
+					ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetBulletCount() : INDEX_NONE,
 					ReloadReserveBeforeFullReject,
-					ReloadInventory ? ReloadInventory->GetReserveAmmo(ServerInventorySecondId) : INDEX_NONE,
+					ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetReserveAmmo() : INDEX_NONE,
 					HasActiveReloadAbility(Character) ? TEXT("true") : TEXT("false"),
 					AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading)
 						? TEXT("true")
@@ -2009,18 +1994,18 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		UShooterInventoryComponent* ReloadInventory =
 			Character->GetInventoryComponent();
 		if (!ReloadInventory ||
-			!ReloadInventory->ConsumeMagazineAmmo(ServerInventorySecondId, 5))
+			!ServerInventorySecondWeapon.IsValid() ||
+			!ServerInventorySecondWeapon->ConsumeAmmo(5))
 		{
 			FailTest(TEXT("Reload transfer preparation could not consume test ammo"));
 			return;
 		}
 
 		ReloadMagazineBeforeTransfer =
-			ReloadInventory->GetMagazineAmmo(ServerInventorySecondId);
+			(ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetBulletCount() : INDEX_NONE);
 		ReloadReserveBeforeTransfer =
-			ReloadInventory->GetReserveAmmo(ServerInventorySecondId);
-		AShooterWeapon* ReloadWeapon = ReloadInventory->FindWeaponActor(
-			ServerInventorySecondId);
+			(ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetReserveAmmo() : INDEX_NONE);
+		AShooterWeapon* ReloadWeapon = ServerInventorySecondWeapon.Get();
 		ExpectedReloadTransfer = ReloadWeapon
 			? FMath::Min(
 				ReloadWeapon->GetMagazineSize() - ReloadMagazineBeforeTransfer,
@@ -2052,12 +2037,8 @@ void AShooterNetworkTestCoordinator::PollServerState()
 				Character->GetInventoryComponent();
 			UAbilitySystemComponent* AbilitySystemComponent =
 				Character->GetAbilitySystemComponent();
-			ReloadMagazineAfterTransfer = ReloadInventory
-				? ReloadInventory->GetMagazineAmmo(ServerInventorySecondId)
-				: INDEX_NONE;
-			ReloadReserveAfterTransfer = ReloadInventory
-				? ReloadInventory->GetReserveAmmo(ServerInventorySecondId)
-				: INDEX_NONE;
+			ReloadMagazineAfterTransfer = ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetBulletCount() : INDEX_NONE;
+			ReloadReserveAfterTransfer = ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetReserveAmmo() : INDEX_NONE;
 			bReloadTransferVerified = ReloadInventory &&
 				ReloadMagazineAfterTransfer ==
 					ReloadMagazineBeforeTransfer + ExpectedReloadTransfer &&
@@ -2095,9 +2076,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		bFireAfterReloadPhaseTriggered = true;
 		UShooterInventoryComponent* FireReloadInventory =
 			Character->GetInventoryComponent();
-		FireAfterReloadMagazineBefore = FireReloadInventory
-			? FireReloadInventory->GetMagazineAmmo(ServerInventorySecondId)
-			: INDEX_NONE;
+		FireAfterReloadMagazineBefore = ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetBulletCount() : INDEX_NONE;
 		FireAfterReloadProjectileBefore = ProjectileSpawnCount;
 		bServerReadyForFireAfterReload = true;
 		ForceNetUpdate();
@@ -2121,9 +2100,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 	{
 		UShooterInventoryComponent* FireReloadInventory =
 			Character->GetInventoryComponent();
-		const int32 MagazineAfterFire = FireReloadInventory
-			? FireReloadInventory->GetMagazineAmmo(ServerInventorySecondId)
-			: INDEX_NONE;
+		const int32 MagazineAfterFire = ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetBulletCount() : INDEX_NONE;
 		bFireAfterReloadSingleShotVerified = bFireAfterReloadActiveObserved &&
 			FireAfterReloadMagazineBefore != INDEX_NONE &&
 			MagazineAfterFire == FireAfterReloadMagazineBefore - 1 &&
@@ -2150,7 +2127,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			UAbilitySystemComponent* AbilitySystemComponent =
 				Character->GetAbilitySystemComponent();
 			bFireAfterReloadQuiescentVerified = FireReloadInventory &&
-				FireReloadInventory->GetMagazineAmmo(ServerInventorySecondId) ==
+				(ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetBulletCount() : INDEX_NONE) ==
 					FireAfterReloadMagazineBefore - 1 &&
 				ProjectileSpawnCount == FireAfterReloadProjectileBefore + 1 &&
 				AbilitySystemComponent &&
@@ -2162,7 +2139,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 				FailTest(FString::Printf(
 					TEXT("Fire-after-reload quiescence invalid; Mag=%d->%d Projectiles=%d->%d ActiveFire=%s FiringTag=%s"),
 					FireAfterReloadMagazineBefore,
-					FireReloadInventory ? FireReloadInventory->GetMagazineAmmo(ServerInventorySecondId) : INDEX_NONE,
+					ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetBulletCount() : INDEX_NONE,
 					FireAfterReloadProjectileBefore,
 					ProjectileSpawnCount,
 					HasActiveFireAbility(Character) ? TEXT("true") : TEXT("false"),
@@ -2182,16 +2159,17 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		UShooterInventoryComponent* ReloadInventory =
 			Character->GetInventoryComponent();
 		if (!ReloadInventory ||
-			!ReloadInventory->ConsumeMagazineAmmo(ServerInventorySecondId, 5))
+			!ServerInventorySecondWeapon.IsValid() ||
+			!ServerInventorySecondWeapon->ConsumeAmmo(5))
 		{
 			FailTest(TEXT("Reload equip-cancel preparation could not consume test ammo"));
 			return;
 		}
 
 		ReloadMagazineBeforeCancelEquip =
-			ReloadInventory->GetMagazineAmmo(ServerInventorySecondId);
+			(ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetBulletCount() : INDEX_NONE);
 		ReloadReserveBeforeCancelEquip =
-			ReloadInventory->GetReserveAmmo(ServerInventorySecondId);
+			(ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetReserveAmmo() : INDEX_NONE);
 		bClientTriggeredReload = false;
 		++ReloadInputRequestId;
 		ForceNetUpdate();
@@ -2226,10 +2204,10 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			Character->GetAbilitySystemComponent();
 		bReloadCancelEquipVerified = ReloadInventory &&
 			CurrentWeapon &&
-			CurrentWeapon->GetBoundInstanceId() == ServerInventoryFirstId &&
-			ReloadInventory->GetMagazineAmmo(ServerInventorySecondId) ==
+			CurrentWeapon == ServerInventoryFirstWeapon.Get() &&
+			(ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetBulletCount() : INDEX_NONE) ==
 				ReloadMagazineBeforeCancelEquip &&
-			ReloadInventory->GetReserveAmmo(ServerInventorySecondId) ==
+			(ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetReserveAmmo() : INDEX_NONE) ==
 				ReloadReserveBeforeCancelEquip &&
 			!HasActiveReloadAbility(Character) &&
 			AbilitySystemComponent &&
@@ -2247,9 +2225,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 					TEXT("Reload equip cancel invalid; Weapon=%s Mag=%d->%d Reserve=%d->%d ActiveReload=%s Tag=%s"),
 					*GetNameSafe(CurrentWeapon),
 					ReloadMagazineBeforeCancelEquip,
-					ReloadInventory ? ReloadInventory->GetMagazineAmmo(ServerInventorySecondId) : INDEX_NONE,
+					ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetBulletCount() : INDEX_NONE,
 					ReloadReserveBeforeCancelEquip,
-					ReloadInventory ? ReloadInventory->GetReserveAmmo(ServerInventorySecondId) : INDEX_NONE,
+					ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetReserveAmmo() : INDEX_NONE,
 					HasActiveReloadAbility(Character) ? TEXT("true") : TEXT("false"),
 					AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading)
 						? TEXT("true")
@@ -2259,7 +2237,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		}
 	}
 
-	// 切回手枪，保持后续 NoAmmo / Death 验证沿用 ServerInventorySecondId。
+	// 切回手枪，保持后续 NoAmmo / Death 验证沿用第二把武器。
 	if (bReloadCancelEquipVerified && !bReloadSwitchBackPhaseTriggered)
 	{
 		bReloadSwitchBackPhaseTriggered = true;
@@ -2278,7 +2256,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		// 同样等待 GA_Equip 提交完成后再验证 CurrentWeapon 回到手枪。
 		AShooterWeapon* CurrentWeapon = Character->GetCurrentWeapon();
 		bReloadSwitchBackVerified = CurrentWeapon &&
-			CurrentWeapon->GetBoundInstanceId() == ServerInventorySecondId &&
+			CurrentWeapon == ServerInventorySecondWeapon.Get() &&
 			!HasActiveReloadAbility(Character);
 		if (!bReloadSwitchBackVerified)
 		{
@@ -2305,9 +2283,10 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		UShooterInventoryComponent* EquipRejectInventory =
 			Character->GetInventoryComponent();
 		if (!EquipRejectInventory ||
-			!EquipRejectInventory->RemoveWeaponInstance(ServerInventoryFirstId) ||
+			!ServerInventoryFirstWeapon.IsValid() ||
+			!EquipRejectInventory->RemoveWeapon(ServerInventoryFirstWeapon.Get()) ||
 			EquipRejectInventory->GetWeaponCount() != 1 ||
-			EquipRejectInventory->GetActiveWeaponInstanceId() != ServerInventorySecondId)
+			Character->GetCurrentWeapon() != ServerInventorySecondWeapon.Get())
 		{
 			FailTest(TEXT("Equip single-weapon preparation failed to keep only pistol"));
 			return;
@@ -2335,9 +2314,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 				Character->GetAbilitySystemComponent();
 			bEquipSingleRejectVerified = EquipRejectInventory &&
 				EquipRejectInventory->GetWeaponCount() == 1 &&
-				EquipRejectInventory->GetActiveWeaponInstanceId() == ServerInventorySecondId &&
+				Character->GetCurrentWeapon() == ServerInventorySecondWeapon.Get() &&
 				CurrentWeapon &&
-				CurrentWeapon->GetBoundInstanceId() == ServerInventorySecondId &&
+				CurrentWeapon == ServerInventorySecondWeapon.Get() &&
 				!HasActiveEquipAbility(Character) &&
 				AbilitySystemComponent &&
 				!AbilitySystemComponent->HasMatchingGameplayTag(
@@ -2347,7 +2326,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 				FailTest(FString::Printf(
 					TEXT("Single-weapon equip reject invalid; Count=%d Active=%s Weapon=%s ActiveEquip=%s Tag=%s"),
 					EquipRejectInventory ? EquipRejectInventory->GetWeaponCount() : INDEX_NONE,
-					EquipRejectInventory ? *EquipRejectInventory->GetActiveWeaponInstanceId().ToString() : TEXT("null"),
+					*GetNameSafe(EquipRejectInventory ? Character->GetCurrentWeapon() : nullptr),
 					*GetNameSafe(CurrentWeapon),
 					HasActiveEquipAbility(Character) ? TEXT("true") : TEXT("false"),
 					AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Equipping)
@@ -2362,10 +2341,8 @@ void AShooterNetworkTestCoordinator::PollServerState()
 	if (bReloadSwitchBackVerified && bEquipSingleRejectVerified && !bReloadNoReservePhaseTriggered)
 	{
 		bReloadNoReservePhaseTriggered = true;
-		if (!ReplaceInventoryWeaponForReloadTest(
-			Character,
-			ServerInventorySecondId,
-			/*SlotIndex*/1,
+		if (!SetReloadTestAmmo(
+			ServerInventorySecondWeapon.Get(),
 			/*MagazineAmmo*/5,
 			/*ReserveAmmo*/0))
 		{
@@ -2376,9 +2353,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		UShooterInventoryComponent* ReloadInventory =
 			Character->GetInventoryComponent();
 		ReloadMagazineBeforeNoReserve =
-			ReloadInventory->GetMagazineAmmo(ServerInventorySecondId);
+			(ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetBulletCount() : INDEX_NONE);
 		ReloadReserveBeforeNoReserve =
-			ReloadInventory->GetReserveAmmo(ServerInventorySecondId);
+			(ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetReserveAmmo() : INDEX_NONE);
 		bClientTriggeredReload = false;
 		++ReloadInputRequestId;
 		ForceNetUpdate();
@@ -2400,9 +2377,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			UAbilitySystemComponent* AbilitySystemComponent =
 				Character->GetAbilitySystemComponent();
 			bReloadNoReserveVerified = ReloadInventory &&
-				ReloadInventory->GetMagazineAmmo(ServerInventorySecondId) ==
+				(ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetBulletCount() : INDEX_NONE) ==
 					ReloadMagazineBeforeNoReserve &&
-				ReloadInventory->GetReserveAmmo(ServerInventorySecondId) ==
+				(ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetReserveAmmo() : INDEX_NONE) ==
 					ReloadReserveBeforeNoReserve &&
 				!HasActiveReloadAbility(Character) &&
 				AbilitySystemComponent &&
@@ -2413,9 +2390,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 				FailTest(FString::Printf(
 					TEXT("No-reserve reload was not rejected; Mag=%d->%d Reserve=%d->%d ActiveReload=%s Tag=%s"),
 					ReloadMagazineBeforeNoReserve,
-					ReloadInventory ? ReloadInventory->GetMagazineAmmo(ServerInventorySecondId) : INDEX_NONE,
+					ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetBulletCount() : INDEX_NONE,
 					ReloadReserveBeforeNoReserve,
-					ReloadInventory ? ReloadInventory->GetReserveAmmo(ServerInventorySecondId) : INDEX_NONE,
+					ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetReserveAmmo() : INDEX_NONE,
 					HasActiveReloadAbility(Character) ? TEXT("true") : TEXT("false"),
 					AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading)
 						? TEXT("true")
@@ -2429,10 +2406,8 @@ void AShooterNetworkTestCoordinator::PollServerState()
 	if (bNoAmmoRejectVerified && !bReloadCancelDeathPhaseTriggered)
 	{
 		bReloadCancelDeathPhaseTriggered = true;
-		if (!ReplaceInventoryWeaponForReloadTest(
-			Character,
-			ServerInventorySecondId,
-			/*SlotIndex*/1,
+		if (!SetReloadTestAmmo(
+			ServerInventorySecondWeapon.Get(),
 			/*MagazineAmmo*/5,
 			/*ReserveAmmo*/20))
 		{
@@ -2443,9 +2418,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		UShooterInventoryComponent* ReloadInventory =
 			Character->GetInventoryComponent();
 		ReloadMagazineBeforeCancelDeath =
-			ReloadInventory->GetMagazineAmmo(ServerInventorySecondId);
+			(ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetBulletCount() : INDEX_NONE);
 		ReloadReserveBeforeCancelDeath =
-			ReloadInventory->GetReserveAmmo(ServerInventorySecondId);
+			(ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetReserveAmmo() : INDEX_NONE);
 		bClientTriggeredReload = false;
 		++ReloadInputRequestId;
 		ForceNetUpdate();
@@ -2461,14 +2436,10 @@ void AShooterNetworkTestCoordinator::PollServerState()
 	{
 		UShooterInventoryComponent* NoAmmoInventory =
 			Character->GetInventoryComponent();
-		const int32 PistolAmmoBefore = NoAmmoInventory
-			? NoAmmoInventory->GetMagazineAmmo(ServerInventorySecondId)
-			: INDEX_NONE;
-		if (NoAmmoInventory && PistolAmmoBefore > 0)
+		const int32 PistolAmmoBefore = ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetBulletCount() : INDEX_NONE;
+		if (ServerInventorySecondWeapon.IsValid() && PistolAmmoBefore > 0)
 		{
-			NoAmmoInventory->ConsumeMagazineAmmo(
-				ServerInventorySecondId,
-				PistolAmmoBefore);
+			ServerInventorySecondWeapon->ConsumeAmmo(PistolAmmoBefore);
 		}
 
 		UAbilitySystemComponent* AbilitySystemComponent =
@@ -2485,7 +2456,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			ShooterAbilitySystemComponent->GetActiveAbilityCountForClass(
 				Character->GetPlayerState<AShooterPlayerState>()->GetFireAbilityClass()) == 0 &&
 			NoAmmoInventory &&
-			NoAmmoInventory->GetMagazineAmmo(ServerInventorySecondId) == 0;
+			(ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetBulletCount() : INDEX_NONE) == 0;
 		if (!bNoAmmoRejectVerified)
 		{
 			FailTest(TEXT("No-ammo activation was not rejected without projectile"));
@@ -2544,9 +2515,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		UShooterInventoryComponent* DeathReloadInventory =
 			Character->GetInventoryComponent();
 		bReloadCancelDeathAmmoUnchanged = DeathReloadInventory &&
-			DeathReloadInventory->GetMagazineAmmo(ServerInventorySecondId) ==
+			(ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetBulletCount() : INDEX_NONE) ==
 				ReloadMagazineBeforeCancelDeath &&
-			DeathReloadInventory->GetReserveAmmo(ServerInventorySecondId) ==
+			(ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetReserveAmmo() : INDEX_NONE) ==
 				ReloadReserveBeforeCancelDeath &&
 			HasActiveReloadAbility(Character);
 		if (!bReloadCancelDeathAmmoUnchanged)
@@ -2554,9 +2525,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			FailTest(FString::Printf(
 				TEXT("Reload death-cancel precondition invalid; Mag=%d->%d Reserve=%d->%d ActiveReload=%s"),
 				ReloadMagazineBeforeCancelDeath,
-				DeathReloadInventory ? DeathReloadInventory->GetMagazineAmmo(ServerInventorySecondId) : INDEX_NONE,
+				ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetBulletCount() : INDEX_NONE,
 				ReloadReserveBeforeCancelDeath,
-				DeathReloadInventory ? DeathReloadInventory->GetReserveAmmo(ServerInventorySecondId) : INDEX_NONE,
+				ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetReserveAmmo() : INDEX_NONE,
 				HasActiveReloadAbility(Character) ? TEXT("true") : TEXT("false")));
 			return;
 		}
@@ -2596,7 +2567,6 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		UShooterInventoryComponent* DeathInventory = Character->GetInventoryComponent();
 		bServerDeathInventoryCleared = DeathInventory &&
 			DeathInventory->GetWeaponCount() == 0 &&
-			!DeathInventory->GetActiveWeaponInstanceId().IsValid() &&
 			Character->GetCurrentWeapon() == nullptr;
 		if (!bServerDeathInventoryCleared)
 		{
@@ -2604,7 +2574,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 				TEXT("Server Inventory death clear invalid; Inventory=%s Count=%d Active=%s CurrentWeapon=%s"),
 				*GetNameSafe(DeathInventory),
 				DeathInventory ? DeathInventory->GetWeaponCount() : INDEX_NONE,
-				DeathInventory ? *DeathInventory->GetActiveWeaponInstanceId().ToString() : TEXT("null"),
+				TEXT("n/a"),
 				*GetNameSafe(Character->GetCurrentWeapon())));
 			return;
 		}
@@ -2798,7 +2768,6 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		UShooterInventoryComponent* RespawnInventory = Character->GetInventoryComponent();
 		bServerRespawnInventoryEmpty = RespawnInventory &&
 			RespawnInventory->GetWeaponCount() == 0 &&
-			!RespawnInventory->GetActiveWeaponInstanceId().IsValid() &&
 			Character->GetCurrentWeapon() == nullptr;
 
 		// ---- 4C / 5B / 5C 重生 Tag 清理：Dead / Firing / Reloading / Equipping 与活动 Ability 不得跨生命保留 ----
@@ -2920,7 +2889,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			FailTest(FString::Printf(
 				TEXT("Server respawn Inventory is not empty; Count=%d Active=%s CurrentWeapon=%s"),
 				RespawnInventory ? RespawnInventory->GetWeaponCount() : INDEX_NONE,
-				RespawnInventory ? *RespawnInventory->GetActiveWeaponInstanceId().ToString() : TEXT("null"),
+				TEXT("n/a"),
 				*GetNameSafe(Character->GetCurrentWeapon())));
 			return;
 		}
@@ -3245,11 +3214,11 @@ void AShooterNetworkTestCoordinator::PollClientState()
 	if (!bClientReportedInventory)
 	{
 		UShooterInventoryComponent* InventoryComponent = Character->GetInventoryComponent();
-		const FGuid ActiveId = InventoryComponent ? InventoryComponent->GetActiveWeaponInstanceId() : FGuid();
+		AShooterWeapon* ActiveWeapon = Character->GetCurrentWeapon();
 		const bool bOwnerInventoryOk = InventoryComponent &&
 			InventoryComponent->GetWeaponCount() == 2 &&
-			ActiveId.IsValid() &&
-			InventoryComponent->FindWeaponInstance(ActiveId) != nullptr;
+			ActiveWeapon &&
+			InventoryComponent->ContainsWeapon(ActiveWeapon);
 
 		bool bRemoteInventoryHidden = false;
 		if (bOwnerInventoryOk)
@@ -3276,7 +3245,7 @@ void AShooterNetworkTestCoordinator::PollClientState()
 			bClientReportedInventory = true;
 			ServerReportClientObservedInventory(
 				InventoryComponent->GetWeaponCount(),
-				ActiveId.ToString(),
+				ActiveWeapon,
 				true,
 				InventoryComponent->HasBeenInitialized());
 		}
@@ -3288,13 +3257,10 @@ void AShooterNetworkTestCoordinator::PollClientState()
 		UShooterInventoryComponent* InventoryComponent = Character->GetInventoryComponent();
 		if (InventoryComponent)
 		{
-			// 客户端这里只验证权威拒绝，因此不注入测试表：客户端武器表现必须继续解析生产
-			// DT_WeaponData；且 TryAddWeaponRow 在非权威端解析行之前就返回 NotAuthoritative。
-			FGuid ClientAttemptInstanceId;
+			// 客户端这里只验证权威拒绝：非权威端 AddWeapon 在任何数据变化之前返回 NotAuthoritative。
+			AShooterWeapon* ClientAttemptWeapon = nullptr;
 			const EShooterInventoryAddResult ClientAttemptResult =
-				InventoryComponent->TryAddWeaponRow(
-					ShooterNetworkTest::RifleWeaponRowName,
-					ClientAttemptInstanceId);
+				InventoryComponent->AddWeapon(ClientAttemptWeapon);
 			if (ClientAttemptResult == EShooterInventoryAddResult::NotAuthoritative &&
 				InventoryComponent->GetWeaponCount() == 2)
 			{
@@ -3525,11 +3491,7 @@ void AShooterNetworkTestCoordinator::PollClientState()
 	if (bClientTriggeredSwitch && !bClientReportedSwitch &&
 		Weapon != InitialClientWeapon.Get() && Weapon->GetBulletCount() > 0)
 	{
-		UShooterInventoryComponent* InventoryComponent = Character->GetInventoryComponent();
-		const FGuid ActiveId = InventoryComponent
-			? InventoryComponent->GetActiveWeaponInstanceId()
-			: FGuid();
-		const FGuid CurrentBoundId = Weapon->GetBoundInstanceId();
+		AShooterWeapon* ActiveWeapon = Character->GetCurrentWeapon();
 
 		bool bRemoteCurrentWeaponVisible = !bRequireRemoteCurrentWeapon;
 		if (bRequireRemoteCurrentWeapon)
@@ -3552,13 +3514,13 @@ void AShooterNetworkTestCoordinator::PollClientState()
 			}
 		}
 
-		if (ActiveId.IsValid() && CurrentBoundId.IsValid() && bRemoteCurrentWeaponVisible)
+		if (ActiveWeapon && Weapon && bRemoteCurrentWeaponVisible)
 		{
 			bClientReportedSwitch = true;
 			InitialClientBulletCount = Weapon->GetBulletCount();
 			ServerReportClientObservedSwitch(
-				ActiveId.ToString(),
-				CurrentBoundId.ToString(),
+				ActiveWeapon,
+				Weapon,
 				true);
 		}
 	}
@@ -3660,8 +3622,7 @@ void AShooterNetworkTestCoordinator::PollClientState()
 		Weapon != ClientWeaponBeforeSwitchCancel.Get())
 	{
 		bClientReportedSwitchCancel = true;
-		ServerReportClientObservedCancelSwitch(
-			Weapon->GetBoundInstanceId().ToString());
+		ServerReportClientObservedCancelSwitch(Weapon);
 	}
 	} // if (Weapon)
 
@@ -3683,7 +3644,6 @@ void AShooterNetworkTestCoordinator::PollClientState()
 		UShooterInventoryComponent* DeathInventory = Character->GetInventoryComponent();
 		if (DeathInventory &&
 			DeathInventory->GetWeaponCount() == 0 &&
-			!DeathInventory->GetActiveWeaponInstanceId().IsValid() &&
 			Character->GetCurrentWeapon() == nullptr)
 		{
 			bClientReportedDeathInventoryClear = true;
@@ -3705,7 +3665,6 @@ void AShooterNetworkTestCoordinator::PollClientState()
 		UShooterInventoryComponent* RespawnInventory = Character->GetInventoryComponent();
 		if (RespawnInventory &&
 			RespawnInventory->GetWeaponCount() == 0 &&
-			!RespawnInventory->GetActiveWeaponInstanceId().IsValid() &&
 			Character->GetCurrentWeapon() == nullptr)
 		{
 			bClientReportedRespawnInventoryEmpty = true;
@@ -3815,35 +3774,30 @@ void AShooterNetworkTestCoordinator::ServerReportClientObservedProjectile_Implem
 }
 
 void AShooterNetworkTestCoordinator::ServerReportClientObservedSwitch_Implementation(
-	const FString& ActiveWeaponInstanceId,
-	const FString& CurrentWeaponBoundInstanceId,
+	AShooterWeapon* ActiveWeapon,
+	AShooterWeapon* CurrentWeapon,
 	bool bRemoteCurrentWeaponVisible)
 {
-	FGuid ObservedActiveId;
-	FGuid ObservedBoundId;
-	FGuid::Parse(ActiveWeaponInstanceId, ObservedActiveId);
-	FGuid::Parse(CurrentWeaponBoundInstanceId, ObservedBoundId);
-
-	// 从手枪切回步枪：Active、当前 WeaponActor 绑定、远端公共表现必须三方一致。
+	// 从手枪切回步枪：当前装备、客户端观察到的武器、远端公共表现必须三方一致。
 	bClientObservedSwitch = bServerInventoryPrepared &&
-		ObservedActiveId == ServerInventoryFirstId &&
-		ObservedBoundId == ServerInventoryFirstId &&
+		ActiveWeapon == ServerInventoryFirstWeapon.Get() &&
+		CurrentWeapon == ServerInventoryFirstWeapon.Get() &&
 		bRemoteCurrentWeaponVisible;
 
-	UE_LOG(LogShootGame, Display, TEXT("Switch client report: Active=%s Bound=%s RemoteVisible=%s Valid=%s"),
-		*ActiveWeaponInstanceId,
-		*CurrentWeaponBoundInstanceId,
+	UE_LOG(LogShootGame, Display, TEXT("Switch client report: Active=%s Current=%s RemoteVisible=%s Valid=%s"),
+		*GetNameSafe(ActiveWeapon),
+		*GetNameSafe(CurrentWeapon),
 		bRemoteCurrentWeaponVisible ? TEXT("true") : TEXT("false"),
 		bClientObservedSwitch ? TEXT("true") : TEXT("false"));
 
 	if (!bClientObservedSwitch)
 	{
 		FailTest(FString::Printf(
-			TEXT("Switch state invalid; Active=%s Expected=%s Bound=%s Expected=%s RemoteVisible=%s"),
-			*ActiveWeaponInstanceId,
-			*ServerInventoryFirstId.ToString(),
-			*CurrentWeaponBoundInstanceId,
-			*ServerInventoryFirstId.ToString(),
+			TEXT("Switch state invalid; Active=%s Expected=%s Current=%s Expected=%s RemoteVisible=%s"),
+			*GetNameSafe(ActiveWeapon),
+			*GetNameSafe(ServerInventoryFirstWeapon.Get()),
+			*GetNameSafe(CurrentWeapon),
+			*GetNameSafe(ServerInventoryFirstWeapon.Get()),
 			bRemoteCurrentWeaponVisible ? TEXT("true") : TEXT("false")));
 	}
 }
@@ -3924,7 +3878,7 @@ void AShooterNetworkTestCoordinator::ServerReportFullAutoReleased_Implementation
 		? Character->GetInventoryComponent()
 		: nullptr;
 	AmmoAfterRelease = InventoryComponent
-		? InventoryComponent->GetMagazineAmmo(ServerInventoryFirstId)
+		? (ServerInventoryFirstWeapon.IsValid() ? ServerInventoryFirstWeapon->GetBulletCount() : INDEX_NONE)
 		: INDEX_NONE;
 	ProjectileCountAfterRelease = ProjectileSpawnCount;
 
@@ -3961,35 +3915,30 @@ void AShooterNetworkTestCoordinator::ServerReportFullAutoReleased_Implementation
 }
 
 void AShooterNetworkTestCoordinator::ServerReportClientObservedCancelSwitch_Implementation(
-	const FString& CurrentWeaponBoundInstanceId)
+	AShooterWeapon* CurrentWeapon)
 {
-	FGuid ObservedBoundId;
-	FGuid::Parse(CurrentWeaponBoundInstanceId, ObservedBoundId);
-
 	AShooterCharacter* Character = GetShooterCharacter();
 	AShooterWeapon* CurrentWeaponAfterSwitch = Character
 		? Character->GetCurrentWeapon()
 		: nullptr;
 	bClientReportedSwitchCancel = true;
 	bClientObservedSwitchCancel = CurrentWeaponAfterSwitch &&
-		CurrentWeaponAfterSwitch->GetBoundInstanceId() == ServerInventorySecondId &&
-		ObservedBoundId == ServerInventorySecondId;
+		CurrentWeaponAfterSwitch == ServerInventorySecondWeapon.Get() &&
+		CurrentWeapon == ServerInventorySecondWeapon.Get();
 
 	ProjectileCountAfterSwitchCancel = ProjectileSpawnCount;
 	UShooterInventoryComponent* SwitchCancelInventory = Character
 		? Character->GetInventoryComponent()
 		: nullptr;
-	RifleAmmoAfterSwitchCancel = SwitchCancelInventory
-		? SwitchCancelInventory->GetMagazineAmmo(ServerInventoryFirstId)
-		: INDEX_NONE;
+	RifleAmmoAfterSwitchCancel = ServerInventoryFirstWeapon.IsValid() ? ServerInventoryFirstWeapon->GetBulletCount() : INDEX_NONE;
 	SwitchCancelCheckTime = GetWorld()->GetTimeSeconds();
 
 	UE_LOG(
 		LogShootGame,
 		Display,
-		TEXT("Switch-cancel client report: Bound=%s Expected=%s Projectiles=%d->%d RifleAmmo=%d->%d Valid=%s"),
-		*CurrentWeaponBoundInstanceId,
-		*ServerInventorySecondId.ToString(),
+		TEXT("Switch-cancel client report: Current=%s Expected=%s Projectiles=%d->%d RifleAmmo=%d->%d Valid=%s"),
+		*GetNameSafe(CurrentWeapon),
+		*GetNameSafe(ServerInventorySecondWeapon.Get()),
 		ProjectileCountBeforeSwitchCancel,
 		ProjectileCountAfterSwitchCancel,
 		RifleAmmoBeforeSwitchCancel,
@@ -3999,9 +3948,9 @@ void AShooterNetworkTestCoordinator::ServerReportClientObservedCancelSwitch_Impl
 	if (!bClientObservedSwitchCancel)
 	{
 		FailTest(FString::Printf(
-			TEXT("Switch-cancel client observation invalid; Bound=%s Expected=%s Weapon=%s"),
-			*CurrentWeaponBoundInstanceId,
-			*ServerInventorySecondId.ToString(),
+			TEXT("Switch-cancel client observation invalid; Current=%s Expected=%s Weapon=%s"),
+			*GetNameSafe(CurrentWeapon),
+			*GetNameSafe(ServerInventorySecondWeapon.Get()),
 			*GetNameSafe(CurrentWeaponAfterSwitch)));
 	}
 }
@@ -4111,25 +4060,22 @@ void AShooterNetworkTestCoordinator::ServerReportClientTriggeredEquipSingleRejec
 
 void AShooterNetworkTestCoordinator::ServerReportClientObservedInventory_Implementation(
 	int32 WeaponCount,
-	const FString& ActiveWeaponInstanceId,
+	AShooterWeapon* ActiveWeapon,
 	bool bRemoteInventoryHidden,
 	bool bInventoryComponentInitialized)
 {
-	FGuid ObservedActiveId;
-	FGuid::Parse(ActiveWeaponInstanceId, ObservedActiveId);
-
 	// 初始 Owner Inventory 报告允许 Active 仍是第一或第二把：快速切换可能在报告前发生；
 	// 切换后的精确 Active 由 Switch client report 另行验证。
 	bClientObservedOwnerInventory = bServerInventoryPrepared &&
 		bInventoryComponentInitialized &&
 		WeaponCount == 2 &&
-		(ObservedActiveId == ServerInventoryFirstId ||
-			ObservedActiveId == ServerInventorySecondId);
+		(ActiveWeapon == ServerInventoryFirstWeapon.Get() ||
+			ActiveWeapon == ServerInventorySecondWeapon.Get());
 	bClientObservedRemoteInventoryHidden = bRemoteInventoryHidden;
 
 	UE_LOG(LogShootGame, Display, TEXT("Inventory client report: Count=%d Active=%s RemoteHidden=%s Initialized=%s OwnerOk=%s"),
 		WeaponCount,
-		*ActiveWeaponInstanceId,
+		*GetNameSafe(ActiveWeapon),
 		bRemoteInventoryHidden ? TEXT("true") : TEXT("false"),
 		bInventoryComponentInitialized ? TEXT("true") : TEXT("false"),
 		bClientObservedOwnerInventory ? TEXT("true") : TEXT("false"));
@@ -4137,10 +4083,9 @@ void AShooterNetworkTestCoordinator::ServerReportClientObservedInventory_Impleme
 	if (!bClientObservedOwnerInventory || !bClientObservedRemoteInventoryHidden)
 	{
 		FailTest(FString::Printf(
-			TEXT("Client Inventory observation invalid; Count=%d Active=%s ExpectedActive=%s RemoteHidden=%s Initialized=%s"),
+			TEXT("Client Inventory observation invalid; Count=%d Active=%s RemoteHidden=%s Initialized=%s"),
 			WeaponCount,
-			*ActiveWeaponInstanceId,
-			*ServerInventoryActiveId.ToString(),
+			*GetNameSafe(ActiveWeapon),
 			bRemoteInventoryHidden ? TEXT("true") : TEXT("false"),
 			bInventoryComponentInitialized ? TEXT("true") : TEXT("false")));
 	}
@@ -4338,22 +4283,26 @@ void AShooterNetworkTestCoordinator::RunAimRotationServerPhase()
 			return;
 		}
 
-		// 授予数据源是生产 DT_WeaponData 的武器模板行；本流程不注入测试表。
-		FGuid RifleInstanceId;
-		const EShooterInventoryAddResult RifleResult =
-			InventoryComponent->TryAddWeaponRow(
+		// 授予数据源是生产 DT_WeaponData 的运行时快照；本流程不注入测试表。
+		UShooterWeaponRuntimeSubsystem* AimRuntime = GetWorld()
+			? GetWorld()->GetSubsystem<UShooterWeaponRuntimeSubsystem>()
+			: nullptr;
+		AShooterWeapon* RifleWeapon = AimRuntime
+			? AimRuntime->AcquireWeapon(
 				ShooterNetworkTest::RifleWeaponRowName,
-				RifleInstanceId);
-		if (RifleResult != EShooterInventoryAddResult::Added)
+				Character,
+				Character)
+			: nullptr;
+		if (!RifleWeapon ||
+			InventoryComponent->AddWeapon(RifleWeapon) != EShooterInventoryAddResult::Added)
 		{
 			FailTest(FString::Printf(
-				TEXT("AimRotation Rifle weapon row grant was rejected; Row=%s Result=%d"),
-				*ShooterNetworkTest::RifleWeaponRowName.ToString(),
-				static_cast<int32>(RifleResult)));
+				TEXT("AimRotation Rifle weapon grant was rejected; WeaponId=%s"),
+				*ShooterNetworkTest::RifleWeaponRowName.ToString()));
 			return;
 		}
 
-		Character->GetEquipmentComponent()->EquipWeapon(RifleInstanceId);
+		Character->GetEquipmentComponent()->EquipWeapon(RifleWeapon);
 		bServerInventoryPrepared = true;
 		return;
 	}

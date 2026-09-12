@@ -84,8 +84,8 @@ private:
 
 	UFUNCTION(Server, Reliable)
 	void ServerReportClientObservedSwitch(
-		const FString& ActiveWeaponInstanceId,
-		const FString& CurrentWeaponBoundInstanceId,
+		AShooterWeapon* ActiveWeapon,
+		AShooterWeapon* CurrentWeapon,
 		bool bRemoteCurrentWeaponVisible);
 
 	UFUNCTION(Server, Reliable)
@@ -154,7 +154,7 @@ private:
 
 	UFUNCTION(Server, Reliable)
 	void ServerReportClientObservedCancelSwitch(
-		const FString& CurrentWeaponBoundInstanceId);
+		AShooterWeapon* CurrentWeapon);
 
 	UFUNCTION(Server, Reliable)
 	void ServerReportClientObservedGasRespawn();
@@ -162,7 +162,7 @@ private:
 	UFUNCTION(Server, Reliable)
 	void ServerReportClientObservedInventory(
 		int32 WeaponCount,
-		const FString& ActiveWeaponInstanceId,
+		AShooterWeapon* ActiveWeapon,
 		bool bRemoteInventoryHidden,
 		bool bInventoryComponentInitialized);
 
@@ -196,11 +196,9 @@ private:
 	int32 CountProjectilesForInstigator(APawn* ProjectileInstigator) const;
 	AController* GetOpponentController() const;
 
-	/** 5B 测试辅助：用指定弹药数据替换 Inventory 实例并生成测试 WeaponActor。 */
-	bool ReplaceInventoryWeaponForReloadTest(
-		AShooterCharacter* Character,
-		const FGuid& InstanceId,
-		int32 SlotIndex,
+	/** 5B 测试辅助：把指定 WeaponActor 的权威弹药直接设置为测试起点值。 */
+	bool SetReloadTestAmmo(
+		AShooterWeapon* Weapon,
 		int32 MagazineAmmo,
 		int32 ReserveAmmo);
 
@@ -478,9 +476,9 @@ private:
 	bool bServerRespawnInventoryEmpty = false;
 	bool bClientObservedRespawnInventoryEmpty = false;
 	bool bClientReportedRespawnInventoryEmpty = false;
-	FGuid ServerInventoryFirstId;
-	FGuid ServerInventorySecondId;
-	FGuid ServerInventoryActiveId;
+	TWeakObjectPtr<AShooterWeapon> ServerInventoryFirstWeapon;
+	TWeakObjectPtr<AShooterWeapon> ServerInventorySecondWeapon;
+	TWeakObjectPtr<AShooterWeapon> ServerInventoryActiveWeapon;
 	bool bClientObservedOwnerInventory = false;
 	bool bClientReportedInventory = false;
 	bool bClientObservedRemoteInventoryHidden = false;

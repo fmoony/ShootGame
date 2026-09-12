@@ -36,19 +36,15 @@ struct FShooterWeaponFireContext
 	FVector TargetLocation = FVector::ZeroVector;
 
 	/**
-	 * 本次开火使用的武器模板行快照；未绑定模板行的兼容路径下为行默认值。
+	 * 本次开火使用的武器配置快照；由 WeaponActor 在应用配置时冻结。
 	 * 行为实现只读本快照，不再解析任何配置资产。
 	 */
 	UPROPERTY(BlueprintReadOnly, Category="Fire")
 	FShooterWeaponConfigRow Config;
 
-	/** 本次开火使用的武器模板行名；未绑定模板行时为空。 */
+	/** 本次开火的武器种类身份；与 WeaponActor.WeaponId 一致。 */
 	UPROPERTY(BlueprintReadOnly, Category="Fire")
-	FName WeaponRowName;
-
-	/** 本次开火的 WeaponInstance；未绑定 Inventory 的兼容路径下无效。 */
-	UPROPERTY(BlueprintReadOnly, Category="Fire")
-	FGuid InstanceId;
+	FName WeaponId;
 };
 
 /**
@@ -57,7 +53,7 @@ struct FShooterWeaponFireContext
  * 约束（武器与 Inventory 正式架构实施计划 4.3）：
  * - 无复制、无持久可变状态；武器参数全部来自 FShooterWeaponFireContext::Config；
  * - GA_Fire 管理 Ability 生命周期与激活条件；
- * - Inventory 管理弹药消耗；
+ * - WeaponActor 管理弹药消耗与弹药权威；
  * - WeaponActor 负责 Muzzle、Mesh、Attach、表现入口与调用行为；
  * - Projectile、Damage 与 Ammo 只由服务器产生。
  */

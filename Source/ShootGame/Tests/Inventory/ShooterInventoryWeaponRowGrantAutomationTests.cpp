@@ -10,12 +10,16 @@
 #include "Engine/World.h"
 #include "GameFramework/WorldSettings.h"
 #include "Inventory/ShooterInventoryComponent.h"
-#include "Inventory/ShooterInventoryTypes.h"
-#include "UObject/Package.h"
 #include "Weapons/ShooterWeapon.h"
 #include "Weapons/ShooterWeaponConfigRow.h"
+#include "Weapons/ShooterWeaponRuntimeSubsystem.h"
 #include "../Equipment/ShooterWeaponPresentationTestTypes.h"
+#include "../Weapon/ShooterWeaponTestTableTypes.h"
 
+/**
+ * S3 授予链测试：WeaponId 行 → 运行时快照 → Acquire → Inventory.AddWeapon。
+ * 行名值即 WeaponId；实例数据、绑定与查表全部不再存在。
+ */
 namespace ShooterInventoryWeaponRowGrantAutomationTests
 {
 	UWorld* CreateWeaponRowGrantTestWorld()
@@ -50,7 +54,7 @@ namespace ShooterInventoryWeaponRowGrantAutomationTests
 			World->SpawnActor<AShooterWeaponPresentationTestCharacter>(
 				FVector::ZeroVector,
 				FRotator::ZeroRotator);
-		if (!Test.TestNotNull(TEXT("Weapon row grant test character spawned"), Character))
+		if (!Test.TestNotNull(TEXT("Weapon grant test character spawned"), Character))
 		{
 			return nullptr;
 		}
@@ -61,32 +65,20 @@ namespace ShooterInventoryWeaponRowGrantAutomationTests
 		}
 		return Character;
 	}
-
-	/** 向测试表追加一行并授予，返回行名；用于需要复用同一行名的拒绝路径测试。 */
-	FName AddAndGrantWeaponRow(
-		UShooterInventoryComponent* Inventory,
-		const FShooterWeaponConfigRow& Row,
-		FGuid& OutInstanceId,
-		EShooterInventoryAddResult& OutResult)
-	{
-		const FName RowName = AddTestWeaponRow(GetOrCreateTestWeaponTable(Inventory), Row);
-		OutResult = Inventory->TryAddWeaponRow(RowName, OutInstanceId);
-		return RowName;
-	}
 }
 
-/** 武器模板行授予主路径：实例数据与 WeaponActor 完全由所选行驱动。 */
+/** 授予主路径：WeaponActor 完全由所选行的运行时快照驱动，弹药与容量来自 Actor。 */
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterInventoryWeaponRowGrantTest,
-	"ShootGame.Inventory.WeaponRowGrant.Initialize",
+	FShooterInventoryWeaponGrantTest,
+	"ShootGame.Inventory.WeaponGrant.Initialize",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
-bool FShooterInventoryWeaponRowGrantTest::RunTest(const FString& Parameters)
+bool FShooterInventoryWeaponGrantTest::RunTest(const FString& Parameters)
 {
 	using namespace ShooterInventoryWeaponRowGrantAutomationTests;
 
 	UWorld* World = CreateWeaponRowGrantTestWorld();
-	if (!TestNotNull(TEXT("Weapon row grant world created"), World))
+	if (!TestNotNull(TEXT("Weapon grant world created"), World))
 	{
 		return false;
 	}
@@ -105,60 +97,63 @@ bool FShooterInventoryWeaponRowGrantTest::RunTest(const FString& Parameters)
 		return false;
 	}
 
-	FGuid GrantedId;
 	EShooterInventoryAddResult Result = EShooterInventoryAddResult::NotAuthoritative;
-	const FName RowName = GrantTestWeaponRow(
+	AShooterWeapon* Weapon = GrantTestWeapon(
+		World,
 		Inventory,
 		AShooterInventoryOrderTestWeapon::StaticClass(),
-		GrantedId,
 		/*MagazineSize*/ 12,
 		/*InitialReserveAmmo*/ 36,
 		&Result);
 	TestEqual(
-		TEXT("Weapon row grant succeeds"),
+		TEXT("Weapon grant succeeds"),
 		static_cast<int32>(Result),
 		static_cast<int32>(EShooterInventoryAddResult::Added));
-	TestTrue(TEXT("Granted instance id is valid"), GrantedId.IsValid());
-	TestFalse(TEXT("Granted row name is valid"), RowName.IsNone());
-
-	const FShooterWeaponInstanceData* Instance = Inventory->FindWeaponInstance(GrantedId);
-	if (TestNotNull(TEXT("Granted instance exists"), Instance))
+	if (!TestNotNull(TEXT("Granted weapon actor exists"), Weapon))
 	{
-		TestEqual(TEXT("Instance row name comes from the granted row"), Instance->WeaponRowName, RowName);
-		TestEqual(TEXT("Magazine initializes from the row"), Instance->MagazineAmmo, 12);
-		TestEqual(TEXT("Reserve initializes from the row"), Instance->ReserveAmmo, 36);
-		TestEqual(TEXT("Slot auto-selected"), Instance->SlotIndex, 0);
+		DestroyWeaponRowGrantTestWorld(World);
+		return false;
 	}
 
-	AShooterWeapon* Weapon = Inventory->FindWeaponActor(GrantedId);
-	if (TestNotNull(TEXT("Weapon actor spawned from the row actor class"), Weapon))
+	TestFalse(TEXT("Granted WeaponId is valid"), Weapon->GetWeaponId().IsNone());
+	TestTrue(
+		TEXT("Weapon actor class is the row WeaponActorClass"),
+		Weapon->GetClass() == AShooterInventoryOrderTestWeapon::StaticClass());
+	// 行配置在创建时应用到 WeaponActor：容量与初始弹药都来自快照。
+	TestEqual(TEXT("Weapon actor magazine capacity comes from the row"), Weapon->GetMagazineSize(), 12);
+	TestEqual(TEXT("Magazine initializes from the row"), Weapon->GetBulletCount(), 12);
+	TestEqual(TEXT("Reserve initializes from the row"), Weapon->GetReserveAmmo(), 36);
+	TestTrue(TEXT("Weapon actor starts hidden"), Weapon->IsHidden());
+	TestEqual(
+		TEXT("Granted weapon waits at Holstered"),
+		static_cast<int32>(Weapon->GetLifecycleState()),
+		static_cast<int32>(EShooterWeaponLifecycleState::Holstered));
+
+	// Entry 数据只包含 Actor 与 Slot。
+	TestEqual(TEXT("Inventory holds one entry"), Inventory->GetWeaponCount(), 1);
+	if (Inventory->GetWeaponCount() == 1)
 	{
-		TestTrue(
-			TEXT("Weapon actor class is the row WeaponActorClass"),
-			Weapon->GetClass() == AShooterInventoryOrderTestWeapon::StaticClass());
-		TestEqual(TEXT("Weapon actor bound to instance"), Weapon->GetBoundInstanceId(), GrantedId);
-		TestEqual(TEXT("Weapon actor carries the granted row name"), Weapon->GetWeaponRowName(), RowName);
-		// 行配置在绑定时应用到 WeaponActor：弹匣容量镜像必须等于行值。
-		TestEqual(TEXT("Weapon actor magazine capacity mirrors the row"), Weapon->GetMagazineSize(), 12);
-		TestTrue(TEXT("Weapon actor starts hidden"), Weapon->IsHidden());
+		const FShooterInventoryWeaponEntry& Entry = Inventory->GetWeaponEntries()[0];
+		TestEqual(TEXT("Entry references the granted actor"), Entry.Weapon.Get(), Weapon);
+		TestEqual(TEXT("Slot auto-selected"), Entry.SlotIndex, 0);
 	}
 
 	DestroyWeaponRowGrantTestWorld(World);
 	return true;
 }
 
-/** 武器模板行授予失败路径：空行名、缺失行、非法配置、Slot 满与重复行。 */
+/** 授予失败路径：非法 Actor、Slot 满、重复 WeaponId。 */
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterInventoryWeaponRowGrantRejectionTest,
-	"ShootGame.Inventory.WeaponRowGrant.Rejection",
+	FShooterInventoryWeaponGrantRejectionTest,
+	"ShootGame.Inventory.WeaponGrant.Rejection",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
-bool FShooterInventoryWeaponRowGrantRejectionTest::RunTest(const FString& Parameters)
+bool FShooterInventoryWeaponGrantRejectionTest::RunTest(const FString& Parameters)
 {
 	using namespace ShooterInventoryWeaponRowGrantAutomationTests;
 
 	UWorld* World = CreateWeaponRowGrantTestWorld();
-	if (!TestNotNull(TEXT("Weapon row rejection world created"), World))
+	if (!TestNotNull(TEXT("Weapon rejection world created"), World))
 	{
 		return false;
 	}
@@ -171,91 +166,92 @@ bool FShooterInventoryWeaponRowGrantRejectionTest::RunTest(const FString& Parame
 	}
 
 	UShooterInventoryComponent* Inventory = Character->GetInventoryComponent();
-	if (!TestNotNull(TEXT("Character owns inventory"), Inventory))
+	UShooterWeaponRuntimeSubsystem* Runtime = World->GetSubsystem<UShooterWeaponRuntimeSubsystem>();
+	if (!TestNotNull(TEXT("Character owns inventory"), Inventory) ||
+		!TestNotNull(TEXT("World owns weapon runtime"), Runtime))
 	{
 		DestroyWeaponRowGrantTestWorld(World);
 		return false;
 	}
 
-	FGuid OutId;
-	EShooterInventoryAddResult Result = EShooterInventoryAddResult::Added;
+	// 未知 WeaponId：Runtime 不提供该桶，Pickup 在 Acquire 前即拒绝、不消费。
+	TestNull(
+		TEXT("Unknown WeaponId acquires nothing"),
+		Runtime->AcquireWeapon(TEXT("MissingWeaponId"), Character, nullptr));
 
-	// 空行名与缺失行都在解析入口 fail closed。
-	TestEqual(
-		TEXT("Empty row name is rejected"),
-		static_cast<int32>(Inventory->TryAddWeaponRow(NAME_None, OutId)),
-		static_cast<int32>(EShooterInventoryAddResult::InvalidWeaponRow));
-
-	UDataTable* TestTable = GetOrCreateTestWeaponTable(Inventory);
-	if (!TestNotNull(TEXT("Test weapon table injected"), TestTable))
-	{
-		DestroyWeaponRowGrantTestWorld(World);
-		return false;
-	}
-
-	TestEqual(
-		TEXT("Missing row is rejected"),
-		static_cast<int32>(Inventory->TryAddWeaponRow(FName(TEXT("MissingWeaponRow")), OutId)),
-		static_cast<int32>(EShooterInventoryAddResult::InvalidWeaponRow));
-
-	// 非法弹匣容量：行存在但配置非法，授予必须 fail closed。
-	AddAndGrantWeaponRow(
-		Inventory,
-		MakeTestWeaponRow(AShooterInventoryOrderTestWeapon::StaticClass(), /*MagazineSize*/ 0),
-		OutId,
-		Result);
-	TestEqual(
-		TEXT("Illegal magazine config is rejected"),
-		static_cast<int32>(Result),
-		static_cast<int32>(EShooterInventoryAddResult::InvalidWeaponRow));
-	TestEqual(TEXT("Rejected grant leaves inventory empty"), Inventory->GetWeaponCount(), 0);
-
-	// 占满 3 个 Slot 后第 4 个不同行被 SlotFull 拒绝。
-	const TCHAR* SlotRowNames[3] = {
-		TEXT("SlotRowOne"),
-		TEXT("SlotRowTwo"),
-		TEXT("SlotRowThree")};
-	int32 GrantedCount = 0;
+	// 占满 3 个 Slot 后第 4 把被 SlotFull 拒绝。
+	AShooterWeapon* Granted[3] = {nullptr, nullptr, nullptr};
 	for (int32 SlotIndex = 0; SlotIndex < 3; ++SlotIndex)
 	{
-		TestTable->AddRow(
-			FName(SlotRowNames[SlotIndex]),
-			MakeTestWeaponRow(AShooterInventoryOrderTestWeapon::StaticClass(), 10, 10));
-		GrantedCount += Inventory->TryAddWeaponRow(FName(SlotRowNames[SlotIndex]), OutId)
-			== EShooterInventoryAddResult::Added;
+		EShooterInventoryAddResult Result = EShooterInventoryAddResult::NotAuthoritative;
+		Granted[SlotIndex] = GrantTestWeapon(
+			World,
+			Inventory,
+			AShooterInventoryOrderTestWeapon::StaticClass(),
+			10,
+			10,
+			&Result);
+		TestEqual(
+			FString::Printf(TEXT("Slot %d grant succeeds"), SlotIndex).GetCharArray().GetData(),
+			static_cast<int32>(Result),
+			static_cast<int32>(EShooterInventoryAddResult::Added));
 	}
-	TestEqual(TEXT("Three distinct rows fill all slots"), GrantedCount, 3);
+	TestEqual(TEXT("Three distinct weapons fill all slots"), Inventory->GetWeaponCount(), 3);
 
-	TestTable->AddRow(
-		FName(TEXT("SlotRowFour")),
+	// 第 4 把：Acquire 成功但 AddWeapon 被 SlotFull 拒绝，调用方负责归还。
+	UDataTable* Table = GetOrInjectRuntimeTestTable(World);
+	const FName FourthRow = AddTestWeaponRow(
+		Table,
 		MakeTestWeaponRow(AShooterInventoryOrderTestWeapon::StaticClass(), 10, 10));
-	TestEqual(
-		TEXT("Fourth row is rejected by SlotFull"),
-		static_cast<int32>(Inventory->TryAddWeaponRow(FName(TEXT("SlotRowFour")), OutId)),
-		static_cast<int32>(EShooterInventoryAddResult::SlotFull));
+	Runtime->InitializeWeaponRuntimeForTest();
+	AShooterWeapon* Fourth = Runtime->AcquireWeapon(FourthRow, Character, nullptr);
+	if (TestNotNull(TEXT("Fourth weapon acquires from the runtime"), Fourth))
+	{
+		TestEqual(
+			TEXT("Fourth weapon is rejected by SlotFull"),
+			static_cast<int32>(Inventory->AddWeapon(Fourth)),
+			static_cast<int32>(EShooterInventoryAddResult::SlotFull));
+		TestTrue(TEXT("SlotFull caller returns the weapon to the pool"), Runtime->ReleaseWeapon(Fourth));
+	}
 	TestEqual(TEXT("SlotFull leaves inventory at three"), Inventory->GetWeaponCount(), 3);
 
-	// 重复武器类型：与首个槽位同名的行被拒绝。
-	TestEqual(
-		TEXT("Duplicate weapon row is rejected"),
-		static_cast<int32>(Inventory->TryAddWeaponRow(FName(SlotRowNames[0]), OutId)),
-		static_cast<int32>(EShooterInventoryAddResult::DuplicateWeaponRow));
+	// 重复武器类型：与首个槽位相同 WeaponId 的新实体被拒绝。
+	AShooterWeapon* Duplicate = Runtime->AcquireWeapon(Granted[0]->GetWeaponId(), Character, nullptr);
+	if (TestNotNull(TEXT("Duplicate weapon acquires from the runtime"), Duplicate))
+	{
+		TestEqual(
+			TEXT("Duplicate WeaponId is rejected"),
+			static_cast<int32>(Inventory->AddWeapon(Duplicate)),
+			static_cast<int32>(EShooterInventoryAddResult::DuplicateWeapon));
+		TestTrue(TEXT("Duplicate caller returns the weapon to the pool"), Runtime->ReleaseWeapon(Duplicate));
+	}
+
+	// 非法 Actor：无 WeaponId 身份、非本角色持有或池内状态都不进入背包。
+	AShooterWeapon* Unbound = World->SpawnActor<AShooterInventoryOrderTestWeapon>(
+		FVector::ZeroVector, FRotator::ZeroRotator);
+	if (TestNotNull(TEXT("Unbound weapon spawns"), Unbound))
+	{
+		TestEqual(
+			TEXT("Weapon without WeaponId identity is rejected"),
+			static_cast<int32>(Inventory->AddWeapon(Unbound)),
+			static_cast<int32>(EShooterInventoryAddResult::InvalidWeapon));
+	}
 
 	DestroyWeaponRowGrantTestWorld(World);
 	return true;
 }
 
 /**
- * 换弹容量来自武器模板行：测试行刻意使用弹匣 7 / 备弹 21，
+ * 换弹容量来自运行时快照：测试行刻意使用弹匣 7 / 备弹 21，
  * 与 WeaponActor 默认配置（10）不同；消耗两发后换弹只补到 7，
- * 证明容量边界由行而非 WeaponActor 默认值决定。
+ * 证明容量边界由快照而非 WeaponActor 默认值决定。
  */
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterInventoryWeaponRowReloadCapacityTest,
-	"ShootGame.Inventory.WeaponRowGrant.ReloadCapacity",
+	FShooterInventoryWeaponGrantReloadCapacityTest,
+	"ShootGame.Inventory.WeaponGrant.ReloadCapacity",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
-bool FShooterInventoryWeaponRowReloadCapacityTest::RunTest(const FString& Parameters)
+bool FShooterInventoryWeaponGrantReloadCapacityTest::RunTest(const FString& Parameters)
 {
 	using namespace ShooterInventoryWeaponRowGrantAutomationTests;
 
@@ -287,34 +283,34 @@ bool FShooterInventoryWeaponRowReloadCapacityTest::RunTest(const FString& Parame
 			->GetDefaultObject<AShooterWeapon>()
 			->GetMagazineSize());
 
-	FGuid GrantedId;
 	EShooterInventoryAddResult Result = EShooterInventoryAddResult::NotAuthoritative;
-	GrantTestWeaponRow(
+	AShooterWeapon* Weapon = GrantTestWeapon(
+		World,
 		Inventory,
 		AShooterInventoryOrderTestWeapon::StaticClass(),
-		GrantedId,
 		/*MagazineSize*/ 7,
 		/*InitialReserveAmmo*/ 21,
 		&Result);
 	if (!TestEqual(
-		TEXT("Reload capacity row grant succeeds"),
+		TEXT("Reload capacity grant succeeds"),
 		static_cast<int32>(Result),
-		static_cast<int32>(EShooterInventoryAddResult::Added)))
+		static_cast<int32>(EShooterInventoryAddResult::Added)) ||
+		!TestNotNull(TEXT("Granted weapon exists"), Weapon))
 	{
 		DestroyWeaponRowGrantTestWorld(World);
 		return false;
 	}
 
-	// 装备并消耗两发：7 -> 5。
-	TestTrue(TEXT("Granted weapon equips"), Character->GetEquipmentComponent()->EquipWeapon(GrantedId));
-	TestTrue(TEXT("Two rounds consumed"), Inventory->ConsumeMagazineAmmo(GrantedId, 2));
-	TestEqual(TEXT("Magazine drops to five"), Inventory->GetMagazineAmmo(GrantedId), 5);
+	// 装备并消耗两发：7 -> 5；换弹事务在 WeaponActor 上提交。
+	TestTrue(TEXT("Granted weapon equips"), Character->GetEquipmentComponent()->EquipWeapon(Weapon));
+	TestTrue(TEXT("Two rounds consumed"), Weapon->ConsumeAmmo(2));
+	TestEqual(TEXT("Magazine drops to five"), Weapon->GetBulletCount(), 5);
 
 	int32 Transferred = 0;
-	TestTrue(TEXT("Reload transaction commits"), Inventory->ReloadMagazine(GrantedId, Transferred));
+	TestTrue(TEXT("Reload transaction commits"), Weapon->ReloadFromReserve(Transferred));
 	TestEqual(TEXT("Reload transfers exactly to the row capacity"), Transferred, 2);
-	TestEqual(TEXT("Magazine refills to the row capacity"), Inventory->GetMagazineAmmo(GrantedId), 7);
-	TestEqual(TEXT("Reserve decreases by transfer"), Inventory->GetReserveAmmo(GrantedId), 19);
+	TestEqual(TEXT("Magazine refills to the row capacity"), Weapon->GetBulletCount(), 7);
+	TestEqual(TEXT("Reserve decreases by transfer"), Weapon->GetReserveAmmo(), 19);
 
 	DestroyWeaponRowGrantTestWorld(World);
 	return true;

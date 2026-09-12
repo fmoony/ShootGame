@@ -16,6 +16,8 @@
 #include "Weapons/ShooterWeapon.h"
 #include "Weapons/ShooterWeaponConfigRow.h"
 #include "../Equipment/ShooterWeaponPresentationTestTypes.h"
+#include "../Weapon/ShooterWeaponTestTableTypes.h"
+#include "Weapons/ShooterWeaponRuntimeSubsystem.h"
 
 namespace ShooterProjectileFireBehaviorAutomationTests
 {
@@ -200,8 +202,10 @@ bool FShooterProjectileFireBehaviorWeaponRowWiringTest::RunTest(const FString& P
 		return false;
 	}
 
-	UDataTable* TestTable = GetOrCreateTestWeaponTable(Inventory);
-	if (!TestNotNull(TEXT("Test weapon table injected"), TestTable))
+	UDataTable* TestTable = GetOrInjectRuntimeTestTable(World);
+	UShooterWeaponRuntimeSubsystem* Runtime = World->GetSubsystem<UShooterWeaponRuntimeSubsystem>();
+	if (!TestNotNull(TEXT("Test weapon table injected"), TestTable) ||
+		!TestNotNull(TEXT("Weapon runtime subsystem exists"), Runtime))
 	{
 		DestroyFireBehaviorTestWorld(World);
 		return false;
@@ -213,14 +217,9 @@ bool FShooterProjectileFireBehaviorWeaponRowWiringTest::RunTest(const FString& P
 	BehaviorRow.FireBehaviorClass = UShooterProjectileFireBehavior::StaticClass();
 	BehaviorRow.ProjectileClass = PistolBulletClass;
 	const FName BehaviorRowName = AddTestWeaponRow(TestTable, BehaviorRow);
+	Runtime->InitializeWeaponRuntimeForTest();
 
-	FGuid BehaviorGrantedId;
-	TestEqual(
-		TEXT("Row-configured grant succeeds"),
-		static_cast<int32>(Inventory->TryAddWeaponRow(BehaviorRowName, BehaviorGrantedId)),
-		static_cast<int32>(EShooterInventoryAddResult::Added));
-
-	AShooterWeapon* BehaviorWeapon = Inventory->FindWeaponActor(BehaviorGrantedId);
+	AShooterWeapon* BehaviorWeapon = Runtime->AcquireWeapon(BehaviorRowName, Character, nullptr);
 	if (TestNotNull(TEXT("Row-configured weapon actor exists"), BehaviorWeapon))
 	{
 		const UShooterWeaponFireBehavior* Behavior = BehaviorWeapon->ResolveFireBehavior();
@@ -232,7 +231,7 @@ bool FShooterProjectileFireBehaviorWeaponRowWiringTest::RunTest(const FString& P
 			TEXT("Resolved behavior is the projectile behavior"),
 			Cast<UShooterProjectileFireBehavior>(Behavior) != nullptr);
 
-		// 行快照必须在绑定时完整落到 WeaponActor：弹丸类与行为类都能被重新导出。
+		// 快照必须在创建时完整落到 WeaponActor：弹丸类与行为类都能被重新导出。
 		const FShooterWeaponConfigRow Captured = BehaviorWeapon->CaptureWeaponConfigRow();
 		TestEqual(
 			TEXT("Weapon mirrors the row projectile class"),
@@ -248,12 +247,8 @@ bool FShooterProjectileFireBehaviorWeaponRowWiringTest::RunTest(const FString& P
 	const FName CompatRowName = AddTestWeaponRow(
 		TestTable,
 		MakeTestWeaponRow(AShooterInventoryOrderTestWeapon::StaticClass()));
-	FGuid CompatGrantedId;
-	TestEqual(
-		TEXT("Compat row grant succeeds"),
-		static_cast<int32>(Inventory->TryAddWeaponRow(CompatRowName, CompatGrantedId)),
-		static_cast<int32>(EShooterInventoryAddResult::Added));
-	AShooterWeapon* CompatWeapon = Inventory->FindWeaponActor(CompatGrantedId);
+	Runtime->InitializeWeaponRuntimeForTest();
+	AShooterWeapon* CompatWeapon = Runtime->AcquireWeapon(CompatRowName, Character, nullptr);
 	if (TestNotNull(TEXT("Compat weapon actor exists"), CompatWeapon))
 	{
 		TestNull(

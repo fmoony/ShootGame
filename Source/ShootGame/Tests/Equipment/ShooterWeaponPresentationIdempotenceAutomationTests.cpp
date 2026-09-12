@@ -64,8 +64,7 @@ namespace ShooterWeaponPresentationIdempotenceAutomationTests
 	AShooterWeapon* GrantIdempotenceTestWeapon(
 		FAutomationTestBase& Test,
 		AShooterWeaponPresentationTestCharacter* Character,
-		TSubclassOf<AShooterWeapon> WeaponClass,
-		FGuid& OutInstanceId)
+		TSubclassOf<AShooterWeapon> WeaponClass)
 	{
 		UShooterInventoryComponent* Inventory = Character->GetInventoryComponent();
 		if (!Test.TestNotNull(TEXT("Idempotence test character owns Inventory"), Inventory))
@@ -73,12 +72,12 @@ namespace ShooterWeaponPresentationIdempotenceAutomationTests
 			return nullptr;
 		}
 
-		// 按武器模板行授予：行由测试助手写入注入的瞬态模板表，授予入口只接受行名。
+		// S3 授予链：运行时池 Acquire + Inventory AddWeapon。
 		EShooterInventoryAddResult AddResult = EShooterInventoryAddResult::NotAuthoritative;
-		GrantTestWeaponRow(
+		AShooterWeapon* Weapon = GrantTestWeapon(
+			Character->GetWorld(),
 			Inventory,
 			WeaponClass,
-			OutInstanceId,
 			/*MagazineSize*/ 10,
 			/*InitialReserveAmmo*/ -1,
 			&AddResult);
@@ -90,7 +89,6 @@ namespace ShooterWeaponPresentationIdempotenceAutomationTests
 			return nullptr;
 		}
 
-		AShooterWeapon* Weapon = Inventory->FindWeaponActor(OutInstanceId);
 		if (!Test.TestNotNull(TEXT("Granted idempotence weapon actor exists"), Weapon))
 		{
 			return nullptr;
@@ -146,12 +144,10 @@ bool FShooterWeaponPresentationIdempotenceTest::RunTest(const FString& Parameter
 		HudListener,
 		&UShooterBulletCountEventTestListener::HandleBulletCountUpdated);
 
-	FGuid PrimaryId;
 	AShooterWeapon* PrimaryWeapon = GrantIdempotenceTestWeapon(
 		*this,
 		Character,
-		AShooterWeaponPresentationTestWeaponPrimary::StaticClass(),
-		PrimaryId);
+		AShooterWeaponPresentationTestWeaponPrimary::StaticClass());
 	if (!PrimaryWeapon)
 	{
 		DestroyIdempotenceTestWorld(World);
@@ -159,7 +155,7 @@ bool FShooterWeaponPresentationIdempotenceTest::RunTest(const FString& Parameter
 	}
 
 	UShooterEquipmentComponent* Equipment = Character->GetEquipmentComponent();
-	TestTrue(TEXT("Primary weapon is equipped"), Equipment->EquipWeapon(PrimaryId));
+	TestTrue(TEXT("Primary weapon is equipped"), Equipment->EquipWeapon(PrimaryWeapon));
 	TestEqual(TEXT("First equip publishes one presentation completion"), PresentationListener->EventCount, 1);
 	TestNull(TEXT("First presentation Previous is null"), PresentationListener->LastPreviousWeapon.Get());
 	TestTrue(TEXT("First presentation Current is primary"), PresentationListener->LastCurrentWeapon == PrimaryWeapon);
@@ -220,12 +216,10 @@ bool FShooterWeaponPresentationRepairAttachTest::RunTest(const FString& Paramete
 		HudListener,
 		&UShooterBulletCountEventTestListener::HandleBulletCountUpdated);
 
-	FGuid PrimaryId;
 	AShooterWeapon* PrimaryWeapon = GrantIdempotenceTestWeapon(
 		*this,
 		Character,
-		AShooterWeaponPresentationTestWeaponPrimary::StaticClass(),
-		PrimaryId);
+		AShooterWeaponPresentationTestWeaponPrimary::StaticClass());
 	if (!PrimaryWeapon)
 	{
 		DestroyIdempotenceTestWorld(World);
@@ -233,7 +227,7 @@ bool FShooterWeaponPresentationRepairAttachTest::RunTest(const FString& Paramete
 	}
 
 	UShooterEquipmentComponent* Equipment = Character->GetEquipmentComponent();
-	TestTrue(TEXT("Primary weapon is equipped"), Equipment->EquipWeapon(PrimaryId));
+	TestTrue(TEXT("Primary weapon is equipped"), Equipment->EquipWeapon(PrimaryWeapon));
 	TestEqual(TEXT("Equip publishes one presentation completion"), PresentationListener->EventCount, 1);
 	TestEqual(TEXT("Equip updates HUD once"), HudListener->EventCount, 1);
 
@@ -315,12 +309,10 @@ bool FShooterWeaponPresentationAnimClassRepairAndPrivacyTest::RunTest(const FStr
 		HudListener,
 		&UShooterBulletCountEventTestListener::HandleBulletCountUpdated);
 
-	FGuid PrimaryId;
 	AShooterWeapon* PrimaryWeapon = GrantIdempotenceTestWeapon(
 		*this,
 		Character,
-		AShooterWeaponPresentationTestWeaponPrimary::StaticClass(),
-		PrimaryId);
+		AShooterWeaponPresentationTestWeaponPrimary::StaticClass());
 	if (!PrimaryWeapon)
 	{
 		DestroyIdempotenceTestWorld(World);
@@ -328,7 +320,7 @@ bool FShooterWeaponPresentationAnimClassRepairAndPrivacyTest::RunTest(const FStr
 	}
 
 	UShooterEquipmentComponent* Equipment = Character->GetEquipmentComponent();
-	TestTrue(TEXT("Primary weapon is equipped"), Equipment->EquipWeapon(PrimaryId));
+	TestTrue(TEXT("Primary weapon is equipped"), Equipment->EquipWeapon(PrimaryWeapon));
 	TestEqual(TEXT("Equip publishes one presentation completion"), PresentationListener->EventCount, 1);
 	TestEqual(TEXT("Equip updates HUD once"), HudListener->EventCount, 1);
 
@@ -394,12 +386,10 @@ bool FShooterWeaponPresentationStaleWeaponClearTest::RunTest(const FString& Para
 		Listener,
 		&UShooterWeaponPresentationEventTestListener::HandleWeaponPresentationChanged);
 
-	FGuid InstanceId;
 	AShooterWeapon* Weapon = GrantIdempotenceTestWeapon(
 		*this,
 		Character,
-		AShooterWeaponPresentationTestWeaponPrimary::StaticClass(),
-		InstanceId);
+		AShooterWeaponPresentationTestWeaponPrimary::StaticClass());
 	if (!Weapon)
 	{
 		DestroyIdempotenceTestWorld(World);
@@ -407,7 +397,7 @@ bool FShooterWeaponPresentationStaleWeaponClearTest::RunTest(const FString& Para
 	}
 
 	UShooterEquipmentComponent* Equipment = Character->GetEquipmentComponent();
-	TestTrue(TEXT("Stale test weapon is equipped"), Equipment->EquipWeapon(InstanceId));
+	TestTrue(TEXT("Stale test weapon is equipped"), Equipment->EquipWeapon(Weapon));
 	TestEqual(TEXT("Equip publishes one presentation event"), Listener->EventCount, 1);
 
 	TestTrue(TEXT("Weapon is destroyed before Equipment clear"), Weapon->Destroy());

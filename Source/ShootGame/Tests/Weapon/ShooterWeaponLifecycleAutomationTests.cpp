@@ -10,7 +10,8 @@
 #include "Engine/World.h"
 #include "GameFramework/WorldSettings.h"
 #include "Inventory/ShooterInventoryComponent.h"
-#include "Pool/ShooterActorPoolSubsystem.h"
+#include "Weapons/ShooterWeaponRuntimeSubsystem.h"
+#include "../Weapon/ShooterWeaponTestTableTypes.h"
 #include "Weapons/ShooterWeapon.h"
 #include "../Equipment/ShooterWeaponPresentationTestTypes.h"
 
@@ -93,27 +94,22 @@ bool FShooterWeaponLifecycleTransitionTest::RunTest(const FString& Parameters)
 		return false;
 	}
 
-	// 初始状态：未绑定 -> InPool，激活被拒绝。
+	// 初始状态：未租用 -> InPool，激活被拒绝。
 	// 注意：可见性不属于状态机契约（池归还 / Inventory 授予 / 表现收敛各自负责），
 	// 这里只断言 InPool 的身份前置条件。
 	TestEqual(TEXT("Fresh weapon starts InPool"), static_cast<int32>(Weapon->GetLifecycleState()), static_cast<int32>(EShooterWeaponLifecycleState::InPool));
-	TestFalse(TEXT("InPool weapon has no instance binding"), Weapon->GetBoundInstanceId().IsValid());
+	TestTrue(TEXT("Fresh weapon has no WeaponId yet"), Weapon->GetWeaponId().IsNone());
 	TestTrue(TEXT("InPool weapon has no owner"), Weapon->GetOwner() == nullptr);
 	Weapon->ActivateWeapon();
 	TestEqual(TEXT("InPool activation rejected"), static_cast<int32>(Weapon->GetLifecycleState()), static_cast<int32>(EShooterWeaponLifecycleState::InPool));
 
-	// 绑定 -> Holstered；装备事务 -> Equipping；激活 -> Equipped。
-	const FGuid InstanceId = FGuid::NewGuid();
-	Weapon->SetInstanceBinding(InstanceId);
-	TestEqual(TEXT("Binding moves to Holstered"), static_cast<int32>(Weapon->GetLifecycleState()), static_cast<int32>(EShooterWeaponLifecycleState::Holstered));
-	TestEqual(TEXT("Binding recorded"), Weapon->GetBoundInstanceId(), InstanceId);
+	// 租用（设置 Owner + 租用回调）-> Holstered；装备事务 -> Equipping；激活 -> Equipped。
+	Weapon->SetOwner(Character);
+	Weapon->OnAcquiredFromWeaponPool();
+	TestEqual(TEXT("Lease moves to Holstered"), static_cast<int32>(Weapon->GetLifecycleState()), static_cast<int32>(EShooterWeaponLifecycleState::Holstered));
 
 	Weapon->BeginEquipTransaction();
 	TestEqual(TEXT("Equip transaction enters Equipping"), static_cast<int32>(Weapon->GetLifecycleState()), static_cast<int32>(EShooterWeaponLifecycleState::Equipping));
-
-	// Equipping 状态下改写绑定被拒绝。
-	Weapon->SetInstanceBinding(FGuid::NewGuid());
-	TestEqual(TEXT("Rewriting binding in Equipping rejected"), Weapon->GetBoundInstanceId(), InstanceId);
 
 	Weapon->ActivateWeapon();
 	TestEqual(TEXT("Activation completes to Equipped"), static_cast<int32>(Weapon->GetLifecycleState()), static_cast<int32>(EShooterWeaponLifecycleState::Equipped));
@@ -123,10 +119,6 @@ bool FShooterWeaponLifecycleTransitionTest::RunTest(const FString& Parameters)
 	Weapon->ActivateWeapon();
 	TestEqual(TEXT("Repeated activation stays Equipped"), static_cast<int32>(Weapon->GetLifecycleState()), static_cast<int32>(EShooterWeaponLifecycleState::Equipped));
 
-	// Equipped 状态下改写绑定被拒绝。
-	Weapon->SetInstanceBinding(FGuid::NewGuid());
-	TestEqual(TEXT("Rewriting binding in Equipped rejected"), Weapon->GetBoundInstanceId(), InstanceId);
-
 	// 卸下 -> Holstered；重复卸下幂等。
 	Weapon->DeactivateWeapon();
 	TestEqual(TEXT("Deactivation returns to Holstered"), static_cast<int32>(Weapon->GetLifecycleState()), static_cast<int32>(EShooterWeaponLifecycleState::Holstered));
@@ -134,10 +126,9 @@ bool FShooterWeaponLifecycleTransitionTest::RunTest(const FString& Parameters)
 	Weapon->DeactivateWeapon();
 	TestEqual(TEXT("Repeated deactivation stays Holstered"), static_cast<int32>(Weapon->GetLifecycleState()), static_cast<int32>(EShooterWeaponLifecycleState::Holstered));
 
-	// 解绑 -> InPool。
-	Weapon->SetInstanceBinding(FGuid());
-	TestEqual(TEXT("Unbinding returns to InPool"), static_cast<int32>(Weapon->GetLifecycleState()), static_cast<int32>(EShooterWeaponLifecycleState::InPool));
-	TestFalse(TEXT("Unbound instance id"), Weapon->GetBoundInstanceId().IsValid());
+	// 归还回调 -> InPool。
+	Weapon->OnReleasedToWeaponPool();
+	TestEqual(TEXT("Release callback returns to InPool"), static_cast<int32>(Weapon->GetLifecycleState()), static_cast<int32>(EShooterWeaponLifecycleState::InPool));
 
 	DestroyLifecycleTestWorld(World);
 	return true;
@@ -166,41 +157,39 @@ bool FShooterWeaponLifecyclePoolReleaseTest::RunTest(const FString& Parameters)
 		return false;
 	}
 
-	UShooterActorPoolSubsystem* Pool = World->GetSubsystem<UShooterActorPoolSubsystem>();
-	if (!TestNotNull(TEXT("Pool subsystem exists"), Pool))
+	UShooterWeaponRuntimeSubsystem* Runtime = World->GetSubsystem<UShooterWeaponRuntimeSubsystem>();
+	if (!TestNotNull(TEXT("Weapon runtime subsystem exists"), Runtime))
 	{
 		DestroyLifecycleTestWorld(World);
 		return false;
 	}
 
-	FActorSpawnParameters AcquireParams;
-	AcquireParams.Owner = Character;
-	AShooterWeaponLifecycleTestWeapon* Weapon = Cast<AShooterWeaponLifecycleTestWeapon>(Pool->Acquire(
-		AShooterWeaponLifecycleTestWeapon::StaticClass(),
-		FTransform::Identity,
-		AcquireParams));
-	if (!TestNotNull(TEXT("Weapon acquired from pool"), Weapon))
+	const FName LifecycleRowName = AddTestWeaponRow(
+		GetOrInjectRuntimeTestTable(World),
+		MakeTestWeaponRow(AShooterWeaponLifecycleTestWeapon::StaticClass()));
+	Runtime->InitializeWeaponRuntimeForTest();
+
+	AShooterWeaponLifecycleTestWeapon* Weapon = Cast<AShooterWeaponLifecycleTestWeapon>(
+		Runtime->AcquireWeapon(LifecycleRowName, Character, nullptr));
+	if (!TestNotNull(TEXT("Weapon acquired from runtime pool"), Weapon))
 	{
 		DestroyLifecycleTestWorld(World);
 		return false;
 	}
 
-	// 绑定并进入装备态，布置待清理的 Timer。
-	const FGuid InstanceId = FGuid::NewGuid();
-	Weapon->SetInstanceBinding(InstanceId);
+	// 租用后进入装备态，布置待清理的 Timer。
 	Weapon->BeginEquipTransaction();
 	Weapon->ActivateWeapon();
 	Weapon->ArmRefireTimerForTest();
 	TestTrue(TEXT("Refire timer is active before release"), Weapon->IsRefireTimerActiveForTest());
 
-	TestTrue(TEXT("Weapon releases to pool"), Pool->Release(Weapon));
+	TestTrue(TEXT("Weapon releases to pool"), Runtime->ReleaseWeapon(Weapon));
 
 	TestEqual(TEXT("Released weapon is InPool"), static_cast<int32>(Weapon->GetLifecycleState()), static_cast<int32>(EShooterWeaponLifecycleState::InPool));
-	TestFalse(TEXT("Released weapon has no binding"), Weapon->GetBoundInstanceId().IsValid());
 	TestTrue(TEXT("Released weapon is hidden"), Weapon->IsHidden());
 	TestFalse(TEXT("Refire timer is cleared on release"), Weapon->IsRefireTimerActiveForTest());
-	TestFalse(TEXT("Pool manages released weapon"), Pool->IsManaged(Weapon));
-	TestEqual(TEXT("Pool holds one weapon"), Pool->GetPooledCount(AShooterWeaponLifecycleTestWeapon::StaticClass()), 1);
+	TestFalse(TEXT("Runtime no longer leases released weapon"), Runtime->IsLeased(Weapon));
+	TestEqual(TEXT("Runtime bucket holds one weapon"), Runtime->GetAvailableCount(LifecycleRowName), 1);
 
 	// 复用同一实例：不继承旧绑定，并重新绑定到新 Owner（池取出回调负责 Owner/Instigator 重绑）。
 	AShooterWeaponPresentationTestCharacter* SecondCharacter =
@@ -213,18 +202,13 @@ bool FShooterWeaponLifecyclePoolReleaseTest::RunTest(const FString& Parameters)
 		return false;
 	}
 
-	FActorSpawnParameters ReacquireParams;
-	ReacquireParams.Owner = SecondCharacter;
-	ReacquireParams.Instigator = SecondCharacter;
-	AShooterWeaponLifecycleTestWeapon* Reused = Cast<AShooterWeaponLifecycleTestWeapon>(Pool->Acquire(
-		AShooterWeaponLifecycleTestWeapon::StaticClass(),
-		FTransform::Identity,
-		ReacquireParams));
+	AShooterWeaponLifecycleTestWeapon* Reused = Cast<AShooterWeaponLifecycleTestWeapon>(
+		Runtime->AcquireWeapon(LifecycleRowName, SecondCharacter, SecondCharacter));
 	TestTrue(TEXT("Reacquire returns the same weapon"), Reused == Weapon);
 	if (Reused)
 	{
-		TestFalse(TEXT("Reused weapon does not inherit old binding"), Reused->GetBoundInstanceId().IsValid());
-		TestEqual(TEXT("Reused weapon waits at InPool"), static_cast<int32>(Reused->GetLifecycleState()), static_cast<int32>(EShooterWeaponLifecycleState::InPool));
+		// 租用后停在 Holstered：WeaponId 与静态配置保留，Owner 重新绑定。
+		TestEqual(TEXT("Reused weapon waits at Holstered"), static_cast<int32>(Reused->GetLifecycleState()), static_cast<int32>(EShooterWeaponLifecycleState::Holstered));
 		TestTrue(TEXT("Reused weapon rebinds new owner"), Reused->GetOwner() == SecondCharacter);
 		TestTrue(TEXT("Reused weapon rebinds owner cache"), Reused->HasWeaponOwnerCacheForTest());
 	}
@@ -320,12 +304,11 @@ bool FShooterWeaponLifecycleSwitchKeepsHolsteredTest::RunTest(const FString& Par
 		return false;
 	}
 
-	FGuid PrimaryId;
 	EShooterInventoryAddResult PrimaryAddResult = EShooterInventoryAddResult::NotAuthoritative;
-	GrantTestWeaponRow(
+	AShooterWeapon* PrimaryWeapon = GrantTestWeapon(
+		World,
 		Inventory,
 		AShooterInventoryOrderTestWeapon::StaticClass(),
-		PrimaryId,
 		/*MagazineSize*/ 10,
 		/*InitialReserveAmmo*/ -1,
 		&PrimaryAddResult);
@@ -333,13 +316,17 @@ bool FShooterWeaponLifecycleSwitchKeepsHolsteredTest::RunTest(const FString& Par
 		TEXT("Primary weapon granted"),
 		static_cast<int32>(PrimaryAddResult),
 		static_cast<int32>(EShooterInventoryAddResult::Added));
+	if (!TestNotNull(TEXT("Primary weapon actor exists"), PrimaryWeapon))
+	{
+		DestroyLifecycleTestWorld(World);
+		return false;
+	}
 
-	FGuid SecondaryId;
 	EShooterInventoryAddResult SecondaryAddResult = EShooterInventoryAddResult::NotAuthoritative;
-	GrantTestWeaponRow(
+	AShooterWeapon* SecondaryWeapon = GrantTestWeapon(
+		World,
 		Inventory,
 		AShooterWeaponPresentationTestWeaponSecondary::StaticClass(),
-		SecondaryId,
 		/*MagazineSize*/ 10,
 		/*InitialReserveAmmo*/ -1,
 		&SecondaryAddResult);
@@ -347,30 +334,27 @@ bool FShooterWeaponLifecycleSwitchKeepsHolsteredTest::RunTest(const FString& Par
 		TEXT("Secondary weapon granted"),
 		static_cast<int32>(SecondaryAddResult),
 		static_cast<int32>(EShooterInventoryAddResult::Added));
-
-	TestTrue(TEXT("Primary equipped"), Equipment->EquipWeapon(PrimaryId));
-	AShooterWeapon* PrimaryWeapon = Inventory->FindWeaponActor(PrimaryId);
-	if (!TestNotNull(TEXT("Primary weapon actor exists"), PrimaryWeapon))
+	if (!TestNotNull(TEXT("Secondary weapon actor exists"), SecondaryWeapon))
 	{
 		DestroyLifecycleTestWorld(World);
 		return false;
 	}
+
+	TestTrue(TEXT("Primary equipped"), Equipment->EquipWeapon(PrimaryWeapon));
 	TestEqual(TEXT("Primary is Equipped"), static_cast<int32>(PrimaryWeapon->GetLifecycleState()), static_cast<int32>(EShooterWeaponLifecycleState::Equipped));
 
-	// 切枪：旧武器回到 Holstered（仍绑定、仍归 Inventory），不进池、不销毁。
-	TestTrue(TEXT("Secondary equipped"), Equipment->EquipWeapon(SecondaryId));
+	// 切枪：旧武器回到 Holstered（仍持有、仍归 Inventory），不进池、不销毁。
+	TestTrue(TEXT("Secondary equipped"), Equipment->EquipWeapon(SecondaryWeapon));
 	TestEqual(TEXT("Switched-out primary is Holstered"), static_cast<int32>(PrimaryWeapon->GetLifecycleState()), static_cast<int32>(EShooterWeaponLifecycleState::Holstered));
-	TestTrue(TEXT("Switched-out primary keeps binding"), PrimaryWeapon->GetBoundInstanceId() == PrimaryId);
-	TestTrue(TEXT("Switched-out primary stays registered"), Inventory->FindWeaponActor(PrimaryId) == PrimaryWeapon);
+	TestTrue(TEXT("Switched-out primary keeps its WeaponId"), !PrimaryWeapon->GetWeaponId().IsNone());
+	TestTrue(TEXT("Switched-out primary stays in Inventory"), Inventory->ContainsWeapon(PrimaryWeapon));
 
-	UShooterActorPoolSubsystem* Pool = World->GetSubsystem<UShooterActorPoolSubsystem>();
-	TestTrue(TEXT("Switch does not pool weapons"), Pool && Pool->GetPooledCount(AShooterInventoryOrderTestWeapon::StaticClass()) == 0);
-	TestFalse(TEXT("Switch keeps primary out of pool"), Pool && Pool->IsPooled(PrimaryWeapon));
-	TestTrue(TEXT("Switch keeps primary acquired from the pool"), Pool && Pool->IsManaged(PrimaryWeapon));
+	UShooterWeaponRuntimeSubsystem* Runtime = World->GetSubsystem<UShooterWeaponRuntimeSubsystem>();
+	TestFalse(TEXT("Switch keeps primary out of pool"), Runtime && Runtime->IsPooled(PrimaryWeapon));
+	TestTrue(TEXT("Switch keeps primary leased"), Runtime && Runtime->IsLeased(PrimaryWeapon));
 
 	// 同武器重复提交幂等，状态不变。
-	TestTrue(TEXT("Re-equip secondary is idempotent"), Equipment->EquipWeapon(SecondaryId));
-	AShooterWeapon* SecondaryWeapon = Inventory->FindWeaponActor(SecondaryId);
+	TestTrue(TEXT("Re-equip secondary is idempotent"), Equipment->EquipWeapon(SecondaryWeapon));
 	TestEqual(
 		TEXT("Re-equipped secondary stays Equipped"),
 		static_cast<int32>(SecondaryWeapon ? SecondaryWeapon->GetLifecycleState() : EShooterWeaponLifecycleState::InPool),

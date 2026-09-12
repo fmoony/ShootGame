@@ -46,9 +46,9 @@ void UShooterProjectileFireBehavior::ExecuteFire(const FShooterWeaponFireContext
 		UE_LOG(
 			LogShootGame,
 			Warning,
-			TEXT("ProjectileFireBehavior failed to spawn projectile: Weapon=%s Class=%s Row=%s"),
+			TEXT("ProjectileFireBehavior failed to spawn projectile: Weapon=%s Class=%s WeaponId=%s"),
 			*GetNameSafe(Weapon),
 			*GetNameSafe(ProjectileClass.Get()),
-			*Context.WeaponRowName.ToString());
+			*Context.WeaponId.ToString());
 	}
 }

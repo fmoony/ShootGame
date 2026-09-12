@@ -20,6 +20,7 @@
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 #include "Weapons/ShooterWeapon.h"
+#include "Weapons/ShooterWeaponRuntimeSubsystem.h"
 #include "../Equipment/ShooterWeaponPresentationTestTypes.h"
 #include "ShootGame.h"
 #include "UObject/UnrealType.h"
@@ -51,7 +52,7 @@ namespace ShooterFirstPersonCapture
 				bool bPistolReview = false;
 				bool bFireSent = false;
 				bool bStopSent = false;
-				FGuid WeaponId;
+				TObjectPtr<AShooterWeapon> GrantedWeapon = nullptr;
 			};
 			TSharedRef<FCaptureState> State = MakeShared<FCaptureState>();
 			State->World = World;
@@ -115,10 +116,15 @@ namespace ShooterFirstPersonCapture
 					const TCHAR* WeaponRowName = Weapons[State->bExercise ? State->Case : State->Case / PitchCount];
 					UShooterInventoryComponent* CaptureInventory = Character->GetInventoryComponent();
 					CaptureInventory->ClearInventory();
-					// 单表纠偏后授予只接受武器模板行名：Capture 直接使用 DT_WeaponData 的正式行，
+					// S3 授予链：直接从运行时池按正式 WeaponId（DT_WeaponData 行名）Acquire，
 					// 与生产路径读取完全相同的配置（含网格、AnimClass 与构图下沉量）。
-					if (CaptureInventory->TryAddWeaponRow(FName(WeaponRowName), State->WeaponId)
-						!= EShooterInventoryAddResult::Added)
+					UShooterWeaponRuntimeSubsystem* CaptureRuntime =
+						TestWorld->GetSubsystem<UShooterWeaponRuntimeSubsystem>();
+					State->GrantedWeapon = CaptureRuntime
+						? CaptureRuntime->AcquireWeapon(FName(WeaponRowName), Character, Character)
+						: nullptr;
+					if (!State->GrantedWeapon ||
+						CaptureInventory->AddWeapon(State->GrantedWeapon) != EShooterInventoryAddResult::Added)
 					{
 						UE_LOG(
 							LogShootGame,
@@ -126,8 +132,11 @@ namespace ShooterFirstPersonCapture
 							TEXT("FIRST_PERSON_CAPTURE_GRANT_REJECTED Row=%s"),
 							WeaponRowName);
 					}
-					Character->GetEquipmentComponent()->EquipWeapon(State->WeaponId);
-					CaptureInventory->ConsumeMagazineAmmo(State->WeaponId, 1);
+					else
+					{
+						Character->GetEquipmentComponent()->EquipWeapon(State->GrantedWeapon);
+						State->GrantedWeapon->ConsumeAmmo(1);
+					}
 					AShooterWeapon* EquippedWeapon = Character->GetCurrentWeapon();
 					float DropOverride = -1.0f;
 					if (EquippedWeapon && FParse::Value(FCommandLine::Get(), TEXT("ShootGameCaptureDrop="), DropOverride) && DropOverride >= 0.0f)
@@ -190,7 +199,7 @@ namespace ShooterFirstPersonCapture
 						Anim && Anim->bIsReloading, View.GetFinalPerspectiveNearClipPlane(),
 						Depth(Mesh->GetSocketLocation(TEXT("hand_l"))), Depth(Mesh->GetSocketLocation(TEXT("hand_r"))),
 						Weapon ? Depth(Weapon->GetFirstPersonMesh()->GetSocketLocation(Weapon->GetMuzzleSocketName())) : 0.0,
-						View.Rotation.Pitch, Character->GetInventoryComponent()->GetMagazineAmmo(State->WeaponId),
+						View.Rotation.Pitch, Weapon ? Weapon->GetBulletCount() : 0,
 						BoneLengthRatio(TEXT("upperarm_l"), TEXT("lowerarm_l")),
 						BoneLengthRatio(TEXT("upperarm_r"), TEXT("lowerarm_r")),
 						BoneLengthRatio(TEXT("lowerarm_l"), TEXT("hand_l")),

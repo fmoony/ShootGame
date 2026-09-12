@@ -85,13 +85,12 @@ bool FShooterAmmoHudRefreshPickupReloadFireTest::RunTest(const FString& Paramete
 
 	const int32 BaseEventCount = Listener->EventCount;
 
-	// --- 场景 1：拾取 = TryAddWeaponRow + 立即 EquipWeapon（与 AShooterPickup::OnOverlap 相同顺序） ---
-	FGuid InstanceId;
+	// --- 场景 1：拾取 = Runtime Acquire + Inventory AddWeapon + 立即 EquipWeapon（与 AShooterPickup::OnOverlap 相同顺序） ---
 	EShooterInventoryAddResult AddResult = EShooterInventoryAddResult::NotAuthoritative;
-	GrantTestWeaponRow(
+	AShooterWeapon* GrantedWeapon = GrantTestWeapon(
+		World,
 		Inventory,
 		AShooterWeaponPresentationTestWeaponPrimary::StaticClass(),
-		InstanceId,
 		/*MagazineSize*/ 10,
 		/*InitialReserveAmmo*/ -1,
 		&AddResult);
@@ -99,7 +98,7 @@ bool FShooterAmmoHudRefreshPickupReloadFireTest::RunTest(const FString& Paramete
 		TEXT("拾取授予成功"),
 		static_cast<int32>(AddResult),
 		static_cast<int32>(EShooterInventoryAddResult::Added));
-	if (AddResult != EShooterInventoryAddResult::Added)
+	if (AddResult != EShooterInventoryAddResult::Added || !GrantedWeapon)
 	{
 		DestroyHudRefreshTestWorld(World);
 		return false;
@@ -110,15 +109,12 @@ bool FShooterAmmoHudRefreshPickupReloadFireTest::RunTest(const FString& Paramete
 		Listener->EventCount == BaseEventCount);
 
 	// 与幂等测试相同的前置：这个世界没有 BeginPlay，武器 Owner 绑定依赖 BeginPlay。
-	if (AShooterWeapon* GrantedWeapon = Inventory->FindWeaponActor(InstanceId))
+	if (!GrantedWeapon->HasActorBegunPlay())
 	{
-		if (!GrantedWeapon->HasActorBegunPlay())
-		{
-			GrantedWeapon->DispatchBeginPlay();
-		}
+		GrantedWeapon->DispatchBeginPlay();
 	}
 
-	TestTrue(TEXT("拾取后立即装备"), Equipment->EquipWeapon(InstanceId));
+	TestTrue(TEXT("拾取后立即装备"), Equipment->EquipWeapon(GrantedWeapon));
 	TestEqual(
 		TEXT("场景1b 拾取装备后 HUD 立即广播一次"),
 		Listener->EventCount,
@@ -127,7 +123,7 @@ bool FShooterAmmoHudRefreshPickupReloadFireTest::RunTest(const FString& Paramete
 	TestEqual(TEXT("场景1b 拾取后备弹正确"), Listener->LastReserveAmmo, 30);
 
 	// --- 场景 2：换弹提交（先扣一发让弹匣不满） ---
-	TestTrue(TEXT("开火扣弹前置成功"), Inventory->ConsumeMagazineAmmo(InstanceId, 1));
+	TestTrue(TEXT("开火扣弹前置成功"), GrantedWeapon->ConsumeAmmo(1));
 	TestEqual(
 		TEXT("场景2a 开火扣弹立即广播"),
 		Listener->EventCount,
@@ -135,7 +131,7 @@ bool FShooterAmmoHudRefreshPickupReloadFireTest::RunTest(const FString& Paramete
 	TestEqual(TEXT("场景2a 扣弹后弹匣 9"), Listener->LastBullets, 9);
 
 	int32 Transferred = 0;
-	TestTrue(TEXT("换弹事务提交"), Inventory->ReloadMagazine(InstanceId, Transferred));
+	TestTrue(TEXT("换弹事务提交"), GrantedWeapon->ReloadFromReserve(Transferred));
 	TestEqual(TEXT("场景2b 换弹提交后 HUD 立即广播"), Listener->EventCount, BaseEventCount + 3);
 	TestEqual(TEXT("场景2b 换弹后弹匣回满"), Listener->LastBullets, 10);
 	TestEqual(TEXT("场景2b 换弹后备弹 29"), Listener->LastReserveAmmo, 29);

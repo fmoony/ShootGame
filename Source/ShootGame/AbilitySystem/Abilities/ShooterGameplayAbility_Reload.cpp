@@ -96,17 +96,14 @@ bool UShooterGameplayAbility_Reload::CanActivateAbility(
 	}
 
 	AShooterWeapon* Weapon = nullptr;
-	FGuid InstanceId;
-	return ResolveReloadTarget(ActorInfo, Weapon, InstanceId);
+	return ResolveReloadTarget(ActorInfo, Weapon);
 }
 
 bool UShooterGameplayAbility_Reload::ResolveReloadTarget(
 	const FGameplayAbilityActorInfo* ActorInfo,
-	AShooterWeapon*& OutWeapon,
-	FGuid& OutInstanceId) const
+	AShooterWeapon*& OutWeapon) const
 {
 	OutWeapon = nullptr;
-	OutInstanceId = FGuid();
 
 	const AShooterCharacter* Character = Cast<AShooterCharacter>(
 		ActorInfo ? ActorInfo->AvatarActor.Get() : nullptr);
@@ -124,27 +121,24 @@ bool UShooterGameplayAbility_Reload::ResolveReloadTarget(
 	AShooterWeapon* Weapon = Equipment
 		? Equipment->GetCurrentWeaponActor()
 		: Character->GetCurrentWeapon();
+	// 提交前校验（重构方案 4.7）：Actor 仍在背包、归属未变、是当前装备且不在池内。
 	if (!Inventory || !Equipment || !IsValid(Weapon) ||
+		!Inventory->ContainsWeapon(Weapon) ||
 		Weapon->GetOwner() != Character ||
-		Weapon->IsHidden())
+		Weapon->IsHidden() ||
+		Weapon->GetLifecycleState() == EShooterWeaponLifecycleState::InPool)
 	{
 		return false;
 	}
 
-	const FGuid InstanceId = Weapon->GetBoundInstanceId();
-	// 弹药权威在 WeaponActor（S2）：满弹匣或无备弹直接拒绝；Instance 存在性只验证 Inventory 成员关系。
-	const FShooterWeaponInstanceData* Instance =
-		Inventory->FindWeaponInstance(InstanceId);
-	if (!Instance ||
-		Equipment->GetActiveWeaponInstanceId() != InstanceId ||
-		Weapon->GetBulletCount() >= Weapon->GetMagazineSize() ||
+	// 弹药权威在 WeaponActor：满弹匣或无备弹直接拒绝。
+	if (Weapon->GetBulletCount() >= Weapon->GetMagazineSize() ||
 		Weapon->GetReserveAmmo() <= 0)
 	{
 		return false;
 	}
 
 	OutWeapon = Weapon;
-	OutInstanceId = InstanceId;
 	return true;
 }
 
@@ -162,7 +156,7 @@ void UShooterGameplayAbility_Reload::ActivateAbility(
 	}
 
 	AShooterWeapon* Weapon = nullptr;
-	if (!ResolveReloadTarget(ActorInfo, Weapon, TargetInstanceId))
+	if (!ResolveReloadTarget(ActorInfo, Weapon))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
@@ -195,10 +189,10 @@ void UShooterGameplayAbility_Reload::ActivateAbility(
 	UE_LOG(
 		LogShootGame,
 		Display,
-		TEXT("GA_Reload activated: Avatar=%s Weapon=%s InstanceId=%s Duration=%.3f Mag=%d Reserve=%d"),
+		TEXT("GA_Reload activated: Avatar=%s Weapon=%s WeaponId=%s Duration=%.3f Mag=%d Reserve=%d"),
 		*GetNameSafe(ReloadCharacter),
 		*GetNameSafe(Weapon),
-		*TargetInstanceId.ToString(),
+		*Weapon->GetWeaponId().ToString(),
 		ReloadDuration,
 		Weapon->GetBulletCount(),
 		Weapon->GetReserveAmmo());
@@ -220,11 +214,10 @@ bool UShooterGameplayAbility_Reload::IsReloadTargetStillCurrent() const
 		AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Dead) ||
 		!CachedWeapon.IsValid() ||
 		Equipment->GetCurrentWeaponActor() != CachedWeapon.Get() ||
+		!Inventory->ContainsWeapon(CachedWeapon.Get()) ||
 		CachedWeapon->GetOwner() != Character ||
 		CachedWeapon->IsHidden() ||
-		CachedWeapon->GetBoundInstanceId() != TargetInstanceId ||
-		Equipment->GetActiveWeaponInstanceId() != TargetInstanceId ||
-		!Inventory->FindWeaponInstance(TargetInstanceId))
+		CachedWeapon->GetLifecycleState() == EShooterWeaponLifecycleState::InPool)
 	{
 		return false;
 	}
@@ -246,9 +239,9 @@ void UShooterGameplayAbility_Reload::HandleReloadWaitFinished()
 		UE_LOG(
 			LogShootGame,
 			Display,
-			TEXT("GA_Reload commit aborted: target no longer current Avatar=%s InstanceId=%s"),
+			TEXT("GA_Reload commit aborted: target no longer current Avatar=%s WeaponId=%s"),
 			*GetNameSafe(GetShooterAvatarActor()),
-			*TargetInstanceId.ToString());
+			*CachedWeapon->GetWeaponId().ToString());
 		EndAbility(
 			GetCurrentAbilitySpecHandle(),
 			GetCurrentActorInfo(),
@@ -258,21 +251,15 @@ void UShooterGameplayAbility_Reload::HandleReloadWaitFinished()
 		return;
 	}
 
-	AShooterCharacter* Character = Cast<AShooterCharacter>(
-		GetShooterAvatarActor());
-	UShooterInventoryComponent* Inventory = Character
-		? Character->GetInventoryComponent()
-		: nullptr;
 	int32 TransferredAmmo = 0;
-	if (!Inventory ||
-		!Inventory->ReloadMagazine(TargetInstanceId, TransferredAmmo))
+	if (!CachedWeapon->ReloadFromReserve(TransferredAmmo))
 	{
 		UE_LOG(
 			LogShootGame,
 			Warning,
-			TEXT("GA_Reload commit failed: Avatar=%s InstanceId=%s"),
+			TEXT("GA_Reload commit failed: Avatar=%s WeaponId=%s"),
 			*GetNameSafe(GetShooterAvatarActor()),
-			*TargetInstanceId.ToString());
+			*CachedWeapon->GetWeaponId().ToString());
 		EndAbility(
 			GetCurrentAbilitySpecHandle(),
 			GetCurrentActorInfo(),
@@ -282,14 +269,14 @@ void UShooterGameplayAbility_Reload::HandleReloadWaitFinished()
 		return;
 	}
 
-	// 单事务护栏：即使 WaitDelay 异常重入，也只允许这次 Inventory 写入。
+	// 单事务护栏：即使 WaitDelay 异常重入，也只允许这次弹药转移。
 	bReloadCommitted = true;
 	UE_LOG(
 		LogShootGame,
 		Display,
-		TEXT("GA_Reload committed: Avatar=%s InstanceId=%s Transferred=%d"),
+		TEXT("GA_Reload committed: Avatar=%s WeaponId=%s Transferred=%d"),
 		*GetNameSafe(GetShooterAvatarActor()),
-		*TargetInstanceId.ToString(),
+		*CachedWeapon->GetWeaponId().ToString(),
 		TransferredAmmo);
 
 	EndAbility(
@@ -309,7 +296,6 @@ void UShooterGameplayAbility_Reload::CleanupReloadTransaction()
 	ReloadWaitTask.Reset();
 
 	CachedWeapon.Reset();
-	TargetInstanceId = FGuid();
 	bReloadCommitted = false;
 }
 

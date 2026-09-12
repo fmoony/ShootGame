@@ -7,13 +7,11 @@
 #include "ShooterAnimNotify_WeaponSound.h"
 #include "ShooterWeaponHolder.h"
 #include "Animation/AnimInstance.h"
-#include "ShooterPoolableActor.h"
 #include "ShooterWeaponConfigRow.h"
 #include "ShooterWeapon.generated.h"
 
 class IShooterWeaponHolder;
 class AShooterProjectile;
-class UShooterActorPoolSubsystem;
 class UShooterWeaponFireBehavior;
 class UShooterWeaponRuntimeSubsystem;
 struct FShooterWeaponConfigRow;
@@ -24,17 +22,16 @@ struct FShooterWeaponFireContext;
  *
  * 权威边界：
  * - 服务器权威端是唯一执行状态转换拒绝的一端（B2 验证项「非法状态转换被拒绝」只在权威端成立）；
- * - 客户端状态是对复制结果的镜像。BoundInstanceId 是 COND_OwnerOnly，远端客户端永远读不到，
- *   因此客户端不参与拒绝判定，避免破坏远端第三人称武器表现（B2 修正项）；
+ * - 客户端状态是对复制结果的镜像（Owner / CurrentWeaponActor / WeaponId 的 RepNotify 各自驱动），不参与拒绝判定；
  * - 可见性不属于本状态机契约：隐藏由池统一归还清理、Inventory 授予后隐藏、
  *   Equipment / Character 表现收敛负责激活时解除隐藏。状态本身只表达身份与装备语义。
  */
 UENUM()
 enum class EShooterWeaponLifecycleState : uint8
 {
-	/** 在池内：无 Instance 绑定、无 Owner 缓存。 */
+	/** 在池内：无租用归属、无 Owner。 */
 	InPool,
-	/** 已授予并绑定 Instance：有 Owner、未装备。 */
+	/** 已租用并归属某个持有者：有 Owner、未装备。 */
 	Holstered,
 	/** 装备事务提交中：第一版在 Equipment 原子提交内瞬态通过，是 GA_Equip 时序的扩展点。 */
 	Equipping,
@@ -56,7 +53,7 @@ class USoundBase;
  *  Interacts with the weapon owner through the ShooterWeaponHolder interface
  */
 UCLASS(abstract)
-class SHOOTGAME_API AShooterWeapon : public AActor, public IShooterPoolableActor
+class SHOOTGAME_API AShooterWeapon : public AActor
 {
 	GENERATED_BODY()
 	
@@ -77,10 +74,6 @@ protected:
 	UPROPERTY(Transient)
 	TObjectPtr<AActor> CachedWeaponOwnerActor;
 
-	/** 绑定的 Inventory WeaponInstance 身份；OwnerOnly 复制，远端表现不需要该数据。 */
-	UPROPERTY(ReplicatedUsing = OnRep_BoundInstanceId, VisibleAnywhere, BlueprintReadOnly, Category="Inventory")
-	FGuid BoundInstanceId;
-
 	/**
 	 * 武器种类身份：由 WeaponRuntimeSubsystem 在创建时一次写入，此后永不改变。
 	 * 复制给所有端；客户端据此从启动快照恢复静态表现配置（不查询 DataTable）。
@@ -89,11 +82,16 @@ protected:
 	FName WeaponId;
 
 	/**
-	 * 武器模板行名；复制给所有端，客户端与服务器通过同一张 DT_WeaponData 恢复只读配置。
-	 * 空名表示尚未绑定模板行（NPC / 测试兼容路径），此时沿用 WeaponActor 自身的默认配置。
+	 * NPC 兼容路径的模板行名（S4 迁移 NPC 入池后删除）；玩家正式路径不再写入。
 	 */
 	UPROPERTY(ReplicatedUsing = OnRep_WeaponRowName, VisibleAnywhere, BlueprintReadOnly, Category="Inventory")
 	FName WeaponRowName;
+
+	UFUNCTION()
+	void OnRep_WeaponId();
+
+	UFUNCTION()
+	void OnRep_WeaponRowName();
 
 	/** 行配置实例化出的开火行为；无持久可变状态，不复制，两端各自按行创建。 */
 	UPROPERTY(Transient)
@@ -105,15 +103,6 @@ protected:
 
 	/** 生命周期状态；服务器权威，客户端经 OnRep 镜像，不复制。 */
 	EShooterWeaponLifecycleState LifecycleState = EShooterWeaponLifecycleState::InPool;
-
-	UFUNCTION()
-	void OnRep_BoundInstanceId();
-
-	UFUNCTION()
-	void OnRep_WeaponId();
-
-	UFUNCTION()
-	void OnRep_WeaponRowName();
 
 	/** Type of projectiles this weapon will shoot */
 	UPROPERTY(EditAnywhere, Category="Ammo")
@@ -270,9 +259,6 @@ protected:
 	/** 解除旧 Owner 的销毁委托并清空领域缓存；服务器归还池和客户端 Owner RepNotify 共用。 */
 	void ClearWeaponOwner();
 
-	/** 返回本 Actor 所在 World 的对象池；World 不支持或已销毁时返回 nullptr。 */
-	UShooterActorPoolSubsystem* GetPoolSubsystem() const;
-
 	/** 返回本 Actor 所在 World 的武器运行时子系统；World 不支持或已销毁时返回 nullptr。 */
 	UShooterWeaponRuntimeSubsystem* GetWeaponRuntimeSubsystem() const;
 
@@ -423,10 +409,7 @@ public:
 	/** 返回当前备弹；弹药权威在本 Actor 的 ReserveAmmo。 */
 	int32 GetReserveAmmo() const;
 
-	/** 返回绑定的 WeaponInstance ID；无效表示尚未接入 Inventory 的兼容路径。 */
-	FGuid GetBoundInstanceId() const { return BoundInstanceId; }
-
-	/** 返回武器模板行名；空名表示尚未绑定模板行（NPC / 测试兼容路径）。 */
+	/** 返回 NPC 兼容路径的武器模板行名；玩家正式路径恒为空。 */
 	FName GetWeaponRowName() const { return WeaponRowName; }
 
 	/**
@@ -434,14 +417,6 @@ public:
 	 * 返回空表示走兼容路径（未绑定模板行或该行未配置行为类）。
 	 */
 	UShooterWeaponFireBehavior* ResolveFireBehavior() const;
-
-	/**
-	 * 服务器写入 Instance 与武器模板行绑定，并驱动 InPool <-> Holstered 转换。
-	 * 行名有效时立即把该行的只读配置应用到本 Actor；
-	 * 权威端在 Equipped/Equipping 状态下拒绝改写（非法转换 fail closed）；
-	 * 客户端只镜像（远端读不到 OwnerOnly 的 BoundInstanceId，行名按复制顺序各自应用）。
-	 */
-	void SetInstanceBinding(const FGuid& InInstanceId, FName InWeaponRowName = NAME_None);
 
 	/**
 	 * 把本 Actor 当前的配置镜像导出为一条武器模板行。
@@ -459,24 +434,16 @@ public:
 	/** 返回武器种类身份；空名表示尚未由 WeaponRuntimeSubsystem 创建身份。 */
 	FName GetWeaponId() const { return WeaponId; }
 
-	//~ 新 WeaponId 池路径的租用回调（与 IShooterPoolableActor 旧路径并存至 S4 收口）
 	/** 从 WeaponRuntimeSubsystem 取出后调用：复位开火节拍并重新绑定 Owner 缓存；静态配置与 WeaponId 不变。 */
 	void OnAcquiredFromWeaponPool();
 	/** 归还 WeaponRuntimeSubsystem 前调用：停 Timer、解委托、回 InPool；WeaponId 与静态配置永久保留。 */
 	void OnReleasedToWeaponPool();
 
 	/**
-	 * 服务器权威：只绑定武器模板行、不建立 Inventory 实例（NPC 等无 Inventory 的拥有者），
+	 * 服务器权威：只绑定武器模板行（NPC 等无 Inventory 的拥有者的兼容路径），
 	 * 并立即把该行的只读配置应用到本 Actor。空行名表示继续使用 WeaponActor 自身默认配置。
 	 */
 	void SetWeaponRow(FName InWeaponRowName);
-
-	//~ Begin IShooterPoolableActor
-	/** 池取出复位：清零开火节拍等运行时状态，并重新绑定新 Owner；Instance 绑定由 Inventory 在取出后写入。 */
-	virtual void OnAcquiredFromPool() override;
-	/** 池归还幂等清理：停 Timer、解 Delegate、清 Owner 缓存与 Instance 绑定，回到 InPool。 */
-	virtual void OnReleasedToPool() override;
-	//~ End IShooterPoolableActor
 
 	/** 判断当前是否还有可发射弹药；直接检查本 Actor 的 MagazineAmmo。 */
 	bool CanConsumeAmmo() const;
@@ -486,6 +453,15 @@ public:
 
 	/** 弹药在 Fire 事务中耗尽时广播；GA_Fire 用它幂等结束 Ability。 */
 	FShooterWeaponOutOfAmmoDelegate OnOutOfAmmo;
+
+#if WITH_DEV_AUTOMATION_TESTS
+	/** 测试专用：直接写权威弹药（换弹网络测试构造任意起点状态）；生产代码不得调用。 */
+	void SetAmmoForAutomationTest(int32 InMagazineAmmo, int32 InReserveAmmo)
+	{
+		MagazineAmmo = InMagazineAmmo;
+		ReserveAmmo = InReserveAmmo;
+	}
+#endif
 
 	float GetFirstPersonCompositionDrop() const { return FirstPersonCompositionDrop; }
 };

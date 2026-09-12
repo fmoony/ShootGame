@@ -18,6 +18,8 @@
 #include "../Equipment/ShooterWeaponPresentationTestTypes.h"
 #include "UObject/UnrealType.h"
 #include "Weapons/ShooterWeapon.h"
+#include "Weapons/ShooterWeaponRuntimeSubsystem.h"
+#include "../Weapon/ShooterWeaponTestTableTypes.h"
 
 namespace ShooterArchitectureBaselineAutomationTests
 {
@@ -83,51 +85,55 @@ bool FShooterArchitectureWeaponGrantSurfaceTest::RunTest(const FString& Paramete
 		return false;
 	}
 
-	// R8 后 Character 已没有 AddWeaponClass / HandleWeaponAddedToInventory 兼容入口。
-	// 授予路径 = Inventory.TryAddWeaponRow（武器模板行名）；立即装备 = Equipment.EquipWeapon（重放 Pickup 的最小行为）。
+	// S3 授予链 = Runtime.Acquire + Inventory.AddWeapon；立即装备 = Equipment.EquipWeapon（重放 Pickup 的最小行为）。
 	UShooterEquipmentComponent* Equipment = Character->GetEquipmentComponent();
-	if (!TestNotNull(TEXT("Architecture test character owns EquipmentComponent"), Equipment))
+	UShooterWeaponRuntimeSubsystem* Runtime = World->GetSubsystem<UShooterWeaponRuntimeSubsystem>();
+	if (!TestNotNull(TEXT("Architecture test character owns EquipmentComponent"), Equipment) ||
+		!TestNotNull(TEXT("Architecture test world owns the weapon runtime"), Runtime))
 	{
 		DestroyArchitectureTestWorld(World);
 		return false;
 	}
 
-	// 授予前先登记武器模板行；行名被两次授予复用，用于验证重复行被拒绝。
+	// 授予前先登记 WeaponId 行；同一 WeaponId 被两次租用，用于验证重复类型被拒绝。
 	const FName WeaponRowName = AddTestWeaponRow(
-		GetOrCreateTestWeaponTable(Inventory),
+		GetOrInjectRuntimeTestTable(World),
 		MakeTestWeaponRow(
 			AShooterArchitectureTestWeapon::StaticClass(),
 			/*MagazineSize*/ 10,
 			/*InitialReserveAmmo*/ -1));
+	Runtime->InitializeWeaponRuntimeForTest();
 
-	FGuid GrantedInstanceId;
-	const EShooterInventoryAddResult FirstGrantResult =
-		Inventory->TryAddWeaponRow(WeaponRowName, GrantedInstanceId);
+	AShooterWeapon* GrantedWeapon = Runtime->AcquireWeapon(WeaponRowName, Character, nullptr);
+	const EShooterInventoryAddResult FirstGrantResult = GrantedWeapon
+		? Inventory->AddWeapon(GrantedWeapon)
+		: EShooterInventoryAddResult::InvalidWeapon;
 	TestEqual(TEXT("Inventory grants the first weapon"), static_cast<int32>(FirstGrantResult), static_cast<int32>(EShooterInventoryAddResult::Added));
-	TestTrue(TEXT("Equipment commits the granted weapon"), Equipment->EquipWeapon(GrantedInstanceId));
+	TestTrue(TEXT("Equipment commits the granted weapon"), Equipment->EquipWeapon(GrantedWeapon));
 
 	AShooterWeapon* CurrentWeapon = Character->GetCurrentWeaponActor();
 	TestNotNull(TEXT("Granted weapon is equipped"), CurrentWeapon);
 	if (CurrentWeapon)
 	{
 		TestTrue(TEXT("Granted weapon is owned by the character"), CurrentWeapon->GetOwner() == Character);
-		TestTrue(TEXT("Granted weapon has an Inventory bound identity"), CurrentWeapon->GetBoundInstanceId().IsValid());
+		TestFalse(TEXT("Granted weapon carries its WeaponId identity"), CurrentWeapon->GetWeaponId().IsNone());
 		TestTrue(
-			TEXT("CurrentWeaponActor matches the Inventory Active weapon actor"),
-			CurrentWeapon == Inventory->GetActiveWeaponActor());
+			TEXT("CurrentWeaponActor matches the Inventory entry actor"),
+			Inventory->ContainsWeapon(CurrentWeapon));
 	}
 
 	TestEqual(TEXT("Grant creates exactly one Inventory entry"), Inventory->GetWeaponCount(), 1);
-	TestTrue(TEXT("Inventory ActiveWeaponInstanceId becomes valid"), Inventory->GetActiveWeaponInstanceId().IsValid());
 
-	// 重复授予同一武器模板行不能产生第二把武器：由授予入口的 DuplicateWeaponRow 拒绝。
-	FGuid DuplicateGrantedInstanceId;
-	const EShooterInventoryAddResult DuplicateGrantResult =
-		Inventory->TryAddWeaponRow(WeaponRowName, DuplicateGrantedInstanceId);
-	TestEqual(
-		TEXT("Duplicate weapon grant is rejected"),
-		static_cast<int32>(DuplicateGrantResult),
-		static_cast<int32>(EShooterInventoryAddResult::DuplicateWeaponRow));
+	// 重复授予同一武器种类不能产生第二把武器：由 Inventory 的 DuplicateWeapon 拒绝。
+	AShooterWeapon* DuplicateWeapon = Runtime->AcquireWeapon(WeaponRowName, Character, nullptr);
+	if (TestNotNull(TEXT("Duplicate weapon acquires from the runtime"), DuplicateWeapon))
+	{
+		TestEqual(
+			TEXT("Duplicate weapon grant is rejected"),
+			static_cast<int32>(Inventory->AddWeapon(DuplicateWeapon)),
+			static_cast<int32>(EShooterInventoryAddResult::DuplicateWeapon));
+		Runtime->ReleaseWeapon(DuplicateWeapon);
+	}
 	AShooterWeapon* CurrentWeaponAfterSecondGrant = Character->GetCurrentWeaponActor();
 	TestTrue(
 		TEXT("Duplicate weapon class grant keeps the same CurrentWeapon"),
@@ -193,8 +199,8 @@ bool FShooterArchitectureAnimBPSurfaceTest::RunTest(const FString& Parameters)
 
 /**
  * R0/R2/R4 所有权表快照：
- * Aim 由 AimPresentationComponent 承接；CurrentWeaponActor 与 ActiveWeaponInstanceId
- * 在 R4 统一迁入 EquipmentComponent；Inventory 只保留拥有关系与只读转发。
+ * Aim 由 AimPresentationComponent 承接；CurrentWeaponActor 在 R4 迁入 EquipmentComponent；
+ * S3 起实例身份（ActiveWeaponInstanceId / BoundInstanceId）全部删除，Equipment 只存 Actor。
  */
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FShooterArchitectureOwnershipSurfaceTest,
@@ -244,20 +250,10 @@ bool FShooterArchitectureOwnershipSurfaceTest::RunTest(const FString& Parameters
 		EquipmentCurrentWeaponProperty->RepNotifyFunc,
 		FName(TEXT("OnRep_CurrentWeaponActor")));
 
-	const FProperty* EquipmentActiveIdProperty = FindFProperty<FProperty>(
-		UShooterEquipmentComponent::StaticClass(),
-		TEXT("ActiveWeaponInstanceId"));
-	if (!TestNotNull(TEXT("Equipment exposes ActiveWeaponInstanceId"), EquipmentActiveIdProperty))
-	{
-		return false;
-	}
-	TestTrue(TEXT("Equipment ActiveWeaponInstanceId is replicated"), EquipmentActiveIdProperty->HasAnyPropertyFlags(CPF_Net));
-	TestEqual(
-		TEXT("Equipment ActiveWeaponInstanceId uses OnRep_ActiveWeaponInstanceId"),
-		EquipmentActiveIdProperty->RepNotifyFunc,
-		FName(TEXT("OnRep_ActiveWeaponInstanceId")));
-
-	// R4：Inventory 不再持有 Active 复制字段，只有 R4 迁移期只读转发入口。
+	// S3：实例身份属性从 Equipment 与 Inventory 全部删除，只保留 CurrentWeaponActor。
+	TestNull(
+		TEXT("Equipment no longer owns ActiveWeaponInstanceId property"),
+		FindFProperty<FProperty>(UShooterEquipmentComponent::StaticClass(), TEXT("ActiveWeaponInstanceId")));
 	TestNull(
 		TEXT("Inventory no longer owns ActiveWeaponInstanceId property"),
 		FindFProperty<FProperty>(UShooterInventoryComponent::StaticClass(), TEXT("ActiveWeaponInstanceId")));
@@ -386,6 +382,5 @@ bool FShooterArchitectureHealthSurfaceTest::RunTest(const FString& Parameters)
 
 	return true;
 }
-
 
 #endif // WITH_DEV_AUTOMATION_TESTS
