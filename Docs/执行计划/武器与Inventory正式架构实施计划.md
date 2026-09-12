@@ -17,7 +17,7 @@ Pickup 重生逻辑门定向验证（生产修复已由用户完成）
 
 本文只规划，不授权改写当前工作区中的用户修改。实际实施时，每个提交仍须遵守开发记录规范。
 
-## 1.1 纠偏插入项（2026-09-11）
+## 1.1 纠偏插入项（2026-09-11，已被 1.2 进一步取代）
 
 大阶段 A 的 `WeaponDefinition + PrimaryAssetId` 配置层已由
 [单表武器配置纠偏小计划](单表武器配置纠偏小计划.md) 撤销并完成实施：
@@ -33,9 +33,31 @@ DT_WeaponData（唯一武器模板库）
 - 本文第 3.1、4.1、4.2、4.5、6.2、6.4、10 节中关于 `UShooterWeaponDefinition`、
   `FPrimaryAssetId DefinitionId`、AssetManager 扫描与 Definition 资产迁移的描述，
   属于**已被纠偏取代的历史设计**，只保留为决策记录，不代表当前实现；
+- 第 7 节大阶段 B 的 B1～B4 曾按 RowName 架构完成，并通过收口回归与正式验收，
+  该验收结果只作为历史基线保留。
+
+## 1.2 实体池简化重构插入项（2026-09-12）
+
+[武器启动预配置与实体池简化重构方案](武器启动预配置与实体池简化重构方案.md) 已批准并实施，
+重新打开了本文的正式架构验收：
+
+```text
+DT_WeaponData（仅 World 启动导入）
+→ WeaponId → RuntimeConfig 快照 + 预热池
+→ Pickup / NPC 租用 AShooterWeapon
+→ Inventory（WeaponActor + SlotIndex）
+→ Equipment.CurrentWeaponActor
+```
+
+- 本文关于 `WeaponRowName`、`InstanceId`、`ActiveWeaponInstanceId`、`BoundInstanceId`、
+  通用 `UShooterActorPoolSubsystem` 与 `IShooterPoolableActor` 的正式职责描述，
+  全部属于**历史设计**，不作为当前实现或 P1 前置；
 - 当前实现以 [Inventory 与武器数据架构](../架构/Inventory与武器数据架构.md) 为准，
-  武器身份统一使用 `FName WeaponRowName`；
-- 第 7 节大阶段 B 的 B1～B4 已按 RowName 架构完成，并通过收口回归与正式验收。
+  武器身份统一使用 `FName WeaponId`，具体武器统一使用 `AShooterWeapon*`；
+- 新模型已于 2026-09-12 完成七阶段正式验收
+  （`Saved/Automation/Runs/20260912_130521/Summary.json`）；
+  P1 Local Predicted 重新获得前置条件，待用户批准后实施；
+- 本文其余章节只保留为阶段决策记录，不再逐节修改。
 
 
 ---

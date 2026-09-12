@@ -320,11 +320,10 @@ GAS 主要承担：
 - 部分网络化表现事件。
 
 普通 Gameplay 系统继续承担：
-- Inventory；
-- WeaponInstance；
-- WeaponConfigRow（`DT_WeaponData`）；
+- WeaponRuntimeSubsystem（启动配置快照 + WeaponId 池）；
+- Inventory（WeaponActor + SlotIndex）；
+- WeaponConfigRow（`DT_WeaponData`，仅启动导入）；
 - WeaponActor；
-- Object Pool；
 - Pickup；
 - Lobby；
 - Match Rules；
@@ -395,79 +394,63 @@ Projectile FireBehavior
 
 Rifle / Pistol / GrenadeLauncher 共用这一行为，以数据配置区别。
 
-### 10.2 WeaponInstance
+### 10.2 WeaponActor 即运行时武器实例（2026-09-12 起）
 
 第一版：
 ```text
-USTRUCT + FastArray Item
+World 开始时按 WeaponId 预创建 WeaponActor，池内 Actor 即具体武器实例
 ```
 
-至少包含：
+静态身份与配置：
 ```text
-InstanceId
-WeaponRowName（单表纠偏前为 DefinitionId）
+WeaponId（创建后不变）
+RuntimeConfig 快照（启动冻结）
+FireBehaviorInstance
+```
+
+可变状态：
+```text
 MagazineAmmo
 ReserveAmmo
-SlotIndex
+Owner / Instigator
+LifecycleState
+Timer / Delegate
 ```
 
-MagazineAmmo / ReserveAmmo 都属于具体 WeaponInstance。
+MagazineAmmo / ReserveAmmo 都属于具体 WeaponActor；不再生成 InstanceId。
 
 ### 10.3 Inventory
 
-FastArray 是 Owner 的权威武器数据源，负责：
-- 拥有关系；
-- WeaponInstance；
-- Slot；
-- 当前装备只读转发（GetActiveWeaponInstanceId / GetActiveWeaponActor 指向 Equipment）。
+OwnerOnly FastArray 是 Owner 的权威武器数据源，负责：
+- 拥有关系（直接引用 WeaponActor）；
+- SlotIndex；
+- 判重（WeaponActor.WeaponId）；
+- Remove / Clear 时把 WeaponActor Release 回池。
 
-完整 Inventory OwnerOnly。
+完整 Inventory OwnerOnly；观察者只通过 Equipment.CurrentWeaponActor 获取公共持枪表现。
 
-### 10.4 WeaponActor
+### 10.4 Equipment
 
-每把已拥有武器都有一个 WeaponActor，不在每次切枪时 Spawn/Destroy。
-
-状态：
-```text
-InPool
-→ Holstered
-→ Equipping
-→ Equipped
-→ Holstered
-→ InPool
-```
-
-逻辑身份：
-```text
-InstanceId
-```
-
-世界表现：
+只保存并复制：
 ```text
 CurrentWeaponActor
 ```
 
-EquipmentComponent 对观察者复制 CurrentWeaponActor；ActiveWeaponInstanceId 使用 OwnerOnly 条件复制。
-
-WeaponActor 可保存 BoundInstanceId，但 Actor 指针不作为永久武器身份。
+Equipment 负责装备事务、表现收敛与装备变化事件；不再维护 ActiveWeaponInstanceId。
 
 ### 10.5 Pickup
 
-暂时保留现有模板 Blueprint Pickup / 生成点，不为架构重写。
-
-后续只接入：
-- Inventory；
-- WeaponInstance；
-- Actor Pool。
+Pickup 只保存 `FName WeaponId`，服务器 Overlap 顺序为：
+`HasWeaponId → WeaponRuntime.AcquireWeapon → Inventory.AddWeapon → Equipment.EquipWeapon → 消费`。
+编辑器预览 Mesh 是唯一允许的 Editor-only 查表入口。
 
 ### 10.6 死亡
 
 ```text
 玩家死亡
 → 停止武器行为
-→ 所有 WeaponActor 回池
-→ 清空 Inventory
-→ ActiveWeaponInstanceId Invalid
+→ 清空 Inventory / Equipment
+→ 所有 WeaponActor Release 回对应 WeaponId Bucket
 → CurrentWeaponActor = nullptr
 ```
 
@@ -475,26 +458,25 @@ WeaponActor 可保存 BoundInstanceId，但 Actor 指针不作为永久武器身
 
 ---
 
-## 11. 通用 Actor Pool
+## 11. WeaponRuntimeSubsystem（2026-09-12 起）
 
-目标不是 WeaponPool，而是通用 Actor Pool：
+通用 Actor Pool 已被 [武器启动预配置与实体池简化重构方案](武器启动预配置与实体池简化重构方案.md) 删除，
+当前只有武器专用池：
 
 ```text
-Actor Pool
-├─ Weapon
-├─ Projectile
-└─ 后续其他高频 Gameplay Actor
+UShooterWeaponRuntimeSubsystem（WorldSubsystem）
+└─ TMap<FName WeaponId, FShooterWeaponRuntimeBucket>
+   ├─ RuntimeConfig（启动冻结快照）
+   ├─ AvailableActors
+   └─ LeasedActors
 ```
 
 高层方向：
-- 模板化底层池容器；
-- World 级管理者；
-- Poolable 生命周期协议；
-- 按实际 Actor Class 分池；
-- 支持 Acquire / Release / Prewarm / Capacity；
-- 必要时支持 Register Existing Actor。
-
-第一版先保证正确，不提前做复杂 Dormancy 优化。
+- 启动按 InitialPoolSize 预热；
+- 可用池耗尽时按 RuntimeConfig 弹性 Spawn，不重读 DataTable；
+- Acquire 直接返回 AShooterWeapon*；
+- Projectile 继续按当前路径生成 / 销毁；
+- 只有出现第二个真实池化消费者时，才重新评估公共池基础层。
 
 ---
 
@@ -510,13 +492,13 @@ FireBehavior
 = 这一枪如何产生攻击结果
 
 WeaponActor
-= 世界实体、Muzzle、Mesh、Attach、表现入口
+= 世界实体、Muzzle、Mesh、Attach、表现入口、弹药与开火节拍
 
 Inventory
-= 所有权、WeaponInstance、Ammo、Slot
+= 所有权（WeaponActor + SlotIndex）
 
 Equipment
-= ActiveWeaponInstanceId、CurrentWeaponActor、装备事务与变化事件
+= CurrentWeaponActor、装备事务与变化事件
 ```
 
 暂不冻结：
@@ -649,36 +631,37 @@ GA_Fire ServerOnly
 GA_Reload / GA_Equip ServerOnly
 武器装备表现事件收束与动画切换解耦
 单表武器配置纠偏（DT_WeaponData + WeaponRowName，撤销 WeaponDefinition 层）
-通用 Actor Pool 与 Poolable 契约（B1）
-WeaponActor 生命周期状态机与池化清理（B2）
-Inventory 授予 / 移除 / 死亡清理接入对象池（B3）
-兼容路径与可观测性收口（B4）
+武器启动快照与 WeaponId 预热池（S1）
+WeaponActor 成为运行时实例（S2）
+Inventory 与 Equipment 去 InstanceId（S3）
+Pickup 接入 WeaponId 与旧路径删除（S4）
 ```
 
 当前状态：
 
 ```text
-大阶段 B（通用池 + WeaponActor 生命周期 + Pickup / 死亡集成）实施完成
-→ 客户端跨 Owner 池复用委托边界已收口
-→ 正式架构验收已通过（Saved/Automation/Runs/20260911_182343/Summary.json）
-→ 下一阶段：P1 Local Predicted 基础射击反馈
+启动预配置与实体池简化重构 S1～S5 已完成并通过七阶段正式验收
+→ Saved/Automation/Runs/20260912_130521/Summary.json
+→ 下一阶段：P1 Local Predicted 基础射击反馈（待用户批准）
 ```
 
 武器与 Inventory 当前的事实边界（生产路径）：
 
 ```text
-武器模板：/Game/Shooter/Data/DT_WeaponData 一行（FShooterWeaponConfigRow）
-武器身份：FShooterWeaponInstanceData::WeaponRowName（类型）+ InstanceId（运行时句柄）
-世界实体：UShooterActorPoolSubsystem Acquire / Release
+武器模板：/Game/Shooter/Data/DT_WeaponData（仅 World 启动导入）
+武器身份：FName WeaponId（创建后不变）
+具体武器：AShooterWeapon*（池化 Actor 本身）
+世界实体：UShooterWeaponRuntimeSubsystem Acquire / Release
+Inventory：WeaponActor + SlotIndex（OwnerOnly）
+Equipment：CurrentWeaponActor（所有观察者）
 生命周期：InPool → Holstered → Equipping → Equipped → Holstered → InPool
 ```
 
-详细职责与两条世界实体路径（玩家正式路径 / NPC 兼容路径）见
-[Inventory 与武器数据架构](../架构/Inventory与武器数据架构.md) 第 13 节。
+详细职责见 [Inventory 与武器数据架构](../架构/Inventory与武器数据架构.md)。
 
 默认后续候选：
 
-> P1 Local Predicted 基础射击反馈。
+> P1 Local Predicted 基础射击反馈（前置已满足）。
 
 已完成的 Reload / Equip 计划与验收证据见：
 
@@ -690,7 +673,11 @@ Inventory 授予 / 移除 / 死亡清理接入对象池（B3）
 
 武器与 Inventory 正式架构的当前阶段证据见：
 
+[武器启动预配置与实体池简化重构方案](武器启动预配置与实体池简化重构方案.md)、
+[Inventory 与武器数据架构](../架构/Inventory与武器数据架构.md)。
+
+历史基线（大阶段 A / B、单表纠偏）的验收证据保留在：
 [武器与 Inventory 正式架构实施计划](武器与Inventory正式架构实施计划.md)、
 [单表武器配置纠偏小计划](单表武器配置纠偏小计划.md)。
 
-大阶段 B 收口回归与正式架构验收已经完成；P1 具备详细执行计划，待用户批准后实施。
+新模型正式验收已通过（2026-09-12）；P1 具备详细执行计划，待用户批准后开始实施。

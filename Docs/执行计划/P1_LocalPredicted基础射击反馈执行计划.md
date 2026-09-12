@@ -2,18 +2,20 @@
 
 ## 1. 阶段定位
 
-本文承接 [Shooter 完整 Demo 最终路线规划](Shooter完整Demo最终路线规划.md)，但不再作为当前立即执行阶段。开始本文前必须先完成并验收 [武器与 Inventory 正式架构实施计划](武器与Inventory正式架构实施计划.md)：
+本文承接 [Shooter 完整 Demo 最终路线规划](Shooter完整Demo最终路线规划.md)，但不再作为当前立即执行阶段。开始本文前必须先完成并验收 [武器启动预配置与实体池简化重构方案](武器启动预配置与实体池简化重构方案.md)：
 
 ```text
 GA_Fire / GA_Reload / GA_Equip ServerOnly 基线
-→ 武器模板 / FireBehavior / WeaponActor Pool 正式化
-
-> 纠偏说明（2026-09-11）：武器模板层已由
-> [单表武器配置纠偏小计划](单表武器配置纠偏小计划.md) 收敛为 `DT_WeaponData` 单表，
-> 本文后续出现的 `WeaponDefinition` / `DefinitionId` 术语统一按
-> 「武器模板行 / `WeaponRowName`」理解。
-→ 正式架构大阶段 A、B 验收
+→ DT_WeaponData 启动快照 + WeaponId 预热池
+→ WeaponActor 作为唯一运行时武器实例
+→ Inventory（WeaponActor + SlotIndex）/ Equipment.CurrentWeaponActor
+→ 七阶段正式验收
 → P1 Local Predicted 基础射击反馈
+
+> 术语纠偏（2026-09-12）：本文后续出现的 `WeaponDefinition` / `DefinitionId`、
+> `WeaponRowName` / `InstanceId` 术语统一按「历史身份模型」理解；
+> 当前冻结 API 只有 `WeaponId` / `AShooterWeapon*` / `SlotIndex` /
+> `CurrentWeaponActor`。
 ```
 
 本阶段只解决一个体验问题：
@@ -26,9 +28,8 @@ GA_Fire / GA_Reload / GA_Equip ServerOnly 基线
 
 ## 2. 开始实施前的工作区门槛
 
-Pickup 重生逻辑门的生产修复已由用户完成，P1 不再负责修改。其定向验证、武器模板行、Projectile
-FireBehavior、通用 Actor Pool、WeaponActor 生命周期和 Pickup 行接入统一由正式架构计划
-（含 [单表武器配置纠偏小计划](单表武器配置纠偏小计划.md) 纠偏插入项）完成。
+Pickup 重生逻辑门的生产修复已由用户完成，P1 不再负责修改。其定向验证、Projectile FireBehavior、
+WeaponActor 生命周期和 Pickup WeaponId 接入统一由启动预配置重构方案完成。
 
 进入 P1 前必须证明：
 
@@ -37,28 +38,28 @@ FireBehavior、通用 Actor Pool、WeaponActor 生命周期和 Pickup 行接入�
 → Pickup 隐藏
 → RespawnPickup / BP_OnRespawn / FinishRespawn
 → 玩家 B 拾取
-→ A、B 各自拥有独立 WeaponInstance
+→ A、B 各自拥有独立 WeaponActor（同一 WeaponId 池的不同租用实体）
 → 同一重生周期没有重复授予
 ```
 
-此外，大阶段 A、B 的完整回归必须通过，且预测实现只能依赖已经冻结的
-`WeaponRowName` / `InstanceId` / FireBehavior / WeaponActor Lifecycle API。
+此外，启动预配置重构的七阶段正式回归必须通过，且预测实现只能依赖已经冻结的
+`WeaponId` / `AShooterWeapon*` / `SlotIndex` / `CurrentWeaponActor` /
+FireBehavior / WeaponActor Lifecycle API。
 
-当前前置状态（2026-09-11，正式架构验收后）：
+当前前置状态（2026-09-12，正式验收后）：
 
 ```text
-单表武器配置纠偏 C0～C4：已完成（含一次七阶段完整回归）
-大阶段 A 收口七阶段完整回归：已通过
-B1 通用 Actor Pool：已完成
-B2 WeaponActor 生命周期状态机：已完成
-B3 Inventory / 死亡清理接入对象池：已完成（含 Dedicated + 2 Clients 定向验证）
-B4 兼容路径与可观测性收口：已完成
-大阶段 B 收口七阶段完整回归：已通过
-客户端跨 Owner 池复用委托边界：已修复并覆盖定向测试
-正式架构验收：已通过（Saved/Automation/Runs/20260911_182343/Summary.json）
+S1 启动快照与 WeaponId 池：已完成并提交（cf158d0）
+S2 WeaponActor 成为运行时实例：已完成并提交（def1fbb）
+S3 Inventory 与 Equipment 去 InstanceId：已完成并提交（e84951e）
+S4 Pickup 接入与旧路径删除：已完成并提交（832109f）
+弱网切枪输入时序修复：已完成并提交（310faf9）
+S5 七阶段完整回归与正式验收：已通过
+    Saved/Automation/Runs/20260912_130521/Summary.json
 ```
 
-上述前置项已经完成；P1 可在用户批准本计划后开始实施。
+上述前置项已经完成；P1 可在用户批准本计划后开始实施，且只能依赖
+`WeaponId / AShooterWeapon* / SlotIndex / CurrentWeaponActor` 的新身份模型。
 
 ---
 
@@ -129,10 +130,10 @@ GameplayCue 迁移只作为 P1 结束后的复盘候选，不在本阶段预先�
 ### 4.2 权威 Gameplay
 
 - `AShooterWeapon::Fire()` 显式拒绝非 Authority；
-- 玩家 Ammo 权威只在 OwnerOnly Inventory FastArray 的 WeaponInstance 中；
+- 玩家与 NPC Ammo 权威都在 WeaponActor.MagazineAmmo / ReserveAmmo（OwnerOnly 复制）；
 - Projectile 只在服务器生成；
 - Damage、Health、Death、Score 继续由服务器和 GAS 收敛；
-- NPC 通过同一个 GA_Fire 类在服务器执行，但没有玩家 Inventory 时保留兼容 Ammo 路径。
+- NPC 通过同一个 GA_Fire 类在服务器执行，并从同一 WeaponId 池租用与玩家相同的 WeaponActor；
 
 ### 4.3 当前表现链路
 
@@ -304,7 +305,7 @@ P1 继续冻结以下规则：
 - `Super::CanActivateAbility`；
 - Avatar 与 ASC 当前 Avatar 一致；
 - 非 Dead / Reloading / Equipping；
-- 当前 Weapon 与 Equipment Active Instance 一致；
+- 当前 Weapon 与 Equipment.CurrentWeaponActor 一致；
 - Weapon Owner、可见性和生命周期有效；
 - 权威 MagazineAmmo 可消费；
 - RefireRate 允许本次真实射击。
@@ -634,7 +635,7 @@ PktLoss=2
 
 ### 权威性
 
-- Ammo 仍只由服务器 Inventory WeaponInstance 修改；
+- Ammo 仍只由服务器 WeaponActor 事务修改；
 - Projectile、Hit、Damage、Death、Score 仍只由服务器决定；
 - 客户端不能利用预测路径生成 Gameplay 结果；
 - 每次权威 Commit 的 Ammo 与 Projectile 计数一致。

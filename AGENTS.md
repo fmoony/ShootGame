@@ -23,22 +23,26 @@ Source/ShootGame/
 │   └── ShooterCameraManager.h/.cpp
 ├── Characters/                 # 玩家角色
 │   ├── ShooterCharacter.h/.cpp
+│   ├── Equipment/              # ShooterEquipmentComponent：CurrentWeaponActor 装备权威
 │   └── Animation/              # 第三人称动画数据源与程序化瞄准 IK 节点
 │       ├── ShooterThirdPersonAnimInstance.h/.cpp
 │       └── AnimNodes/          # ShooterAimIKMath、AnimNode_ShooterAimIK
+├── Inventory/                  # ShooterInventoryComponent / ShooterInventoryTypes
 ├── AbilitySystem/              # GAS：ShooterAttributeSet、GameplayEffect 工具
 │   ├── ShooterAttributeSet.h/.cpp
 │   └── ShooterGameplayEffectStatics.h/.cpp
 ├── AI/                         # ShooterNPC、ShooterAIController、StateTree 工具
-├── Weapons/                    # ShooterWeapon、ShooterProjectile、ShooterPickup
+├── Weapons/                    # ShooterWeapon、ShooterWeaponRuntimeSubsystem、ShooterPickup、ShooterProjectile
 ├── UI/                         # ShooterUI、ShooterBulletCounterUI
-└── Tests/                      # 自动化测试（网络协调器、武器配置检查）
+└── Tests/                      # 自动化测试（网络协调器、武器配置检查、池与 Inventory）
 ```
 
 ## 文档入口
 
 - [MCP 外部 Agent 使用契约与能力边界](Plugins/McpAutomationBridge/EXTERNAL_AGENT_GUIDE.md)：工具调用前必读；包含接口全表、读写与保存边界、动画复制限制、失败重试规则及验证范围。
 - [全量回归 AnimClassMapping 失败分析](Docs/全量回归AnimClassMapping失败分析.md)：2026-09-09 只读调查，区分已提交的 Rifle FP 配置与冻结测试基线，未实施修复。
+- [Inventory 与武器数据架构](Docs/架构/Inventory与武器数据架构.md)：当前 WeaponId / WeaponActor / SlotIndex / CurrentWeaponActor 的运行时数据与网络边界。
+- [武器启动预配置与实体池简化重构方案](Docs/执行计划/武器启动预配置与实体池简化重构方案.md)：当前武器与 Inventory 架构的权威重构计划（S1～S4 已完成，S5 验收）。
 - [Shooter 模板蓝图分析](Docs/Shooter模板蓝图分析.md)：说明 Shooter 模板中的第一/第三人称动画蓝图、Control Rig、武器蓝图及其网络职责边界。
 - [FirstPerson 清理与架构审计](Docs/FirstPerson清理与架构审计.md)：记录旧模板资产依赖闭包、根目录 C++ 类去留和分步清理顺序。
 - [Shooter 完整 Demo 最终路线规划](Docs/执行计划/Shooter完整Demo最终路线规划.md)：记录最终 Demo 目标、系统边界、推荐实施顺序与当前阶段。
