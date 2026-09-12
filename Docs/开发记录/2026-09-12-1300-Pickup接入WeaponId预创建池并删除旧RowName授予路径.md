@@ -6,7 +6,7 @@
 
 ## 目的
 
-完成 [武器启动预配置与实体池简化重构方案](../执行计划/武器启动预配置与实体池简化重构方案.md) S4：
+完成 [武器启动预配置与实体池简化重构方案](../已完成计划/武器启动预配置与实体池简化重构方案.md) S4：
 Pickup 只保存 `FName WeaponId`，玩家与 NPC 都从同一 WeaponRuntimeSubsystem 池租用预配置
 WeaponActor，并删除旧 RowHandle / RowName、Instance 兼容分支与通用 ActorPool。
 

@@ -6,7 +6,7 @@
 
 ## 目的
 
-完成 [武器启动预配置与实体池简化重构方案](../执行计划/武器启动预配置与实体池简化重构方案.md) S3：
+完成 [武器启动预配置与实体池简化重构方案](../已完成计划/武器启动预配置与实体池简化重构方案.md) S3：
 删除 Inventory / Equipment / WeaponActor 上的运行时实例身份，让 FastArray Entry 只保存
 WeaponActor 引用与 SlotIndex，Equipment 只保存 CurrentWeaponActor，GAS Ability 全部围绕 Actor 工作。
 

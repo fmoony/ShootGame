@@ -42,12 +42,15 @@ Source/ShootGame/
 - [MCP 外部 Agent 使用契约与能力边界](Plugins/McpAutomationBridge/EXTERNAL_AGENT_GUIDE.md)：工具调用前必读；包含接口全表、读写与保存边界、动画复制限制、失败重试规则及验证范围。
 - [全量回归 AnimClassMapping 失败分析](Docs/全量回归AnimClassMapping失败分析.md)：2026-09-09 只读调查，区分已提交的 Rifle FP 配置与冻结测试基线，未实施修复。
 - [Inventory 与武器数据架构](Docs/架构/Inventory与武器数据架构.md)：当前 WeaponId / WeaponActor / SlotIndex / CurrentWeaponActor 的运行时数据与网络边界。
-- [武器启动预配置与实体池简化重构方案](Docs/执行计划/武器启动预配置与实体池简化重构方案.md)：当前武器与 Inventory 架构的权威重构计划（S1～S4 已完成，S5 验收）。
+- [武器启动预配置与实体池简化重构方案](Docs/已完成计划/武器启动预配置与实体池简化重构方案.md)：
+  已完成（2026-09-12）；当前武器与 Inventory 架构的权威重构记录。
 - [Shooter 模板蓝图分析](Docs/Shooter模板蓝图分析.md)：说明 Shooter 模板中的第一/第三人称动画蓝图、Control Rig、武器蓝图及其网络职责边界。
 - [FirstPerson 清理与架构审计](Docs/FirstPerson清理与架构审计.md)：记录旧模板资产依赖闭包、根目录 C++ 类去留和分步清理顺序。
 - [Shooter 完整 Demo 最终路线规划](Docs/执行计划/Shooter完整Demo最终路线规划.md)：记录最终 Demo 目标、系统边界、推荐实施顺序与当前阶段。
 - [动画分层与射击表现扩展规划](Docs/执行计划/动画分层与射击表现扩展规划.md)：当前表现路线的上层规划，覆盖动画分层、瞄准同步、Reload / Equip 动画、角度散布与射击手感。
-- [Rifle 第三人称换弹动画实施计划](Docs/执行计划/Rifle第三人称换弹动画实施计划.md)：当前阶段已形成可用基线；以 `State.Reloading` 驱动独立 WeaponAction 状态机，通过曲线平滑释放/恢复 IK，并用分级 Blend Mask 保留实时俯仰、过滤资源头部表演。
+- [Rifle 第三人称换弹动画实施计划](Docs/已完成计划/Rifle第三人称换弹动画实施计划.md)：
+  已形成可用基线；以 `State.Reloading` 驱动 WeaponAction 状态机，通过曲线平滑释放/恢复 IK，
+  并用分级 Blend Mask 保留实时俯仰、过滤资源头部表演。
 - [武器贴墙稳定与瞄准表现收尾实施计划](Docs/执行计划/武器贴墙稳定与瞄准表现收尾实施计划.md)：当前暂缓；阶段 0～4 已形成可回退表现基线，阶段 5 和大范围快速甩枪同步仍待后续收尾。
 - [Shooter 核心玩法架构解耦重构执行计划](Docs/已完成计划/Shooter核心玩法架构解耦重构执行计划.md)：已完成（2026-08-26）；R0～R8 已实施、提交并回归通过。
 - [第三人称 IK Binding 状态机实施计划](Docs/已完成计划/第三人称IKBinding状态机实施计划.md)：已完成（2026-08-27）；Aim / LeftHand IK 开关判定已迁移到统一五状态机，无 `.uasset` 改动；阶段 4 人工 PIE 视觉回归待验收。
