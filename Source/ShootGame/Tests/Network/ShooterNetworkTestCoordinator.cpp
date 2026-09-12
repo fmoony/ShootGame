@@ -3507,6 +3507,13 @@ void AShooterNetworkTestCoordinator::PollClientState()
 	if (bServerReadyToSwitch && WeaponBeforeSwitch &&
 		Weapon == WeaponBeforeSwitch && !bClientTriggeredSwitch)
 	{
+		// 弱网 / 延迟下 ASC 初始化可能晚于 bServerReadyToSwitch 到达；DoSwitchWeapon 的
+		// 输入会被吞掉且无法重放，因此必须先确认 ASC 已就绪，未就绪则保持轮询等待。
+		if (!Character->GetAbilitySystemComponent())
+		{
+			return;
+		}
+
 		bClientTriggeredSwitch = true;
 		InitialClientWeapon = Weapon;
 		Character->DoSwitchWeapon();
