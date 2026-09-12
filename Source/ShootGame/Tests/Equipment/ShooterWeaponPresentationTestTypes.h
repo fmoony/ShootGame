@@ -139,10 +139,10 @@ class AShooterWeaponPresentationTestPickup : public AShooterPickup
 	GENERATED_BODY()
 
 public:
-	/** 直接写入 Pickup 选择的武器模板行名，模拟数据表行选择结果。 */
-	void SetWeaponRowNameForTest(FName InRowName)
+	/** 直接写入 Pickup 的 WeaponId，模拟数据表行选择结果。 */
+	void SetWeaponIdForTest(FName InWeaponId)
 	{
-		WeaponType.RowName = InRowName;
+		WeaponId = InWeaponId;
 	}
 
 	void TriggerOverlapForTest(AActor* OtherActor)

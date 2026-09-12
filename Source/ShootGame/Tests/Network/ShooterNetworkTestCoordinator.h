@@ -42,16 +42,6 @@ public:
 	AShooterNetworkTestWeapon();
 };
 
-/** 5B 换弹网络测试武器：固定 30 发容量与 1.5s ReloadDuration，在弱网取消窗口与阶段时长间取得平衡。 */
-UCLASS(NotBlueprintable, Transient)
-class AShooterNetworkTestReloadWeapon : public AShooterNetworkTestWeapon
-{
-	GENERATED_BODY()
-
-public:
-	AShooterNetworkTestReloadWeapon();
-};
-
 /**
  * Drives one owning client through the server-authoritative weapon fire path.
  * Spawned only when the server is launched with -ShootGameNetworkTest.
@@ -354,7 +344,7 @@ private:
 	int32 ServerReloadAbilityCount = INDEX_NONE;
 	int32 ServerEquipAbilityCount = INDEX_NONE;
 
-	/** 5C 观测：GA_Equip 在初始切枪、取消 Reload 切枪与切回阶段均被服务器激活，提交后 InstanceId 与 CurrentWeapon 一致。 */
+	/** 5C 观测：GA_Equip 在初始切枪、取消 Reload 切枪与切回阶段均被服务器激活，提交后 CurrentWeaponActor 与 Inventory Entry 一致。 */
 	bool bEquipInitialCommitConsistent = false;
 	bool bEquipCancelReloadActiveObserved = false;
 	bool bEquipSwitchBackActiveObserved = false;

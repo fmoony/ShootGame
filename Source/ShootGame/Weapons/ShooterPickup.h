@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Engine/DataTable.h"
 #include "Engine/StaticMesh.h"
 #include "ShooterPickup.generated.h"
 
@@ -30,9 +29,12 @@ class SHOOTGAME_API AShooterPickup : public AActor
 	
 protected:
 
-	/** 武器模板选择：唯一配置入口，蓝图或关卡实例在这里选择 DT_WeaponData 的一行。 */
+	/**
+	 * 武器种类身份：直接对应 DT_WeaponData 的 RowName，也是 WeaponRuntimeSubsystem 的
+	 * 配置快照键与对象池分桶键。运行时只携带 FName，不再持有 RowHandle 或调用 GetRow。
+	 */
 	UPROPERTY(EditAnywhere, Category="Pickup")
-	FDataTableRowHandle WeaponType;
+	FName WeaponId = NAME_None;
 	
 	/** Time to wait before respawning this pickup */
 	UPROPERTY(EditAnywhere, Category="Pickup", meta = (ClampMin = 0, ClampMax = 120, Units = "s"))
@@ -53,9 +55,6 @@ protected:
 
 	/** Native construction script */
 	virtual void OnConstruction(const FTransform& Transform) override;
-
-	/** Gameplay Initialization*/
-	virtual void BeginPlay() override;
 
 	/** Gameplay cleanup */
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;

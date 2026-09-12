@@ -3,8 +3,7 @@
 
 #include "ShooterNPC.h"
 #include "ShooterWeapon.h"
-#include "ShooterWeaponConfigRow.h"
-#include "ShooterWeaponTable.h"
+#include "ShooterWeaponRuntimeSubsystem.h"
 #include "ShootGame.h"
 #include "Abilities/GameplayAbility.h"
 #include "GameplayEffectTypes.h"
@@ -76,41 +75,33 @@ void AShooterNPC::BeginPlay()
 		GrantFireAbility();
 	}
 
-	// 武器来源：WeaponRowName 有效时由 DT_WeaponData 那一行同时决定 ActorClass 与全部配置；
-	// 空行名的兼容/测试路径继续使用 WeaponClass 与 WeaponActor 自身默认配置。
-	//
-	// B4 明确的 NPC 兼容边界（与玩家正式路径的差异，属 PvE 遗留项而非未完成项）：
-	// - NPC 没有 UShooterInventoryComponent，不创建 WeaponInstance，也没有 InstanceId；
-	// - 因此本武器不经过对象池：直接 Spawn，拥有者销毁时由 AShooterWeapon::OnOwnerDestroyed
-	//   走「非池出生 → Destroy」回落路径（S4 迁移为同一 WeaponId 池租用）；
-	// - 弹药权威在 AShooterWeapon::MagazineAmmo（S2 起与玩家同源）；NPC 无换弹 Ability，
-	//   保留弹匣打空自动回满的 PvE 兼容行为。
-	const FShooterWeaponConfigRow* WeaponRow = ShooterWeaponTable::FindWeaponRow(
-		ShooterWeaponTable::ResolveWeaponTable(),
-		WeaponRowName);
-	const TSubclassOf<AShooterWeapon> SpawnClass =
-		(WeaponRow && WeaponRow->WeaponActorClass) ? WeaponRow->WeaponActorClass : WeaponClass;
-	if (!SpawnClass)
+	// 武器来源（S4）：NPC 与玩家共用 WeaponRuntimeSubsystem 的 WeaponId 池。
+	// 客户端不自主创建权威 WeaponActor，只接收服务器预创建 / 租用 Actor 的复制结果。
+	if (!HasAuthority() || WeaponId.IsNone())
+	{
+		return;
+	}
+
+	UShooterWeaponRuntimeSubsystem* WeaponRuntime = GetWorld()
+		? GetWorld()->GetSubsystem<UShooterWeaponRuntimeSubsystem>()
+		: nullptr;
+	if (!WeaponRuntime || !WeaponRuntime->HasWeaponId(WeaponId))
 	{
 		UE_LOG(
 			LogShootGame,
 			Warning,
-			TEXT("NPC weapon spawn rejected: NPC=%s Row=%s has no resolvable WeaponActorClass"),
+			TEXT("NPC weapon acquire rejected: NPC=%s WeaponId=%s has no runtime bucket"),
 			*GetNameSafe(this),
-			*WeaponRowName.ToString());
+			*WeaponId.ToString());
 		return;
 	}
 
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.Owner = this;
-	SpawnParams.Instigator = this;
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-	Weapon = GetWorld()->SpawnActor<AShooterWeapon>(SpawnClass, GetActorTransform(), SpawnParams);
-	if (Weapon && !WeaponRowName.IsNone())
+	// Acquire 即完成身份与静态配置应用；NPC 没有 Inventory / Equipment，
+	// 直接激活为当前持有武器。拥有者销毁时由 OnOwnerDestroyed 归还同一 WeaponId Bucket。
+	Weapon = WeaponRuntime->AcquireWeapon(WeaponId, this, this);
+	if (Weapon)
 	{
-		// NPC 没有 Inventory：只绑定模板行并应用只读配置，不创建 WeaponInstance。
-		Weapon->SetWeaponRow(WeaponRowName);
+		Weapon->ActivateWeapon();
 	}
 }
 

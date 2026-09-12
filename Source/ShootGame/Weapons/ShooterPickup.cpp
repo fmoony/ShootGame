@@ -13,6 +13,7 @@
 #include "ShooterWeapon.h"
 #include "ShooterWeaponConfigRow.h"
 #include "ShooterWeaponRuntimeSubsystem.h"
+#include "ShooterWeaponTable.h"
 #include "Engine/World.h"
 #include "ShootGame.h"
 #include "TimerManager.h"
@@ -52,27 +53,16 @@ void AShooterPickup::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
 
-	// Pickup 只负责把所选行的预览网格贴到自己的 Mesh 上；行本身仍是唯一配置来源。
-	if (const FShooterWeaponConfigRow* WeaponData = WeaponType.GetRow<FShooterWeaponConfigRow>(FString()))
+#if WITH_EDITOR
+	// 编辑器预览例外（重构方案 3.1）：只为编辑器视口恢复 Pickup 预览 Mesh 而读取
+	// WeaponId 对应行；打包后的授予逻辑不经过本入口，运行时也不访问 DataTable。
+	if (const FShooterWeaponConfigRow* WeaponData = ShooterWeaponTable::FindWeaponRow(
+		ShooterWeaponTable::ResolveWeaponTable(),
+		WeaponId))
 	{
 		Mesh->SetStaticMesh(WeaponData->PickupMesh.LoadSynchronous());
 	}
-}
-
-void AShooterPickup::BeginPlay()
-{
-	Super::BeginPlay();
-
-	// 行选择完全由 WeaponType 表达；缺失行在 Overlap 时 fail closed，这里不复制任何配置。
-	if (!WeaponType.GetRow<FShooterWeaponConfigRow>(FString()))
-	{
-		UE_LOG(
-			LogShootGame,
-			Warning,
-			TEXT("Pickup %s has no resolvable weapon row: Row=%s"),
-			*GetNameSafe(this),
-			*WeaponType.RowName.ToString());
-	}
+#endif
 }
 
 void AShooterPickup::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -108,15 +98,15 @@ void AShooterPickup::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
 		return;
 	}
 
-	// S3 授予链（重构方案 3.3 / 4.6）：行名值即 WeaponId（S4 由资产层把属性改为 WeaponId）。
-	const FName WeaponId = WeaponType.RowName;
-	if (WeaponId.IsNone())
+	// S4 授予链（重构方案 3.3 / 4.6）：Pickup 只保存 WeaponId，不再持有 RowHandle。
+	const FName RequestedWeaponId = WeaponId;
+	if (RequestedWeaponId.IsNone())
 	{
 		return;
 	}
 
 	// 重复武器类型：不消费 Pickup，明确拒绝后允许后续合法拾取重试。
-	if (Inventory->HasWeaponId(WeaponId))
+	if (Inventory->HasWeaponId(RequestedWeaponId))
 	{
 		return;
 	}
@@ -124,7 +114,7 @@ void AShooterPickup::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
 	UShooterWeaponRuntimeSubsystem* Runtime = GetWorld()
 		? GetWorld()->GetSubsystem<UShooterWeaponRuntimeSubsystem>()
 		: nullptr;
-	if (!Runtime || !Runtime->HasWeaponId(WeaponId))
+	if (!Runtime || !Runtime->HasWeaponId(RequestedWeaponId))
 	{
 		// 未知 WeaponId：配置缺失，不消费 Pickup。
 		UE_LOG(
@@ -132,7 +122,7 @@ void AShooterPickup::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
 			Warning,
 			TEXT("Pickup %s references unknown WeaponId=%s"),
 			*GetNameSafe(this),
-			*WeaponId.ToString());
+			*RequestedWeaponId.ToString());
 		return;
 	}
 
@@ -140,7 +130,7 @@ void AShooterPickup::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
 	bPickupAvailable = false;
 
 	// 先 Acquire（池命中或弹性 Spawn）：失败不提交任何数据，Pickup 保持可拾取。
-	AShooterWeapon* Weapon = Runtime->AcquireWeapon(WeaponId, ShooterCharacter, ShooterCharacter);
+	AShooterWeapon* Weapon = Runtime->AcquireWeapon(RequestedWeaponId, ShooterCharacter, ShooterCharacter);
 	if (!Weapon)
 	{
 		bPickupAvailable = true;
@@ -168,7 +158,7 @@ void AShooterPickup::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
 				Warning,
 				TEXT("Pickup equip rollback failed to remove granted weapon: Actor=%s WeaponId=%s"),
 				*GetNameSafe(ShooterCharacter),
-				*WeaponId.ToString());
+				*RequestedWeaponId.ToString());
 		}
 
 		bPickupAvailable = true;

@@ -21,7 +21,6 @@
 #include "NiagaraSystem.h"
 #include "Net/UnrealNetwork.h"
 #include "ShooterWeaponConfigRow.h"
-#include "ShooterWeaponTable.h"
 #include "ShooterWeaponRuntimeSubsystem.h"
 
 namespace
@@ -153,33 +152,6 @@ void AShooterWeapon::InitializeWeaponIdentity(FName InWeaponId)
 	}
 }
 
-void AShooterWeapon::OnRep_WeaponRowName()
-{
-	// NPC 兼容路径：客户端通过同一张表恢复只读配置（S4 迁移 NPC 入池后随字段一并删除）。
-	if (const FShooterWeaponConfigRow* Row = ResolveWeaponRow())
-	{
-		ApplyWeaponRow(*Row);
-	}
-	else if (!WeaponRowName.IsNone())
-	{
-		UE_LOG(
-			LogShootGame,
-			Warning,
-			TEXT("WeaponActor cannot apply weapon row: Weapon=%s Row=%s"),
-			*GetNameSafe(this),
-			*WeaponRowName.ToString());
-	}
-
-	// 行配置可能改变 AnimClass / Mesh，表现收敛走同一幂等入口补做。
-	if (AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(GetOwner()))
-	{
-		if (UShooterEquipmentComponent* Equipment = ShooterCharacter->GetEquipmentComponent())
-		{
-			Equipment->HandleWeaponActorReady(this);
-		}
-	}
-}
-
 void AShooterWeapon::OnRep_WeaponId()
 {
 	// 客户端：WeaponId 是创建后不变的初始复制数据，静态表现从本地启动快照恢复（内存查询，非 DataTable）。
@@ -269,19 +241,6 @@ void AShooterWeapon::OnReleasedToWeaponPool()
 		TEXT("WeaponActor released to weapon runtime pool: Weapon=%s WeaponId=%s"),
 		*GetNameSafe(this),
 		*WeaponId.ToString());
-}
-
-const FShooterWeaponConfigRow* AShooterWeapon::ResolveWeaponRow() const
-{
-	if (WeaponRowName.IsNone())
-	{
-		return nullptr;
-	}
-
-	// NPC 兼容路径（S4 删除）：玩家正式路径不再查表，直接走集中解析入口。
-	return ShooterWeaponTable::FindWeaponRow(
-		ShooterWeaponTable::ResolveWeaponTable(),
-		WeaponRowName);
 }
 
 void AShooterWeapon::ApplyWeaponRow(const FShooterWeaponConfigRow& Row)
@@ -384,28 +343,6 @@ FShooterWeaponConfigRow AShooterWeapon::CaptureWeaponConfigRow() const
 	}
 
 	return Row;
-}
-
-void AShooterWeapon::SetWeaponRow(FName InWeaponRowName)
-{
-	WeaponRowName = InWeaponRowName;
-
-	if (const FShooterWeaponConfigRow* Row = ResolveWeaponRow())
-	{
-		ApplyWeaponRow(*Row);
-		return;
-	}
-
-	// 空行名是合法状态：保持 WeaponActor 自身默认配置（测试与旧 PvE 路径）。
-	if (!InWeaponRowName.IsNone())
-	{
-		UE_LOG(
-			LogShootGame,
-			Warning,
-			TEXT("WeaponActor cannot apply weapon row: Weapon=%s Row=%s"),
-			*GetNameSafe(this),
-			*InWeaponRowName.ToString());
-	}
 }
 
 void AShooterWeapon::BeginEquipTransaction()
@@ -521,10 +458,9 @@ bool AShooterWeapon::ReloadFromReserve(int32& OutTransferredAmmo)
 	UE_LOG(
 		LogShootGame,
 		Display,
-		TEXT("WeaponActor reload committed: Weapon=%s WeaponId=%s Row=%s Transfer=%d Mag=%d Reserve=%d"),
+		TEXT("WeaponActor reload committed: Weapon=%s WeaponId=%s Transfer=%d Mag=%d Reserve=%d"),
 		*GetNameSafe(this),
 		*WeaponId.ToString(),
-		*WeaponRowName.ToString(),
 		Transfer,
 		MagazineAmmo,
 		ReserveAmmo);
@@ -551,8 +487,6 @@ void AShooterWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	// 弹药只与拥有该武器的客户端相关。
 	DOREPLIFETIME_CONDITION(AShooterWeapon, MagazineAmmo, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(AShooterWeapon, ReserveAmmo, COND_OwnerOnly);
-	// NPC 兼容路径的模板行名仍复制给所有端（S4 删除）。
-	DOREPLIFETIME(AShooterWeapon, WeaponRowName);
 	// 武器种类身份是创建后不变的初始复制数据；客户端从启动快照恢复静态表现配置。
 	DOREPLIFETIME(AShooterWeapon, WeaponId);
 }
@@ -710,8 +644,8 @@ void AShooterWeapon::Fire()
 		return;
 	}
 
-	// Ammo 权威位于 Inventory.MagazineAmmo；耗尽后停止开火，不自动换弹。
-	// 广播 OutOfAmmo 让 GA_Fire 幂等结束 Ability；未绑定的 NPC 旧路径不会进入这里。
+	// Ammo 权威位于 WeaponActor.MagazineAmmo；玩家与 NPC 都读同一值，耗尽后停止开火，不自动换弹。
+	// 广播 OutOfAmmo 让 GA_Fire 幂等结束 Ability。
 	if (!CanConsumeAmmo() || !ConsumeAmmo())
 	{
 		StopFiring();
@@ -782,17 +716,6 @@ void AShooterWeapon::ExecuteFireAtTarget(const FVector& TargetLocation)
 	// add recoil
 	WeaponOwner->AddWeaponRecoil(FiringRecoil);
 
-	// NPC 兼容路径（拥有者不是带 Inventory 的角色）保留自动补弹：弹匣打空即回满。
-	if (!Cast<AShooterCharacter>(GetOwner()))
-	{
-		if (MagazineAmmo <= 0)
-		{
-			MagazineAmmo = MagazineSize;
-		}
-
-		WeaponOwner->UpdateWeaponHUD(MagazineAmmo, MagazineSize, ReserveAmmo);
-		ForceNetUpdate();
-	}
 }
 
 void AShooterWeapon::FireProjectile(const FVector& TargetLocation)

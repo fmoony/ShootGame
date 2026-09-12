@@ -45,15 +45,15 @@ namespace ShooterWeaponTable
 
 	const FShooterWeaponConfigRow* FindWeaponRow(
 		const UDataTable* WeaponTable,
-		FName WeaponRowName)
+		FName WeaponId)
 	{
-		if (!WeaponTable || WeaponRowName.IsNone())
+		if (!WeaponTable || WeaponId.IsNone())
 		{
 			return nullptr;
 		}
 
 		return WeaponTable->FindRow<FShooterWeaponConfigRow>(
-			WeaponRowName,
+			WeaponId,
 			TEXT("ShooterWeaponTable"),
 			// 缺失行由调用方决定拒绝语义，这里不重复刷屏。
 			/*bWarnIfRowMissing=*/false);

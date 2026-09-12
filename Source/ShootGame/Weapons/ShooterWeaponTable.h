@@ -13,7 +13,8 @@ struct FShooterWeaponConfigRow;
  * 约束（单表武器配置纠偏小计划 4 / 5）：
  * - DT_WeaponData 是唯一武器模板数据源，不得再引入第二套 Registry 或 Primary Asset 映射；
  * - 本命名空间是 RowName → ConfigRow 的唯一解析实现，生产代码不得自行 GetRow；
- * - 表路径固定，Pickup 与 NPC 只选择行名，不各自保存表引用。
+ * - 表路径固定；运行时只在 WeaponRuntimeSubsystem 启动导入时查表，Pickup / NPC 只保存
+ *   WeaponId，Inventory / Equipment / WeaponActor / GAS 不再访问 DataTable。
  */
 namespace ShooterWeaponTable
 {
@@ -29,7 +30,7 @@ namespace ShooterWeaponTable
 	 */
 	SHOOTGAME_API const FShooterWeaponConfigRow* FindWeaponRow(
 		const UDataTable* WeaponTable,
-		FName WeaponRowName);
+		FName WeaponId);
 
 	/** 授予前的最小合法配置校验：ActorClass 是具体 AShooterWeapon 子类且弹匣容量合法。 */
 	SHOOTGAME_API bool IsRowValidForGrant(const FShooterWeaponConfigRow* Row);

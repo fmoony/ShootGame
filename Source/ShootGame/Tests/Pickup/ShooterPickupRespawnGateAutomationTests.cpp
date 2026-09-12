@@ -111,13 +111,13 @@ bool FShooterPickupRespawnGateCrossRespawnTest::RunTest(const FString& Parameter
 		return false;
 	}
 
-	// Pickup 只持有 WeaponId（S3 由 WeaponType.RowName 承载）；
+	// Pickup 只持有 WeaponId；
 	// 运行时快照是 World 级的，A、B 天然共享同一行定义。
 	const FName PickupWeaponRowName = AddTestWeaponRow(
 		GetOrInjectRuntimeTestTable(World),
 		MakeTestWeaponRow(AShooterInventoryOrderTestWeapon::StaticClass()));
 	World->GetSubsystem<UShooterWeaponRuntimeSubsystem>()->InitializeWeaponRuntimeForTest();
-	Pickup->SetWeaponRowNameForTest(PickupWeaponRowName);
+	Pickup->SetWeaponIdForTest(PickupWeaponRowName);
 
 	// --- 玩家 A 首次拾取：授予成功并立即装备，Pickup 进入隐藏态。 ---
 	Pickup->TriggerOverlapForTest(PlayerA);
@@ -203,12 +203,12 @@ bool FShooterPickupRespawnGateSlotFullRetryTest::RunTest(const FString& Paramete
 		return false;
 	}
 
-	// Pickup 只持有 WeaponId（S3 由 WeaponType.RowName 承载）；两个玩家共享同一 World 级运行时快照。
+	// Pickup 只持有 WeaponId；两个玩家共享同一 World 级运行时快照。
 	const FName PickupWeaponRowName = AddTestWeaponRow(
 		GetOrInjectRuntimeTestTable(World),
 		MakeTestWeaponRow(AShooterWeaponPresentationTestWeaponPrimary::StaticClass()));
 	World->GetSubsystem<UShooterWeaponRuntimeSubsystem>()->InitializeWeaponRuntimeForTest();
-	Pickup->SetWeaponRowNameForTest(PickupWeaponRowName);
+	Pickup->SetWeaponIdForTest(PickupWeaponRowName);
 
 	// 背包填满：三个不同 WeaponId 占满默认 3 个 Slot。
 	EShooterInventoryAddResult FillResult = EShooterInventoryAddResult::NotAuthoritative;

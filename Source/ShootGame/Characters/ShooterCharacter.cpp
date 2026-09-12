@@ -158,7 +158,7 @@ AShooterCharacter::AShooterCharacter()
 	// 表现瞄准链路由静态 Component 承接：采样、RPC、复制、平滑与调试不再落在 Character。
 	AimPresentationComponent = CreateDefaultSubobject<UShooterAimPresentationComponent>(TEXT("AimPresentationComponent"));
 
-	// R3 先建立装备 facade；R4 把 CurrentWeapon 与 ActiveWeaponInstanceId 迁入该组件。
+	// 当前装备权威（CurrentWeaponActor）由 EquipmentComponent 唯一持有；Character 只转发读取。
 	EquipmentComponent = CreateDefaultSubobject<UShooterEquipmentComponent>(TEXT("EquipmentComponent"));
 
 	bReplicates = true;

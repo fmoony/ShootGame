@@ -56,6 +56,8 @@ namespace ShooterNetworkTest
 	// 弹药、ActorClass 与全部只读配置都只由该行决定。
 	const FName RifleWeaponRowName(TEXT("Rifle"));
 	const FName PistolWeaponRowName(TEXT("Pistol"));
+	/** NPC GAS 开火测试使用的临时 WeaponId；行由网络测试在生成 NPC 前注入瞬态表。 */
+	const FName NpcFireWeaponRowName(TEXT("NPCFireTest"));
 
 	// ---- B1 瞄准表现基线：原地转视角调度与跟踪容差 ----
 	constexpr float AimRotationYawRateDegreesPerSecond = 30.0f;
@@ -193,15 +195,11 @@ AShooterNetworkTestWeapon::AShooterNetworkTestWeapon()
 	bFullAuto = false;
 }
 
-AShooterNetworkTestReloadWeapon::AShooterNetworkTestReloadWeapon()
-{
-	MagazineSize = 30;
-	ReloadDuration = 1.5f;
-}
-
 AShooterNetworkTestNPC::AShooterNetworkTestNPC()
 {
-	WeaponClass = AShooterNetworkTestWeapon::StaticClass();
+	// 测试 NPC 与玩家共用 WeaponRuntimeSubsystem 池；BeginPlay 会按该 WeaponId 租用武器。
+	// 对应行由网络协调器在生成 NPC 前注入瞬态表并重建运行时快照。
+	WeaponId = ShooterNetworkTest::NpcFireWeaponRowName;
 }
 
 AShooterNetworkTestCoordinator::AShooterNetworkTestCoordinator()
@@ -1593,6 +1591,24 @@ void AShooterNetworkTestCoordinator::PollServerState()
 	{
 		bNpcGasLifecycleChecked = true;
 
+		// NPC 现在从 WeaponId 池租用武器：生成测试 NPC 前，必须先把其 WeaponId 行
+		// 注入瞬态表并重建运行时快照，否则 BeginPlay 会因未知 WeaponId 拒绝创建武器。
+		UDataTable* NpcTestWeaponTable = GetOrInjectRuntimeTestTable(GetWorld());
+		UShooterWeaponRuntimeSubsystem* NpcWeaponRuntime = GetWorld()
+			? GetWorld()->GetSubsystem<UShooterWeaponRuntimeSubsystem>()
+			: nullptr;
+		if (!NpcTestWeaponTable || !NpcWeaponRuntime)
+		{
+			FailTest(TEXT("NPC fire test could not resolve weapon runtime test table"));
+			return;
+		}
+		NpcTestWeaponTable->AddRow(
+			ShooterNetworkTest::NpcFireWeaponRowName,
+			MakeTestWeaponRow(
+				AShooterNetworkTestWeapon::StaticClass(),
+				/*MagazineSize*/ 10));
+		NpcWeaponRuntime->InitializeWeaponRuntimeForTest();
+
 		// 生成无控制器的测试 NPC，验证其 ASC 后立即销毁。
 		FActorSpawnParameters SpawnParameters;
 		SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
@@ -1732,7 +1748,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		OwnerController->SetControlRotation(ControlRotation);
 	}
 
-	// 死亡后的清空阶段不允许旧 AddWeaponClass 路径重新补枪；重生后 Inventory 也必须保持为空。
+	// 死亡后的清空阶段不允许任何旧路径重新补枪；重生后 Inventory 也必须保持为空。
 	AShooterWeapon* Weapon = GetCurrentWeapon(Character);
 	const int32 CurrentBulletCount = Weapon ? Weapon->GetBulletCount() : INDEX_NONE;
 
@@ -1743,7 +1759,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 
 	if (Weapon)
 	{
-	// 5C：初始切换提交后 ActiveInstanceId 与 CurrentWeapon Actor 必须一致。
+	// 5C：初始切换提交后 Equipment.CurrentWeaponActor 必须与 Inventory Entry Actor 一致。
 	if (bClientObservedSwitch && !bEquipInitialCommitConsistent)
 	{
 		UShooterInventoryComponent* EquipInventory = Character->GetInventoryComponent();
@@ -1929,12 +1945,16 @@ void AShooterNetworkTestCoordinator::PollServerState()
 	if (bSwitchCancelVerified && !bReloadFullRejectPhaseTriggered)
 	{
 		bReloadFullRejectPhaseTriggered = true;
-		if (!SetReloadTestAmmo(
-			ServerInventorySecondWeapon.Get(),
-			/*MagazineAmmo*/30,
-			/*ReserveAmmo*/20))
+		const int32 ReloadPistolMagazineSize = ServerInventorySecondWeapon.IsValid()
+			? ServerInventorySecondWeapon->GetMagazineSize()
+			: 0;
+		if (ReloadPistolMagazineSize <= 0 ||
+			!SetReloadTestAmmo(
+				ServerInventorySecondWeapon.Get(),
+				/*MagazineAmmo*/ReloadPistolMagazineSize,
+				/*ReserveAmmo*/20))
 		{
-			FailTest(TEXT("Reload full-magazine preparation failed to replace pistol instance"));
+			FailTest(TEXT("Reload full-magazine preparation failed to set pistol ammo"));
 			return;
 		}
 
@@ -2031,7 +2051,12 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			ReloadTransferCheckTime = GetWorld()->GetTimeSeconds();
 		}
 
-		if (GetWorld()->GetTimeSeconds() - ReloadTransferCheckTime >= 1.8f)
+		// 换弹事务时长来自当前 WeaponActor 配置（正式 Pistol 为 2.2s，不再替换成测试类）；
+		// 检查窗口必须晚于 ReloadDuration 提交点，不能按旧的固定 1.5s 测试武器计时。
+		const float ReloadTransferWait = ServerInventorySecondWeapon.IsValid()
+			? FMath::Max(0.5f, ServerInventorySecondWeapon->GetReloadDuration() + 0.3f)
+			: 1.8f;
+		if (GetWorld()->GetTimeSeconds() - ReloadTransferCheckTime >= ReloadTransferWait)
 		{
 			UShooterInventoryComponent* ReloadInventory =
 				Character->GetInventoryComponent();

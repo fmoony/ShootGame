@@ -17,6 +17,7 @@
 #include "ShooterArchitectureTestTypes.h"
 #include "../Equipment/ShooterWeaponPresentationTestTypes.h"
 #include "UObject/UnrealType.h"
+#include "Weapons/ShooterPickup.h"
 #include "Weapons/ShooterWeapon.h"
 #include "Weapons/ShooterWeaponRuntimeSubsystem.h"
 #include "../Weapon/ShooterWeaponTestTableTypes.h"
@@ -200,7 +201,7 @@ bool FShooterArchitectureAnimBPSurfaceTest::RunTest(const FString& Parameters)
 /**
  * R0/R2/R4 所有权表快照：
  * Aim 由 AimPresentationComponent 承接；CurrentWeaponActor 在 R4 迁入 EquipmentComponent；
- * S3 起实例身份（ActiveWeaponInstanceId / BoundInstanceId）全部删除，Equipment 只存 Actor。
+ * S3 起实例身份（ActiveWeaponInstanceId / BoundInstanceId）全部删除，Equipment 只存 Actor；S4 后 Pickup / NPC 只保存 WeaponId。
  */
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FShooterArchitectureOwnershipSurfaceTest,
@@ -382,5 +383,65 @@ bool FShooterArchitectureHealthSurfaceTest::RunTest(const FString& Parameters)
 
 	return true;
 }
+
+/**
+ * S4 身份表面快照：运行时只保留 WeaponId / WeaponActor / SlotIndex / CurrentWeaponActor。
+ * RowHandle、RowName、InstanceId 与通用对象池接口必须已经从生产与资产表面删除。
+ */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FShooterArchitectureWeaponIdentitySurfaceTest,
+	"ShootGame.Architecture.Baseline.WeaponIdentitySurface",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FShooterArchitectureWeaponIdentitySurfaceTest::RunTest(const FString& Parameters)
+{
+	// WeaponActor：永久 WeaponId 存在，迁移期 WeaponRowName 已删除。
+	TestNull(
+		TEXT("WeaponActor no longer owns WeaponRowName property"),
+		FindFProperty<FProperty>(AShooterWeapon::StaticClass(), TEXT("WeaponRowName")));
+	TestNotNull(
+		TEXT("WeaponActor owns permanent WeaponId property"),
+		FindFProperty<FNameProperty>(AShooterWeapon::StaticClass(), TEXT("WeaponId")));
+
+	// Pickup：不再保存 DataTableRowHandle，只保存 FName WeaponId。
+	TestNull(
+		TEXT("Pickup no longer owns WeaponType row handle"),
+		FindFProperty<FProperty>(AShooterPickup::StaticClass(), TEXT("WeaponType")));
+	const FNameProperty* PickupWeaponIdProperty = FindFProperty<FNameProperty>(
+		AShooterPickup::StaticClass(),
+		TEXT("WeaponId"));
+	TestNotNull(TEXT("Pickup owns WeaponId property"), PickupWeaponIdProperty);
+	TestTrue(
+		TEXT("Pickup WeaponId is editor configurable"),
+		PickupWeaponIdProperty && PickupWeaponIdProperty->HasAnyPropertyFlags(CPF_Edit));
+
+	// NPC：与玩家共用 WeaponId 池；迁移期 WeaponRowName / WeaponClass 兼容属性已删除。
+	TestNull(
+		TEXT("NPC no longer owns WeaponRowName property"),
+		FindFProperty<FProperty>(AShooterNPC::StaticClass(), TEXT("WeaponRowName")));
+	TestNull(
+		TEXT("NPC no longer owns WeaponClass compatibility property"),
+		FindFProperty<FProperty>(AShooterNPC::StaticClass(), TEXT("WeaponClass")));
+	TestNotNull(
+		TEXT("NPC owns WeaponId property"),
+		FindFProperty<FNameProperty>(AShooterNPC::StaticClass(), TEXT("WeaponId")));
+
+	// Inventory Entry：只有 WeaponActor 引用与 SlotIndex。
+	TestNull(
+		TEXT("Inventory entry no longer owns InstanceId"),
+		FindFProperty<FProperty>(FShooterInventoryWeaponEntry::StaticStruct(), TEXT("InstanceId")));
+	TestNull(
+		TEXT("Inventory entry no longer owns WeaponRowName"),
+		FindFProperty<FProperty>(FShooterInventoryWeaponEntry::StaticStruct(), TEXT("WeaponRowName")));
+	TestNotNull(
+		TEXT("Inventory entry owns WeaponActor reference"),
+		FindFProperty<FProperty>(FShooterInventoryWeaponEntry::StaticStruct(), TEXT("Weapon")));
+	TestNotNull(
+		TEXT("Inventory entry owns SlotIndex"),
+		FindFProperty<FProperty>(FShooterInventoryWeaponEntry::StaticStruct(), TEXT("SlotIndex")));
+
+	return true;
+}
+
 
 #endif // WITH_DEV_AUTOMATION_TESTS

@@ -97,29 +97,20 @@ protected:
 	/** Pointer to the equipped weapon */
 	TObjectPtr<AShooterWeapon> Weapon;
 
-	/** Type of weapon to spawn for this character（仅作无行名时的兼容/测试路径） */
-	UPROPERTY(EditAnywhere, Category="Weapon")
-	TSubclassOf<AShooterWeapon> WeaponClass;
-
 	/**
-	 * 武器模板行名：从 DT_WeaponData 选择一整行，由该行同时决定 WeaponActorClass 与全部配置。
-	 * 留空时才回落到 WeaponClass 与 WeaponActor 自身默认配置（自动化测试兼容路径）。
+	 * 武器种类身份：直接对应 DT_WeaponData 的 RowName，也是 WeaponRuntimeSubsystem 的
+	 * 配置快照键与对象池分桶键。服务器 BeginPlay 时从 WeaponId 池租用与玩家相同的
+	 * 预配置 WeaponActor；空名不创建武器（测试用 NPC 子类可在构造期写入自己的 WeaponId）。
 	 */
 	UPROPERTY(EditAnywhere, Category="Weapon")
-	FName WeaponRowName;
+	FName WeaponId = NAME_None;
 
 public:
-	/** 返回本 NPC 配置的武器模板行名；空名表示走 WeaponClass 兼容路径。 */
-	FName GetWeaponRowName() const { return WeaponRowName; }
+	/** 返回本 NPC 配置的武器种类身份；空名表示不创建武器。 */
+	FName GetWeaponId() const { return WeaponId; }
 
-	/** 写入武器模板行名；供蓝图子类默认值与一次性迁移工具使用。 */
-	void SetWeaponRowName(FName InWeaponRowName) { WeaponRowName = InWeaponRowName; }
-
-	/** 返回兼容路径的武器类；仅在 WeaponRowName 为空或无法解析时使用。 */
-	TSubclassOf<AShooterWeapon> GetWeaponClass() const { return WeaponClass; }
-
-	/** 写入兼容路径的武器类。 */
-	void SetWeaponClass(TSubclassOf<AShooterWeapon> InWeaponClass) { WeaponClass = InWeaponClass; }
+	/** 写入武器种类身份；供蓝图子类默认值与一次性迁移工具使用。 */
+	void SetWeaponId(FName InWeaponId) { WeaponId = InWeaponId; }
 
 protected:
 

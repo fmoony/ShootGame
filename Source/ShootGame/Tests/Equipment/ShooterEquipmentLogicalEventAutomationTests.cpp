@@ -324,13 +324,13 @@ bool FShooterPickupRejectReloadingTest::RunTest(const FString& Parameters)
 	UShooterEquipmentComponent* Equipment = Character->GetEquipmentComponent();
 	UShooterInventoryComponent* Inventory = Character->GetInventoryComponent();
 	TestTrue(TEXT("Primary equipped"), Equipment->EquipWeapon(Primary));
-	// Pickup 只选择 WeaponId（S3 由 WeaponType.RowName 承载）；行必须先进入运行时快照。
+	// Pickup 只保存 WeaponId；行必须先进入运行时快照。
 	UDataTable* PickupWeaponTable = GetOrInjectRuntimeTestTable(World);
 	const FName PickupRowName = AddTestWeaponRow(
 		PickupWeaponTable,
 		MakeTestWeaponRow(AShooterWeaponPresentationTestWeaponSecondary::StaticClass()));
 	World->GetSubsystem<UShooterWeaponRuntimeSubsystem>()->InitializeWeaponRuntimeForTest();
-	Pickup->SetWeaponRowNameForTest(PickupRowName);
+	Pickup->SetWeaponIdForTest(PickupRowName);
 	ASC->AddLooseGameplayTag(ShooterGameplayTags::State_Reloading);
 	for (int32 Attempt = 0; Attempt < 10; ++Attempt)
 	{

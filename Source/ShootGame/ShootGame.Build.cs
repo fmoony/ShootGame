@@ -36,7 +36,6 @@ public class ShootGame : ModuleRules
 			"ShootGame/Characters/Animation/AnimNodes",
             "ShootGame/AI",
             "ShootGame/Weapons",
-            "ShootGame/Pool",
             "ShootGame/Inventory",
 			"ShootGame/Tests/Inventory",
 		"ShootGame/Tests/Equipment",

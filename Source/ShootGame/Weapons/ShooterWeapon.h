@@ -81,17 +81,8 @@ protected:
 	UPROPERTY(ReplicatedUsing = OnRep_WeaponId, VisibleAnywhere, BlueprintReadOnly, Category="Inventory")
 	FName WeaponId;
 
-	/**
-	 * NPC 兼容路径的模板行名（S4 迁移 NPC 入池后删除）；玩家正式路径不再写入。
-	 */
-	UPROPERTY(ReplicatedUsing = OnRep_WeaponRowName, VisibleAnywhere, BlueprintReadOnly, Category="Inventory")
-	FName WeaponRowName;
-
 	UFUNCTION()
 	void OnRep_WeaponId();
-
-	UFUNCTION()
-	void OnRep_WeaponRowName();
 
 	/** 行配置实例化出的开火行为；无持久可变状态，不复制，两端各自按行创建。 */
 	UPROPERTY(Transient)
@@ -268,9 +259,6 @@ protected:
 	 */
 	void SetLifecycleState(EShooterWeaponLifecycleState NewState, const TCHAR* Reason);
 
-	/** 解析本 Actor 绑定的武器模板行；未绑定行名、表缺失或行缺失时返回 nullptr。 */
-	const FShooterWeaponConfigRow* ResolveWeaponRow() const;
-
 	/**
 	 * 把武器模板行的只读配置应用到本 Actor 的运行时镜像（网格、动画类、表现资产、
 	 * 弹药经济、开火节奏、时序、Socket、视角参数）并实例化行的 FireBehaviorClass。
@@ -409,9 +397,6 @@ public:
 	/** 返回当前备弹；弹药权威在本 Actor 的 ReserveAmmo。 */
 	int32 GetReserveAmmo() const;
 
-	/** 返回 NPC 兼容路径的武器模板行名；玩家正式路径恒为空。 */
-	FName GetWeaponRowName() const { return WeaponRowName; }
-
 	/**
 	 * 解析本次开火应使用的正式行为：绑定模板行时由行的 FireBehaviorClass 实例化。
 	 * 返回空表示走兼容路径（未绑定模板行或该行未配置行为类）。
@@ -438,12 +423,6 @@ public:
 	void OnAcquiredFromWeaponPool();
 	/** 归还 WeaponRuntimeSubsystem 前调用：停 Timer、解委托、回 InPool；WeaponId 与静态配置永久保留。 */
 	void OnReleasedToWeaponPool();
-
-	/**
-	 * 服务器权威：只绑定武器模板行（NPC 等无 Inventory 的拥有者的兼容路径），
-	 * 并立即把该行的只读配置应用到本 Actor。空行名表示继续使用 WeaponActor 自身默认配置。
-	 */
-	void SetWeaponRow(FName InWeaponRowName);
 
 	/** 判断当前是否还有可发射弹药；直接检查本 Actor 的 MagazineAmmo。 */
 	bool CanConsumeAmmo() const;

@@ -17,6 +17,8 @@
 #include "ShooterGameState.h"
 #include "ShooterPlayerState.h"
 #include "ShooterProjectile.h"
+#include "AI/ShooterNPC.h"
+#include "ShooterPickup.h"
 #include "ShooterWeapon.h"
 #include "ShooterWeaponConfigRow.h"
 #include "ShooterWeaponTable.h"
@@ -422,6 +424,62 @@ namespace ShooterWeaponAutomationTests
 
 		return true;
 	}
+
+	bool TestPickupWeaponIdAssets(FAutomationTestBase& Test)
+	{
+		// S4 资产迁移结果：四个正式 Pickup BP 只保存 WeaponId，NPC BP 保存 WeaponId=Rifle。
+		for (const FProductionWeaponRow& Weapon : ProductionWeaponRows)
+		{
+			const FString BlueprintPath = FString::Printf(
+				TEXT("/Game/Shooter/Blueprints/Pickups/BP_ShooterPickup_%s.BP_ShooterPickup_%s_C"),
+				Weapon.Name,
+				Weapon.Name);
+			UClass* PickupClass = LoadClass<AShooterPickup>(nullptr, *BlueprintPath);
+			const AShooterPickup* PickupDefaults = PickupClass
+				? PickupClass->GetDefaultObject<AShooterPickup>()
+				: nullptr;
+			const FNameProperty* WeaponIdProperty = PickupDefaults
+				? FindFProperty<FNameProperty>(PickupClass, TEXT("WeaponId"))
+				: nullptr;
+			Test.TestNotNull(
+				FString::Printf(TEXT("%s Pickup BP exposes WeaponId"), Weapon.Name),
+				WeaponIdProperty);
+			Test.TestEqual(
+				FString::Printf(TEXT("%s Pickup BP WeaponId matches its data row"), Weapon.Name),
+				WeaponIdProperty ? WeaponIdProperty->GetPropertyValue_InContainer(PickupDefaults).ToString() : FString(),
+				FString(Weapon.RowName));
+		}
+
+		UClass* NpcClass = LoadClass<AShooterNPC>(
+				nullptr,
+				TEXT("/Game/Shooter/Blueprints/AI/BP_ShooterNPC.BP_ShooterNPC_C"));
+		const AShooterNPC* NpcDefaults = NpcClass ? NpcClass->GetDefaultObject<AShooterNPC>() : nullptr;
+		const FNameProperty* NpcWeaponIdProperty = NpcDefaults
+			? FindFProperty<FNameProperty>(NpcClass, TEXT("WeaponId"))
+			: nullptr;
+		Test.TestNotNull(TEXT("NPC BP exposes WeaponId"), NpcWeaponIdProperty);
+		Test.TestEqual(
+			TEXT("NPC BP WeaponId is Rifle"),
+			NpcWeaponIdProperty ? NpcWeaponIdProperty->GetPropertyValue_InContainer(NpcDefaults).ToString() : FString(),
+			FString(TEXT("Rifle")));
+
+		// 每个正式 WeaponId 的启动预热数量必须大于 0。
+		const UDataTable* WeaponTable = ShooterWeaponTable::ResolveWeaponTable();
+		if (Test.TestNotNull(TEXT("DT_WeaponData can be resolved for pool size validation"), WeaponTable))
+		{
+			for (const FProductionWeaponRow& Weapon : ProductionWeaponRows)
+			{
+				const FShooterWeaponConfigRow* Row = ShooterWeaponTable::FindWeaponRow(
+					WeaponTable,
+					FName(Weapon.RowName));
+				Test.TestTrue(
+					FString::Printf(TEXT("%s InitialPoolSize is positive"), Weapon.Name),
+					Row && Row->InitialPoolSize > 0);
+			}
+		}
+
+		return true;
+	}
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
@@ -443,6 +501,7 @@ bool FShooterWeaponConfigurationTest::RunTest(const FString& Parameters)
 	bSucceeded &= TestAnimationConfiguration(*this);
 	bSucceeded &= TestRifleReloadAnimationConfiguration(*this);
 	bSucceeded &= TestReloadSequenceSoundNotifies(*this);
+	bSucceeded &= TestPickupWeaponIdAssets(*this);
 
 	return bSucceeded;
 }

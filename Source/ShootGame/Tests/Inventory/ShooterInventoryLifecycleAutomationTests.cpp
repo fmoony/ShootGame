@@ -161,7 +161,7 @@ bool FShooterInventoryPickupEquipFailureRollbackTest::RunTest(const FString& Par
 		return false;
 	}
 
-	// Pickup 只选择 WeaponId（S3 由 WeaponType.RowName 承载）；行必须先进入运行时快照。
+	// Pickup 只保存 WeaponId；行必须先进入运行时快照。
 	UDataTable* PickupRowTable = GetOrInjectRuntimeTestTable(World);
 	if (!TestNotNull(TEXT("Rollback test weapon table injected"), PickupRowTable))
 	{
@@ -177,7 +177,7 @@ bool FShooterInventoryPickupEquipFailureRollbackTest::RunTest(const FString& Par
 			/*InitialReserveAmmo*/ -1));
 	TestFalse(TEXT("Rollback test weapon row name is valid"), PickupRowName.IsNone());
 	World->GetSubsystem<UShooterWeaponRuntimeSubsystem>()->InitializeWeaponRuntimeForTest();
-	Pickup->SetWeaponRowNameForTest(PickupRowName);
+	Pickup->SetWeaponIdForTest(PickupRowName);
 
 	TestEqual(TEXT("Inventory is empty before pickup"), Inventory->GetWeaponCount(), 0);
 

@@ -27,7 +27,9 @@ class UStaticMesh;
  * - 只为已经存在消费者的字段建列，不为表格观感预留空字段；
  * - 资源引用沿用当前同步加载边界：网格为软引用并同步加载，其余表现资产与类为硬引用。
  *
- * 数据流：Pickup/NPC 选择行 → Inventory.WeaponRowName → WeaponActor 按行应用只读配置。
+ * 数据流（启动预配置重构后）：RowName 仅在 World 开始时转换为 WeaponId →
+ * WeaponRuntimeSubsystem 冻结 RuntimeConfig 快照并预热池 → Pickup / NPC 按 WeaponId 租用
+ * WeaponActor；Inventory、Equipment 与 GAS 全程使用 Actor 引用，运行时不再查表。
  */
 USTRUCT(BlueprintType)
 struct SHOOTGAME_API FShooterWeaponConfigRow : public FTableRowBase
