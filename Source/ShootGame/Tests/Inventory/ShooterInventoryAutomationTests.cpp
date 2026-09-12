@@ -44,14 +44,10 @@ namespace ShooterInventoryAutomationTests
 	}
 
 	/** 生成一把具备唯一 WeaponId 的权威测试武器（直接 Spawn，不入池）。 */
-	AShooterRuntimePoolTestWeapon* SpawnInventoryContractWeapon(
-		FAutomationTestBase& Test,
-		UWorld* World,
-		FName WeaponId)
+	AShooterRuntimePoolTestWeapon* SpawnInventoryContractWeapon(FAutomationTestBase& Test, UWorld* World, FName WeaponId)
 	{
 		AShooterRuntimePoolTestWeapon* Weapon = World
-			? World->SpawnActor<AShooterRuntimePoolTestWeapon>(
-				FVector::ZeroVector, FRotator::ZeroRotator)
+			? World->SpawnActor<AShooterRuntimePoolTestWeapon>(FVector::ZeroVector, FRotator::ZeroRotator)
 			: nullptr;
 		if (!Test.TestNotNull(TEXT("Inventory contract weapon spawned"), Weapon))
 		{
@@ -65,9 +61,7 @@ namespace ShooterInventoryAutomationTests
 }
 
 /** FastArray 数据契约：Actor + Slot 的 Add / Remove / Clear 与查找。 */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterInventoryAddWeaponTest,
-	"ShootGame.Inventory.AddWeapon",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterInventoryAddWeaponTest, "ShootGame.Inventory.AddWeapon",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterInventoryAddWeaponTest::RunTest(const FString& Parameters)
@@ -109,9 +103,7 @@ bool FShooterInventoryAddWeaponTest::RunTest(const FString& Parameters)
 }
 
 /** 同一 Actor 重复入库拒绝；WeaponId 查找语义与空身份拒绝。 */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterInventoryUniqueWeaponTest,
-	"ShootGame.Inventory.UniqueWeapon",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterInventoryUniqueWeaponTest, "ShootGame.Inventory.UniqueWeapon",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterInventoryUniqueWeaponTest::RunTest(const FString& Parameters)
@@ -139,8 +131,7 @@ bool FShooterInventoryUniqueWeaponTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("First weapon is added"), Inventory.AddItem(First, 0));
 	TestTrue(TEXT("Second weapon with another WeaponId is added"), Inventory.AddItem(Second, 1));
 	TestFalse(TEXT("Same actor cannot be added twice"), Inventory.AddItem(First, 2));
-	TestNotNull(
-		TEXT("FindItemByWeaponId resolves the first holder of the WeaponId"),
+	TestNotNull(TEXT("FindItemByWeaponId resolves the first holder of the WeaponId"),
 		Inventory.FindItemByWeaponId(TEXT("TestWeapon_Dup")));
 	TestEqual(TEXT("Container keeps two entries"), Inventory.Items.Num(), 2);
 	TestNull(TEXT("None WeaponId finds nothing"), Inventory.FindItemByWeaponId(NAME_None));
@@ -149,9 +140,7 @@ bool FShooterInventoryUniqueWeaponTest::RunTest(const FString& Parameters)
 }
 
 /** Slot 唯一性：重复 Slot 拒绝，非法 Slot 拒绝。 */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterInventorySlotUniquenessTest,
-	"ShootGame.Inventory.SlotUniqueness",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterInventorySlotUniquenessTest, "ShootGame.Inventory.SlotUniqueness",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterInventorySlotUniquenessTest::RunTest(const FString& Parameters)
@@ -185,9 +174,7 @@ bool FShooterInventorySlotUniquenessTest::RunTest(const FString& Parameters)
 }
 
 /** 复制契约：OwnerOnly FastArray 结构、反射字段与 WeaponId 身份；无任何实例身份残留。 */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterInventoryOwnerReplicationTest,
-	"ShootGame.Inventory.OwnerReplication",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterInventoryOwnerReplicationTest, "ShootGame.Inventory.OwnerReplication",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterInventoryOwnerReplicationTest::RunTest(const FString& Parameters)
@@ -207,52 +194,40 @@ bool FShooterInventoryOwnerReplicationTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("InventoryComponent is replicated"), InventoryComponent->GetIsReplicated());
 
 	const FStructProperty* InventoryListProperty = FindFProperty<FStructProperty>(
-		UShooterInventoryComponent::StaticClass(),
-		TEXT("ReplicatedInventory"));
+		UShooterInventoryComponent::StaticClass(), TEXT("ReplicatedInventory"));
 	if (!TestNotNull(TEXT("InventoryComponent exposes ReplicatedInventory"), InventoryListProperty))
 	{
 		return false;
 	}
 
-	TestTrue(
-		TEXT("ReplicatedInventory is FShooterWeaponInventoryList"),
+	TestTrue(TEXT("ReplicatedInventory is FShooterWeaponInventoryList"),
 		InventoryListProperty->Struct == FShooterWeaponInventoryList::StaticStruct());
 
-	TestTrue(
-		TEXT("Inventory FastArray list enables NetDeltaSerialize"),
+	TestTrue(TEXT("Inventory FastArray list enables NetDeltaSerialize"),
 		TStructOpsTypeTraits<FShooterWeaponInventoryList>::WithNetDeltaSerializer);
 	// S3：Entry 只含 WeaponActor 引用与 SlotIndex，不再有手写 NetSerialize 或实例身份。
-	TestFalse(
-		TEXT("Inventory FastArray item no longer enables a manual NetSerialize"),
+	TestFalse(TEXT("Inventory FastArray item no longer enables a manual NetSerialize"),
 		TStructOpsTypeTraits<FShooterInventoryWeaponEntry>::WithNetSerializer);
 
 	// 实例身份属性已从所有复制面删除。
-	TestNull(
-		TEXT("Inventory no longer owns ActiveWeaponInstanceId property"),
+	TestNull(TEXT("Inventory no longer owns ActiveWeaponInstanceId property"),
 		FindFProperty<FProperty>(UShooterInventoryComponent::StaticClass(), TEXT("ActiveWeaponInstanceId")));
-	TestNull(
-		TEXT("WeaponActor no longer owns BoundInstanceId property"),
+	TestNull(TEXT("WeaponActor no longer owns BoundInstanceId property"),
 		FindFProperty<FProperty>(AShooterWeapon::StaticClass(), TEXT("BoundInstanceId")));
-	TestNull(
-		TEXT("Equipment no longer owns ActiveWeaponInstanceId property"),
+	TestNull(TEXT("Equipment no longer owns ActiveWeaponInstanceId property"),
 		FindFProperty<FProperty>(UShooterEquipmentComponent::StaticClass(), TEXT("ActiveWeaponInstanceId")));
 
 	const FProperty* EquipmentCurrentWeaponProperty = FindFProperty<FProperty>(
-		UShooterEquipmentComponent::StaticClass(),
-		TEXT("CurrentWeaponActor"));
+		UShooterEquipmentComponent::StaticClass(), TEXT("CurrentWeaponActor"));
 	if (!TestNotNull(TEXT("Equipment exposes CurrentWeaponActor"), EquipmentCurrentWeaponProperty))
 	{
 		return false;
 	}
 	TestTrue(TEXT("Equipment CurrentWeaponActor is replicated"), EquipmentCurrentWeaponProperty->HasAnyPropertyFlags(CPF_Net));
-	TestEqual(
-		TEXT("Equipment CurrentWeaponActor uses OnRep_CurrentWeaponActor"),
-		EquipmentCurrentWeaponProperty->RepNotifyFunc,
-		FName(TEXT("OnRep_CurrentWeaponActor")));
+	TestEqual(TEXT("Equipment CurrentWeaponActor uses OnRep_CurrentWeaponActor"),
+		EquipmentCurrentWeaponProperty->RepNotifyFunc, FName(TEXT("OnRep_CurrentWeaponActor")));
 
-	const FProperty* WeaponIdProperty = FindFProperty<FProperty>(
-		AShooterWeapon::StaticClass(),
-		TEXT("WeaponId"));
+	const FProperty* WeaponIdProperty = FindFProperty<FProperty>(AShooterWeapon::StaticClass(), TEXT("WeaponId"));
 	if (!TestNotNull(TEXT("WeaponActor exposes WeaponId"), WeaponIdProperty))
 	{
 		return false;
@@ -265,9 +240,7 @@ bool FShooterInventoryOwnerReplicationTest::RunTest(const FString& Parameters)
 }
 
 /** Entry 复制面：Actor 引用 + Slot 由 FastArray 默认反射序列化承载，无手写 NetSerialize。 */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterInventoryRemoteHiddenTest,
-	"ShootGame.Inventory.RemoteHidden",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterInventoryRemoteHiddenTest, "ShootGame.Inventory.RemoteHidden",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterInventoryRemoteHiddenTest::RunTest(const FString& Parameters)
@@ -286,12 +259,8 @@ bool FShooterInventoryRemoteHiddenTest::RunTest(const FString& Parameters)
 	{
 		return false;
 	}
-	TestTrue(
-		TEXT("Weapon field is an object property"),
-		WeaponProperty && WeaponProperty->IsA<FObjectProperty>());
-	TestTrue(
-		TEXT("SlotIndex field is an int property"),
-		SlotProperty && SlotProperty->IsA<FIntProperty>());
+	TestTrue(TEXT("Weapon field is an object property"), WeaponProperty && WeaponProperty->IsA<FObjectProperty>());
+	TestTrue(TEXT("SlotIndex field is an int property"), SlotProperty && SlotProperty->IsA<FIntProperty>());
 
 	// Actor 引用由 FastArray 网络序列化（NetGUID）解析，真实复制到达顺序
 	// 由 ShooterNetworkTestCoordinator 在 Listen / Dedicated 会话中验证。

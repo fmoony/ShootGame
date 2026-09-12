@@ -25,9 +25,7 @@
 /** 判断给定表是否为测试助手创建的瞬态武器表。 */
 inline bool IsTestWeaponTable(const UDataTable* Table)
 {
-	return Table &&
-		Table->GetOutermost() == GetTransientPackage() &&
-		Table->GetRowStruct() == FShooterWeaponConfigRow::StaticStruct();
+	return Table && Table->GetOutermost() == GetTransientPackage() && Table->GetRowStruct() == FShooterWeaponConfigRow::StaticStruct();
 }
 
 /**
@@ -73,11 +71,8 @@ inline FName AddTestWeaponRow(UDataTable* Table, const FShooterWeaponConfigRow& 
 }
 
 /** 从武器类当前配置构造测试行，并覆盖弹药声明与预热数量。 */
-inline FShooterWeaponConfigRow MakeTestWeaponRow(
-	TSubclassOf<AShooterWeapon> WeaponActorClass,
-	int32 MagazineSize = 10,
-	int32 InitialReserveAmmo = -1,
-	int32 InitialPoolSize = 1)
+inline FShooterWeaponConfigRow MakeTestWeaponRow(TSubclassOf<AShooterWeapon> WeaponActorClass, int32 MagazineSize = 10,
+	int32 InitialReserveAmmo = -1, int32 InitialPoolSize = 1)
 {
 	FShooterWeaponConfigRow Row;
 	if (const AShooterWeapon* WeaponDefaults = WeaponActorClass
@@ -127,9 +122,7 @@ inline AShooterWeapon* GrantTestWeapon(
 		return nullptr;
 	}
 
-	const FName RowName = AddTestWeaponRow(
-		Table,
-		MakeTestWeaponRow(WeaponActorClass, MagazineSize, InitialReserveAmmo));
+	const FName RowName = AddTestWeaponRow(Table, MakeTestWeaponRow(WeaponActorClass, MagazineSize, InitialReserveAmmo));
 	// 追加行后重建快照；已授予（租出中）的武器跨重导入存活。
 	Runtime->InitializeWeaponRuntimeForTest();
 

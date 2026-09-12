@@ -55,9 +55,7 @@ namespace ShooterAnimBPGraphAudit
 			{
 				if (CallFunction->GetTargetFunction())
 				{
-					VariableName = FString::Printf(
-						TEXT("call:%s"),
-						*CallFunction->GetTargetFunction()->GetPathName());
+					VariableName = FString::Printf(TEXT("call:%s"), *CallFunction->GetTargetFunction()->GetPathName());
 				}
 			}
 
@@ -119,11 +117,7 @@ namespace ShooterAnimBPGraphAudit
 		UAnimBlueprint* AnimBP = LoadObject<UAnimBlueprint>(nullptr, *ObjectPath);
 		if (!AnimBP)
 		{
-			UE_LOG(
-				LogShooterAnimBPGraphAudit,
-				Error,
-				TEXT("AUTOMATION_ANIMBP_GRAPH_AUDIT LoadFailed Asset=%s"),
-				*ObjectPath);
+			UE_LOG(LogShooterAnimBPGraphAudit, Error, TEXT("AUTOMATION_ANIMBP_GRAPH_AUDIT LoadFailed Asset=%s"), *ObjectPath);
 			++OutFailureCount;
 			return false;
 		}
@@ -174,10 +168,7 @@ namespace ShooterAnimBPGraphAudit
 			}
 		}
 
-		UE_LOG(
-			LogShooterAnimBPGraphAudit,
-			Display,
-			TEXT("AUTOMATION_ANIMBP_GRAPH_AUDIT End Asset=%s"),
+		UE_LOG(LogShooterAnimBPGraphAudit, Display, TEXT("AUTOMATION_ANIMBP_GRAPH_AUDIT End Asset=%s"),
 			*AnimBP->GetPathName());
 		return true;
 	}
@@ -209,12 +200,8 @@ int32 UShooterAnimBPGraphAuditCommandlet::Main(const FString& Params)
 		AuditAsset(TargetAsset, FailureCount);
 	}
 
-	UE_LOG(
-		LogShooterAnimBPGraphAudit,
-		Display,
-		TEXT("AUTOMATION_ANIMBP_GRAPH_AUDIT_SUMMARY Total=%d Failures=%d"),
-		static_cast<int32>(UE_ARRAY_COUNT(TargetAssets)),
-		FailureCount);
+	UE_LOG(LogShooterAnimBPGraphAudit, Display, TEXT("AUTOMATION_ANIMBP_GRAPH_AUDIT_SUMMARY Total=%d Failures=%d"),
+		static_cast<int32>(UE_ARRAY_COUNT(TargetAssets)), FailureCount);
 
 	return FailureCount == 0 ? 0 : 1;
 }

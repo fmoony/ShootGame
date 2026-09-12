@@ -13,21 +13,11 @@ public class ShootGameEditor : ModuleRules
 		OverridePackageType = PackageOverrideType.GameUncookedOnly;
 
 		PublicDependencyModuleNames.AddRange(new string[] {
-			"Core",
-			"CoreUObject",
-			"Engine",
-			"ShootGame",
-			"AnimGraph",
-			"AnimGraphRuntime",
-			"BlueprintGraph"
+			"Core", "CoreUObject", "Engine", "ShootGame", "AnimGraph", "AnimGraphRuntime", "BlueprintGraph"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {
-			"UnrealEd",
-			"BlueprintEditorLibrary",
-			"Kismet",
-			"Slate",
-			"SlateCore"
+			"UnrealEd", "BlueprintEditorLibrary", "Kismet", "Slate", "SlateCore"
 		});
 	}
 }

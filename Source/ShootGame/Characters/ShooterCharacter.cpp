@@ -33,8 +33,7 @@
 #include "Net/UnrealNetwork.h"
 #include "UObject/UnrealType.h"
 
-static TAutoConsoleVariable<float> CVarShooterFirstPersonNearClip(
-	TEXT("ShootGame.FirstPerson.NearClip"), 1.0f,
+static TAutoConsoleVariable<float> CVarShooterFirstPersonNearClip(TEXT("ShootGame.FirstPerson.NearClip"), 1.0f,
 	TEXT("Local first-person near clip distance in cm; <= 0 uses the global default."));
 
 namespace ShooterAimTrace
@@ -65,12 +64,10 @@ namespace ShooterAimTrace
 		FCollisionObjectQueryParams PawnObjectQuery;
 		PawnObjectQuery.AddObjectTypesToQuery(ECC_Pawn);
 		FHitResult PawnHit;
-		const bool bPawnHit = World->LineTraceSingleByObjectType(
-			PawnHit, Start, End, PawnObjectQuery, QueryParams);
+		const bool bPawnHit = World->LineTraceSingleByObjectType(PawnHit, Start, End, PawnObjectQuery, QueryParams);
 
 		// 选择最近命中，确保墙体仍能遮挡其后的 Pawn。
-		const bool bUsePawnHit = bPawnHit &&
-			(!bVisibilityHit || PawnHit.Time <= VisibilityHit.Time + UE_SMALL_NUMBER);
+		const bool bUsePawnHit = bPawnHit && (!bVisibilityHit || PawnHit.Time <= VisibilityHit.Time + UE_SMALL_NUMBER);
 		if (bUsePawnHit)
 		{
 			Result.Hit = PawnHit;
@@ -89,13 +86,8 @@ namespace ShooterAimTrace
 	}
 }
 
-FVector AShooterCharacter::TracePreSpreadAimTarget(
-	UWorld* World,
-	const FVector& Start,
-	const FVector& End,
-	const AActor* IgnoredActor,
-	FHitResult* OutHit,
-	bool* bOutPawnHit)
+FVector AShooterCharacter::TracePreSpreadAimTarget(UWorld* World, const FVector& Start, const FVector& End,
+	const AActor* IgnoredActor, FHitResult* OutHit, bool* bOutPawnHit)
 {
 	const ShooterAimTrace::FResult Result = ShooterAimTrace::Trace(World, Start, End, IgnoredActor);
 	if (OutHit)
@@ -124,8 +116,7 @@ AShooterCharacter::AShooterCharacter()
 	// Create the Camera Component
 	FirstPersonCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("First Person Camera"));
 	FirstPersonCameraComponent->SetupAttachment(FirstPersonMesh, FName("head"));
-	FirstPersonCameraComponent->SetRelativeLocationAndRotation(
-		FVector(-2.8f, 5.89f, 0.0f),
+	FirstPersonCameraComponent->SetRelativeLocationAndRotation(FVector(-2.8f, 5.89f, 0.0f),
 		FRotator(0.0f, 90.0f, -90.0f));
 
 	//// 摄像机必须独立于动画骨骼；否则 Reload / Aim 姿势会通过 head 骨骼推动本地视点。
@@ -158,8 +149,7 @@ AShooterCharacter::AShooterCharacter()
 	InventoryComponent = CreateDefaultSubobject<UShooterInventoryComponent>(TEXT("InventoryComponent"));
 
 	// 表现瞄准链路由静态 Component 承接：采样、RPC、复制、平滑与调试不再落在 Character。
-	AimPresentationComponent =
-		CreateDefaultSubobject<UShooterAimPresentationComponent>(TEXT("AimPresentationComponent"));
+	AimPresentationComponent = CreateDefaultSubobject<UShooterAimPresentationComponent>(TEXT("AimPresentationComponent"));
 
 	// 当前装备权威（CurrentWeaponActor）由 EquipmentComponent 唯一持有；Character 只转发读取。
 	EquipmentComponent = CreateDefaultSubobject<UShooterEquipmentComponent>(TEXT("EquipmentComponent"));
@@ -170,8 +160,7 @@ AShooterCharacter::AShooterCharacter()
 void AShooterCharacter::CalcCamera(float DeltaTime, FMinimalViewInfo& OutResult)
 {
 	Super::CalcCamera(DeltaTime, OutResult);
-	if (IsLocallyControlled() && !IsDead() && FirstPersonCameraComponent->IsActive() &&
-		OutResult.bUseFirstPersonParameters)
+	if (IsLocallyControlled() && !IsDead() && FirstPersonCameraComponent->IsActive() && OutResult.bUseFirstPersonParameters)
 	{
 		// 只改变当前游戏视图的投影，不移动相机、骨骼或服务器瞄准起点。
 		const float NearClip = CVarShooterFirstPersonNearClip.GetValueOnGameThread();
@@ -217,8 +206,7 @@ void AShooterCharacter::EndPlay(EEndPlayReason::Type EndPlayReason)
 	{
 		if (IsValid(ShooterPlayerState))
 		{
-			if (UAbilitySystemComponent* AbilitySystemComponent =
-				ShooterPlayerState->GetAbilitySystemComponent();
+			if (UAbilitySystemComponent* AbilitySystemComponent = ShooterPlayerState->GetAbilitySystemComponent();
 				AbilitySystemComponent && AbilitySystemComponent->GetAvatarActor() == this)
 			{
 				AbilitySystemComponent->ClearActorInfo();
@@ -283,8 +271,7 @@ void AShooterCharacter::InitializeAbilityActorInfo()
 	UAbilitySystemComponent* AbilitySystemComponent = ShooterPlayerState
 		? ShooterPlayerState->GetAbilitySystemComponent()
 		: nullptr;
-	if (!ShooterPlayerState || !AbilitySystemComponent ||
-		AbilitySystemComponent->GetAvatarActor() == this)
+	if (!ShooterPlayerState || !AbilitySystemComponent || AbilitySystemComponent->GetAvatarActor() == this)
 	{
 		return;
 	}
@@ -314,20 +301,11 @@ void AShooterCharacter::InitializeAbilityActorInfo()
 		UShooterGameplayEffectStatics::ApplyInitHealthEffect(AbilitySystemComponent, MaxHP);
 	}
 
-	UE_LOG(
-		LogShootGame,
-		Display,
-		TEXT(
-			"GAS ActorInfo init: Actor=%s Role=%d NetMode=%d ASC=%s "
-			"OwnerActor=%s AvatarActor=%s PlayerState=%s Character=%s"),
-		*GetName(),
-		static_cast<int32>(GetLocalRole()),
-		static_cast<int32>(GetNetMode()),
-		*GetNameSafe(AbilitySystemComponent),
-		*GetNameSafe(AbilitySystemComponent->GetOwnerActor()),
-		*GetNameSafe(AbilitySystemComponent->GetAvatarActor()),
-		*GetNameSafe(ShooterPlayerState),
-		*GetName());
+	UE_LOG(LogShootGame, Display, TEXT("GAS ActorInfo init: Actor=%s Role=%d NetMode=%d ASC=%s "
+			"OwnerActor=%s AvatarActor=%s PlayerState=%s Character=%s"), *GetName(), static_cast<int32>(GetLocalRole()),
+		static_cast<int32>(GetNetMode()), *GetNameSafe(AbilitySystemComponent),
+		*GetNameSafe(AbilitySystemComponent->GetOwnerActor()), *GetNameSafe(AbilitySystemComponent->GetAvatarActor()),
+		*GetNameSafe(ShooterPlayerState), *GetName());
 }
 
 void AShooterCharacter::HandleHealthAttributeChanged(const FOnAttributeChangeData& ChangeData)
@@ -371,8 +349,7 @@ float AShooterCharacter::GetHealthAttributeValue() const
 {
 	if (const UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponent())
 	{
-		return AbilitySystemComponent->GetNumericAttribute(
-			UShooterAttributeSet::GetHealthAttribute());
+		return AbilitySystemComponent->GetNumericAttribute(UShooterAttributeSet::GetHealthAttribute());
 	}
 	return CurrentHP;
 }
@@ -381,8 +358,7 @@ float AShooterCharacter::GetMaxHealthAttributeValue() const
 {
 	if (const UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponent())
 	{
-		return AbilitySystemComponent->GetNumericAttribute(
-			UShooterAttributeSet::GetMaxHealthAttribute());
+		return AbilitySystemComponent->GetNumericAttribute(UShooterAttributeSet::GetMaxHealthAttribute());
 	}
 	return MaxHP;
 }
@@ -411,36 +387,24 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 		// Looking/Aiming
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AShooterCharacter::LookInput);
-		EnhancedInputComponent->BindAction(
-			MouseLookAction,
-			ETriggerEvent::Triggered,
-			this,
+		EnhancedInputComponent->BindAction(MouseLookAction, ETriggerEvent::Triggered, this,
 			&AShooterCharacter::LookInput);
 
 		// Firing
 		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &AShooterCharacter::DoStartFiring);
-		EnhancedInputComponent->BindAction(
-			FireAction,
-			ETriggerEvent::Completed,
-			this,
+		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this,
 			&AShooterCharacter::DoStopFiring);
 
 		// Reload：IA_Reload 只提交 Input.Reload，不直接改弹药。
 		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &AShooterCharacter::DoReload);
 
 		// Switch weapon
-		EnhancedInputComponent->BindAction(
-			SwitchWeaponAction,
-			ETriggerEvent::Triggered,
-			this,
+		EnhancedInputComponent->BindAction(SwitchWeaponAction, ETriggerEvent::Triggered, this,
 			&AShooterCharacter::DoSwitchWeapon);
 	}
 	else
 	{
-		UE_LOG(
-			LogShootGame,
-			Error,
-			TEXT(
+		UE_LOG(LogShootGame, Error, TEXT(
 				"'%s' Failed to find an Enhanced Input Component! This template is built to use the Enhanced Input "
 				"system. If you intend to use the legacy system, then you will need to update this C++ file."),
 			*GetNameSafe(this));
@@ -498,10 +462,7 @@ void AShooterCharacter::DoJumpEnd()
 	StopJumping();
 }
 
-float AShooterCharacter::TakeDamage(
-	float Damage,
-	struct FDamageEvent const& DamageEvent,
-	AController* EventInstigator,
+float AShooterCharacter::TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator,
 	AActor* DamageCauser)
 {
 	// 客户端不能自行扣血，且死亡后不重复处理伤害。
@@ -517,8 +478,7 @@ float AShooterCharacter::TakeDamage(
 	}
 
 	// 实际作用量不超过当前属性生命；属性归零由 Health 变化桥接进入现有死亡闭环。
-	const float CurrentHealth = AbilitySystemComponent->GetNumericAttribute(
-		UShooterAttributeSet::GetHealthAttribute());
+	const float CurrentHealth = AbilitySystemComponent->GetNumericAttribute(UShooterAttributeSet::GetHealthAttribute());
 	const float AppliedDamage = FMath::Clamp(Damage, 0.0f, CurrentHealth);
 	if (AppliedDamage <= 0.0f)
 	{
@@ -530,11 +490,7 @@ float AShooterCharacter::TakeDamage(
 
 	// 击杀者交给 Health 归零桥接，用于现有 Death/Kill/计分闭环。
 	PendingDeathInstigator = EventInstigator;
-	UShooterGameplayEffectStatics::ApplyDamageEffect(
-		AbilitySystemComponent,
-		AppliedDamage,
-		EventInstigator,
-		DamageCauser);
+	UShooterGameplayEffectStatics::ApplyDamageEffect(AbilitySystemComponent, AppliedDamage, EventInstigator, DamageCauser);
 	PendingDeathInstigator = nullptr;
 
 	return AppliedDamage;
@@ -555,31 +511,25 @@ void AShooterCharacter::OnRep_IsDead()
 
 void AShooterCharacter::CancelFireAbility()
 {
-	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent =
-		Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
+	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent = Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
 	{
-		ShooterAbilitySystemComponent->CancelAbilitiesByTag(
-			ShooterGameplayTags::Input_Fire);
+		ShooterAbilitySystemComponent->CancelAbilitiesByTag(ShooterGameplayTags::Input_Fire);
 	}
 }
 
 void AShooterCharacter::CancelReloadAbility()
 {
-	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent =
-		Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
+	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent = Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
 	{
-		ShooterAbilitySystemComponent->CancelAbilitiesByTag(
-			ShooterGameplayTags::Input_Reload);
+		ShooterAbilitySystemComponent->CancelAbilitiesByTag(ShooterGameplayTags::Input_Reload);
 	}
 }
 
 void AShooterCharacter::CancelEquipAbility()
 {
-	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent =
-		Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
+	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent = Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
 	{
-		ShooterAbilitySystemComponent->CancelAbilitiesByTag(
-			ShooterGameplayTags::Input_Equip_Next);
+		ShooterAbilitySystemComponent->CancelAbilitiesByTag(ShooterGameplayTags::Input_Equip_Next);
 	}
 }
 
@@ -587,57 +537,39 @@ void AShooterCharacter::DoStartFiring()
 {
 	// 输入只提交给 ASC：GA_Fire 为 ServerOnly，客户端按 Input.Fire 发起激活，
 	// GAS 自动把激活请求可靠转发到服务器。
-	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent =
-		Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
+	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent = Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
 	{
-		ShooterAbilitySystemComponent->AbilityInputTagPressed(
-			ShooterGameplayTags::Input_Fire);
+		ShooterAbilitySystemComponent->AbilityInputTagPressed(ShooterGameplayTags::Input_Fire);
 		return;
 	}
 
 	// PlayerState / ASC 尚未就绪时静默忽略，不保留旧 RPC 双路径。
-	UE_LOG(
-		LogShootGame,
-		Warning,
-		TEXT("DoStartFiring ignored: ShooterASC unavailable for %s"),
-		*GetName());
+	UE_LOG(LogShootGame, Warning, TEXT("DoStartFiring ignored: ShooterASC unavailable for %s"), *GetName());
 }
 
 void AShooterCharacter::DoStopFiring()
 {
 	// 松开输入同样进入 ASC；服务器活动 GA_Fire 收到释放后停止 Weapon 并结束 Ability。
-	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent =
-		Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
+	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent = Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
 	{
-		ShooterAbilitySystemComponent->AbilityInputTagReleased(
-			ShooterGameplayTags::Input_Fire);
+		ShooterAbilitySystemComponent->AbilityInputTagReleased(ShooterGameplayTags::Input_Fire);
 		return;
 	}
 
-	UE_LOG(
-		LogShootGame,
-		Warning,
-		TEXT("DoStopFiring ignored: ShooterASC unavailable for %s"),
-		*GetName());
+	UE_LOG(LogShootGame, Warning, TEXT("DoStopFiring ignored: ShooterASC unavailable for %s"), *GetName());
 }
 
 void AShooterCharacter::DoReload()
 {
 	// 输入只提交给 ASC：GA_Reload 为 ServerOnly，客户端按 Input.Reload 发起激活，
 	// GAS 自动把激活请求可靠转发到服务器。
-	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent =
-		Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
+	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent = Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
 	{
-		ShooterAbilitySystemComponent->AbilityInputTagPressed(
-			ShooterGameplayTags::Input_Reload);
+		ShooterAbilitySystemComponent->AbilityInputTagPressed(ShooterGameplayTags::Input_Reload);
 		return;
 	}
 
-	UE_LOG(
-		LogShootGame,
-		Warning,
-		TEXT("DoReload ignored: ShooterASC unavailable for %s"),
-		*GetName());
+	UE_LOG(LogShootGame, Warning, TEXT("DoReload ignored: ShooterASC unavailable for %s"), *GetName());
 }
 
 void AShooterCharacter::MulticastPlayFiringMontage_Implementation(UAnimMontage* Montage)
@@ -667,19 +599,13 @@ void AShooterCharacter::DoSwitchWeapon()
 {
 	// 输入只提交给 ASC：GA_Equip 为 ServerOnly，客户端按 Input.Equip.Next 发起激活，
 	// GAS 自动把激活请求可靠转发到服务器。
-	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent =
-		Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
+	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent = Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
 	{
-		ShooterAbilitySystemComponent->AbilityInputTagPressed(
-			ShooterGameplayTags::Input_Equip_Next);
+		ShooterAbilitySystemComponent->AbilityInputTagPressed(ShooterGameplayTags::Input_Equip_Next);
 		return;
 	}
 
-	UE_LOG(
-		LogShootGame,
-		Warning,
-		TEXT("DoSwitchWeapon ignored: ShooterASC unavailable for %s"),
-		*GetName());
+	UE_LOG(LogShootGame, Warning, TEXT("DoSwitchWeapon ignored: ShooterASC unavailable for %s"), *GetName());
 }
 
 void AShooterCharacter::AttachWeaponMeshes(AShooterWeapon* Weapon)
@@ -781,8 +707,7 @@ bool AShooterCharacter::HasCompleteWeaponPresentation(const AShooterWeapon* Weap
 		return false;
 	}
 
-	if (WeaponThirdPersonMesh->GetAttachParent() != GetMesh() ||
-		WeaponThirdPersonMesh->GetAttachSocketName() != ThirdPersonWeaponSocket)
+	if (WeaponThirdPersonMesh->GetAttachParent() != GetMesh() || WeaponThirdPersonMesh->GetAttachSocketName() != ThirdPersonWeaponSocket)
 	{
 		return false;
 	}
@@ -853,9 +778,7 @@ bool AShooterCharacter::EnsureWeaponPresentation(AShooterWeapon* ExpectedWeapon)
 	}
 
 	// Weapon 有效性 / Owner 是表现应用的前置条件；条件不足时等待 HandleWeaponActorReady 补做。
-	if (!IsValid(ExpectedWeapon) ||
-		ExpectedWeapon->GetOwner() != this ||
-		ExpectedWeapon->IsActorBeingDestroyed())
+	if (!IsValid(ExpectedWeapon) || ExpectedWeapon->GetOwner() != this || ExpectedWeapon->IsActorBeingDestroyed())
 	{
 		return false;
 	}
@@ -884,8 +807,7 @@ bool AShooterCharacter::EnsureWeaponPresentation(AShooterWeapon* ExpectedWeapon)
 			return false;
 		}
 
-		const bool bNeedsAttach =
-			WeaponFirstPersonMesh->GetAttachParent() != FirstPersonMesh ||
+		const bool bNeedsAttach = WeaponFirstPersonMesh->GetAttachParent() != FirstPersonMesh ||
 			WeaponFirstPersonMesh->GetAttachSocketName() != FirstPersonWeaponSocket ||
 			WeaponThirdPersonMesh->GetAttachParent() != GetMesh() ||
 			WeaponThirdPersonMesh->GetAttachSocketName() != ThirdPersonWeaponSocket;
@@ -912,9 +834,7 @@ bool AShooterCharacter::EnsureWeaponPresentation(AShooterWeapon* ExpectedWeapon)
 			// 弹药字段晚到时由 OnRep 再推一次收敛。
 			if (!bMatchesLastApplied)
 			{
-				UpdateWeaponHUD(
-					ExpectedWeapon->GetBulletCount(),
-					ExpectedWeapon->GetMagazineSize(),
+				UpdateWeaponHUD(ExpectedWeapon->GetBulletCount(), ExpectedWeapon->GetMagazineSize(),
 					ExpectedWeapon->GetReserveAmmo());
 			}
 		}
@@ -983,13 +903,11 @@ void AShooterCharacter::Die(AController* KillerController)
 
 	if (KillerController && KillerController != GetController())
 	{
-		if (AShooterPlayerState* KillerState =
-			KillerController->GetPlayerState<AShooterPlayerState>())
+		if (AShooterPlayerState* KillerState = KillerController->GetPlayerState<AShooterPlayerState>())
 		{
 			KillerState->AddKill();
 
-			if (AShooterGameMode* GameMode =
-				Cast<AShooterGameMode>(GetWorld()->GetAuthGameMode()))
+			if (AShooterGameMode* GameMode = Cast<AShooterGameMode>(GetWorld()->GetAuthGameMode()))
 			{
 				GameMode->IncrementTeamScore(KillerState->GetTeamId());
 			}

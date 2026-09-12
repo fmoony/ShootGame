@@ -25,20 +25,15 @@ bool FShooterAimIKMath::ProjectTargetToMinimumForwardDepth(
 	OutOriginalDepth = 0.0f;
 	bOutProjected = false;
 
-	if (!IsFinite(InTargetWorld) ||
-		!IsFinite(InOriginWorld) ||
-		!IsFinite(InForwardDirectionWorld) ||
-		InForwardDirectionWorld.IsNearlyZero() ||
-		!FMath::IsFinite(InMinimumDepth))
+	if (!IsFinite(InTargetWorld) || !IsFinite(InOriginWorld) || !IsFinite(InForwardDirectionWorld) ||
+		InForwardDirectionWorld.IsNearlyZero() || !FMath::IsFinite(InMinimumDepth))
 	{
 		return false;
 	}
 
 	const FVector ForwardDirectionWorld = InForwardDirectionWorld.GetSafeNormal();
 	const float MinimumDepth = FMath::Max(InMinimumDepth, 0.0f);
-	OutOriginalDepth = FVector::DotProduct(
-		InTargetWorld - InOriginWorld,
-		ForwardDirectionWorld);
+	OutOriginalDepth = FVector::DotProduct(InTargetWorld - InOriginWorld, ForwardDirectionWorld);
 	if (OutOriginalDepth < MinimumDepth)
 	{
 		OutSafeTargetWorld += ForwardDirectionWorld * (MinimumDepth - OutOriginalDepth);

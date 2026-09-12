@@ -56,22 +56,15 @@ void UShooterAnimInstanceBase::RefreshCommonAnimationData()
 
 	// 当前武器来自 Equipment 唯一权威。
 	CurrentWeaponActor = Character->GetCurrentWeaponActor();
-	bHasEquippedWeapon =
-		IsValid(CurrentWeaponActor) &&
-		CurrentWeaponActor->GetOwner() == Character;
+	bHasEquippedWeapon = IsValid(CurrentWeaponActor) && CurrentWeaponActor->GetOwner() == Character;
 
 	// 表现状态只读 ASC Tag；Tag 不存在时保持 false。
-	if (const UAbilitySystemComponent* AbilitySystemComponent =
-		Character->GetAbilitySystemComponent())
+	if (const UAbilitySystemComponent* AbilitySystemComponent = Character->GetAbilitySystemComponent())
 	{
-		bIsFiring = AbilitySystemComponent->HasMatchingGameplayTag(
-			ShooterGameplayTags::State_Firing);
-		bIsReloading = AbilitySystemComponent->HasMatchingGameplayTag(
-			ShooterGameplayTags::State_Reloading);
-		bIsEquipping = AbilitySystemComponent->HasMatchingGameplayTag(
-			ShooterGameplayTags::State_Equipping);
-		bIsDead = AbilitySystemComponent->HasMatchingGameplayTag(
-			ShooterGameplayTags::State_Dead);
+		bIsFiring = AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Firing);
+		bIsReloading = AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading);
+		bIsEquipping = AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Equipping);
+		bIsDead = AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Dead);
 	}
 	else
 	{

@@ -37,16 +37,11 @@ namespace ShooterInventoryReloadAutomationTests
 		}
 	}
 
-	AShooterInventoryReloadTestWeapon* SpawnReloadTestWeapon(
-		FAutomationTestBase& Test,
-		UWorld* World,
-		int32 MagazineSize,
-		int32 MagazineAmmo,
-		int32 ReserveAmmo)
+	AShooterInventoryReloadTestWeapon* SpawnReloadTestWeapon(FAutomationTestBase& Test, UWorld* World,
+		int32 MagazineSize, int32 MagazineAmmo, int32 ReserveAmmo)
 	{
 		AShooterInventoryReloadTestWeapon* Weapon = World
-			? World->SpawnActor<AShooterInventoryReloadTestWeapon>(
-				FVector::ZeroVector, FRotator::ZeroRotator)
+			? World->SpawnActor<AShooterInventoryReloadTestWeapon>(FVector::ZeroVector, FRotator::ZeroRotator)
 			: nullptr;
 		if (!Test.TestNotNull(TEXT("Reload test weapon spawned"), Weapon))
 		{
@@ -59,9 +54,7 @@ namespace ShooterInventoryReloadAutomationTests
 	}
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterInventoryReloadTransferTest,
-	"ShootGame.Inventory.Reload.Transfer",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterInventoryReloadTransferTest, "ShootGame.Inventory.Reload.Transfer",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterInventoryReloadTransferTest::RunTest(const FString& Parameters)
@@ -89,9 +82,7 @@ bool FShooterInventoryReloadTransferTest::RunTest(const FString& Parameters)
 	return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterInventoryReloadClampCapacityTest,
-	"ShootGame.Inventory.Reload.ClampCapacity",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterInventoryReloadClampCapacityTest, "ShootGame.Inventory.Reload.ClampCapacity",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterInventoryReloadClampCapacityTest::RunTest(const FString& Parameters)
@@ -119,9 +110,7 @@ bool FShooterInventoryReloadClampCapacityTest::RunTest(const FString& Parameters
 	return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterInventoryReloadNoReserveTest,
-	"ShootGame.Inventory.Reload.NoReserve",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterInventoryReloadNoReserveTest, "ShootGame.Inventory.Reload.NoReserve",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterInventoryReloadNoReserveTest::RunTest(const FString& Parameters)
@@ -148,9 +137,7 @@ bool FShooterInventoryReloadNoReserveTest::RunTest(const FString& Parameters)
 	return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterInventoryReloadFullMagazineTest,
-	"ShootGame.Inventory.Reload.FullMagazine",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterInventoryReloadFullMagazineTest, "ShootGame.Inventory.Reload.FullMagazine",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterInventoryReloadFullMagazineTest::RunTest(const FString& Parameters)
@@ -177,8 +164,7 @@ bool FShooterInventoryReloadFullMagazineTest::RunTest(const FString& Parameters)
 	return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterInventoryReloadInstanceIsolationTest,
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterInventoryReloadInstanceIsolationTest,
 	"ShootGame.Inventory.Reload.InstanceIsolation",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
@@ -207,8 +193,7 @@ bool FShooterInventoryReloadInstanceIsolationTest::RunTest(const FString& Parame
 
 		// 满弹匣后重复提交拒绝：换弹事务没有第二次转移。
 		int32 RepeatTransferAmmo = INDEX_NONE;
-		TestFalse(
-			TEXT("Repeat reload on the now-full magazine is rejected"),
+		TestFalse(TEXT("Repeat reload on the now-full magazine is rejected"),
 			First->ReloadFromReserve(RepeatTransferAmmo));
 		TestEqual(TEXT("Repeat transfer reports zero"), RepeatTransferAmmo, 0);
 	}

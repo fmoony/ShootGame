@@ -87,12 +87,8 @@ void AShooterNPC::BeginPlay()
 		: nullptr;
 	if (!WeaponRuntime || !WeaponRuntime->HasWeaponId(WeaponId))
 	{
-		UE_LOG(
-			LogShootGame,
-			Warning,
-			TEXT("NPC weapon acquire rejected: NPC=%s WeaponId=%s has no runtime bucket"),
-			*GetNameSafe(this),
-			*WeaponId.ToString());
+		UE_LOG(LogShootGame, Warning, TEXT("NPC weapon acquire rejected: NPC=%s WeaponId=%s has no runtime bucket"),
+			*GetNameSafe(this), *WeaponId.ToString());
 		return;
 	}
 
@@ -118,11 +114,9 @@ void AShooterNPC::GrantFireAbility()
 		return;
 	}
 
-	const FGameplayAbilitySpec FireAbilitySpec(
-		FireAbilityClass,
+	const FGameplayAbilitySpec FireAbilitySpec(FireAbilityClass,
 		/*AbilityLevel*/1,
-		INDEX_NONE,
-		this);
+		INDEX_NONE, this);
 	AbilitySystemComponent->GiveAbility(FireAbilitySpec);
 }
 
@@ -143,8 +137,7 @@ void AShooterNPC::BindHealthAttributeDelegate()
 		return;
 	}
 
-	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
-		UShooterAttributeSet::GetHealthAttribute())
+	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UShooterAttributeSet::GetHealthAttribute())
 		.AddUObject(this, &AShooterNPC::HandleHealthAttributeChanged);
 	bHealthAttributeDelegateBound = true;
 }
@@ -210,11 +203,7 @@ float AShooterNPC::TakeDamage(float Damage, struct FDamageEvent const& DamageEve
 	// 保持引擎伤害广播链（OnTakeAnyDamage 等）。
 	Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
 
-	UShooterGameplayEffectStatics::ApplyDamageEffect(
-		NpcAbilitySystemComponent,
-		AppliedDamage,
-		EventInstigator,
-		DamageCauser);
+	UShooterGameplayEffectStatics::ApplyDamageEffect(NpcAbilitySystemComponent, AppliedDamage, EventInstigator, DamageCauser);
 
 	return AppliedDamage;
 }
@@ -363,11 +352,9 @@ void AShooterNPC::StartShooting(AActor* ActorToShoot)
 	CurrentAimTarget = ActorToShoot;
 	bIsShooting = true;
 
-	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent =
-		Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
+	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent = Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
 	{
-		ShooterAbilitySystemComponent->AbilityInputTagPressed(
-			ShooterGameplayTags::Input_Fire);
+		ShooterAbilitySystemComponent->AbilityInputTagPressed(ShooterGameplayTags::Input_Fire);
 	}
 }
 
@@ -376,20 +363,16 @@ void AShooterNPC::StopShooting()
 	// AI 只提交停火意图；服务器活动 GA_Fire 收到释放后结束武器事务。
 	bIsShooting = false;
 
-	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent =
-		Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
+	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent = Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
 	{
-		ShooterAbilitySystemComponent->AbilityInputTagReleased(
-			ShooterGameplayTags::Input_Fire);
+		ShooterAbilitySystemComponent->AbilityInputTagReleased(ShooterGameplayTags::Input_Fire);
 	}
 }
 
 void AShooterNPC::CancelFireAbility()
 {
-	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent =
-		Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
+	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent = Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
 	{
-		ShooterAbilitySystemComponent->CancelAbilitiesByTag(
-			ShooterGameplayTags::Input_Fire);
+		ShooterAbilitySystemComponent->CancelAbilitiesByTag(ShooterGameplayTags::Input_Fire);
 	}
 }

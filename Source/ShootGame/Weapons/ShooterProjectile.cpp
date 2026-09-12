@@ -174,12 +174,8 @@ void AShooterProjectile::ProcessHit(AActor* HitActor, UPrimitiveComponent* HitCo
 		{
 			// apply damage to the character
 			const APawn* InstigatorPawn = GetInstigator();
-			UGameplayStatics::ApplyDamage(
-				HitCharacter,
-				HitDamage,
-				InstigatorPawn ? InstigatorPawn->GetController() : nullptr,
-				this,
-				HitDamageType);
+			UGameplayStatics::ApplyDamage(HitCharacter, HitDamage,
+				InstigatorPawn ? InstigatorPawn->GetController() : nullptr, this, HitDamageType);
 		}
 	}
 

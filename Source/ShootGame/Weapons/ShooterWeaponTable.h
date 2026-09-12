@@ -28,9 +28,7 @@ namespace ShooterWeaponTable
 	 * 集中解析入口：RowName → ConfigRow。
 	 * 表为空、行名为空或行缺失统一返回 nullptr，调用方必须 fail closed。
 	 */
-	SHOOTGAME_API const FShooterWeaponConfigRow* FindWeaponRow(
-		const UDataTable* WeaponTable,
-		FName WeaponId);
+	SHOOTGAME_API const FShooterWeaponConfigRow* FindWeaponRow(const UDataTable* WeaponTable, FName WeaponId);
 
 	/** 授予前的最小合法配置校验：ActorClass 是具体 AShooterWeapon 子类且弹匣容量合法。 */
 	SHOOTGAME_API bool IsRowValidForGrant(const FShooterWeaponConfigRow* Row);

@@ -27,9 +27,7 @@ void UShooterInventoryComponent::InitializeComponent()
 	Super::InitializeComponent();
 
 	// Owner Client 的 FastArray Remove 回调驱动本地装备镜像清空。
-	ReplicatedInventory.OnWeaponEntryRemoved.AddUObject(
-		this,
-		&UShooterInventoryComponent::HandleWeaponEntryRemoved);
+	ReplicatedInventory.OnWeaponEntryRemoved.AddUObject(this, &UShooterInventoryComponent::HandleWeaponEntryRemoved);
 }
 
 EShooterInventoryAddResult UShooterInventoryComponent::AddWeapon(AShooterWeapon* Weapon)
@@ -41,9 +39,7 @@ EShooterInventoryAddResult UShooterInventoryComponent::AddWeapon(AShooterWeapon*
 
 	// 只接收已经由 WeaponRuntimeSubsystem Acquire 配置好的实体：
 	// 必须有永久 WeaponId 身份、属于本角色且不处于池内。
-	if (!IsValid(Weapon) ||
-		Weapon->GetWeaponId().IsNone() ||
-		Weapon->GetOwner() != GetOwner() ||
+	if (!IsValid(Weapon) || Weapon->GetWeaponId().IsNone() || Weapon->GetOwner() != GetOwner() ||
 		Weapon->GetLifecycleState() == EShooterWeaponLifecycleState::InPool)
 	{
 		return EShooterInventoryAddResult::InvalidWeapon;
@@ -91,14 +87,8 @@ bool UShooterInventoryComponent::RemoveWeapon(AShooterWeapon* Weapon)
 		OnWeaponRemovedFromInventory.Broadcast(Weapon);
 		ReleaseWeaponActor(Weapon);
 
-		UE_LOG(
-			LogShootGame,
-			Display,
-			TEXT("Inventory RemoveWeapon committed: Actor=%s WeaponId=%s Weapon=%s Count=%d"),
-			*GetNameSafe(GetOwner()),
-			*Weapon->GetWeaponId().ToString(),
-			*GetNameSafe(Weapon),
-			GetWeaponCount());
+		UE_LOG(LogShootGame, Display, TEXT("Inventory RemoveWeapon committed: Actor=%s WeaponId=%s Weapon=%s Count=%d"),
+			*GetNameSafe(GetOwner()), *Weapon->GetWeaponId().ToString(), *GetNameSafe(Weapon), GetWeaponCount());
 	}
 	return bRemoved;
 }
@@ -138,12 +128,7 @@ void UShooterInventoryComponent::ClearInventory()
 		}
 	}
 
-	UE_LOG(
-		LogShootGame,
-		Display,
-		TEXT("Inventory ClearInventory: Actor=%s Released=%d"),
-		*GetNameSafe(GetOwner()),
-		WeaponsToRelease.Num());
+	UE_LOG(LogShootGame, Display, TEXT("Inventory ClearInventory: Actor=%s Released=%d"), *GetNameSafe(GetOwner()), WeaponsToRelease.Num());
 }
 
 AShooterWeapon* UShooterInventoryComponent::FindWeaponByWeaponId(FName WeaponId) const
@@ -225,17 +210,11 @@ void UShooterInventoryComponent::ReleaseWeaponActor(AShooterWeapon* Weapon)
 
 	// 兼容路径：非运行时池出生（NPC / 旧测试直接 Spawn）无法归还，只能销毁。
 	Weapon->Destroy();
-	UE_LOG(
-		LogShootGame,
-		Display,
-		TEXT("Inventory destroyed non-pooled WeaponActor: Actor=%s WeaponId=%s Weapon=%s"),
-		*GetNameSafe(GetOwner()),
-		*Weapon->GetWeaponId().ToString(),
-		*GetNameSafe(Weapon));
+	UE_LOG(LogShootGame, Display, TEXT("Inventory destroyed non-pooled WeaponActor: Actor=%s WeaponId=%s Weapon=%s"),
+		*GetNameSafe(GetOwner()), *Weapon->GetWeaponId().ToString(), *GetNameSafe(Weapon));
 }
 
-void UShooterInventoryComponent::GetLifetimeReplicatedProps(
-	TArray<FLifetimeProperty>& OutLifetimeProps) const
+void UShooterInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 

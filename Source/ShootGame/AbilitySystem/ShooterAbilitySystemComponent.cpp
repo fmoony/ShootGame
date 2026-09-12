@@ -12,12 +12,8 @@ void UShooterAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& 
 	FGameplayAbilitySpec* Spec = FindAbilitySpecFromInputTag(InputTag);
 	if (!Spec)
 	{
-		UE_LOG(
-			LogShootGame,
-			Verbose,
-			TEXT("AbilityInputTagPressed: no ability spec for InputTag=%s Owner=%s"),
-			*InputTag.ToString(),
-			*GetNameSafe(GetOwnerActor()));
+		UE_LOG(LogShootGame, Verbose, TEXT("AbilityInputTagPressed: no ability spec for InputTag=%s Owner=%s"),
+			*InputTag.ToString(), *GetNameSafe(GetOwnerActor()));
 		return;
 	}
 
@@ -36,12 +32,8 @@ void UShooterAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag&
 	FGameplayAbilitySpec* Spec = FindAbilitySpecFromInputTag(InputTag);
 	if (!Spec)
 	{
-		UE_LOG(
-			LogShootGame,
-			Verbose,
-			TEXT("AbilityInputTagReleased: no ability spec for InputTag=%s Owner=%s"),
-			*InputTag.ToString(),
-			*GetNameSafe(GetOwnerActor()));
+		UE_LOG(LogShootGame, Verbose, TEXT("AbilityInputTagReleased: no ability spec for InputTag=%s Owner=%s"),
+			*InputTag.ToString(), *GetNameSafe(GetOwnerActor()));
 		return;
 	}
 
@@ -55,8 +47,7 @@ void UShooterAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag&
 	AbilitySpecInputReleased(*Spec);
 }
 
-FGameplayAbilitySpec* UShooterAbilitySystemComponent::FindAbilitySpecFromInputTag(
-	const FGameplayTag& InputTag)
+FGameplayAbilitySpec* UShooterAbilitySystemComponent::FindAbilitySpecFromInputTag(const FGameplayTag& InputTag)
 {
 	if (!InputTag.IsValid())
 	{
@@ -72,8 +63,7 @@ FGameplayAbilitySpec* UShooterAbilitySystemComponent::FindAbilitySpecFromInputTa
 
 		// AssetTags 来自 Ability CDO，表示 Ability 类型自身的固定标签；
 		// DynamicSpecSourceTags 属于具体 AbilitySpec，可在 GiveAbility 时为本次授予追加标签。
-		if (Spec.Ability->GetAssetTags().HasTag(InputTag) ||
-			Spec.GetDynamicSpecSourceTags().HasTag(InputTag))
+		if (Spec.Ability->GetAssetTags().HasTag(InputTag) || Spec.GetDynamicSpecSourceTags().HasTag(InputTag))
 		{
 			return &Spec;
 		}
@@ -82,8 +72,7 @@ FGameplayAbilitySpec* UShooterAbilitySystemComponent::FindAbilitySpecFromInputTa
 	return nullptr;
 }
 
-int32 UShooterAbilitySystemComponent::GetAbilitySpecCountForClass(
-	TSubclassOf<UGameplayAbility> AbilityClass) const
+int32 UShooterAbilitySystemComponent::GetAbilitySpecCountForClass(TSubclassOf<UGameplayAbility> AbilityClass) const
 {
 	if (!AbilityClass)
 	{
@@ -114,8 +103,7 @@ void UShooterAbilitySystemComponent::CancelAbilitiesByTag(const FGameplayTag& In
 	CancelAbilities(&CancelTags);
 }
 
-int32 UShooterAbilitySystemComponent::GetActiveAbilityCountForClass(
-	TSubclassOf<UGameplayAbility> AbilityClass) const
+int32 UShooterAbilitySystemComponent::GetActiveAbilityCountForClass(TSubclassOf<UGameplayAbility> AbilityClass) const
 {
 	if (!AbilityClass)
 	{

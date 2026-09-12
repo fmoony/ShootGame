@@ -15,14 +15,7 @@ class UShooterGameplayAbility_Reload;
 class UGameplayAbility;
 struct FOnAttributeChangeData;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(
-	FPlayerCombatStatsChangedDelegate,
-	int32,
-	Kills,
-	int32,
-	Deaths,
-	float,
-	PersonalScore);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FPlayerCombatStatsChangedDelegate, int32, Kills, int32, Deaths, float, PersonalScore);
 
 /**
  * 射击模式中随玩家复制的身份与战斗统计。

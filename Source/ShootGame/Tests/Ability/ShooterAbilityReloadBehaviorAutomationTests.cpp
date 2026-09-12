@@ -45,56 +45,43 @@ namespace ShooterAbilityReloadBehaviorAutomationTests
 
 	bool TestServerOnlyContract(FAutomationTestBase& Test)
 	{
-		const UShooterGameplayAbility_Reload* ReloadDefaults =
-			GetDefault<UShooterGameplayAbility_Reload>();
+		const UShooterGameplayAbility_Reload* ReloadDefaults = GetDefault<UShooterGameplayAbility_Reload>();
 		if (!Test.TestNotNull(TEXT("GA_Reload has defaults"), ReloadDefaults))
 		{
 			return false;
 		}
 
-		Test.TestEqual(
-			TEXT("GA_Reload executes only on server"),
+		Test.TestEqual(TEXT("GA_Reload executes only on server"),
 			static_cast<int32>(ReloadDefaults->GetNetExecutionPolicy()),
 			static_cast<int32>(EGameplayAbilityNetExecutionPolicy::ServerOnly));
-		Test.TestEqual(
-			TEXT("GA_Reload is InstancedPerActor"),
+		Test.TestEqual(TEXT("GA_Reload is InstancedPerActor"),
 			static_cast<int32>(ReloadDefaults->GetInstancingPolicy()),
 			static_cast<int32>(EGameplayAbilityInstancingPolicy::InstancedPerActor));
-		Test.TestFalse(
-			TEXT("GA_Reload does not retrigger an already active instance"),
+		Test.TestFalse(TEXT("GA_Reload does not retrigger an already active instance"),
 			ReloadDefaults->CanRetriggerInstancedAbility());
-		Test.TestTrue(
-			TEXT("GA_Reload is bound to Input.Reload"),
-			ReloadDefaults->HasInputReloadTag());
-		Test.TestTrue(
-			TEXT("GA_Reload owns State.Reloading while active"),
+		Test.TestTrue(TEXT("GA_Reload is bound to Input.Reload"), ReloadDefaults->HasInputReloadTag());
+		Test.TestTrue(TEXT("GA_Reload owns State.Reloading while active"),
 			ReloadDefaults->OwnsStateReloadingWhileActive());
 		return true;
 	}
 
 	bool TestAmmoAuthorityContract(FAutomationTestBase& Test)
 	{
-		const UShooterGameplayAbility_Reload* ReloadDefaults =
-			GetDefault<UShooterGameplayAbility_Reload>();
+		const UShooterGameplayAbility_Reload* ReloadDefaults = GetDefault<UShooterGameplayAbility_Reload>();
 		if (Test.TestNotNull(TEXT("GA_Reload has defaults"), ReloadDefaults))
 		{
 			// Ability 不得新增第二份 Ammo 权威：没有 Cost GE，弹药只由 Inventory.ReloadMagazine 修改。
-			Test.TestNull(
-				TEXT("GA_Reload has no cost GameplayEffect"),
-				ReloadDefaults->GetCostGameplayEffect());
+			Test.TestNull(TEXT("GA_Reload has no cost GameplayEffect"), ReloadDefaults->GetCostGameplayEffect());
 		}
 
 		// 客户端不能远程调用 Inventory Reload 事务入口。
-		Test.TestNull(
-			TEXT("Inventory ReloadMagazine is not a remote-callable UFUNCTION"),
-			UShooterInventoryComponent::StaticClass()->FindFunctionByName(
-				TEXT("ReloadMagazine")));
+		Test.TestNull(TEXT("Inventory ReloadMagazine is not a remote-callable UFUNCTION"),
+			UShooterInventoryComponent::StaticClass()->FindFunctionByName(TEXT("ReloadMagazine")));
 
 		const AShooterWeapon* WeaponDefaults = GetDefault<AShooterWeapon>();
 		if (Test.TestNotNull(TEXT("AShooterWeapon has defaults"), WeaponDefaults))
 		{
-			Test.TestTrue(
-				TEXT("Weapon ReloadDuration is the server transaction clock and positive"),
+			Test.TestTrue(TEXT("Weapon ReloadDuration is the server transaction clock and positive"),
 				WeaponDefaults->GetReloadDuration() > 0.0f);
 		}
 		return true;
@@ -120,14 +107,10 @@ namespace ShooterAbilityReloadBehaviorAutomationTests
 
 		// BeginPlay 权威初始化：弹匣回满、备弹回到声明值 → 满弹匣形态。
 		int32 TransferredAmmo = INDEX_NONE;
-		Test.TestFalse(
-			TEXT("Full magazine rejects the weapon transaction"),
+		Test.TestFalse(TEXT("Full magazine rejects the weapon transaction"),
 			Weapon->ReloadFromReserve(TransferredAmmo));
 		Test.TestEqual(TEXT("Full magazine transfers zero"), TransferredAmmo, 0);
-		Test.TestEqual(
-			TEXT("Full magazine keeps MagazineAmmo"),
-			Weapon->GetBulletCount(),
-			Weapon->GetMagazineSize());
+		Test.TestEqual(TEXT("Full magazine keeps MagazineAmmo"), Weapon->GetBulletCount(), Weapon->GetMagazineSize());
 
 		DestroyReloadContractWorld(World);
 
@@ -152,24 +135,13 @@ namespace ShooterAbilityReloadBehaviorAutomationTests
 			return false;
 		}
 		Weapon->DispatchBeginPlay();
-		Test.TestEqual(
-			TEXT("No-reserve weapon starts with zero reserve"),
-			Weapon->GetReserveAmmo(),
-			0);
+		Test.TestEqual(TEXT("No-reserve weapon starts with zero reserve"), Weapon->GetReserveAmmo(), 0);
 
 		int32 TransferredAmmo = INDEX_NONE;
-		Test.TestFalse(
-			TEXT("No reserve rejects the weapon transaction"),
-			Weapon->ReloadFromReserve(TransferredAmmo));
+		Test.TestFalse(TEXT("No reserve rejects the weapon transaction"), Weapon->ReloadFromReserve(TransferredAmmo));
 		Test.TestEqual(TEXT("No reserve transfers zero"), TransferredAmmo, 0);
-		Test.TestEqual(
-			TEXT("No reserve keeps MagazineAmmo"),
-			Weapon->GetBulletCount(),
-			Weapon->GetMagazineSize());
-		Test.TestEqual(
-			TEXT("No reserve keeps ReserveAmmo"),
-			Weapon->GetReserveAmmo(),
-			0);
+		Test.TestEqual(TEXT("No reserve keeps MagazineAmmo"), Weapon->GetBulletCount(), Weapon->GetMagazineSize());
+		Test.TestEqual(TEXT("No reserve keeps ReserveAmmo"), Weapon->GetReserveAmmo(), 0);
 
 		DestroyReloadContractWorld(World);
 		return true;
@@ -177,35 +149,29 @@ namespace ShooterAbilityReloadBehaviorAutomationTests
 
 	bool TestInputBindingContract(FAutomationTestBase& Test)
 	{
-		const UClass* CharacterClass = LoadClass<AShooterCharacter>(
-			nullptr,
+		const UClass* CharacterClass = LoadClass<AShooterCharacter>(nullptr,
 			TEXT("/Game/Shooter/Blueprints/Characters/BP_ShooterCharacter.BP_ShooterCharacter_C"));
 		if (!Test.TestNotNull(TEXT("BP_ShooterCharacter can be loaded"), CharacterClass))
 		{
 			return false;
 		}
 
-		const FObjectProperty* ReloadActionProperty = FindFProperty<FObjectProperty>(
-			CharacterClass,
+		const FObjectProperty* ReloadActionProperty = FindFProperty<FObjectProperty>(CharacterClass,
 			TEXT("ReloadAction"));
 		if (!Test.TestNotNull(TEXT("Character exposes ReloadAction"), ReloadActionProperty))
 		{
 			return false;
 		}
 
-		const AShooterCharacter* CharacterDefaults =
-			CharacterClass->GetDefaultObject<AShooterCharacter>();
+		const AShooterCharacter* CharacterDefaults = CharacterClass->GetDefaultObject<AShooterCharacter>();
 		const UInputAction* ReloadAction = CharacterDefaults
-			? Cast<UInputAction>(ReloadActionProperty->GetObjectPropertyValue_InContainer(
-				CharacterDefaults))
+			? Cast<UInputAction>(ReloadActionProperty->GetObjectPropertyValue_InContainer(CharacterDefaults))
 			: nullptr;
 		Test.TestNotNull(TEXT("BP_ShooterCharacter configures ReloadAction"), ReloadAction);
-		Test.TestTrue(
-			TEXT("ReloadAction points at IA_Reload"),
+		Test.TestTrue(TEXT("ReloadAction points at IA_Reload"),
 			ReloadAction && ReloadAction->GetName() == TEXT("IA_Reload"));
 
-		UInputMappingContext* InputMappingContext = LoadObject<UInputMappingContext>(
-			nullptr,
+		UInputMappingContext* InputMappingContext = LoadObject<UInputMappingContext>(nullptr,
 			TEXT("/Game/Shooter/Input/IMC_Weapons.IMC_Weapons"));
 		if (!Test.TestNotNull(TEXT("IMC_Weapons can be loaded"), InputMappingContext))
 		{
@@ -215,8 +181,7 @@ namespace ShooterAbilityReloadBehaviorAutomationTests
 		bool bFoundReloadKey = false;
 		for (const FEnhancedActionKeyMapping& Mapping : InputMappingContext->GetMappings())
 		{
-			if (Mapping.Action && Mapping.Action->GetName() == TEXT("IA_Reload") &&
-				Mapping.Key == EKeys::R)
+			if (Mapping.Action && Mapping.Action->GetName() == TEXT("IA_Reload") && Mapping.Key == EKeys::R)
 			{
 				bFoundReloadKey = true;
 				break;
@@ -227,9 +192,7 @@ namespace ShooterAbilityReloadBehaviorAutomationTests
 	}
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterAbilityReloadServerOnlyTest,
-	"ShootGame.Ability.Reload.ServerOnly",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityReloadServerOnlyTest, "ShootGame.Ability.Reload.ServerOnly",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterAbilityReloadServerOnlyTest::RunTest(const FString& Parameters)
@@ -238,9 +201,7 @@ bool FShooterAbilityReloadServerOnlyTest::RunTest(const FString& Parameters)
 	return TestServerOnlyContract(*this) && TestInputBindingContract(*this);
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterAbilityReloadTransferOnceTest,
-	"ShootGame.Ability.Reload.TransferOnce",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityReloadTransferOnceTest, "ShootGame.Ability.Reload.TransferOnce",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterAbilityReloadTransferOnceTest::RunTest(const FString& Parameters)
@@ -252,8 +213,7 @@ bool FShooterAbilityReloadTransferOnceTest::RunTest(const FString& Parameters)
 	return TestServerOnlyContract(*this) && TestAmmoAuthorityContract(*this);
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterAbilityReloadRejectFullMagazineTest,
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityReloadRejectFullMagazineTest,
 	"ShootGame.Ability.Reload.Reject.FullMagazine",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
@@ -263,9 +223,7 @@ bool FShooterAbilityReloadRejectFullMagazineTest::RunTest(const FString& Paramet
 	return TestServerOnlyContract(*this) && TestRejectFullMagazineDataContract(*this);
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterAbilityReloadRejectNoReserveTest,
-	"ShootGame.Ability.Reload.Reject.NoReserve",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityReloadRejectNoReserveTest, "ShootGame.Ability.Reload.Reject.NoReserve",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterAbilityReloadRejectNoReserveTest::RunTest(const FString& Parameters)
@@ -274,44 +232,35 @@ bool FShooterAbilityReloadRejectNoReserveTest::RunTest(const FString& Parameters
 	return TestServerOnlyContract(*this) && TestRejectNoReserveDataContract(*this);
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterAbilityReloadCancelDeathTest,
-	"ShootGame.Ability.Reload.Cancel.Death",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityReloadCancelDeathTest, "ShootGame.Ability.Reload.Cancel.Death",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterAbilityReloadCancelDeathTest::RunTest(const FString& Parameters)
 {
 	using namespace ShooterAbilityReloadBehaviorAutomationTests;
 
-	const UShooterGameplayAbility_Reload* ReloadDefaults =
-		GetDefault<UShooterGameplayAbility_Reload>();
-	this->TestTrue(
-		TEXT("GA_Reload is blocked by State.Dead"),
+	const UShooterGameplayAbility_Reload* ReloadDefaults = GetDefault<UShooterGameplayAbility_Reload>();
+	this->TestTrue(TEXT("GA_Reload is blocked by State.Dead"),
 		ReloadDefaults && ReloadDefaults->IsBlockedByStateDead());
 	// 死亡取消与 Ammo 不变的真实证据由 ShooterNetworkTestCoordinator 在 Dedicated / Listen 中验证。
 	return TestServerOnlyContract(*this);
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterAbilityReloadCancelEquipTest,
-	"ShootGame.Ability.Reload.Cancel.Equip",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityReloadCancelEquipTest, "ShootGame.Ability.Reload.Cancel.Equip",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterAbilityReloadCancelEquipTest::RunTest(const FString& Parameters)
 {
 	using namespace ShooterAbilityReloadBehaviorAutomationTests;
 
-	const UShooterGameplayAbility_Reload* ReloadDefaults =
-		GetDefault<UShooterGameplayAbility_Reload>();
-	this->TestTrue(
-		TEXT("GA_Reload is blocked by State.Equipping"),
+	const UShooterGameplayAbility_Reload* ReloadDefaults = GetDefault<UShooterGameplayAbility_Reload>();
+	this->TestTrue(TEXT("GA_Reload is blocked by State.Equipping"),
 		ReloadDefaults && ReloadDefaults->IsBlockedByStateEquipping());
 	// 切枪取消发生在提交窗口的真实证据由 ShooterNetworkTestCoordinator 验证。
 	return TestServerOnlyContract(*this);
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterAbilityReloadCancelDisconnectTest,
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityReloadCancelDisconnectTest,
 	"ShootGame.Ability.Reload.Cancel.Disconnect",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
@@ -323,9 +272,7 @@ bool FShooterAbilityReloadCancelDisconnectTest::RunTest(const FString& Parameter
 	return TestServerOnlyContract(*this) && TestAmmoAuthorityContract(*this);
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterAbilityReloadRespawnNoCarryTest,
-	"ShootGame.Ability.Reload.RespawnNoCarry",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityReloadRespawnNoCarryTest, "ShootGame.Ability.Reload.RespawnNoCarry",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterAbilityReloadRespawnNoCarryTest::RunTest(const FString& Parameters)
@@ -333,10 +280,8 @@ bool FShooterAbilityReloadRespawnNoCarryTest::RunTest(const FString& Parameters)
 	using namespace ShooterAbilityReloadBehaviorAutomationTests;
 
 	const AShooterPlayerState* PlayerStateDefaults = GetDefault<AShooterPlayerState>();
-	this->TestEqual(
-		TEXT("PlayerState CDO does not carry a granted Reload Spec"),
-		PlayerStateDefaults ? PlayerStateDefaults->GetReloadAbilitySpecCount() : INDEX_NONE,
-		0);
+	this->TestEqual(TEXT("PlayerState CDO does not carry a granted Reload Spec"),
+		PlayerStateDefaults ? PlayerStateDefaults->GetReloadAbilitySpecCount() : INDEX_NONE, 0);
 	// 重生后弹药与活动 Reload 事务不跨生命，由 ShooterNetworkTestCoordinator 的
 	// ReloadRespawn 观测在 Dedicated / Listen 会话中验证。
 	return TestServerOnlyContract(*this);

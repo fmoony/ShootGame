@@ -41,14 +41,10 @@ namespace ShooterAbilityEquipBehaviorAutomationTests
 		}
 	}
 
-	AShooterRuntimePoolTestWeapon* SpawnEquipContractWeapon(
-		FAutomationTestBase& Test,
-		UWorld* World,
-		FName WeaponId)
+	AShooterRuntimePoolTestWeapon* SpawnEquipContractWeapon(FAutomationTestBase& Test, UWorld* World, FName WeaponId)
 	{
 		AShooterRuntimePoolTestWeapon* Weapon = World
-			? World->SpawnActor<AShooterRuntimePoolTestWeapon>(
-				FVector::ZeroVector, FRotator::ZeroRotator)
+			? World->SpawnActor<AShooterRuntimePoolTestWeapon>(FVector::ZeroVector, FRotator::ZeroRotator)
 			: nullptr;
 		if (!Test.TestNotNull(TEXT("Equip contract weapon spawned"), Weapon))
 		{
@@ -61,37 +57,27 @@ namespace ShooterAbilityEquipBehaviorAutomationTests
 
 	bool TestServerOnlyContract(FAutomationTestBase& Test)
 	{
-		const UShooterGameplayAbility_Equip* EquipDefaults =
-			GetDefault<UShooterGameplayAbility_Equip>();
+		const UShooterGameplayAbility_Equip* EquipDefaults = GetDefault<UShooterGameplayAbility_Equip>();
 		if (!Test.TestNotNull(TEXT("GA_Equip has defaults"), EquipDefaults))
 		{
 			return false;
 		}
 
-		Test.TestEqual(
-			TEXT("GA_Equip executes only on server"),
+		Test.TestEqual(TEXT("GA_Equip executes only on server"),
 			static_cast<int32>(EquipDefaults->GetNetExecutionPolicy()),
 			static_cast<int32>(EGameplayAbilityNetExecutionPolicy::ServerOnly));
-		Test.TestEqual(
-			TEXT("GA_Equip is InstancedPerActor"),
-			static_cast<int32>(EquipDefaults->GetInstancingPolicy()),
+		Test.TestEqual(TEXT("GA_Equip is InstancedPerActor"), static_cast<int32>(EquipDefaults->GetInstancingPolicy()),
 			static_cast<int32>(EGameplayAbilityInstancingPolicy::InstancedPerActor));
-		Test.TestFalse(
-			TEXT("GA_Equip does not retrigger an already active instance"),
+		Test.TestFalse(TEXT("GA_Equip does not retrigger an already active instance"),
 			EquipDefaults->CanRetriggerInstancedAbility());
-		Test.TestTrue(
-			TEXT("GA_Equip is bound to Input.Equip.Next"),
-			EquipDefaults->HasInputEquipNextTag());
-		Test.TestTrue(
-			TEXT("GA_Equip owns State.Equipping while active"),
+		Test.TestTrue(TEXT("GA_Equip is bound to Input.Equip.Next"), EquipDefaults->HasInputEquipNextTag());
+		Test.TestTrue(TEXT("GA_Equip owns State.Equipping while active"),
 			EquipDefaults->OwnsStateEquippingWhileActive());
 		return true;
 	}
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterAbilityEquipServerOnlyTest,
-	"ShootGame.Ability.Equip.ServerOnly",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityEquipServerOnlyTest, "ShootGame.Ability.Equip.ServerOnly",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterAbilityEquipServerOnlyTest::RunTest(const FString& Parameters)
@@ -100,9 +86,7 @@ bool FShooterAbilityEquipServerOnlyTest::RunTest(const FString& Parameters)
 	return TestServerOnlyContract(*this);
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterAbilityEquipNextSlotTest,
-	"ShootGame.Ability.Equip.NextSlot",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityEquipNextSlotTest, "ShootGame.Ability.Equip.NextSlot",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterAbilityEquipNextSlotTest::RunTest(const FString& Parameters)
@@ -129,32 +113,22 @@ bool FShooterAbilityEquipNextSlotTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("Slot 1 is added"), Inventory.AddItem(Slot1, 1));
 	TestTrue(TEXT("Slot 2 is added"), Inventory.AddItem(Slot2, 2));
 
-	TestTrue(
-		TEXT("Slot 0 advances to Slot 1"),
-		Inventory.FindNextWeapon(Slot0) == Slot1);
-	TestTrue(
-		TEXT("Slot 1 advances to Slot 2"),
-		Inventory.FindNextWeapon(Slot1) == Slot2);
-	TestTrue(
-		TEXT("Slot 2 wraps to Slot 0"),
-		Inventory.FindNextWeapon(Slot2) == Slot0);
+	TestTrue(TEXT("Slot 0 advances to Slot 1"), Inventory.FindNextWeapon(Slot0) == Slot1);
+	TestTrue(TEXT("Slot 1 advances to Slot 2"), Inventory.FindNextWeapon(Slot1) == Slot2);
+	TestTrue(TEXT("Slot 2 wraps to Slot 0"), Inventory.FindNextWeapon(Slot2) == Slot0);
 
 	// 未入库的当前武器：明确拒绝。
 	AShooterRuntimePoolTestWeapon* Unlisted = SpawnEquipContractWeapon(*this, World, TEXT("EquipSlotWeapon_X"));
 	if (TestNotNull(TEXT("Unlisted weapon spawns"), Unlisted))
 	{
-		TestNull(
-			TEXT("Missing current weapon is rejected"),
-			Inventory.FindNextWeapon(Unlisted));
+		TestNull(TEXT("Missing current weapon is rejected"), Inventory.FindNextWeapon(Unlisted));
 	}
 
 	DestroyEquipContractWorld(World);
 	return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterAbilityEquipCancelFireTest,
-	"ShootGame.Ability.Equip.CancelFire",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityEquipCancelFireTest, "ShootGame.Ability.Equip.CancelFire",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterAbilityEquipCancelFireTest::RunTest(const FString& Parameters)
@@ -169,9 +143,7 @@ bool FShooterAbilityEquipCancelFireTest::RunTest(const FString& Parameters)
 	return TestServerOnlyContract(*this);
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterAbilityEquipCancelReloadTest,
-	"ShootGame.Ability.Equip.CancelReload",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityEquipCancelReloadTest, "ShootGame.Ability.Equip.CancelReload",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterAbilityEquipCancelReloadTest::RunTest(const FString& Parameters)
@@ -184,8 +156,7 @@ bool FShooterAbilityEquipCancelReloadTest::RunTest(const FString& Parameters)
 	return TestServerOnlyContract(*this);
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterAbilityEquipRejectSingleWeaponTest,
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityEquipRejectSingleWeaponTest,
 	"ShootGame.Ability.Equip.Reject.SingleWeapon",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
@@ -201,9 +172,7 @@ bool FShooterAbilityEquipRejectSingleWeaponTest::RunTest(const FString& Paramete
 		if (TestNotNull(TEXT("Single weapon spawns"), Only))
 		{
 			TestTrue(TEXT("Single weapon is added"), Inventory.AddItem(Only, 0));
-			TestNull(
-				TEXT("Single weapon has no next slot"),
-				Inventory.FindNextWeapon(Only));
+			TestNull(TEXT("Single weapon has no next slot"), Inventory.FindNextWeapon(Only));
 		}
 		DestroyEquipContractWorld(World);
 	}
@@ -212,9 +181,7 @@ bool FShooterAbilityEquipRejectSingleWeaponTest::RunTest(const FString& Paramete
 	return TestServerOnlyContract(*this);
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterAbilityEquipRejectDeadTest,
-	"ShootGame.Ability.Equip.Reject.Dead",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityEquipRejectDeadTest, "ShootGame.Ability.Equip.Reject.Dead",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterAbilityEquipRejectDeadTest::RunTest(const FString& Parameters)
@@ -226,42 +193,35 @@ bool FShooterAbilityEquipRejectDeadTest::RunTest(const FString& Parameters)
 	return TestServerOnlyContract(*this);
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterAbilityEquipCurrentWeaponReplicationTest,
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityEquipCurrentWeaponReplicationTest,
 	"ShootGame.Ability.Equip.CurrentWeaponReplication",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterAbilityEquipCurrentWeaponReplicationTest::RunTest(const FString& Parameters)
 {
 	// R4：CurrentWeaponActor 的复制权威迁入 EquipmentComponent。
-	TestNull(
-		TEXT("Character no longer owns CurrentWeapon property"),
+	TestNull(TEXT("Character no longer owns CurrentWeapon property"),
 		FindFProperty<FProperty>(AShooterCharacter::StaticClass(), TEXT("CurrentWeapon")));
 
 	const FProperty* EquipmentCurrentWeaponProperty = FindFProperty<FProperty>(
-		UShooterEquipmentComponent::StaticClass(),
-		TEXT("CurrentWeaponActor"));
+		UShooterEquipmentComponent::StaticClass(), TEXT("CurrentWeaponActor"));
 	if (!TestNotNull(TEXT("Equipment exposes CurrentWeaponActor"), EquipmentCurrentWeaponProperty))
 	{
 		return false;
 	}
 	TestTrue(TEXT("Equipment CurrentWeaponActor is replicated"), EquipmentCurrentWeaponProperty->HasAnyPropertyFlags(CPF_Net));
-	TestEqual(
-		TEXT("Equipment CurrentWeaponActor uses OnRep_CurrentWeaponActor"),
-		EquipmentCurrentWeaponProperty->RepNotifyFunc,
-		FName(TEXT("OnRep_CurrentWeaponActor")));
+	TestEqual(TEXT("Equipment CurrentWeaponActor uses OnRep_CurrentWeaponActor"),
+		EquipmentCurrentWeaponProperty->RepNotifyFunc, FName(TEXT("OnRep_CurrentWeaponActor")));
 
 	const AShooterCharacter* CharacterDefaults = GetDefault<AShooterCharacter>();
 	TestNotNull(TEXT("Character has defaults"), CharacterDefaults);
-	TestEqual(
-		TEXT("GetCurrentWeaponActor mirrors GetCurrentWeapon"),
+	TestEqual(TEXT("GetCurrentWeaponActor mirrors GetCurrentWeapon"),
 		CharacterDefaults ? CharacterDefaults->GetCurrentWeaponActor() : nullptr,
 		CharacterDefaults ? CharacterDefaults->GetCurrentWeapon() : nullptr);
 	return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterAbilityEquipInstanceActorConsistencyTest,
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityEquipInstanceActorConsistencyTest,
 	"ShootGame.Ability.Equip.InstanceActorConsistency",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
@@ -271,8 +231,7 @@ bool FShooterAbilityEquipInstanceActorConsistencyTest::RunTest(const FString& Pa
 
 	// R8 后装备提交唯一入口是 EquipmentComponent::EquipWeapon（普通 C++ 方法，非 UFUNCTION）；
 	// Character 的 CommitActiveWeapon 兼容入口已删除。
-	TestNull(
-		TEXT("Character no longer exposes CommitActiveWeapon"),
+	TestNull(TEXT("Character no longer exposes CommitActiveWeapon"),
 		AShooterCharacter::StaticClass()->FindFunctionByName(TEXT("CommitActiveWeapon")));
 	const AShooterWeapon* WeaponDefaults = GetDefault<AShooterWeapon>();
 	if (TestNotNull(TEXT("AShooterWeapon has defaults"), WeaponDefaults))

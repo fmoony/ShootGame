@@ -13,40 +13,31 @@
  * C2.5 纯数据测试：PresentationAimTarget 本地有效状态。
  * 有效目标不应再依赖“距上次收到网络包的时间”；有限非零即有效，零向量 / NaN / Inf 无效。
  */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterAimPresentationTargetValidityTest,
-	"ShootGame.Aim.PresentationTargetValidity",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAimPresentationTargetValidityTest, "ShootGame.Aim.PresentationTargetValidity",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterAimPresentationTargetValidityTest::RunTest(const FString& Parameters)
 {
-	TestTrue(
-		TEXT("finite non-zero target is valid"),
+	TestTrue(TEXT("finite non-zero target is valid"),
 		UShooterAimPresentationComponent::IsValidPresentationAimTargetValue(FVector(100.0f, -200.0f, 300.0f)));
 
-	TestFalse(
-		TEXT("zero vector is not a valid steady-state target"),
+	TestFalse(TEXT("zero vector is not a valid steady-state target"),
 		UShooterAimPresentationComponent::IsValidPresentationAimTargetValue(FVector::ZeroVector));
 
-	TestFalse(
-		TEXT("nearly-zero vector is not valid"),
+	TestFalse(TEXT("nearly-zero vector is not valid"),
 		UShooterAimPresentationComponent::IsValidPresentationAimTargetValue(FVector(KINDA_SMALL_NUMBER, 0.0f, 0.0f)));
 
-	TestFalse(
-		TEXT("NaN target is not valid"),
+	TestFalse(TEXT("NaN target is not valid"),
 		UShooterAimPresentationComponent::IsValidPresentationAimTargetValue(FVector(NAN, 0.0f, 0.0f)));
 
-	TestFalse(
-		TEXT("infinite target is not valid"),
-		UShooterAimPresentationComponent::IsValidPresentationAimTargetValue(
+	TestFalse(TEXT("infinite target is not valid"), UShooterAimPresentationComponent::IsValidPresentationAimTargetValue(
 			FVector(INFINITY, 100.0f, 100.0f)));
 
 	// C2.5 核心回归：稳态有效性与“多久没收到新包”无关。
 	// 该函数没有时间参数；UpdatePresentationAimSmoothing 也不再包含超时回退分支。
 	// 这里锁定同一目标的重复判定结果，防止未来重新引入时间/无变化失效。
 	const FVector SteadyTarget(10000.0f, 0.0f, 2000.0f);
-	TestTrue(
-		TEXT("steady target remains valid regardless of elapsed network silence"),
+	TestTrue(TEXT("steady target remains valid regardless of elapsed network silence"),
 		UShooterAimPresentationComponent::IsValidPresentationAimTargetValue(SteadyTarget));
 
 	return true;
@@ -55,9 +46,7 @@ bool FShooterAimPresentationTargetValidityTest::RunTest(const FString& Parameter
 /**
  * 阶段 3 纯策略测试：20Hz 本地提交的变化门槛、保活、服务端距离边界与 16 位包序号。
  */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterAimPresentationSubmitPolicyTest,
-	"ShootGame.Aim.PresentationSubmitPolicy",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAimPresentationSubmitPolicyTest, "ShootGame.Aim.PresentationSubmitPolicy",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterAimPresentationSubmitPolicyTest::RunTest(const FString& Parameters)
@@ -65,89 +54,38 @@ bool FShooterAimPresentationSubmitPolicyTest::RunTest(const FString& Parameters)
 	const FVector ViewLocation(100.0f, 200.0f, 300.0f);
 	const FVector PreviousTarget = ViewLocation + FVector::ForwardVector * 100.0f;
 
-	TestTrue(
-		TEXT("first valid target submits immediately"),
-		UShooterAimPresentationComponent::ShouldSubmitPresentationAimTarget(
-			PreviousTarget,
-			FVector::ZeroVector,
-			ViewLocation,
-			-1.0f,
-			20.0f,
-			1.0f,
-			0.2f));
+	TestTrue(TEXT("first valid target submits immediately"),
+		UShooterAimPresentationComponent::ShouldSubmitPresentationAimTarget(PreviousTarget, FVector::ZeroVector,
+			ViewLocation, -1.0f, 20.0f, 1.0f, 0.2f));
 
-	TestFalse(
-		TEXT("sub-threshold steady target does not submit before keepalive"),
-		UShooterAimPresentationComponent::ShouldSubmitPresentationAimTarget(
-			PreviousTarget + FVector(1.0f, 0.0f, 0.0f),
-			PreviousTarget,
-			ViewLocation,
-			0.05f,
-			20.0f,
-			1.0f,
-			0.2f));
+	TestFalse(TEXT("sub-threshold steady target does not submit before keepalive"),
+		UShooterAimPresentationComponent::ShouldSubmitPresentationAimTarget(PreviousTarget + FVector(1.0f, 0.0f, 0.0f),
+			PreviousTarget, ViewLocation, 0.05f, 20.0f, 1.0f, 0.2f));
 
-	const FVector RotatedTarget =
-		ViewLocation + FRotator(0.0f, 2.0f, 0.0f).Vector() * 100.0f;
-	TestTrue(
-		TEXT("angle threshold submits fast view change"),
-		UShooterAimPresentationComponent::ShouldSubmitPresentationAimTarget(
-			RotatedTarget,
-			PreviousTarget,
-			ViewLocation,
-			0.05f,
-			20.0f,
-			1.0f,
-			0.2f));
+	const FVector RotatedTarget = ViewLocation + FRotator(0.0f, 2.0f, 0.0f).Vector() * 100.0f;
+	TestTrue(TEXT("angle threshold submits fast view change"),
+		UShooterAimPresentationComponent::ShouldSubmitPresentationAimTarget(RotatedTarget, PreviousTarget, ViewLocation,
+			0.05f, 20.0f, 1.0f, 0.2f));
 
-	TestTrue(
-		TEXT("keepalive resubmits unchanged target"),
-		UShooterAimPresentationComponent::ShouldSubmitPresentationAimTarget(
-			PreviousTarget,
-			PreviousTarget,
-			ViewLocation,
-			0.2f,
-			20.0f,
-			1.0f,
-			0.2f));
+	TestTrue(TEXT("keepalive resubmits unchanged target"),
+		UShooterAimPresentationComponent::ShouldSubmitPresentationAimTarget(PreviousTarget, PreviousTarget,
+			ViewLocation, 0.2f, 20.0f, 1.0f, 0.2f));
 
-	TestFalse(
-		TEXT("invalid target never submits"),
-		UShooterAimPresentationComponent::ShouldSubmitPresentationAimTarget(
-			FVector(NAN, 0.0f, 0.0f),
-			PreviousTarget,
-			ViewLocation,
-			1.0f,
-			20.0f,
-			1.0f,
-			0.2f));
+	TestFalse(TEXT("invalid target never submits"), UShooterAimPresentationComponent::ShouldSubmitPresentationAimTarget(
+			FVector(NAN, 0.0f, 0.0f), PreviousTarget, ViewLocation, 1.0f, 20.0f, 1.0f, 0.2f));
 
-	TestTrue(
-		TEXT("server accepts target inside max distance plus tolerance"),
+	TestTrue(TEXT("server accepts target inside max distance plus tolerance"),
 		UShooterAimPresentationComponent::IsClientPresentationAimTargetWithinBounds(
-			ViewLocation + FVector::ForwardVector * 10499.0f,
-			ViewLocation,
-			10000.0f,
-			500.0f));
-	TestFalse(
-		TEXT("server rejects target outside max distance plus tolerance"),
+			ViewLocation + FVector::ForwardVector * 10499.0f, ViewLocation, 10000.0f, 500.0f));
+	TestFalse(TEXT("server rejects target outside max distance plus tolerance"),
 		UShooterAimPresentationComponent::IsClientPresentationAimTargetWithinBounds(
-			ViewLocation + FVector::ForwardVector * 10501.0f,
-			ViewLocation,
-			10000.0f,
-			500.0f));
+			ViewLocation + FVector::ForwardVector * 10501.0f, ViewLocation, 10000.0f, 500.0f));
 
-	TestTrue(
-		TEXT("newer sequence is accepted"),
-		UShooterAimPresentationComponent::IsNewerPresentationAimSequence(2, 1));
-	TestFalse(
-		TEXT("duplicate sequence is rejected"),
+	TestTrue(TEXT("newer sequence is accepted"), UShooterAimPresentationComponent::IsNewerPresentationAimSequence(2, 1));
+	TestFalse(TEXT("duplicate sequence is rejected"),
 		UShooterAimPresentationComponent::IsNewerPresentationAimSequence(7, 7));
-	TestFalse(
-		TEXT("older sequence is rejected"),
-		UShooterAimPresentationComponent::IsNewerPresentationAimSequence(6, 7));
-	TestTrue(
-		TEXT("sequence wraparound is accepted"),
+	TestFalse(TEXT("older sequence is rejected"), UShooterAimPresentationComponent::IsNewerPresentationAimSequence(6, 7));
+	TestTrue(TEXT("sequence wraparound is accepted"),
 		UShooterAimPresentationComponent::IsNewerPresentationAimSequence(0, MAX_uint16));
 
 	return true;
@@ -157,48 +95,34 @@ bool FShooterAimPresentationSubmitPolicyTest::RunTest(const FString& Parameters)
  * C2.5 消费角色矩阵：SimulatedProxy 与 Listen Server 远端观察都使用平滑目标；
  * 本地拥有者和 Dedicated Server 不进入平滑/远端表现消费路径。
  */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterAimPresentationSmoothingRoleTest,
-	"ShootGame.Aim.PresentationSmoothingRole",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAimPresentationSmoothingRoleTest, "ShootGame.Aim.PresentationSmoothingRole",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterAimPresentationSmoothingRoleTest::RunTest(const FString& Parameters)
 {
 	// 普通客户端观察其他玩家的 SimulatedProxy：运行平滑。
-	TestTrue(
-		TEXT("simulated proxy runs smoothing"),
-		UShooterAimPresentationComponent::ShouldRunPresentationAimSmoothing(
-			ROLE_SimulatedProxy, NM_Client, false));
+	TestTrue(TEXT("simulated proxy runs smoothing"),
+		UShooterAimPresentationComponent::ShouldRunPresentationAimSmoothing(ROLE_SimulatedProxy, NM_Client, false));
 
 	// Listen Server 观察远端客户端 Pawn：Authority 且非 LocallyControlled，运行平滑。
-	TestTrue(
-		TEXT("listen server observing remote authority pawn runs smoothing"),
-		UShooterAimPresentationComponent::ShouldRunPresentationAimSmoothing(
-			ROLE_Authority, NM_ListenServer, false));
+	TestTrue(TEXT("listen server observing remote authority pawn runs smoothing"),
+		UShooterAimPresentationComponent::ShouldRunPresentationAimSmoothing(ROLE_Authority, NM_ListenServer, false));
 
 	// Listen Server 主机自己的 Pawn：Authority 但 LocallyControlled，不得被表现缓存覆盖。
-	TestFalse(
-		TEXT("listen server local owner does not run smoothing"),
-		UShooterAimPresentationComponent::ShouldRunPresentationAimSmoothing(
-			ROLE_Authority, NM_ListenServer, true));
+	TestFalse(TEXT("listen server local owner does not run smoothing"),
+		UShooterAimPresentationComponent::ShouldRunPresentationAimSmoothing(ROLE_Authority, NM_ListenServer, true));
 
 	// 远端客户端自己的 Pawn：AutonomousProxy，使用本地即时视角。
-	TestFalse(
-		TEXT("autonomous proxy does not run smoothing"),
-		UShooterAimPresentationComponent::ShouldRunPresentationAimSmoothing(
-			ROLE_AutonomousProxy, NM_Client, true));
+	TestFalse(TEXT("autonomous proxy does not run smoothing"),
+		UShooterAimPresentationComponent::ShouldRunPresentationAimSmoothing(ROLE_AutonomousProxy, NM_Client, true));
 
 	// Dedicated Server：不做不可见动画的高成本表现工作。
-	TestFalse(
-		TEXT("dedicated server does not run smoothing"),
-		UShooterAimPresentationComponent::ShouldRunPresentationAimSmoothing(
-			ROLE_Authority, NM_DedicatedServer, false));
+	TestFalse(TEXT("dedicated server does not run smoothing"),
+		UShooterAimPresentationComponent::ShouldRunPresentationAimSmoothing(ROLE_Authority, NM_DedicatedServer, false));
 
 	// Standalone 本地 Pawn：Authority 且 LocallyControlled，同样不走平滑路径。
-	TestFalse(
-		TEXT("standalone local owner does not run smoothing"),
-		UShooterAimPresentationComponent::ShouldRunPresentationAimSmoothing(
-			ROLE_Authority, NM_Standalone, true));
+	TestFalse(TEXT("standalone local owner does not run smoothing"),
+		UShooterAimPresentationComponent::ShouldRunPresentationAimSmoothing(ROLE_Authority, NM_Standalone, true));
 
 	return true;
 }
@@ -206,9 +130,7 @@ bool FShooterAimPresentationSmoothingRoleTest::RunTest(const FString& Parameters
 /**
  * C4 纯计算测试：AimDirectionWorld 的 Muzzle→稳定目标方向与角色矩阵。
  */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterAimDirectionSourceTest,
-	"ShootGame.Aim.AimDirectionSource",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAimDirectionSourceTest, "ShootGame.Aim.AimDirectionSource",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterAimDirectionSourceTest::RunTest(const FString& Parameters)
@@ -218,24 +140,14 @@ bool FShooterAimDirectionSourceTest::RunTest(const FString& Parameters)
 	const FVector ExpectedMuzzleToTarget = (StableTarget - MuzzleLocation).GetSafeNormal();
 
 	// Muzzle 到稳定目标的方向计算：必须从 Muzzle 出发，而不是从 Actor/View 出发。
-	const FVector Direction = UShooterThirdPersonAnimInstance::ComputeMuzzleToTargetDirection(
-		MuzzleLocation,
-		StableTarget);
-	TestTrue(
-		TEXT("muzzle to target direction is normalized"),
-		FMath::IsNearlyEqual(Direction.Size(), 1.0f, KINDA_SMALL_NUMBER));
-	TestTrue(
-		TEXT("muzzle to target direction matches expected"),
-		Direction.Equals(ExpectedMuzzleToTarget, 1e-3f));
+	const FVector Direction = UShooterThirdPersonAnimInstance::ComputeMuzzleToTargetDirection(MuzzleLocation, StableTarget);
+	TestTrue(TEXT("muzzle to target direction is normalized"), FMath::IsNearlyEqual(Direction.Size(), 1.0f, KINDA_SMALL_NUMBER));
+	TestTrue(TEXT("muzzle to target direction matches expected"), Direction.Equals(ExpectedMuzzleToTarget, 1e-3f));
 
 	// 目标与 Muzzle 重合 / NaN 输入时返回零向量，关闭 IK。
-	TestTrue(
-		TEXT("coincident target and muzzle returns zero"),
-		UShooterThirdPersonAnimInstance::ComputeMuzzleToTargetDirection(
-			MuzzleLocation, MuzzleLocation).IsNearlyZero());
-	TestTrue(
-		TEXT("NaN target returns zero"),
-		UShooterThirdPersonAnimInstance::ComputeMuzzleToTargetDirection(
+	TestTrue(TEXT("coincident target and muzzle returns zero"),
+		UShooterThirdPersonAnimInstance::ComputeMuzzleToTargetDirection(MuzzleLocation, MuzzleLocation).IsNearlyZero());
+	TestTrue(TEXT("NaN target returns zero"), UShooterThirdPersonAnimInstance::ComputeMuzzleToTargetDirection(
 			MuzzleLocation, FVector(NAN, 0.0f, 0.0f)).IsNearlyZero());
 
 	const FVector LocalAimDirection = FRotator(20.0f, 30.0f, 0.0f).Vector();
@@ -246,34 +158,18 @@ bool FShooterAimDirectionSourceTest::RunTest(const FString& Parameters)
 	const bool bSimulatedProxyRunsSmoothing = UShooterAimPresentationComponent::ShouldRunPresentationAimSmoothing(
 		ROLE_SimulatedProxy, NM_Client, false);
 	TestTrue(TEXT("simulated proxy runs presentation smoothing"), bSimulatedProxyRunsSmoothing);
-	TestTrue(
-		TEXT("simulated proxy uses muzzle to stable target"),
-		UShooterThirdPersonAnimInstance::ComputeAimDirectionWorldForState(
-			false,
-			bSimulatedProxyRunsSmoothing,
-			true,
-			LocalAimDirection,
-			StableViewLocation,
-			MuzzleLocation,
-			StableTarget,
+	TestTrue(TEXT("simulated proxy uses muzzle to stable target"),
+		UShooterThirdPersonAnimInstance::ComputeAimDirectionWorldForState(false, bSimulatedProxyRunsSmoothing, true,
+			LocalAimDirection, StableViewLocation, MuzzleLocation, StableTarget,
 			bHasMuzzle).Equals(ExpectedMuzzleToTarget, 1e-3f));
 
 	// 第三人称近点安全门：沿原始视点射线把姿势目标投影到安全深度，同时保留横向偏移。
 	const FVector NearViewLocation = MuzzleLocation + FVector(-20.0f, 10.0f, 5.0f);
-	const FVector NearTarget =
-		NearViewLocation +
-		LocalAimDirection.GetSafeNormal() * 25.0f +
-		FVector(0.0f, 2.0f, 0.0f);
-	const float NearTargetForwardDistance = FVector::DotProduct(
-		NearTarget - NearViewLocation,
-		LocalAimDirection.GetSafeNormal());
-	const FVector ExpectedSafeNearTarget =
-		NearTarget +
-		LocalAimDirection.GetSafeNormal() * (150.0f - NearTargetForwardDistance);
-	const FVector ExpectedSafeNearDirection =
-		(ExpectedSafeNearTarget - MuzzleLocation).GetSafeNormal();
-	const FVector SafeNearDirection =
-		UShooterThirdPersonAnimInstance::ComputeAimDirectionWorldForState(
+	const FVector NearTarget = NearViewLocation + LocalAimDirection.GetSafeNormal() * 25.0f + FVector(0.0f, 2.0f, 0.0f);
+	const float NearTargetForwardDistance = FVector::DotProduct(NearTarget - NearViewLocation, LocalAimDirection.GetSafeNormal());
+	const FVector ExpectedSafeNearTarget = NearTarget + LocalAimDirection.GetSafeNormal() * (150.0f - NearTargetForwardDistance);
+	const FVector ExpectedSafeNearDirection = (ExpectedSafeNearTarget - MuzzleLocation).GetSafeNormal();
+	const FVector SafeNearDirection = UShooterThirdPersonAnimInstance::ComputeAimDirectionWorldForState(
 			false,
 			bSimulatedProxyRunsSmoothing,
 			true,
@@ -283,11 +179,9 @@ bool FShooterAimDirectionSourceTest::RunTest(const FString& Parameters)
 			NearTarget,
 			bHasMuzzle,
 			150.0f);
-	TestTrue(
-		TEXT("remote near target projects onto safe forward plane"),
+	TestTrue(TEXT("remote near target projects onto safe forward plane"),
 		SafeNearDirection.Equals(ExpectedSafeNearDirection, 1e-3f));
-	TestFalse(
-		TEXT("remote near target keeps lateral convergence instead of collapsing to base direction"),
+	TestFalse(TEXT("remote near target keeps lateral convergence instead of collapsing to base direction"),
 		SafeNearDirection.Equals(LocalAimDirection.GetSafeNormal(), 1e-3f));
 
 	// 长枪枪口接近视点安全平面时，安全目标还必须位于枪口前方并保留横向汇聚。
@@ -295,8 +189,7 @@ bool FShooterAimDirectionSourceTest::RunTest(const FString& Parameters)
 	const FVector LongWeaponMuzzleLocation(140.0f, 0.0f, 0.0f);
 	const FVector LongWeaponNearTarget(100.0f, 10.0f, 0.0f);
 	const FVector ExpectedLongWeaponSafeTarget(190.0f, 10.0f, 0.0f);
-	const FVector LongWeaponSafeDirection =
-		UShooterThirdPersonAnimInstance::ComputeAimDirectionWorldForState(
+	const FVector LongWeaponSafeDirection = UShooterThirdPersonAnimInstance::ComputeAimDirectionWorldForState(
 			false,
 			bSimulatedProxyRunsSmoothing,
 			true,
@@ -307,38 +200,22 @@ bool FShooterAimDirectionSourceTest::RunTest(const FString& Parameters)
 			bHasMuzzle,
 			150.0f,
 			50.0f);
-	TestTrue(
-		TEXT("remote long weapon keeps safe target ahead of muzzle"),
-		LongWeaponSafeDirection.Equals(
-			(ExpectedLongWeaponSafeTarget - LongWeaponMuzzleLocation).GetSafeNormal(),
-			1e-3f));
-	TestFalse(
-		TEXT("remote long weapon keeps lateral convergence"),
+	TestTrue(TEXT("remote long weapon keeps safe target ahead of muzzle"), LongWeaponSafeDirection.Equals(
+			(ExpectedLongWeaponSafeTarget - LongWeaponMuzzleLocation).GetSafeNormal(), 1e-3f));
+	TestFalse(TEXT("remote long weapon keeps lateral convergence"),
 		LongWeaponSafeDirection.Equals(FVector::ForwardVector, 1e-3f));
 
 	// 位于基础视线后方的目标同样投影到安全平面。
 	const FVector BehindTarget = NearViewLocation - LocalAimDirection.GetSafeNormal() * 500.0f;
-	const FVector ExpectedSafeBehindTarget =
-		NearViewLocation + LocalAimDirection.GetSafeNormal() * 150.0f;
-	TestTrue(
-		TEXT("remote target behind view direction projects onto safe forward plane"),
-		UShooterThirdPersonAnimInstance::ComputeAimDirectionWorldForState(
-			false,
-			bSimulatedProxyRunsSmoothing,
-			true,
-			LocalAimDirection,
-			NearViewLocation,
-			MuzzleLocation,
-			BehindTarget,
-			bHasMuzzle,
-			150.0f).Equals(
-				(ExpectedSafeBehindTarget - MuzzleLocation).GetSafeNormal(),
-				1e-3f));
+	const FVector ExpectedSafeBehindTarget = NearViewLocation + LocalAimDirection.GetSafeNormal() * 150.0f;
+	TestTrue(TEXT("remote target behind view direction projects onto safe forward plane"),
+		UShooterThirdPersonAnimInstance::ComputeAimDirectionWorldForState(false, bSimulatedProxyRunsSmoothing, true,
+			LocalAimDirection, NearViewLocation, MuzzleLocation, BehindTarget, bHasMuzzle, 150.0f).Equals(
+				(ExpectedSafeBehindTarget - MuzzleLocation).GetSafeNormal(), 1e-3f));
 
 	// 安全平面边界必须连续：边界前后相同横向偏移不能产生可见方向跳变。
 	const FVector LateralOffset(0.0f, 20.0f, 0.0f);
-	const FVector DirectionJustInside =
-		UShooterThirdPersonAnimInstance::ComputeAimDirectionWorldForState(
+	const FVector DirectionJustInside = UShooterThirdPersonAnimInstance::ComputeAimDirectionWorldForState(
 			false,
 			bSimulatedProxyRunsSmoothing,
 			true,
@@ -348,8 +225,7 @@ bool FShooterAimDirectionSourceTest::RunTest(const FString& Parameters)
 			FVector(149.9f, 20.0f, 0.0f),
 			bHasMuzzle,
 			150.0f);
-	const FVector DirectionJustOutside =
-		UShooterThirdPersonAnimInstance::ComputeAimDirectionWorldForState(
+	const FVector DirectionJustOutside = UShooterThirdPersonAnimInstance::ComputeAimDirectionWorldForState(
 			false,
 			bSimulatedProxyRunsSmoothing,
 			true,
@@ -359,76 +235,35 @@ bool FShooterAimDirectionSourceTest::RunTest(const FString& Parameters)
 			FVector(150.1f, LateralOffset.Y, LateralOffset.Z),
 			bHasMuzzle,
 			150.0f);
-	TestTrue(
-		TEXT("safe forward plane transition is directionally continuous"),
-		FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(
-			FVector::DotProduct(DirectionJustInside, DirectionJustOutside),
-			-1.0f,
-			1.0f))) < 0.1f);
+	TestTrue(TEXT("safe forward plane transition is directionally continuous"),
+		FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(FVector::DotProduct(DirectionJustInside, DirectionJustOutside),
+			-1.0f, 1.0f))) < 0.1f);
 
 	// Listen Server 观察远端 Pawn（Authority 且非 LocallyControlled）：使用同一目标语义。
 	const bool bListenRemoteRunsSmoothing = UShooterAimPresentationComponent::ShouldRunPresentationAimSmoothing(
 		ROLE_Authority, NM_ListenServer, false);
 	TestTrue(TEXT("listen server remote pawn runs presentation smoothing"), bListenRemoteRunsSmoothing);
-	TestTrue(
-		TEXT("listen server remote pawn uses muzzle to stable target"),
-		UShooterThirdPersonAnimInstance::ComputeAimDirectionWorldForState(
-			false,
-			bListenRemoteRunsSmoothing,
-			true,
-			LocalAimDirection,
-			StableViewLocation,
-			MuzzleLocation,
-			StableTarget,
+	TestTrue(TEXT("listen server remote pawn uses muzzle to stable target"),
+		UShooterThirdPersonAnimInstance::ComputeAimDirectionWorldForState(false, bListenRemoteRunsSmoothing, true,
+			LocalAimDirection, StableViewLocation, MuzzleLocation, StableTarget,
 			bHasMuzzle).Equals(ExpectedMuzzleToTarget, 1e-3f));
 
 	// 本地拥有者：即使传入有效远端目标，也永远使用本地即时 AimDirection。
-	TestTrue(
-		TEXT("local owner keeps immediate base aim direction"),
-		UShooterThirdPersonAnimInstance::ComputeAimDirectionWorldForState(
-			true,
-			bSimulatedProxyRunsSmoothing,
-			true,
-			LocalAimDirection,
-			StableViewLocation,
-			MuzzleLocation,
-			StableTarget,
+	TestTrue(TEXT("local owner keeps immediate base aim direction"),
+		UShooterThirdPersonAnimInstance::ComputeAimDirectionWorldForState(true, bSimulatedProxyRunsSmoothing, true,
+			LocalAimDirection, StableViewLocation, MuzzleLocation, StableTarget,
 			bHasMuzzle).Equals(LocalAimDirection, 1e-3f));
 
 	// Dedicated Server 与无效目标 / 缺失 Muzzle：零向量关闭 IK。
-	TestTrue(
-		TEXT("dedicated server returns zero aim direction"),
-		UShooterThirdPersonAnimInstance::ComputeAimDirectionWorldForState(
-			false,
-			false,
-			true,
-			LocalAimDirection,
-			StableViewLocation,
-			MuzzleLocation,
-			StableTarget,
-			bHasMuzzle).IsNearlyZero());
-	TestTrue(
-		TEXT("invalid presentation target returns zero aim direction"),
-		UShooterThirdPersonAnimInstance::ComputeAimDirectionWorldForState(
-			false,
-			bSimulatedProxyRunsSmoothing,
-			false,
-			LocalAimDirection,
-			StableViewLocation,
-			MuzzleLocation,
-			StableTarget,
-			bHasMuzzle).IsNearlyZero());
-	TestTrue(
-		TEXT("missing third-person muzzle returns zero aim direction"),
-		UShooterThirdPersonAnimInstance::ComputeAimDirectionWorldForState(
-			false,
-			bSimulatedProxyRunsSmoothing,
-			true,
-			LocalAimDirection,
-			StableViewLocation,
-			MuzzleLocation,
-			StableTarget,
-			false).IsNearlyZero());
+	TestTrue(TEXT("dedicated server returns zero aim direction"),
+		UShooterThirdPersonAnimInstance::ComputeAimDirectionWorldForState(false, false, true, LocalAimDirection,
+			StableViewLocation, MuzzleLocation, StableTarget, bHasMuzzle).IsNearlyZero());
+	TestTrue(TEXT("invalid presentation target returns zero aim direction"),
+		UShooterThirdPersonAnimInstance::ComputeAimDirectionWorldForState(false, bSimulatedProxyRunsSmoothing, false,
+			LocalAimDirection, StableViewLocation, MuzzleLocation, StableTarget, bHasMuzzle).IsNearlyZero());
+	TestTrue(TEXT("missing third-person muzzle returns zero aim direction"),
+		UShooterThirdPersonAnimInstance::ComputeAimDirectionWorldForState(false, bSimulatedProxyRunsSmoothing, true,
+			LocalAimDirection, StableViewLocation, MuzzleLocation, StableTarget, false).IsNearlyZero());
 
 	// 权威开火不读取表现缓存：生产实现 AShooterCharacter::GetWeaponTargetLocation
 	// 只现场调用 ComputePreSpreadAimTarget（见 ShooterCharacter.cpp），
@@ -442,9 +277,7 @@ bool FShooterAimDirectionSourceTest::RunTest(const FString& Parameters)
  * C2.5 行为状态测试：用无 World 测试壳直接驱动 UpdatePresentationAimSmoothing，
  * 覆盖稳态无回退、死亡/复活、切枪重置、传送重置、SimulatedProxy 平滑消费与本地拥有者不被覆盖。
  */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterAimPresentationStateBehaviorTest,
-	"ShootGame.Aim.PresentationStateBehavior",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAimPresentationStateBehaviorTest, "ShootGame.Aim.PresentationStateBehavior",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterAimPresentationStateBehaviorTest::RunTest(const FString& Parameters)
@@ -469,8 +302,7 @@ bool FShooterAimPresentationStateBehaviorTest::RunTest(const FString& Parameters
 	Harness->SetPresentationAimTargetForTest(TargetA);
 	Harness->CallUpdatePresentationAimSmoothing(0.1f);
 	TestTrue(TEXT("first valid target establishes local validity"), Harness->IsPresentationAimTargetValidForTest());
-	TestTrue(
-		TEXT("first valid target is adopted immediately"),
+	TestTrue(TEXT("first valid target is adopted immediately"),
 		Harness->GetSmoothedPresentationAimTargetForTest().Equals(TargetA, 0.1f));
 
 	for (int32 Step = 0; Step < 30; ++Step)
@@ -478,8 +310,7 @@ bool FShooterAimPresentationStateBehaviorTest::RunTest(const FString& Parameters
 		Harness->CallUpdatePresentationAimSmoothing(0.1f);
 	}
 	TestTrue(TEXT("steady target stays valid after 3 simulated seconds"), Harness->IsPresentationAimTargetValidForTest());
-	TestTrue(
-		TEXT("steady target never falls back to actor forward"),
+	TestTrue(TEXT("steady target never falls back to actor forward"),
 		Harness->GetSmoothedPresentationAimTargetForTest().Equals(TargetA, 0.1f));
 
 	// 死亡：显式生命周期重置，旧目标立即失效并清零。
@@ -492,8 +323,7 @@ bool FShooterAimPresentationStateBehaviorTest::RunTest(const FString& Parameters
 	Harness->SetDeadForTest(false);
 	Harness->CallUpdatePresentationAimSmoothing(0.1f);
 	TestTrue(TEXT("respawn re-establishes validity"), Harness->IsPresentationAimTargetValidForTest());
-	TestTrue(
-		TEXT("respawn adopts latest target instead of interpolating dead value"),
+	TestTrue(TEXT("respawn adopts latest target instead of interpolating dead value"),
 		Harness->GetSmoothedPresentationAimTargetForTest().Equals(TargetA, 0.1f));
 
 	// 切枪：消费路径显式调用 ResetPresentationAimSmoothing，直接采用最新目标。
@@ -501,8 +331,7 @@ bool FShooterAimPresentationStateBehaviorTest::RunTest(const FString& Parameters
 	Harness->SetPresentationAimTargetForTest(TargetB);
 	Harness->CallResetPresentationAimSmoothing();
 	TestTrue(TEXT("weapon switch keeps latest target valid"), Harness->IsPresentationAimTargetValidForTest());
-	TestTrue(
-		TEXT("weapon switch resets smoothing instead of interpolating old value"),
+	TestTrue(TEXT("weapon switch resets smoothing instead of interpolating old value"),
 		Harness->GetSmoothedPresentationAimTargetForTest().Equals(TargetB, 0.1f));
 
 	// 传送：视点发生 1000cm 跳变时重置，而不是对旧世界点做指数插值。
@@ -511,8 +340,7 @@ bool FShooterAimPresentationStateBehaviorTest::RunTest(const FString& Parameters
 	Harness->SetLastPresentationAimViewLocationForTest(ViewLocation + FVector(1000.0, 0.0, 0.0));
 	Harness->CallUpdatePresentationAimSmoothing(0.016f);
 	TestTrue(TEXT("teleport keeps target valid"), Harness->IsPresentationAimTargetValidForTest());
-	TestTrue(
-		TEXT("teleport snaps to latest target instead of interpolating"),
+	TestTrue(TEXT("teleport snaps to latest target instead of interpolating"),
 		Harness->GetSmoothedPresentationAimTargetForTest().Equals(TargetB, 0.1f));
 
 	// SimulatedProxy 消费：GetAimPresentationAngles 使用平滑目标，而不是 GetBaseAimRotation。
@@ -523,13 +351,9 @@ bool FShooterAimPresentationStateBehaviorTest::RunTest(const FString& Parameters
 	float ExpectedSimulatedPitch = 0.0f;
 	const FVector SmoothedDirection =
 		(Harness->GetSmoothedPresentationAimTargetForTest() - ViewLocation).GetSafeNormal();
-	FShooterAimMath::WorldDirectionToLocalAngles(
-		SmoothedDirection,
-		Harness->MeshTransformOverride,
-		ExpectedSimulatedYaw,
-		ExpectedSimulatedPitch);
-	TestTrue(
-		TEXT("simulated proxy consumes smoothed presentation target"),
+	FShooterAimMath::WorldDirectionToLocalAngles(SmoothedDirection, Harness->MeshTransformOverride,
+		ExpectedSimulatedYaw, ExpectedSimulatedPitch);
+	TestTrue(TEXT("simulated proxy consumes smoothed presentation target"),
 		FMath::IsNearlyEqual(SimulatedYaw, ExpectedSimulatedYaw, 0.01f) &&
 		FMath::IsNearlyEqual(SimulatedPitch, ExpectedSimulatedPitch, 0.01f));
 
@@ -545,13 +369,9 @@ bool FShooterAimPresentationStateBehaviorTest::RunTest(const FString& Parameters
 	Harness->GetAimPresentationAngles(OwnerYaw, OwnerPitch);
 	float ExpectedOwnerYaw = 0.0f;
 	float ExpectedOwnerPitch = 0.0f;
-	FShooterAimMath::WorldDirectionToLocalAngles(
-		Harness->AimRotationOverride.Vector(),
-		Harness->MeshTransformOverride,
-		ExpectedOwnerYaw,
-		ExpectedOwnerPitch);
-	TestTrue(
-		TEXT("local owner is not overwritten by remote presentation target"),
+	FShooterAimMath::WorldDirectionToLocalAngles(Harness->AimRotationOverride.Vector(), Harness->MeshTransformOverride,
+		ExpectedOwnerYaw, ExpectedOwnerPitch);
+	TestTrue(TEXT("local owner is not overwritten by remote presentation target"),
 		FMath::IsNearlyEqual(OwnerYaw, ExpectedOwnerYaw, 0.01f) &&
 		FMath::IsNearlyEqual(OwnerPitch, ExpectedOwnerPitch, 0.01f));
 

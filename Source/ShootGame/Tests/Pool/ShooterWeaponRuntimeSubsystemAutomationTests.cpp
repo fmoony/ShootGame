@@ -59,11 +59,8 @@ namespace ShooterWeaponRuntimeSubsystemAutomationTests
 	}
 
 	/** 从测试武器 CDO 导出基础行，只覆盖弹药与预热数量。 */
-	FShooterWeaponConfigRow MakeRuntimeTestRow(
-		TSubclassOf<AShooterWeapon> WeaponActorClass,
-		int32 MagazineSize,
-		int32 InitialReserveAmmo,
-		int32 InitialPoolSize)
+	FShooterWeaponConfigRow MakeRuntimeTestRow(TSubclassOf<AShooterWeapon> WeaponActorClass, int32 MagazineSize,
+		int32 InitialReserveAmmo, int32 InitialPoolSize)
 	{
 		FShooterWeaponConfigRow Row;
 		if (const AShooterWeapon* WeaponDefaults = WeaponActorClass
@@ -102,8 +99,7 @@ namespace ShooterWeaponRuntimeSubsystemAutomationTests
 }
 
 /** 启动导入：合法行建立快照 Bucket 并按 InitialPoolSize 预热；Actor 携带 WeaponId 与静态配置。 */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterWeaponRuntimeStartupSnapshotTest,
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterWeaponRuntimeStartupSnapshotTest,
 	"ShootGame.WeaponRuntime.Startup.BuildsSnapshotAndPrewarms",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
@@ -125,13 +121,9 @@ bool FShooterWeaponRuntimeStartupSnapshotTest::RunTest(const FString& Parameters
 	}
 
 	UDataTable* Table = CreateRuntimeTestTable();
-	AddRuntimeTestRow(
-		Table,
-		TEXT("TestRifle"),
+	AddRuntimeTestRow(Table, TEXT("TestRifle"),
 		MakeRuntimeTestRow(AShooterRuntimePoolTestWeapon::StaticClass(), /*MagazineSize*/ 5, /*Reserve*/ 7, /*Pool*/ 2));
-	AddRuntimeTestRow(
-		Table,
-		TEXT("TestPistol"),
+	AddRuntimeTestRow(Table, TEXT("TestPistol"),
 		MakeRuntimeTestRow(AShooterRuntimePoolTestWeapon::StaticClass(), /*MagazineSize*/ 3, /*Reserve*/ -1, /*Pool*/ 3));
 	Runtime->SetWeaponTableOverride(Table);
 
@@ -158,8 +150,7 @@ bool FShooterWeaponRuntimeStartupSnapshotTest::RunTest(const FString& Parameters
 	TestEqual(TEXT("Snapshot keeps magazine size"), RifleConfig->MagazineSize, 5);
 	TestEqual(TEXT("Snapshot keeps initial reserve"), RifleConfig->InitialReserveAmmo, 7);
 	TestEqual(TEXT("Snapshot keeps pool size"), RifleConfig->InitialPoolSize, 2);
-	TestTrue(
-		TEXT("Snapshot keeps actor class"),
+	TestTrue(TEXT("Snapshot keeps actor class"),
 		RifleConfig->WeaponActorClass == AShooterRuntimePoolTestWeapon::StaticClass());
 
 	// 预热 Actor 的身份与静态配置：取出两把必须互不相同且都携带该 WeaponId 的配置。
@@ -186,8 +177,7 @@ bool FShooterWeaponRuntimeStartupSnapshotTest::RunTest(const FString& Parameters
 }
 
 /** 启动失败边界：表结构错误导致初始化失败；单行非法只跳过该行、不影响其余 Bucket。 */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterWeaponRuntimeStartupInvalidTableTest,
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterWeaponRuntimeStartupInvalidTableTest,
 	"ShootGame.WeaponRuntime.Startup.InvalidRowAndTableFailures",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
@@ -196,19 +186,16 @@ bool FShooterWeaponRuntimeStartupInvalidTableTest::RunTest(const FString& Parame
 	using namespace ShooterWeaponRuntimeSubsystemAutomationTests;
 
 	// 初始化失败的 Error 与非法行跳过的 Error 都是该路径的预期输出，显式声明避免误判。
-	AddExpectedError(
-		TEXT("WeaponRuntime initialization failed: table"),
+	AddExpectedError(TEXT("WeaponRuntime initialization failed: table"),
 		EAutomationExpectedErrorFlags::Contains, /*Count*/ 1);
-	AddExpectedError(
-		TEXT("WeaponRuntime skipped invalid row"),
+	AddExpectedError(TEXT("WeaponRuntime skipped invalid row"),
 		EAutomationExpectedErrorFlags::Contains, /*Count*/ 2);
 
 	// 1) 结构错误的表：RowStruct 不是 FShooterWeaponConfigRow，初始化必须失败。
 	UWorld* BadStructWorld = CreateRuntimeTestWorld();
 	if (TestNotNull(TEXT("Bad struct world created"), BadStructWorld))
 	{
-		UShooterWeaponRuntimeSubsystem* Runtime =
-			BadStructWorld->GetSubsystem<UShooterWeaponRuntimeSubsystem>();
+		UShooterWeaponRuntimeSubsystem* Runtime = BadStructWorld->GetSubsystem<UShooterWeaponRuntimeSubsystem>();
 		if (TestNotNull(TEXT("Bad struct runtime exists"), Runtime))
 		{
 			UDataTable* BadTable = NewObject<UDataTable>(GetTransientPackage(), NAME_None, RF_Transient);
@@ -238,17 +225,11 @@ bool FShooterWeaponRuntimeStartupInvalidTableTest::RunTest(const FString& Parame
 	}
 
 	UDataTable* Table = CreateRuntimeTestTable();
-	AddRuntimeTestRow(
-		Table,
-		TEXT("AbstractClass"),
+	AddRuntimeTestRow(Table, TEXT("AbstractClass"),
 		MakeRuntimeTestRow(AShooterWeapon::StaticClass(), /*MagazineSize*/ 10, /*Reserve*/ -1, /*Pool*/ 1));
-	AddRuntimeTestRow(
-		Table,
-		TEXT("ZeroPoolSize"),
+	AddRuntimeTestRow(Table, TEXT("ZeroPoolSize"),
 		MakeRuntimeTestRow(AShooterRuntimePoolTestWeapon::StaticClass(), /*MagazineSize*/ 10, /*Reserve*/ -1, /*Pool*/ 0));
-	AddRuntimeTestRow(
-		Table,
-		TEXT("ValidRow"),
+	AddRuntimeTestRow(Table, TEXT("ValidRow"),
 		MakeRuntimeTestRow(AShooterRuntimePoolTestWeapon::StaticClass(), /*MagazineSize*/ 6, /*Reserve*/ -1, /*Pool*/ 1));
 	Runtime->SetWeaponTableOverride(Table);
 
@@ -269,8 +250,7 @@ bool FShooterWeaponRuntimeStartupInvalidTableTest::RunTest(const FString& Parame
 }
 
 /** Acquire / Release：租用复位、归属改写与归还后回到可复用状态；重复归还 fail closed。 */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterWeaponRuntimeAcquireReleaseTest,
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterWeaponRuntimeAcquireReleaseTest,
 	"ShootGame.WeaponRuntime.AcquireRelease.LeasesAndRestores",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
@@ -292,9 +272,7 @@ bool FShooterWeaponRuntimeAcquireReleaseTest::RunTest(const FString& Parameters)
 	}
 
 	UDataTable* Table = CreateRuntimeTestTable();
-	AddRuntimeTestRow(
-		Table,
-		TEXT("TestRifle"),
+	AddRuntimeTestRow(Table, TEXT("TestRifle"),
 		MakeRuntimeTestRow(AShooterRuntimePoolTestWeapon::StaticClass(), /*MagazineSize*/ 5, /*Reserve*/ 7, /*Pool*/ 2));
 	Runtime->SetWeaponTableOverride(Table);
 
@@ -315,9 +293,7 @@ bool FShooterWeaponRuntimeAcquireReleaseTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("Acquired weapon is leased"), Runtime->IsLeased(Weapon));
 	TestEqual(TEXT("Acquire leases one"), Runtime->GetLeasedCount(TEXT("TestRifle")), 1);
 	TestEqual(TEXT("Acquire consumes one available"), Runtime->GetAvailableCount(TEXT("TestRifle")), 1);
-	TestEqual(
-		TEXT("Acquired weapon waits at Holstered"),
-		static_cast<int32>(Weapon->GetLifecycleState()),
+	TestEqual(TEXT("Acquired weapon waits at Holstered"), static_cast<int32>(Weapon->GetLifecycleState()),
 		static_cast<int32>(EShooterWeaponLifecycleState::Holstered));
 	TestTrue(TEXT("Holstered weapon stays hidden until equipped"), Weapon->IsHidden());
 
@@ -325,9 +301,7 @@ bool FShooterWeaponRuntimeAcquireReleaseTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("Release restores availability"), Runtime->GetAvailableCount(TEXT("TestRifle")), 2);
 	TestEqual(TEXT("Release clears lease"), Runtime->GetLeasedCount(TEXT("TestRifle")), 0);
 	TestFalse(TEXT("Released weapon is no longer leased"), Runtime->IsLeased(Weapon));
-	TestEqual(
-		TEXT("Released weapon returns to InPool"),
-		static_cast<int32>(Weapon->GetLifecycleState()),
+	TestEqual(TEXT("Released weapon returns to InPool"), static_cast<int32>(Weapon->GetLifecycleState()),
 		static_cast<int32>(EShooterWeaponLifecycleState::InPool));
 	TestNull(TEXT("Released weapon loses its owner"), Weapon->GetOwner());
 	TestTrue(TEXT("Released weapon is hidden"), Weapon->IsHidden());
@@ -347,28 +321,21 @@ bool FShooterWeaponRuntimeAcquireReleaseTest::RunTest(const FString& Parameters)
 	}
 	TestTrue(TEXT("Reuse returns the pooled actor"), Reacquired == Weapon);
 	TestTrue(TEXT("Reuse rebinds the new owner"), Reacquired->GetOwner() == SecondOwner);
-	TestEqual(
-		TEXT("Reacquired weapon waits at Holstered"),
-		static_cast<int32>(Reacquired->GetLifecycleState()),
+	TestEqual(TEXT("Reacquired weapon waits at Holstered"), static_cast<int32>(Reacquired->GetLifecycleState()),
 		static_cast<int32>(EShooterWeaponLifecycleState::Holstered));
 
 	// 重复归还 / 未知 WeaponId 全部 fail closed。
 	TestTrue(TEXT("Second release succeeds"), Runtime->ReleaseWeapon(Reacquired));
 	TestFalse(TEXT("Repeated release is rejected"), Runtime->ReleaseWeapon(Reacquired));
-	TestNull(
-		TEXT("Unknown WeaponId acquires nothing"),
-		Runtime->AcquireWeapon(TEXT("Unknown"), FirstOwner, nullptr));
-	TestNull(
-		TEXT("None WeaponId acquires nothing"),
-		Runtime->AcquireWeapon(NAME_None, FirstOwner, nullptr));
+	TestNull(TEXT("Unknown WeaponId acquires nothing"), Runtime->AcquireWeapon(TEXT("Unknown"), FirstOwner, nullptr));
+	TestNull(TEXT("None WeaponId acquires nothing"), Runtime->AcquireWeapon(NAME_None, FirstOwner, nullptr));
 
 	DestroyRuntimeTestWorld(World);
 	return true;
 }
 
 /** 可用池耗尽：只从冻结快照弹性 Spawn，成功直接返回 Actor 引用；扩容 Actor 留在原 Bucket 复用。 */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterWeaponRuntimeElasticSpawnTest,
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterWeaponRuntimeElasticSpawnTest,
 	"ShootGame.WeaponRuntime.AcquireRelease.ExhaustedPoolSpawnsFromSnapshot",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
@@ -390,9 +357,7 @@ bool FShooterWeaponRuntimeElasticSpawnTest::RunTest(const FString& Parameters)
 	}
 
 	UDataTable* Table = CreateRuntimeTestTable();
-	AddRuntimeTestRow(
-		Table,
-		TEXT("SinglePool"),
+	AddRuntimeTestRow(Table, TEXT("SinglePool"),
 		MakeRuntimeTestRow(AShooterRuntimePoolTestWeapon::StaticClass(), /*MagazineSize*/ 4, /*Reserve*/ -1, /*Pool*/ 1));
 	Runtime->SetWeaponTableOverride(Table);
 
@@ -438,9 +403,7 @@ bool FShooterWeaponRuntimeElasticSpawnTest::RunTest(const FString& Parameters)
 	AShooterWeapon* Reused = Runtime->AcquireWeapon(TEXT("SinglePool"), Owner, nullptr);
 	if (TestNotNull(TEXT("Weapon reused after elastic growth"), Reused))
 	{
-		TestTrue(
-			TEXT("Reuse draws from the grown bucket"),
-			Reused == Pooled || Reused == ElasticA || Reused == ElasticB);
+		TestTrue(TEXT("Reuse draws from the grown bucket"), Reused == Pooled || Reused == ElasticA || Reused == ElasticB);
 		TestEqual(TEXT("Grown bucket still has two available"), Runtime->GetAvailableCount(TEXT("SinglePool")), 2);
 	}
 

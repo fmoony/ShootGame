@@ -34,9 +34,6 @@ namespace FShooterAimMath
 	 * 自动化测试锁定，B3 消费端不得自行假设右手系直觉符号。
 	 * WorldDirection 为零向量时输出 0 / 0。
 	 */
-	void WorldDirectionToLocalAngles(
-		const FVector& WorldDirection,
-		const FTransform& ReferenceTransform,
-		float& OutAimYaw,
-		float& OutAimPitch);
+	void WorldDirectionToLocalAngles(const FVector& WorldDirection, const FTransform& ReferenceTransform,
+		float& OutAimYaw, float& OutAimPitch);
 }

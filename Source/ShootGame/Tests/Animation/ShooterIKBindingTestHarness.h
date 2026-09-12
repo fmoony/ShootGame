@@ -55,9 +55,7 @@ public:
 	void CallProductionPendingRetryForTest(AShooterWeapon* LogicalWeapon)
 	{
 		// 镜像生产 UpdateShooterAnimationData 中“身份一致 + 只消费一次 Pending”的规则。
-		if (bStaticBindingRebuildPending &&
-			LogicalWeapon != nullptr &&
-			CachedPresentationWeapon.Get() == LogicalWeapon)
+		if (bStaticBindingRebuildPending && LogicalWeapon != nullptr && CachedPresentationWeapon.Get() == LogicalWeapon)
 		{
 			bStaticBindingRebuildPending = false;
 			RebuildWeaponStaticBindings(LogicalWeapon);

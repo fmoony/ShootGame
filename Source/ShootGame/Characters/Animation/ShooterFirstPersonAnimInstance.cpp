@@ -17,8 +17,7 @@
 
 namespace ShooterFirstPersonPresentation
 {
-	static TAutoConsoleVariable<float> Clearance(
-		TEXT("ShootGame.FirstPerson.Clearance"), 8.0f,
+	static TAutoConsoleVariable<float> Clearance(TEXT("ShootGame.FirstPerson.Clearance"), 8.0f,
 		TEXT("First-person forearm/hand and weapon minimum camera depth in cm; 0 disables."));
 
 	/** 在现有 AnimGraph 求值后向视图前下方避让双侧前臂。保留握枪关系、原动画和头部相机。 */
@@ -130,8 +129,7 @@ namespace ShooterFirstPersonPresentation
 				for (int32 Corner = 0; Corner < 8; ++Corner)
 				{
 					IncludePoint(WeaponTransform.TransformPosition(FVector(
-						Corner & 1 ? WeaponBounds.Max.X : WeaponBounds.Min.X,
-						Corner & 2 ? WeaponBounds.Max.Y : WeaponBounds.Min.Y,
+						Corner & 1 ? WeaponBounds.Max.X : WeaponBounds.Min.X, Corner & 2 ? WeaponBounds.Max.Y : WeaponBounds.Min.Y,
 						Corner & 4 ? WeaponBounds.Max.Z : WeaponBounds.Min.Z)));
 				}
 			}
@@ -175,10 +173,8 @@ namespace ShooterFirstPersonPresentation
 				const FCompactPoseBoneIndex Parent = Output.Pose.GetParentBoneIndex(Indices[UpperArm]);
 				Output.Pose[Indices[UpperArm]].SetRotation(
 					(ComponentPose.GetComponentSpaceTransform(Parent).GetRotation().Inverse() * UpperRotation).GetNormalized());
-				Output.Pose[Indices[Elbow]].SetRotation(
-					(UpperRotation.Inverse() * ElbowRotation).GetNormalized());
-				Output.Pose[Indices[Hand]].SetRotation(
-					(ElbowRotation.Inverse() * HandTransform.GetRotation()).GetNormalized());
+				Output.Pose[Indices[Elbow]].SetRotation((UpperRotation.Inverse() * ElbowRotation).GetNormalized());
+				Output.Pose[Indices[Hand]].SetRotation((ElbowRotation.Inverse() * HandTransform.GetRotation()).GetNormalized());
 			};
 			PlaceArm(LeftShoulder, LeftUpperArm, LeftElbow, LeftHand);
 			PlaceArm(RightShoulder, RightUpperArm, RightElbow, RightHand);
@@ -248,12 +244,8 @@ void UShooterFirstPersonAnimInstance::UpdateShooterAnimationData(float DeltaSeco
 void UShooterFirstPersonAnimInstance::RefreshFirstPersonAnimationData(float DeltaSeconds)
 {
 	AShooterCharacter* Character = GetCachedShooterCharacter();
-	if (!Character ||
-		!Character->IsLocallyControlled() ||
-		!Character->GetFirstPersonMesh() ||
-		Character->IsDead() ||
-		!IsValid(CurrentWeaponActor) ||
-		CurrentWeaponActor->GetOwner() != Character)
+	if (!Character || !Character->IsLocallyControlled() || !Character->GetFirstPersonMesh() || Character->IsDead() ||
+		!IsValid(CurrentWeaponActor) || CurrentWeaponActor->GetOwner() != Character)
 	{
 		ClearFirstPersonAnimationData();
 		return;
@@ -276,9 +268,7 @@ void UShooterFirstPersonAnimInstance::RefreshFirstPersonAnimationData(float Delt
 	UpdateAimRigPresentationAlpha(Character, DeltaSeconds);
 }
 
-void UShooterFirstPersonAnimInstance::UpdateAimRigPresentationAlpha(
-	const AShooterCharacter* Character,
-	float DeltaSeconds)
+void UShooterFirstPersonAnimInstance::UpdateAimRigPresentationAlpha(const AShooterCharacter* Character, float DeltaSeconds)
 {
 	bool bReloadPresentationRecovering = false;
 	if (Character)
@@ -287,8 +277,7 @@ void UShooterFirstPersonAnimInstance::UpdateAimRigPresentationAlpha(
 		const UShooterThirdPersonAnimInstance* ThirdPersonAnimInstance = ThirdPersonMesh
 			? Cast<UShooterThirdPersonAnimInstance>(ThirdPersonMesh->GetAnimInstance())
 			: nullptr;
-		bReloadPresentationRecovering =
-			ThirdPersonAnimInstance && ThirdPersonAnimInstance->bReloadPresentationRecovering;
+		bReloadPresentationRecovering = ThirdPersonAnimInstance && ThirdPersonAnimInstance->bReloadPresentationRecovering;
 	}
 
 	// ReloadRecovery 在权威 Reload 结束前到达，使恢复平滑发生在既有时序窗口内。
@@ -313,10 +302,7 @@ void UShooterFirstPersonAnimInstance::UpdateAimRigPresentationAlpha(
 	AimRigBlendElapsedTime = FMath::Min(AimRigBlendElapsedTime + DeltaSeconds, BlendTime);
 	const float LinearAlpha = AimRigBlendElapsedTime / BlendTime;
 	const float EasedAlpha = FMath::SmoothStep(0.0f, 1.0f, LinearAlpha);
-	AimRigPresentationAlpha = FMath::Lerp(
-		AimRigBlendSourceAlpha,
-		AimRigBlendTargetAlpha,
-		EasedAlpha);
+	AimRigPresentationAlpha = FMath::Lerp(AimRigBlendSourceAlpha, AimRigBlendTargetAlpha, EasedAlpha);
 }
 
 void UShooterFirstPersonAnimInstance::ClearFirstPersonAnimationData()

@@ -32,9 +32,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Sound")
 	EShooterReloadSoundStage Stage = EShooterReloadSoundStage::MagazineOut;
 
-	virtual void Notify(
-		USkeletalMeshComponent* MeshComp,
-		UAnimSequenceBase* Animation,
+	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
 		const FAnimNotifyEventReference& EventReference) override;
 
 	virtual FString GetNotifyName_Implementation() const override;

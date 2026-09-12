@@ -42,14 +42,10 @@ namespace ShooterPickupRespawnGateAutomationTests
 		World->DestroyWorld(false);
 	}
 
-	AShooterWeaponPresentationTestCharacter* SpawnRespawnGateTestCharacter(
-		FAutomationTestBase& Test,
-		UWorld* World)
+	AShooterWeaponPresentationTestCharacter* SpawnRespawnGateTestCharacter(FAutomationTestBase& Test, UWorld* World)
 	{
-		AShooterWeaponPresentationTestCharacter* Character =
-			World->SpawnActor<AShooterWeaponPresentationTestCharacter>(
-				FVector::ZeroVector,
-				FRotator::ZeroRotator);
+		AShooterWeaponPresentationTestCharacter* Character = World->SpawnActor<AShooterWeaponPresentationTestCharacter>(
+				FVector::ZeroVector, FRotator::ZeroRotator);
 		if (!Test.TestNotNull(TEXT("Respawn gate test character spawned"), Character))
 		{
 			return nullptr;
@@ -71,8 +67,7 @@ namespace ShooterPickupRespawnGateAutomationTests
  * 且第二次拾取后 Pickup 重新进入隐藏状态。
  * 该测试运行在无网络驱动的服务器权威 World 中，与 Dedicated Server 的授予端一致。
  */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterPickupRespawnGateCrossRespawnTest,
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterPickupRespawnGateCrossRespawnTest,
 	"ShootGame.Pickup.RespawnGate.CrossRespawnGrant",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
@@ -95,8 +90,7 @@ bool FShooterPickupRespawnGateCrossRespawnTest::RunTest(const FString& Parameter
 	}
 
 	AShooterWeaponPresentationTestPickup* Pickup = World->SpawnActor<AShooterWeaponPresentationTestPickup>(
-		FVector(0.0f, 0.0f, 100.0f),
-		FRotator::ZeroRotator);
+		FVector(0.0f, 0.0f, 100.0f), FRotator::ZeroRotator);
 	if (!TestNotNull(TEXT("Respawn gate test pickup spawned"), Pickup))
 	{
 		DestroyRespawnGateTestWorld(World);
@@ -104,8 +98,7 @@ bool FShooterPickupRespawnGateCrossRespawnTest::RunTest(const FString& Parameter
 	}
 	UShooterInventoryComponent* InventoryA = PlayerA->GetInventoryComponent();
 	UShooterInventoryComponent* InventoryB = PlayerB->GetInventoryComponent();
-	if (!TestNotNull(TEXT("Player A owns inventory"), InventoryA) ||
-		!TestNotNull(TEXT("Player B owns inventory"), InventoryB))
+	if (!TestNotNull(TEXT("Player A owns inventory"), InventoryA) || !TestNotNull(TEXT("Player B owns inventory"), InventoryB))
 	{
 		DestroyRespawnGateTestWorld(World);
 		return false;
@@ -113,8 +106,7 @@ bool FShooterPickupRespawnGateCrossRespawnTest::RunTest(const FString& Parameter
 
 	// Pickup 只持有 WeaponId；
 	// 运行时快照是 World 级的，A、B 天然共享同一行定义。
-	const FName PickupWeaponRowName = AddTestWeaponRow(
-		GetOrInjectRuntimeTestTable(World),
+	const FName PickupWeaponRowName = AddTestWeaponRow(GetOrInjectRuntimeTestTable(World),
 		MakeTestWeaponRow(AShooterInventoryOrderTestWeapon::StaticClass()));
 	World->GetSubsystem<UShooterWeaponRuntimeSubsystem>()->InitializeWeaponRuntimeForTest();
 	Pickup->SetWeaponIdForTest(PickupWeaponRowName);
@@ -163,8 +155,7 @@ bool FShooterPickupRespawnGateCrossRespawnTest::RunTest(const FString& Parameter
  * SlotFull 拒绝不消费 Pickup：背包已满的玩家拾取失败后 Pickup 保持可见与可拾取，
  * 后续空背包玩家可以立即成功拾取同一 Pickup。
  */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterPickupRespawnGateSlotFullRetryTest,
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterPickupRespawnGateSlotFullRetryTest,
 	"ShootGame.Pickup.RespawnGate.SlotFullKeepsAvailable",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
@@ -187,8 +178,7 @@ bool FShooterPickupRespawnGateSlotFullRetryTest::RunTest(const FString& Paramete
 	}
 
 	AShooterWeaponPresentationTestPickup* Pickup = World->SpawnActor<AShooterWeaponPresentationTestPickup>(
-		FVector(0.0f, 0.0f, 100.0f),
-		FRotator::ZeroRotator);
+		FVector(0.0f, 0.0f, 100.0f), FRotator::ZeroRotator);
 	if (!TestNotNull(TEXT("Slot full test pickup spawned"), Pickup))
 	{
 		DestroyRespawnGateTestWorld(World);
@@ -204,8 +194,7 @@ bool FShooterPickupRespawnGateSlotFullRetryTest::RunTest(const FString& Paramete
 	}
 
 	// Pickup 只持有 WeaponId；两个玩家共享同一 World 级运行时快照。
-	const FName PickupWeaponRowName = AddTestWeaponRow(
-		GetOrInjectRuntimeTestTable(World),
+	const FName PickupWeaponRowName = AddTestWeaponRow(GetOrInjectRuntimeTestTable(World),
 		MakeTestWeaponRow(AShooterWeaponPresentationTestWeaponPrimary::StaticClass()));
 	World->GetSubsystem<UShooterWeaponRuntimeSubsystem>()->InitializeWeaponRuntimeForTest();
 	Pickup->SetWeaponIdForTest(PickupWeaponRowName);

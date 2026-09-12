@@ -6,12 +6,7 @@
 #include "GameFramework/GameStateBase.h"
 #include "ShooterGameState.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
-	FTeamScoreChangedDelegate,
-	uint8,
-	TeamId,
-	int32,
-	Score);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FTeamScoreChangedDelegate, uint8, TeamId, int32, Score);
 
 /**
  * 射击模式的全局比赛状态。

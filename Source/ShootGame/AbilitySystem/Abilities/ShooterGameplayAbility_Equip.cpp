@@ -72,18 +72,11 @@ bool UShooterGameplayAbility_Equip::CanActivateAbility(
 	// 不读取可能过期的 ActivationBlockedTags。权威端执行完整校验。
 	if (!AvatarActor->HasAuthority())
 	{
-		const UAbilitySystemComponent* AbilitySystemComponent =
-			ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
-		return AbilitySystemComponent &&
-			AbilitySystemComponent->GetAvatarActor() == AvatarActor;
+		const UAbilitySystemComponent* AbilitySystemComponent = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
+		return AbilitySystemComponent && AbilitySystemComponent->GetAvatarActor() == AvatarActor;
 	}
 
-	if (!Super::CanActivateAbility(
-		Handle,
-		ActorInfo,
-		SourceTags,
-		TargetTags,
-		OptionalRelevantTags))
+	if (!Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags))
 	{
 		return false;
 	}
@@ -92,18 +85,13 @@ bool UShooterGameplayAbility_Equip::CanActivateAbility(
 	return ResolveEquipTarget(ActorInfo, Weapon);
 }
 
-bool UShooterGameplayAbility_Equip::ResolveEquipTarget(
-	const FGameplayAbilityActorInfo* ActorInfo,
-	AShooterWeapon*& OutWeapon) const
+bool UShooterGameplayAbility_Equip::ResolveEquipTarget(const FGameplayAbilityActorInfo* ActorInfo, AShooterWeapon*& OutWeapon) const
 {
 	OutWeapon = nullptr;
 
-	const AShooterCharacter* Character = Cast<AShooterCharacter>(
-		ActorInfo ? ActorInfo->AvatarActor.Get() : nullptr);
-	const UAbilitySystemComponent* AbilitySystemComponent =
-		ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
-	if (!Character || !AbilitySystemComponent ||
-		AbilitySystemComponent->GetAvatarActor() != Character ||
+	const AShooterCharacter* Character = Cast<AShooterCharacter>(ActorInfo ? ActorInfo->AvatarActor.Get() : nullptr);
+	const UAbilitySystemComponent* AbilitySystemComponent =	ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
+	if (!Character || !AbilitySystemComponent || AbilitySystemComponent->GetAvatarActor() != Character ||
 		AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Dead))
 	{
 		return false;
@@ -117,11 +105,8 @@ bool UShooterGameplayAbility_Equip::ResolveEquipTarget(
 	}
 
 	// 按 Slot 顺序计算下一个合法 Actor；单武器或当前装备无效时明确拒绝。
-	AShooterWeapon* TargetWeapon = Inventory->FindNextWeapon(
-		Equipment->GetCurrentWeaponActor());
-	if (!IsValid(TargetWeapon) ||
-		TargetWeapon->GetOwner() != Character ||
-		TargetWeapon->IsActorBeingDestroyed() ||
+	AShooterWeapon* TargetWeapon = Inventory->FindNextWeapon(Equipment->GetCurrentWeaponActor());
+	if (!IsValid(TargetWeapon) || TargetWeapon->GetOwner() != Character || TargetWeapon->IsActorBeingDestroyed() ||
 		TargetWeapon == Equipment->GetCurrentWeaponActor())
 	{
 		return false;
@@ -151,8 +136,7 @@ void UShooterGameplayAbility_Equip::ActivateAbility(
 		return;
 	}
 
-	AShooterCharacter* Character = Cast<AShooterCharacter>(
-		GetShooterAvatarActor());
+	AShooterCharacter* Character = Cast<AShooterCharacter>(GetShooterAvatarActor());
 	UShooterEquipmentComponent* Equipment = Character
 		? Character->GetEquipmentComponent()
 		: nullptr;
@@ -165,50 +149,30 @@ void UShooterGameplayAbility_Equip::ActivateAbility(
 	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent =
 		Cast<UShooterAbilitySystemComponent>(ActorInfo->AbilitySystemComponent.Get()))
 	{
-		ShooterAbilitySystemComponent->CancelAbilitiesByTag(
-			ShooterGameplayTags::Input_Fire);
-		ShooterAbilitySystemComponent->CancelAbilitiesByTag(
-			ShooterGameplayTags::Input_Reload);
+		ShooterAbilitySystemComponent->CancelAbilitiesByTag(ShooterGameplayTags::Input_Fire);
+		ShooterAbilitySystemComponent->CancelAbilitiesByTag(ShooterGameplayTags::Input_Reload);
 	}
 
 	// 服务器事务时钟只来自目标 WeaponActor 配置；表现 Montage 不影响提交。
 	const float EquipDuration = FMath::Max(0.0f, TargetWeapon->GetEquipDuration());
-	UAbilityTask_WaitDelay* WaitTask = UAbilityTask_WaitDelay::WaitDelay(
-		this,
-		EquipDuration);
-	WaitTask->OnFinish.AddDynamic(
-		this,
-		&UShooterGameplayAbility_Equip::HandleEquipWaitFinished);
+	UAbilityTask_WaitDelay* WaitTask = UAbilityTask_WaitDelay::WaitDelay(this, EquipDuration);
+	WaitTask->OnFinish.AddDynamic(this, &UShooterGameplayAbility_Equip::HandleEquipWaitFinished);
 	EquipWaitTask = WaitTask;
 	WaitTask->ReadyForActivation();
 
-	UE_LOG(
-		LogShootGame,
-		Display,
-		TEXT("GA_Equip activated: Avatar=%s Target=%s TargetWeaponId=%s Duration=%.3f"),
-		*GetNameSafe(Character),
-		*GetNameSafe(TargetWeapon),
-		*TargetWeapon->GetWeaponId().ToString(),
-		EquipDuration);
+	UE_LOG(LogShootGame, Display, TEXT("GA_Equip activated: Avatar=%s Target=%s TargetWeaponId=%s Duration=%.3f"),
+		*GetNameSafe(Character), *GetNameSafe(TargetWeapon), *TargetWeapon->GetWeaponId().ToString(), EquipDuration);
 }
 
 bool UShooterGameplayAbility_Equip::IsEquipTargetStillValid() const
 {
-	const AShooterCharacter* Character = Cast<AShooterCharacter>(
-		GetShooterAvatarActor());
-	UShooterInventoryComponent* Inventory = Character
-		? Character->GetInventoryComponent()
-		: nullptr;
-	UShooterEquipmentComponent* Equipment = Character
-		? Character->GetEquipmentComponent()
-		: nullptr;
-	const UAbilitySystemComponent* AbilitySystemComponent =
-		Character ? Character->GetAbilitySystemComponent() : nullptr;
+	const AShooterCharacter* Character = Cast<AShooterCharacter>(GetShooterAvatarActor());
+	UShooterInventoryComponent* Inventory = Character ? Character->GetInventoryComponent() : nullptr;
+	UShooterEquipmentComponent* Equipment = Character ? Character->GetEquipmentComponent() : nullptr;
+	const UAbilitySystemComponent* AbilitySystemComponent = Character ? Character->GetAbilitySystemComponent() : nullptr;
 	if (!Character || !Inventory || !Equipment || !AbilitySystemComponent ||
-		AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Dead) ||
-		!CachedTargetWeapon.IsValid() ||
-		CachedTargetWeapon->IsActorBeingDestroyed() ||
-		CachedTargetWeapon->GetOwner() != Character ||
+		AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Dead) || !CachedTargetWeapon.IsValid() ||
+		CachedTargetWeapon->IsActorBeingDestroyed() || CachedTargetWeapon->GetOwner() != Character ||
 		!Inventory->ContainsWeapon(CachedTargetWeapon.Get()))
 	{
 		return false;
@@ -241,58 +205,27 @@ void UShooterGameplayAbility_Equip::HandleEquipWaitFinished()
 
 	if (!IsEquipTargetStillValid())
 	{
-		UE_LOG(
-			LogShootGame,
-			Display,
-			TEXT("GA_Equip commit aborted: target no longer valid Avatar=%s WeaponId=%s"),
-			*GetNameSafe(GetShooterAvatarActor()),
-			*CachedTargetWeapon->GetWeaponId().ToString());
-		EndAbility(
-			GetCurrentAbilitySpecHandle(),
-			GetCurrentActorInfo(),
-			GetCurrentActivationInfo(),
-			true,
-			true);
+		UE_LOG(LogShootGame, Display, TEXT("GA_Equip commit aborted: target no longer valid Avatar=%s WeaponId=%s"),
+			*GetNameSafe(GetShooterAvatarActor()), *CachedTargetWeapon->GetWeaponId().ToString());
+		EndAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), true, true);
 		return;
 	}
 
-	AShooterCharacter* Character = Cast<AShooterCharacter>(
-		GetShooterAvatarActor());
-	UShooterEquipmentComponent* Equipment = Character
-		? Character->GetEquipmentComponent()
-		: nullptr;
+	AShooterCharacter* Character = Cast<AShooterCharacter>(GetShooterAvatarActor());
+	UShooterEquipmentComponent* Equipment = Character ? Character->GetEquipmentComponent() : nullptr;
 	if (!Equipment || !Equipment->EquipWeapon(CachedTargetWeapon.Get()))
 	{
-		UE_LOG(
-			LogShootGame,
-			Warning,
-			TEXT("GA_Equip commit failed: Avatar=%s WeaponId=%s"),
-			*GetNameSafe(Character),
+		UE_LOG(LogShootGame, Warning, TEXT("GA_Equip commit failed: Avatar=%s WeaponId=%s"), *GetNameSafe(Character),
 			*CachedTargetWeapon->GetWeaponId().ToString());
-		EndAbility(
-			GetCurrentAbilitySpecHandle(),
-			GetCurrentActorInfo(),
-			GetCurrentActivationInfo(),
-			true,
-			true);
+		EndAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), true, true);
 		return;
 	}
 
 	bEquipCommitted = true;
-	UE_LOG(
-		LogShootGame,
-		Display,
-		TEXT("GA_Equip committed: Avatar=%s WeaponId=%s Weapon=%s"),
-		*GetNameSafe(Character),
-		*CachedTargetWeapon->GetWeaponId().ToString(),
-		*GetNameSafe(Character->GetCurrentWeapon()));
+	UE_LOG(LogShootGame, Display, TEXT("GA_Equip committed: Avatar=%s WeaponId=%s Weapon=%s"), *GetNameSafe(Character),
+		*CachedTargetWeapon->GetWeaponId().ToString(), *GetNameSafe(Character->GetCurrentWeapon()));
 
-	EndAbility(
-		GetCurrentAbilitySpecHandle(),
-		GetCurrentActorInfo(),
-		GetCurrentActivationInfo(),
-		true,
-		false);
+	EndAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), true, false);
 }
 
 void UShooterGameplayAbility_Equip::CleanupEquipTransaction()
@@ -317,17 +250,8 @@ void UShooterGameplayAbility_Equip::EndAbility(
 {
 	CleanupEquipTransaction();
 
-	Super::EndAbility(
-		Handle,
-		ActorInfo,
-		ActivationInfo,
-		bReplicateEndAbility,
-		bWasCancelled);
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 
-	UE_LOG(
-		LogShootGame,
-		Display,
-		TEXT("GA_Equip ended: Cancelled=%s Avatar=%s"),
-		bWasCancelled ? TEXT("true") : TEXT("false"),
-		*GetNameSafe(GetShooterAvatarActor()));
+	UE_LOG(LogShootGame, Display, TEXT("GA_Equip ended: Cancelled=%s Avatar=%s"),
+		bWasCancelled ? TEXT("true") : TEXT("false"), *GetNameSafe(GetShooterAvatarActor()));
 }

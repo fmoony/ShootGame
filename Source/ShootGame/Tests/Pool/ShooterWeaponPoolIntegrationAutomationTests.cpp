@@ -50,14 +50,10 @@ namespace ShooterWeaponPoolIntegrationAutomationTests
 		World->DestroyWorld(false);
 	}
 
-	AShooterWeaponPresentationTestCharacter* SpawnPoolIntegrationCharacter(
-		FAutomationTestBase& Test,
-		UWorld* World)
+	AShooterWeaponPresentationTestCharacter* SpawnPoolIntegrationCharacter(FAutomationTestBase& Test, UWorld* World)
 	{
-		AShooterWeaponPresentationTestCharacter* Character =
-			World->SpawnActor<AShooterWeaponPresentationTestCharacter>(
-				FVector::ZeroVector,
-				FRotator::ZeroRotator);
+		AShooterWeaponPresentationTestCharacter* Character = World->SpawnActor<AShooterWeaponPresentationTestCharacter>(
+				FVector::ZeroVector, FRotator::ZeroRotator);
 		if (!Test.TestNotNull(TEXT("Pool integration character spawned"), Character))
 		{
 			return nullptr;
@@ -73,9 +69,7 @@ namespace ShooterWeaponPoolIntegrationAutomationTests
 }
 
 /** 授予走运行时池 Acquire；移除走 Release；重新授予复用同一 Actor 且弹药复位。 */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterWeaponPoolGrantReuseTest,
-	"ShootGame.Pool.WeaponGrant.AcquireBindsAndReuses",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterWeaponPoolGrantReuseTest, "ShootGame.Pool.WeaponGrant.AcquireBindsAndReuses",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterWeaponPoolGrantReuseTest::RunTest(const FString& Parameters)
@@ -104,8 +98,7 @@ bool FShooterWeaponPoolGrantReuseTest::RunTest(const FString& Parameters)
 
 	UShooterInventoryComponent* Inventory = Character->GetInventoryComponent();
 	UShooterEquipmentComponent* Equipment = Character->GetEquipmentComponent();
-	if (!TestNotNull(TEXT("Character owns Inventory"), Inventory) ||
-		!TestNotNull(TEXT("Character owns Equipment"), Equipment))
+	if (!TestNotNull(TEXT("Character owns Inventory"), Inventory) || !TestNotNull(TEXT("Character owns Equipment"), Equipment))
 	{
 		DestroyPoolIntegrationTestWorld(World);
 		return false;
@@ -113,16 +106,11 @@ bool FShooterWeaponPoolGrantReuseTest::RunTest(const FString& Parameters)
 
 	// 第一次授予：弹匣 10 + 自动备弹 30。
 	EShooterInventoryAddResult AddResult = EShooterInventoryAddResult::NotAuthoritative;
-	AShooterWeapon* FirstWeapon = GrantTestWeapon(
-		World,
-		Inventory,
-		AShooterInventoryOrderTestWeapon::StaticClass(),
+	AShooterWeapon* FirstWeapon = GrantTestWeapon(World, Inventory, AShooterInventoryOrderTestWeapon::StaticClass(),
 		/*MagazineSize*/ 10,
 		/*InitialReserveAmmo*/ -1,
 		&AddResult);
-	TestEqual(
-		TEXT("First WeaponId grant succeeds"),
-		static_cast<int32>(AddResult),
+	TestEqual(TEXT("First WeaponId grant succeeds"), static_cast<int32>(AddResult),
 		static_cast<int32>(EShooterInventoryAddResult::Added));
 	if (!TestNotNull(TEXT("Granted WeaponActor exists"), FirstWeapon))
 	{
@@ -136,9 +124,7 @@ bool FShooterWeaponPoolGrantReuseTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("Granted WeaponActor is leased from the runtime"), Runtime->IsLeased(FirstWeapon));
 	TestFalse(TEXT("Granted WeaponActor is not sitting in the pool"), Runtime->IsPooled(FirstWeapon));
 	TestTrue(TEXT("Granted WeaponActor is owned by the character"), FirstWeapon->GetOwner() == Character);
-	TestEqual(
-		TEXT("Granted WeaponActor waits at Holstered"),
-		static_cast<int32>(FirstWeapon->GetLifecycleState()),
+	TestEqual(TEXT("Granted WeaponActor waits at Holstered"), static_cast<int32>(FirstWeapon->GetLifecycleState()),
 		static_cast<int32>(EShooterWeaponLifecycleState::Holstered));
 
 	// 装备后移除：Equipment 先清空当前装备，再把 Actor 归还池。
@@ -154,9 +140,7 @@ bool FShooterWeaponPoolGrantReuseTest::RunTest(const FString& Parameters)
 	TestFalse(TEXT("Removed WeaponActor is not destroyed while pooled"), FirstWeapon->IsActorBeingDestroyed());
 	TestNull(TEXT("Removed WeaponActor has no owner"), FirstWeapon->GetOwner());
 	TestTrue(TEXT("Removed WeaponActor is hidden"), FirstWeapon->IsHidden());
-	TestEqual(
-		TEXT("Removed WeaponActor returns to InPool"),
-		static_cast<int32>(FirstWeapon->GetLifecycleState()),
+	TestEqual(TEXT("Removed WeaponActor returns to InPool"), static_cast<int32>(FirstWeapon->GetLifecycleState()),
 		static_cast<int32>(EShooterWeaponLifecycleState::InPool));
 	TestFalse(TEXT("Remove unbinds the WeaponActor from Inventory"), Inventory->ContainsWeapon(FirstWeapon));
 
@@ -176,9 +160,7 @@ bool FShooterWeaponPoolGrantReuseTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("Reused WeaponActor rebinds the owner"), SecondWeapon->GetOwner() == Character);
 	TestEqual(TEXT("Reused WeaponActor restores the initial magazine"), SecondWeapon->GetBulletCount(), 10);
 	TestEqual(TEXT("Reused WeaponActor restores the initial reserve"), SecondWeapon->GetReserveAmmo(), 30);
-	TestEqual(
-		TEXT("Reused WeaponActor waits at Holstered"),
-		static_cast<int32>(SecondWeapon->GetLifecycleState()),
+	TestEqual(TEXT("Reused WeaponActor waits at Holstered"), static_cast<int32>(SecondWeapon->GetLifecycleState()),
 		static_cast<int32>(EShooterWeaponLifecycleState::Holstered));
 
 	// 复用后的武器必须能正常装备与开火前置判定。
@@ -191,8 +173,7 @@ bool FShooterWeaponPoolGrantReuseTest::RunTest(const FString& Parameters)
 }
 
 /** 拥有者销毁（断线 / teardown）把租出的 WeaponActor 归还池，而不是留下 PendingKill 引用。 */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterWeaponPoolOwnerDestroyedReleaseTest,
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterWeaponPoolOwnerDestroyedReleaseTest,
 	"ShootGame.Pool.WeaponRelease.OwnerDestroyReturnsWeaponToPool",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
@@ -221,8 +202,7 @@ bool FShooterWeaponPoolOwnerDestroyedReleaseTest::RunTest(const FString& Paramet
 	}
 
 	// 注入行并重建快照，使 OwnerDestroyWeapon 具备可租用的 Bucket。
-	const FName OwnerDestroyRow = AddTestWeaponRow(
-		GetOrInjectRuntimeTestTable(World),
+	const FName OwnerDestroyRow = AddTestWeaponRow(GetOrInjectRuntimeTestTable(World),
 		MakeTestWeaponRow(AShooterInventoryOrderTestWeapon::StaticClass()));
 	Runtime->InitializeWeaponRuntimeForTest();
 
@@ -246,16 +226,12 @@ bool FShooterWeaponPoolOwnerDestroyedReleaseTest::RunTest(const FString& Paramet
 	TestFalse(TEXT("Owner destruction is no longer leased"), Runtime->IsLeased(Weapon));
 	TestFalse(TEXT("Owner destruction does not destroy the pooled weapon"), Weapon->IsActorBeingDestroyed());
 	TestNull(TEXT("Pooled weapon loses its owner"), Weapon->GetOwner());
-	TestEqual(
-		TEXT("Pooled weapon returns to InPool"),
-		static_cast<int32>(Weapon->GetLifecycleState()),
+	TestEqual(TEXT("Pooled weapon returns to InPool"), static_cast<int32>(Weapon->GetLifecycleState()),
 		static_cast<int32>(EShooterWeaponLifecycleState::InPool));
 
 	// 非池出生（NPC 兼容路径 / 测试直接 Spawn）无法归还，必须保留原有销毁语义。
-	AShooterInventoryOrderTestWeapon* DirectlySpawned =
-		World->SpawnActor<AShooterInventoryOrderTestWeapon>(
-			FVector::ZeroVector,
-			FRotator::ZeroRotator);
+	AShooterInventoryOrderTestWeapon* DirectlySpawned = World->SpawnActor<AShooterInventoryOrderTestWeapon>(
+			FVector::ZeroVector, FRotator::ZeroRotator);
 	if (!TestNotNull(TEXT("Directly spawned weapon exists"), DirectlySpawned))
 	{
 		DestroyPoolIntegrationTestWorld(World);
@@ -271,8 +247,7 @@ bool FShooterWeaponPoolOwnerDestroyedReleaseTest::RunTest(const FString& Paramet
 }
 
 /** 死亡 / EndPlay 清理：ClearInventory 归还全部 WeaponActor 到对应 WeaponId Bucket。 */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterWeaponPoolDeathCleanupReleaseTest,
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterWeaponPoolDeathCleanupReleaseTest,
 	"ShootGame.Pool.WeaponRelease.DeathClearReturnsAllWeaponsToPool",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
@@ -302,28 +277,17 @@ bool FShooterWeaponPoolDeathCleanupReleaseTest::RunTest(const FString& Parameter
 
 	UShooterInventoryComponent* Inventory = Character->GetInventoryComponent();
 	UShooterEquipmentComponent* Equipment = Character->GetEquipmentComponent();
-	if (!TestNotNull(TEXT("Character owns Inventory"), Inventory) ||
-		!TestNotNull(TEXT("Character owns Equipment"), Equipment))
+	if (!TestNotNull(TEXT("Character owns Inventory"), Inventory) || !TestNotNull(TEXT("Character owns Equipment"), Equipment))
 	{
 		DestroyPoolIntegrationTestWorld(World);
 		return false;
 	}
 
 	EShooterInventoryAddResult AddResult = EShooterInventoryAddResult::NotAuthoritative;
-	AShooterWeapon* PrimaryWeapon = GrantTestWeapon(
-		World,
-		Inventory,
-		AShooterInventoryOrderTestWeapon::StaticClass(),
-		10,
-		-1,
-		&AddResult);
-	AShooterWeapon* SecondaryWeapon = GrantTestWeapon(
-		World,
-		Inventory,
-		AShooterWeaponPresentationTestWeaponPrimary::StaticClass(),
-		10,
-		-1,
-		&AddResult);
+	AShooterWeapon* PrimaryWeapon = GrantTestWeapon(World, Inventory, AShooterInventoryOrderTestWeapon::StaticClass(),
+		10, -1, &AddResult);
+	AShooterWeapon* SecondaryWeapon = GrantTestWeapon(World, Inventory,
+		AShooterWeaponPresentationTestWeaponPrimary::StaticClass(), 10, -1, &AddResult);
 	if (!TestNotNull(TEXT("Primary WeaponActor exists"), PrimaryWeapon) ||
 		!TestNotNull(TEXT("Secondary WeaponActor exists"), SecondaryWeapon))
 	{
@@ -350,8 +314,7 @@ bool FShooterWeaponPoolDeathCleanupReleaseTest::RunTest(const FString& Parameter
 
 	// 重复清理幂等：不重复归还，也不产生错误状态。
 	Inventory->ClearInventory();
-	TestTrue(
-		TEXT("Repeated death cleanup keeps both weapons pooled exactly once"),
+	TestTrue(TEXT("Repeated death cleanup keeps both weapons pooled exactly once"),
 		Runtime->IsPooled(PrimaryWeapon) && Runtime->IsPooled(SecondaryWeapon));
 	TestEqual(TEXT("Repeated death cleanup keeps Inventory empty"), Inventory->GetWeaponCount(), 0);
 

@@ -21,40 +21,28 @@ namespace ShooterWeaponTable
 		UDataTable* WeaponTable = LoadObject<UDataTable>(nullptr, *TablePath);
 		if (!WeaponTable)
 		{
-			UE_LOG(
-				LogShootGame,
-				Warning,
-				TEXT("Weapon table resolve failed: %s is missing"),
-				*TablePath);
+			UE_LOG(LogShootGame, Warning, TEXT("Weapon table resolve failed: %s is missing"), *TablePath);
 			return nullptr;
 		}
 
 		// 表结构不符时同样 fail closed，避免用错误的行结构解释武器配置。
 		if (WeaponTable->GetRowStruct() != FShooterWeaponConfigRow::StaticStruct())
 		{
-			UE_LOG(
-				LogShootGame,
-				Warning,
-				TEXT("Weapon table resolve failed: %s does not use FShooterWeaponConfigRow"),
-				*TablePath);
+			UE_LOG(LogShootGame, Warning, TEXT("Weapon table resolve failed: %s does not use FShooterWeaponConfigRow"), *TablePath);
 			return nullptr;
 		}
 
 		return WeaponTable;
 	}
 
-	const FShooterWeaponConfigRow* FindWeaponRow(
-		const UDataTable* WeaponTable,
-		FName WeaponId)
+	const FShooterWeaponConfigRow* FindWeaponRow(const UDataTable* WeaponTable, FName WeaponId)
 	{
 		if (!WeaponTable || WeaponId.IsNone())
 		{
 			return nullptr;
 		}
 
-		return WeaponTable->FindRow<FShooterWeaponConfigRow>(
-			WeaponId,
-			TEXT("ShooterWeaponTable"),
+		return WeaponTable->FindRow<FShooterWeaponConfigRow>(WeaponId, TEXT("ShooterWeaponTable"),
 			// 缺失行由调用方决定拒绝语义，这里不重复刷屏。
 			/*bWarnIfRowMissing=*/false);
 	}

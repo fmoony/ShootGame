@@ -21,20 +21,9 @@ class UShooterAimPresentationComponent;
 struct FInputActionValue;
 struct FOnAttributeChangeData;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(
-	FBulletCountUpdatedDelegate,
-	int32,
-	MagazineSize,
-	int32,
-	Bullets,
-	int32,
-	ReserveAmmo);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
-	FShooterWeaponPresentationChangedDelegate,
-	AShooterWeapon*,
-	PreviousWeapon,
-	AShooterWeapon*,
-	CurrentWeapon);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FBulletCountUpdatedDelegate, int32, MagazineSize, int32, Bullets, int32, ReserveAmmo);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FShooterWeaponPresentationChangedDelegate, AShooterWeapon*, PreviousWeapon,
+	AShooterWeapon*, CurrentWeapon);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDamagedDelegate, float, LifePercent);
 
 /**
@@ -228,19 +217,11 @@ public:
 	// ---- 权威开火目标与伤害入口 ----
 
 	/** 与权威开火共用的目标 Trace；可选输出仅供只读调试复用命中信息。 */
-	static FVector TracePreSpreadAimTarget(
-		UWorld* World,
-		const FVector& Start,
-		const FVector& End,
-		const AActor* IgnoredActor,
-		FHitResult* OutHit = nullptr,
-		bool* bOutPawnHit = nullptr);
+	static FVector TracePreSpreadAimTarget(UWorld* World, const FVector& Start, const FVector& End,
+		const AActor* IgnoredActor, FHitResult* OutHit = nullptr, bool* bOutPawnHit = nullptr);
 
 	/** Handle incoming damage */
-	virtual float TakeDamage(
-		float Damage,
-		struct FDamageEvent const& DamageEvent,
-		AController* EventInstigator,
+	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator,
 		AActor* DamageCauser) override;
 
 	// ---- Health 只读契约：ASC 读穿透 + 复制镜像 ----

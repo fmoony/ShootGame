@@ -73,10 +73,7 @@ private:
 	void ServerReportClientObservedProjectile();
 
 	UFUNCTION(Server, Reliable)
-	void ServerReportClientObservedSwitch(
-		AShooterWeapon* ActiveWeapon,
-		AShooterWeapon* CurrentWeapon,
-		bool bRemoteCurrentWeaponVisible);
+	void ServerReportClientObservedSwitch(AShooterWeapon* ActiveWeapon, AShooterWeapon* CurrentWeapon, bool bRemoteCurrentWeaponVisible);
 
 	UFUNCTION(Server, Reliable)
 	void ServerReportOwnerAmmoReplicated();
@@ -94,11 +91,7 @@ private:
 	void ServerReportClientObservedRespawn();
 
 	UFUNCTION(Server, Reliable)
-	void ServerReportClientObservedMatchState(
-		uint8 TeamId,
-		int32 Kills,
-		int32 Deaths,
-		int32 TeamScore);
+	void ServerReportClientObservedMatchState(uint8 TeamId, int32 Kills, int32 Deaths, int32 TeamScore);
 
 	UFUNCTION(Server, Reliable)
 	void ServerReportClientObservedRemoteAim(float PitchN, float ExpectedPitchN);
@@ -110,16 +103,11 @@ private:
 	void ServerReportClientObservedGasLifecycle();
 
 	UFUNCTION(Server, Reliable)
-	void ServerReportClientObservedFireAbilityGrant(
-		int32 OwnerFireSpecCount,
-		bool bRemoteFireSpecsHidden);
+	void ServerReportClientObservedFireAbilityGrant(int32 OwnerFireSpecCount, bool bRemoteFireSpecsHidden);
 
 	UFUNCTION(Server, Reliable)
-	void ServerReportClientObservedReloadEquipAbilityGrant(
-		int32 OwnerReloadSpecCount,
-		bool bRemoteReloadSpecsHidden,
-		int32 OwnerEquipSpecCount,
-		bool bRemoteEquipSpecsHidden);
+	void ServerReportClientObservedReloadEquipAbilityGrant(int32 OwnerReloadSpecCount, bool bRemoteReloadSpecsHidden,
+		int32 OwnerEquipSpecCount, bool bRemoteEquipSpecsHidden);
 
 	UFUNCTION(Server, Reliable)
 	void ServerReportClientTriggeredReload(int32 RequestId);
@@ -143,18 +131,14 @@ private:
 	void ServerReportFullAutoReleased(int32 BulletCountAfterRelease);
 
 	UFUNCTION(Server, Reliable)
-	void ServerReportClientObservedCancelSwitch(
-		AShooterWeapon* CurrentWeapon);
+	void ServerReportClientObservedCancelSwitch(AShooterWeapon* CurrentWeapon);
 
 	UFUNCTION(Server, Reliable)
 	void ServerReportClientObservedGasRespawn();
 
 	UFUNCTION(Server, Reliable)
-	void ServerReportClientObservedInventory(
-		int32 WeaponCount,
-		AShooterWeapon* ActiveWeapon,
-		bool bRemoteInventoryHidden,
-		bool bInventoryComponentInitialized);
+	void ServerReportClientObservedInventory(int32 WeaponCount, AShooterWeapon* ActiveWeapon,
+		bool bRemoteInventoryHidden, bool bInventoryComponentInitialized);
 
 	UFUNCTION(Server, Reliable)
 	void ServerReportClientObservedPickupAuthority();
@@ -187,10 +171,7 @@ private:
 	AController* GetOpponentController() const;
 
 	/** 5B 测试辅助：把指定 WeaponActor 的权威弹药直接设置为测试起点值。 */
-	bool SetReloadTestAmmo(
-		AShooterWeapon* Weapon,
-		int32 MagazineAmmo,
-		int32 ReserveAmmo);
+	bool SetReloadTestAmmo(AShooterWeapon* Weapon, int32 MagazineAmmo, int32 ReserveAmmo);
 
 	/** 5B 测试辅助：返回当前 PlayerState 是否有一个活动 GA_Fire。 */
 	bool HasActiveFireAbility(AShooterCharacter* Character) const;
@@ -546,16 +527,9 @@ private:
 	FAimTurnCsvPoseProbe AimTurnCsvObserverPoseProbe;
 
 	void RunAimTurnCsvFrame(float DeltaSeconds);
-	void CaptureAimTurnCsvSubject(
-		const TCHAR* SampleRole,
-		AShooterCharacter* Subject,
-		float PhaseTime,
-		float DeltaSeconds,
-		FAimTurnCsvPreviousSample& PreviousSample,
-		FAimTurnCsvPoseProbe& PoseProbe);
-	void EnsureAimTurnCsvPoseProbe(
-		AShooterCharacter* Subject,
-		FAimTurnCsvPoseProbe& PoseProbe);
+	void CaptureAimTurnCsvSubject(const TCHAR* SampleRole, AShooterCharacter* Subject, float PhaseTime,
+		float DeltaSeconds, FAimTurnCsvPreviousSample& PreviousSample, FAimTurnCsvPoseProbe& PoseProbe);
+	void EnsureAimTurnCsvPoseProbe(AShooterCharacter* Subject, FAimTurnCsvPoseProbe& PoseProbe);
 	void CaptureAimTurnCsvFinalizedPose(FAimTurnCsvPoseProbe* PoseProbe);
 	void UnregisterAimTurnCsvPoseProbe(FAimTurnCsvPoseProbe& PoseProbe);
 	void FlushAimTurnCsv();

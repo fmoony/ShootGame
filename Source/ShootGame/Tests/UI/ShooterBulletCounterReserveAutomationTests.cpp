@@ -42,9 +42,7 @@ namespace ShooterBulletCounterReserveAutomationTests
  * 有限备弹 HUD：真实 UI_ShooterBulletCounter 资产加载后，
  * 蓝图设计器中的备弹文本存在，且 UpdateBulletCounter 把 ReserveAmmo 写成数字。
  */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterBulletCounterReserveTextTest,
-	"ShootGame.UI.BulletCounter.ReserveText",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterBulletCounterReserveTextTest, "ShootGame.UI.BulletCounter.ReserveText",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterBulletCounterReserveTextTest::RunTest(const FString& Parameters)
@@ -57,8 +55,7 @@ bool FShooterBulletCounterReserveTextTest::RunTest(const FString& Parameters)
 		return false;
 	}
 
-	UClass* WidgetClass = LoadClass<UShooterBulletCounterUI>(
-		nullptr,
+	UClass* WidgetClass = LoadClass<UShooterBulletCounterUI>(nullptr,
 		TEXT("/Game/Shooter/Blueprints/UI/UI_ShooterBulletCounter.UI_ShooterBulletCounter_C"));
 	if (!TestNotNull(TEXT("UI_ShooterBulletCounter 资产可加载"), WidgetClass))
 	{
@@ -87,16 +84,10 @@ bool FShooterBulletCounterReserveTextTest::RunTest(const FString& Parameters)
 	TestNotNull(TEXT("蓝图备弹文本已挂接到设计器树"), ReserveText->GetParent());
 
 	Widget->UpdateBulletCounter(10, 3, 47);
-	TestEqual(
-		TEXT("蓝图备弹数字写入文本"),
-		ReserveText->GetText().ToString(),
-		FString(TEXT("47")));
+	TestEqual(TEXT("蓝图备弹数字写入文本"), ReserveText->GetText().ToString(), FString(TEXT("47")));
 
 	Widget->UpdateBulletCounter(10, 0, 0);
-	TestEqual(
-		TEXT("蓝图备弹耗尽归零"),
-		ReserveText->GetText().ToString(),
-		FString(TEXT("0")));
+	TestEqual(TEXT("蓝图备弹耗尽归零"), ReserveText->GetText().ToString(), FString(TEXT("0")));
 
 	DestroyReserveTestWorld(World);
 	return true;

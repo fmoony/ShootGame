@@ -13,21 +13,16 @@
  * R6.1 C++ 类型层次：第三/第一人称 AnimInstance 必须共享薄公共基类，
  * 第一人称专用数据不得上提到第三人称，公共基类也不得包含视角专用状态。
  */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterAnimInstanceHierarchyTest,
-	"ShootGame.Animation.InstanceHierarchy",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAnimInstanceHierarchyTest, "ShootGame.Animation.InstanceHierarchy",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterAnimInstanceHierarchyTest::RunTest(const FString& Parameters)
 {
-	TestTrue(
-		TEXT("AnimInstanceBase derives from UAnimInstance"),
+	TestTrue(TEXT("AnimInstanceBase derives from UAnimInstance"),
 		UShooterAnimInstanceBase::StaticClass()->IsChildOf(UAnimInstance::StaticClass()));
-	TestTrue(
-		TEXT("FirstPersonAnimInstance derives from AnimInstanceBase"),
+	TestTrue(TEXT("FirstPersonAnimInstance derives from AnimInstanceBase"),
 		UShooterFirstPersonAnimInstance::StaticClass()->IsChildOf(UShooterAnimInstanceBase::StaticClass()));
-	TestTrue(
-		TEXT("ThirdPersonAnimInstance derives from AnimInstanceBase"),
+	TestTrue(TEXT("ThirdPersonAnimInstance derives from AnimInstanceBase"),
 		UShooterThirdPersonAnimInstance::StaticClass()->IsChildOf(UShooterAnimInstanceBase::StaticClass()));
 
 	// 共享基类只承载两边都消费的值快照。
@@ -44,49 +39,34 @@ bool FShooterAnimInstanceHierarchyTest::RunTest(const FString& Parameters)
 	};
 	for (const TCHAR* PropertyName : SharedPropertyNames)
 	{
-		const FProperty* Property = FindFProperty<FProperty>(
-			UShooterAnimInstanceBase::StaticClass(),
-			PropertyName);
-		TestNotNull(
-			FString::Printf(TEXT("AnimInstanceBase exposes %s"), PropertyName),
-			Property);
+		const FProperty* Property = FindFProperty<FProperty>(UShooterAnimInstanceBase::StaticClass(), PropertyName);
+		TestNotNull(FString::Printf(TEXT("AnimInstanceBase exposes %s"), PropertyName), Property);
 	}
 
 	// 第一人称专用状态只在 FirstPerson 子类。
-	TestNotNull(
-		TEXT("FirstPersonAnimInstance exposes bFirstPersonDataValid"),
+	TestNotNull(TEXT("FirstPersonAnimInstance exposes bFirstPersonDataValid"),
 		FindFProperty<FBoolProperty>(UShooterFirstPersonAnimInstance::StaticClass(), TEXT("bFirstPersonDataValid")));
-	TestNull(
-		TEXT("FirstPerson validity is not leaked into shared base"),
+	TestNull(TEXT("FirstPerson validity is not leaked into shared base"),
 		FindFProperty<FProperty>(UShooterAnimInstanceBase::StaticClass(), TEXT("bFirstPersonDataValid")));
 
 	// 第三人称专用 Aim/LeftHand 数据仍只属于 ThirdPerson。
-	TestNotNull(
-		TEXT("ThirdPersonAnimInstance exposes AimDirectionWorld"),
+	TestNotNull(TEXT("ThirdPersonAnimInstance exposes AimDirectionWorld"),
 		FindFProperty<FProperty>(UShooterThirdPersonAnimInstance::StaticClass(), TEXT("AimDirectionWorld")));
-	TestNull(
-		TEXT("AimDirectionWorld is not leaked into shared base"),
+	TestNull(TEXT("AimDirectionWorld is not leaked into shared base"),
 		FindFProperty<FProperty>(UShooterAnimInstanceBase::StaticClass(), TEXT("AimDirectionWorld")));
-	TestNull(
-		TEXT("HandToMuzzle is not leaked into shared base"),
+	TestNull(TEXT("HandToMuzzle is not leaked into shared base"),
 		FindFProperty<FProperty>(UShooterAnimInstanceBase::StaticClass(), TEXT("HandToMuzzle")));
-	TestNotNull(
-		TEXT("ThirdPersonAnimInstance exposes AimPitchN"),
+	TestNotNull(TEXT("ThirdPersonAnimInstance exposes AimPitchN"),
 		FindFProperty<FProperty>(UShooterThirdPersonAnimInstance::StaticClass(), TEXT("AimPitchN")));
-	TestNotNull(
-		TEXT("ThirdPersonAnimInstance exposes MoveDirection"),
+	TestNotNull(TEXT("ThirdPersonAnimInstance exposes MoveDirection"),
 		FindFProperty<FProperty>(UShooterThirdPersonAnimInstance::StaticClass(), TEXT("MoveDirection")));
-	TestNotNull(
-		TEXT("ThirdPersonAnimInstance exposes bShouldMove"),
+	TestNotNull(TEXT("ThirdPersonAnimInstance exposes bShouldMove"),
 		FindFProperty<FBoolProperty>(UShooterThirdPersonAnimInstance::StaticClass(), TEXT("bShouldMove")));
-	TestNull(
-		TEXT("AimPitchN is not leaked into shared base"),
+	TestNull(TEXT("AimPitchN is not leaked into shared base"),
 		FindFProperty<FProperty>(UShooterAnimInstanceBase::StaticClass(), TEXT("AimPitchN")));
-	TestNull(
-		TEXT("MoveDirection is not leaked into shared base"),
+	TestNull(TEXT("MoveDirection is not leaked into shared base"),
 		FindFProperty<FProperty>(UShooterAnimInstanceBase::StaticClass(), TEXT("MoveDirection")));
-	TestNull(
-		TEXT("bShouldMove is not leaked into shared base"),
+	TestNull(TEXT("bShouldMove is not leaked into shared base"),
 		FindFProperty<FProperty>(UShooterAnimInstanceBase::StaticClass(), TEXT("bShouldMove")));
 
 	// 公共基类不得包含 RPC 或复制属性。
@@ -94,8 +74,7 @@ bool FShooterAnimInstanceHierarchyTest::RunTest(const FString& Parameters)
 	{
 		if (It->HasAnyFunctionFlags(FUNC_Net))
 		{
-			TestFalse(
-				FString::Printf(TEXT("AnimInstanceBase function %s must not be a net function"), *It->GetName()),
+			TestFalse(FString::Printf(TEXT("AnimInstanceBase function %s must not be a net function"), *It->GetName()),
 				true);
 		}
 	}

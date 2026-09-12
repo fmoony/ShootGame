@@ -26,11 +26,8 @@ public:
 	static void ApplyInitHealthEffect(UAbilitySystemComponent* AbilitySystemComponent, float MaxHealthValue);
 
 	/** 服务器：对目标 ASC 的 Health 施加伤害（SetByCaller）。 */
-	static void ApplyDamageEffect(
-		UAbilitySystemComponent* AbilitySystemComponent,
-		float Damage,
-		AController* Instigator,
-		AActor* DamageCauser);
+	static void ApplyDamageEffect(UAbilitySystemComponent* AbilitySystemComponent, float Damage,
+		AController* Instigator, AActor* DamageCauser);
 
 	/** SetByCaller 数据名：初始化时的 MaxHealth 值。 */
 	static FName GetMaxHealthSetByCallerDataName();

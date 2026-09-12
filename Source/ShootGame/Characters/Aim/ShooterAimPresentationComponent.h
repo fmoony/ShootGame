@@ -69,11 +69,8 @@ public:
 	 * 本地拥有者：OutAimDirectionWorld = BaseAimDirection，Target 无效；
 	 * 观察端（SimulatedProxy 或 Listen Server 观察远端 Pawn）：有效平滑目标才输出 Target。
 	 */
-	void ResolveAimPresentationInput(
-		FVector& OutAimDirectionWorld,
-		FVector& OutAimTargetWorld,
-		bool& bOutAimTargetWorldValid,
-		float MinimumTargetDistanceFromView = 150.0f) const;
+	void ResolveAimPresentationInput(FVector& OutAimDirectionWorld, FVector& OutAimTargetWorld,
+		bool& bOutAimTargetWorldValid, float MinimumTargetDistanceFromView = 150.0f) const;
 
 	/** 纯判定：PresentationAimTarget 是否可建立有效状态（有限且非零）。 */
 	static bool IsValidPresentationAimTargetValue(const FVector& Target);
@@ -89,11 +86,8 @@ public:
 		float KeepAliveInterval);
 
 	/** 纯判定：客户端提交的表现目标是否有限且位于允许的最大视距内。 */
-	static bool IsClientPresentationAimTargetWithinBounds(
-		const FVector& Target,
-		const FVector& ServerViewLocation,
-		float MaxDistance,
-		float DistanceTolerance);
+	static bool IsClientPresentationAimTargetWithinBounds(const FVector& Target, const FVector& ServerViewLocation,
+		float MaxDistance, float DistanceTolerance);
 
 	/** 16 位递增序号比较，支持回绕并拒绝重复/过期 Unreliable RPC。 */
 	static bool IsNewerPresentationAimSequence(uint16 Candidate, uint16 Previous);

@@ -52,8 +52,7 @@ bool UShooterEquipmentComponent::EquipWeapon(AShooterWeapon* TargetWeapon)
 	}
 
 	// 事务目标必须真实存在于 Inventory、绑定到本角色且不在池内。
-	if (!Inventory->ContainsWeapon(TargetWeapon) ||
-		TargetWeapon->GetOwner() != Character ||
+	if (!Inventory->ContainsWeapon(TargetWeapon) || TargetWeapon->GetOwner() != Character ||
 		TargetWeapon->IsActorBeingDestroyed() ||
 		TargetWeapon->GetLifecycleState() == EShooterWeaponLifecycleState::InPool)
 	{
@@ -85,13 +84,8 @@ bool UShooterEquipmentComponent::EquipWeapon(AShooterWeapon* TargetWeapon)
 	ResetAimPresentationForEquipChange();
 	Character->ForceNetUpdate();
 
-	UE_LOG(
-		LogShootGame,
-		Display,
-		TEXT("Equipment EquipWeapon committed: Actor=%s WeaponId=%s Weapon=%s"),
-		*GetNameSafe(Character),
-		*TargetWeapon->GetWeaponId().ToString(),
-		*GetNameSafe(TargetWeapon));
+	UE_LOG(LogShootGame, Display, TEXT("Equipment EquipWeapon committed: Actor=%s WeaponId=%s Weapon=%s"),
+		*GetNameSafe(Character), *TargetWeapon->GetWeaponId().ToString(), *GetNameSafe(TargetWeapon));
 	return true;
 }
 
@@ -123,11 +117,7 @@ void UShooterEquipmentComponent::ClearEquippedWeapon()
 		Character->ForceNetUpdate();
 	}
 
-	UE_LOG(
-		LogShootGame,
-		Display,
-		TEXT("Equipment ClearEquippedWeapon: Actor=%s"),
-		*GetNameSafe(GetOwner()));
+	UE_LOG(LogShootGame, Display, TEXT("Equipment ClearEquippedWeapon: Actor=%s"), *GetNameSafe(GetOwner()));
 }
 
 void UShooterEquipmentComponent::HandleWeaponActorReady(AShooterWeapon* Weapon)
@@ -177,9 +167,7 @@ UShooterInventoryComponent* UShooterEquipmentComponent::GetOwnerInventory() cons
 	return Character ? Character->GetInventoryComponent() : nullptr;
 }
 
-void UShooterEquipmentComponent::BroadcastEquippedWeaponChanged(
-	AShooterWeapon* PreviousWeapon,
-	AShooterWeapon* CurrentWeapon)
+void UShooterEquipmentComponent::BroadcastEquippedWeaponChanged(AShooterWeapon* PreviousWeapon, AShooterWeapon* CurrentWeapon)
 {
 	// E2 语义：只有 CurrentWeaponActor 真实转移才发布逻辑装备变化；
 	// Ready 补偿与 BeginPlay 回放不得进入这里。
@@ -213,17 +201,11 @@ void UShooterEquipmentComponent::OnRep_CurrentWeaponActor(AShooterWeapon* Previo
 		}
 	}
 
-	UE_LOG(
-		LogShootGame,
-		Display,
-		TEXT("Equipment CurrentWeaponActor replicated: Actor=%s Previous=%s Current=%s"),
-		*GetNameSafe(GetOwner()),
-		*GetNameSafe(PreviousWeapon),
-		*GetNameSafe(CurrentWeaponActor));
+	UE_LOG(LogShootGame, Display, TEXT("Equipment CurrentWeaponActor replicated: Actor=%s Previous=%s Current=%s"),
+		*GetNameSafe(GetOwner()), *GetNameSafe(PreviousWeapon), *GetNameSafe(CurrentWeaponActor));
 }
 
-void UShooterEquipmentComponent::GetLifetimeReplicatedProps(
-	TArray<FLifetimeProperty>& OutLifetimeProps) const
+void UShooterEquipmentComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 

@@ -113,12 +113,8 @@ public:
 
 	void ArmRefireTimerForTest()
 	{
-		GetWorld()->GetTimerManager().SetTimer(
-			RefireTimer,
-			this,
-			&AShooterWeaponLifecycleTestWeapon::FireCooldownExpired,
-			60.0f,
-			false);
+		GetWorld()->GetTimerManager().SetTimer(RefireTimer, this,
+			&AShooterWeaponLifecycleTestWeapon::FireCooldownExpired, 60.0f, false);
 	}
 
 	bool HasWeaponOwnerCacheForTest() const { return WeaponOwner != nullptr; }

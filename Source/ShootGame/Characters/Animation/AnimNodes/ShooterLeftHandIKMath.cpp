@@ -6,9 +6,7 @@ namespace
 {
 	bool IsFiniteVector(const FVector& Value)
 	{
-		return FMath::IsFinite(Value.X) &&
-			FMath::IsFinite(Value.Y) &&
-			FMath::IsFinite(Value.Z);
+		return FMath::IsFinite(Value.X) && FMath::IsFinite(Value.Y) && FMath::IsFinite(Value.Z);
 	}
 }
 
@@ -19,9 +17,7 @@ bool FShooterLeftHandIKMath::CalculateDesiredLeftHandTransform(
 	FTransform& OutDesiredLeftHandCS)
 {
 	OutDesiredLeftHandCS = FTransform::Identity;
-	if (!RightHandCS.IsValid() ||
-		!IsUsableFrame(WeaponGripInRightHandSpace) ||
-		!IsUsableFrame(HandGripInLeftHandSpace))
+	if (!RightHandCS.IsValid() || !IsUsableFrame(WeaponGripInRightHandSpace) || !IsUsableFrame(HandGripInLeftHandSpace))
 	{
 		return false;
 	}
@@ -33,16 +29,11 @@ bool FShooterLeftHandIKMath::CalculateDesiredLeftHandTransform(
 	return OutDesiredLeftHandCS.IsValid();
 }
 
-bool FShooterLeftHandIKMath::CalculateSourcePoleDirection(
-	const FVector& RootLocation,
-	const FVector& JointLocation,
-	const FVector& EndLocation,
-	FVector& OutPoleDirection)
+bool FShooterLeftHandIKMath::CalculateSourcePoleDirection(const FVector& RootLocation, const FVector& JointLocation,
+	const FVector& EndLocation, FVector& OutPoleDirection)
 {
 	OutPoleDirection = FVector::ZeroVector;
-	if (!IsFiniteVector(RootLocation) ||
-		!IsFiniteVector(JointLocation) ||
-		!IsFiniteVector(EndLocation))
+	if (!IsFiniteVector(RootLocation) || !IsFiniteVector(JointLocation) || !IsFiniteVector(EndLocation))
 	{
 		return false;
 	}
@@ -53,9 +44,7 @@ bool FShooterLeftHandIKMath::CalculateSourcePoleDirection(
 		return false;
 	}
 
-	OutPoleDirection = FVector::VectorPlaneProject(
-		JointLocation - RootLocation,
-		SourceEndDirection);
+	OutPoleDirection = FVector::VectorPlaneProject(JointLocation - RootLocation, SourceEndDirection);
 	return OutPoleDirection.Normalize();
 }
 
@@ -70,9 +59,7 @@ bool FShooterLeftHandIKMath::CalculateCurrentPoseJointTarget(
 {
 	OutJointTarget = JointLocation;
 	OutPoleDirection = FVector::ZeroVector;
-	if (!IsFiniteVector(RootLocation) ||
-		!IsFiniteVector(JointLocation) ||
-		!IsFiniteVector(EffectorLocation) ||
+	if (!IsFiniteVector(RootLocation) || !IsFiniteVector(JointLocation) || !IsFiniteVector(EffectorLocation) ||
 		!IsFiniteVector(PreviousPoleDirection))
 	{
 		return false;
@@ -95,9 +82,7 @@ bool FShooterLeftHandIKMath::CalculateCurrentPoseJointTarget(
 	}
 	else
 	{
-		FVector PreviousOnPlane = FVector::VectorPlaneProject(
-			PreviousPoleDirection,
-			DesiredDirection);
+		FVector PreviousOnPlane = FVector::VectorPlaneProject(PreviousPoleDirection, DesiredDirection);
 		if (PreviousOnPlane.Normalize())
 		{
 			CurrentBend = PreviousOnPlane;
@@ -109,8 +94,7 @@ bool FShooterLeftHandIKMath::CalculateCurrentPoseJointTarget(
 	}
 
 	const float JointAxisDistance = FVector::DotProduct(SourceJointDelta, DesiredDirection);
-	OutJointTarget = RootLocation +
-		DesiredDirection * JointAxisDistance +
+	OutJointTarget = RootLocation + DesiredDirection * JointAxisDistance +
 		CurrentBend * FMath::Max(CurrentLateralOffset, StablePoleOffset);
 	OutPoleDirection = CurrentBend;
 	return IsFiniteVector(OutJointTarget) && IsFiniteVector(OutPoleDirection);
@@ -128,11 +112,8 @@ bool FShooterLeftHandIKMath::CalculateLockedJointTarget(
 {
 	OutJointTarget = JointLocation;
 	OutPoleDirection = FVector::ZeroVector;
-	if (!IsFiniteVector(RootLocation) ||
-		!IsFiniteVector(JointLocation) ||
-		!IsFiniteVector(EffectorLocation) ||
-		!IsFiniteVector(PreferredPoleDirection) ||
-		!IsFiniteVector(PreviousPoleDirection))
+	if (!IsFiniteVector(RootLocation) || !IsFiniteVector(JointLocation) || !IsFiniteVector(EffectorLocation) ||
+		!IsFiniteVector(PreferredPoleDirection) || !IsFiniteVector(PreviousPoleDirection))
 	{
 		return false;
 	}
@@ -143,14 +124,10 @@ bool FShooterLeftHandIKMath::CalculateLockedJointTarget(
 		return false;
 	}
 
-	FVector PreviousOnPlane = FVector::VectorPlaneProject(
-		PreviousPoleDirection,
-		DesiredDirection);
+	FVector PreviousOnPlane = FVector::VectorPlaneProject(PreviousPoleDirection, DesiredDirection);
 	PreviousOnPlane.Normalize();
 
-	FVector DesiredBend = FVector::VectorPlaneProject(
-		PreferredPoleDirection,
-		DesiredDirection);
+	FVector DesiredBend = FVector::VectorPlaneProject(PreferredPoleDirection, DesiredDirection);
 	if (!DesiredBend.Normalize())
 	{
 		// 共线区内优先延续上一帧 Pole；没有历史时才 fail-soft。
@@ -160,24 +137,17 @@ bool FShooterLeftHandIKMath::CalculateLockedJointTarget(
 		}
 		DesiredBend = PreviousOnPlane;
 	}
-	else if (!PreviousOnPlane.IsNearlyZero() &&
-		FVector::DotProduct(DesiredBend, PreviousOnPlane) < 0.0f)
+	else if (!PreviousOnPlane.IsNearlyZero() && FVector::DotProduct(DesiredBend, PreviousOnPlane) < 0.0f)
 	{
 		// 投影越过奇异点后会自然反号；锁定上一帧半球阻止肘部换边。
 		DesiredBend *= -1.0f;
 	}
 
 	const FVector SourceJointDelta = JointLocation - RootLocation;
-	const float CurrentLateralOffset = FVector::VectorPlaneProject(
-		SourceJointDelta,
-		DesiredDirection).Size();
-	const float PoleOffset = FMath::Max(
-		CurrentLateralOffset,
-		FMath::Max(MinimumPoleOffset, 0.01f));
+	const float CurrentLateralOffset = FVector::VectorPlaneProject(SourceJointDelta, DesiredDirection).Size();
+	const float PoleOffset = FMath::Max(CurrentLateralOffset, FMath::Max(MinimumPoleOffset, 0.01f));
 	const float JointAxisDistance = FVector::DotProduct(SourceJointDelta, DesiredDirection);
-	OutJointTarget = RootLocation +
-		DesiredDirection * JointAxisDistance +
-		DesiredBend * PoleOffset;
+	OutJointTarget = RootLocation + DesiredDirection * JointAxisDistance + DesiredBend * PoleOffset;
 	OutPoleDirection = DesiredBend;
 	return IsFiniteVector(OutJointTarget) && IsFiniteVector(OutPoleDirection);
 }
@@ -186,8 +156,5 @@ bool FShooterLeftHandIKMath::IsUsableFrame(const FTransform& Transform)
 {
 	// 只查真正的非法数值 / 旋转 / Scale，不比较 Identity；
 	// Identity 是否可消费由上层 Binding.State == Ready 决定。
-	return Transform.IsValid() &&
-		Transform.GetScale3D().X > 0.0f &&
-		Transform.GetScale3D().Y > 0.0f &&
-		Transform.GetScale3D().Z > 0.0f;
+	return Transform.IsValid() && Transform.GetScale3D().X > 0.0f && Transform.GetScale3D().Y > 0.0f && Transform.GetScale3D().Z > 0.0f;
 }

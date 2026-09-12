@@ -31,8 +31,7 @@ void AShooterGameMode::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
 
-	if (AShooterPlayerState* ShooterPlayerState =
-		NewPlayer ? NewPlayer->GetPlayerState<AShooterPlayerState>() : nullptr)
+	if (AShooterPlayerState* ShooterPlayerState = NewPlayer ? NewPlayer->GetPlayerState<AShooterPlayerState>() : nullptr)
 	{
 		const int32 JoinedPlayerIndex = FMath::Max(0, GetNumPlayers() - 1);
 		ShooterPlayerState->SetTeamId(static_cast<uint8>(JoinedPlayerIndex % 2));
@@ -56,10 +55,8 @@ void AShooterGameMode::PostLogin(APlayerController* NewPlayer)
 		FActorSpawnParameters SpawnParameters;
 		SpawnParameters.Owner = NewPlayer;
 		SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		GetWorld()->SpawnActor<AShooterNetworkTestCoordinator>(
-			AShooterNetworkTestCoordinator::StaticClass(),
-			FTransform::Identity,
-			SpawnParameters);
+		GetWorld()->SpawnActor<AShooterNetworkTestCoordinator>(AShooterNetworkTestCoordinator::StaticClass(),
+			FTransform::Identity, SpawnParameters);
 	}
 #endif
 }
@@ -67,12 +64,8 @@ void AShooterGameMode::PostLogin(APlayerController* NewPlayer)
 void AShooterGameMode::Logout(AController* Exiting)
 {
 #if WITH_DEV_AUTOMATION_TESTS
-	const bool bRunDisconnectTest = FParse::Param(
-		FCommandLine::Get(),
-		TEXT("ShootGameDisconnectTest"));
-	const bool bRunEquipDisconnectTest = FParse::Param(
-		FCommandLine::Get(),
-		TEXT("ShootGameDisconnectEquip"));
+	const bool bRunDisconnectTest = FParse::Param(FCommandLine::Get(), TEXT("ShootGameDisconnectTest"));
+	const bool bRunEquipDisconnectTest = FParse::Param(FCommandLine::Get(), TEXT("ShootGameDisconnectEquip"));
 #endif
 
 	TWeakObjectPtr<AController> DisconnectController = Exiting;
@@ -84,9 +77,7 @@ void AShooterGameMode::Logout(AController* Exiting)
 		TWeakObjectPtr<UWorld> TestWorld = GetWorld();
 		FTimerHandle DisconnectCheckTimer;
 		// 5B：等待 0.5 秒让 Pawn EndPlay 完成 GA_Reload 取消后再检查，避免断线下一帧误报。
-		GetWorldTimerManager().SetTimer(
-			DisconnectCheckTimer,
-			FTimerDelegate::CreateLambda(
+		GetWorldTimerManager().SetTimer(DisconnectCheckTimer, FTimerDelegate::CreateLambda(
 				[TestWorld, DisconnectController, bRunEquipDisconnectTest]()
 				{
 				if (!TestWorld.IsValid())
@@ -98,8 +89,7 @@ void AShooterGameMode::Logout(AController* Exiting)
 				int32 PooledWeaponCount = 0;
 				int32 DirtyPooledWeaponCount = 0;
 				int32 OrphanWeaponCount = 0;
-				const UShooterWeaponRuntimeSubsystem* WeaponRuntime =
-					TestWorld->GetSubsystem<UShooterWeaponRuntimeSubsystem>();
+				const UShooterWeaponRuntimeSubsystem* WeaponRuntime = TestWorld->GetSubsystem<UShooterWeaponRuntimeSubsystem>();
 				for (TActorIterator<AShooterWeapon> It(TestWorld.Get()); It; ++It)
 				{
 					if (It->IsActorBeingDestroyed())
@@ -117,20 +107,14 @@ void AShooterGameMode::Logout(AController* Exiting)
 						// 归还池的 Actor 必须处于干净的可复用状态，
 						// 否则下一次 Acquire 会把断线玩家的残留身份 / 表现串给后续玩家。
 						// 注意：WeaponId 与静态配置在新模型下永久保留，不属于残留状态。
-						const bool bHasResidualState =
-							It->GetOwner() != nullptr ||
-							!It->IsHidden() ||
+						const bool bHasResidualState = It->GetOwner() != nullptr || !It->IsHidden() ||
 							It->GetLifecycleState() != EShooterWeaponLifecycleState::InPool;
 						if (bHasResidualState)
 						{
 							++DirtyPooledWeaponCount;
-							UE_LOG(
-								LogShootGame,
-								Error,
+							UE_LOG(LogShootGame, Error,
 								TEXT("Pooled WeaponActor carries residual state: Weapon=%s WeaponId=%s Owner=%s Hidden=%s Lifecycle=%d"),
-								*GetNameSafe(*It),
-								*It->GetWeaponId().ToString(),
-								*GetNameSafe(It->GetOwner()),
+								*GetNameSafe(*It), *It->GetWeaponId().ToString(), *GetNameSafe(It->GetOwner()),
 								It->IsHidden() ? TEXT("true") : TEXT("false"),
 								static_cast<int32>(It->GetLifecycleState()));
 						}
@@ -158,10 +142,8 @@ void AShooterGameMode::Logout(AController* Exiting)
 				AShooterPlayerState* DisconnectedPlayerState = DisconnectController.IsValid()
 					? DisconnectController->GetPlayerState<AShooterPlayerState>()
 					: nullptr;
-				UShooterAbilitySystemComponent* ShooterAbilitySystemComponent =
-					DisconnectedPlayerState
-						? Cast<UShooterAbilitySystemComponent>(
-							DisconnectedPlayerState->GetAbilitySystemComponent())
+				UShooterAbilitySystemComponent* ShooterAbilitySystemComponent = DisconnectedPlayerState
+						? Cast<UShooterAbilitySystemComponent>(DisconnectedPlayerState->GetAbilitySystemComponent())
 						: nullptr;
 				if (ShooterAbilitySystemComponent)
 				{
@@ -169,13 +151,11 @@ void AShooterGameMode::Logout(AController* Exiting)
 						DisconnectedPlayerState->GetReloadAbilityClass());
 					ActiveEquipAbilityCount += ShooterAbilitySystemComponent->GetActiveAbilityCountForClass(
 						DisconnectedPlayerState->GetEquipAbilityClass());
-					if (ShooterAbilitySystemComponent->HasMatchingGameplayTag(
-						ShooterGameplayTags::State_Reloading))
+					if (ShooterAbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading))
 					{
 						++ReloadingTagCount;
 					}
-					if (ShooterAbilitySystemComponent->HasMatchingGameplayTag(
-						ShooterGameplayTags::State_Equipping))
+					if (ShooterAbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Equipping))
 					{
 						++EquippingTagCount;
 					}
@@ -185,52 +165,29 @@ void AShooterGameMode::Logout(AController* Exiting)
 					ActiveReloadAbilityCount > 0 || ReloadingTagCount > 0 ||
 					ActiveEquipAbilityCount > 0 || EquippingTagCount > 0)
 				{
-					UE_LOG(
-						LogShootGame,
-						Error,
+					UE_LOG(LogShootGame, Error,
 						TEXT("AUTOMATION_TEST_FAILURE: Disconnect left invalid weapon ownership Active=%d Pooled=%d DirtyPooled=%d Orphans=%d ActiveReload=%d ReloadingTags=%d ActiveEquip=%d EquippingTags=%d"),
-						ActiveWeaponCount,
-						PooledWeaponCount,
-						DirtyPooledWeaponCount,
-						OrphanWeaponCount,
-						ActiveReloadAbilityCount,
-						ReloadingTagCount,
-						ActiveEquipAbilityCount,
-						EquippingTagCount);
+						ActiveWeaponCount, PooledWeaponCount, DirtyPooledWeaponCount, OrphanWeaponCount, ActiveReloadAbilityCount,
+						ReloadingTagCount, ActiveEquipAbilityCount, EquippingTagCount);
 					return;
 				}
 
 				if (bRunEquipDisconnectTest)
 				{
-					UE_LOG(
-						LogShootGame,
-						Display,
+					UE_LOG(LogShootGame, Display,
 						TEXT("AUTOMATION_TEST_EQUIP_CLEANUP_SUCCESS Kind=Disconnect ActiveWeapons=%d PooledWeapons=%d DirtyPooled=%d Orphans=%d ActiveEquip=%d EquippingTags=%d"),
-						ActiveWeaponCount,
-						PooledWeaponCount,
-						DirtyPooledWeaponCount,
-						OrphanWeaponCount,
-						ActiveEquipAbilityCount,
+						ActiveWeaponCount, PooledWeaponCount, DirtyPooledWeaponCount, OrphanWeaponCount, ActiveEquipAbilityCount,
 						EquippingTagCount);
 				}
 				else
 				{
-					UE_LOG(
-						LogShootGame,
-						Display,
+					UE_LOG(LogShootGame, Display,
 						TEXT("AUTOMATION_TEST_DISCONNECT_SUCCESS ActiveWeapons=%d PooledWeapons=%d DirtyPooled=%d Orphans=%d ActiveReload=%d ReloadingTags=%d ActiveEquip=%d EquippingTags=%d"),
-						ActiveWeaponCount,
-						PooledWeaponCount,
-						DirtyPooledWeaponCount,
-						OrphanWeaponCount,
-						ActiveReloadAbilityCount,
-						ReloadingTagCount,
-						ActiveEquipAbilityCount,
-						EquippingTagCount);
+						ActiveWeaponCount, PooledWeaponCount, DirtyPooledWeaponCount, OrphanWeaponCount, ActiveReloadAbilityCount,
+						ReloadingTagCount, ActiveEquipAbilityCount, EquippingTagCount);
 				}
 				}),
-			0.5f,
-			false);
+			0.5f, false);
 	}
 #endif
 }

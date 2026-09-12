@@ -50,8 +50,7 @@ void AShooterPlayerState::BindHealthAttributeDelegate()
 
 	// 绑定在 PlayerState（ASC 的持久宿主）上，跨角色重生保持有效：
 	// 服务器用于死亡桥接，拥有者客户端用于 HUD 事件链。
-	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
-		UShooterAttributeSet::GetHealthAttribute())
+	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UShooterAttributeSet::GetHealthAttribute())
 		.AddUObject(this, &AShooterPlayerState::HandleHealthAttributeChanged);
 	bHealthAttributeDelegateBound = true;
 }
@@ -63,8 +62,7 @@ void AShooterPlayerState::HandleHealthAttributeChanged(const FOnAttributeChangeD
 		return;
 	}
 
-	if (AShooterCharacter* AvatarCharacter =
-		Cast<AShooterCharacter>(AbilitySystemComponent->GetAvatarActor()))
+	if (AShooterCharacter* AvatarCharacter = Cast<AShooterCharacter>(AbilitySystemComponent->GetAvatarActor()))
 	{
 		AvatarCharacter->HandleHealthAttributeChanged(ChangeData);
 	}
@@ -94,11 +92,9 @@ void AShooterPlayerState::GrantFireAbility()
 		return;
 	}
 
-	const FGameplayAbilitySpec FireAbilitySpec(
-		FireAbilityClass,
+	const FGameplayAbilitySpec FireAbilitySpec(FireAbilityClass,
 		/*AbilityLevel*/1,
-		INDEX_NONE,
-		this);
+		INDEX_NONE, this);
 	AbilitySystemComponent->GiveAbility(FireAbilitySpec);
 }
 
@@ -154,17 +150,14 @@ int32 AShooterPlayerState::GetEquipAbilitySpecCount() const
 
 void AShooterPlayerState::GrantAbilityIfMissing(TSubclassOf<UGameplayAbility> AbilityClass)
 {
-	if (!AbilityClass || !AbilitySystemComponent ||
-		AbilitySystemComponent->FindAbilitySpecFromClass(AbilityClass))
+	if (!AbilityClass || !AbilitySystemComponent || AbilitySystemComponent->FindAbilitySpecFromClass(AbilityClass))
 	{
 		return;
 	}
 
-	const FGameplayAbilitySpec AbilitySpec(
-		AbilityClass,
+	const FGameplayAbilitySpec AbilitySpec(AbilityClass,
 		/*AbilityLevel*/1,
-		INDEX_NONE,
-		this);
+		INDEX_NONE, this);
 	AbilitySystemComponent->GiveAbility(AbilitySpec);
 }
 
@@ -214,8 +207,7 @@ void AShooterPlayerState::OnRep_CombatStats()
 	OnCombatStatsChanged.Broadcast(Kills, Deaths, GetScore());
 }
 
-void AShooterPlayerState::GetLifetimeReplicatedProps(
-	TArray<FLifetimeProperty>& OutLifetimeProps) const
+void AShooterPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AShooterPlayerState, TeamId);

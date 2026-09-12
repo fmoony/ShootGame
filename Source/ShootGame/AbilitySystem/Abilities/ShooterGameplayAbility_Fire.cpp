@@ -79,18 +79,11 @@ bool UShooterGameplayAbility_Fire::CanActivateAbility(
 	// 权威端仍执行 Super + 武器 / 弹药 / 死亡完整校验，非法请求由服务器拒绝。
 	if (!AvatarActor->HasAuthority())
 	{
-		const UAbilitySystemComponent* AbilitySystemComponent =
-			ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
-		return AbilitySystemComponent &&
-			AbilitySystemComponent->GetAvatarActor() == AvatarActor;
+		const UAbilitySystemComponent* AbilitySystemComponent = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
+		return AbilitySystemComponent && AbilitySystemComponent->GetAvatarActor() == AvatarActor;
 	}
 
-	if (!Super::CanActivateAbility(
-		Handle,
-		ActorInfo,
-		SourceTags,
-		TargetTags,
-		OptionalRelevantTags))
+	if (!Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags))
 	{
 		return false;
 	}
@@ -98,20 +91,12 @@ bool UShooterGameplayAbility_Fire::CanActivateAbility(
 	// 服务器完整校验：Avatar 必须是 ASC 当前 Avatar、State.Dead 未挂载、
 	// 当前 WeaponActor 有效且属于该 Avatar，并且存在可消耗弹药。
 	// 死亡判断统一使用 ASC Tag，不再 Cast Character/NPC 读各自 IsDead()。
-	const UAbilitySystemComponent* AbilitySystemComponent =
-		ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
-	const AShooterWeapon* Weapon = GetCurrentWeaponForAvatar(
-		const_cast<AActor*>(AvatarActor));
-	const bool bDead = AbilitySystemComponent &&
-		AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Dead);
+	const UAbilitySystemComponent* AbilitySystemComponent = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
+	const AShooterWeapon* Weapon = GetCurrentWeaponForAvatar(const_cast<AActor*>(AvatarActor));
+	const bool bDead = AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Dead);
 
-	return AbilitySystemComponent &&
-		AbilitySystemComponent->GetAvatarActor() == AvatarActor &&
-		!bDead &&
-		IsValid(Weapon) &&
-		Weapon->GetOwner() == AvatarActor &&
-		!Weapon->IsHidden() &&
-		Weapon->CanConsumeAmmo();
+	return AbilitySystemComponent && AbilitySystemComponent->GetAvatarActor() == AvatarActor && !bDead && IsValid(Weapon) &&
+		Weapon->GetOwner() == AvatarActor && !Weapon->IsHidden() && Weapon->CanConsumeAmmo();
 }
 
 void UShooterGameplayAbility_Fire::ActivateAbility(
@@ -128,38 +113,25 @@ void UShooterGameplayAbility_Fire::ActivateAbility(
 	}
 
 	AActor* AvatarActor = ActorInfo ? ActorInfo->AvatarActor.Get() : nullptr;
-	UAbilitySystemComponent* AbilitySystemComponent =
-		ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
+	UAbilitySystemComponent* AbilitySystemComponent = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
 	AShooterWeapon* Weapon = GetCurrentWeaponForAvatar(AvatarActor);
-	const bool bDead = AbilitySystemComponent &&
-		AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Dead);
-	if (!AvatarActor || bDead || !IsValid(Weapon) ||
-		Weapon->GetOwner() != AvatarActor || Weapon->IsHidden() ||
-		!Weapon->CanConsumeAmmo())
+	const bool bDead = AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Dead);
+	if (!AvatarActor || bDead || !IsValid(Weapon) || Weapon->GetOwner() != AvatarActor || Weapon->IsHidden() || !Weapon->CanConsumeAmmo())
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
 
 	CachedWeapon = Weapon;
-	Weapon->OnOutOfAmmo.AddUObject(
-		this,
-		&UShooterGameplayAbility_Fire::HandleWeaponOutOfAmmo);
+	Weapon->OnOutOfAmmo.AddUObject(this, &UShooterGameplayAbility_Fire::HandleWeaponOutOfAmmo);
 	Weapon->StartFiring();
 
-	UE_LOG(
-		LogShootGame,
-		Display,
-		TEXT("GA_Fire activated: Avatar=%s Weapon=%s Ammo=%d"),
-		*GetNameSafe(AvatarActor),
-		*GetNameSafe(Weapon),
-		Weapon->GetBulletCount());
+	UE_LOG(LogShootGame, Display, TEXT("GA_Fire activated: Avatar=%s Weapon=%s Ammo=%d"), *GetNameSafe(AvatarActor),
+		*GetNameSafe(Weapon), Weapon->GetBulletCount());
 }
 
-void UShooterGameplayAbility_Fire::InputReleased(
-	const FGameplayAbilitySpecHandle Handle,
-	const FGameplayAbilityActorInfo* ActorInfo,
-	const FGameplayAbilityActivationInfo ActivationInfo)
+void UShooterGameplayAbility_Fire::InputReleased(const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 {
 	// 客户端本地没有 ServerOnly Ability 实例；本方法只会在服务器收到释放 RPC 后执行。
 	if (HasAuthority(&ActivationInfo))
@@ -183,19 +155,10 @@ void UShooterGameplayAbility_Fire::EndAbility(
 		CachedWeapon.Reset();
 	}
 
-	Super::EndAbility(
-		Handle,
-		ActorInfo,
-		ActivationInfo,
-		bReplicateEndAbility,
-		bWasCancelled);
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 
-	UE_LOG(
-		LogShootGame,
-		Display,
-		TEXT("GA_Fire ended: Cancelled=%s Avatar=%s"),
-		bWasCancelled ? TEXT("true") : TEXT("false"),
-		*GetNameSafe(GetShooterAvatarActor()));
+	UE_LOG(LogShootGame, Display, TEXT("GA_Fire ended: Cancelled=%s Avatar=%s"),
+		bWasCancelled ? TEXT("true") : TEXT("false"), *GetNameSafe(GetShooterAvatarActor()));
 }
 
 void UShooterGameplayAbility_Fire::StopWeaponAndEndAbility()
@@ -205,12 +168,7 @@ void UShooterGameplayAbility_Fire::StopWeaponAndEndAbility()
 		CachedWeapon->StopFiring();
 	}
 
-	EndAbility(
-		GetCurrentAbilitySpecHandle(),
-		GetCurrentActorInfo(),
-		GetCurrentActivationInfo(),
-		true,
-		false);
+	EndAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), true, false);
 }
 
 void UShooterGameplayAbility_Fire::HandleWeaponOutOfAmmo(AShooterWeapon* Weapon)
@@ -221,16 +179,10 @@ void UShooterGameplayAbility_Fire::HandleWeaponOutOfAmmo(AShooterWeapon* Weapon)
 	}
 
 	// Weapon 已自行 StopFiring；这里只结束 Ability 并移除 State.Firing。
-	EndAbility(
-		GetCurrentAbilitySpecHandle(),
-		GetCurrentActorInfo(),
-		GetCurrentActivationInfo(),
-		true,
-		false);
+	EndAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), true, false);
 }
 
-AShooterWeapon* UShooterGameplayAbility_Fire::GetCurrentWeaponForAvatar(
-	AActor* AvatarActor) const
+AShooterWeapon* UShooterGameplayAbility_Fire::GetCurrentWeaponForAvatar(AActor* AvatarActor) const
 {
 	// 玩家优先走 EquipmentComponent；NPC 尚无 Equipment 时保留最小 IShooterWeaponHolder 回退。
 	if (AShooterCharacter* Character = Cast<AShooterCharacter>(AvatarActor))
@@ -247,7 +199,6 @@ AShooterWeapon* UShooterGameplayAbility_Fire::GetCurrentWeaponForAvatar(
 		return Character->GetCurrentWeapon();
 	}
 
-	const IShooterWeaponHolder* WeaponHolder =
-		Cast<IShooterWeaponHolder>(AvatarActor);
+	const IShooterWeaponHolder* WeaponHolder = Cast<IShooterWeaponHolder>(AvatarActor);
 	return WeaponHolder ? WeaponHolder->GetCurrentWeapon() : nullptr;
 }

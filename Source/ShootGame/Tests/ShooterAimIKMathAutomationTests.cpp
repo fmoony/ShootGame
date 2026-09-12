@@ -24,14 +24,8 @@ namespace ShooterAimIKMathTestHelpers
 		const FTransform& InHandTM = FTransform::Identity,
 		const FTransform& InHandToMuzzle = FTransform::Identity)
 	{
-		OutValid = FShooterAimIKMath::SolveHandCorrection(
-			InAimDirectionWorld,
-			FTransform::Identity,
-			InHandTM,
-			InHandToMuzzle,
-			InAlpha,
-			InMaxCorrectionDegrees,
-			OutCorrection);
+		OutValid = FShooterAimIKMath::SolveHandCorrection(InAimDirectionWorld, FTransform::Identity, InHandTM,
+			InHandToMuzzle, InAlpha, InMaxCorrectionDegrees, OutCorrection);
 	}
 }
 
@@ -39,9 +33,7 @@ namespace ShooterAimIKMathTestHelpers
  * C2.3 纯数学测试：Shooter Aim IK 单骨骼校正求解器。
  * 不依赖 AnimBP / Actor；验证几何闭环、fail-soft 与角度限制。
  */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterAimIKMathTest,
-	"ShootGame.Aim.IKMath",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAimIKMathTest, "ShootGame.Aim.IKMath",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterAimIKMathTest::RunTest(const FString& Parameters)
@@ -91,8 +83,7 @@ bool FShooterAimIKMathTest::RunTest(const FString& Parameters)
 		const FTransform HandToMuzzle(FRotator(0.0f, 0.0f, 90.0f));
 		const FVector Aim = FVector::UpVector;
 		const FTransform HandTM(FRotator(0.0f, 0.0f, 90.0f)); // hand 自身也带旋转
-		Valid = FShooterAimIKMath::SolveHandCorrection(
-			Aim, FTransform::Identity, HandTM, HandToMuzzle, 1.0f, 90.0f, Correction);
+		Valid = FShooterAimIKMath::SolveHandCorrection(Aim, FTransform::Identity, HandTM, HandToMuzzle, 1.0f, 90.0f, Correction);
 		TestTrue(TEXT("offset valid"), Valid);
 		// 校正后 MuzzleForwardInHand（hand 局部 +Y）经手旋转 + 校正应指向 Aim。
 		const FVector MuzzleForwardInHand = FShooterAimIKMath::GetMuzzleForwardInHand(HandToMuzzle);
@@ -162,9 +153,7 @@ bool FShooterAimIKMathTest::RunTest(const FString& Parameters)
 }
 
 /** 视点与枪口共用的最小前向深度投影规则。 */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterAimSafeTargetProjectionTest,
-	"ShootGame.Aim.IKMath.SafeTargetProjection",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAimSafeTargetProjectionTest, "ShootGame.Aim.IKMath.SafeTargetProjection",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterAimSafeTargetProjectionTest::RunTest(const FString& Parameters)
@@ -176,28 +165,21 @@ bool FShooterAimSafeTargetProjectionTest::RunTest(const FString& Parameters)
 	bool bProjected = false;
 
 	const FVector NearTarget = Origin + FVector(20.0, 35.0, -10.0);
-	TestTrue(
-		TEXT("近点输入有效"),
-		FShooterAimIKMath::ProjectTargetToMinimumForwardDepth(
+	TestTrue(TEXT("近点输入有效"), FShooterAimIKMath::ProjectTargetToMinimumForwardDepth(
 			NearTarget, Origin, Forward, 50.0f, SafeTarget, OriginalDepth, bProjected));
 	TestTrue(TEXT("近点发生投影"), bProjected);
 	TestTrue(TEXT("记录投影前深度"), FMath::IsNearlyEqual(OriginalDepth, 20.0f));
-	TestTrue(TEXT("投影到最小前向深度"), FMath::IsNearlyEqual(
-		FVector::DotProduct(SafeTarget - Origin, Forward), 50.0f));
+	TestTrue(TEXT("投影到最小前向深度"), FMath::IsNearlyEqual(FVector::DotProduct(SafeTarget - Origin, Forward), 50.0f));
 	TestTrue(TEXT("投影保留横向偏移"), FMath::IsNearlyEqual(SafeTarget.Y, NearTarget.Y));
 	TestTrue(TEXT("投影保留垂直偏移"), FMath::IsNearlyEqual(SafeTarget.Z, NearTarget.Z));
 
 	const FVector FarTarget = Origin + FVector(80.0, -15.0, 5.0);
-	TestTrue(
-		TEXT("远点输入有效"),
-		FShooterAimIKMath::ProjectTargetToMinimumForwardDepth(
+	TestTrue(TEXT("远点输入有效"), FShooterAimIKMath::ProjectTargetToMinimumForwardDepth(
 			FarTarget, Origin, Forward, 50.0f, SafeTarget, OriginalDepth, bProjected));
 	TestFalse(TEXT("远点不投影"), bProjected);
 	TestTrue(TEXT("远点保持不变"), SafeTarget.Equals(FarTarget));
 
-	TestFalse(
-		TEXT("零方向输入无效"),
-		FShooterAimIKMath::ProjectTargetToMinimumForwardDepth(
+	TestFalse(TEXT("零方向输入无效"), FShooterAimIKMath::ProjectTargetToMinimumForwardDepth(
 			FarTarget, Origin, FVector::ZeroVector, 50.0f, SafeTarget, OriginalDepth, bProjected));
 
 	return true;

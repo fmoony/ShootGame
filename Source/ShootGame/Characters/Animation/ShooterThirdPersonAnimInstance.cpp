@@ -10,9 +10,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "KismetAnimationLibrary.h"
 
-FTransform UShooterThirdPersonAnimInstance::ComputeHandToMuzzleTransform(
-	const FTransform& InHandWorld,
-	const FTransform& InMuzzleWorld)
+FTransform UShooterThirdPersonAnimInstance::ComputeHandToMuzzleTransform(const FTransform& InHandWorld, const FTransform& InMuzzleWorld)
 {
 	// Identity 是合法 Transform；是否可消费由 bAimIKBindingValid 决定。
 	if (!InHandWorld.IsValid() || !InMuzzleWorld.IsValid())
@@ -24,8 +22,7 @@ FTransform UShooterThirdPersonAnimInstance::ComputeHandToMuzzleTransform(
 	return InMuzzleWorld.GetRelativeTransform(InHandWorld);
 }
 
-FTransform UShooterThirdPersonAnimInstance::ComputeLeftHandGripInRightHandSpace(
-	const FTransform& InRightHandWorld,
+FTransform UShooterThirdPersonAnimInstance::ComputeLeftHandGripInRightHandSpace(const FTransform& InRightHandWorld,
 	const FTransform& InLeftHandGripWorld)
 {
 	if (!InRightHandWorld.IsValid() || !InLeftHandGripWorld.IsValid())
@@ -36,8 +33,7 @@ FTransform UShooterThirdPersonAnimInstance::ComputeLeftHandGripInRightHandSpace(
 	return InLeftHandGripWorld.GetRelativeTransform(InRightHandWorld);
 }
 
-FTransform UShooterThirdPersonAnimInstance::ComputeHandGripInLeftHandSpace(
-	const FTransform& InLeftHandWorld,
+FTransform UShooterThirdPersonAnimInstance::ComputeHandGripInLeftHandSpace(const FTransform& InLeftHandWorld,
 	const FTransform& InHandGripWorld)
 {
 	if (!InLeftHandWorld.IsValid() || !InHandGripWorld.IsValid())
@@ -48,9 +44,7 @@ FTransform UShooterThirdPersonAnimInstance::ComputeHandGripInLeftHandSpace(
 	return InHandGripWorld.GetRelativeTransform(InLeftHandWorld);
 }
 
-FVector UShooterThirdPersonAnimInstance::ComputeMuzzleToTargetDirection(
-	const FVector& MuzzleWorldLocation,
-	const FVector& TargetWorld)
+FVector UShooterThirdPersonAnimInstance::ComputeMuzzleToTargetDirection(const FVector& MuzzleWorldLocation, const FVector& TargetWorld)
 {
 	if (!FShooterAimIKMath::IsFinite(MuzzleWorldLocation) || !FShooterAimIKMath::IsFinite(TargetWorld))
 	{
@@ -77,8 +71,7 @@ FVector UShooterThirdPersonAnimInstance::ComputeAimDirectionWorldForState(
 	float MinimumTargetDistanceFromView,
 	float MinimumTargetDistanceFromMuzzle)
 {
-	const FVector StableBaseDirection =
-		FShooterAimIKMath::IsFinite(LocalAimDirection) && !LocalAimDirection.IsNearlyZero()
+	const FVector StableBaseDirection = FShooterAimIKMath::IsFinite(LocalAimDirection) && !LocalAimDirection.IsNearlyZero()
 			? LocalAimDirection.GetSafeNormal()
 			: FVector::ZeroVector;
 
@@ -91,8 +84,7 @@ FVector UShooterThirdPersonAnimInstance::ComputeAimDirectionWorldForState(
 	// 观察端使用平滑表现目标；近点或枪口后方目标只投影到安全深度，保留横向偏移。
 	if (bShouldRunPresentationSmoothing && bPresentationTargetValid && bHasThirdPersonMuzzle)
 	{
-		if (!FShooterAimIKMath::IsFinite(ViewWorldLocation) ||
-			!FShooterAimIKMath::IsFinite(MuzzleWorldLocation) ||
+		if (!FShooterAimIKMath::IsFinite(ViewWorldLocation) || !FShooterAimIKMath::IsFinite(MuzzleWorldLocation) ||
 			!FShooterAimIKMath::IsFinite(SmoothedPresentationTarget))
 		{
 			return StableBaseDirection;
@@ -102,18 +94,13 @@ FVector UShooterThirdPersonAnimInstance::ComputeAimDirectionWorldForState(
 		{
 			const FVector ViewToTarget = SmoothedPresentationTarget - ViewWorldLocation;
 			const float TargetDepthOnViewRay = FVector::DotProduct(ViewToTarget, StableBaseDirection);
-			const float MuzzleDepthOnViewRay = FVector::DotProduct(
-				MuzzleWorldLocation - ViewWorldLocation,
-				StableBaseDirection);
-			const float SafeMinimumTargetDepth = FMath::Max3(
-				0.0f,
-				MinimumTargetDistanceFromView,
+			const float MuzzleDepthOnViewRay = FVector::DotProduct(MuzzleWorldLocation - ViewWorldLocation, StableBaseDirection);
+			const float SafeMinimumTargetDepth = FMath::Max3(0.0f, MinimumTargetDistanceFromView,
 				MuzzleDepthOnViewRay + MinimumTargetDistanceFromMuzzle);
 
 			if (TargetDepthOnViewRay < SafeMinimumTargetDepth)
 			{
-				const FVector SafePresentationTarget =
-					SmoothedPresentationTarget +
+				const FVector SafePresentationTarget = SmoothedPresentationTarget +
 					StableBaseDirection * (SafeMinimumTargetDepth - TargetDepthOnViewRay);
 				return ComputeMuzzleToTargetDirection(MuzzleWorldLocation, SafePresentationTarget);
 			}
@@ -126,12 +113,9 @@ FVector UShooterThirdPersonAnimInstance::ComputeAimDirectionWorldForState(
 	return FVector::ZeroVector;
 }
 
-FTransform UShooterThirdPersonAnimInstance::GetHandWorldTransform(
-	const AShooterCharacter* InCharacter,
-	FName InHandSocketName)
+FTransform UShooterThirdPersonAnimInstance::GetHandWorldTransform(const AShooterCharacter* InCharacter, FName InHandSocketName)
 {
-	if (!InCharacter || !InCharacter->GetMesh() ||
-		!InCharacter->GetMesh()->DoesSocketExist(InHandSocketName))
+	if (!InCharacter || !InCharacter->GetMesh() || !InCharacter->GetMesh()->DoesSocketExist(InHandSocketName))
 	{
 		return FTransform::Identity;
 	}
@@ -141,10 +125,7 @@ FTransform UShooterThirdPersonAnimInstance::GetHandWorldTransform(
 bool UShooterThirdPersonAnimInstance::IsMathematicallyValidBindingFrame(const FTransform& T)
 {
 	// FTransform::IsValid() 已覆盖 NaN/Inf 与 Rotation 归一化；Scale 各分量必须大于 0。
-	return T.IsValid() &&
-		T.GetScale3D().X > 0.0f &&
-		T.GetScale3D().Y > 0.0f &&
-		T.GetScale3D().Z > 0.0f;
+	return T.IsValid() && T.GetScale3D().X > 0.0f && T.GetScale3D().Y > 0.0f && T.GetScale3D().Z > 0.0f;
 }
 
 void UShooterThirdPersonAnimInstance::NativeInitializeAnimation()
@@ -158,8 +139,7 @@ void UShooterThirdPersonAnimInstance::NativeInitializeAnimation()
 		return;
 	}
 
-	Character->OnWeaponPresentationChanged.AddDynamic(
-		this,
+	Character->OnWeaponPresentationChanged.AddDynamic(this,
 		&UShooterThirdPersonAnimInstance::HandleWeaponPresentationChanged);
 
 	// AnimClass 切换可能发生在事件之前：初始化后立即从 Equipment 回放一次当前状态。
@@ -171,8 +151,7 @@ void UShooterThirdPersonAnimInstance::NativeUninitializeAnimation()
 	AShooterCharacter* Character = GetCachedShooterCharacter();
 	if (Character)
 	{
-		Character->OnWeaponPresentationChanged.RemoveDynamic(
-			this,
+		Character->OnWeaponPresentationChanged.RemoveDynamic(this,
 			&UShooterThirdPersonAnimInstance::HandleWeaponPresentationChanged);
 	}
 
@@ -180,9 +159,7 @@ void UShooterThirdPersonAnimInstance::NativeUninitializeAnimation()
 	Super::NativeUninitializeAnimation();
 }
 
-void UShooterThirdPersonAnimInstance::HandleWeaponPresentationChanged(
-	AShooterWeapon* PreviousWeapon,
-	AShooterWeapon* CurrentWeapon)
+void UShooterThirdPersonAnimInstance::HandleWeaponPresentationChanged(AShooterWeapon* PreviousWeapon, AShooterWeapon* CurrentWeapon)
 {
 	// 表现事件已由 Character 验证完成后才发布；这里只消费 (Previous, Current) 上下文。
 	if (IsValid(CurrentWeapon) && CurrentWeapon->GetOwner() == GetCachedShooterCharacter())
@@ -289,24 +266,18 @@ void UShooterThirdPersonAnimInstance::RebuildWeaponStaticBindings(AShooterWeapon
 	// ---- LeftHand IK 静态 Binding：未配置握把是预期能力缺失；永久缺失 Socket 关闭。 ----
 	if (Weapon->GetThirdPersonLeftHandGripSocketName() != NAME_None)
 	{
-		if (CharacterMesh->DoesSocketExist(HandSocketName) &&
-			CharacterMesh->DoesSocketExist(LeftHandBoneName) &&
-			CharacterMesh->DoesSocketExist(HandGripSocketName) &&
-			Weapon->HasThirdPersonLeftHandGripSocket())
+		if (CharacterMesh->DoesSocketExist(HandSocketName) && CharacterMesh->DoesSocketExist(LeftHandBoneName) &&
+			CharacterMesh->DoesSocketExist(HandGripSocketName) && Weapon->HasThirdPersonLeftHandGripSocket())
 		{
 			const FTransform RightHandWorld = CharacterMesh->GetSocketTransform(HandSocketName, RTS_World);
 			const FTransform GripWorld = Weapon->GetThirdPersonLeftHandGripWorldTransform();
 			const FTransform LeftHandWorld = CharacterMesh->GetSocketTransform(LeftHandBoneName, RTS_World);
 			const FTransform HandGripWorld = CharacterMesh->GetSocketTransform(HandGripSocketName, RTS_World);
-			if (IsMathematicallyValidBindingFrame(RightHandWorld) &&
-				IsMathematicallyValidBindingFrame(GripWorld) &&
-				IsMathematicallyValidBindingFrame(LeftHandWorld) &&
-				IsMathematicallyValidBindingFrame(HandGripWorld))
+			if (IsMathematicallyValidBindingFrame(RightHandWorld) && IsMathematicallyValidBindingFrame(GripWorld) &&
+				IsMathematicallyValidBindingFrame(LeftHandWorld) && IsMathematicallyValidBindingFrame(HandGripWorld))
 			{
-				const FTransform ComputedGripInRightHandSpace =
-					ComputeLeftHandGripInRightHandSpace(RightHandWorld, GripWorld);
-				const FTransform ComputedHandGripInLeftHandSpace =
-					ComputeHandGripInLeftHandSpace(LeftHandWorld, HandGripWorld);
+				const FTransform ComputedGripInRightHandSpace = ComputeLeftHandGripInRightHandSpace(RightHandWorld, GripWorld);
+				const FTransform ComputedHandGripInLeftHandSpace = ComputeHandGripInLeftHandSpace(LeftHandWorld, HandGripWorld);
 				if (IsMathematicallyValidBindingFrame(ComputedGripInRightHandSpace) &&
 					IsMathematicallyValidBindingFrame(ComputedHandGripInLeftHandSpace))
 				{
@@ -370,14 +341,10 @@ void UShooterThirdPersonAnimInstance::UpdateAimInputs(const AShooterCharacter* C
 	bAimTargetWorldValid = false;
 
 	// 网络角色、本地/远端数据源选择、目标有效性与视点安全深度全部收口到 Component。
-	const UShooterAimPresentationComponent* AimPresentationComponent =
-		Character->GetAimPresentationComponent();
+	const UShooterAimPresentationComponent* AimPresentationComponent = Character->GetAimPresentationComponent();
 	if (AimPresentationComponent)
 	{
-		AimPresentationComponent->ResolveAimPresentationInput(
-			AimDirectionWorld,
-			AimTargetWorld,
-			bAimTargetWorldValid,
+		AimPresentationComponent->ResolveAimPresentationInput(AimDirectionWorld, AimTargetWorld, bAimTargetWorldValid,
 			MinimumRemoteAimTargetDistanceFromView);
 	}
 }
@@ -386,20 +353,14 @@ void UShooterThirdPersonAnimInstance::RefreshIKEnabled()
 {
 	// 只组合静态 Binding 与动态输入：ResolveAimPresentationInput 保证无效远端目标输出零方向，
 	// 因此“有限且非零的 AimDirectionWorld”就是本帧动态瞄准输入有效的统一表达。
-	bAimIKEnabled =
-		bAimIKBindingValid &&
-		FShooterAimIKMath::IsFinite(AimDirectionWorld) &&
-		!AimDirectionWorld.IsNearlyZero();
+	bAimIKEnabled = bAimIKBindingValid && FShooterAimIKMath::IsFinite(AimDirectionWorld) && !AimDirectionWorld.IsNearlyZero();
 
 	bLeftHandIKEnabled = bLeftHandIKBindingValid;
 }
 
 void UShooterThirdPersonAnimInstance::UpdateLeftHandIKPresentationAlpha(float DeltaSeconds)
 {
-	const float ReloadCurveAlpha = FMath::Clamp(
-		GetCurveValue(ReloadIKAlphaCurveName),
-		0.0f,
-		1.0f);
+	const float ReloadCurveAlpha = FMath::Clamp(GetCurveValue(ReloadIKAlphaCurveName), 0.0f, 1.0f);
 	const float ReloadGateAlpha = bIsReloading && !bReloadPresentationRecovering
 		? ReloadCurveAlpha
 		: 1.0f;
@@ -414,19 +375,12 @@ void UShooterThirdPersonAnimInstance::UpdateLeftHandIKPresentationAlpha(float De
 		return;
 	}
 
-	LeftHandIKPresentationAlpha = FMath::FInterpConstantTo(
-		LeftHandIKPresentationAlpha,
-		TargetAlpha,
-		DeltaSeconds,
-		1.0f / BlendTime);
+	LeftHandIKPresentationAlpha = FMath::FInterpConstantTo(LeftHandIKPresentationAlpha, TargetAlpha, DeltaSeconds, 1.0f / BlendTime);
 }
 
 void UShooterThirdPersonAnimInstance::UpdateAimIKPresentationAlpha(float DeltaSeconds)
 {
-	const float ReloadCurveAlpha = FMath::Clamp(
-		GetCurveValue(ReloadIKAlphaCurveName),
-		0.0f,
-		1.0f);
+	const float ReloadCurveAlpha = FMath::Clamp(GetCurveValue(ReloadIKAlphaCurveName), 0.0f, 1.0f);
 	const float ReloadGateAlpha = bIsReloading && !bReloadPresentationRecovering
 		? ReloadCurveAlpha
 		: 1.0f;
@@ -441,11 +395,7 @@ void UShooterThirdPersonAnimInstance::UpdateAimIKPresentationAlpha(float DeltaSe
 		return;
 	}
 
-	AimIKPresentationAlpha = FMath::FInterpConstantTo(
-		AimIKPresentationAlpha,
-		TargetAlpha,
-		DeltaSeconds,
-		1.0f / BlendTime);
+	AimIKPresentationAlpha = FMath::FInterpConstantTo(AimIKPresentationAlpha, TargetAlpha, DeltaSeconds, 1.0f / BlendTime);
 }
 
 void UShooterThirdPersonAnimInstance::UpdateShooterAnimationData(float DeltaSeconds)
@@ -459,12 +409,9 @@ void UShooterThirdPersonAnimInstance::UpdateShooterAnimationData(float DeltaSeco
 
 	// 动态移动 / Aim 输入保持每帧采集。
 	bShouldMove = LocomotionGroundSpeed > 0.01f;
-	MoveDirection = UKismetAnimationLibrary::CalculateDirection(
-		Velocity,
-		Character->GetActorRotation());
+	MoveDirection = UKismetAnimationLibrary::CalculateDirection(Velocity, Character->GetActorRotation());
 	// AimPitchN 与最终世界输入都从 AimPresentationComponent 的统一口径获取。
-	if (const UShooterAimPresentationComponent* AimPresentationComponent =
-			Character->GetAimPresentationComponent())
+	if (const UShooterAimPresentationComponent* AimPresentationComponent = Character->GetAimPresentationComponent())
 	{
 		AimPitchN = AimPresentationComponent->GetAimPitchN();
 		AimPitchDegrees = FMath::RadiansToDegrees(FMath::Asin(FMath::Clamp(AimPitchN, -1.0f, 1.0f)));

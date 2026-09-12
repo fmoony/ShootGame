@@ -21,11 +21,8 @@ public:
 		FTransform& OutDesiredLeftHandCS);
 
 	/** 从首次有效输入动画提取组件空间弯肘方向，供节点缓存为稳定基准。 */
-	static bool CalculateSourcePoleDirection(
-		const FVector& RootLocation,
-		const FVector& JointLocation,
-		const FVector& EndLocation,
-		FVector& OutPoleDirection);
+	static bool CalculateSourcePoleDirection(const FVector& RootLocation, const FVector& JointLocation,
+		const FVector& EndLocation, FVector& OutPoleDirection);
 
 	/**
 	 * 直接用当前输入动画的真实肘点定义目标弯曲平面。

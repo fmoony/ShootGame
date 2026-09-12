@@ -165,12 +165,8 @@ void AShooterWeapon::OnRep_WeaponId()
 			}
 			else
 			{
-				UE_LOG(
-					LogShootGame,
-					Warning,
-					TEXT("WeaponActor cannot apply runtime config: Weapon=%s WeaponId=%s"),
-					*GetNameSafe(this),
-					*WeaponId.ToString());
+				UE_LOG(LogShootGame, Warning, TEXT("WeaponActor cannot apply runtime config: Weapon=%s WeaponId=%s"),
+					*GetNameSafe(this), *WeaponId.ToString());
 			}
 		}
 	}
@@ -202,20 +198,14 @@ void AShooterWeapon::OnAcquiredFromWeaponPool()
 
 	SetLifecycleState(EShooterWeaponLifecycleState::Holstered, TEXT("AcquiredFromWeaponPool"));
 
-	UE_LOG(
-		LogShootGame,
-		Verbose,
-		TEXT("WeaponActor acquired from weapon runtime pool: Weapon=%s WeaponId=%s Owner=%s"),
-		*GetNameSafe(this),
-		*WeaponId.ToString(),
-		*GetNameSafe(GetOwner()));
+	UE_LOG(LogShootGame, Verbose, TEXT("WeaponActor acquired from weapon runtime pool: Weapon=%s WeaponId=%s Owner=%s"),
+		*GetNameSafe(this), *WeaponId.ToString(), *GetNameSafe(GetOwner()));
 }
 
 void AShooterWeapon::OnReleasedToWeaponPool()
 {
 	// 纵深防御：归还前必须已脱离装备态（Equipment 先清空当前装备）。
-	if (LifecycleState == EShooterWeaponLifecycleState::Equipped ||
-		LifecycleState == EShooterWeaponLifecycleState::Equipping)
+	if (LifecycleState == EShooterWeaponLifecycleState::Equipped || LifecycleState == EShooterWeaponLifecycleState::Equipping)
 	{
 		DeactivateWeapon();
 	}
@@ -235,12 +225,8 @@ void AShooterWeapon::OnReleasedToWeaponPool()
 	OnOutOfAmmo.Clear();
 	SetLifecycleState(EShooterWeaponLifecycleState::InPool, TEXT("ReleasedToWeaponPool"));
 
-	UE_LOG(
-		LogShootGame,
-		Verbose,
-		TEXT("WeaponActor released to weapon runtime pool: Weapon=%s WeaponId=%s"),
-		*GetNameSafe(this),
-		*WeaponId.ToString());
+	UE_LOG(LogShootGame, Verbose, TEXT("WeaponActor released to weapon runtime pool: Weapon=%s WeaponId=%s"),
+		*GetNameSafe(this), *WeaponId.ToString());
 }
 
 void AShooterWeapon::ApplyWeaponRow(const FShooterWeaponConfigRow& Row)
@@ -356,19 +342,13 @@ void AShooterWeapon::BeginEquipTransaction()
 		// 同一事务重复提交保持幂等。
 		break;
 	default:
-		UE_LOG(
-			LogShootGame,
-			Warning,
-			TEXT("WeaponActor BeginEquipTransaction rejected in state %s: Weapon=%s"),
-			LifecycleStateToString(LifecycleState),
-			*GetNameSafe(this));
+		UE_LOG(LogShootGame, Warning, TEXT("WeaponActor BeginEquipTransaction rejected in state %s: Weapon=%s"),
+			LifecycleStateToString(LifecycleState), *GetNameSafe(this));
 		break;
 	}
 }
 
-void AShooterWeapon::SetLifecycleState(
-	EShooterWeaponLifecycleState NewState,
-	const TCHAR* Reason)
+void AShooterWeapon::SetLifecycleState(EShooterWeaponLifecycleState NewState, const TCHAR* Reason)
 {
 	const EShooterWeaponLifecycleState PreviousState = LifecycleState;
 	if (PreviousState == NewState)
@@ -543,11 +523,7 @@ void AShooterWeapon::ActivateWeapon()
 	// 拒绝只在权威端生效：客户端状态是复制镜像，在那里拒绝会永久丢失远端第三人称表现。
 	if (HasAuthority() && LifecycleState == EShooterWeaponLifecycleState::InPool)
 	{
-		UE_LOG(
-			LogShootGame,
-			Warning,
-			TEXT("WeaponActor ActivateWeapon rejected in InPool state: Weapon=%s"),
-			*GetNameSafe(this));
+		UE_LOG(LogShootGame, Warning, TEXT("WeaponActor ActivateWeapon rejected in InPool state: Weapon=%s"), *GetNameSafe(this));
 		return;
 	}
 
@@ -573,8 +549,7 @@ void AShooterWeapon::DeactivateWeapon()
 {
 	// 权威端重复卸下幂等：池内或已收起时不重复触发表现回调。
 	// 客户端不做该提前返回，保持与池化前的本地隐藏时机一致。
-	if (HasAuthority() &&
-		(LifecycleState == EShooterWeaponLifecycleState::InPool ||
+	if (HasAuthority() && (LifecycleState == EShooterWeaponLifecycleState::InPool ||
 			LifecycleState == EShooterWeaponLifecycleState::Holstered))
 	{
 		return;
@@ -615,11 +590,7 @@ void AShooterWeapon::StartFiring()
 		if (bFullAuto)
 		{
 			const float RemainingRefireTime = RefireRate - TimeSinceLastShot;
-			GetWorld()->GetTimerManager().SetTimer(
-				RefireTimer,
-				this,
-				&AShooterWeapon::Fire,
-				RemainingRefireTime,
+			GetWorld()->GetTimerManager().SetTimer(RefireTimer, this, &AShooterWeapon::Fire, RemainingRefireTime,
 				false);
 		}
 
@@ -675,11 +646,7 @@ void AShooterWeapon::Fire()
 	} else {
 
 		// for semi-auto weapons, schedule the cooldown notification
-		GetWorld()->GetTimerManager().SetTimer(
-			RefireTimer,
-			this,
-			&AShooterWeapon::FireCooldownExpired,
-			RefireRate,
+		GetWorld()->GetTimerManager().SetTimer(RefireTimer, this, &AShooterWeapon::FireCooldownExpired, RefireRate,
 			false);
 
 	}
@@ -759,8 +726,7 @@ FTransform AShooterWeapon::CalculateProjectileSpawnTransform(const FVector& Targ
 
 	FVector MuzzleToTarget = (TargetLocation - MuzzleLoc).GetSafeNormal();
 	// 摄像机可能命中位于枪口后方的近距离物体，此时不能让弹丸反向生成。
-	if (!ControlForward.IsNearlyZero() &&
-		FVector::DotProduct(MuzzleToTarget, ControlForward) <= 0.0f)
+	if (!ControlForward.IsNearlyZero() && FVector::DotProduct(MuzzleToTarget, ControlForward) <= 0.0f)
 	{
 		MuzzleToTarget = ControlForward;
 	}
@@ -769,10 +735,8 @@ FTransform AShooterWeapon::CalculateProjectileSpawnTransform(const FVector& Targ
 	const FVector SpawnLoc = MuzzleLoc + (MuzzleToTarget * MuzzleOffset);
 
 	// find the aim rotation vector while applying some variance to the target
-	FVector AimDirection =
-		(TargetLocation + (UKismetMathLibrary::RandomUnitVector() * AimVariance) - SpawnLoc).GetSafeNormal();
-	if (!ControlForward.IsNearlyZero() &&
-		FVector::DotProduct(AimDirection, ControlForward) <= 0.0f)
+	FVector AimDirection = (TargetLocation + (UKismetMathLibrary::RandomUnitVector() * AimVariance) - SpawnLoc).GetSafeNormal();
+	if (!ControlForward.IsNearlyZero() && FVector::DotProduct(AimDirection, ControlForward) <= 0.0f)
 	{
 		AimDirection = ControlForward;
 	}
@@ -799,10 +763,8 @@ void AShooterWeapon::MulticastPlayFiringFX_Implementation()
 		USkeletalMeshComponent* MuzzleMesh = bLocalOwner ? FirstPersonMesh : ThirdPersonMesh;
 		if (MuzzleMesh)
 		{
-			UNiagaraFunctionLibrary::SpawnSystemAttached(
-				MuzzleFlash, MuzzleMesh, MuzzleSocketName,
-				FVector::ZeroVector, FRotator::ZeroRotator,
-				EAttachLocation::SnapToTarget, true);
+			UNiagaraFunctionLibrary::SpawnSystemAttached(MuzzleFlash, MuzzleMesh, MuzzleSocketName,
+				FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::SnapToTarget, true);
 		}
 	}
 
@@ -810,8 +772,7 @@ void AShooterWeapon::MulticastPlayFiringFX_Implementation()
 	if (FireSound)
 	{
 		UGameplayStatics::SpawnSoundAttached(FireSound, RootComponent, NAME_None,
-			FVector::ZeroVector, FRotator::ZeroRotator,
-			EAttachLocation::SnapToTarget, true);
+			FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::SnapToTarget, true);
 	}
 }
 
@@ -848,10 +809,8 @@ void AShooterWeapon::PlayReloadSoundStage(EShooterReloadSoundStage Stage)
 
 	// 挂在第三人称武器 Mesh 的 Muzzle Socket（骨骼位置）上，随换弹动画移动；
 	// 本地与远端共用同一路径，距离衰减由音频系统处理。
-	UGameplayStatics::SpawnSoundAttached(
-		StageSound, ThirdPersonMesh, MuzzleSocketName,
-		FVector::ZeroVector, FRotator::ZeroRotator,
-		EAttachLocation::SnapToTargetIncludingScale, true);
+	UGameplayStatics::SpawnSoundAttached(StageSound, ThirdPersonMesh, MuzzleSocketName,
+		FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::SnapToTargetIncludingScale, true);
 }
 
 const TSubclassOf<UAnimInstance>& AShooterWeapon::GetFirstPersonAnimInstanceClass() const
@@ -883,8 +842,7 @@ bool AShooterWeapon::HasThirdPersonMuzzleSocket() const
 
 bool AShooterWeapon::HasThirdPersonLeftHandGripSocket() const
 {
-	return ThirdPersonMesh != nullptr &&
-		!ThirdPersonLeftHandGripSocketName.IsNone() &&
+	return ThirdPersonMesh != nullptr && !ThirdPersonLeftHandGripSocketName.IsNone() &&
 		ThirdPersonMesh->DoesSocketExist(ThirdPersonLeftHandGripSocketName);
 }
 

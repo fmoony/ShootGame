@@ -9,9 +9,7 @@
 
 class AShooterWeapon;
 
-DECLARE_MULTICAST_DELEGATE_OneParam(
-	FShooterInventoryWeaponRemovedDelegate,
-	AShooterWeapon*);
+DECLARE_MULTICAST_DELEGATE_OneParam(FShooterInventoryWeaponRemovedDelegate, AShooterWeapon*);
 
 /**
  * Inventory 的单件武器 Entry：只保存 WeaponActor 引用与背包槽位（重构方案 4.4）。
@@ -41,11 +39,8 @@ struct FShooterInventoryWeaponEntry : public FFastArraySerializerItem
 	/** 调试字符串，供 LogNetFastTArray 使用。 */
 	FString GetDebugString() const
 	{
-		return FString::Printf(
-			TEXT("Weapon=%s WeaponId=%s Slot=%d"),
-			*GetNameSafe(Weapon),
-			Weapon ? *Weapon->GetWeaponId().ToString() : TEXT("None"),
-			SlotIndex);
+		return FString::Printf(TEXT("Weapon=%s WeaponId=%s Slot=%d"), *GetNameSafe(Weapon),
+			Weapon ? *Weapon->GetWeaponId().ToString() : TEXT("None"), SlotIndex);
 	}
 };
 
@@ -197,8 +192,7 @@ struct FShooterWeaponInventoryList : public FFastArraySerializer
 				WrapCandidate = &Candidate;
 			}
 
-			if (Candidate.SlotIndex > Current->SlotIndex &&
-				(!NextCandidate || Candidate.SlotIndex < NextCandidate->SlotIndex))
+			if (Candidate.SlotIndex > Current->SlotIndex && (!NextCandidate || Candidate.SlotIndex < NextCandidate->SlotIndex))
 			{
 				NextCandidate = &Candidate;
 			}
@@ -209,8 +203,7 @@ struct FShooterWeaponInventoryList : public FFastArraySerializer
 	}
 };
 
-FORCEINLINE void FShooterInventoryWeaponEntry::PreReplicatedRemove(
-	const FShooterWeaponInventoryList& InArraySerializer)
+FORCEINLINE void FShooterInventoryWeaponEntry::PreReplicatedRemove(const FShooterWeaponInventoryList& InArraySerializer)
 {
 	// Owner Client Remove 回调：InventoryComponent 统一处理解绑与表现收敛。
 	if (Weapon)
@@ -219,13 +212,11 @@ FORCEINLINE void FShooterInventoryWeaponEntry::PreReplicatedRemove(
 	}
 }
 
-FORCEINLINE void FShooterInventoryWeaponEntry::PostReplicatedAdd(
-	const FShooterWeaponInventoryList& InArraySerializer)
+FORCEINLINE void FShooterInventoryWeaponEntry::PostReplicatedAdd(const FShooterWeaponInventoryList& InArraySerializer)
 {
 }
 
-FORCEINLINE void FShooterInventoryWeaponEntry::PostReplicatedChange(
-	const FShooterWeaponInventoryList& InArraySerializer)
+FORCEINLINE void FShooterInventoryWeaponEntry::PostReplicatedChange(const FShooterWeaponInventoryList& InArraySerializer)
 {
 }
 

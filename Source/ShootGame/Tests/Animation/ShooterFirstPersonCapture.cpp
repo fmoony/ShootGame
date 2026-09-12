@@ -28,8 +28,7 @@
 namespace ShooterFirstPersonCapture
 {
 	// 仅显式测试启动参数允许此命令：会替换独立测试角色的背包、控制视角并触发换弹。
-	FAutoConsoleCommandWithWorldAndArgs CaptureCommand(
-		TEXT("ShootGame.FirstPerson.Capture"),
+	FAutoConsoleCommandWithWorldAndArgs CaptureCommand(TEXT("ShootGame.FirstPerson.Capture"),
 		TEXT("Standalone only, requires -ShootGameFirstPersonCapture. Args: output folder label [exercise]."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
 		{
@@ -118,19 +117,13 @@ namespace ShooterFirstPersonCapture
 					CaptureInventory->ClearInventory();
 					// S3 授予链：直接从运行时池按正式 WeaponId（DT_WeaponData 行名）Acquire，
 					// 与生产路径读取完全相同的配置（含网格、AnimClass 与构图下沉量）。
-					UShooterWeaponRuntimeSubsystem* CaptureRuntime =
-						TestWorld->GetSubsystem<UShooterWeaponRuntimeSubsystem>();
+					UShooterWeaponRuntimeSubsystem* CaptureRuntime = TestWorld->GetSubsystem<UShooterWeaponRuntimeSubsystem>();
 					State->GrantedWeapon = CaptureRuntime
 						? CaptureRuntime->AcquireWeapon(FName(WeaponRowName), Character, Character)
 						: nullptr;
-					if (!State->GrantedWeapon ||
-						CaptureInventory->AddWeapon(State->GrantedWeapon) != EShooterInventoryAddResult::Added)
+					if (!State->GrantedWeapon || CaptureInventory->AddWeapon(State->GrantedWeapon) != EShooterInventoryAddResult::Added)
 					{
-						UE_LOG(
-							LogShootGame,
-							Warning,
-							TEXT("FIRST_PERSON_CAPTURE_GRANT_REJECTED Row=%s"),
-							WeaponRowName);
+						UE_LOG(LogShootGame, Warning, TEXT("FIRST_PERSON_CAPTURE_GRANT_REJECTED Row=%s"), WeaponRowName);
 					}
 					else
 					{

@@ -82,9 +82,7 @@ public:
 
 	FVector ViewLocationOverride = FVector(1000.0, 2000.0, 100.0);
 	FRotator AimRotationOverride = FRotator(20.0f, 30.0f, 0.0f);
-	FTransform MeshTransformOverride = FTransform(
-		FRotator(0.0f, 10.0f, 0.0f),
-		FVector(500.0f, 600.0f, 90.0f));
+	FTransform MeshTransformOverride = FTransform(FRotator(0.0f, 10.0f, 0.0f), FVector(500.0f, 600.0f, 90.0f));
 
 protected:
 	virtual ENetRole GetPresentationLocalRole() const override { return RoleOverride; }

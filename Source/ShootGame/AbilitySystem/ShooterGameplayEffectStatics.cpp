@@ -13,9 +13,7 @@ namespace ShooterGameplayEffectStaticsImpl
 	const FName HealthDataName(TEXT("SetByCaller.Health"));
 	const FName DamageDataName(TEXT("SetByCaller.Damage"));
 
-	FGameplayModifierInfo MakeModifier(
-		const FGameplayAttribute& Attribute,
-		EGameplayModOp::Type ModifierOp,
+	FGameplayModifierInfo MakeModifier(const FGameplayAttribute& Attribute, EGameplayModOp::Type ModifierOp,
 		const FName& SetByCallerDataName)
 	{
 		FGameplayModifierInfo Modifier;
@@ -34,13 +32,9 @@ namespace ShooterGameplayEffectStaticsImpl
 		// 热重载时旧模块可能仍强引用缓存对象；唯一名避免覆盖同名 UObject。
 		UGameplayEffect* Effect = NewObject<UGameplayEffect>(GetTransientPackage());
 		Effect->DurationPolicy = EGameplayEffectDurationType::Instant;
-		Effect->Modifiers.Add(MakeModifier(
-			UShooterAttributeSet::GetMaxHealthAttribute(),
-			EGameplayModOp::Override,
+		Effect->Modifiers.Add(MakeModifier(UShooterAttributeSet::GetMaxHealthAttribute(), EGameplayModOp::Override,
 			MaxHealthDataName));
-		Effect->Modifiers.Add(MakeModifier(
-			UShooterAttributeSet::GetHealthAttribute(),
-			EGameplayModOp::Override,
+		Effect->Modifiers.Add(MakeModifier(UShooterAttributeSet::GetHealthAttribute(), EGameplayModOp::Override,
 			HealthDataName));
 		return Effect;
 	}
@@ -49,9 +43,7 @@ namespace ShooterGameplayEffectStaticsImpl
 	{
 		UGameplayEffect* Effect = NewObject<UGameplayEffect>(GetTransientPackage());
 		Effect->DurationPolicy = EGameplayEffectDurationType::Instant;
-		Effect->Modifiers.Add(MakeModifier(
-			UShooterAttributeSet::GetHealthAttribute(),
-			EGameplayModOp::Additive,
+		Effect->Modifiers.Add(MakeModifier(UShooterAttributeSet::GetHealthAttribute(), EGameplayModOp::Additive,
 			DamageDataName));
 		return Effect;
 	}
@@ -74,21 +66,17 @@ FName UShooterGameplayEffectStatics::GetDamageSetByCallerDataName()
 
 UGameplayEffect* UShooterGameplayEffectStatics::GetOrCreateInitHealthEffect()
 {
-	static TStrongObjectPtr<UGameplayEffect> Effect(
-		ShooterGameplayEffectStaticsImpl::CreateInitHealthEffect());
+	static TStrongObjectPtr<UGameplayEffect> Effect(ShooterGameplayEffectStaticsImpl::CreateInitHealthEffect());
 	return Effect.Get();
 }
 
 UGameplayEffect* UShooterGameplayEffectStatics::GetOrCreateDamageEffect()
 {
-	static TStrongObjectPtr<UGameplayEffect> Effect(
-		ShooterGameplayEffectStaticsImpl::CreateDamageEffect());
+	static TStrongObjectPtr<UGameplayEffect> Effect(ShooterGameplayEffectStaticsImpl::CreateDamageEffect());
 	return Effect.Get();
 }
 
-void UShooterGameplayEffectStatics::ApplyInitHealthEffect(
-	UAbilitySystemComponent* AbilitySystemComponent,
-	float MaxHealthValue)
+void UShooterGameplayEffectStatics::ApplyInitHealthEffect(UAbilitySystemComponent* AbilitySystemComponent, float MaxHealthValue)
 {
 	if (!AbilitySystemComponent)
 	{
@@ -102,11 +90,8 @@ void UShooterGameplayEffectStatics::ApplyInitHealthEffect(
 	AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(Spec);
 }
 
-void UShooterGameplayEffectStatics::ApplyDamageEffect(
-	UAbilitySystemComponent* AbilitySystemComponent,
-	float Damage,
-	AController* Instigator,
-	AActor* DamageCauser)
+void UShooterGameplayEffectStatics::ApplyDamageEffect(UAbilitySystemComponent* AbilitySystemComponent, float Damage,
+	AController* Instigator, AActor* DamageCauser)
 {
 	if (!AbilitySystemComponent || Damage <= 0.0f)
 	{

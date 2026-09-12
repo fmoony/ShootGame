@@ -56,8 +56,7 @@ namespace ShooterWeaponPresentationBaselineAutomationTests
  * E0 资产订阅审计结论的机器可验证部分：
  * Rifle / Pistol 的 FP / TP AnimClass 配置与 AnimBP 父类分布冻结为基线快照。
  */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterWeaponPresentationAnimClassMappingTest,
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterWeaponPresentationAnimClassMappingTest,
 	"ShootGame.Equipment.Presentation.AnimClassMapping",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
@@ -83,48 +82,36 @@ bool FShooterWeaponPresentationAnimClassMappingTest::RunTest(const FString& Para
 	for (const FExpectedWeaponAnimClasses& Snapshot : Expected)
 	{
 		// 单表纠偏后 AnimClass 基线保存在武器模板行，不再读取 WeaponActor 蓝图默认值。
-		const FShooterWeaponConfigRow* Row = ShooterWeaponTable::FindWeaponRow(
-			ShooterWeaponTable::ResolveWeaponTable(),
+		const FShooterWeaponConfigRow* Row = ShooterWeaponTable::FindWeaponRow(ShooterWeaponTable::ResolveWeaponTable(),
 			FName(Snapshot.WeaponRowName));
-		if (!TestNotNull(
-			FString::Printf(TEXT("%s weapon row resolves"), Snapshot.WeaponName),
-			Row))
+		if (!TestNotNull(FString::Printf(TEXT("%s weapon row resolves"), Snapshot.WeaponName), Row))
 		{
 			continue;
 		}
 
-		const UClass* ExpectedFirstPersonClass = LoadClass<UAnimInstance>(
-			nullptr,
+		const UClass* ExpectedFirstPersonClass = LoadClass<UAnimInstance>(nullptr,
 			Snapshot.ExpectedFirstPersonAnimClassPath);
-		const UClass* ExpectedThirdPersonClass = LoadClass<UAnimInstance>(
-			nullptr,
+		const UClass* ExpectedThirdPersonClass = LoadClass<UAnimInstance>(nullptr,
 			Snapshot.ExpectedThirdPersonAnimClassPath);
-		if (!TestNotNull(
-			FString::Printf(TEXT("%s expected FP AnimClass loads"), Snapshot.WeaponName),
-			ExpectedFirstPersonClass) ||
-			!TestNotNull(
-				FString::Printf(TEXT("%s expected TP AnimClass loads"), Snapshot.WeaponName),
-				ExpectedThirdPersonClass))
+		if (!TestNotNull(FString::Printf(TEXT("%s expected FP AnimClass loads"), Snapshot.WeaponName),
+			ExpectedFirstPersonClass) || !TestNotNull(
+				FString::Printf(TEXT("%s expected TP AnimClass loads"), Snapshot.WeaponName), ExpectedThirdPersonClass))
 		{
 			continue;
 		}
 
-		TestTrue(
-			FString::Printf(TEXT("%s FP AnimClass matches baseline"), Snapshot.WeaponName),
+		TestTrue(FString::Printf(TEXT("%s FP AnimClass matches baseline"), Snapshot.WeaponName),
 			Row->FirstPersonAnimInstanceClass == ExpectedFirstPersonClass);
-		TestTrue(
-			FString::Printf(TEXT("%s TP AnimClass matches baseline"), Snapshot.WeaponName),
+		TestTrue(FString::Printf(TEXT("%s TP AnimClass matches baseline"), Snapshot.WeaponName),
 			Row->ThirdPersonAnimInstanceClass == ExpectedThirdPersonClass);
 	}
 
 	// 订阅审计的反射面：OnEquippedWeaponChanged 仍是 BlueprintAssignable 动态委托。
-	const FProperty* EquippedChangedProperty = FindFProperty<FProperty>(
-		UShooterEquipmentComponent::StaticClass(),
+	const FProperty* EquippedChangedProperty = FindFProperty<FProperty>(UShooterEquipmentComponent::StaticClass(),
 		TEXT("OnEquippedWeaponChanged"));
 	if (TestNotNull(TEXT("Equipment exposes OnEquippedWeaponChanged"), EquippedChangedProperty))
 	{
-		TestTrue(
-			TEXT("OnEquippedWeaponChanged is BlueprintAssignable"),
+		TestTrue(TEXT("OnEquippedWeaponChanged is BlueprintAssignable"),
 			EquippedChangedProperty->HasAnyPropertyFlags(CPF_BlueprintAssignable));
 	}
 
@@ -136,8 +123,7 @@ bool FShooterWeaponPresentationAnimClassMappingTest::RunTest(const FString& Para
  * 首次装备、切枪、清空后的附着、显隐与 AnimClass 后置条件保持不变。
  * 该测试在 E2/E3 重构后必须原样通过，是表现收敛重构的行为护栏。
  */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterWeaponPresentationBaselineTest,
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterWeaponPresentationBaselineTest,
 	"ShootGame.Equipment.Presentation.BaselineChain",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
@@ -152,8 +138,7 @@ bool FShooterWeaponPresentationBaselineTest::RunTest(const FString& Parameters)
 	}
 
 	AShooterWeaponPresentationTestCharacter* Character = World->SpawnActor<AShooterWeaponPresentationTestCharacter>(
-		FVector::ZeroVector,
-		FRotator::ZeroRotator);
+		FVector::ZeroVector, FRotator::ZeroRotator);
 	if (!TestNotNull(TEXT("Presentation test character spawned"), Character))
 	{
 		DestroyPresentationTestWorld(World);
@@ -177,16 +162,12 @@ bool FShooterWeaponPresentationBaselineTest::RunTest(const FString& Parameters)
 	}
 
 	EShooterInventoryAddResult PrimaryAddResult = EShooterInventoryAddResult::NotAuthoritative;
-	AShooterWeapon* PrimaryWeapon = GrantTestWeapon(
-		World,
-		Inventory,
+	AShooterWeapon* PrimaryWeapon = GrantTestWeapon(World, Inventory,
 		AShooterWeaponPresentationTestWeaponPrimary::StaticClass(),
 		/*MagazineSize*/ 10,
 		/*InitialReserveAmmo*/ -1,
 		&PrimaryAddResult);
-	TestEqual(
-		TEXT("Primary weapon is granted"),
-		static_cast<int32>(PrimaryAddResult),
+	TestEqual(TEXT("Primary weapon is granted"), static_cast<int32>(PrimaryAddResult),
 		static_cast<int32>(EShooterInventoryAddResult::Added));
 
 	// 无网络驱动的测试 World 不会自动走 PostNetInit 的 BeginPlay 补偿；
@@ -207,45 +188,31 @@ bool FShooterWeaponPresentationBaselineTest::RunTest(const FString& Parameters)
 	}
 
 	TestFalse(TEXT("Primary weapon is visible after equip"), PrimaryWeapon->IsHidden());
-	TestTrue(
-		TEXT("Test character class implements IShooterWeaponHolder"),
+	TestTrue(TEXT("Test character class implements IShooterWeaponHolder"),
 		Character->GetClass()->ImplementsInterface(UShooterWeaponHolder::StaticClass()));
-	TestTrue(
-		TEXT("Test character can cast to IShooterWeaponHolder"),
-		Cast<IShooterWeaponHolder>(Character) != nullptr);
-	TestTrue(
-		TEXT("Primary weapon resolves its WeaponOwner"),
+	TestTrue(TEXT("Test character can cast to IShooterWeaponHolder"), Cast<IShooterWeaponHolder>(Character) != nullptr);
+	TestTrue(TEXT("Primary weapon resolves its WeaponOwner"),
 		Cast<AShooterWeaponPresentationTestWeaponPrimary>(PrimaryWeapon) &&
 		Cast<AShooterWeaponPresentationTestWeaponPrimary>(PrimaryWeapon)->HasWeaponOwnerForTest());
-	TestTrue(
-		TEXT("Primary FP mesh is attached to first-person mesh socket"),
+	TestTrue(TEXT("Primary FP mesh is attached to first-person mesh socket"),
 		PrimaryWeapon->GetFirstPersonMesh()->GetAttachParent() == Character->GetFirstPersonMesh() &&
 		PrimaryWeapon->GetFirstPersonMesh()->GetAttachSocketName() == FName(TEXT("HandGrip_R")));
-	TestTrue(
-		TEXT("Primary TP mesh is attached to third-person mesh socket"),
+	TestTrue(TEXT("Primary TP mesh is attached to third-person mesh socket"),
 		PrimaryWeapon->GetThirdPersonMesh()->GetAttachParent() == Character->GetMesh() &&
 		PrimaryWeapon->GetThirdPersonMesh()->GetAttachSocketName() == FName(TEXT("HandGrip_R")));
-	TestTrue(
-		TEXT("Primary FP AnimClass is applied"),
-		Character->GetFirstPersonMesh()->GetAnimClass() ==
+	TestTrue(TEXT("Primary FP AnimClass is applied"), Character->GetFirstPersonMesh()->GetAnimClass() ==
 			PrimaryWeapon->GetFirstPersonAnimInstanceClass().Get());
-	TestTrue(
-		TEXT("Primary TP AnimClass is applied"),
-		Character->GetMesh()->GetAnimClass() ==
+	TestTrue(TEXT("Primary TP AnimClass is applied"), Character->GetMesh()->GetAnimClass() ==
 			PrimaryWeapon->GetThirdPersonAnimInstanceClass().Get());
 
 	// 切枪：旧武器隐藏，新武器可见，AnimClass 同步切换。
 	EShooterInventoryAddResult SecondaryAddResult = EShooterInventoryAddResult::NotAuthoritative;
-	AShooterWeapon* SecondaryWeapon = GrantTestWeapon(
-		World,
-		Inventory,
+	AShooterWeapon* SecondaryWeapon = GrantTestWeapon(World, Inventory,
 		AShooterWeaponPresentationTestWeaponSecondary::StaticClass(),
 		/*MagazineSize*/ 10,
 		/*InitialReserveAmmo*/ -1,
 		&SecondaryAddResult);
-	TestEqual(
-		TEXT("Secondary weapon is granted"),
-		static_cast<int32>(SecondaryAddResult),
+	TestEqual(TEXT("Secondary weapon is granted"), static_cast<int32>(SecondaryAddResult),
 		static_cast<int32>(EShooterInventoryAddResult::Added));
 
 	AShooterWeapon* SpawnedSecondaryWeapon = SecondaryWeapon;
@@ -265,13 +232,9 @@ bool FShooterWeaponPresentationBaselineTest::RunTest(const FString& Parameters)
 
 	TestTrue(TEXT("Previous weapon is hidden after switch"), PrimaryWeapon->IsHidden());
 	TestFalse(TEXT("New weapon is visible after switch"), SecondaryWeapon->IsHidden());
-	TestTrue(
-		TEXT("FP AnimClass switches to secondary weapon config"),
-		Character->GetFirstPersonMesh()->GetAnimClass() ==
-			SecondaryWeapon->GetFirstPersonAnimInstanceClass().Get());
-	TestTrue(
-		TEXT("TP AnimClass switches to secondary weapon config"),
-		Character->GetMesh()->GetAnimClass() ==
+	TestTrue(TEXT("FP AnimClass switches to secondary weapon config"),
+		Character->GetFirstPersonMesh()->GetAnimClass() == SecondaryWeapon->GetFirstPersonAnimInstanceClass().Get());
+	TestTrue(TEXT("TP AnimClass switches to secondary weapon config"), Character->GetMesh()->GetAnimClass() ==
 			SecondaryWeapon->GetThirdPersonAnimInstanceClass().Get());
 
 	const UClass* SecondaryFPAnimClass = Character->GetFirstPersonMesh()->GetAnimClass();
@@ -281,11 +244,9 @@ bool FShooterWeaponPresentationBaselineTest::RunTest(const FString& Parameters)
 	Equipment->ClearEquippedWeapon();
 	TestNull(TEXT("Clear empties CurrentWeaponActor"), Equipment->GetCurrentWeaponActor());
 	TestTrue(TEXT("Cleared weapon is hidden"), SecondaryWeapon->IsHidden());
-	TestTrue(
-		TEXT("Clear keeps previous FP AnimClass in this plan baseline"),
+	TestTrue(TEXT("Clear keeps previous FP AnimClass in this plan baseline"),
 		Character->GetFirstPersonMesh()->GetAnimClass() == SecondaryFPAnimClass);
-	TestTrue(
-		TEXT("Clear keeps previous TP AnimClass in this plan baseline"),
+	TestTrue(TEXT("Clear keeps previous TP AnimClass in this plan baseline"),
 		Character->GetMesh()->GetAnimClass() == SecondaryTPAnimClass);
 
 	DestroyPresentationTestWorld(World);

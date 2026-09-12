@@ -9,11 +9,8 @@
 
 namespace
 {
-	TAutoConsoleVariable<int32> CVarShooterLeftHandIKDiag(
-		TEXT("ShootGame.LeftHandIK.Diag"),
-		0,
-		TEXT("输出左手 IK 可达范围、目标偏移和肘平面诊断。0=关闭，1=开启。"),
-		ECVF_Default);
+	TAutoConsoleVariable<int32> CVarShooterLeftHandIKDiag(TEXT("ShootGame.LeftHandIK.Diag"), 0,
+		TEXT("输出左手 IK 可达范围、目标偏移和肘平面诊断。0=关闭，1=开启。"), ECVF_Default);
 }
 
 FAnimNode_ShooterLeftHandIK::FAnimNode_ShooterLeftHandIK()
@@ -37,11 +34,8 @@ void FAnimNode_ShooterLeftHandIK::EvaluateSkeletalControl_AnyThread(FComponentSp
 
 	const FTransform RightHandCS = Output.Pose.GetComponentSpaceTransform(RightHandIndex);
 	FTransform DesiredLeftHandCS;
-	if (!FShooterLeftHandIKMath::CalculateDesiredLeftHandTransform(
-			RightHandCS,
-			WeaponGripInRightHandSpace,
-			HandGripInLeftHandSpace,
-			DesiredLeftHandCS))
+	if (!FShooterLeftHandIKMath::CalculateDesiredLeftHandTransform(RightHandCS, WeaponGripInRightHandSpace,
+			HandGripInLeftHandSpace, DesiredLeftHandCS))
 	{
 		return;
 	}
@@ -60,26 +54,14 @@ void FAnimNode_ShooterLeftHandIK::EvaluateSkeletalControl_AnyThread(FComponentSp
 	// 正常区域直接沿用输入动画的真实肘点；只有接近共线时才延续上一帧。
 	FVector JointTargetCS = LowerArmCS.GetLocation();
 	FVector ResolvedPoleDirectionCS;
-	if (FShooterLeftHandIKMath::CalculateCurrentPoseJointTarget(
-		UpperArmCS.GetLocation(),
-		LowerArmCS.GetLocation(),
-		DesiredLeftHandCS.GetLocation(),
-			PreviousPoleDirectionCS,
-			MinimumElbowPoleOffset,
-			JointTargetCS,
+	if (FShooterLeftHandIKMath::CalculateCurrentPoseJointTarget(UpperArmCS.GetLocation(), LowerArmCS.GetLocation(),
+		DesiredLeftHandCS.GetLocation(), PreviousPoleDirectionCS, MinimumElbowPoleOffset, JointTargetCS,
 		ResolvedPoleDirectionCS))
 	{
 		PreviousPoleDirectionCS = ResolvedPoleDirectionCS;
 	}
-	AnimationCore::SolveTwoBoneIK(
-		UpperArmCS,
-		LowerArmCS,
-		LeftHandCS,
-		JointTargetCS,
-		DesiredLeftHandCS.GetLocation(),
-		false,
-		1.0f,
-		1.0f);
+	AnimationCore::SolveTwoBoneIK(UpperArmCS, LowerArmCS, LeftHandCS, JointTargetCS, DesiredLeftHandCS.GetLocation(),
+		false, 1.0f, 1.0f);
 
 	// SolveTwoBoneIK 只负责链条位置；末端旋转必须使用完整握把参考帧。
 	LeftHandCS.SetRotation(DesiredLeftHandCS.GetRotation());
@@ -89,18 +71,13 @@ void FAnimNode_ShooterLeftHandIK::EvaluateSkeletalControl_AnyThread(FComponentSp
 	{
 		++DiagnosticEvaluationCounter;
 		const float DesiredHandStep = bHasPreviousDiagnosticSample
-			? FVector::Distance(
-				PreviousDiagnosticDesiredHandLocationCS,
-				DesiredLeftHandCS.GetLocation())
+			? FVector::Distance(PreviousDiagnosticDesiredHandLocationCS, DesiredLeftHandCS.GetLocation())
 			: 0.0f;
 		const float SourceHandStep = bHasPreviousDiagnosticSample
-			? FVector::Distance(
-				PreviousDiagnosticSourceHandLocationCS,
-				SourceLeftHandCS.GetLocation())
+			? FVector::Distance(PreviousDiagnosticSourceHandLocationCS, SourceLeftHandCS.GetLocation())
 			: 0.0f;
 		const float RightHandRotationStep = bHasPreviousDiagnosticSample
-			? FMath::RadiansToDegrees(
-				PreviousDiagnosticRightHandRotationCS.AngularDistance(RightHandCS.GetRotation()))
+			? FMath::RadiansToDegrees(PreviousDiagnosticRightHandRotationCS.AngularDistance(RightHandCS.GetRotation()))
 			: 0.0f;
 
 		const FVector RootLocation = SourceUpperArmCS.GetLocation();
@@ -114,33 +91,20 @@ void FAnimNode_ShooterLeftHandIK::EvaluateSkeletalControl_AnyThread(FComponentSp
 		const float DesiredReach = FVector::Distance(RootLocation, DesiredHandLocation);
 		const float SourceHandError = FVector::Distance(SourceHandLocation, DesiredHandLocation);
 		const FVector DesiredAxis = (DesiredHandLocation - RootLocation).GetSafeNormal();
-		const float SourceElbowLateral = FVector::VectorPlaneProject(
-			SourceJointLocation - RootLocation,
-			DesiredAxis).Size();
+		const float SourceElbowLateral = FVector::VectorPlaneProject(SourceJointLocation - RootLocation, DesiredAxis).Size();
 		FVector CurrentSourcePole;
-		const bool bHasCurrentSourcePole = FShooterLeftHandIKMath::CalculateSourcePoleDirection(
-			RootLocation,
-			SourceJointLocation,
-			SourceHandLocation,
-			CurrentSourcePole);
+		const bool bHasCurrentSourcePole = FShooterLeftHandIKMath::CalculateSourcePoleDirection(RootLocation,
+			SourceJointLocation, SourceHandLocation, CurrentSourcePole);
 		const float ResolvedVsCurrentPole = bHasCurrentSourcePole && !ResolvedPoleDirectionCS.IsNearlyZero()
 			? FVector::DotProduct(ResolvedPoleDirectionCS, CurrentSourcePole)
 			: 0.0f;
-		const float ElbowShift = FVector::Distance(
-			SourceJointLocation,
-			LowerArmCS.GetLocation());
+		const float ElbowShift = FVector::Distance(SourceJointLocation, LowerArmCS.GetLocation());
 		const float HandRotationDelta = FMath::RadiansToDegrees(
 			SourceLeftHandCS.GetRotation().AngularDistance(DesiredLeftHandCS.GetRotation()));
 
 		const bool bPeriodicSample = DiagnosticEvaluationCounter == 1 || DiagnosticEvaluationCounter % 30 == 0;
-		const bool bTransientSample =
-			SourceHandError >= 20.0f ||
-			DesiredHandStep >= 10.0f ||
-			SourceHandStep >= 10.0f ||
-			RightHandRotationStep >= 10.0f ||
-			ElbowShift >= 8.0f ||
-			ResolvedVsCurrentPole < 0.5f ||
-			DesiredReach > MaximumReach;
+		const bool bTransientSample = SourceHandError >= 20.0f || DesiredHandStep >= 10.0f || SourceHandStep >= 10.0f ||
+			RightHandRotationStep >= 10.0f || ElbowShift >= 8.0f || ResolvedVsCurrentPole < 0.5f || DesiredReach > MaximumReach;
 		if (bPeriodicSample || bTransientSample)
 		{
 			const FString& ActorName = Output.AnimInstanceProxy->GetActorName();
@@ -184,14 +148,10 @@ void FAnimNode_ShooterLeftHandIK::EvaluateSkeletalControl_AnyThread(FComponentSp
 	OutBoneTransforms.Add(FBoneTransform(LeftHandIndex, LeftHandCS));
 }
 
-bool FAnimNode_ShooterLeftHandIK::IsValidToEvaluate(
-	const USkeleton* Skeleton,
-	const FBoneContainer& RequiredBones)
+bool FAnimNode_ShooterLeftHandIK::IsValidToEvaluate(const USkeleton* Skeleton, const FBoneContainer& RequiredBones)
 {
-	return LeftHandBone.IsValidToEvaluate(RequiredBones) &&
-		RightHandBone.IsValidToEvaluate(RequiredBones) &&
-		CachedUpperArmIndex != INDEX_NONE &&
-		CachedLowerArmIndex != INDEX_NONE;
+	return LeftHandBone.IsValidToEvaluate(RequiredBones) && RightHandBone.IsValidToEvaluate(RequiredBones) &&
+		CachedUpperArmIndex != INDEX_NONE && CachedLowerArmIndex != INDEX_NONE;
 }
 
 void FAnimNode_ShooterLeftHandIK::InitializeBoneReferences(const FBoneContainer& RequiredBones)

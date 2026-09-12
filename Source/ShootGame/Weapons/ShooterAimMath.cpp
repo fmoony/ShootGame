@@ -7,27 +7,17 @@ float FShooterAimMath::NormalizeAngleDelta(float AngleDegrees)
 	return FRotator::NormalizeAxis(AngleDegrees);
 }
 
-float FShooterAimMath::ShortestAngleInterp(
-	float CurrentDegrees,
-	float TargetDegrees,
-	float MaxDeltaDegrees)
+float FShooterAimMath::ShortestAngleInterp(float CurrentDegrees, float TargetDegrees, float MaxDeltaDegrees)
 {
 	const float Delta = NormalizeAngleDelta(TargetDegrees - CurrentDegrees);
-	const float ClampedStep = FMath::Clamp(
-		Delta,
-		-FMath::Abs(MaxDeltaDegrees),
-		FMath::Abs(MaxDeltaDegrees));
+	const float ClampedStep = FMath::Clamp(Delta, -FMath::Abs(MaxDeltaDegrees), FMath::Abs(MaxDeltaDegrees));
 	return CurrentDegrees + ClampedStep;
 }
 
-void FShooterAimMath::WorldDirectionToLocalAngles(
-	const FVector& WorldDirection,
-	const FTransform& ReferenceTransform,
-	float& OutAimYaw,
-	float& OutAimPitch)
+void FShooterAimMath::WorldDirectionToLocalAngles(const FVector& WorldDirection, const FTransform& ReferenceTransform,
+	float& OutAimYaw, float& OutAimPitch)
 {
-	const FVector LocalDirection = ReferenceTransform.InverseTransformVectorNoScale(
-		WorldDirection);
+	const FVector LocalDirection = ReferenceTransform.InverseTransformVectorNoScale(WorldDirection);
 	const FVector SafeDirection = LocalDirection.GetSafeNormal();
 	if (SafeDirection.IsNearlyZero())
 	{

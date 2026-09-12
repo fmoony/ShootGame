@@ -23,11 +23,8 @@ namespace ShooterAimPresentationDebug
 {
 	constexpr uint64 LocalViewMessageKey = 0x53484F4F5441494Dull;
 
-	TAutoConsoleVariable<int32> CVarDrawAim(
-		TEXT("ShootGame.Aim.DebugDraw"),
-		0,
-		TEXT("Aim debug mode. 0=off, 1=single remote pose audit, 2=legacy full aim chain."),
-		ECVF_Cheat);
+	TAutoConsoleVariable<int32> CVarDrawAim(TEXT("ShootGame.Aim.DebugDraw"), 0,
+		TEXT("Aim debug mode. 0=off, 1=single remote pose audit, 2=legacy full aim chain."), ECVF_Cheat);
 
 	const AShooterCharacter* FindPoseDebugSubject(UWorld* World)
 	{
@@ -69,8 +66,7 @@ namespace ShooterAimPresentationDebug
 				continue;
 			}
 
-			const FVector ToCandidate =
-				Candidate->GetActorLocation() + FVector(0.0, 0.0, 80.0) - ViewLocation;
+			const FVector ToCandidate = Candidate->GetActorLocation() + FVector(0.0, 0.0, 80.0) - ViewLocation;
 			const double DistanceSquared = ToCandidate.SizeSquared();
 			const double ViewDot = FVector::DotProduct(ViewForward, ToCandidate.GetSafeNormal());
 			if (ViewDot > BestDot + UE_SMALL_NUMBER ||
@@ -87,8 +83,7 @@ namespace ShooterAimPresentationDebug
 
 	double AngleBetweenDegrees(const FVector& A, const FVector& B)
 	{
-		return FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(
-			FVector::DotProduct(A, B), -1.0, 1.0)));
+		return FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(FVector::DotProduct(A, B), -1.0, 1.0)));
 	}
 
 	struct FAimSafetyDebugMetrics
@@ -116,31 +111,18 @@ namespace ShooterAimPresentationDebug
 		OutMetrics = FAimSafetyDebugMetrics();
 		OutMetrics.HitDistanceFromView = FVector::Distance(HitTarget, ViewLocation);
 		OutMetrics.HitDistanceFromMuzzle = FVector::Distance(HitTarget, MuzzleLocation);
-		OutMetrics.HitDepthFromMuzzle = FVector::DotProduct(
-			HitTarget - MuzzleLocation,
-			BaseAimDirection.GetSafeNormal());
+		OutMetrics.HitDepthFromMuzzle = FVector::DotProduct(HitTarget - MuzzleLocation, BaseAimDirection.GetSafeNormal());
 
 		bool bViewProjected = false;
-		if (!FShooterAimIKMath::ProjectTargetToMinimumForwardDepth(
-				HitTarget,
-				ViewLocation,
-				BaseAimDirection,
-				MinimumViewDepth,
-				OutMetrics.ViewSafeTarget,
-				OutMetrics.HitDepthFromView,
-				bViewProjected))
+		if (!FShooterAimIKMath::ProjectTargetToMinimumForwardDepth(HitTarget, ViewLocation, BaseAimDirection,
+				MinimumViewDepth, OutMetrics.ViewSafeTarget, OutMetrics.HitDepthFromView, bViewProjected))
 		{
 			return false;
 		}
 
 		bool bMuzzleProjected = false;
-		if (!FShooterAimIKMath::ProjectTargetToMinimumForwardDepth(
-				OutMetrics.ViewSafeTarget,
-				MuzzleLocation,
-				BaseAimDirection,
-				MinimumMuzzleDepth,
-				OutMetrics.FinalSafeTarget,
-				OutMetrics.ViewSafeDepthFromMuzzle,
+		if (!FShooterAimIKMath::ProjectTargetToMinimumForwardDepth(OutMetrics.ViewSafeTarget, MuzzleLocation,
+				BaseAimDirection, MinimumMuzzleDepth, OutMetrics.FinalSafeTarget, OutMetrics.ViewSafeDepthFromMuzzle,
 				bMuzzleProjected))
 		{
 			return false;
@@ -175,10 +157,7 @@ void UShooterAimPresentationComponent::EndPlay(const EEndPlayReason::Type EndPla
 	Super::EndPlay(EndPlayReason);
 }
 
-void UShooterAimPresentationComponent::TickComponent(
-	float DeltaTime,
-	ELevelTick TickType,
-	FActorComponentTickFunction* ThisTickFunction)
+void UShooterAimPresentationComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
@@ -188,10 +167,7 @@ void UShooterAimPresentationComponent::TickComponent(
 
 bool UShooterAimPresentationComponent::IsValidPresentationAimTargetValue(const FVector& Target)
 {
-	return FMath::IsFinite(Target.X) &&
-		FMath::IsFinite(Target.Y) &&
-		FMath::IsFinite(Target.Z) &&
-		!Target.IsNearlyZero();
+	return FMath::IsFinite(Target.X) && FMath::IsFinite(Target.Y) && FMath::IsFinite(Target.Z) && !Target.IsNearlyZero();
 }
 
 bool UShooterAimPresentationComponent::ShouldSubmitPresentationAimTarget(
@@ -203,10 +179,8 @@ bool UShooterAimPresentationComponent::ShouldSubmitPresentationAimTarget(
 	float MinChangeAngle,
 	float KeepAliveInterval)
 {
-	if (!IsValidPresentationAimTargetValue(NewTarget) ||
-		!FMath::IsFinite(ViewLocation.X) ||
-		!FMath::IsFinite(ViewLocation.Y) ||
-		!FMath::IsFinite(ViewLocation.Z))
+	if (!IsValidPresentationAimTargetValue(NewTarget) || !FMath::IsFinite(ViewLocation.X) ||
+		!FMath::IsFinite(ViewLocation.Y) || !FMath::IsFinite(ViewLocation.Z))
 	{
 		return false;
 	}
@@ -225,24 +199,17 @@ bool UShooterAimPresentationComponent::ShouldSubmitPresentationAimTarget(
 	const FVector NewDirection = (NewTarget - ViewLocation).GetSafeNormal();
 	const float DistanceDelta = FVector::Distance(NewTarget, PreviousTarget);
 	const float AngleDelta = !OldDirection.IsNearlyZero() && !NewDirection.IsNearlyZero()
-		? FMath::RadiansToDegrees(FMath::Acos(
-			FMath::Clamp(FVector::DotProduct(OldDirection, NewDirection), -1.0f, 1.0f)))
+		? FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(FVector::DotProduct(OldDirection, NewDirection), -1.0f, 1.0f)))
 		: 180.0f;
 
-	return DistanceDelta >= FMath::Max(0.0f, MinChangeDistance) ||
-		AngleDelta >= FMath::Max(0.0f, MinChangeAngle);
+	return DistanceDelta >= FMath::Max(0.0f, MinChangeDistance) || AngleDelta >= FMath::Max(0.0f, MinChangeAngle);
 }
 
-bool UShooterAimPresentationComponent::IsClientPresentationAimTargetWithinBounds(
-	const FVector& Target,
-	const FVector& ServerViewLocation,
-	float MaxDistance,
-	float DistanceTolerance)
+bool UShooterAimPresentationComponent::IsClientPresentationAimTargetWithinBounds(const FVector& Target,
+	const FVector& ServerViewLocation, float MaxDistance, float DistanceTolerance)
 {
-	if (!IsValidPresentationAimTargetValue(Target) ||
-		!FMath::IsFinite(ServerViewLocation.X) ||
-		!FMath::IsFinite(ServerViewLocation.Y) ||
-		!FMath::IsFinite(ServerViewLocation.Z))
+	if (!IsValidPresentationAimTargetValue(Target) || !FMath::IsFinite(ServerViewLocation.X) ||
+		!FMath::IsFinite(ServerViewLocation.Y) || !FMath::IsFinite(ServerViewLocation.Z))
 	{
 		return false;
 	}
@@ -257,10 +224,7 @@ bool UShooterAimPresentationComponent::IsNewerPresentationAimSequence(uint16 Can
 	return Delta != 0 && Delta < 32768;
 }
 
-bool UShooterAimPresentationComponent::ShouldRunPresentationAimSmoothing(
-	ENetRole LocalRole,
-	ENetMode NetMode,
-	bool bLocallyControlled)
+bool UShooterAimPresentationComponent::ShouldRunPresentationAimSmoothing(ENetRole LocalRole, ENetMode NetMode, bool bLocallyControlled)
 {
 	// 普通客户端观察其他玩家：SimulatedProxy。
 	if (LocalRole == ROLE_SimulatedProxy)
@@ -298,18 +262,12 @@ void UShooterAimPresentationComponent::ComputeAimPresentationAnglesForState(
 		WorldDirection = BaseAimRotation.Vector();
 	}
 
-	FShooterAimMath::WorldDirectionToLocalAngles(
-		WorldDirection,
-		MeshReferenceTransform,
-		OutAimYaw,
-		OutAimPitch);
+	FShooterAimMath::WorldDirectionToLocalAngles(WorldDirection, MeshReferenceTransform, OutAimYaw, OutAimPitch);
 }
 
 void UShooterAimPresentationComponent::GetAimPresentationAngles(float& OutAimYaw, float& OutAimPitch) const
 {
-	const bool bShouldUseSmoothedTarget =
-		ShouldRunPresentationAimSmoothingForContext() &&
-		bPresentationAimTargetValid &&
+	const bool bShouldUseSmoothedTarget = ShouldRunPresentationAimSmoothingForContext() && bPresentationAimTargetValid &&
 		!SmoothedPresentationAimTarget.IsNearlyZero();
 
 	ComputeAimPresentationAnglesForState(
@@ -330,11 +288,8 @@ float UShooterAimPresentationComponent::GetAimPitchN() const
 	return FMath::Sin(FMath::DegreesToRadians(AimPitch));
 }
 
-void UShooterAimPresentationComponent::ResolveAimPresentationInput(
-	FVector& OutAimDirectionWorld,
-	FVector& OutAimTargetWorld,
-	bool& bOutAimTargetWorldValid,
-	float MinimumTargetDistanceFromView) const
+void UShooterAimPresentationComponent::ResolveAimPresentationInput(FVector& OutAimDirectionWorld,
+	FVector& OutAimTargetWorld, bool& bOutAimTargetWorldValid, float MinimumTargetDistanceFromView) const
 {
 	OutAimDirectionWorld = FVector::ZeroVector;
 	OutAimTargetWorld = FVector::ZeroVector;
@@ -351,11 +306,8 @@ void UShooterAimPresentationComponent::ResolveAimPresentationInput(
 	}
 
 	// 观察端：SimulatedProxy 与 Listen Server 观察远端 Pawn 都使用同一份平滑目标。
-	if (!ShouldRunPresentationAimSmoothingForContext() ||
-		!bPresentationAimTargetValid ||
-		!FMath::IsFinite(BaseAimDirection.X) ||
-		!FMath::IsFinite(BaseAimDirection.Y) ||
-		!FMath::IsFinite(BaseAimDirection.Z) ||
+	if (!ShouldRunPresentationAimSmoothingForContext() || !bPresentationAimTargetValid ||
+		!FMath::IsFinite(BaseAimDirection.X) || !FMath::IsFinite(BaseAimDirection.Y) || !FMath::IsFinite(BaseAimDirection.Z) ||
 		BaseAimDirection.IsNearlyZero())
 	{
 		return;
@@ -366,14 +318,8 @@ void UShooterAimPresentationComponent::ResolveAimPresentationInput(
 	FVector SafeTargetWorld;
 	float TargetDepthFromView = 0.0f;
 	bool bTargetProjected = false;
-	if (!FShooterAimIKMath::ProjectTargetToMinimumForwardDepth(
-			SmoothedPresentationAimTarget,
-			ViewWorldLocation,
-			BaseAimDirection,
-			MinimumTargetDistanceFromView,
-			SafeTargetWorld,
-			TargetDepthFromView,
-			bTargetProjected))
+	if (!FShooterAimIKMath::ProjectTargetToMinimumForwardDepth(SmoothedPresentationAimTarget, ViewWorldLocation,
+			BaseAimDirection, MinimumTargetDistanceFromView, SafeTargetWorld, TargetDepthFromView, bTargetProjected))
 	{
 		return;
 	}
@@ -443,10 +389,7 @@ const APawn* UShooterAimPresentationComponent::GetPresentationPawn() const
 
 bool UShooterAimPresentationComponent::ShouldRunPresentationAimSmoothingForContext() const
 {
-	return ShouldRunPresentationAimSmoothing(
-		GetPresentationLocalRole(),
-		GetPresentationNetMode(),
-		IsPresentationOwnerLocallyControlled());
+	return ShouldRunPresentationAimSmoothing(GetPresentationLocalRole(), GetPresentationNetMode(), IsPresentationOwnerLocallyControlled());
 }
 
 void UShooterAimPresentationComponent::StartPresentationAimSampling()
@@ -457,13 +400,8 @@ void UShooterAimPresentationComponent::StartPresentationAimSampling()
 	}
 
 	// 本地拥有者以 20Hz 起点采样；SetTimer 对同一 Handle 幂等替换，兼容 BeginPlay 与输入初始化先后顺序。
-	GetWorld()->GetTimerManager().SetTimer(
-		PresentationAimTimer,
-		this,
-		&UShooterAimPresentationComponent::SamplePresentationAimTarget,
-		PresentationAimSampleInterval,
-		true,
-		0.0f);
+	GetWorld()->GetTimerManager().SetTimer(PresentationAimTimer, this,
+		&UShooterAimPresentationComponent::SamplePresentationAimTarget, PresentationAimSampleInterval, true, 0.0f);
 }
 
 void UShooterAimPresentationComponent::SamplePresentationAimTarget()
@@ -479,21 +417,14 @@ void UShooterAimPresentationComponent::SamplePresentationAimTarget()
 		return;
 	}
 
-	const FVector NewTarget = AShooterCharacter::ComputePreSpreadAimTarget(
-		Pawn,
-		GetPresentationMaxAimDistance());
+	const FVector NewTarget = AShooterCharacter::ComputePreSpreadAimTarget(Pawn, GetPresentationMaxAimDistance());
 	const FVector ViewLocation = GetPresentationPawnViewLocation();
 	const float Now = GetWorld()->GetTimeSeconds();
 	const float SecondsSinceLastSubmit = LastPresentationAimSubmitTime >= 0.0f
 		? Now - LastPresentationAimSubmitTime
 		: -1.0f;
-	if (!ShouldSubmitPresentationAimTarget(
-		NewTarget,
-		LastSubmittedPresentationAimTarget,
-		ViewLocation,
-		SecondsSinceLastSubmit,
-		PresentationAimMinChangeDistance,
-		PresentationAimMinChangeAngle,
+	if (!ShouldSubmitPresentationAimTarget(NewTarget, LastSubmittedPresentationAimTarget, ViewLocation,
+		SecondsSinceLastSubmit, PresentationAimMinChangeDistance, PresentationAimMinChangeAngle,
 		PresentationAimKeepAliveInterval))
 	{
 		return;
@@ -515,8 +446,7 @@ void UShooterAimPresentationComponent::SamplePresentationAimTarget()
 	}
 }
 
-void UShooterAimPresentationComponent::ServerUpdatePresentationAimTarget_Implementation(
-	FVector_NetQuantize NewTarget,
+void UShooterAimPresentationComponent::ServerUpdatePresentationAimTarget_Implementation(FVector_NetQuantize NewTarget,
 	uint16 ClientSequence)
 {
 	if (!GetOwner() || !GetOwner()->HasAuthority() || IsPresentationOwnerDead() || !GetWorld())
@@ -529,13 +459,9 @@ void UShooterAimPresentationComponent::ServerUpdatePresentationAimTarget_Impleme
 	constexpr float TargetDistanceTolerance = 500.0f;
 	if ((LastAcceptedPresentationAimServerTime >= 0.0f &&
 		Now - LastAcceptedPresentationAimServerTime < MinimumServerReceiveInterval) ||
-		(bHasAcceptedPresentationAimSequence &&
-			!IsNewerPresentationAimSequence(ClientSequence, LastAcceptedPresentationAimSequence)) ||
-		!IsClientPresentationAimTargetWithinBounds(
-			NewTarget,
-			GetPresentationPawnViewLocation(),
-			GetPresentationMaxAimDistance(),
-			TargetDistanceTolerance))
+		(bHasAcceptedPresentationAimSequence && !IsNewerPresentationAimSequence(ClientSequence, LastAcceptedPresentationAimSequence)) ||
+		!IsClientPresentationAimTargetWithinBounds(NewTarget, GetPresentationPawnViewLocation(),
+			GetPresentationMaxAimDistance(), TargetDistanceTolerance))
 	{
 		return;
 	}
@@ -554,8 +480,7 @@ void UShooterAimPresentationComponent::OnRep_PresentationAimTarget()
 	{
 		if (IsValidPresentationAimTargetValue(PresentationAimTarget))
 		{
-			const bool bNeedsReset = !bPresentationAimTargetValid ||
-				SmoothedPresentationAimTarget.IsNearlyZero();
+			const bool bNeedsReset = !bPresentationAimTargetValid || SmoothedPresentationAimTarget.IsNearlyZero();
 			bPresentationAimTargetValid = true;
 			if (bNeedsReset)
 			{
@@ -601,8 +526,7 @@ void UShooterAimPresentationComponent::UpdatePresentationAimSmoothing(float Delt
 	}
 
 	// 尚未建立有效状态、平滑目标缺失、或视点发生传送级跳变时显式重置。
-	if (!bPresentationAimTargetValid ||
-		SmoothedPresentationAimTarget.IsNearlyZero() ||
+	if (!bPresentationAimTargetValid || SmoothedPresentationAimTarget.IsNearlyZero() ||
 		FVector::DistSquared(ViewLocation, LastPresentationAimViewLocation) > FMath::Square(500.0f))
 	{
 		ResetPresentationAimSmoothing();
@@ -620,10 +544,7 @@ void UShooterAimPresentationComponent::UpdatePresentationAimSmoothing(float Delt
 
 	// 指数插值向最新网络/权威目标收敛（世界空间位置插值；角度环绕在局部角度计算时处理）。
 	const float Alpha = 1.0f - FMath::Exp(-PresentationAimSmoothingRate * DeltaSeconds);
-	SmoothedPresentationAimTarget = FMath::Lerp(
-		SmoothedPresentationAimTarget,
-		(FVector)PresentationAimTarget,
-		Alpha);
+	SmoothedPresentationAimTarget = FMath::Lerp(SmoothedPresentationAimTarget, (FVector)PresentationAimTarget, Alpha);
 }
 
 void UShooterAimPresentationComponent::ResetPresentationAimSmoothing()
@@ -636,8 +557,7 @@ void UShooterAimPresentationComponent::ResetPresentationAimSmoothing()
 	}
 	else
 	{
-		SmoothedPresentationAimTarget =
-			GetPresentationPawnViewLocation() +
+		SmoothedPresentationAimTarget = GetPresentationPawnViewLocation() +
 			GetPresentationBaseAimRotation().Vector() * GetPresentationMaxAimDistance();
 	}
 }
@@ -649,8 +569,7 @@ void UShooterAimPresentationComponent::ClearPresentationAimSmoothing()
 	LastPresentationAimViewLocation = FVector::ZeroVector;
 }
 
-void UShooterAimPresentationComponent::GetLifetimeReplicatedProps(
-	TArray<FLifetimeProperty>& OutLifetimeProps) const
+void UShooterAimPresentationComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
@@ -670,8 +589,7 @@ void UShooterAimPresentationComponent::DrawAimDebug() const
 
 	const FVector RawTarget = (FVector)PresentationAimTarget;
 	const bool bRawTargetValid = IsValidPresentationAimTargetValue(RawTarget);
-	const bool bSmoothedTargetValid =
-		bPresentationAimTargetValid && IsValidPresentationAimTargetValue(SmoothedPresentationAimTarget);
+	const bool bSmoothedTargetValid = bPresentationAimTargetValid && IsValidPresentationAimTargetValue(SmoothedPresentationAimTarget);
 	const AShooterWeapon* Weapon = Character->GetCurrentWeapon();
 	const bool bHasMuzzle = Weapon && Weapon->HasThirdPersonMuzzleSocket();
 	const UShooterThirdPersonAnimInstance* ThirdPersonAnimInstance = Character->GetMesh()
@@ -683,8 +601,7 @@ void UShooterAimPresentationComponent::DrawAimDebug() const
 	const float MinimumMuzzleDepth = ThirdPersonAnimInstance
 		? ThirdPersonAnimInstance->MinimumRemoteAimTargetDistanceFromMuzzle
 		: FShooterAimIKMath::DefaultMinimumTargetDistanceFromMuzzle;
-	const FVector BaseAimDirection = ThirdPersonAnimInstance &&
-		FShooterAimIKMath::IsFinite(ThirdPersonAnimInstance->AimDirectionWorld) &&
+	const FVector BaseAimDirection = ThirdPersonAnimInstance && FShooterAimIKMath::IsFinite(ThirdPersonAnimInstance->AimDirectionWorld) &&
 		!ThirdPersonAnimInstance->AimDirectionWorld.IsNearlyZero()
 		? ThirdPersonAnimInstance->AimDirectionWorld.GetSafeNormal()
 		: GetPresentationBaseAimRotation().Vector().GetSafeNormal();
@@ -727,50 +644,33 @@ void UShooterAimPresentationComponent::DrawAimDebug() const
 			if (TargetRange > UE_SMALL_NUMBER && !ActualDirection.IsNearlyZero())
 			{
 				const FVector ActualEnd = MuzzleLocation + ActualDirection * TargetRange;
-				const double MuzzleAngle = ShooterAimPresentationDebug::AngleBetweenDegrees(
-					ActualDirection, DesiredDirection);
+				const double MuzzleAngle = ShooterAimPresentationDebug::AngleBetweenDegrees(ActualDirection, DesiredDirection);
 				const double MissDistance = FVector::Distance(ActualEnd, AimTarget);
 				float AimYaw = 0.0f;
 				float AimPitch = 0.0f;
 				GetAimPresentationAngles(AimYaw, AimPitch);
 
-				DrawDebugLine(
-					World, MuzzleLocation, AimTarget,
-					FColor::Cyan, false, 0.0f, 0, 0.0f);
-				DrawDebugLine(
-					World, MuzzleLocation, ActualEnd,
-					FColor::Blue, false, 0.0f, 0, 0.0f);
+				DrawDebugLine(World, MuzzleLocation, AimTarget, FColor::Cyan, false, 0.0f, 0, 0.0f);
+				DrawDebugLine(World, MuzzleLocation, ActualEnd, FColor::Blue, false, 0.0f, 0, 0.0f);
 
-				PoseText += FString::Printf(
-					TEXT("\nDemand Yaw/Pitch=(%.1f, %.1f) deg")
+				PoseText += FString::Printf(TEXT("\nDemand Yaw/Pitch=(%.1f, %.1f) deg")
 					TEXT("\nFinalMuzzle Angle=%.2f deg  Miss=%.1f cm  SafeRange=%.1f cm")
 					TEXT("\nHitDist View=%.1f cm  Muzzle=%.1f cm")
 					TEXT("\nSafeDepth View=%.1f/%.1f Within=%d  Muzzle=%.1f/%.1f Within=%d"),
-					AimYaw, AimPitch, MuzzleAngle, MissDistance, TargetRange,
-					SafetyMetrics.HitDistanceFromView,
-					SafetyMetrics.HitDistanceFromMuzzle,
-					SafetyMetrics.HitDepthFromView,
-					MinimumViewDepth,
-					SafetyMetrics.bWithinViewMinimum ? 1 : 0,
-					SafetyMetrics.ViewSafeDepthFromMuzzle,
-					MinimumMuzzleDepth,
+					AimYaw, AimPitch, MuzzleAngle, MissDistance, TargetRange, SafetyMetrics.HitDistanceFromView,
+					SafetyMetrics.HitDistanceFromMuzzle, SafetyMetrics.HitDepthFromView, MinimumViewDepth,
+					SafetyMetrics.bWithinViewMinimum ? 1 : 0, SafetyMetrics.ViewSafeDepthFromMuzzle, MinimumMuzzleDepth,
 					SafetyMetrics.bWithinMuzzleMinimum ? 1 : 0);
 			}
 		}
 		else
 		{
-			PoseText += FString::Printf(
-				TEXT("\nTarget=%d Weapon=%d Muzzle=%d"),
+			PoseText += FString::Printf(TEXT("\nTarget=%d Weapon=%d Muzzle=%d"),
 				bSmoothedTargetValid ? 1 : 0, Weapon ? 1 : 0, bHasMuzzle ? 1 : 0);
 		}
 
-		DrawDebugString(
-			World,
-			Character->GetActorLocation() + FVector(0.0, 0.0, 220.0),
-			PoseText,
-			nullptr,
-			FColor::White,
-			0.0f);
+		DrawDebugString(World, Character->GetActorLocation() + FVector(0.0, 0.0, 220.0), PoseText, nullptr,
+			FColor::White, 0.0f);
 		return;
 	}
 
@@ -793,13 +693,10 @@ void UShooterAimPresentationComponent::DrawAimDebug() const
 		const FVector ControlForward = Character->GetControlRotation().Vector();
 		const FVector CameraFromPawnView = CameraStart - PawnViewLocation;
 		const FVector ViewLocalDelta = Character->GetControlRotation().UnrotateVector(CameraFromPawnView);
-		const double ForwardAngleDegrees = ShooterAimPresentationDebug::AngleBetweenDegrees(
-			CameraForward, ControlForward);
+		const double ForwardAngleDegrees = ShooterAimPresentationDebug::AngleBetweenDegrees(CameraForward, ControlForward);
 
 		const FName CameraAttachSocket = FirstPersonCameraComponent->GetAttachSocketName();
-		const bool bHasCameraAttachSocket =
-			FirstPersonMesh &&
-			!CameraAttachSocket.IsNone() &&
+		const bool bHasCameraAttachSocket = FirstPersonMesh && !CameraAttachSocket.IsNone() &&
 			FirstPersonMesh->DoesSocketExist(CameraAttachSocket);
 		const FVector CameraAttachSocketLocation = bHasCameraAttachSocket
 			? FirstPersonMesh->GetSocketLocation(CameraAttachSocket)
@@ -808,44 +705,27 @@ void UShooterAimPresentationComponent::DrawAimDebug() const
 		DrawDebugPoint(World, CameraStart, 20.0f, FColor::White, false, 0.0f);
 		DrawDebugPoint(World, PawnViewLocation, 20.0f, FColor::Orange, false, 0.0f);
 		DrawDebugLine(World, CameraStart, PawnViewLocation, FColor::Orange, false, 0.0f, 0, 0.0f);
-		DrawDebugLine(
-			World, CameraStart, CameraStart + CameraForward * 100.0f,
-			FColor::White, false, 0.0f, 0, 0.0f);
-		DrawDebugLine(
-			World, PawnViewLocation, PawnViewLocation + ControlForward * 100.0f,
+		DrawDebugLine(World, CameraStart, CameraStart + CameraForward * 100.0f, FColor::White, false, 0.0f, 0, 0.0f);
+		DrawDebugLine(World, PawnViewLocation, PawnViewLocation + ControlForward * 100.0f,
 			FColor::Orange, false, 0.0f, 0, 0.0f);
 		if (bHasCameraAttachSocket)
 		{
 			DrawDebugPoint(World, CameraAttachSocketLocation, 20.0f, FColor::Silver, false, 0.0f);
-			DrawDebugLine(
-				World, PawnViewLocation, CameraAttachSocketLocation,
-				FColor::Silver, false, 0.0f, 0, 0.0f);
-			DrawDebugLine(
-				World, CameraAttachSocketLocation, CameraStart,
-				FColor::White, false, 0.0f, 0, 0.0f);
+			DrawDebugLine(World, PawnViewLocation, CameraAttachSocketLocation, FColor::Silver, false, 0.0f, 0, 0.0f);
+			DrawDebugLine(World, CameraAttachSocketLocation, CameraStart, FColor::White, false, 0.0f, 0, 0.0f);
 		}
 
 		if (GEngine)
 		{
 			const FString LocalViewText = FString::Printf(
 				TEXT("LOCAL VIEW  Camera-PawnEye=%.1fcm  Camera-Head=%.1fcm  Head-PawnEye=%.1fcm\n")
-				TEXT("DeltaView F/R/U=(%.1f, %.1f, %.1f)cm  ForwardAngle=%.3fdeg"),
-				CameraFromPawnView.Size(),
-				bHasCameraAttachSocket
+				TEXT("DeltaView F/R/U=(%.1f, %.1f, %.1f)cm  ForwardAngle=%.3fdeg"), CameraFromPawnView.Size(), bHasCameraAttachSocket
 					? FVector::Distance(CameraStart, CameraAttachSocketLocation)
-					: -1.0,
-				bHasCameraAttachSocket
+					: -1.0, bHasCameraAttachSocket
 					? FVector::Distance(CameraAttachSocketLocation, PawnViewLocation)
-					: -1.0,
-				ViewLocalDelta.X, ViewLocalDelta.Y, ViewLocalDelta.Z,
-				ForwardAngleDegrees);
-			GEngine->AddOnScreenDebugMessage(
-				ShooterAimPresentationDebug::LocalViewMessageKey,
-				0.1f,
-				FColor::White,
-				LocalViewText,
-				false,
-				FVector2D(0.75f, 0.75f));
+					: -1.0, ViewLocalDelta.X, ViewLocalDelta.Y, ViewLocalDelta.Z, ForwardAngleDegrees);
+			GEngine->AddOnScreenDebugMessage(ShooterAimPresentationDebug::LocalViewMessageKey, 0.1f, FColor::White,
+				LocalViewText, false, FVector2D(0.75f, 0.75f));
 		}
 
 		const float MaxAimDistance = GetPresentationMaxAimDistance();
@@ -857,20 +737,15 @@ void UShooterAimPresentationComponent::DrawAimDebug() const
 
 		DrawDebugLine(World, CameraStart, LocalCameraTarget, FColor::Green, false, 0.0f, 0, 0.0f);
 		DrawDebugPoint(World, LocalCameraTarget, 20.0f, FColor::Green, false, 0.0f);
-		DebugText += FString::Printf(
-			TEXT("\nCameraEye=%.1f cm  LocalTarget=(%.0f, %.0f, %.0f)  Hit=%s/%s %.1fcm"),
-			FVector::Distance(CameraStart, PawnViewLocation),
-			LocalCameraTarget.X, LocalCameraTarget.Y, LocalCameraTarget.Z,
-			CameraHit.bBlockingHit
+		DebugText += FString::Printf(TEXT("\nCameraEye=%.1f cm  LocalTarget=(%.0f, %.0f, %.0f)  Hit=%s/%s %.1fcm"), FVector::Distance(
+			CameraStart,
+			PawnViewLocation), LocalCameraTarget.X, LocalCameraTarget.Y, LocalCameraTarget.Z, CameraHit.bBlockingHit
 				? (bCameraPawnHit ? TEXT("Pawn") : TEXT("Visibility"))
-				: TEXT("Fallback"),
-			CameraHit.bBlockingHit ? *GetNameSafe(CameraHit.GetActor()) : TEXT("None"),
+				: TEXT("Fallback"), CameraHit.bBlockingHit ? *GetNameSafe(CameraHit.GetActor()) : TEXT("None"),
 			CameraHit.bBlockingHit ? CameraHit.Distance : MaxAimDistance);
 		if (bRawTargetValid)
 		{
-			DebugText += FString::Printf(
-				TEXT("  LocalVsRaw=%.1f cm"),
-				FVector::Distance(LocalCameraTarget, RawTarget));
+			DebugText += FString::Printf(TEXT("  LocalVsRaw=%.1f cm"), FVector::Distance(LocalCameraTarget, RawTarget));
 		}
 	}
 
@@ -878,9 +753,7 @@ void UShooterAimPresentationComponent::DrawAimDebug() const
 	{
 		DrawDebugLine(World, PawnViewLocation, RawTarget, FColor::Magenta, false, 0.0f, 0, 0.0f);
 		DrawDebugPoint(World, RawTarget, 20.0f, FColor::Yellow, false, 0.0f);
-		DebugText += FString::Printf(
-			TEXT("\nRawTarget=(%.0f, %.0f, %.0f)"),
-			RawTarget.X, RawTarget.Y, RawTarget.Z);
+		DebugText += FString::Printf(TEXT("\nRawTarget=(%.0f, %.0f, %.0f)"), RawTarget.X, RawTarget.Y, RawTarget.Z);
 	}
 
 	if (bSafetyMetricsValid)
@@ -894,11 +767,9 @@ void UShooterAimPresentationComponent::DrawAimDebug() const
 
 		if (TargetRange > UE_SMALL_NUMBER && !ActualDirection.IsNearlyZero())
 		{
-			const double AlongDistance =
-				FMath::Max(FVector::DotProduct(TargetDelta, ActualDirection), 0.0);
+			const double AlongDistance = FMath::Max(FVector::DotProduct(TargetDelta, ActualDirection), 0.0);
 			const FVector ClosestPoint = MuzzleLocation + ActualDirection * AlongDistance;
-			const double AngleDegrees = ShooterAimPresentationDebug::AngleBetweenDegrees(
-				ActualDirection, DesiredDirection);
+			const double AngleDegrees = ShooterAimPresentationDebug::AngleBetweenDegrees(ActualDirection, DesiredDirection);
 			const double MissDistance = FVector::Distance(ClosestPoint, AimTarget);
 
 			DrawDebugLine(World, MuzzleLocation, AimTarget, FColor::Cyan, false, 0.0f, 0, 0.0f);
@@ -909,7 +780,9 @@ void UShooterAimPresentationComponent::DrawAimDebug() const
 				TEXT("\nHitDist View=%.1f cm  Muzzle=%.1f cm  HitMuzzleDepth=%.1f cm")
 				TEXT("\nSafeDepth View=%.1f/%.1f Within=%d  Muzzle=%.1f/%.1f Within=%d"),
 				bRawTargetValid ? FVector::Distance(RawTarget, SmoothedPresentationAimTarget) : -1.0,
-				AngleDegrees, MissDistance, TargetRange,
+				AngleDegrees,
+				MissDistance,
+				TargetRange,
 				SafetyMetrics.HitDistanceFromView,
 				SafetyMetrics.HitDistanceFromMuzzle,
 				SafetyMetrics.HitDepthFromMuzzle,
@@ -923,15 +796,9 @@ void UShooterAimPresentationComponent::DrawAimDebug() const
 	}
 	else
 	{
-		DebugText += FString::Printf(
-			TEXT("\nWeapon=%d Muzzle=%d"), Weapon ? 1 : 0, bHasMuzzle ? 1 : 0);
+		DebugText += FString::Printf(TEXT("\nWeapon=%d Muzzle=%d"), Weapon ? 1 : 0, bHasMuzzle ? 1 : 0);
 	}
 
-	DrawDebugString(
-		World,
-		Character->GetActorLocation() + FVector(0.0, 0.0, 220.0),
-		DebugText,
-		nullptr,
-		FColor::White,
+	DrawDebugString(World, Character->GetActorLocation() + FVector(0.0, 0.0, 220.0), DebugText, nullptr, FColor::White,
 		0.0f);
 }

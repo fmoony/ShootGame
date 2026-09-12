@@ -44,29 +44,19 @@ namespace ShooterWeaponAutomationTests
 	 * 单表纠偏后的武器配置校验：配置一律从 DT_WeaponData 行读取，
 	 * 不再读取 WeaponActor 蓝图默认值（蓝图 CDO 已不再承载可表格化配置）。
 	 */
-	bool TestWeaponConfiguration(
-		FAutomationTestBase& Test,
-		const TCHAR* WeaponName,
-		const TCHAR* WeaponRowName)
+	bool TestWeaponConfiguration(FAutomationTestBase& Test, const TCHAR* WeaponName, const TCHAR* WeaponRowName)
 	{
-		const FShooterWeaponConfigRow* Row = ShooterWeaponTable::FindWeaponRow(
-			ShooterWeaponTable::ResolveWeaponTable(),
+		const FShooterWeaponConfigRow* Row = ShooterWeaponTable::FindWeaponRow(ShooterWeaponTable::ResolveWeaponTable(),
 			FName(WeaponRowName));
-		if (!Test.TestNotNull(
-			FString::Printf(TEXT("%s weapon row %s resolves"), WeaponName, WeaponRowName),
-			Row))
+		if (!Test.TestNotNull(FString::Printf(TEXT("%s weapon row %s resolves"), WeaponName, WeaponRowName), Row))
 		{
 			return false;
 		}
 
-		Test.TestTrue(
-			FString::Printf(TEXT("%s row is valid for grant"), WeaponName),
-			ShooterWeaponTable::IsRowValidForGrant(Row));
+		Test.TestTrue(FString::Printf(TEXT("%s row is valid for grant"), WeaponName), ShooterWeaponTable::IsRowValidForGrant(Row));
 
 		UClass* WeaponClass = Row->WeaponActorClass;
-		if (!Test.TestNotNull(
-			FString::Printf(TEXT("%s row WeaponActorClass can be loaded"), WeaponName),
-			WeaponClass))
+		if (!Test.TestNotNull(FString::Printf(TEXT("%s row WeaponActorClass can be loaded"), WeaponName), WeaponClass))
 		{
 			return false;
 		}
@@ -77,58 +67,42 @@ namespace ShooterWeaponAutomationTests
 			return false;
 		}
 
-		Test.TestTrue(
-			FString::Printf(TEXT("%s replicates"), WeaponName),
-			WeaponDefaults->GetIsReplicated());
-		Test.TestTrue(
-			FString::Printf(TEXT("%s magazine size is positive"), WeaponName),
-			Row->MagazineSize > 0);
-		Test.TestTrue(
-			FString::Printf(TEXT("%s refire rate is positive"), WeaponName),
-			Row->RefireRate > 0.0f);
+		Test.TestTrue(FString::Printf(TEXT("%s replicates"), WeaponName), WeaponDefaults->GetIsReplicated());
+		Test.TestTrue(FString::Printf(TEXT("%s magazine size is positive"), WeaponName), Row->MagazineSize > 0);
+		Test.TestTrue(FString::Printf(TEXT("%s refire rate is positive"), WeaponName), Row->RefireRate > 0.0f);
 
 		// 网格与 Socket 都来自行：第一/第三人称网格必须真实拥有行配置的 Muzzle socket。
 		const USkeletalMesh* FirstPersonMesh = Row->FirstPersonMesh.LoadSynchronous();
 		const USkeletalMesh* ThirdPersonMesh = Row->ThirdPersonMesh.LoadSynchronous();
-		Test.TestTrue(
-			FString::Printf(TEXT("%s first-person mesh has configured muzzle socket"), WeaponName),
+		Test.TestTrue(FString::Printf(TEXT("%s first-person mesh has configured muzzle socket"), WeaponName),
 			FirstPersonMesh && FirstPersonMesh->FindSocket(Row->MuzzleSocketName) != nullptr);
-		Test.TestTrue(
-			FString::Printf(TEXT("%s third-person mesh has authoritative muzzle socket"), WeaponName),
+		Test.TestTrue(FString::Printf(TEXT("%s third-person mesh has authoritative muzzle socket"), WeaponName),
 			ThirdPersonMesh && ThirdPersonMesh->FindSocket(Row->MuzzleSocketName) != nullptr);
 
 		// 弹药权威在 WeaponActor（S2）：弹匣与备弹必须复制且带 OnRep 推 HUD。
-		const FProperty* MagazineAmmoProperty =
-			FindFProperty<FProperty>(WeaponClass, TEXT("MagazineAmmo"));
-		const FProperty* ReserveAmmoProperty =
-			FindFProperty<FProperty>(WeaponClass, TEXT("ReserveAmmo"));
-		if (!Test.TestNotNull(
-			FString::Printf(TEXT("%s exposes MagazineAmmo"), WeaponName).GetCharArray().GetData(),
-			MagazineAmmoProperty) ||
-			!Test.TestNotNull(
+		const FProperty* MagazineAmmoProperty = FindFProperty<FProperty>(WeaponClass, TEXT("MagazineAmmo"));
+		const FProperty* ReserveAmmoProperty = FindFProperty<FProperty>(WeaponClass, TEXT("ReserveAmmo"));
+		if (!Test.TestNotNull(FString::Printf(TEXT("%s exposes MagazineAmmo"), WeaponName).GetCharArray().GetData(),
+			MagazineAmmoProperty) || !Test.TestNotNull(
 				FString::Printf(TEXT("%s exposes ReserveAmmo"), WeaponName).GetCharArray().GetData(),
 				ReserveAmmoProperty))
 		{
 			return false;
 		}
-		Test.TestTrue(
-			FString::Printf(TEXT("%s MagazineAmmo is replicated"), WeaponName).GetCharArray().GetData(),
+		Test.TestTrue(FString::Printf(TEXT("%s MagazineAmmo is replicated"), WeaponName).GetCharArray().GetData(),
 			MagazineAmmoProperty->HasAnyPropertyFlags(CPF_Net));
 		Test.TestEqual(
 			FString::Printf(TEXT("%s MagazineAmmo uses OnRep_MagazineAmmo"), WeaponName).GetCharArray().GetData(),
 			MagazineAmmoProperty->RepNotifyFunc,
 			FName(TEXT("OnRep_MagazineAmmo")));
-		Test.TestTrue(
-			FString::Printf(TEXT("%s ReserveAmmo is replicated"), WeaponName).GetCharArray().GetData(),
+		Test.TestTrue(FString::Printf(TEXT("%s ReserveAmmo is replicated"), WeaponName).GetCharArray().GetData(),
 			ReserveAmmoProperty->HasAnyPropertyFlags(CPF_Net));
 		Test.TestEqual(
 			FString::Printf(TEXT("%s ReserveAmmo uses OnRep_ReserveAmmo"), WeaponName).GetCharArray().GetData(),
 			ReserveAmmoProperty->RepNotifyFunc,
 			FName(TEXT("OnRep_ReserveAmmo")));
 
-		Test.TestNotNull(
-			FString::Printf(TEXT("%s has fire sound configured"), WeaponName),
-			Row->FireSound.Get());
+		Test.TestNotNull(FString::Printf(TEXT("%s has fire sound configured"), WeaponName), Row->FireSound.Get());
 
 		// 换弹音效配置：三个阶段都由武器模板行声明资源，Notify 只在本端触发播放。
 		const TObjectPtr<USoundBase>* ReloadSounds[] = {
@@ -143,33 +117,25 @@ namespace ShooterWeaponAutomationTests
 		};
 		for (int32 SoundIndex = 0; SoundIndex < UE_ARRAY_COUNT(ReloadSounds); ++SoundIndex)
 		{
-			Test.TestNotNull(
-				FString::Printf(TEXT("%s has %s configured"), WeaponName, ReloadSoundNames[SoundIndex]),
+			Test.TestNotNull(FString::Printf(TEXT("%s has %s configured"), WeaponName, ReloadSoundNames[SoundIndex]),
 				ReloadSounds[SoundIndex]->Get());
 		}
 
 		const UClass* ProjectileClass = Row->ProjectileClass.Get();
-		if (!Test.TestNotNull(
-			FString::Printf(TEXT("%s has projectile class configured"), WeaponName),
-			ProjectileClass))
+		if (!Test.TestNotNull(FString::Printf(TEXT("%s has projectile class configured"), WeaponName), ProjectileClass))
 		{
 			return false;
 		}
 
-		const AShooterProjectile* ProjectileDefaults =
-			ProjectileClass->GetDefaultObject<AShooterProjectile>();
-		if (!Test.TestNotNull(
-			FString::Printf(TEXT("%s projectile has defaults"), WeaponName),
-			ProjectileDefaults))
+		const AShooterProjectile* ProjectileDefaults = ProjectileClass->GetDefaultObject<AShooterProjectile>();
+		if (!Test.TestNotNull(FString::Printf(TEXT("%s projectile has defaults"), WeaponName), ProjectileDefaults))
 		{
 			return false;
 		}
 
-		Test.TestTrue(
-			FString::Printf(TEXT("%s projectile replicates"), WeaponName),
+		Test.TestTrue(FString::Printf(TEXT("%s projectile replicates"), WeaponName),
 			ProjectileDefaults->GetIsReplicated());
-		Test.TestTrue(
-			FString::Printf(TEXT("%s projectile replicates movement"), WeaponName),
+		Test.TestTrue(FString::Printf(TEXT("%s projectile replicates movement"), WeaponName),
 			ProjectileDefaults->IsReplicatingMovement());
 
 		return true;
@@ -184,48 +150,33 @@ namespace ShooterWeaponAutomationTests
 			return false;
 		}
 
-		Test.TestTrue(
-			TEXT("CurrentHP is replicated"),
-			CurrentHPProperty->HasAnyPropertyFlags(CPF_Net));
-		Test.TestEqual(
-			TEXT("CurrentHP uses OnRep_CurrentHP"),
-			CurrentHPProperty->RepNotifyFunc,
+		Test.TestTrue(TEXT("CurrentHP is replicated"), CurrentHPProperty->HasAnyPropertyFlags(CPF_Net));
+		Test.TestEqual(TEXT("CurrentHP uses OnRep_CurrentHP"), CurrentHPProperty->RepNotifyFunc,
 			FName(TEXT("OnRep_CurrentHP")));
 
-		const FProperty* IsDeadProperty =
-			FindFProperty<FProperty>(AShooterCharacter::StaticClass(), TEXT("bIsDead"));
+		const FProperty* IsDeadProperty = FindFProperty<FProperty>(AShooterCharacter::StaticClass(), TEXT("bIsDead"));
 		if (!Test.TestNotNull(TEXT("Character exposes bIsDead"), IsDeadProperty))
 		{
 			return false;
 		}
 
-		Test.TestTrue(
-			TEXT("bIsDead is replicated"),
-			IsDeadProperty->HasAnyPropertyFlags(CPF_Net));
-		Test.TestEqual(
-			TEXT("bIsDead uses OnRep_IsDead"),
-			IsDeadProperty->RepNotifyFunc,
-			FName(TEXT("OnRep_IsDead")));
+		Test.TestTrue(TEXT("bIsDead is replicated"), IsDeadProperty->HasAnyPropertyFlags(CPF_Net));
+		Test.TestEqual(TEXT("bIsDead uses OnRep_IsDead"), IsDeadProperty->RepNotifyFunc, FName(TEXT("OnRep_IsDead")));
 
 		return true;
 	}
 
 	bool TestMatchStateReplication(FAutomationTestBase& Test)
 	{
-		const AShooterGameMode* GameModeDefaults =
-			AShooterGameMode::StaticClass()->GetDefaultObject<AShooterGameMode>();
+		const AShooterGameMode* GameModeDefaults = AShooterGameMode::StaticClass()->GetDefaultObject<AShooterGameMode>();
 		if (!Test.TestNotNull(TEXT("Shooter GameMode has defaults"), GameModeDefaults))
 		{
 			return false;
 		}
 
-		Test.TestEqual(
-			TEXT("Shooter GameMode uses replicated ShooterGameState"),
-			GameModeDefaults->GameStateClass.Get(),
-			AShooterGameState::StaticClass());
-		Test.TestEqual(
-			TEXT("Shooter GameMode uses ShooterPlayerState"),
-			GameModeDefaults->PlayerStateClass.Get(),
+		Test.TestEqual(TEXT("Shooter GameMode uses replicated ShooterGameState"),
+			GameModeDefaults->GameStateClass.Get(), AShooterGameState::StaticClass());
+		Test.TestEqual(TEXT("Shooter GameMode uses ShooterPlayerState"), GameModeDefaults->PlayerStateClass.Get(),
 			AShooterPlayerState::StaticClass());
 
 		const FProperty* TeamScoresProperty =
@@ -235,9 +186,7 @@ namespace ShooterWeaponAutomationTests
 			return false;
 		}
 		Test.TestTrue(TEXT("TeamScores is replicated"), TeamScoresProperty->HasAnyPropertyFlags(CPF_Net));
-		Test.TestEqual(
-			TEXT("TeamScores uses OnRep_TeamScores"),
-			TeamScoresProperty->RepNotifyFunc,
+		Test.TestEqual(TEXT("TeamScores uses OnRep_TeamScores"), TeamScoresProperty->RepNotifyFunc,
 			FName(TEXT("OnRep_TeamScores")));
 
 		struct FReplicatedPlayerProperty
@@ -253,22 +202,15 @@ namespace ShooterWeaponAutomationTests
 
 		for (const FReplicatedPlayerProperty& Expected : PlayerProperties)
 		{
-			const FProperty* Property = FindFProperty<FProperty>(
-				AShooterPlayerState::StaticClass(),
-				Expected.Name);
-			if (!Test.TestNotNull(
-				FString::Printf(TEXT("ShooterPlayerState exposes %s"), Expected.Name),
-				Property))
+			const FProperty* Property = FindFProperty<FProperty>(AShooterPlayerState::StaticClass(), Expected.Name);
+			if (!Test.TestNotNull(FString::Printf(TEXT("ShooterPlayerState exposes %s"), Expected.Name), Property))
 			{
 				return false;
 			}
-			Test.TestTrue(
-				FString::Printf(TEXT("%s is replicated"), Expected.Name),
+			Test.TestTrue(FString::Printf(TEXT("%s is replicated"), Expected.Name),
 				Property->HasAnyPropertyFlags(CPF_Net));
-			Test.TestEqual(
-				FString::Printf(TEXT("%s uses %s"), Expected.Name, Expected.RepNotify),
-				Property->RepNotifyFunc,
-				FName(Expected.RepNotify));
+			Test.TestEqual(FString::Printf(TEXT("%s uses %s"), Expected.Name, Expected.RepNotify),
+				Property->RepNotifyFunc, FName(Expected.RepNotify));
 		}
 
 		return true;
@@ -276,19 +218,15 @@ namespace ShooterWeaponAutomationTests
 
 	bool TestAnimationConfiguration(FAutomationTestBase& Test)
 	{
-		const AShooterCharacter* CharacterDefaults =
-			AShooterCharacter::StaticClass()->GetDefaultObject<AShooterCharacter>();
+		const AShooterCharacter* CharacterDefaults = AShooterCharacter::StaticClass()->GetDefaultObject<AShooterCharacter>();
 		if (!Test.TestNotNull(TEXT("Shooter character has defaults"), CharacterDefaults))
 		{
 			return false;
 		}
 
-		Test.TestTrue(
-			TEXT("First-person mesh is visible only to its owner"),
+		Test.TestTrue(TEXT("First-person mesh is visible only to its owner"),
 			CharacterDefaults->GetFirstPersonMesh()->bOnlyOwnerSee);
-		Test.TestTrue(
-			TEXT("Third-person mesh is hidden from its owner"),
-			CharacterDefaults->GetMesh()->bOwnerNoSee);
+		Test.TestTrue(TEXT("Third-person mesh is hidden from its owner"), CharacterDefaults->GetMesh()->bOwnerNoSee);
 
 		const TCHAR* FirstPersonAnimClassPaths[] = {
 			TEXT("/Game/Shooter/Animation/FirstPerson/ABP_FP_Weapon.ABP_FP_Weapon_C"),
@@ -297,9 +235,7 @@ namespace ShooterWeaponAutomationTests
 		for (const TCHAR* AnimClassPath : FirstPersonAnimClassPaths)
 		{
 			const UClass* AnimClass = LoadClass<UAnimInstance>(nullptr, AnimClassPath);
-			if (!Test.TestNotNull(
-				FString::Printf(TEXT("First-person AnimBP can be loaded: %s"), AnimClassPath),
-				AnimClass))
+			if (!Test.TestNotNull(FString::Printf(TEXT("First-person AnimBP can be loaded: %s"), AnimClassPath), AnimClass))
 			{
 				return false;
 			}
@@ -315,9 +251,7 @@ namespace ShooterWeaponAutomationTests
 		for (const TCHAR* AnimClassPath : ThirdPersonAnimClassPaths)
 		{
 			const UClass* AnimClass = LoadClass<UAnimInstance>(nullptr, AnimClassPath);
-			if (!Test.TestNotNull(
-				FString::Printf(TEXT("Third-person AnimBP can be loaded: %s"), AnimClassPath),
-				AnimClass))
+			if (!Test.TestNotNull(FString::Printf(TEXT("Third-person AnimBP can be loaded: %s"), AnimClassPath), AnimClass))
 			{
 				return false;
 			}
@@ -331,11 +265,8 @@ namespace ShooterWeaponAutomationTests
 		const UFunction* AimPitchNFunction = AShooterCharacter::StaticClass()
 			? AShooterCharacter::StaticClass()->FindFunctionByName(FName(TEXT("GetAimPitchN")))
 			: nullptr;
-		Test.TestNotNull(
-			TEXT("AShooterCharacter exposes GetAimPitchN data contract"),
-			AimPitchNFunction);
-		Test.TestTrue(
-			TEXT("GetAimPitchN is BlueprintCallable"),
+		Test.TestNotNull(TEXT("AShooterCharacter exposes GetAimPitchN data contract"), AimPitchNFunction);
+		Test.TestTrue(TEXT("GetAimPitchN is BlueprintCallable"),
 			AimPitchNFunction && AimPitchNFunction->HasAnyFunctionFlags(FUNC_BlueprintCallable));
 
 		return true;
@@ -345,13 +276,10 @@ namespace ShooterWeaponAutomationTests
 	{
 		// 权威 ReloadDuration 只来自 Rifle 模板行；蓝图默认值不再承载可表格化时序。
 		const FShooterWeaponConfigRow* RifleRow = ShooterWeaponTable::FindWeaponRow(
-			ShooterWeaponTable::ResolveWeaponTable(),
-			FName(TEXT("Rifle")));
-		const UAnimSequence* ReloadSequence = LoadObject<UAnimSequence>(
-			nullptr,
+			ShooterWeaponTable::ResolveWeaponTable(), FName(TEXT("Rifle")));
+		const UAnimSequence* ReloadSequence = LoadObject<UAnimSequence>(nullptr,
 			TEXT("/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_Reload.MM_Rifle_Reload"));
-		const UAnimBlueprint* RifleAnimBlueprint = LoadObject<UAnimBlueprint>(
-			nullptr,
+		const UAnimBlueprint* RifleAnimBlueprint = LoadObject<UAnimBlueprint>(nullptr,
 			TEXT("/Game/Shooter/Animation/ThirdPerson/ABP_TP_Rifle.ABP_TP_Rifle"));
 		if (!Test.TestNotNull(TEXT("Rifle reload sequence can be loaded"), ReloadSequence) ||
 			!Test.TestNotNull(TEXT("Rifle weapon row can be resolved for reload animation validation"), RifleRow) ||
@@ -360,17 +288,13 @@ namespace ShooterWeaponAutomationTests
 			return false;
 		}
 
-		Test.TestTrue(
-			*FString::Printf(
+		Test.TestTrue(*FString::Printf(
 				TEXT("Rifle authoritative ReloadDuration (%.3fs) covers reload sequence (%.3fs)"),
-				RifleRow->ReloadDuration,
-				ReloadSequence->GetPlayLength()),
+				RifleRow->ReloadDuration, ReloadSequence->GetPlayLength()),
 			RifleRow->ReloadDuration + 0.01f >= ReloadSequence->GetPlayLength());
 
-		Test.TestTrue(
-			TEXT("Rifle reload sequence uses the third-person AnimBP target skeleton"),
-			RifleAnimBlueprint->TargetSkeleton &&
-			ReloadSequence->GetSkeleton() == RifleAnimBlueprint->TargetSkeleton);
+		Test.TestTrue(TEXT("Rifle reload sequence uses the third-person AnimBP target skeleton"),
+			RifleAnimBlueprint->TargetSkeleton && ReloadSequence->GetSkeleton() == RifleAnimBlueprint->TargetSkeleton);
 
 		return true;
 	}
@@ -392,9 +316,7 @@ namespace ShooterWeaponAutomationTests
 		for (const FReloadSequencePath& Sequence : Sequences)
 		{
 			const UAnimSequence* ReloadSequence = LoadObject<UAnimSequence>(nullptr, Sequence.Path);
-			if (!Test.TestNotNull(
-				FString::Printf(TEXT("%s reload sequence can be loaded"), Sequence.Name),
-				ReloadSequence))
+			if (!Test.TestNotNull(FString::Printf(TEXT("%s reload sequence can be loaded"), Sequence.Name), ReloadSequence))
 			{
 				return false;
 			}
@@ -403,8 +325,7 @@ namespace ShooterWeaponAutomationTests
 			for (const FAnimNotifyEvent& NotifyEvent : ReloadSequence->Notifies)
 			{
 				// NotifyState 与其他类型的 Notify 一并遍历，只统计 WeaponSound 实例。
-				const UShooterAnimNotify_WeaponSound* WeaponSoundNotify =
-					Cast<UShooterAnimNotify_WeaponSound>(NotifyEvent.Notify);
+				const UShooterAnimNotify_WeaponSound* WeaponSoundNotify = Cast<UShooterAnimNotify_WeaponSound>(NotifyEvent.Notify);
 				if (WeaponSoundNotify)
 				{
 					bStageSeen[static_cast<int32>(WeaponSoundNotify->Stage)] = true;
@@ -414,11 +335,8 @@ namespace ShooterWeaponAutomationTests
 			const TCHAR* StageNames[] = {TEXT("MagazineOut"), TEXT("MagazineIn"), TEXT("Cocking")};
 			for (int32 StageIndex = 0; StageIndex < UE_ARRAY_COUNT(StageNames); ++StageIndex)
 			{
-				Test.TestTrue(
-					FString::Printf(
-						TEXT("%s reload sequence covers %s weapon sound notify"),
-						Sequence.Name, StageNames[StageIndex]),
-					bStageSeen[StageIndex]);
+				Test.TestTrue(FString::Printf(TEXT("%s reload sequence covers %s weapon sound notify"),
+						Sequence.Name, StageNames[StageIndex]), bStageSeen[StageIndex]);
 			}
 		}
 
@@ -431,9 +349,9 @@ namespace ShooterWeaponAutomationTests
 		for (const FProductionWeaponRow& Weapon : ProductionWeaponRows)
 		{
 			const FString BlueprintPath = FString::Printf(
-				TEXT("/Game/Shooter/Blueprints/Pickups/BP_ShooterPickup_%s.BP_ShooterPickup_%s_C"),
-				Weapon.Name,
-				Weapon.Name);
+			TEXT("/Game/Shooter/Blueprints/Pickups/BP_ShooterPickup_%s.BP_ShooterPickup_%s_C"),
+			Weapon.Name,
+			Weapon.Name);
 			UClass* PickupClass = LoadClass<AShooterPickup>(nullptr, *BlueprintPath);
 			const AShooterPickup* PickupDefaults = PickupClass
 				? PickupClass->GetDefaultObject<AShooterPickup>()
@@ -441,25 +359,20 @@ namespace ShooterWeaponAutomationTests
 			const FNameProperty* WeaponIdProperty = PickupDefaults
 				? FindFProperty<FNameProperty>(PickupClass, TEXT("WeaponId"))
 				: nullptr;
-			Test.TestNotNull(
-				FString::Printf(TEXT("%s Pickup BP exposes WeaponId"), Weapon.Name),
-				WeaponIdProperty);
-			Test.TestEqual(
-				FString::Printf(TEXT("%s Pickup BP WeaponId matches its data row"), Weapon.Name),
+			Test.TestNotNull(FString::Printf(TEXT("%s Pickup BP exposes WeaponId"), Weapon.Name), WeaponIdProperty);
+			Test.TestEqual(FString::Printf(TEXT("%s Pickup BP WeaponId matches its data row"), Weapon.Name),
 				WeaponIdProperty ? WeaponIdProperty->GetPropertyValue_InContainer(PickupDefaults).ToString() : FString(),
 				FString(Weapon.RowName));
 		}
 
-		UClass* NpcClass = LoadClass<AShooterNPC>(
-				nullptr,
+		UClass* NpcClass = LoadClass<AShooterNPC>(nullptr,
 				TEXT("/Game/Shooter/Blueprints/AI/BP_ShooterNPC.BP_ShooterNPC_C"));
 		const AShooterNPC* NpcDefaults = NpcClass ? NpcClass->GetDefaultObject<AShooterNPC>() : nullptr;
 		const FNameProperty* NpcWeaponIdProperty = NpcDefaults
 			? FindFProperty<FNameProperty>(NpcClass, TEXT("WeaponId"))
 			: nullptr;
 		Test.TestNotNull(TEXT("NPC BP exposes WeaponId"), NpcWeaponIdProperty);
-		Test.TestEqual(
-			TEXT("NPC BP WeaponId is Rifle"),
+		Test.TestEqual(TEXT("NPC BP WeaponId is Rifle"),
 			NpcWeaponIdProperty ? NpcWeaponIdProperty->GetPropertyValue_InContainer(NpcDefaults).ToString() : FString(),
 			FString(TEXT("Rifle")));
 
@@ -469,11 +382,8 @@ namespace ShooterWeaponAutomationTests
 		{
 			for (const FProductionWeaponRow& Weapon : ProductionWeaponRows)
 			{
-				const FShooterWeaponConfigRow* Row = ShooterWeaponTable::FindWeaponRow(
-					WeaponTable,
-					FName(Weapon.RowName));
-				Test.TestTrue(
-					FString::Printf(TEXT("%s InitialPoolSize is positive"), Weapon.Name),
+				const FShooterWeaponConfigRow* Row = ShooterWeaponTable::FindWeaponRow(WeaponTable, FName(Weapon.RowName));
+				Test.TestTrue(FString::Printf(TEXT("%s InitialPoolSize is positive"), Weapon.Name),
 					Row && Row->InitialPoolSize > 0);
 			}
 		}
@@ -482,9 +392,7 @@ namespace ShooterWeaponAutomationTests
 	}
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterWeaponConfigurationTest,
-	"ShootGame.Weapon.Configuration",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterWeaponConfigurationTest, "ShootGame.Weapon.Configuration",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterWeaponConfigurationTest::RunTest(const FString& Parameters)

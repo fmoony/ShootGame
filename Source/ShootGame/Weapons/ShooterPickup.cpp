@@ -57,8 +57,7 @@ void AShooterPickup::OnConstruction(const FTransform& Transform)
 	// 编辑器预览例外（重构方案 3.1）：只为编辑器视口恢复 Pickup 预览 Mesh 而读取
 	// WeaponId 对应行；打包后的授予逻辑不经过本入口，运行时也不访问 DataTable。
 	if (const FShooterWeaponConfigRow* WeaponData = ShooterWeaponTable::FindWeaponRow(
-		ShooterWeaponTable::ResolveWeaponTable(),
-		WeaponId))
+		ShooterWeaponTable::ResolveWeaponTable(), WeaponId))
 	{
 		Mesh->SetStaticMesh(WeaponData->PickupMesh.LoadSynchronous());
 	}
@@ -92,8 +91,7 @@ void AShooterPickup::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
 
 	// 拾取会立即装备新武器，必须在授予 Inventory 和占用 Pickup 前拒绝换弹中的角色。
 	const UAbilitySystemComponent* AbilitySystemComponent = ShooterCharacter->GetAbilitySystemComponent();
-	if (AbilitySystemComponent &&
-		AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading))
+	if (AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading))
 	{
 		return;
 	}
@@ -117,12 +115,7 @@ void AShooterPickup::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
 	if (!Runtime || !Runtime->HasWeaponId(RequestedWeaponId))
 	{
 		// 未知 WeaponId：配置缺失，不消费 Pickup。
-		UE_LOG(
-			LogShootGame,
-			Warning,
-			TEXT("Pickup %s references unknown WeaponId=%s"),
-			*GetNameSafe(this),
-			*RequestedWeaponId.ToString());
+		UE_LOG(LogShootGame, Warning, TEXT("Pickup %s references unknown WeaponId=%s"), *GetNameSafe(this), *RequestedWeaponId.ToString());
 		return;
 	}
 

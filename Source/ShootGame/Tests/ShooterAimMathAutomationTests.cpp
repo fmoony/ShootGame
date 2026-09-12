@@ -9,9 +9,7 @@
  * B1 纯计算测试：瞄准角度数学（四象限、±180 环绕、最短路径插值）。
  * 不依赖网络字段，不生成 Actor；断言语义与 UE 5.6 FRotator 行为一致。
  */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterAimMathTest,
-	"ShootGame.Aim.Math",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAimMathTest, "ShootGame.Aim.Math",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterAimMathTest::RunTest(const FString& Parameters)
@@ -84,8 +82,7 @@ bool FShooterAimMathTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("ref yaw-90 world forward local yaw +90"), FMath::IsNearlyEqual(Yaw, 90.0f, 0.01f));
 
 	// 参考系自身前向在局部恒为 +X（yaw 0 / pitch 0）
-	FShooterAimMath::WorldDirectionToLocalAngles(
-		FRotator(45.0f, 0.0f, 0.0f).Vector(), Pitch45, Yaw, Pitch);
+	FShooterAimMath::WorldDirectionToLocalAngles(FRotator(45.0f, 0.0f, 0.0f).Vector(), Pitch45, Yaw, Pitch);
 	TestTrue(TEXT("ref pitch45 own forward local yaw 0"),
 		FMath::IsNearlyEqual(Yaw, 0.0f, 0.01f) && FMath::IsNearlyEqual(Pitch, 0.0f, 0.01f));
 

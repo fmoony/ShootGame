@@ -12,32 +12,24 @@
 
 namespace ShooterAbilityReloadEquipAutomationTests
 {
-	bool TestServerOnlyShell(
-		FAutomationTestBase& Test,
-		const TCHAR* AbilityName,
-		const UShooterGameplayAbility* AbilityDefaults)
+	bool TestServerOnlyShell(FAutomationTestBase& Test, const TCHAR* AbilityName, const UShooterGameplayAbility* AbilityDefaults)
 	{
-		if (!Test.TestNotNull(
-			FString::Printf(TEXT("%s has defaults"), AbilityName),
-			AbilityDefaults))
+		if (!Test.TestNotNull(FString::Printf(TEXT("%s has defaults"), AbilityName), AbilityDefaults))
 		{
 			return false;
 		}
 
-		Test.TestEqual(
-			FString::Printf(TEXT("%s uses InstancedPerActor"), AbilityName),
+		Test.TestEqual(FString::Printf(TEXT("%s uses InstancedPerActor"), AbilityName),
 			static_cast<int32>(AbilityDefaults->GetInstancingPolicy()),
 			static_cast<int32>(EGameplayAbilityInstancingPolicy::InstancedPerActor));
-		Test.TestEqual(
-			FString::Printf(TEXT("%s uses ServerOnly net execution"), AbilityName),
+		Test.TestEqual(FString::Printf(TEXT("%s uses ServerOnly net execution"), AbilityName),
 			static_cast<int32>(AbilityDefaults->GetNetExecutionPolicy()),
 			static_cast<int32>(EGameplayAbilityNetExecutionPolicy::ServerOnly));
 		return true;
 	}
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterAbilityReloadEquipGrantPlayerTest,
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityReloadEquipGrantPlayerTest,
 	"ShootGame.Ability.ReloadEquip.Grant.Player",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
@@ -51,11 +43,9 @@ bool FShooterAbilityReloadEquipGrantPlayerTest::RunTest(const FString& Parameter
 		return false;
 	}
 
-	TestTrue(
-		TEXT("PlayerState default ReloadAbilityClass is GA_Reload"),
+	TestTrue(TEXT("PlayerState default ReloadAbilityClass is GA_Reload"),
 		PlayerStateDefaults->GetReloadAbilityClass() == UShooterGameplayAbility_Reload::StaticClass());
-	TestTrue(
-		TEXT("PlayerState default EquipAbilityClass is GA_Equip"),
+	TestTrue(TEXT("PlayerState default EquipAbilityClass is GA_Equip"),
 		PlayerStateDefaults->GetEquipAbilityClass() == UShooterGameplayAbility_Equip::StaticClass());
 
 	const UShooterAbilitySystemComponent* AbilitySystemComponent =
@@ -67,31 +57,18 @@ bool FShooterAbilityReloadEquipGrantPlayerTest::RunTest(const FString& Parameter
 
 	// 授予发生在服务器 PostInitializeComponents / BeginPlay 生命周期内，
 	// CDO 本身不能携带任何 Spec；实际“有且只有一个 Spec”由网络测试协调器验证。
-	TestEqual(
-		TEXT("PlayerState CDO has no Reload Spec before lifecycle grant"),
-		PlayerStateDefaults->GetReloadAbilitySpecCount(),
-		0);
-	TestEqual(
-		TEXT("PlayerState CDO has no Equip Spec before lifecycle grant"),
-		PlayerStateDefaults->GetEquipAbilitySpecCount(),
-		0);
-	TestEqual(
-		TEXT("ASC on CDO counts zero Reload Specs"),
-		AbilitySystemComponent->GetAbilitySpecCountForClass(
-			PlayerStateDefaults->GetReloadAbilityClass()),
-		0);
-	TestEqual(
-		TEXT("ASC on CDO counts zero Equip Specs"),
-		AbilitySystemComponent->GetAbilitySpecCountForClass(
-			PlayerStateDefaults->GetEquipAbilityClass()),
-		0);
+	TestEqual(TEXT("PlayerState CDO has no Reload Spec before lifecycle grant"),
+		PlayerStateDefaults->GetReloadAbilitySpecCount(), 0);
+	TestEqual(TEXT("PlayerState CDO has no Equip Spec before lifecycle grant"),
+		PlayerStateDefaults->GetEquipAbilitySpecCount(), 0);
+	TestEqual(TEXT("ASC on CDO counts zero Reload Specs"), AbilitySystemComponent->GetAbilitySpecCountForClass(
+			PlayerStateDefaults->GetReloadAbilityClass()), 0);
+	TestEqual(TEXT("ASC on CDO counts zero Equip Specs"), AbilitySystemComponent->GetAbilitySpecCountForClass(
+			PlayerStateDefaults->GetEquipAbilityClass()), 0);
 
-	const UShooterGameplayAbility_Reload* ReloadDefaults =
-		GetDefault<UShooterGameplayAbility_Reload>();
-	const UShooterGameplayAbility_Equip* EquipDefaults =
-		GetDefault<UShooterGameplayAbility_Equip>();
-	if (!TestServerOnlyShell(*this, TEXT("GA_Reload"), ReloadDefaults) ||
-		!TestServerOnlyShell(*this, TEXT("GA_Equip"), EquipDefaults))
+	const UShooterGameplayAbility_Reload* ReloadDefaults = GetDefault<UShooterGameplayAbility_Reload>();
+	const UShooterGameplayAbility_Equip* EquipDefaults = GetDefault<UShooterGameplayAbility_Equip>();
+	if (!TestServerOnlyShell(*this, TEXT("GA_Reload"), ReloadDefaults) || !TestServerOnlyShell(*this, TEXT("GA_Equip"), EquipDefaults))
 	{
 		return false;
 	}
@@ -124,8 +101,7 @@ bool FShooterAbilityReloadEquipGrantPlayerTest::RunTest(const FString& Parameter
 	return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterAbilityReloadEquipGrantRespawnNoDuplicateTest,
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityReloadEquipGrantRespawnNoDuplicateTest,
 	"ShootGame.Ability.ReloadEquip.Grant.RespawnNoDuplicate",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
@@ -139,21 +115,15 @@ bool FShooterAbilityReloadEquipGrantRespawnNoDuplicateTest::RunTest(const FStrin
 		return false;
 	}
 
-	TestEqual(
-		TEXT("PlayerState CDO carries no granted Reload Spec"),
-		PlayerStateDefaults->GetReloadAbilitySpecCount(),
+	TestEqual(TEXT("PlayerState CDO carries no granted Reload Spec"), PlayerStateDefaults->GetReloadAbilitySpecCount(),
 		0);
-	TestEqual(
-		TEXT("PlayerState CDO carries no granted Equip Spec"),
-		PlayerStateDefaults->GetEquipAbilitySpecCount(),
+	TestEqual(TEXT("PlayerState CDO carries no granted Equip Spec"), PlayerStateDefaults->GetEquipAbilitySpecCount(),
 		0);
 
 	// 客户端不可远程调用授予入口；它们只是服务器生命周期内的普通 C++ 方法。
-	TestNull(
-		TEXT("GrantReloadAbility is not a remote-callable UFUNCTION"),
+	TestNull(TEXT("GrantReloadAbility is not a remote-callable UFUNCTION"),
 		AShooterPlayerState::StaticClass()->FindFunctionByName(TEXT("GrantReloadAbility")));
-	TestNull(
-		TEXT("GrantEquipAbility is not a remote-callable UFUNCTION"),
+	TestNull(TEXT("GrantEquipAbility is not a remote-callable UFUNCTION"),
 		AShooterPlayerState::StaticClass()->FindFunctionByName(TEXT("GrantEquipAbility")));
 
 	// 运行时重复 Grant 与重生 Handle 不变由 ShooterNetworkTestCoordinator 在

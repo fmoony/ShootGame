@@ -16,9 +16,7 @@ FText UAnimGraphNode_ShooterLeftHandIK::GetNodeTitle(ENodeTitleType::Type TitleT
 
 FText UAnimGraphNode_ShooterLeftHandIK::GetTooltipText() const
 {
-	return LOCTEXT(
-		"ShooterLeftHandIK_Tooltip",
-		"在最终 hand_r 姿势之后求解左臂，使角色 HandGrip_L 与武器握把的位置和旋转完整对齐。");
+	return LOCTEXT("ShooterLeftHandIK_Tooltip", "在最终 hand_r 姿势之后求解左臂，使角色 HandGrip_L 与武器握把的位置和旋转完整对齐。");
 }
 
 FString UAnimGraphNode_ShooterLeftHandIK::GetNodeCategory() const

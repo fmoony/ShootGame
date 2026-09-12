@@ -39,11 +39,8 @@ namespace ShooterIKBindingAutomationTests
 		UShooterIKBindingTestHarness* Harness = nullptr;
 	};
 
-	USkeletalMesh* CreateSkeletalMeshWithSockets(
-		FAutomationTestBase& Test,
-		const TArray<FName>& SocketNames,
-		const TCHAR* Label,
-		const FVector& SocketLocation = FVector(0.0f, 0.0f, 100.0f))
+	USkeletalMesh* CreateSkeletalMeshWithSockets(FAutomationTestBase& Test, const TArray<FName>& SocketNames,
+		const TCHAR* Label, const FVector& SocketLocation = FVector(0.0f, 0.0f, 100.0f))
 	{
 		USkeletalMesh* Mesh = NewObject<USkeletalMesh>();
 		if (!Test.TestNotNull(FString::Printf(TEXT("%s mesh created"), Label), Mesh))
@@ -86,16 +83,12 @@ namespace ShooterIKBindingAutomationTests
 			? NewObject<UShooterIKBindingTestHarness>(Scene.CharacterMesh)
 			: NewObject<UShooterIKBindingTestHarness>();
 
-		Scene.CharacterMeshAsset = CreateSkeletalMeshWithSockets(
-			Test,
+		Scene.CharacterMeshAsset = CreateSkeletalMeshWithSockets(Test,
 			{TEXT("hand_r"), TEXT("hand_l"), TEXT("HandGrip_L"), TEXT("HandGrip_R")},
-			TEXT("Character"),
-			FVector(0.0f, 0.0f, 100.0f));
-		Scene.WeaponMeshAsset = CreateSkeletalMeshWithSockets(
-			Test,
+			TEXT("Character"), FVector(0.0f, 0.0f, 100.0f));
+		Scene.WeaponMeshAsset = CreateSkeletalMeshWithSockets(Test,
 			{TEXT("Muzzle"), TEXT("Grip_L")},
-			TEXT("Weapon"),
-			FVector(0.0f, 0.0f, 50.0f));
+			TEXT("Weapon"), FVector(0.0f, 0.0f, 50.0f));
 
 		if (Scene.CharacterMesh && Scene.CharacterMeshAsset)
 		{
@@ -123,9 +116,7 @@ namespace ShooterIKBindingAutomationTests
 	{
 		if (Scene.WeaponMesh && Scene.CharacterMesh)
 		{
-			Scene.WeaponMesh->AttachToComponent(
-				Scene.CharacterMesh,
-				FAttachmentTransformRules::KeepRelativeTransform,
+			Scene.WeaponMesh->AttachToComponent(Scene.CharacterMesh, FAttachmentTransformRules::KeepRelativeTransform,
 				AttachSocketName);
 		}
 	}
@@ -144,9 +135,7 @@ using namespace ShooterIKBindingAutomationTests;
 /**
  * E4 验证：空表现事件 / 无武器回放清空全部静态 Binding 与 IK 开关。
  */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterIKBindingEventClearTest,
-	"ShootGame.Aim.Binding.EventClear",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterIKBindingEventClearTest, "ShootGame.Aim.Binding.EventClear",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterIKBindingEventClearTest::RunTest(const FString& Parameters)
@@ -179,9 +168,7 @@ bool FShooterIKBindingEventClearTest::RunTest(const FString& Parameters)
 /**
  * E4 验证：Rifle 表现事件到达时一次性重建 Aim + LeftHand 静态 Binding。
  */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterIKBindingEventRifleRebuildTest,
-	"ShootGame.Aim.Binding.EventRifleRebuild",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterIKBindingEventRifleRebuildTest, "ShootGame.Aim.Binding.EventRifleRebuild",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterIKBindingEventRifleRebuildTest::RunTest(const FString& Parameters)
@@ -221,8 +208,7 @@ bool FShooterIKBindingEventRifleRebuildTest::RunTest(const FString& Parameters)
  * E4 验证：缺失 Muzzle 只关闭 Aim IK；同一资产事后补上 Socket 也不会逐帧重试，
  * 只有下一次表现事件才重新判定。
  */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterIKBindingEventMissingMuzzleTest,
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterIKBindingEventMissingMuzzleTest,
 	"ShootGame.Aim.Binding.EventMissingMuzzleNoPolling",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
@@ -265,9 +251,7 @@ bool FShooterIKBindingEventMissingMuzzleTest::RunTest(const FString& Parameters)
 /**
  * E4 验证：Pistol 未配置握把是预期能力缺失，只关闭 LeftHand IK，Aim IK 不受影响。
  */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterIKBindingEventPistolNoGripTest,
-	"ShootGame.Aim.Binding.EventPistolNoGrip",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterIKBindingEventPistolNoGripTest, "ShootGame.Aim.Binding.EventPistolNoGrip",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterIKBindingEventPistolNoGripTest::RunTest(const FString& Parameters)
@@ -296,8 +280,7 @@ bool FShooterIKBindingEventPistolNoGripTest::RunTest(const FString& Parameters)
  * E4 验证：事件重建时骨骼 Transform 瞬时非法只置 Pending，下一次普通更新重试一次；
  * 恢复后成功即清 Pending；再次消费不会重复重建。
  */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterIKBindingEventPendingSingleRetryTest,
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterIKBindingEventPendingSingleRetryTest,
 	"ShootGame.Aim.Binding.EventPendingSingleRetry",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
@@ -357,8 +340,7 @@ bool FShooterIKBindingEventPendingSingleRetryTest::RunTest(const FString& Parame
 /**
  * E4 验证：事件后 Detach 不会逐帧轮询；下一次表现事件才重建（本帧表现为已完成的旧 Binding 被清空）。
  */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterIKBindingEventDetachNoPollingTest,
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterIKBindingEventDetachNoPollingTest,
 	"ShootGame.Aim.Binding.EventDetachNoPolling",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
@@ -394,9 +376,7 @@ bool FShooterIKBindingEventDetachNoPollingTest::RunTest(const FString& Parameter
 /**
  * E4 验证：初始化回放主动读取 Equipment.CurrentWeaponActor，不依赖以后一定来一个事件。
  */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterIKBindingEventInitReplayTest,
-	"ShootGame.Aim.Binding.EventInitReplay",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterIKBindingEventInitReplayTest, "ShootGame.Aim.Binding.EventInitReplay",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterIKBindingEventInitReplayTest::RunTest(const FString& Parameters)
@@ -410,8 +390,7 @@ bool FShooterIKBindingEventInitReplayTest::RunTest(const FString& Parameters)
 	AttachWeaponMesh(Scene);
 
 	// 模拟 AnimClass 替换后新 AnimInstance 初始化时 Equipment 已有当前武器。
-	FObjectProperty* CurrentWeaponProperty = FindFProperty<FObjectProperty>(
-		UShooterEquipmentComponent::StaticClass(),
+	FObjectProperty* CurrentWeaponProperty = FindFProperty<FObjectProperty>(UShooterEquipmentComponent::StaticClass(),
 		TEXT("CurrentWeaponActor"));
 	if (!TestNotNull(TEXT("Equipment exposes CurrentWeaponActor for replay injection"), CurrentWeaponProperty))
 	{
@@ -435,8 +414,7 @@ bool FShooterIKBindingEventInitReplayTest::RunTest(const FString& Parameters)
 /**
  * E4 验证：帧级 Aim 输入与静态 Binding 分离；Identity 仍是合法 Transform。
  */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterIKBindingEventInputSeparationTest,
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterIKBindingEventInputSeparationTest,
 	"ShootGame.Aim.Binding.EventInputSeparation",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
@@ -445,12 +423,10 @@ bool FShooterIKBindingEventInputSeparationTest::RunTest(const FString& Parameter
 	TestTrue(TEXT("Identity is a valid binding frame"),
 		UShooterThirdPersonAnimInstance::IsMathematicallyValidBindingFrame(FTransform::Identity));
 	TestTrue(TEXT("Identity input yields identity HandToMuzzle"),
-		UShooterThirdPersonAnimInstance::ComputeHandToMuzzleTransform(
-			FTransform::Identity,
+		UShooterThirdPersonAnimInstance::ComputeHandToMuzzleTransform(FTransform::Identity,
 			FTransform::Identity).Equals(FTransform::Identity));
 	TestTrue(TEXT("Identity input yields identity left hand grip"),
-		UShooterThirdPersonAnimInstance::ComputeLeftHandGripInRightHandSpace(
-			FTransform::Identity,
+		UShooterThirdPersonAnimInstance::ComputeLeftHandGripInRightHandSpace(FTransform::Identity,
 			FTransform::Identity).Equals(FTransform::Identity));
 
 	FIKBindingTestScene Scene = CreateRifleScene(*this);
@@ -484,8 +460,7 @@ bool FShooterIKBindingEventInputSeparationTest::RunTest(const FString& Parameter
 /**
  * 收尾回归：缓存 Weapon 先失效且 Equipment 已为空时，普通动画更新必须清除旧静态 Binding。
  */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterIKBindingStaleWeaponClearsBindingsTest,
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterIKBindingStaleWeaponClearsBindingsTest,
 	"ShootGame.Aim.Binding.StaleWeaponClearsBindings",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
@@ -519,8 +494,7 @@ bool FShooterIKBindingStaleWeaponClearsBindingsTest::RunTest(const FString& Para
  * 阶段 3：Equipment 当前值已变化但尚未发布表现事件时，AnimInstance 不得主动调用
  * Character::EnsureWeaponPresentation 做反向表现修复；表现收敛只由生命周期入口负责。
  */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterIKBindingNoReversePresentationRepairTest,
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterIKBindingNoReversePresentationRepairTest,
 	"ShootGame.Aim.Binding.NoReversePresentationRepair",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
@@ -540,16 +514,13 @@ bool FShooterIKBindingNoReversePresentationRepairTest::RunTest(const FString& Pa
 
 	// 把 Equipment 逻辑当前值改为 null，但不广播表现完成事件：
 	// 这模拟“AnimInstance 每帧先看到逻辑变化，生命周期事件尚未到达”的窗口。
-	FObjectProperty* CurrentWeaponProperty = FindFProperty<FObjectProperty>(
-		UShooterEquipmentComponent::StaticClass(),
+	FObjectProperty* CurrentWeaponProperty = FindFProperty<FObjectProperty>(UShooterEquipmentComponent::StaticClass(),
 		TEXT("CurrentWeaponActor"));
 	if (!TestNotNull(TEXT("Equipment exposes CurrentWeaponActor for mismatch injection"), CurrentWeaponProperty))
 	{
 		return false;
 	}
-	CurrentWeaponProperty->SetObjectPropertyValue_InContainer(
-		Scene.Character->GetEquipmentComponent(),
-		nullptr);
+	CurrentWeaponProperty->SetObjectPropertyValue_InContainer(Scene.Character->GetEquipmentComponent(), nullptr);
 	TestNull(TEXT("logical current weapon becomes null"), Scene.Character->GetCurrentWeaponActor());
 
 	Scene.Harness->NativeUpdateAnimation(1.0f / 60.0f);

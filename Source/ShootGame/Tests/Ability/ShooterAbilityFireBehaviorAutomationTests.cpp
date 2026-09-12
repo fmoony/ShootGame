@@ -16,27 +16,20 @@ namespace ShooterAbilityFireBehaviorAutomationTests
 {
 	bool TestServerOnlyContract(FAutomationTestBase& Test)
 	{
-		const UShooterGameplayAbility_Fire* FireDefaults =
-			GetDefault<UShooterGameplayAbility_Fire>();
+		const UShooterGameplayAbility_Fire* FireDefaults = GetDefault<UShooterGameplayAbility_Fire>();
 		if (!Test.TestNotNull(TEXT("GA_Fire has defaults"), FireDefaults))
 		{
 			return false;
 		}
 
-		Test.TestEqual(
-			TEXT("GA_Fire executes only on server"),
+		Test.TestEqual(TEXT("GA_Fire executes only on server"),
 			static_cast<int32>(FireDefaults->GetNetExecutionPolicy()),
 			static_cast<int32>(EGameplayAbilityNetExecutionPolicy::ServerOnly));
-		Test.TestEqual(
-			TEXT("GA_Fire is InstancedPerActor"),
-			static_cast<int32>(FireDefaults->GetInstancingPolicy()),
+		Test.TestEqual(TEXT("GA_Fire is InstancedPerActor"), static_cast<int32>(FireDefaults->GetInstancingPolicy()),
 			static_cast<int32>(EGameplayAbilityInstancingPolicy::InstancedPerActor));
-		Test.TestFalse(
-			TEXT("GA_Fire does not retrigger an already active instance"),
+		Test.TestFalse(TEXT("GA_Fire does not retrigger an already active instance"),
 			FireDefaults->CanRetriggerInstancedAbility());
-		Test.TestTrue(
-			TEXT("GA_Fire is bound to Input.Fire"),
-			FireDefaults->HasInputFireTag());
+		Test.TestTrue(TEXT("GA_Fire is bound to Input.Fire"), FireDefaults->HasInputFireTag());
 		return true;
 	}
 
@@ -44,17 +37,13 @@ namespace ShooterAbilityFireBehaviorAutomationTests
 	{
 		// 弹丸生成仍是 WeaponActor 的内部实现；Fire / FireProjectile 不能成为
 		// 客户端可远程调用的 UFUNCTION，否则会绕过 GA_Fire 唯一入口。
-		Test.TestNull(
-			TEXT("Weapon Fire is not a remote-callable UFUNCTION"),
+		Test.TestNull(TEXT("Weapon Fire is not a remote-callable UFUNCTION"),
 			AShooterWeapon::StaticClass()->FindFunctionByName(TEXT("Fire")));
-		Test.TestNull(
-			TEXT("Weapon FireProjectile is not a remote-callable UFUNCTION"),
+		Test.TestNull(TEXT("Weapon FireProjectile is not a remote-callable UFUNCTION"),
 			AShooterWeapon::StaticClass()->FindFunctionByName(TEXT("FireProjectile")));
-		Test.TestNull(
-			TEXT("Weapon StartFiring is not a remote-callable UFUNCTION"),
+		Test.TestNull(TEXT("Weapon StartFiring is not a remote-callable UFUNCTION"),
 			AShooterWeapon::StaticClass()->FindFunctionByName(TEXT("StartFiring")));
-		Test.TestNull(
-			TEXT("Weapon StopFiring is not a remote-callable UFUNCTION"),
+		Test.TestNull(TEXT("Weapon StopFiring is not a remote-callable UFUNCTION"),
 			AShooterWeapon::StaticClass()->FindFunctionByName(TEXT("StopFiring")));
 
 		const AShooterWeapon* WeaponDefaults = GetDefault<AShooterWeapon>();
@@ -69,8 +58,7 @@ namespace ShooterAbilityFireBehaviorAutomationTests
 
 	bool TestAmmoAuthorityContract(FAutomationTestBase& Test)
 	{
-		const UShooterGameplayAbility_Fire* FireDefaults =
-			GetDefault<UShooterGameplayAbility_Fire>();
+		const UShooterGameplayAbility_Fire* FireDefaults = GetDefault<UShooterGameplayAbility_Fire>();
 		if (!Test.TestNotNull(TEXT("GA_Fire has defaults"), FireDefaults))
 		{
 			return false;
@@ -78,23 +66,16 @@ namespace ShooterAbilityFireBehaviorAutomationTests
 
 		// Ability 不得新增第二份 Ammo 权威：没有 Cost GE，弹药只由 WeaponActor
 		// 调用 Inventory.ConsumeMagazineAmmo 修改。真实扣减由网络测试验证。
-		Test.TestNull(
-			TEXT("GA_Fire has no cost GameplayEffect"),
-			FireDefaults->GetCostGameplayEffect());
+		Test.TestNull(TEXT("GA_Fire has no cost GameplayEffect"), FireDefaults->GetCostGameplayEffect());
 
 		const AShooterPlayerState* PlayerStateDefaults = GetDefault<AShooterPlayerState>();
 		if (Test.TestNotNull(TEXT("PlayerState has defaults"), PlayerStateDefaults))
 		{
-			Test.TestEqual(
-				TEXT("PlayerState ASC counts zero active Fire abilities on CDO"),
-				Cast<UShooterAbilitySystemComponent>(
-					PlayerStateDefaults->GetAbilitySystemComponent())
-						? Cast<UShooterAbilitySystemComponent>(
-							PlayerStateDefaults->GetAbilitySystemComponent())
-							->GetActiveAbilityCountForClass(
-								PlayerStateDefaults->GetFireAbilityClass())
-						: INDEX_NONE,
-				0);
+			Test.TestEqual(TEXT("PlayerState ASC counts zero active Fire abilities on CDO"),
+				Cast<UShooterAbilitySystemComponent>(PlayerStateDefaults->GetAbilitySystemComponent())
+						? Cast<UShooterAbilitySystemComponent>(PlayerStateDefaults->GetAbilitySystemComponent())
+							->GetActiveAbilityCountForClass(PlayerStateDefaults->GetFireAbilityClass())
+						: INDEX_NONE, 0);
 		}
 		return true;
 	}
@@ -103,26 +84,19 @@ namespace ShooterAbilityFireBehaviorAutomationTests
 	{
 		// 单表纠偏后全自动场景配置来自 Rifle 武器模板行，不再读取 WeaponActor 蓝图默认值。
 		const FShooterWeaponConfigRow* RifleRow = ShooterWeaponTable::FindWeaponRow(
-			ShooterWeaponTable::ResolveWeaponTable(),
-			FName(TEXT("Rifle")));
+			ShooterWeaponTable::ResolveWeaponTable(), FName(TEXT("Rifle")));
 		if (!Test.TestNotNull(TEXT("Rifle weapon row resolves"), RifleRow))
 		{
 			return false;
 		}
 
-		Test.TestTrue(
-			TEXT("Rifle is full-auto for the release scenario"),
-			RifleRow->bFullAuto);
-		Test.TestTrue(
-			TEXT("Rifle refire rate is positive"),
-			RifleRow->RefireRate > 0.0f);
+		Test.TestTrue(TEXT("Rifle is full-auto for the release scenario"), RifleRow->bFullAuto);
+		Test.TestTrue(TEXT("Rifle refire rate is positive"), RifleRow->RefireRate > 0.0f);
 		return true;
 	}
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterAbilityFireServerOnlyTest,
-	"ShootGame.Ability.Fire.ServerOnly",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityFireServerOnlyTest, "ShootGame.Ability.Fire.ServerOnly",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterAbilityFireServerOnlyTest::RunTest(const FString& Parameters)
@@ -131,9 +105,7 @@ bool FShooterAbilityFireServerOnlyTest::RunTest(const FString& Parameters)
 	return TestServerOnlyContract(*this);
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterAbilityFireSingleActivationTest,
-	"ShootGame.Ability.Fire.SingleActivation",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityFireSingleActivationTest, "ShootGame.Ability.Fire.SingleActivation",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterAbilityFireSingleActivationTest::RunTest(const FString& Parameters)
@@ -145,9 +117,7 @@ bool FShooterAbilityFireSingleActivationTest::RunTest(const FString& Parameters)
 	return TestServerOnlyContract(*this) && TestWeaponExecutionBoundary(*this);
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterAbilityFireSingleProjectileTest,
-	"ShootGame.Ability.Fire.SingleProjectile",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityFireSingleProjectileTest, "ShootGame.Ability.Fire.SingleProjectile",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterAbilityFireSingleProjectileTest::RunTest(const FString& Parameters)
@@ -159,9 +129,7 @@ bool FShooterAbilityFireSingleProjectileTest::RunTest(const FString& Parameters)
 	return TestServerOnlyContract(*this) && TestWeaponExecutionBoundary(*this);
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterAbilityFireAmmoConsumeTest,
-	"ShootGame.Ability.Fire.AmmoConsume",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityFireAmmoConsumeTest, "ShootGame.Ability.Fire.AmmoConsume",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterAbilityFireAmmoConsumeTest::RunTest(const FString& Parameters)
@@ -170,9 +138,7 @@ bool FShooterAbilityFireAmmoConsumeTest::RunTest(const FString& Parameters)
 	return TestServerOnlyContract(*this) && TestAmmoAuthorityContract(*this);
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterAbilityFireFullAutoReleaseTest,
-	"ShootGame.Ability.Fire.FullAutoRelease",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityFireFullAutoReleaseTest, "ShootGame.Ability.Fire.FullAutoRelease",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterAbilityFireFullAutoReleaseTest::RunTest(const FString& Parameters)

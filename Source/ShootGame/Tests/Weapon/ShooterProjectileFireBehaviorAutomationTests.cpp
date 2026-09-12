@@ -57,8 +57,7 @@ namespace ShooterProjectileFireBehaviorAutomationTests
 
 	UClass* LoadPistolBulletClass(FAutomationTestBase& Test)
 	{
-		UClass* PistolBulletClass = LoadObject<UClass>(
-			nullptr,
+		UClass* PistolBulletClass = LoadObject<UClass>(nullptr,
 			TEXT("/Game/Shooter/Blueprints/Weapons/BP_ShooterProjectile_Bullet_Pistol.BP_ShooterProjectile_Bullet_Pistol_C"));
 		Test.TestNotNull(TEXT("Pistol bullet class loaded"), PistolBulletClass);
 		return PistolBulletClass;
@@ -70,8 +69,7 @@ namespace ShooterProjectileFireBehaviorAutomationTests
  * 服务器上下文恰好生成一个配置类的弹丸；缺 WeaponActor / 缺弹丸类 / 非服务器全部 fail closed。
  * 单表纠偏后弹丸类来自本次开火的武器模板行快照，行为实例本身保持无状态。
  */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterProjectileFireBehaviorSpawnTest,
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterProjectileFireBehaviorSpawnTest,
 	"ShootGame.Weapon.FireBehavior.ProjectileSpawn",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
@@ -92,9 +90,7 @@ bool FShooterProjectileFireBehaviorSpawnTest::RunTest(const FString& Parameters)
 		return false;
 	}
 
-	AShooterInventoryOrderTestWeapon* Weapon =
-		World->SpawnActor<AShooterInventoryOrderTestWeapon>(
-			FVector::ZeroVector,
+	AShooterInventoryOrderTestWeapon* Weapon = World->SpawnActor<AShooterInventoryOrderTestWeapon>(FVector::ZeroVector,
 			FRotator::ZeroRotator);
 	if (!TestNotNull(TEXT("Fire behavior weapon spawned"), Weapon))
 	{
@@ -103,8 +99,7 @@ bool FShooterProjectileFireBehaviorSpawnTest::RunTest(const FString& Parameters)
 	}
 
 	// 行为要求 Instigator；用具体化测试角色充当持有者。
-	APawn* InstigatorPawn = World->SpawnActor<AShooterWeaponPresentationTestCharacter>(
-		FVector::ZeroVector,
+	APawn* InstigatorPawn = World->SpawnActor<AShooterWeaponPresentationTestCharacter>(FVector::ZeroVector,
 		FRotator::ZeroRotator);
 	if (!TestNotNull(TEXT("Fire behavior instigator spawned"), InstigatorPawn))
 	{
@@ -112,8 +107,7 @@ bool FShooterProjectileFireBehaviorSpawnTest::RunTest(const FString& Parameters)
 		return false;
 	}
 
-	UShooterProjectileFireBehavior* Behavior =
-		NewObject<UShooterProjectileFireBehavior>(GetTransientPackage());
+	UShooterProjectileFireBehavior* Behavior = NewObject<UShooterProjectileFireBehavior>(GetTransientPackage());
 
 	FShooterWeaponFireContext Context;
 	Context.WeaponActor = nullptr;
@@ -145,10 +139,7 @@ bool FShooterProjectileFireBehaviorSpawnTest::RunTest(const FString& Parameters)
 
 	for (TActorIterator<AShooterProjectile> It(World, PistolBulletClass); It; ++It)
 	{
-		TestEqual(
-			TEXT("Projectile uses the context transform"),
-			It->GetActorLocation(),
-			FVector(10.0f, 0.0f, 80.0f));
+		TestEqual(TEXT("Projectile uses the context transform"), It->GetActorLocation(), FVector(10.0f, 0.0f, 80.0f));
 	}
 
 	DestroyFireBehaviorTestWorld(World);
@@ -160,8 +151,7 @@ bool FShooterProjectileFireBehaviorSpawnTest::RunTest(const FString& Parameters)
  * 行配置了 FireBehaviorClass 时，授予后的武器解析到该行实例化的行为；
  * 行未配置行为类时解析不到正式行为，回落到兼容弹丸路径。
  */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterProjectileFireBehaviorWeaponRowWiringTest,
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterProjectileFireBehaviorWeaponRowWiringTest,
 	"ShootGame.Weapon.FireBehavior.WeaponRowWiring",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
@@ -181,10 +171,8 @@ bool FShooterProjectileFireBehaviorWeaponRowWiringTest::RunTest(const FString& P
 		return false;
 	}
 
-	AShooterWeaponPresentationTestCharacter* Character =
-		World->SpawnActor<AShooterWeaponPresentationTestCharacter>(
-			FVector::ZeroVector,
-			FRotator::ZeroRotator);
+	AShooterWeaponPresentationTestCharacter* Character = World->SpawnActor<AShooterWeaponPresentationTestCharacter>(
+			FVector::ZeroVector, FRotator::ZeroRotator);
 	if (!TestNotNull(TEXT("Wiring test character spawned"), Character))
 	{
 		DestroyFireBehaviorTestWorld(World);
@@ -212,8 +200,7 @@ bool FShooterProjectileFireBehaviorWeaponRowWiringTest::RunTest(const FString& P
 	}
 
 	// 行 A：配置了正式行为类与弹丸类。
-	FShooterWeaponConfigRow BehaviorRow = MakeTestWeaponRow(
-		AShooterInventoryOrderTestWeapon::StaticClass());
+	FShooterWeaponConfigRow BehaviorRow = MakeTestWeaponRow(AShooterInventoryOrderTestWeapon::StaticClass());
 	BehaviorRow.FireBehaviorClass = UShooterProjectileFireBehavior::StaticClass();
 	BehaviorRow.ProjectileClass = PistolBulletClass;
 	const FName BehaviorRowName = AddTestWeaponRow(TestTable, BehaviorRow);
@@ -224,35 +211,25 @@ bool FShooterProjectileFireBehaviorWeaponRowWiringTest::RunTest(const FString& P
 	{
 		const UShooterWeaponFireBehavior* Behavior = BehaviorWeapon->ResolveFireBehavior();
 		TestNotNull(TEXT("Weapon resolves the row fire behavior"), Behavior);
-		TestTrue(
-			TEXT("Resolved behavior uses the row FireBehaviorClass"),
+		TestTrue(TEXT("Resolved behavior uses the row FireBehaviorClass"),
 			Behavior && Behavior->GetClass() == BehaviorRow.FireBehaviorClass.Get());
-		TestTrue(
-			TEXT("Resolved behavior is the projectile behavior"),
+		TestTrue(TEXT("Resolved behavior is the projectile behavior"),
 			Cast<UShooterProjectileFireBehavior>(Behavior) != nullptr);
 
 		// 快照必须在创建时完整落到 WeaponActor：弹丸类与行为类都能被重新导出。
 		const FShooterWeaponConfigRow Captured = BehaviorWeapon->CaptureWeaponConfigRow();
-		TestEqual(
-			TEXT("Weapon mirrors the row projectile class"),
-			Captured.ProjectileClass.Get(),
-			PistolBulletClass);
-		TestEqual(
-			TEXT("Weapon mirrors the row fire behavior class"),
-			Captured.FireBehaviorClass.Get(),
+		TestEqual(TEXT("Weapon mirrors the row projectile class"), Captured.ProjectileClass.Get(), PistolBulletClass);
+		TestEqual(TEXT("Weapon mirrors the row fire behavior class"), Captured.FireBehaviorClass.Get(),
 			BehaviorRow.FireBehaviorClass.Get());
 	}
 
 	// 行 B：未配置行为类，必须回落兼容路径。
-	const FName CompatRowName = AddTestWeaponRow(
-		TestTable,
-		MakeTestWeaponRow(AShooterInventoryOrderTestWeapon::StaticClass()));
+	const FName CompatRowName = AddTestWeaponRow(TestTable, MakeTestWeaponRow(AShooterInventoryOrderTestWeapon::StaticClass()));
 	Runtime->InitializeWeaponRuntimeForTest();
 	AShooterWeapon* CompatWeapon = Runtime->AcquireWeapon(CompatRowName, Character, nullptr);
 	if (TestNotNull(TEXT("Compat weapon actor exists"), CompatWeapon))
 	{
-		TestNull(
-			TEXT("Row without a fire behavior class resolves no formal behavior"),
+		TestNull(TEXT("Row without a fire behavior class resolves no formal behavior"),
 			CompatWeapon->ResolveFireBehavior());
 	}
 

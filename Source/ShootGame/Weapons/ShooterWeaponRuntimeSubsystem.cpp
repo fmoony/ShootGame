@@ -63,8 +63,7 @@ bool UShooterWeaponRuntimeSubsystem::IsRuntimeRowValid(const FShooterWeaponConfi
 {
 	// 复用正式授予约束（ActorClass 是 AShooterWeapon 子类 + 弹匣/备弹合法），
 	// 再叠加可生成与池预热数量约束：abstract 类与 InitialPoolSize<=0 的行不建 Bucket。
-	return ShooterWeaponTable::IsRowValidForGrant(Row) &&
-		!Row->WeaponActorClass->HasAnyClassFlags(CLASS_Abstract) &&
+	return ShooterWeaponTable::IsRowValidForGrant(Row) && !Row->WeaponActorClass->HasAnyClassFlags(CLASS_Abstract) &&
 		Row->InitialPoolSize > 0;
 }
 
@@ -82,10 +81,7 @@ bool UShooterWeaponRuntimeSubsystem::InitializeWeaponRuntime()
 	// 表缺失：RuntimeSubsystem 初始化失败，正式测试将直接失败。
 	if (!Table)
 	{
-		UE_LOG(
-			LogShootGame,
-			Error,
-			TEXT("WeaponRuntime initialization failed: weapon table missing"));
+		UE_LOG(LogShootGame, Error, TEXT("WeaponRuntime initialization failed: weapon table missing"));
 		return false;
 	}
 
@@ -109,12 +105,8 @@ bool UShooterWeaponRuntimeSubsystem::InitializeWeaponRuntime()
 		if (!IsRuntimeRowValid(Row))
 		{
 			// 单行非法：该 WeaponId 不建立 Bucket，输出一次 Error。
-			UE_LOG(
-				LogShootGame,
-				Error,
-				TEXT("WeaponRuntime skipped invalid row: WeaponId=%s Table=%s"),
-				*RowName.ToString(),
-				*GetNameSafe(Table));
+			UE_LOG(LogShootGame, Error, TEXT("WeaponRuntime skipped invalid row: WeaponId=%s Table=%s"),
+				*RowName.ToString(), *GetNameSafe(Table));
 			continue;
 		}
 
@@ -158,13 +150,8 @@ bool UShooterWeaponRuntimeSubsystem::InitializeWeaponRuntime()
 	}
 
 	bRuntimeInitialized = BucketCount > 0;
-	UE_LOG(
-		LogShootGame,
-		Display,
-		TEXT("WeaponRuntime initialized: Table=%s Buckets=%d Authority=%s"),
-		*GetNameSafe(Table),
-		BucketCount,
-		bAuthority ? TEXT("true") : TEXT("false"));
+	UE_LOG(LogShootGame, Display, TEXT("WeaponRuntime initialized: Table=%s Buckets=%d Authority=%s"),
+		*GetNameSafe(Table), BucketCount, bAuthority ? TEXT("true") : TEXT("false"));
 	return bRuntimeInitialized;
 }
 
@@ -221,10 +208,8 @@ AShooterWeapon* UShooterWeaponRuntimeSubsystem::SpawnPoolWeaponActor(FShooterWea
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	SpawnParams.TransformScaleMethod = ESpawnActorScaleMethod::MultiplyWithRoot;
 
-	AShooterWeapon* Weapon = World->SpawnActor<AShooterWeapon>(
-		Bucket.RuntimeConfig.WeaponActorClass,
-		FTransform::Identity,
-		SpawnParams);
+	AShooterWeapon* Weapon = World->SpawnActor<AShooterWeapon>(Bucket.RuntimeConfig.WeaponActorClass,
+		FTransform::Identity, SpawnParams);
 	if (!Weapon)
 	{
 		return nullptr;
@@ -255,10 +240,7 @@ AShooterWeapon* UShooterWeaponRuntimeSubsystem::AcquireWeapon(FName WeaponId, AA
 {
 	if (!IsRuntimeAuthority())
 	{
-		UE_LOG(
-			LogShootGame,
-			Warning,
-			TEXT("WeaponRuntime Acquire rejected: non-authority world"));
+		UE_LOG(LogShootGame, Warning, TEXT("WeaponRuntime Acquire rejected: non-authority world"));
 		return nullptr;
 	}
 
@@ -266,11 +248,7 @@ AShooterWeapon* UShooterWeaponRuntimeSubsystem::AcquireWeapon(FName WeaponId, AA
 	if (!Bucket)
 	{
 		// 未知 WeaponId：调用方（Pickup / NPC）不得消费，返回空让上层按 InvalidWeaponId 拒绝。
-		UE_LOG(
-			LogShootGame,
-			Warning,
-			TEXT("WeaponRuntime Acquire rejected: unknown WeaponId=%s"),
-			*WeaponId.ToString());
+		UE_LOG(LogShootGame, Warning, TEXT("WeaponRuntime Acquire rejected: unknown WeaponId=%s"), *WeaponId.ToString());
 		return nullptr;
 	}
 
@@ -301,11 +279,7 @@ AShooterWeapon* UShooterWeaponRuntimeSubsystem::AcquireWeapon(FName WeaponId, AA
 			return nullptr;
 		}
 
-		UE_LOG(
-			LogShootGame,
-			Display,
-			TEXT("WeaponRuntime elastic spawn: WeaponId=%s Weapon=%s"),
-			*WeaponId.ToString(),
+		UE_LOG(LogShootGame, Display, TEXT("WeaponRuntime elastic spawn: WeaponId=%s Weapon=%s"), *WeaponId.ToString(),
 			*GetNameSafe(Weapon));
 	}
 
@@ -340,34 +314,23 @@ bool UShooterWeaponRuntimeSubsystem::ReleaseWeapon(AShooterWeapon* Weapon)
 
 	if (!IsValid(Weapon))
 	{
-		UE_LOG(
-			LogShootGame,
-			Warning,
-			TEXT("WeaponRuntime Release rejected: invalid weapon"));
+		UE_LOG(LogShootGame, Warning, TEXT("WeaponRuntime Release rejected: invalid weapon"));
 		return false;
 	}
 
 	FShooterWeaponRuntimeBucket* Bucket = FindBucket(Weapon->GetWeaponId());
 	if (!Bucket)
 	{
-		UE_LOG(
-			LogShootGame,
-			Warning,
-			TEXT("WeaponRuntime Release rejected: no bucket for WeaponId=%s Weapon=%s"),
-			*Weapon->GetWeaponId().ToString(),
-			*GetNameSafe(Weapon));
+		UE_LOG(LogShootGame, Warning, TEXT("WeaponRuntime Release rejected: no bucket for WeaponId=%s Weapon=%s"),
+			*Weapon->GetWeaponId().ToString(), *GetNameSafe(Weapon));
 		return false;
 	}
 
 	// 重复归还或非本池管理的 Actor 全部 fail closed。
 	if (!Bucket->LeasedActors.Contains(Weapon))
 	{
-		UE_LOG(
-			LogShootGame,
-			Warning,
-			TEXT("WeaponRuntime Release rejected: weapon not leased WeaponId=%s Weapon=%s"),
-			*Weapon->GetWeaponId().ToString(),
-			*GetNameSafe(Weapon));
+		UE_LOG(LogShootGame, Warning, TEXT("WeaponRuntime Release rejected: weapon not leased WeaponId=%s Weapon=%s"),
+			*Weapon->GetWeaponId().ToString(), *GetNameSafe(Weapon));
 		return false;
 	}
 

@@ -41,14 +41,10 @@ namespace ShooterWeaponLifecycleAutomationTests
 		World->DestroyWorld(false);
 	}
 
-	AShooterWeaponPresentationTestCharacter* SpawnLifecycleTestCharacter(
-		FAutomationTestBase& Test,
-		UWorld* World)
+	AShooterWeaponPresentationTestCharacter* SpawnLifecycleTestCharacter(FAutomationTestBase& Test, UWorld* World)
 	{
-		AShooterWeaponPresentationTestCharacter* Character =
-			World->SpawnActor<AShooterWeaponPresentationTestCharacter>(
-				FVector::ZeroVector,
-				FRotator::ZeroRotator);
+		AShooterWeaponPresentationTestCharacter* Character = World->SpawnActor<AShooterWeaponPresentationTestCharacter>(
+				FVector::ZeroVector, FRotator::ZeroRotator);
 		if (!Test.TestNotNull(TEXT("Lifecycle test character spawned"), Character))
 		{
 			return nullptr;
@@ -63,9 +59,7 @@ namespace ShooterWeaponLifecycleAutomationTests
 }
 
 /** 状态转换与拒绝：InPool 拒绝装备、装备态拒绝改写绑定、幂等转换不重复触发。 */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterWeaponLifecycleTransitionTest,
-	"ShootGame.Weapon.Lifecycle.Transitions",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterWeaponLifecycleTransitionTest, "ShootGame.Weapon.Lifecycle.Transitions",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterWeaponLifecycleTransitionTest::RunTest(const FString& Parameters)
@@ -85,8 +79,7 @@ bool FShooterWeaponLifecycleTransitionTest::RunTest(const FString& Parameters)
 		return false;
 	}
 
-	AShooterWeapon* Weapon = World->SpawnActor<AShooterWeaponLifecycleTestWeapon>(
-		FVector::ZeroVector,
+	AShooterWeapon* Weapon = World->SpawnActor<AShooterWeaponLifecycleTestWeapon>(FVector::ZeroVector,
 		FRotator::ZeroRotator);
 	if (!TestNotNull(TEXT("Lifecycle weapon spawned"), Weapon))
 	{
@@ -135,8 +128,7 @@ bool FShooterWeaponLifecycleTransitionTest::RunTest(const FString& Parameters)
 }
 
 /** 池归还完整清理：停 Timer、清绑定、隐藏、Owner 缓存清空；复用同一实例且不继承旧绑定。 */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterWeaponLifecyclePoolReleaseTest,
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterWeaponLifecyclePoolReleaseTest,
 	"ShootGame.Weapon.Lifecycle.PoolReleaseClearsState",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
@@ -164,8 +156,7 @@ bool FShooterWeaponLifecyclePoolReleaseTest::RunTest(const FString& Parameters)
 		return false;
 	}
 
-	const FName LifecycleRowName = AddTestWeaponRow(
-		GetOrInjectRuntimeTestTable(World),
+	const FName LifecycleRowName = AddTestWeaponRow(GetOrInjectRuntimeTestTable(World),
 		MakeTestWeaponRow(AShooterWeaponLifecycleTestWeapon::StaticClass()));
 	Runtime->InitializeWeaponRuntimeForTest();
 
@@ -193,9 +184,7 @@ bool FShooterWeaponLifecyclePoolReleaseTest::RunTest(const FString& Parameters)
 
 	// 复用同一实例：不继承旧绑定，并重新绑定到新 Owner（池取出回调负责 Owner/Instigator 重绑）。
 	AShooterWeaponPresentationTestCharacter* SecondCharacter =
-		World->SpawnActor<AShooterWeaponPresentationTestCharacter>(
-			FVector(200.0f, 0.0f, 0.0f),
-			FRotator::ZeroRotator);
+		World->SpawnActor<AShooterWeaponPresentationTestCharacter>(FVector(200.0f, 0.0f, 0.0f), FRotator::ZeroRotator);
 	if (!TestNotNull(TEXT("Second lifecycle character spawned"), SecondCharacter))
 	{
 		DestroyLifecycleTestWorld(World);
@@ -218,8 +207,7 @@ bool FShooterWeaponLifecyclePoolReleaseTest::RunTest(const FString& Parameters)
 }
 
 /** 客户端 Owner 复制切换必须解除旧 Pawn 委托，避免旧 Pawn 销毁作用到已复用武器。 */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterWeaponLifecycleClientOwnerRebindTest,
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterWeaponLifecycleClientOwnerRebindTest,
 	"ShootGame.Weapon.Lifecycle.ClientOwnerRebindClearsPreviousDelegate",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
@@ -233,18 +221,12 @@ bool FShooterWeaponLifecycleClientOwnerRebindTest::RunTest(const FString& Parame
 		return false;
 	}
 
-	AShooterWeaponPresentationTestCharacter* FirstCharacter =
-		SpawnLifecycleTestCharacter(*this, World);
+	AShooterWeaponPresentationTestCharacter* FirstCharacter = SpawnLifecycleTestCharacter(*this, World);
 	AShooterWeaponPresentationTestCharacter* SecondCharacter =
-		World->SpawnActor<AShooterWeaponPresentationTestCharacter>(
-			FVector(200.0f, 0.0f, 0.0f),
-			FRotator::ZeroRotator);
-	AShooterWeaponLifecycleTestWeapon* Weapon =
-		World->SpawnActor<AShooterWeaponLifecycleTestWeapon>(
-			FVector::ZeroVector,
-			FRotator::ZeroRotator);
-	if (!FirstCharacter ||
-		!TestNotNull(TEXT("Second client owner character spawned"), SecondCharacter) ||
+		World->SpawnActor<AShooterWeaponPresentationTestCharacter>(FVector(200.0f, 0.0f, 0.0f), FRotator::ZeroRotator);
+	AShooterWeaponLifecycleTestWeapon* Weapon = World->SpawnActor<AShooterWeaponLifecycleTestWeapon>(
+			FVector::ZeroVector, FRotator::ZeroRotator);
+	if (!FirstCharacter || !TestNotNull(TEXT("Second client owner character spawned"), SecondCharacter) ||
 		!TestNotNull(TEXT("Client owner rebind weapon spawned"), Weapon))
 	{
 		DestroyLifecycleTestWorld(World);
@@ -273,8 +255,7 @@ bool FShooterWeaponLifecycleClientOwnerRebindTest::RunTest(const FString& Parame
 }
 
 /** 切枪语义：Inventory 内切枪只发生 Equipped <-> Holstered，不进入 InPool、不进池。 */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterWeaponLifecycleSwitchKeepsHolsteredTest,
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterWeaponLifecycleSwitchKeepsHolsteredTest,
 	"ShootGame.Weapon.Lifecycle.SwitchKeepsHolstered",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
@@ -297,24 +278,18 @@ bool FShooterWeaponLifecycleSwitchKeepsHolsteredTest::RunTest(const FString& Par
 
 	UShooterInventoryComponent* Inventory = Character->GetInventoryComponent();
 	UShooterEquipmentComponent* Equipment = Character->GetEquipmentComponent();
-	if (!TestNotNull(TEXT("Character owns inventory"), Inventory) ||
-		!TestNotNull(TEXT("Character owns equipment"), Equipment))
+	if (!TestNotNull(TEXT("Character owns inventory"), Inventory) || !TestNotNull(TEXT("Character owns equipment"), Equipment))
 	{
 		DestroyLifecycleTestWorld(World);
 		return false;
 	}
 
 	EShooterInventoryAddResult PrimaryAddResult = EShooterInventoryAddResult::NotAuthoritative;
-	AShooterWeapon* PrimaryWeapon = GrantTestWeapon(
-		World,
-		Inventory,
-		AShooterInventoryOrderTestWeapon::StaticClass(),
+	AShooterWeapon* PrimaryWeapon = GrantTestWeapon(World, Inventory, AShooterInventoryOrderTestWeapon::StaticClass(),
 		/*MagazineSize*/ 10,
 		/*InitialReserveAmmo*/ -1,
 		&PrimaryAddResult);
-	TestEqual(
-		TEXT("Primary weapon granted"),
-		static_cast<int32>(PrimaryAddResult),
+	TestEqual(TEXT("Primary weapon granted"), static_cast<int32>(PrimaryAddResult),
 		static_cast<int32>(EShooterInventoryAddResult::Added));
 	if (!TestNotNull(TEXT("Primary weapon actor exists"), PrimaryWeapon))
 	{
@@ -323,16 +298,12 @@ bool FShooterWeaponLifecycleSwitchKeepsHolsteredTest::RunTest(const FString& Par
 	}
 
 	EShooterInventoryAddResult SecondaryAddResult = EShooterInventoryAddResult::NotAuthoritative;
-	AShooterWeapon* SecondaryWeapon = GrantTestWeapon(
-		World,
-		Inventory,
+	AShooterWeapon* SecondaryWeapon = GrantTestWeapon(World, Inventory,
 		AShooterWeaponPresentationTestWeaponSecondary::StaticClass(),
 		/*MagazineSize*/ 10,
 		/*InitialReserveAmmo*/ -1,
 		&SecondaryAddResult);
-	TestEqual(
-		TEXT("Secondary weapon granted"),
-		static_cast<int32>(SecondaryAddResult),
+	TestEqual(TEXT("Secondary weapon granted"), static_cast<int32>(SecondaryAddResult),
 		static_cast<int32>(EShooterInventoryAddResult::Added));
 	if (!TestNotNull(TEXT("Secondary weapon actor exists"), SecondaryWeapon))
 	{
@@ -355,8 +326,7 @@ bool FShooterWeaponLifecycleSwitchKeepsHolsteredTest::RunTest(const FString& Par
 
 	// 同武器重复提交幂等，状态不变。
 	TestTrue(TEXT("Re-equip secondary is idempotent"), Equipment->EquipWeapon(SecondaryWeapon));
-	TestEqual(
-		TEXT("Re-equipped secondary stays Equipped"),
+	TestEqual(TEXT("Re-equipped secondary stays Equipped"),
 		static_cast<int32>(SecondaryWeapon ? SecondaryWeapon->GetLifecycleState() : EShooterWeaponLifecycleState::InPool),
 		static_cast<int32>(EShooterWeaponLifecycleState::Equipped));
 

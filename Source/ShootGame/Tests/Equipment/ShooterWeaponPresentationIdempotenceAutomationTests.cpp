@@ -41,14 +41,10 @@ namespace ShooterWeaponPresentationIdempotenceAutomationTests
 		World->DestroyWorld(false);
 	}
 
-	AShooterWeaponPresentationTestCharacter* SpawnIdempotenceTestCharacter(
-		FAutomationTestBase& Test,
-		UWorld* World)
+	AShooterWeaponPresentationTestCharacter* SpawnIdempotenceTestCharacter(FAutomationTestBase& Test, UWorld* World)
 	{
-		AShooterWeaponPresentationTestCharacter* Character =
-			World->SpawnActor<AShooterWeaponPresentationTestCharacter>(
-				FVector::ZeroVector,
-				FRotator::ZeroRotator);
+		AShooterWeaponPresentationTestCharacter* Character = World->SpawnActor<AShooterWeaponPresentationTestCharacter>(
+				FVector::ZeroVector, FRotator::ZeroRotator);
 		if (!Test.TestNotNull(TEXT("Idempotence test character spawned"), Character))
 		{
 			return nullptr;
@@ -61,10 +57,8 @@ namespace ShooterWeaponPresentationIdempotenceAutomationTests
 		return Character;
 	}
 
-	AShooterWeapon* GrantIdempotenceTestWeapon(
-		FAutomationTestBase& Test,
-		AShooterWeaponPresentationTestCharacter* Character,
-		TSubclassOf<AShooterWeapon> WeaponClass)
+	AShooterWeapon* GrantIdempotenceTestWeapon(FAutomationTestBase& Test,
+		AShooterWeaponPresentationTestCharacter* Character, TSubclassOf<AShooterWeapon> WeaponClass)
 	{
 		UShooterInventoryComponent* Inventory = Character->GetInventoryComponent();
 		if (!Test.TestNotNull(TEXT("Idempotence test character owns Inventory"), Inventory))
@@ -74,16 +68,11 @@ namespace ShooterWeaponPresentationIdempotenceAutomationTests
 
 		// S3 授予链：运行时池 Acquire + Inventory AddWeapon。
 		EShooterInventoryAddResult AddResult = EShooterInventoryAddResult::NotAuthoritative;
-		AShooterWeapon* Weapon = GrantTestWeapon(
-			Character->GetWorld(),
-			Inventory,
-			WeaponClass,
+		AShooterWeapon* Weapon = GrantTestWeapon(Character->GetWorld(), Inventory, WeaponClass,
 			/*MagazineSize*/ 10,
 			/*InitialReserveAmmo*/ -1,
 			&AddResult);
-		if (!Test.TestEqual(
-			TEXT("Idempotence test weapon is granted"),
-			static_cast<int32>(AddResult),
+		if (!Test.TestEqual(TEXT("Idempotence test weapon is granted"), static_cast<int32>(AddResult),
 			static_cast<int32>(EShooterInventoryAddResult::Added)))
 		{
 			return nullptr;
@@ -106,8 +95,7 @@ namespace ShooterWeaponPresentationIdempotenceAutomationTests
  * E3 验证：重复 Ensure 不重复 Activate / HUD / 表现事件；
  * 错误输入自动收敛到 Equipment.CurrentWeaponActor。
  */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterWeaponPresentationIdempotenceTest,
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterWeaponPresentationIdempotenceTest,
 	"ShootGame.Equipment.Presentation.IdempotentEnsure",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
@@ -128,8 +116,7 @@ bool FShooterWeaponPresentationIdempotenceTest::RunTest(const FString& Parameter
 		return false;
 	}
 
-	UShooterWeaponPresentationEventTestListener* PresentationListener =
-		NewObject<UShooterWeaponPresentationEventTestListener>();
+	UShooterWeaponPresentationEventTestListener* PresentationListener = NewObject<UShooterWeaponPresentationEventTestListener>();
 	UShooterBulletCountEventTestListener* HudListener = NewObject<UShooterBulletCountEventTestListener>();
 	if (!TestNotNull(TEXT("Presentation listener created"), PresentationListener) ||
 		!TestNotNull(TEXT("HUD listener created"), HudListener))
@@ -137,16 +124,12 @@ bool FShooterWeaponPresentationIdempotenceTest::RunTest(const FString& Parameter
 		DestroyIdempotenceTestWorld(World);
 		return false;
 	}
-	Character->OnWeaponPresentationChanged.AddDynamic(
-		PresentationListener,
+	Character->OnWeaponPresentationChanged.AddDynamic(PresentationListener,
 		&UShooterWeaponPresentationEventTestListener::HandleWeaponPresentationChanged);
-	Character->OnBulletCountUpdated.AddDynamic(
-		HudListener,
+	Character->OnBulletCountUpdated.AddDynamic(HudListener,
 		&UShooterBulletCountEventTestListener::HandleBulletCountUpdated);
 
-	AShooterWeapon* PrimaryWeapon = GrantIdempotenceTestWeapon(
-		*this,
-		Character,
+	AShooterWeapon* PrimaryWeapon = GrantIdempotenceTestWeapon(*this, Character,
 		AShooterWeaponPresentationTestWeaponPrimary::StaticClass());
 	if (!PrimaryWeapon)
 	{
@@ -179,8 +162,7 @@ bool FShooterWeaponPresentationIdempotenceTest::RunTest(const FString& Parameter
  * E3 验证：相同 Weapon 但附着被破坏时修复；不重复 Activate / HUD；
  * 从“未完成”转“完成”只发布一次表现事件。
  */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterWeaponPresentationRepairAttachTest,
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterWeaponPresentationRepairAttachTest,
 	"ShootGame.Equipment.Presentation.RepairAttachWithoutReactivate",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
@@ -201,24 +183,19 @@ bool FShooterWeaponPresentationRepairAttachTest::RunTest(const FString& Paramete
 		return false;
 	}
 
-	UShooterWeaponPresentationEventTestListener* PresentationListener =
-		NewObject<UShooterWeaponPresentationEventTestListener>();
+	UShooterWeaponPresentationEventTestListener* PresentationListener = NewObject<UShooterWeaponPresentationEventTestListener>();
 	UShooterBulletCountEventTestListener* HudListener = NewObject<UShooterBulletCountEventTestListener>();
 	if (!PresentationListener || !HudListener)
 	{
 		DestroyIdempotenceTestWorld(World);
 		return false;
 	}
-	Character->OnWeaponPresentationChanged.AddDynamic(
-		PresentationListener,
+	Character->OnWeaponPresentationChanged.AddDynamic(PresentationListener,
 		&UShooterWeaponPresentationEventTestListener::HandleWeaponPresentationChanged);
-	Character->OnBulletCountUpdated.AddDynamic(
-		HudListener,
+	Character->OnBulletCountUpdated.AddDynamic(HudListener,
 		&UShooterBulletCountEventTestListener::HandleBulletCountUpdated);
 
-	AShooterWeapon* PrimaryWeapon = GrantIdempotenceTestWeapon(
-		*this,
-		Character,
+	AShooterWeapon* PrimaryWeapon = GrantIdempotenceTestWeapon(*this, Character,
 		AShooterWeaponPresentationTestWeaponPrimary::StaticClass());
 	if (!PrimaryWeapon)
 	{
@@ -232,15 +209,12 @@ bool FShooterWeaponPresentationRepairAttachTest::RunTest(const FString& Paramete
 	TestEqual(TEXT("Equip updates HUD once"), HudListener->EventCount, 1);
 
 	// 破坏第三人称附着：相同武器但后置条件不再成立。
-	PrimaryWeapon->GetThirdPersonMesh()->DetachFromComponent(
-		FDetachmentTransformRules::KeepWorldTransform);
-	TestTrue(
-		TEXT("Broken attach makes presentation incomplete"),
+	PrimaryWeapon->GetThirdPersonMesh()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+	TestTrue(TEXT("Broken attach makes presentation incomplete"),
 		PrimaryWeapon->GetThirdPersonMesh()->GetAttachParent() != Character->GetMesh());
 
 	TestTrue(TEXT("Ensure repairs broken attach"), Character->EnsureWeaponPresentation(PrimaryWeapon));
-	TestTrue(
-		TEXT("Ensure restores third-person attach socket"),
+	TestTrue(TEXT("Ensure restores third-person attach socket"),
 		PrimaryWeapon->GetThirdPersonMesh()->GetAttachParent() == Character->GetMesh() &&
 		PrimaryWeapon->GetThirdPersonMesh()->GetAttachSocketName() == FName(TEXT("HandGrip_R")));
 	TestEqual(TEXT("Repair publishes one incomplete->complete event"), PresentationListener->EventCount, 2);
@@ -258,8 +232,7 @@ bool FShooterWeaponPresentationRepairAttachTest::RunTest(const FString& Paramete
  * E3 验证：AnimClass 被破坏时只补 AnimClass，不重复 HUD；清空后保留上一 AnimClass；
  * LastAppliedPresentationWeapon 无公开属性 / Getter / Gameplay 读取方。
  */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterWeaponPresentationAnimClassRepairAndPrivacyTest,
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterWeaponPresentationAnimClassRepairAndPrivacyTest,
 	"ShootGame.Equipment.Presentation.AnimClassRepairAndPrivacy",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
@@ -268,17 +241,13 @@ bool FShooterWeaponPresentationAnimClassRepairAndPrivacyTest::RunTest(const FStr
 	using namespace ShooterWeaponPresentationIdempotenceAutomationTests;
 
 	// 私有表现缓存没有任何反射属性、公开 Getter 或第二套公开状态。
-	TestNull(
-		TEXT("LastAppliedPresentationWeapon has no replicated/public property"),
+	TestNull(TEXT("LastAppliedPresentationWeapon has no replicated/public property"),
 		FindFProperty<FProperty>(AShooterCharacter::StaticClass(), TEXT("LastAppliedPresentationWeapon")));
-	TestNull(
-		TEXT("No PresentedWeapon second state is exposed"),
+	TestNull(TEXT("No PresentedWeapon second state is exposed"),
 		FindFProperty<FProperty>(AShooterCharacter::StaticClass(), TEXT("PresentedWeapon")));
-	TestNull(
-		TEXT("No LastAppliedPresentationWeapon getter is exposed"),
+	TestNull(TEXT("No LastAppliedPresentationWeapon getter is exposed"),
 		AShooterCharacter::StaticClass()->FindFunctionByName(TEXT("GetLastAppliedPresentationWeapon")));
-	TestNull(
-		TEXT("No PresentedWeapon getter is exposed"),
+	TestNull(TEXT("No PresentedWeapon getter is exposed"),
 		AShooterCharacter::StaticClass()->FindFunctionByName(TEXT("GetPresentedWeapon")));
 
 	UWorld* World = CreateIdempotenceTestWorld();
@@ -294,24 +263,19 @@ bool FShooterWeaponPresentationAnimClassRepairAndPrivacyTest::RunTest(const FStr
 		return false;
 	}
 
-	UShooterWeaponPresentationEventTestListener* PresentationListener =
-		NewObject<UShooterWeaponPresentationEventTestListener>();
+	UShooterWeaponPresentationEventTestListener* PresentationListener = NewObject<UShooterWeaponPresentationEventTestListener>();
 	UShooterBulletCountEventTestListener* HudListener = NewObject<UShooterBulletCountEventTestListener>();
 	if (!PresentationListener || !HudListener)
 	{
 		DestroyIdempotenceTestWorld(World);
 		return false;
 	}
-	Character->OnWeaponPresentationChanged.AddDynamic(
-		PresentationListener,
+	Character->OnWeaponPresentationChanged.AddDynamic(PresentationListener,
 		&UShooterWeaponPresentationEventTestListener::HandleWeaponPresentationChanged);
-	Character->OnBulletCountUpdated.AddDynamic(
-		HudListener,
+	Character->OnBulletCountUpdated.AddDynamic(HudListener,
 		&UShooterBulletCountEventTestListener::HandleBulletCountUpdated);
 
-	AShooterWeapon* PrimaryWeapon = GrantIdempotenceTestWeapon(
-		*this,
-		Character,
+	AShooterWeapon* PrimaryWeapon = GrantIdempotenceTestWeapon(*this, Character,
 		AShooterWeaponPresentationTestWeaponPrimary::StaticClass());
 	if (!PrimaryWeapon)
 	{
@@ -327,8 +291,7 @@ bool FShooterWeaponPresentationAnimClassRepairAndPrivacyTest::RunTest(const FStr
 	// 破坏 TP AnimClass：只补 AnimClass，不重复 HUD / Activate。
 	Character->GetMesh()->SetAnimInstanceClass(nullptr);
 	TestTrue(TEXT("Ensure repairs broken AnimClass"), Character->EnsureWeaponPresentation(PrimaryWeapon));
-	TestTrue(
-		TEXT("TP AnimClass restored to weapon config"),
+	TestTrue(TEXT("TP AnimClass restored to weapon config"),
 		Character->GetMesh()->GetAnimClass() == PrimaryWeapon->GetThirdPersonAnimInstanceClass().Get());
 	TestEqual(TEXT("AnimClass repair publishes incomplete->complete event"), PresentationListener->EventCount, 2);
 	TestEqual(TEXT("AnimClass repair does not repeat HUD"), HudListener->EventCount, 1);
@@ -342,11 +305,9 @@ bool FShooterWeaponPresentationAnimClassRepairAndPrivacyTest::RunTest(const FStr
 	TestTrue(TEXT("Unequip Previous is primary"), PresentationListener->LastPreviousWeapon == PrimaryWeapon);
 	TestNull(TEXT("Unequip Current is null"), PresentationListener->LastCurrentWeapon.Get());
 	TestTrue(TEXT("Unequip hides the previous weapon"), PrimaryWeapon->IsHidden());
-	TestTrue(
-		TEXT("Unequip keeps previous FP AnimClass in this plan"),
+	TestTrue(TEXT("Unequip keeps previous FP AnimClass in this plan"),
 		Character->GetFirstPersonMesh()->GetAnimClass() == PreviousFPAnimClass);
-	TestTrue(
-		TEXT("Unequip keeps previous TP AnimClass in this plan"),
+	TestTrue(TEXT("Unequip keeps previous TP AnimClass in this plan"),
 		Character->GetMesh()->GetAnimClass() == PreviousTPAnimClass);
 
 	TestTrue(TEXT("Repeated empty Ensure succeeds"), Character->EnsureWeaponPresentation(nullptr));
@@ -359,8 +320,7 @@ bool FShooterWeaponPresentationAnimClassRepairAndPrivacyTest::RunTest(const FStr
 /**
  * 收尾回归：已应用 Weapon 在 Equipment 清空前先失效时，Character 仍发布一次空表现事件。
  */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterWeaponPresentationStaleWeaponClearTest,
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterWeaponPresentationStaleWeaponClearTest,
 	"ShootGame.Equipment.Presentation.StaleWeaponClear",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
@@ -375,21 +335,16 @@ bool FShooterWeaponPresentationStaleWeaponClearTest::RunTest(const FString& Para
 	}
 
 	AShooterWeaponPresentationTestCharacter* Character = SpawnIdempotenceTestCharacter(*this, World);
-	UShooterWeaponPresentationEventTestListener* Listener =
-		NewObject<UShooterWeaponPresentationEventTestListener>();
+	UShooterWeaponPresentationEventTestListener* Listener = NewObject<UShooterWeaponPresentationEventTestListener>();
 	if (!Character || !TestNotNull(TEXT("Stale weapon listener created"), Listener))
 	{
 		DestroyIdempotenceTestWorld(World);
 		return false;
 	}
-	Character->OnWeaponPresentationChanged.AddDynamic(
-		Listener,
+	Character->OnWeaponPresentationChanged.AddDynamic(Listener,
 		&UShooterWeaponPresentationEventTestListener::HandleWeaponPresentationChanged);
 
-	AShooterWeapon* Weapon = GrantIdempotenceTestWeapon(
-		*this,
-		Character,
-		AShooterWeaponPresentationTestWeaponPrimary::StaticClass());
+	AShooterWeapon* Weapon = GrantIdempotenceTestWeapon(*this, Character, AShooterWeaponPresentationTestWeaponPrimary::StaticClass());
 	if (!Weapon)
 	{
 		DestroyIdempotenceTestWorld(World);

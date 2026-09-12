@@ -79,18 +79,11 @@ bool UShooterGameplayAbility_Reload::CanActivateAbility(
 	// 权威端仍会执行 Super + ResolveReloadTarget 的完整校验，非法请求由服务器拒绝。
 	if (!AvatarActor->HasAuthority())
 	{
-		const UAbilitySystemComponent* AbilitySystemComponent =
-			ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
-		return AbilitySystemComponent &&
-			AbilitySystemComponent->GetAvatarActor() == AvatarActor;
+		const UAbilitySystemComponent* AbilitySystemComponent = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
+		return AbilitySystemComponent && AbilitySystemComponent->GetAvatarActor() == AvatarActor;
 	}
 
-	if (!Super::CanActivateAbility(
-		Handle,
-		ActorInfo,
-		SourceTags,
-		TargetTags,
-		OptionalRelevantTags))
+	if (!Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags))
 	{
 		return false;
 	}
@@ -99,18 +92,13 @@ bool UShooterGameplayAbility_Reload::CanActivateAbility(
 	return ResolveReloadTarget(ActorInfo, Weapon);
 }
 
-bool UShooterGameplayAbility_Reload::ResolveReloadTarget(
-	const FGameplayAbilityActorInfo* ActorInfo,
-	AShooterWeapon*& OutWeapon) const
+bool UShooterGameplayAbility_Reload::ResolveReloadTarget(const FGameplayAbilityActorInfo* ActorInfo, AShooterWeapon*& OutWeapon) const
 {
 	OutWeapon = nullptr;
 
-	const AShooterCharacter* Character = Cast<AShooterCharacter>(
-		ActorInfo ? ActorInfo->AvatarActor.Get() : nullptr);
-	const UAbilitySystemComponent* AbilitySystemComponent =
-		ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
-	if (!Character || !AbilitySystemComponent ||
-		AbilitySystemComponent->GetAvatarActor() != Character ||
+	const AShooterCharacter* Character = Cast<AShooterCharacter>(ActorInfo ? ActorInfo->AvatarActor.Get() : nullptr);
+	const UAbilitySystemComponent* AbilitySystemComponent = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
+	if (!Character || !AbilitySystemComponent || AbilitySystemComponent->GetAvatarActor() != Character ||
 		AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Dead))
 	{
 		return false;
@@ -122,18 +110,15 @@ bool UShooterGameplayAbility_Reload::ResolveReloadTarget(
 		? Equipment->GetCurrentWeaponActor()
 		: Character->GetCurrentWeapon();
 	// 提交前校验（重构方案 4.7）：Actor 仍在背包、归属未变、是当前装备且不在池内。
-	if (!Inventory || !Equipment || !IsValid(Weapon) ||
-		!Inventory->ContainsWeapon(Weapon) ||
-		Weapon->GetOwner() != Character ||
-		Weapon->IsHidden() ||
+	if (!Inventory || !Equipment || !IsValid(Weapon) || !Inventory->ContainsWeapon(Weapon) ||
+		Weapon->GetOwner() != Character || Weapon->IsHidden() ||
 		Weapon->GetLifecycleState() == EShooterWeaponLifecycleState::InPool)
 	{
 		return false;
 	}
 
 	// 弹药权威在 WeaponActor：满弹匣或无备弹直接拒绝。
-	if (Weapon->GetBulletCount() >= Weapon->GetMagazineSize() ||
-		Weapon->GetReserveAmmo() <= 0)
+	if (Weapon->GetBulletCount() >= Weapon->GetMagazineSize() || Weapon->GetReserveAmmo() <= 0)
 	{
 		return false;
 	}
@@ -169,23 +154,17 @@ void UShooterGameplayAbility_Reload::ActivateAbility(
 	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent =
 		Cast<UShooterAbilitySystemComponent>(ActorInfo->AbilitySystemComponent.Get()))
 	{
-		ShooterAbilitySystemComponent->CancelAbilitiesByTag(
-			ShooterGameplayTags::Input_Fire);
+		ShooterAbilitySystemComponent->CancelAbilitiesByTag(ShooterGameplayTags::Input_Fire);
 	}
 
 	// 服务器事务时钟只来自 WeaponActor 配置；Montage 丢失不影响提交。
 	const float ReloadDuration = FMath::Max(0.0f, Weapon->GetReloadDuration());
-	UAbilityTask_WaitDelay* WaitTask = UAbilityTask_WaitDelay::WaitDelay(
-		this,
-		ReloadDuration);
-	WaitTask->OnFinish.AddDynamic(
-		this,
-		&UShooterGameplayAbility_Reload::HandleReloadWaitFinished);
+	UAbilityTask_WaitDelay* WaitTask = UAbilityTask_WaitDelay::WaitDelay(this, ReloadDuration);
+	WaitTask->OnFinish.AddDynamic(this, &UShooterGameplayAbility_Reload::HandleReloadWaitFinished);
 	ReloadWaitTask = WaitTask;
 	WaitTask->ReadyForActivation();
 
-	const AShooterCharacter* ReloadCharacter = Cast<AShooterCharacter>(
-		GetShooterAvatarActor());
+	const AShooterCharacter* ReloadCharacter = Cast<AShooterCharacter>(GetShooterAvatarActor());
 	UE_LOG(
 		LogShootGame,
 		Display,
@@ -200,23 +179,18 @@ void UShooterGameplayAbility_Reload::ActivateAbility(
 
 bool UShooterGameplayAbility_Reload::IsReloadTargetStillCurrent() const
 {
-	const AShooterCharacter* Character = Cast<AShooterCharacter>(
-		GetShooterAvatarActor());
+	const AShooterCharacter* Character = Cast<AShooterCharacter>(GetShooterAvatarActor());
 	UShooterInventoryComponent* Inventory = Character
 		? Character->GetInventoryComponent()
 		: nullptr;
 	UShooterEquipmentComponent* Equipment = Character
 		? Character->GetEquipmentComponent()
 		: nullptr;
-	const UAbilitySystemComponent* AbilitySystemComponent =
-		Character ? Character->GetAbilitySystemComponent() : nullptr;
+	const UAbilitySystemComponent* AbilitySystemComponent = Character ? Character->GetAbilitySystemComponent() : nullptr;
 	if (!Character || !Inventory || !Equipment || !AbilitySystemComponent ||
-		AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Dead) ||
-		!CachedWeapon.IsValid() ||
-		Equipment->GetCurrentWeaponActor() != CachedWeapon.Get() ||
-		!Inventory->ContainsWeapon(CachedWeapon.Get()) ||
-		CachedWeapon->GetOwner() != Character ||
-		CachedWeapon->IsHidden() ||
+		AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Dead) || !CachedWeapon.IsValid() ||
+		Equipment->GetCurrentWeaponActor() != CachedWeapon.Get() || !Inventory->ContainsWeapon(CachedWeapon.Get()) ||
+		CachedWeapon->GetOwner() != Character || CachedWeapon->IsHidden() ||
 		CachedWeapon->GetLifecycleState() == EShooterWeaponLifecycleState::InPool)
 	{
 		return false;
@@ -236,55 +210,27 @@ void UShooterGameplayAbility_Reload::HandleReloadWaitFinished()
 
 	if (!IsReloadTargetStillCurrent())
 	{
-		UE_LOG(
-			LogShootGame,
-			Display,
-			TEXT("GA_Reload commit aborted: target no longer current Avatar=%s WeaponId=%s"),
-			*GetNameSafe(GetShooterAvatarActor()),
-			*CachedWeapon->GetWeaponId().ToString());
-		EndAbility(
-			GetCurrentAbilitySpecHandle(),
-			GetCurrentActorInfo(),
-			GetCurrentActivationInfo(),
-			true,
-			true);
+		UE_LOG(LogShootGame, Display, TEXT("GA_Reload commit aborted: target no longer current Avatar=%s WeaponId=%s"),
+			*GetNameSafe(GetShooterAvatarActor()), *CachedWeapon->GetWeaponId().ToString());
+		EndAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), true, true);
 		return;
 	}
 
 	int32 TransferredAmmo = 0;
 	if (!CachedWeapon->ReloadFromReserve(TransferredAmmo))
 	{
-		UE_LOG(
-			LogShootGame,
-			Warning,
-			TEXT("GA_Reload commit failed: Avatar=%s WeaponId=%s"),
-			*GetNameSafe(GetShooterAvatarActor()),
-			*CachedWeapon->GetWeaponId().ToString());
-		EndAbility(
-			GetCurrentAbilitySpecHandle(),
-			GetCurrentActorInfo(),
-			GetCurrentActivationInfo(),
-			true,
-			true);
+		UE_LOG(LogShootGame, Warning, TEXT("GA_Reload commit failed: Avatar=%s WeaponId=%s"),
+			*GetNameSafe(GetShooterAvatarActor()), *CachedWeapon->GetWeaponId().ToString());
+		EndAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), true, true);
 		return;
 	}
 
 	// 单事务护栏：即使 WaitDelay 异常重入，也只允许这次弹药转移。
 	bReloadCommitted = true;
-	UE_LOG(
-		LogShootGame,
-		Display,
-		TEXT("GA_Reload committed: Avatar=%s WeaponId=%s Transferred=%d"),
-		*GetNameSafe(GetShooterAvatarActor()),
-		*CachedWeapon->GetWeaponId().ToString(),
-		TransferredAmmo);
+	UE_LOG(LogShootGame, Display, TEXT("GA_Reload committed: Avatar=%s WeaponId=%s Transferred=%d"),
+		*GetNameSafe(GetShooterAvatarActor()), *CachedWeapon->GetWeaponId().ToString(), TransferredAmmo);
 
-	EndAbility(
-		GetCurrentAbilitySpecHandle(),
-		GetCurrentActorInfo(),
-		GetCurrentActivationInfo(),
-		true,
-		false);
+	EndAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), true, false);
 }
 
 void UShooterGameplayAbility_Reload::CleanupReloadTransaction()
@@ -309,17 +255,8 @@ void UShooterGameplayAbility_Reload::EndAbility(
 	// 完成、取消、失败共用清理：不会依赖 Ability 对象销毁来解除引用。
 	CleanupReloadTransaction();
 
-	Super::EndAbility(
-		Handle,
-		ActorInfo,
-		ActivationInfo,
-		bReplicateEndAbility,
-		bWasCancelled);
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 
-	UE_LOG(
-		LogShootGame,
-		Display,
-		TEXT("GA_Reload ended: Cancelled=%s Avatar=%s"),
-		bWasCancelled ? TEXT("true") : TEXT("false"),
-		*GetNameSafe(GetShooterAvatarActor()));
+	UE_LOG(LogShootGame, Display, TEXT("GA_Reload ended: Cancelled=%s Avatar=%s"),
+		bWasCancelled ? TEXT("true") : TEXT("false"), *GetNameSafe(GetShooterAvatarActor()));
 }

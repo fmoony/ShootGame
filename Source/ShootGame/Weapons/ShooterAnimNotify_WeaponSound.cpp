@@ -6,9 +6,7 @@
 #include "ShooterCharacter.h"
 #include "ShooterWeapon.h"
 
-void UShooterAnimNotify_WeaponSound::Notify(
-	USkeletalMeshComponent* MeshComp,
-	UAnimSequenceBase* Animation,
+void UShooterAnimNotify_WeaponSound::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
 	const FAnimNotifyEventReference& EventReference)
 {
 	Super::Notify(MeshComp, Animation, EventReference);
@@ -23,8 +21,7 @@ void UShooterAnimNotify_WeaponSound::Notify(
 
 	// Notify 可能在低权重混合或取消后的残余帧到达；只接受仍处于权威 Reload 表现期的事件，
 	// 与 BeginReloadPresentationRecovery 的守卫口径一致。
-	const UShooterAnimInstanceBase* AnimInstance =
-		Cast<UShooterAnimInstanceBase>(MeshComp->GetAnimInstance());
+	const UShooterAnimInstanceBase* AnimInstance = Cast<UShooterAnimInstanceBase>(MeshComp->GetAnimInstance());
 	if (!AnimInstance || !AnimInstance->bIsReloading)
 	{
 		return;
@@ -39,7 +36,6 @@ void UShooterAnimNotify_WeaponSound::Notify(
 FString UShooterAnimNotify_WeaponSound::GetNotifyName_Implementation() const
 {
 	const UEnum* StageEnum = StaticEnum<EShooterReloadSoundStage>();
-	return FString::Printf(
-		TEXT("WeaponSound:%s"),
+	return FString::Printf(TEXT("WeaponSound:%s"),
 		StageEnum ? *StageEnum->GetNameStringByValue(static_cast<int64>(Stage)) : TEXT("Invalid"));
 }

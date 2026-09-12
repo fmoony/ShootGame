@@ -10,8 +10,7 @@ UShooterAttributeSet::UShooterAttributeSet()
 	// 未初始化前保持零值；出生生命由初始化 GameplayEffect 写入。
 }
 
-void UShooterAttributeSet::GetLifetimeReplicatedProps(
-	TArray<FLifetimeProperty>& OutLifetimeProps) const
+void UShooterAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 

@@ -39,20 +39,11 @@ namespace ShooterAnimBPReparent
 
 	bool ReparentCompileAndSave(const FReparentTarget& Target, int32& OutFailureCount)
 	{
-		const FString ObjectPath = FString::Printf(
-			TEXT("%s.%s"),
-			Target.PackagePath,
-			Target.AssetName);
-		UAnimBlueprint* AnimBP = LoadObject<UAnimBlueprint>(
-			nullptr,
-			*ObjectPath);
+		const FString ObjectPath = FString::Printf(TEXT("%s.%s"), Target.PackagePath, Target.AssetName);
+		UAnimBlueprint* AnimBP = LoadObject<UAnimBlueprint>(nullptr, *ObjectPath);
 		if (!AnimBP)
 		{
-			UE_LOG(
-				LogShooterAnimBPReparent,
-				Error,
-				TEXT("AnimBP reparent failed to load: %s"),
-				*ObjectPath);
+			UE_LOG(LogShooterAnimBPReparent, Error, TEXT("AnimBP reparent failed to load: %s"), *ObjectPath);
 			++OutFailureCount;
 			return false;
 		}
@@ -60,11 +51,7 @@ namespace ShooterAnimBPReparent
 		UClass* NewParentClass = Target.GetParentClass();
 		if (!NewParentClass || !NewParentClass->IsChildOf(UAnimInstance::StaticClass()))
 		{
-			UE_LOG(
-				LogShooterAnimBPReparent,
-				Error,
-				TEXT("AnimBP reparent invalid parent for: %s"),
-				*ObjectPath);
+			UE_LOG(LogShooterAnimBPReparent, Error, TEXT("AnimBP reparent invalid parent for: %s"), *ObjectPath);
 			++OutFailureCount;
 			return false;
 		}
@@ -101,56 +88,32 @@ namespace ShooterAnimBPReparent
 			UBlueprintEditorLibrary::ReparentBlueprint(AnimBP, NewParentClass);
 			if (AnimBP->ParentClass != NewParentClass)
 			{
-				UE_LOG(
-					LogShooterAnimBPReparent,
-					Error,
-					TEXT("AnimBP reparent did not take effect: %s"),
-					*ObjectPath);
+				UE_LOG(LogShooterAnimBPReparent, Error, TEXT("AnimBP reparent did not take effect: %s"), *ObjectPath);
 				++OutFailureCount;
 				return false;
 			}
 		}
 
 		FCompilerResultsLog CompilerResults;
-		FKismetEditorUtilities::CompileBlueprint(
-			AnimBP,
-			EBlueprintCompileOptions::SkipGarbageCollection,
-			&CompilerResults);
+		FKismetEditorUtilities::CompileBlueprint(AnimBP, EBlueprintCompileOptions::SkipGarbageCollection, &CompilerResults);
 		// 迁移 Commandlet 中 BS_BeingCreated 可能是编译管理器正在重建生成类，
 		// 只要编译器返回 0 Error 且不是 BS_Error，就允许保存；下一次加载会收敛状态。
 		if (CompilerResults.NumErrors > 0 || AnimBP->Status == BS_Error)
 		{
-			UE_LOG(
-				LogShooterAnimBPReparent,
-				Error,
-				TEXT("AnimBP compile failed: Asset=%s Errors=%d Status=%d"),
-				*ObjectPath,
-				CompilerResults.NumErrors,
-				static_cast<int32>(AnimBP->Status));
+			UE_LOG(LogShooterAnimBPReparent, Error, TEXT("AnimBP compile failed: Asset=%s Errors=%d Status=%d"),
+				*ObjectPath, CompilerResults.NumErrors, static_cast<int32>(AnimBP->Status));
 			++OutFailureCount;
 			return false;
 		}
-		UE_LOG(
-			LogShooterAnimBPReparent,
-			Display,
-			TEXT("AnimBP compile accepted: Asset=%s Errors=%d Status=%d"),
-			*ObjectPath,
-			CompilerResults.NumErrors,
-			static_cast<int32>(AnimBP->Status));
+		UE_LOG(LogShooterAnimBPReparent, Display, TEXT("AnimBP compile accepted: Asset=%s Errors=%d Status=%d"),
+			*ObjectPath, CompilerResults.NumErrors, static_cast<int32>(AnimBP->Status));
 
 		UPackage* Package = AnimBP->GetOutermost();
 		FString PackageFilename;
-		if (!Package ||
-			!FPackageName::TryConvertLongPackageNameToFilename(
-				Package->GetName(),
-				PackageFilename,
+		if (!Package || !FPackageName::TryConvertLongPackageNameToFilename(Package->GetName(), PackageFilename,
 				FPackageName::GetAssetPackageExtension()))
 		{
-			UE_LOG(
-				LogShooterAnimBPReparent,
-				Error,
-				TEXT("AnimBP save path resolution failed: %s"),
-				*ObjectPath);
+			UE_LOG(LogShooterAnimBPReparent, Error, TEXT("AnimBP save path resolution failed: %s"), *ObjectPath);
 			++OutFailureCount;
 			return false;
 		}
@@ -159,30 +122,16 @@ namespace ShooterAnimBPReparent
 		FSavePackageArgs SaveArgs;
 		SaveArgs.TopLevelFlags = RF_Standalone;
 		SaveArgs.SaveFlags = SAVE_NoError;
-		const bool bSaved = UPackage::SavePackage(
-			Package,
-			AnimBP,
-			*PackageFilename,
-			SaveArgs);
+		const bool bSaved = UPackage::SavePackage(Package, AnimBP, *PackageFilename, SaveArgs);
 		if (!bSaved)
 		{
-			UE_LOG(
-				LogShooterAnimBPReparent,
-				Error,
-				TEXT("AnimBP save failed: Asset=%s File=%s"),
-				*ObjectPath,
-				*PackageFilename);
+			UE_LOG(LogShooterAnimBPReparent, Error, TEXT("AnimBP save failed: Asset=%s File=%s"), *ObjectPath, *PackageFilename);
 			++OutFailureCount;
 			return false;
 		}
 
-		UE_LOG(
-			LogShooterAnimBPReparent,
-			Display,
-			TEXT("AUTOMATION_ANIMBP_REPARENT_SUCCESS Asset=%s Parent=%s File=%s"),
-			*ObjectPath,
-			*AnimBP->ParentClass->GetPathName(),
-			*PackageFilename);
+		UE_LOG(LogShooterAnimBPReparent, Display, TEXT("AUTOMATION_ANIMBP_REPARENT_SUCCESS Asset=%s Parent=%s File=%s"),
+			*ObjectPath, *AnimBP->ParentClass->GetPathName(), *PackageFilename);
 		return true;
 	}
 }
@@ -230,12 +179,8 @@ int32 UShooterAnimBPReparentCommandlet::Main(const FString& Params)
 		ReparentCompileAndSave(Target, FailureCount);
 	}
 
-	UE_LOG(
-		LogShooterAnimBPReparent,
-		Display,
-		TEXT("AUTOMATION_ANIMBP_REPARENT_SUMMARY Total=%d Failures=%d"),
-		static_cast<int32>(UE_ARRAY_COUNT(Targets)),
-		FailureCount);
+	UE_LOG(LogShooterAnimBPReparent, Display, TEXT("AUTOMATION_ANIMBP_REPARENT_SUMMARY Total=%d Failures=%d"),
+		static_cast<int32>(UE_ARRAY_COUNT(Targets)), FailureCount);
 
 	return FailureCount == 0 ? 0 : 1;
 }

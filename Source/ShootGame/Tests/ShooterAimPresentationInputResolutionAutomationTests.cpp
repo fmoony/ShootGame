@@ -8,14 +8,10 @@
 
 namespace ShooterAimPresentationInputResolutionAutomationTests
 {
-	UShooterAimPresentationTestHarness* CreateResolverHarness(
-		FAutomationTestBase& Test,
-		ENetRole Role,
-		ENetMode NetMode,
-		bool bLocallyControlled)
+	UShooterAimPresentationTestHarness* CreateResolverHarness(FAutomationTestBase& Test, ENetRole Role,
+		ENetMode NetMode, bool bLocallyControlled)
 	{
-		UShooterAimPresentationTestHarness* Harness =
-			NewObject<UShooterAimPresentationTestHarness>();
+		UShooterAimPresentationTestHarness* Harness = NewObject<UShooterAimPresentationTestHarness>();
 		Test.TestNotNull(TEXT("Resolver harness created"), Harness);
 		if (Harness)
 		{
@@ -35,8 +31,7 @@ namespace ShooterAimPresentationInputResolutionAutomationTests
 /**
  * 阶段 1：本地控制角色解析为 BaseAimDirection，且不消费远端平滑 Target。
  */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterAimPresentationResolveLocalOwnerTest,
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAimPresentationResolveLocalOwnerTest,
 	"ShootGame.Aim.PresentationInputResolve.LocalOwner",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
@@ -44,11 +39,7 @@ bool FShooterAimPresentationResolveLocalOwnerTest::RunTest(const FString& Parame
 {
 	using namespace ShooterAimPresentationInputResolutionAutomationTests;
 
-	UShooterAimPresentationTestHarness* Harness = CreateResolverHarness(
-		*this,
-		ROLE_Authority,
-		NM_ListenServer,
-		true);
+	UShooterAimPresentationTestHarness* Harness = CreateResolverHarness(*this, ROLE_Authority, NM_ListenServer, true);
 	if (!Harness)
 	{
 		return false;
@@ -63,8 +54,7 @@ bool FShooterAimPresentationResolveLocalOwnerTest::RunTest(const FString& Parame
 	bool bOutTargetValid = true;
 	Resolve(Harness, OutDirection, OutTarget, bOutTargetValid);
 
-	TestTrue(
-		TEXT("local owner consumes BaseAimDirection"),
+	TestTrue(TEXT("local owner consumes BaseAimDirection"),
 		OutDirection.Equals(Harness->AimRotationOverride.Vector().GetSafeNormal(), 1e-4f));
 	TestTrue(TEXT("local owner leaves Target zero"), OutTarget.Equals(FVector::ZeroVector));
 	TestFalse(TEXT("local owner marks Target invalid"), bOutTargetValid);
@@ -74,8 +64,7 @@ bool FShooterAimPresentationResolveLocalOwnerTest::RunTest(const FString& Parame
 /**
  * 阶段 1：SimulatedProxy 且平滑目标有效时输出有效 Target。
  */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterAimPresentationResolveSimulatedProxyTest,
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAimPresentationResolveSimulatedProxyTest,
 	"ShootGame.Aim.PresentationInputResolve.SimulatedProxy",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
@@ -83,11 +72,7 @@ bool FShooterAimPresentationResolveSimulatedProxyTest::RunTest(const FString& Pa
 {
 	using namespace ShooterAimPresentationInputResolutionAutomationTests;
 
-	UShooterAimPresentationTestHarness* Harness = CreateResolverHarness(
-		*this,
-		ROLE_SimulatedProxy,
-		NM_Client,
-		false);
+	UShooterAimPresentationTestHarness* Harness = CreateResolverHarness(*this, ROLE_SimulatedProxy, NM_Client, false);
 	if (!Harness)
 	{
 		return false;
@@ -113,8 +98,7 @@ bool FShooterAimPresentationResolveSimulatedProxyTest::RunTest(const FString& Pa
 /**
  * 阶段 1：Listen Server 观察远端 Pawn（Authority + 非本地控制）时同样启用平滑 Target。
  */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterAimPresentationResolveListenServerRemoteTest,
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAimPresentationResolveListenServerRemoteTest,
 	"ShootGame.Aim.PresentationInputResolve.ListenServerRemote",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
@@ -122,19 +106,14 @@ bool FShooterAimPresentationResolveListenServerRemoteTest::RunTest(const FString
 {
 	using namespace ShooterAimPresentationInputResolutionAutomationTests;
 
-	UShooterAimPresentationTestHarness* Harness = CreateResolverHarness(
-		*this,
-		ROLE_Authority,
-		NM_ListenServer,
-		false);
+	UShooterAimPresentationTestHarness* Harness = CreateResolverHarness(*this, ROLE_Authority, NM_ListenServer, false);
 	if (!Harness)
 	{
 		return false;
 	}
 
 	const FVector BaseDirection = Harness->AimRotationOverride.Vector().GetSafeNormal();
-	const FVector SmoothedTarget =
-		Harness->ViewLocationOverride + BaseDirection * 800.0f;
+	const FVector SmoothedTarget = Harness->ViewLocationOverride + BaseDirection * 800.0f;
 	Harness->SetPresentationAimTargetValidForTest(true);
 	Harness->SetSmoothedPresentationAimTargetForTest(SmoothedTarget);
 
@@ -152,8 +131,7 @@ bool FShooterAimPresentationResolveListenServerRemoteTest::RunTest(const FString
 /**
  * 阶段 1：无效标记或非有限平滑目标不会输出有效 Target，并关闭远端 Aim 输入。
  */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterAimPresentationResolveInvalidTargetTest,
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAimPresentationResolveInvalidTargetTest,
 	"ShootGame.Aim.PresentationInputResolve.InvalidTarget",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
@@ -161,11 +139,7 @@ bool FShooterAimPresentationResolveInvalidTargetTest::RunTest(const FString& Par
 {
 	using namespace ShooterAimPresentationInputResolutionAutomationTests;
 
-	UShooterAimPresentationTestHarness* Harness = CreateResolverHarness(
-		*this,
-		ROLE_SimulatedProxy,
-		NM_Client,
-		false);
+	UShooterAimPresentationTestHarness* Harness = CreateResolverHarness(*this, ROLE_SimulatedProxy, NM_Client, false);
 	if (!Harness)
 	{
 		return false;
@@ -203,8 +177,7 @@ bool FShooterAimPresentationResolveInvalidTargetTest::RunTest(const FString& Par
 /**
  * 阶段 1：目标距视点不足 150cm 时沿 BaseAimDirection 投影到最小安全深度。
  */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterAimPresentationResolveViewSafeDepthTest,
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAimPresentationResolveViewSafeDepthTest,
 	"ShootGame.Aim.PresentationInputResolve.ViewSafeDepth",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
@@ -212,11 +185,7 @@ bool FShooterAimPresentationResolveViewSafeDepthTest::RunTest(const FString& Par
 {
 	using namespace ShooterAimPresentationInputResolutionAutomationTests;
 
-	UShooterAimPresentationTestHarness* Harness = CreateResolverHarness(
-		*this,
-		ROLE_SimulatedProxy,
-		NM_Client,
-		false);
+	UShooterAimPresentationTestHarness* Harness = CreateResolverHarness(*this, ROLE_SimulatedProxy, NM_Client, false);
 	if (!Harness)
 	{
 		return false;
@@ -224,22 +193,16 @@ bool FShooterAimPresentationResolveViewSafeDepthTest::RunTest(const FString& Par
 
 	const FVector BaseDirection = Harness->AimRotationOverride.Vector().GetSafeNormal();
 	constexpr float MinimumViewDepth = 150.0f;
-	const FVector NearTarget =
-		Harness->ViewLocationOverride + BaseDirection * 20.0f;
+	const FVector NearTarget = Harness->ViewLocationOverride + BaseDirection * 20.0f;
 	Harness->SetPresentationAimTargetValidForTest(true);
 	Harness->SetSmoothedPresentationAimTargetForTest(NearTarget);
 
 	FVector OutDirection = FVector::ZeroVector;
 	FVector OutTarget = FVector::ZeroVector;
 	bool bOutTargetValid = false;
-	Harness->ResolveAimPresentationInput(
-		OutDirection,
-		OutTarget,
-		bOutTargetValid,
-		MinimumViewDepth);
+	Harness->ResolveAimPresentationInput(OutDirection, OutTarget, bOutTargetValid, MinimumViewDepth);
 
-	const FVector ExpectedSafeTarget =
-		NearTarget + BaseDirection * (MinimumViewDepth - 20.0f);
+	const FVector ExpectedSafeTarget = NearTarget + BaseDirection * (MinimumViewDepth - 20.0f);
 	TestTrue(TEXT("near target is projected to minimum view depth"), OutTarget.Equals(ExpectedSafeTarget, 1e-3f));
 	TestTrue(TEXT("projected target stays valid"), bOutTargetValid);
 	TestTrue(TEXT("view projection keeps BaseAimDirection"), OutDirection.Equals(BaseDirection, 1e-4f));

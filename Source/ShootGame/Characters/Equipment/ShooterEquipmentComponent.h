@@ -10,12 +10,8 @@ class AShooterCharacter;
 class AShooterWeapon;
 class UShooterInventoryComponent;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
-	FShooterEquippedWeaponChangedDelegate,
-	AShooterWeapon*,
-	PreviousWeapon,
-	AShooterWeapon*,
-	CurrentWeapon);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FShooterEquippedWeaponChangedDelegate, AShooterWeapon*, PreviousWeapon,
+	AShooterWeapon*, CurrentWeapon);
 
 /**
  * 角色“当前正在使用哪把武器”的唯一装备权威（重构方案 4.5）。

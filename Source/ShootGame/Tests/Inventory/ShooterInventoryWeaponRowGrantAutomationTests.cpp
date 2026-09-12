@@ -46,14 +46,10 @@ namespace ShooterInventoryWeaponRowGrantAutomationTests
 		World->DestroyWorld(false);
 	}
 
-	AShooterWeaponPresentationTestCharacter* SpawnWeaponRowGrantTestCharacter(
-		FAutomationTestBase& Test,
-		UWorld* World)
+	AShooterWeaponPresentationTestCharacter* SpawnWeaponRowGrantTestCharacter(FAutomationTestBase& Test, UWorld* World)
 	{
-		AShooterWeaponPresentationTestCharacter* Character =
-			World->SpawnActor<AShooterWeaponPresentationTestCharacter>(
-				FVector::ZeroVector,
-				FRotator::ZeroRotator);
+		AShooterWeaponPresentationTestCharacter* Character = World->SpawnActor<AShooterWeaponPresentationTestCharacter>(
+				FVector::ZeroVector, FRotator::ZeroRotator);
 		if (!Test.TestNotNull(TEXT("Weapon grant test character spawned"), Character))
 		{
 			return nullptr;
@@ -68,9 +64,7 @@ namespace ShooterInventoryWeaponRowGrantAutomationTests
 }
 
 /** 授予主路径：WeaponActor 完全由所选行的运行时快照驱动，弹药与容量来自 Actor。 */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterInventoryWeaponGrantTest,
-	"ShootGame.Inventory.WeaponGrant.Initialize",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterInventoryWeaponGrantTest, "ShootGame.Inventory.WeaponGrant.Initialize",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterInventoryWeaponGrantTest::RunTest(const FString& Parameters)
@@ -98,16 +92,11 @@ bool FShooterInventoryWeaponGrantTest::RunTest(const FString& Parameters)
 	}
 
 	EShooterInventoryAddResult Result = EShooterInventoryAddResult::NotAuthoritative;
-	AShooterWeapon* Weapon = GrantTestWeapon(
-		World,
-		Inventory,
-		AShooterInventoryOrderTestWeapon::StaticClass(),
+	AShooterWeapon* Weapon = GrantTestWeapon(World, Inventory, AShooterInventoryOrderTestWeapon::StaticClass(),
 		/*MagazineSize*/ 12,
 		/*InitialReserveAmmo*/ 36,
 		&Result);
-	TestEqual(
-		TEXT("Weapon grant succeeds"),
-		static_cast<int32>(Result),
+	TestEqual(TEXT("Weapon grant succeeds"), static_cast<int32>(Result),
 		static_cast<int32>(EShooterInventoryAddResult::Added));
 	if (!TestNotNull(TEXT("Granted weapon actor exists"), Weapon))
 	{
@@ -116,17 +105,14 @@ bool FShooterInventoryWeaponGrantTest::RunTest(const FString& Parameters)
 	}
 
 	TestFalse(TEXT("Granted WeaponId is valid"), Weapon->GetWeaponId().IsNone());
-	TestTrue(
-		TEXT("Weapon actor class is the row WeaponActorClass"),
+	TestTrue(TEXT("Weapon actor class is the row WeaponActorClass"),
 		Weapon->GetClass() == AShooterInventoryOrderTestWeapon::StaticClass());
 	// 行配置在创建时应用到 WeaponActor：容量与初始弹药都来自快照。
 	TestEqual(TEXT("Weapon actor magazine capacity comes from the row"), Weapon->GetMagazineSize(), 12);
 	TestEqual(TEXT("Magazine initializes from the row"), Weapon->GetBulletCount(), 12);
 	TestEqual(TEXT("Reserve initializes from the row"), Weapon->GetReserveAmmo(), 36);
 	TestTrue(TEXT("Weapon actor starts hidden"), Weapon->IsHidden());
-	TestEqual(
-		TEXT("Granted weapon waits at Holstered"),
-		static_cast<int32>(Weapon->GetLifecycleState()),
+	TestEqual(TEXT("Granted weapon waits at Holstered"), static_cast<int32>(Weapon->GetLifecycleState()),
 		static_cast<int32>(EShooterWeaponLifecycleState::Holstered));
 
 	// Entry 数据只包含 Actor 与 Slot。
@@ -143,9 +129,7 @@ bool FShooterInventoryWeaponGrantTest::RunTest(const FString& Parameters)
 }
 
 /** 授予失败路径：非法 Actor、Slot 满、重复 WeaponId。 */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterInventoryWeaponGrantRejectionTest,
-	"ShootGame.Inventory.WeaponGrant.Rejection",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterInventoryWeaponGrantRejectionTest, "ShootGame.Inventory.WeaponGrant.Rejection",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterInventoryWeaponGrantRejectionTest::RunTest(const FString& Parameters)
@@ -167,16 +151,14 @@ bool FShooterInventoryWeaponGrantRejectionTest::RunTest(const FString& Parameter
 
 	UShooterInventoryComponent* Inventory = Character->GetInventoryComponent();
 	UShooterWeaponRuntimeSubsystem* Runtime = World->GetSubsystem<UShooterWeaponRuntimeSubsystem>();
-	if (!TestNotNull(TEXT("Character owns inventory"), Inventory) ||
-		!TestNotNull(TEXT("World owns weapon runtime"), Runtime))
+	if (!TestNotNull(TEXT("Character owns inventory"), Inventory) || !TestNotNull(TEXT("World owns weapon runtime"), Runtime))
 	{
 		DestroyWeaponRowGrantTestWorld(World);
 		return false;
 	}
 
 	// 未知 WeaponId：Runtime 不提供该桶，Pickup 在 Acquire 前即拒绝、不消费。
-	TestNull(
-		TEXT("Unknown WeaponId acquires nothing"),
+	TestNull(TEXT("Unknown WeaponId acquires nothing"),
 		Runtime->AcquireWeapon(TEXT("MissingWeaponId"), Character, nullptr));
 
 	// 占满 3 个 Slot 后第 4 把被 SlotFull 拒绝。
@@ -184,32 +166,21 @@ bool FShooterInventoryWeaponGrantRejectionTest::RunTest(const FString& Parameter
 	for (int32 SlotIndex = 0; SlotIndex < 3; ++SlotIndex)
 	{
 		EShooterInventoryAddResult Result = EShooterInventoryAddResult::NotAuthoritative;
-		Granted[SlotIndex] = GrantTestWeapon(
-			World,
-			Inventory,
-			AShooterInventoryOrderTestWeapon::StaticClass(),
-			10,
-			10,
-			&Result);
-		TestEqual(
-			FString::Printf(TEXT("Slot %d grant succeeds"), SlotIndex).GetCharArray().GetData(),
-			static_cast<int32>(Result),
-			static_cast<int32>(EShooterInventoryAddResult::Added));
+		Granted[SlotIndex] = GrantTestWeapon(World, Inventory, AShooterInventoryOrderTestWeapon::StaticClass(), 10, 10, &Result);
+		TestEqual(FString::Printf(TEXT("Slot %d grant succeeds"), SlotIndex).GetCharArray().GetData(),
+			static_cast<int32>(Result), static_cast<int32>(EShooterInventoryAddResult::Added));
 	}
 	TestEqual(TEXT("Three distinct weapons fill all slots"), Inventory->GetWeaponCount(), 3);
 
 	// 第 4 把：Acquire 成功但 AddWeapon 被 SlotFull 拒绝，调用方负责归还。
 	UDataTable* Table = GetOrInjectRuntimeTestTable(World);
-	const FName FourthRow = AddTestWeaponRow(
-		Table,
+	const FName FourthRow = AddTestWeaponRow(Table,
 		MakeTestWeaponRow(AShooterInventoryOrderTestWeapon::StaticClass(), 10, 10));
 	Runtime->InitializeWeaponRuntimeForTest();
 	AShooterWeapon* Fourth = Runtime->AcquireWeapon(FourthRow, Character, nullptr);
 	if (TestNotNull(TEXT("Fourth weapon acquires from the runtime"), Fourth))
 	{
-		TestEqual(
-			TEXT("Fourth weapon is rejected by SlotFull"),
-			static_cast<int32>(Inventory->AddWeapon(Fourth)),
+		TestEqual(TEXT("Fourth weapon is rejected by SlotFull"), static_cast<int32>(Inventory->AddWeapon(Fourth)),
 			static_cast<int32>(EShooterInventoryAddResult::SlotFull));
 		TestTrue(TEXT("SlotFull caller returns the weapon to the pool"), Runtime->ReleaseWeapon(Fourth));
 	}
@@ -219,9 +190,7 @@ bool FShooterInventoryWeaponGrantRejectionTest::RunTest(const FString& Parameter
 	AShooterWeapon* Duplicate = Runtime->AcquireWeapon(Granted[0]->GetWeaponId(), Character, nullptr);
 	if (TestNotNull(TEXT("Duplicate weapon acquires from the runtime"), Duplicate))
 	{
-		TestEqual(
-			TEXT("Duplicate WeaponId is rejected"),
-			static_cast<int32>(Inventory->AddWeapon(Duplicate)),
+		TestEqual(TEXT("Duplicate WeaponId is rejected"), static_cast<int32>(Inventory->AddWeapon(Duplicate)),
 			static_cast<int32>(EShooterInventoryAddResult::DuplicateWeapon));
 		TestTrue(TEXT("Duplicate caller returns the weapon to the pool"), Runtime->ReleaseWeapon(Duplicate));
 	}
@@ -231,8 +200,7 @@ bool FShooterInventoryWeaponGrantRejectionTest::RunTest(const FString& Parameter
 		FVector::ZeroVector, FRotator::ZeroRotator);
 	if (TestNotNull(TEXT("Unbound weapon spawns"), Unbound))
 	{
-		TestEqual(
-			TEXT("Weapon without WeaponId identity is rejected"),
+		TestEqual(TEXT("Weapon without WeaponId identity is rejected"),
 			static_cast<int32>(Inventory->AddWeapon(Unbound)),
 			static_cast<int32>(EShooterInventoryAddResult::InvalidWeapon));
 	}
@@ -246,8 +214,7 @@ bool FShooterInventoryWeaponGrantRejectionTest::RunTest(const FString& Parameter
  * 与 WeaponActor 默认配置（10）不同；消耗两发后换弹只补到 7，
  * 证明容量边界由快照而非 WeaponActor 默认值决定。
  */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterInventoryWeaponGrantReloadCapacityTest,
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterInventoryWeaponGrantReloadCapacityTest,
 	"ShootGame.Inventory.WeaponGrant.ReloadCapacity",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
@@ -276,26 +243,16 @@ bool FShooterInventoryWeaponGrantReloadCapacityTest::RunTest(const FString& Para
 	}
 
 	// 行使用与 WeaponActor 默认值不同的弹匣容量，确保断言能区分两个来源。
-	TestNotEqual(
-		TEXT("Row magazine size differs from the weapon actor default"),
-		7,
-		AShooterInventoryOrderTestWeapon::StaticClass()
-			->GetDefaultObject<AShooterWeapon>()
-			->GetMagazineSize());
+	TestNotEqual(TEXT("Row magazine size differs from the weapon actor default"), 7,
+		AShooterInventoryOrderTestWeapon::StaticClass() ->GetDefaultObject<AShooterWeapon>() ->GetMagazineSize());
 
 	EShooterInventoryAddResult Result = EShooterInventoryAddResult::NotAuthoritative;
-	AShooterWeapon* Weapon = GrantTestWeapon(
-		World,
-		Inventory,
-		AShooterInventoryOrderTestWeapon::StaticClass(),
+	AShooterWeapon* Weapon = GrantTestWeapon(World, Inventory, AShooterInventoryOrderTestWeapon::StaticClass(),
 		/*MagazineSize*/ 7,
 		/*InitialReserveAmmo*/ 21,
 		&Result);
-	if (!TestEqual(
-		TEXT("Reload capacity grant succeeds"),
-		static_cast<int32>(Result),
-		static_cast<int32>(EShooterInventoryAddResult::Added)) ||
-		!TestNotNull(TEXT("Granted weapon exists"), Weapon))
+	if (!TestEqual(TEXT("Reload capacity grant succeeds"), static_cast<int32>(Result),
+		static_cast<int32>(EShooterInventoryAddResult::Added)) || !TestNotNull(TEXT("Granted weapon exists"), Weapon))
 	{
 		DestroyWeaponRowGrantTestWorld(World);
 		return false;

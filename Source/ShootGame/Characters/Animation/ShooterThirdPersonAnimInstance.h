@@ -137,15 +137,11 @@ public:
 
 	/** 计算 Muzzle 相对 HandSocket 的刚性 Transform（纯几何计算）。 */
 	UFUNCTION(BlueprintPure, Category = "Shooter Aim")
-	static FTransform ComputeHandToMuzzleTransform(
-		const FTransform& InHandWorld,
-		const FTransform& InMuzzleWorld);
+	static FTransform ComputeHandToMuzzleTransform(const FTransform& InHandWorld, const FTransform& InMuzzleWorld);
 
 	/** 从第三人称 Muzzle 世界位置指向表现目标的世界方向；无效输入返回零向量。 */
 	UFUNCTION(BlueprintPure, Category = "Shooter Aim")
-	static FVector ComputeMuzzleToTargetDirection(
-		const FVector& MuzzleWorldLocation,
-		const FVector& TargetWorld);
+	static FVector ComputeMuzzleToTargetDirection(const FVector& MuzzleWorldLocation, const FVector& TargetWorld);
 
 	/** 按本地控制 / 观察端状态决定 AimDirectionWorld 来源（纯计算）。 */
 	static FVector ComputeAimDirectionWorldForState(
@@ -166,15 +162,11 @@ public:
 
 	/** 计算左手握把相对右手 HandSocket 的刚性 Transform（纯几何计算）。 */
 	UFUNCTION(BlueprintPure, Category = "Shooter Left Hand IK")
-	static FTransform ComputeLeftHandGripInRightHandSpace(
-		const FTransform& InRightHandWorld,
-		const FTransform& InLeftHandGripWorld);
+	static FTransform ComputeLeftHandGripInRightHandSpace(const FTransform& InRightHandWorld, const FTransform& InLeftHandGripWorld);
 
 	/** 计算角色 HandGrip_L 相对 hand_l 的固定 Transform。 */
 	UFUNCTION(BlueprintPure, Category = "Shooter Left Hand IK")
-	static FTransform ComputeHandGripInLeftHandSpace(
-		const FTransform& InLeftHandWorld,
-		const FTransform& InHandGripWorld);
+	static FTransform ComputeHandGripInLeftHandSpace(const FTransform& InLeftHandWorld, const FTransform& InHandGripWorld);
 
 	/** 只查真正的非法数值 / 旋转 / Scale，不比较 Identity。 */
 	static bool IsMathematicallyValidBindingFrame(const FTransform& T);

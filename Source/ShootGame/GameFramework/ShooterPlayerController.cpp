@@ -55,9 +55,7 @@ void AShooterPlayerController::BeginPlay()
 
 	if (!ShooterUIClass)
 	{
-		ShooterUIClass = LoadClass<UShooterUI>(
-			nullptr,
-			TEXT("/Game/Shooter/UI/UI_Shooter.UI_Shooter_C"));
+		ShooterUIClass = LoadClass<UShooterUI>(nullptr, TEXT("/Game/Shooter/UI/UI_Shooter.UI_Shooter_C"));
 	}
 
 	ShooterUI = CreateWidget<UShooterUI>(this, ShooterUIClass);
@@ -130,15 +128,10 @@ void AShooterPlayerController::BindToShooterCharacter(AShooterCharacter* Shooter
 
 	if (BoundShooterCharacter && BoundShooterCharacter != ShooterCharacter)
 	{
-		BoundShooterCharacter->OnDestroyed.RemoveDynamic(
-			this,
-			&AShooterPlayerController::OnPawnDestroyed);
-		BoundShooterCharacter->OnBulletCountUpdated.RemoveDynamic(
-			this,
+		BoundShooterCharacter->OnDestroyed.RemoveDynamic(this, &AShooterPlayerController::OnPawnDestroyed);
+		BoundShooterCharacter->OnBulletCountUpdated.RemoveDynamic(this,
 			&AShooterPlayerController::OnBulletCountUpdated);
-		BoundShooterCharacter->OnDamaged.RemoveDynamic(
-			this,
-			&AShooterPlayerController::OnPawnDamaged);
+		BoundShooterCharacter->OnDamaged.RemoveDynamic(this, &AShooterPlayerController::OnPawnDamaged);
 	}
 
 	BoundShooterCharacter = ShooterCharacter;
@@ -147,15 +140,9 @@ void AShooterPlayerController::BindToShooterCharacter(AShooterCharacter* Shooter
 		return;
 	}
 
-	BoundShooterCharacter->OnDestroyed.AddUniqueDynamic(
-		this,
-		&AShooterPlayerController::OnPawnDestroyed);
-	BoundShooterCharacter->OnBulletCountUpdated.AddUniqueDynamic(
-		this,
-		&AShooterPlayerController::OnBulletCountUpdated);
-	BoundShooterCharacter->OnDamaged.AddUniqueDynamic(
-		this,
-		&AShooterPlayerController::OnPawnDamaged);
+	BoundShooterCharacter->OnDestroyed.AddUniqueDynamic(this, &AShooterPlayerController::OnPawnDestroyed);
+	BoundShooterCharacter->OnBulletCountUpdated.AddUniqueDynamic(this, &AShooterPlayerController::OnBulletCountUpdated);
+	BoundShooterCharacter->OnDamaged.AddUniqueDynamic(this, &AShooterPlayerController::OnPawnDamaged);
 
 	OnPawnDamaged(BoundShooterCharacter->GetHealthRatio());
 	if (const AShooterWeapon* Weapon = BoundShooterCharacter->GetCurrentWeapon())
@@ -181,9 +168,7 @@ void AShooterPlayerController::BindToShooterGameState()
 
 	if (BoundShooterGameState)
 	{
-		BoundShooterGameState->OnTeamScoreChanged.RemoveDynamic(
-			this,
-			&AShooterPlayerController::OnTeamScoreChanged);
+		BoundShooterGameState->OnTeamScoreChanged.RemoveDynamic(this, &AShooterPlayerController::OnTeamScoreChanged);
 	}
 
 	BoundShooterGameState = ShooterGameState;
@@ -192,13 +177,10 @@ void AShooterPlayerController::BindToShooterGameState()
 		return;
 	}
 
-	BoundShooterGameState->OnTeamScoreChanged.AddUniqueDynamic(
-		this,
-		&AShooterPlayerController::OnTeamScoreChanged);
+	BoundShooterGameState->OnTeamScoreChanged.AddUniqueDynamic(this, &AShooterPlayerController::OnTeamScoreChanged);
 	for (int32 TeamIndex = 0; TeamIndex < BoundShooterGameState->GetTeamCount(); ++TeamIndex)
 	{
-		OnTeamScoreChanged(
-			static_cast<uint8>(TeamIndex),
+		OnTeamScoreChanged(static_cast<uint8>(TeamIndex),
 			BoundShooterGameState->GetTeamScore(static_cast<uint8>(TeamIndex)));
 	}
 }

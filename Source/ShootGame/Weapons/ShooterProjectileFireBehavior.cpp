@@ -37,9 +37,7 @@ void UShooterProjectileFireBehavior::ExecuteFire(const FShooterWeaponFireContext
 	SpawnParams.Owner = Weapon->GetOwner();
 	SpawnParams.Instigator = Context.Instigator;
 
-	AShooterProjectile* Projectile = World->SpawnActor<AShooterProjectile>(
-		ProjectileClass,
-		Context.MuzzleTransform,
+	AShooterProjectile* Projectile = World->SpawnActor<AShooterProjectile>(ProjectileClass, Context.MuzzleTransform,
 		SpawnParams);
 	if (!Projectile)
 	{

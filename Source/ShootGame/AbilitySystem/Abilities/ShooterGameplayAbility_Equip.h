@@ -47,23 +47,14 @@ protected:
 		const FGameplayTagContainer* SourceTags,
 		const FGameplayTagContainer* TargetTags,
 		FGameplayTagContainer* OptionalRelevantTags) const override;
-	virtual void ActivateAbility(
-		const FGameplayAbilitySpecHandle Handle,
-		const FGameplayAbilityActorInfo* ActorInfo,
-		const FGameplayAbilityActivationInfo ActivationInfo,
-		const FGameplayEventData* TriggerEventData) override;
-	virtual void EndAbility(
-		const FGameplayAbilitySpecHandle Handle,
-		const FGameplayAbilityActorInfo* ActorInfo,
-		const FGameplayAbilityActivationInfo ActivationInfo,
-		bool bReplicateEndAbility,
-		bool bWasCancelled) override;
+	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+		const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+		const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
 private:
 	/** 服务器完整校验：至少两把武器、当前装备有效且能按 Slot 顺序找到下一个目标 Actor。 */
-	bool ResolveEquipTarget(
-		const FGameplayAbilityActorInfo* ActorInfo,
-		AShooterWeapon*& OutWeapon) const;
+	bool ResolveEquipTarget(const FGameplayAbilityActorInfo* ActorInfo, AShooterWeapon*& OutWeapon) const;
 
 	/** 提交前二次校验：目标 WeaponActor 仍在背包且没有其他事务改写当前武器。 */
 	bool IsEquipTargetStillValid() const;

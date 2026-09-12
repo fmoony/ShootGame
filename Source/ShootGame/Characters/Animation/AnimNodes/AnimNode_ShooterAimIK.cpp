@@ -14,9 +14,7 @@ namespace
 
 	bool IsAimIKDiagnosticEnabled()
 	{
-		static const bool bEnabled = FParse::Param(
-			FCommandLine::Get(),
-			TEXT("ShootGameAimTurnCsvTest"));
+		static const bool bEnabled = FParse::Param(FCommandLine::Get(), TEXT("ShootGameAimTurnCsvTest"));
 		return bEnabled;
 	}
 }
@@ -59,13 +57,8 @@ void FAnimNode_ShooterAimIK::EvaluateSkeletalControl_AnyThread(FComponentSpacePo
 		EvaluationIndex = ++GAimIKDiagnosticEvaluationCount;
 		if (EvaluationIndex <= 12 || EvaluationIndex % 120 == 0)
 		{
-			UE_LOG(
-				LogShootGame,
-				Display,
-				TEXT("AIM_IK_NODE_EVAL_ENTER index=%llu actual_alpha=%.3f hand_bone=%s"),
-				static_cast<unsigned long long>(EvaluationIndex),
-				ActualAlpha,
-				*HandBone.BoneName.ToString());
+			UE_LOG(LogShootGame, Display, TEXT("AIM_IK_NODE_EVAL_ENTER index=%llu actual_alpha=%.3f hand_bone=%s"),
+				static_cast<unsigned long long>(EvaluationIndex), ActualAlpha, *HandBone.BoneName.ToString());
 		}
 	}
 
@@ -89,10 +82,8 @@ void FAnimNode_ShooterAimIK::EvaluateSkeletalControl_AnyThread(FComponentSpacePo
 	const FTransform ComponentTransform = Output.AnimInstanceProxy->GetComponentTransform();
 	FVector DesiredAimDirectionWorld = AimDirectionWorld;
 
-	if (bUseAimTargetWorld &&
-		FShooterAimIKMath::IsFinite(AimTargetWorld) &&
-		FShooterAimIKMath::IsFinite(AimDirectionWorld) &&
-		!AimDirectionWorld.IsNearlyZero())
+	if (bUseAimTargetWorld && FShooterAimIKMath::IsFinite(AimTargetWorld) &&
+		FShooterAimIKMath::IsFinite(AimDirectionWorld) && !AimDirectionWorld.IsNearlyZero())
 	{
 		// HandTM 来自进入本节点的 Component Space Pose，尚未应用本帧 Aim IK。
 		// 因此这里还原出的枪口不会消费上一帧 IK 后的武器姿势，不会形成反馈环。
@@ -104,13 +95,8 @@ void FAnimNode_ShooterAimIK::EvaluateSkeletalControl_AnyThread(FComponentSpacePo
 			FVector SafeTargetWorld;
 			float TargetDepthFromMuzzle = 0.0f;
 			bool bTargetProjected = false;
-			if (FShooterAimIKMath::ProjectTargetToMinimumForwardDepth(
-					AimTargetWorld,
-					PreAimIKMuzzleWorld.GetLocation(),
-					BaseDirectionWorld,
-					MinimumTargetDistanceFromMuzzle,
-					SafeTargetWorld,
-					TargetDepthFromMuzzle,
+			if (FShooterAimIKMath::ProjectTargetToMinimumForwardDepth(AimTargetWorld, PreAimIKMuzzleWorld.GetLocation(),
+					BaseDirectionWorld, MinimumTargetDistanceFromMuzzle, SafeTargetWorld, TargetDepthFromMuzzle,
 					bTargetProjected))
 			{
 				const FVector MuzzleToTarget = SafeTargetWorld - PreAimIKMuzzleWorld.GetLocation();
@@ -124,24 +110,18 @@ void FAnimNode_ShooterAimIK::EvaluateSkeletalControl_AnyThread(FComponentSpacePo
 
 	FQuat Correction;
 	// Alpha 由基类 ActualAlpha 统一混合（LocalBlendCSBoneTransforms），此处传 1。
-	const bool bSolved = FShooterAimIKMath::SolveHandCorrection(
-			DesiredAimDirectionWorld,
-			ComponentTransform,
-			HandTM,
-			HandToMuzzle,
-			1.0f,
-			MaxCorrectionAngle,
-			Correction);
+	const bool bSolved = FShooterAimIKMath::SolveHandCorrection(DesiredAimDirectionWorld, ComponentTransform, HandTM,
+			HandToMuzzle, 1.0f, MaxCorrectionAngle, Correction);
 
 	if (bDiagnosticEnabled)
 	{
 		if (EvaluationIndex <= 12 || EvaluationIndex % 120 == 0)
 		{
 			UE_LOG(
-				LogShootGame,
-				Display,
+					LogShootGame,
+					Display,
 					TEXT("AIM_IK_NODE_EVAL index=%llu solved=%d actual_alpha=%.3f correction_deg=%.3f target_mode=%d aim=%s"),
-				static_cast<unsigned long long>(EvaluationIndex),
+					static_cast<unsigned long long>(EvaluationIndex),
 					bSolved ? 1 : 0,
 					ActualAlpha,
 					bSolved ? FMath::RadiansToDegrees(Correction.GetAngle()) : 0.0f,

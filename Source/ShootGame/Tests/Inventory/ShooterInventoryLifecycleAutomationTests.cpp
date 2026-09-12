@@ -44,14 +44,10 @@ namespace ShooterInventoryLifecycleAutomationTests
 		World->DestroyWorld(false);
 	}
 
-	AShooterWeaponPresentationTestCharacter* SpawnLifecycleTestCharacter(
-		FAutomationTestBase& Test,
-		UWorld* World)
+	AShooterWeaponPresentationTestCharacter* SpawnLifecycleTestCharacter(FAutomationTestBase& Test, UWorld* World)
 	{
-		AShooterWeaponPresentationTestCharacter* Character =
-			World->SpawnActor<AShooterWeaponPresentationTestCharacter>(
-				FVector::ZeroVector,
-				FRotator::ZeroRotator);
+		AShooterWeaponPresentationTestCharacter* Character = World->SpawnActor<AShooterWeaponPresentationTestCharacter>(
+				FVector::ZeroVector, FRotator::ZeroRotator);
 		if (!Test.TestNotNull(TEXT("Lifecycle test character spawned"), Character))
 		{
 			return nullptr;
@@ -66,10 +62,8 @@ namespace ShooterInventoryLifecycleAutomationTests
 	}
 
 	/** S3 授予链：注入运行时表 → Acquire → AddWeapon；返回入背成功的 WeaponActor。 */
-	AShooterWeapon* GrantWeaponForLifecycleTest(
-		FAutomationTestBase& Test,
-		AShooterWeaponPresentationTestCharacter* Character,
-		TSubclassOf<AShooterWeapon> WeaponClass)
+	AShooterWeapon* GrantWeaponForLifecycleTest(FAutomationTestBase& Test,
+		AShooterWeaponPresentationTestCharacter* Character, TSubclassOf<AShooterWeapon> WeaponClass)
 	{
 		UShooterInventoryComponent* Inventory = Character->GetInventoryComponent();
 		if (!Test.TestNotNull(TEXT("Lifecycle test character owns Inventory"), Inventory))
@@ -78,16 +72,11 @@ namespace ShooterInventoryLifecycleAutomationTests
 		}
 
 		EShooterInventoryAddResult AddResult = EShooterInventoryAddResult::NotAuthoritative;
-		AShooterWeapon* Weapon = GrantTestWeapon(
-			Character->GetWorld(),
-			Inventory,
-			WeaponClass,
+		AShooterWeapon* Weapon = GrantTestWeapon(Character->GetWorld(), Inventory, WeaponClass,
 			/*MagazineSize*/ 10,
 			/*InitialReserveAmmo*/ -1,
 			&AddResult);
-		if (!Test.TestEqual(
-			TEXT("Lifecycle test weapon is granted"),
-			static_cast<int32>(AddResult),
+		if (!Test.TestEqual(TEXT("Lifecycle test weapon is granted"), static_cast<int32>(AddResult),
 			static_cast<int32>(EShooterInventoryAddResult::Added)))
 		{
 			return nullptr;
@@ -111,8 +100,7 @@ namespace ShooterInventoryLifecycleAutomationTests
  * E1 验证：Pickup 授予成功但装备步骤意外失败时，本次 Entry 与 WeaponActor 完整回滚，
  * 且 Pickup 保持未消费状态（不隐藏），不会同时留下 Inventory 武器和可拾取 Pickup。
  */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterInventoryPickupEquipFailureRollbackTest,
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterInventoryPickupEquipFailureRollbackTest,
 	"ShootGame.Inventory.Pickup.EquipFailureRollback",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
@@ -134,8 +122,7 @@ bool FShooterInventoryPickupEquipFailureRollbackTest::RunTest(const FString& Par
 	}
 
 	// 模拟装备事务意外失败：Equipment 在授予提交后不可用，Pickup 必须完整回滚。
-	FObjectProperty* EquipmentProperty = FindFProperty<FObjectProperty>(
-		AShooterCharacter::StaticClass(),
+	FObjectProperty* EquipmentProperty = FindFProperty<FObjectProperty>(AShooterCharacter::StaticClass(),
 		TEXT("EquipmentComponent"));
 	if (!TestNotNull(TEXT("Character exposes EquipmentComponent for test injection"), EquipmentProperty))
 	{
@@ -153,8 +140,7 @@ bool FShooterInventoryPickupEquipFailureRollbackTest::RunTest(const FString& Par
 	}
 
 	AShooterWeaponPresentationTestPickup* Pickup = World->SpawnActor<AShooterWeaponPresentationTestPickup>(
-		FVector(0.0f, 0.0f, 100.0f),
-		FRotator::ZeroRotator);
+		FVector(0.0f, 0.0f, 100.0f), FRotator::ZeroRotator);
 	if (!TestNotNull(TEXT("Test pickup spawned"), Pickup))
 	{
 		DestroyLifecycleTestWorld(World);
@@ -169,9 +155,7 @@ bool FShooterInventoryPickupEquipFailureRollbackTest::RunTest(const FString& Par
 		return false;
 	}
 
-	const FName PickupRowName = AddTestWeaponRow(
-		PickupRowTable,
-		MakeTestWeaponRow(
+	const FName PickupRowName = AddTestWeaponRow(PickupRowTable, MakeTestWeaponRow(
 			AShooterInventoryOrderTestWeapon::StaticClass(),
 			/*MagazineSize*/ 10,
 			/*InitialReserveAmmo*/ -1));
@@ -213,10 +197,8 @@ bool FShooterInventoryPickupEquipFailureRollbackTest::RunTest(const FString& Par
 	}
 	TestEqual(TEXT("Rollback leaves exactly one pooled WeaponActor"), WorldWeaponActorCount, 1);
 	TestEqual(TEXT("Rollback leaves no WeaponActor bound to the Inventory"), RemainingInventoryWeapons, 0);
-	TestEqual(
-		TEXT("Rollback returns the WeaponActor to its WeaponId bucket"),
-		Runtime->GetAvailableCount(PickupRowName),
-		1);
+	TestEqual(TEXT("Rollback returns the WeaponActor to its WeaponId bucket"),
+		Runtime->GetAvailableCount(PickupRowName), 1);
 
 	DestroyLifecycleTestWorld(World);
 	return true;
@@ -225,8 +207,7 @@ bool FShooterInventoryPickupEquipFailureRollbackTest::RunTest(const FString& Par
 /**
  * E1 验证：移除当前装备时，Equipment Deactivate / Clear 必须先于 WeaponActor 归还运行时池。
  */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterInventoryRemoveCurrentWeaponOrderTest,
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterInventoryRemoveCurrentWeaponOrderTest,
 	"ShootGame.Inventory.Remove.CurrentWeaponOrder",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
@@ -255,10 +236,7 @@ bool FShooterInventoryRemoveCurrentWeaponOrderTest::RunTest(const FString& Param
 	}
 
 	AShooterInventoryOrderTestWeapon* CurrentWeapon = Cast<AShooterInventoryOrderTestWeapon>(
-		GrantWeaponForLifecycleTest(
-			*this,
-			Character,
-			AShooterInventoryOrderTestWeapon::StaticClass()));
+		GrantWeaponForLifecycleTest(*this, Character, AShooterInventoryOrderTestWeapon::StaticClass()));
 	if (!CurrentWeapon)
 	{
 		DestroyLifecycleTestWorld(World);
@@ -295,8 +273,7 @@ bool FShooterInventoryRemoveCurrentWeaponOrderTest::RunTest(const FString& Param
 /**
  * E1 验证：删除非当前武器不影响当前装备与表现。
  */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterInventoryRemoveNonCurrentWeaponTest,
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterInventoryRemoveNonCurrentWeaponTest,
 	"ShootGame.Inventory.Remove.NonCurrentKeepsCurrent",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
@@ -317,13 +294,9 @@ bool FShooterInventoryRemoveNonCurrentWeaponTest::RunTest(const FString& Paramet
 		return false;
 	}
 
-	AShooterWeapon* PrimaryWeapon = GrantWeaponForLifecycleTest(
-		*this,
-		Character,
+	AShooterWeapon* PrimaryWeapon = GrantWeaponForLifecycleTest(*this, Character,
 		AShooterWeaponPresentationTestWeaponPrimary::StaticClass());
-	AShooterWeapon* SecondaryWeapon = GrantWeaponForLifecycleTest(
-		*this,
-		Character,
+	AShooterWeapon* SecondaryWeapon = GrantWeaponForLifecycleTest(*this, Character,
 		AShooterWeaponPresentationTestWeaponSecondary::StaticClass());
 	if (!PrimaryWeapon || !SecondaryWeapon)
 	{
@@ -350,9 +323,7 @@ bool FShooterInventoryRemoveNonCurrentWeaponTest::RunTest(const FString& Paramet
  * E1 验证：ClearInventory 先清逻辑 Entries 并广播，Equipment 清理完当前装备后再把全部
  * WeaponActor 归还运行时池；重复 Clear 幂等。
  */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FShooterInventoryClearWeaponOrderTest,
-	"ShootGame.Inventory.Clear.WeaponReleaseOrder",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterInventoryClearWeaponOrderTest, "ShootGame.Inventory.Clear.WeaponReleaseOrder",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FShooterInventoryClearWeaponOrderTest::RunTest(const FString& Parameters)
@@ -380,10 +351,7 @@ bool FShooterInventoryClearWeaponOrderTest::RunTest(const FString& Parameters)
 	}
 
 	AShooterInventoryOrderTestWeapon* CurrentWeapon = Cast<AShooterInventoryOrderTestWeapon>(
-		GrantWeaponForLifecycleTest(
-			*this,
-			Character,
-			AShooterInventoryOrderTestWeapon::StaticClass()));
+		GrantWeaponForLifecycleTest(*this, Character, AShooterInventoryOrderTestWeapon::StaticClass()));
 	if (!CurrentWeapon)
 	{
 		DestroyLifecycleTestWorld(World);
@@ -405,9 +373,7 @@ bool FShooterInventoryClearWeaponOrderTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("Cleared WeaponActor is pooled"), Runtime->IsPooled(CurrentWeapon));
 	TestFalse(TEXT("Cleared WeaponActor is no longer leased"), Runtime->IsLeased(CurrentWeapon));
 	TestTrue(TEXT("Cleared WeaponActor has no owner"), CurrentWeapon->GetOwner() == nullptr);
-	TestEqual(
-		TEXT("Clear returns the WeaponActor to its WeaponId bucket"),
-		Runtime->GetAvailableCount(CurrentWeaponId),
+	TestEqual(TEXT("Clear returns the WeaponActor to its WeaponId bucket"), Runtime->GetAvailableCount(CurrentWeaponId),
 		1);
 	TestNull(TEXT("Clear empties Equipment CurrentWeaponActor"), Equipment->GetCurrentWeaponActor());
 	TestEqual(TEXT("Clear empties Inventory entries"), Inventory->GetWeaponCount(), 0);
@@ -416,10 +382,8 @@ bool FShooterInventoryClearWeaponOrderTest::RunTest(const FString& Parameters)
 	Inventory->ClearInventory();
 	TestNull(TEXT("Repeated clear keeps Equipment empty"), Equipment->GetCurrentWeaponActor());
 	TestEqual(TEXT("Repeated clear keeps Inventory empty"), Inventory->GetWeaponCount(), 0);
-	TestEqual(
-		TEXT("Repeated clear does not pool the same WeaponActor twice"),
-		Runtime->GetAvailableCount(CurrentWeaponId),
-		1);
+	TestEqual(TEXT("Repeated clear does not pool the same WeaponActor twice"),
+		Runtime->GetAvailableCount(CurrentWeaponId), 1);
 
 	DestroyLifecycleTestWorld(World);
 	return true;
