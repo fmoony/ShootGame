@@ -344,7 +344,10 @@ private:
 	int32 ServerReloadAbilityCount = INDEX_NONE;
 	int32 ServerEquipAbilityCount = INDEX_NONE;
 
-	/** 5C 观测：GA_Equip 在初始切枪、取消 Reload 切枪与切回阶段均被服务器激活，提交后 CurrentWeaponActor 与 Inventory Entry 一致。 */
+	/**
+	 * 5C 观测：GA_Equip 在初始切枪、取消 Reload 切枪与切回阶段均被服务器激活，
+	 * 提交后 CurrentWeaponActor 与 Inventory Entry 一致。
+	 */
 	bool bEquipInitialCommitConsistent = false;
 	bool bEquipCancelReloadActiveObserved = false;
 	bool bEquipSwitchBackActiveObserved = false;

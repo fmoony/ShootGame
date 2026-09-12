@@ -237,7 +237,11 @@ public:
 		bool* bOutPawnHit = nullptr);
 
 	/** Handle incoming damage */
-	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+	virtual float TakeDamage(
+		float Damage,
+		struct FDamageEvent const& DamageEvent,
+		AController* EventInstigator,
+		AActor* DamageCauser) override;
 
 	// ---- Health 只读契约：ASC 读穿透 + 复制镜像 ----
 

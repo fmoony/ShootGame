@@ -342,7 +342,9 @@ void AShooterNetworkTestCoordinator::TriggerDisconnectReload()
 		UE_LOG(
 			LogShootGame,
 			Display,
-			TEXT("AUTOMATION_TEST_DISCONNECT_RELOAD_READY Avatar=%s ActiveWeapon=%s ActiveReload=true ReloadingTag=true"),
+			TEXT(
+				"AUTOMATION_TEST_DISCONNECT_RELOAD_READY Avatar=%s ActiveWeapon=%s "
+				"ActiveReload=true ReloadingTag=true"),
 			*GetNameSafe(Character),
 			*GetNameSafe(ActiveWeapon));
 	}
@@ -473,7 +475,9 @@ void AShooterNetworkTestCoordinator::VerifyEquipDeathCleanup()
 	if (!bClean)
 	{
 		FailTest(FString::Printf(
-			TEXT("Equip death cleanup invalid; Dead=%s Count=%d ActiveId=%s CurrentWeapon=%s ActiveEquip=%s EquippingTag=%s"),
+			TEXT(
+				"Equip death cleanup invalid; Dead=%s Count=%d ActiveId=%s CurrentWeapon=%s "
+				"ActiveEquip=%s EquippingTag=%s"),
 			Character && Character->IsDead() ? TEXT("true") : TEXT("false"),
 			Inventory ? Inventory->GetWeaponCount() : INDEX_NONE,
 			*GetNameSafe(Character ? Character->GetCurrentWeapon() : nullptr),
@@ -489,7 +493,9 @@ void AShooterNetworkTestCoordinator::VerifyEquipDeathCleanup()
 	UE_LOG(
 		LogShootGame,
 		Display,
-		TEXT("AUTOMATION_TEST_EQUIP_CLEANUP_SUCCESS Kind=Death ActiveEquip=0 EquippingTags=0 Inventory=0 CurrentWeapon=null"));
+		TEXT(
+			"AUTOMATION_TEST_EQUIP_CLEANUP_SUCCESS Kind=Death ActiveEquip=0 EquippingTags=0 "
+			"Inventory=0 CurrentWeapon=null"));
 }
 
 void AShooterNetworkTestCoordinator::BeginPlay()
@@ -572,14 +578,16 @@ void AShooterNetworkTestCoordinator::RunAimTurnCsvFrame(float DeltaSeconds)
 		AimTurnCsvStartTime = GetWorld()->GetTimeSeconds();
 		AimTurnCsvStartRotation = PlayerController->GetControlRotation();
 		AimTurnCsvBuffer = TEXT(
-			"role,subject,subject_player_id,server_time,t,phase,dt,base_pitch,base_yaw,actor_yaw,trace_kind,trace_kind_changed,"
+			"role,subject,subject_player_id,server_time,t,phase,dt,base_pitch,base_yaw,actor_yaw,"
+			"trace_kind,trace_kind_changed,"
 			"hit_changed,hit_actor,hit_component,trace_x,trace_y,trace_z,trace_distance,trace_step,"
 			"raw_x,raw_y,raw_z,raw_step,smooth_x,smooth_y,smooth_z,smooth_step,"
 			"raw_smooth_gap,view_depth,muzzle_depth,safe_min_depth,safe_active,aim_ik_enabled,left_hand_ik_enabled,"
 			"aim_pitch_n,aim_pitch_delta,"
 			"aim_dir_x,aim_dir_y,aim_dir_z,aim_dir_delta,aim_world_pitch,aim_pitch_step,"
 			"muzzle_x,muzzle_y,muzzle_z,muzzle_move,"
-			"muzzle_forward_x,muzzle_forward_y,muzzle_forward_z,muzzle_forward_delta,muzzle_world_pitch,muzzle_pitch_step,residual_angle,"
+			"muzzle_forward_x,muzzle_forward_y,muzzle_forward_z,muzzle_forward_delta,"
+			"muzzle_world_pitch,muzzle_pitch_step,residual_angle,"
 			"residual_over_12,target_range,finalized_frame,finalized_frame_age,"
 			"finalized_muzzle_x,finalized_muzzle_y,finalized_muzzle_z,finalized_muzzle_move,"
 			"finalized_hand_pitch,finalized_hand_yaw,finalized_hand_roll,"
@@ -1052,7 +1060,9 @@ void AShooterNetworkTestCoordinator::CaptureAimTurnCsvFinalizedPose(
 		UE_LOG(
 			LogShootGame,
 			Display,
-			TEXT("AIM_IK_GRAPH_CLASS subject=%s local=%d class=%s anim_nodes=%d aim_ik_nodes=%d properties=%s types=%s"),
+			TEXT(
+				"AIM_IK_GRAPH_CLASS subject=%s local=%d class=%s anim_nodes=%d aim_ik_nodes=%d "
+				"properties=%s types=%s"),
 			*GetNameSafe(Subject),
 			Subject && Subject->IsLocallyControlled() ? 1 : 0,
 			*GetPathNameSafe(AnimInstance->GetClass()),
@@ -1340,7 +1350,10 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			!bInvalidInstanceRejected)
 		{
 			FailTest(FString::Printf(
-				TEXT("Server Inventory 2B preparation failed; Rifle=%d Pistol=%d DuplicateRow=%d SlotFull=%d Count=%d Active=%s ExpectedActive=%s Binding=%s InvalidInstanceRejected=%s DuplicateRowName=%s"),
+				TEXT(
+					"Server Inventory 2B preparation failed; Rifle=%d Pistol=%d DuplicateRow=%d "
+					"SlotFull=%d Count=%d Active=%s ExpectedActive=%s Binding=%s "
+					"InvalidInstanceRejected=%s DuplicateRowName=%s"),
 				static_cast<int32>(RifleResult),
 				static_cast<int32>(PistolResult),
 				static_cast<int32>(DuplicateResult),
@@ -1396,7 +1409,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		if (!bServerGasOwnerOk || !bServerGasAvatarOk || !bServerGasConnectionOk)
 		{
 			FailTest(FString::Printf(
-				TEXT("Server-side GAS ASC lifecycle invalid; ASC=%s OwnerOk=%s AvatarOk=%s ConnectionOk=%s Owner=%s Avatar=%s"),
+				TEXT(
+					"Server-side GAS ASC lifecycle invalid; ASC=%s OwnerOk=%s AvatarOk=%s "
+					"ConnectionOk=%s Owner=%s Avatar=%s"),
 				*GetNameSafe(AbilitySystemComponent),
 				bServerGasOwnerOk ? TEXT("true") : TEXT("false"),
 				bServerGasAvatarOk ? TEXT("true") : TEXT("false"),
@@ -1460,7 +1475,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			if (!bServerFireGrantOk)
 			{
 				FailTest(FString::Printf(
-					TEXT("Server Fire Ability grant invalid; ASC=%s Class=%s Count=%d CountAfterGrant=%d Handle=%s SpecAbility=%s"),
+					TEXT(
+						"Server Fire Ability grant invalid; ASC=%s Class=%s Count=%d CountAfterGrant=%d "
+						"Handle=%s SpecAbility=%s"),
 					*GetNameSafe(ShooterAbilitySystemComponent),
 					*GetNameSafe(FireAbilityClass),
 					ServerFireAbilityCount,
@@ -1523,7 +1540,10 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			if (!bServerReloadEquipGrantOk)
 			{
 				FailTest(FString::Printf(
-					TEXT("Server Reload/Equip Ability grant invalid; ReloadClass=%s EquipClass=%s ReloadCount=%d EquipCount=%d ReloadAfter=%d EquipAfter=%d ReloadHandle=%s EquipHandle=%s ReloadSpecAbility=%s EquipSpecAbility=%s"),
+					TEXT(
+						"Server Reload/Equip Ability grant invalid; ReloadClass=%s EquipClass=%s "
+						"ReloadCount=%d EquipCount=%d ReloadAfter=%d EquipAfter=%d ReloadHandle=%s "
+						"EquipHandle=%s ReloadSpecAbility=%s EquipSpecAbility=%s"),
 					*GetNameSafe(ReloadAbilityClass),
 					*GetNameSafe(EquipAbilityClass),
 					ServerReloadAbilityCount,
@@ -1702,7 +1722,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		{
 			TestNpc->Destroy();
 			FailTest(FString::Printf(
-				TEXT("NPC GAS health bridge invalid; InitOk=%s DeathOk=%s FireGrantOk=%s FireActivated=%s FireStopOk=%s Health=%.1f CurrentHP=%.1f CapsuleCollision=%s"),
+				TEXT(
+					"NPC GAS health bridge invalid; InitOk=%s DeathOk=%s FireGrantOk=%s "
+					"FireActivated=%s FireStopOk=%s Health=%.1f CurrentHP=%.1f CapsuleCollision=%s"),
 				bNpcGasHealthInitOk ? TEXT("true") : TEXT("false"),
 				bNpcGasDeathOk ? TEXT("true") : TEXT("false"),
 				bNpcFireGrantOk ? TEXT("true") : TEXT("false"),
@@ -1806,8 +1828,12 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		BulletCountAfterFire = CurrentBulletCount;
 
 		UShooterInventoryComponent* AmmoInventory = Character->GetInventoryComponent();
-		const int32 RifleAmmoAfterFire = ServerInventoryFirstWeapon.IsValid() ? ServerInventoryFirstWeapon->GetBulletCount() : INDEX_NONE;
-		const int32 PistolAmmoAfterFire = ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetBulletCount() : INDEX_NONE;
+		const int32 RifleAmmoAfterFire = ServerInventoryFirstWeapon.IsValid()
+			? ServerInventoryFirstWeapon->GetBulletCount()
+			: INDEX_NONE;
+		const int32 PistolAmmoAfterFire = ServerInventorySecondWeapon.IsValid()
+			? ServerInventorySecondWeapon->GetBulletCount()
+			: INDEX_NONE;
 		bAmmoIsolationVerified =
 			InitialRifleMagazineAmmo != INDEX_NONE &&
 			InitialPistolMagazineAmmo != INDEX_NONE &&
@@ -1861,7 +1887,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		{
 			UShooterInventoryComponent* QuiescenceInventory =
 				Character->GetInventoryComponent();
-			const int32 RifleAmmoNow = ServerInventoryFirstWeapon.IsValid() ? ServerInventoryFirstWeapon->GetBulletCount() : INDEX_NONE;
+			const int32 RifleAmmoNow = ServerInventoryFirstWeapon.IsValid()
+				? ServerInventoryFirstWeapon->GetBulletCount()
+				: INDEX_NONE;
 			bFullAutoQuiescentConfirmed =
 				ProjectileSpawnCount == ProjectileCountAfterRelease &&
 				RifleAmmoNow == AmmoAfterRelease;
@@ -1886,7 +1914,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		ProjectileCountBeforeSwitchCancel = ProjectileSpawnCount;
 		UShooterInventoryComponent* SwitchCancelInventory =
 			Character->GetInventoryComponent();
-		RifleAmmoBeforeSwitchCancel = ServerInventoryFirstWeapon.IsValid() ? ServerInventoryFirstWeapon->GetBulletCount() : INDEX_NONE;
+		RifleAmmoBeforeSwitchCancel = ServerInventoryFirstWeapon.IsValid()
+			? ServerInventoryFirstWeapon->GetBulletCount()
+			: INDEX_NONE;
 		bServerReadyForSwitchCancel = true;
 		ForceNetUpdate();
 		return;
@@ -1910,7 +1940,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		{
 			UShooterInventoryComponent* SwitchCancelInventory =
 				Character->GetInventoryComponent();
-			const int32 RifleAmmoNow = ServerInventoryFirstWeapon.IsValid() ? ServerInventoryFirstWeapon->GetBulletCount() : INDEX_NONE;
+			const int32 RifleAmmoNow = ServerInventoryFirstWeapon.IsValid()
+				? ServerInventoryFirstWeapon->GetBulletCount()
+				: INDEX_NONE;
 			AShooterWeapon* CurrentWeaponAfterSwitch =
 				Character->GetCurrentWeapon();
 			bSwitchCancelQuiescentConfirmed =
@@ -1924,7 +1956,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			if (!bSwitchCancelVerified)
 			{
 				FailTest(FString::Printf(
-					TEXT("Switch-weapon cancel invalid; ActiveObserved=%s ClientObserved=%s Quiescent=%s Projectiles=%d->%d RifleAmmo=%d->%d Weapon=%s"),
+					TEXT(
+						"Switch-weapon cancel invalid; ActiveObserved=%s ClientObserved=%s Quiescent=%s "
+						"Projectiles=%d->%d RifleAmmo=%d->%d Weapon=%s"),
 					bSwitchCancelActiveObserved ? TEXT("true") : TEXT("false"),
 					bClientObservedSwitchCancel ? TEXT("true") : TEXT("false"),
 					bSwitchCancelQuiescentConfirmed ? TEXT("true") : TEXT("false"),
@@ -1959,8 +1993,12 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		}
 
 		UShooterInventoryComponent* ReloadInventory = Character->GetInventoryComponent();
-		ReloadMagazineBeforeFullReject = ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetBulletCount() : INDEX_NONE;
-		ReloadReserveBeforeFullReject = ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetReserveAmmo() : INDEX_NONE;
+		ReloadMagazineBeforeFullReject = ServerInventorySecondWeapon.IsValid()
+			? ServerInventorySecondWeapon->GetBulletCount()
+			: INDEX_NONE;
+		ReloadReserveBeforeFullReject = ServerInventorySecondWeapon.IsValid()
+			? ServerInventorySecondWeapon->GetReserveAmmo()
+			: INDEX_NONE;
 		bClientTriggeredReload = false;
 		++ReloadInputRequestId;
 		ForceNetUpdate();
@@ -1999,7 +2037,8 @@ void AShooterNetworkTestCoordinator::PollServerState()
 					ReloadReserveBeforeFullReject,
 					ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetReserveAmmo() : INDEX_NONE,
 					HasActiveReloadAbility(Character) ? TEXT("true") : TEXT("false"),
-					AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading)
+					AbilitySystemComponent &&
+						AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading)
 						? TEXT("true")
 						: TEXT("false")));
 				return;
@@ -2062,8 +2101,12 @@ void AShooterNetworkTestCoordinator::PollServerState()
 				Character->GetInventoryComponent();
 			UAbilitySystemComponent* AbilitySystemComponent =
 				Character->GetAbilitySystemComponent();
-			ReloadMagazineAfterTransfer = ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetBulletCount() : INDEX_NONE;
-			ReloadReserveAfterTransfer = ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetReserveAmmo() : INDEX_NONE;
+			ReloadMagazineAfterTransfer = ServerInventorySecondWeapon.IsValid()
+				? ServerInventorySecondWeapon->GetBulletCount()
+				: INDEX_NONE;
+			ReloadReserveAfterTransfer = ServerInventorySecondWeapon.IsValid()
+				? ServerInventorySecondWeapon->GetReserveAmmo()
+				: INDEX_NONE;
 			bReloadTransferVerified = ReloadInventory &&
 				ReloadMagazineAfterTransfer ==
 					ReloadMagazineBeforeTransfer + ExpectedReloadTransfer &&
@@ -2084,7 +2127,8 @@ void AShooterNetworkTestCoordinator::PollServerState()
 					ReloadReserveAfterTransfer,
 					ExpectedReloadTransfer,
 					HasActiveReloadAbility(Character) ? TEXT("true") : TEXT("false"),
-					AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading)
+					AbilitySystemComponent &&
+						AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading)
 						? TEXT("true")
 						: TEXT("false")));
 				return;
@@ -2101,7 +2145,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		bFireAfterReloadPhaseTriggered = true;
 		UShooterInventoryComponent* FireReloadInventory =
 			Character->GetInventoryComponent();
-		FireAfterReloadMagazineBefore = ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetBulletCount() : INDEX_NONE;
+		FireAfterReloadMagazineBefore = ServerInventorySecondWeapon.IsValid()
+			? ServerInventorySecondWeapon->GetBulletCount()
+			: INDEX_NONE;
 		FireAfterReloadProjectileBefore = ProjectileSpawnCount;
 		bServerReadyForFireAfterReload = true;
 		ForceNetUpdate();
@@ -2125,7 +2171,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 	{
 		UShooterInventoryComponent* FireReloadInventory =
 			Character->GetInventoryComponent();
-		const int32 MagazineAfterFire = ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetBulletCount() : INDEX_NONE;
+		const int32 MagazineAfterFire = ServerInventorySecondWeapon.IsValid()
+			? ServerInventorySecondWeapon->GetBulletCount()
+			: INDEX_NONE;
 		bFireAfterReloadSingleShotVerified = bFireAfterReloadActiveObserved &&
 			FireAfterReloadMagazineBefore != INDEX_NONE &&
 			MagazineAfterFire == FireAfterReloadMagazineBefore - 1 &&
@@ -2162,13 +2210,16 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			if (!bFireAfterReloadQuiescentVerified)
 			{
 				FailTest(FString::Printf(
-					TEXT("Fire-after-reload quiescence invalid; Mag=%d->%d Projectiles=%d->%d ActiveFire=%s FiringTag=%s"),
+					TEXT(
+						"Fire-after-reload quiescence invalid; Mag=%d->%d Projectiles=%d->%d "
+						"ActiveFire=%s FiringTag=%s"),
 					FireAfterReloadMagazineBefore,
 					ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetBulletCount() : INDEX_NONE,
 					FireAfterReloadProjectileBefore,
 					ProjectileSpawnCount,
 					HasActiveFireAbility(Character) ? TEXT("true") : TEXT("false"),
-					AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Firing)
+					AbilitySystemComponent &&
+						AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Firing)
 						? TEXT("true")
 						: TEXT("false")));
 				return;
@@ -2254,7 +2305,8 @@ void AShooterNetworkTestCoordinator::PollServerState()
 					ReloadReserveBeforeCancelEquip,
 					ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetReserveAmmo() : INDEX_NONE,
 					HasActiveReloadAbility(Character) ? TEXT("true") : TEXT("false"),
-					AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading)
+					AbilitySystemComponent &&
+						AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading)
 						? TEXT("true")
 						: TEXT("false")));
 				return;
@@ -2354,7 +2406,8 @@ void AShooterNetworkTestCoordinator::PollServerState()
 					*GetNameSafe(EquipRejectInventory ? Character->GetCurrentWeapon() : nullptr),
 					*GetNameSafe(CurrentWeapon),
 					HasActiveEquipAbility(Character) ? TEXT("true") : TEXT("false"),
-					AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Equipping)
+					AbilitySystemComponent &&
+						AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Equipping)
 						? TEXT("true")
 						: TEXT("false")));
 				return;
@@ -2419,7 +2472,8 @@ void AShooterNetworkTestCoordinator::PollServerState()
 					ReloadReserveBeforeNoReserve,
 					ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetReserveAmmo() : INDEX_NONE,
 					HasActiveReloadAbility(Character) ? TEXT("true") : TEXT("false"),
-					AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading)
+					AbilitySystemComponent &&
+						AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading)
 						? TEXT("true")
 						: TEXT("false")));
 				return;
@@ -2461,7 +2515,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 	{
 		UShooterInventoryComponent* NoAmmoInventory =
 			Character->GetInventoryComponent();
-		const int32 PistolAmmoBefore = ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetBulletCount() : INDEX_NONE;
+		const int32 PistolAmmoBefore = ServerInventorySecondWeapon.IsValid()
+			? ServerInventorySecondWeapon->GetBulletCount()
+			: INDEX_NONE;
 		if (ServerInventorySecondWeapon.IsValid() && PistolAmmoBefore > 0)
 		{
 			ServerInventorySecondWeapon->ConsumeAmmo(PistolAmmoBefore);
@@ -2618,7 +2674,8 @@ void AShooterNetworkTestCoordinator::PollServerState()
 				FailTest(FString::Printf(
 					TEXT("Death did not cancel active reload; ActiveReload=%s Tag=%s"),
 					HasActiveReloadAbility(Character) ? TEXT("true") : TEXT("false"),
-					AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading)
+					AbilitySystemComponent &&
+						AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading)
 						? TEXT("true")
 						: TEXT("false")));
 				return;
@@ -2647,7 +2704,8 @@ void AShooterNetworkTestCoordinator::PollServerState()
 				FailTest(FString::Printf(
 					TEXT("Dead activation reject invalid; Activated=%s DeadTag=%s"),
 					bActivated ? TEXT("true") : TEXT("false"),
-					AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Dead)
+					AbilitySystemComponent &&
+						AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Dead)
 						? TEXT("true")
 						: TEXT("false")));
 				return;
@@ -2677,7 +2735,8 @@ void AShooterNetworkTestCoordinator::PollServerState()
 					TEXT("Dead equip activation reject invalid; Activated=%s ActiveEquip=%s EquippingTag=%s"),
 					bActivated ? TEXT("true") : TEXT("false"),
 					HasActiveEquipAbility(Character) ? TEXT("true") : TEXT("false"),
-					AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Equipping)
+					AbilitySystemComponent &&
+						AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Equipping)
 						? TEXT("true")
 						: TEXT("false")));
 				return;
@@ -2795,7 +2854,8 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			RespawnInventory->GetWeaponCount() == 0 &&
 			Character->GetCurrentWeapon() == nullptr;
 
-		// ---- 4C / 5B / 5C 重生 Tag 清理：Dead / Firing / Reloading / Equipping 与活动 Ability 不得跨生命保留 ----
+		// ---- 4C / 5B / 5C 重生 Tag 清理 ----
+		// Dead / Firing / Reloading / Equipping 与活动 Ability 不得跨生命保留。
 		UShooterAbilitySystemComponent* RespawnShooterAbilitySystemComponent =
 			Cast<UShooterAbilitySystemComponent>(AbilitySystemComponent);
 		bRespawnTagCleanupVerified = AbilitySystemComponent &&
@@ -2840,27 +2900,36 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			if (!bRespawnTagCleanupVerified)
 			{
 				FailTest(FString::Printf(
-					TEXT("Respawn ability tag cleanup invalid; DeadTag=%s FiringTag=%s ReloadingTag=%s EquippingTag=%s ActiveFire=%d ActiveReload=%d ActiveEquip=%d"),
-					AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Dead)
+					TEXT(
+						"Respawn ability tag cleanup invalid; DeadTag=%s FiringTag=%s ReloadingTag=%s "
+						"EquippingTag=%s ActiveFire=%d ActiveReload=%d ActiveEquip=%d"),
+					AbilitySystemComponent &&
+						AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Dead)
 						? TEXT("true")
 						: TEXT("false"),
-					AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Firing)
+					AbilitySystemComponent &&
+						AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Firing)
 						? TEXT("true")
 						: TEXT("false"),
-					AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading)
+					AbilitySystemComponent &&
+						AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading)
 						? TEXT("true")
 						: TEXT("false"),
-					AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Equipping)
+					AbilitySystemComponent &&
+						AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Equipping)
 						? TEXT("true")
 						: TEXT("false"),
 					RespawnShooterAbilitySystemComponent
-						? RespawnShooterAbilitySystemComponent->GetActiveAbilityCountForClass(ShooterPlayerState->GetFireAbilityClass())
+						? RespawnShooterAbilitySystemComponent->GetActiveAbilityCountForClass(
+							ShooterPlayerState->GetFireAbilityClass())
 						: INDEX_NONE,
 					RespawnShooterAbilitySystemComponent
-						? RespawnShooterAbilitySystemComponent->GetActiveAbilityCountForClass(ShooterPlayerState->GetReloadAbilityClass())
+						? RespawnShooterAbilitySystemComponent->GetActiveAbilityCountForClass(
+							ShooterPlayerState->GetReloadAbilityClass())
 						: INDEX_NONE,
 					RespawnShooterAbilitySystemComponent
-						? RespawnShooterAbilitySystemComponent->GetActiveAbilityCountForClass(ShooterPlayerState->GetEquipAbilityClass())
+						? RespawnShooterAbilitySystemComponent->GetActiveAbilityCountForClass(
+							ShooterPlayerState->GetEquipAbilityClass())
 						: INDEX_NONE));
 				return;
 			}
@@ -2881,7 +2950,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			if (!bServerReloadEquipRespawnGrantOk)
 			{
 				FailTest(FString::Printf(
-					TEXT("Server respawn Reload/Equip Ability grant invalid; ReloadCount=%d EquipCount=%d ReloadHandle=%s/%s EquipHandle=%s/%s ReloadAbility=%s EquipAbility=%s"),
+					TEXT(
+						"Server respawn Reload/Equip Ability grant invalid; ReloadCount=%d EquipCount=%d "
+						"ReloadHandle=%s/%s EquipHandle=%s/%s ReloadAbility=%s EquipAbility=%s"),
 					ShooterPlayerState->GetReloadAbilitySpecCount(),
 					ShooterPlayerState->GetEquipAbilitySpecCount(),
 					RespawnReloadAbilitySpec ? *RespawnReloadAbilitySpec->Handle.ToString() : TEXT("null"),
@@ -2899,15 +2970,19 @@ void AShooterNetworkTestCoordinator::PollServerState()
 
 			if (!bServerGasRespawnOk)
 			{
-			FailTest(FString::Printf(
-				TEXT("Server-side GAS ASC respawn avatar invalid; ASC=%s SameASC=%s OwnerOk=%s Avatar=%s OldAvatar=%s MaxHealth=%.1f Health=%.1f"),
-				*GetNameSafe(AbilitySystemComponent),
-				AbilitySystemComponent == ObservedAbilitySystemComponent.Get() ? TEXT("true") : TEXT("false"),
-				AbilitySystemComponent && AbilitySystemComponent->GetOwnerActor() == ShooterPlayerState ? TEXT("true") : TEXT("false"),
-				*GetNameSafe(AbilitySystemComponent ? AbilitySystemComponent->GetAvatarActor() : nullptr),
-				*GetNameSafe(CharacterBeforeDeath.Get()),
-				RespawnMaxHealth,
-				RespawnHealth));
+				FailTest(FString::Printf(
+					TEXT(
+						"Server-side GAS ASC respawn avatar invalid; ASC=%s SameASC=%s OwnerOk=%s "
+						"Avatar=%s OldAvatar=%s MaxHealth=%.1f Health=%.1f"),
+					*GetNameSafe(AbilitySystemComponent),
+					AbilitySystemComponent == ObservedAbilitySystemComponent.Get() ? TEXT("true") : TEXT("false"),
+					AbilitySystemComponent && AbilitySystemComponent->GetOwnerActor() == ShooterPlayerState
+						? TEXT("true")
+						: TEXT("false"),
+					*GetNameSafe(AbilitySystemComponent ? AbilitySystemComponent->GetAvatarActor() : nullptr),
+					*GetNameSafe(CharacterBeforeDeath.Get()),
+					RespawnMaxHealth,
+					RespawnHealth));
 				return;
 			}
 
@@ -2954,7 +3029,16 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		UE_LOG(
 			LogShootGame,
 			Display,
-			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS PlayerId=%d Switch=true OwnerAmmo=true NonOwnerAmmoHidden=true Bullets=%d->%d HP=%.0f->0 Dead=true Respawn=true RespawnHP=%.0f AimDot=%.3f Team=%u Kills=%d Deaths=%d TeamScore=%d RemotePitch=%.3f/%.3f RemoteMontage=%s GasServer=%s/%s/%s GasNPC=%s GasRespawn=%s GasClient=%s GasClientRespawn=%s GasHealthInit=%s GasDamage=%s GasDeath=%s GasNpcHealth=%s/%s GasClientHealth=%s/%s/%s GasHud=%s FireGrant=%s/%s/%s/%s ReloadEquipGrant=%s/%s/%s Reload=%s/%s/%s/%s/%s/%s FireAfterReload=%s/%s/%s Equip=%s/%s/%s/%s/%s FireGA=%s/%s/%s Cancellation=%s/%s/%s/%s/%s/%s/%s PickupAuthority=%s InventoryOwner=%s InventoryRemoteHidden=%s AmmoIsolation=%s DeathClear=%s/%s RespawnEmpty=%s/%s"),
+			TEXT(
+				"AUTOMATION_TEST_CLIENT_SUCCESS PlayerId=%d Switch=true OwnerAmmo=true NonOwnerAmmoHidden=true "
+				"Bullets=%d->%d HP=%.0f->0 Dead=true Respawn=true RespawnHP=%.0f AimDot=%.3f Team=%u "
+				"Kills=%d Deaths=%d TeamScore=%d RemotePitch=%.3f/%.3f RemoteMontage=%s "
+				"GasServer=%s/%s/%s GasNPC=%s GasRespawn=%s GasClient=%s GasClientRespawn=%s "
+				"GasHealthInit=%s GasDamage=%s GasDeath=%s GasNpcHealth=%s/%s GasClientHealth=%s/%s/%s "
+				"GasHud=%s FireGrant=%s/%s/%s/%s ReloadEquipGrant=%s/%s/%s Reload=%s/%s/%s/%s/%s/%s "
+				"FireAfterReload=%s/%s/%s Equip=%s/%s/%s/%s/%s FireGA=%s/%s/%s "
+				"Cancellation=%s/%s/%s/%s/%s/%s/%s PickupAuthority=%s InventoryOwner=%s "
+				"InventoryRemoteHidden=%s AmmoIsolation=%s DeathClear=%s/%s RespawnEmpty=%s/%s"),
 			PlayerId,
 			InitialBulletCount,
 			BulletCountAfterFire,
@@ -3042,7 +3126,17 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			: INDEX_NONE;
 
 		FailTest(FString::Printf(
-			TEXT("Timed out waiting for network state; switch=%s weapon=%s clientProjectile=%s ownerAmmo=%s nonOwnerAmmo=%s serverProjectile=%s aim=%s damage=%s death=%s respawn=%s matchState=%s remoteAim=%s remoteMontage=%s gasOwner=%s gasAvatar=%s gasConnection=%s gasNpc=%s gasRespawn=%s gasClient=%s gasClientRespawn=%s gasHealthInit=%s gasDamage=%s gasDeath=%s gasNpcHealth=%s/%s gasClientHealth=%s/%s/%s gasHud=%s fireGrant=%s/%s/%s/%s reloadEquipGrant=%s/%s/%s reload=%s/%s/%s/%s/%s/%s fireAfterReload=%s/%s/%s equip=%s/%s/%s/%s/%s fireGA=%s/%s/%s cancellation=%s/%s/%s/%s/%s/%s/%s bullets=%d->%d hp=%.0f team=%u kills=%d deaths=%d score=%.0f teamScore=%d PickupAuthority=%s InventoryOwner=%s InventoryRemoteHidden=%s AmmoIsolation=%s DeathClear=%s/%s RespawnEmpty=%s/%s"),
+			TEXT(
+				"Timed out waiting for network state; switch=%s weapon=%s clientProjectile=%s ownerAmmo=%s "
+				"nonOwnerAmmo=%s serverProjectile=%s aim=%s damage=%s death=%s respawn=%s matchState=%s "
+				"remoteAim=%s remoteMontage=%s gasOwner=%s gasAvatar=%s gasConnection=%s gasNpc=%s "
+				"gasRespawn=%s gasClient=%s gasClientRespawn=%s gasHealthInit=%s gasDamage=%s gasDeath=%s "
+				"gasNpcHealth=%s/%s gasClientHealth=%s/%s/%s gasHud=%s fireGrant=%s/%s/%s/%s "
+				"reloadEquipGrant=%s/%s/%s reload=%s/%s/%s/%s/%s/%s fireAfterReload=%s/%s/%s "
+				"equip=%s/%s/%s/%s/%s fireGA=%s/%s/%s cancellation=%s/%s/%s/%s/%s/%s/%s "
+				"bullets=%d->%d hp=%.0f team=%u kills=%d deaths=%d score=%.0f teamScore=%d "
+				"PickupAuthority=%s InventoryOwner=%s InventoryRemoteHidden=%s AmmoIsolation=%s "
+				"DeathClear=%s/%s RespawnEmpty=%s/%s"),
 			bClientObservedSwitch ? TEXT("true") : TEXT("false"),
 			bClientObservedWeapon ? TEXT("true") : TEXT("false"),
 			bClientObservedProjectile ? TEXT("true") : TEXT("false"),
@@ -3937,7 +4031,9 @@ void AShooterNetworkTestCoordinator::ServerReportFullAutoReleased_Implementation
 	if (!bFullAutoReleaseVerified)
 	{
 		FailTest(FString::Printf(
-			TEXT("Full-auto release verification invalid; ClientAmmo=%d ServerAmmo=%d Projectiles=%d->%d ActiveObserved=%s"),
+			TEXT(
+				"Full-auto release verification invalid; ClientAmmo=%d ServerAmmo=%d Projectiles=%d->%d "
+				"ActiveObserved=%s"),
 			BulletCountAfterRelease,
 			AmmoAfterRelease,
 			ProjectileCountBeforeFullAuto,
@@ -3962,7 +4058,9 @@ void AShooterNetworkTestCoordinator::ServerReportClientObservedCancelSwitch_Impl
 	UShooterInventoryComponent* SwitchCancelInventory = Character
 		? Character->GetInventoryComponent()
 		: nullptr;
-	RifleAmmoAfterSwitchCancel = ServerInventoryFirstWeapon.IsValid() ? ServerInventoryFirstWeapon->GetBulletCount() : INDEX_NONE;
+	RifleAmmoAfterSwitchCancel = ServerInventoryFirstWeapon.IsValid()
+		? ServerInventoryFirstWeapon->GetBulletCount()
+		: INDEX_NONE;
 	SwitchCancelCheckTime = GetWorld()->GetTimeSeconds();
 
 	UE_LOG(
@@ -4105,7 +4203,12 @@ void AShooterNetworkTestCoordinator::ServerReportClientObservedInventory_Impleme
 			ActiveWeapon == ServerInventorySecondWeapon.Get());
 	bClientObservedRemoteInventoryHidden = bRemoteInventoryHidden;
 
-	UE_LOG(LogShootGame, Display, TEXT("Inventory client report: Count=%d Active=%s RemoteHidden=%s Initialized=%s OwnerOk=%s"),
+	UE_LOG(
+		LogShootGame,
+		Display,
+		TEXT(
+			"Inventory client report: Count=%d Active=%s RemoteHidden=%s Initialized=%s "
+			"OwnerOk=%s"),
 		WeaponCount,
 		*GetNameSafe(ActiveWeapon),
 		bRemoteInventoryHidden ? TEXT("true") : TEXT("false"),
@@ -4156,7 +4259,11 @@ void AShooterNetworkTestCoordinator::ServerReportClientObservedGasHealthDamage_I
 void AShooterNetworkTestCoordinator::ServerReportClientObservedGasHealthRespawn_Implementation(
 	bool bFullHealthHudEvent)
 {
-	UE_LOG(LogShootGame, Display, TEXT("GAS client report: GasHealthRespawn Hud=%s"), bFullHealthHudEvent ? TEXT("true") : TEXT("false"));
+	UE_LOG(
+		LogShootGame,
+		Display,
+		TEXT("GAS client report: GasHealthRespawn Hud=%s"),
+		bFullHealthHudEvent ? TEXT("true") : TEXT("false"));
 	bClientObservedGasHealthRespawn = true;
 	bClientObservedFullHealthHudEvent |= bFullHealthHudEvent;
 }
@@ -4410,7 +4517,9 @@ void AShooterNetworkTestCoordinator::RunAimRotationServerPhase()
 		UE_LOG(
 			LogShootGame,
 			Display,
-			TEXT("B1_AIM_SAMPLE role=server t=%.2f ctrl_yaw=%.1f ctrl_pitch=%.1f expected_yaw=%.1f expected_pitch=%.1f muzzle_target_angle=%.1f"),
+			TEXT(
+				"B1_AIM_SAMPLE role=server t=%.2f ctrl_yaw=%.1f ctrl_pitch=%.1f expected_yaw=%.1f "
+				"expected_pitch=%.1f muzzle_target_angle=%.1f"),
 			PhaseTime,
 			ServerControlRotation.Yaw,
 			ServerControlRotation.Pitch,
@@ -4486,7 +4595,10 @@ void AShooterNetworkTestCoordinator::RunAimRotationServerPhase()
 		UE_LOG(
 			LogShootGame,
 			Display,
-			TEXT("B1_SERVER_RESULT verified=%s yaw_tracked=%s pitch_tracked=%s samples=%d yaw_good=%d pitch_good=%d muzzle_angle_min=%.1f max=%.1f presentation_verified=%s presentation_good=%d changes=%d max_magnitude=%.1f"),
+			TEXT(
+				"B1_SERVER_RESULT verified=%s yaw_tracked=%s pitch_tracked=%s samples=%d yaw_good=%d "
+				"pitch_good=%d muzzle_angle_min=%.1f max=%.1f presentation_verified=%s "
+				"presentation_good=%d changes=%d max_magnitude=%.1f"),
 			bVerified ? TEXT("true") : TEXT("false"),
 			bAimRotationServerYawTracked ? TEXT("true") : TEXT("false"),
 			bAimRotationServerPitchTracked ? TEXT("true") : TEXT("false"),
@@ -4502,7 +4614,9 @@ void AShooterNetworkTestCoordinator::RunAimRotationServerPhase()
 		if (!bVerified || !bAimRotationServerPresentationVerified)
 		{
 			FailTest(FString::Printf(
-				TEXT("AimRotation server tracking failed; yaw_good=%d pitch_good=%d presentation_good=%d changes=%d max_magnitude=%.1f"),
+				TEXT(
+					"AimRotation server tracking failed; yaw_good=%d pitch_good=%d presentation_good=%d "
+					"changes=%d max_magnitude=%.1f"),
 				AimRotationServerYawGoodSamples,
 				AimRotationServerPitchGoodSamples,
 				AimRotationServerPresentationGoodSamples,
@@ -4573,7 +4687,8 @@ void AShooterNetworkTestCoordinator::RunAimRotationClientPhase()
 		// B2：拥有者不应收到表现目标（COND_SkipOwner），本地实例保持零向量。
 		if (!bAimRotationOwnerPresentationUntouched)
 		{
-			bAimRotationOwnerPresentationUntouched = ShooterNetworkTest::GetPresentationAimTargetForTest(Character).IsNearlyZero();
+			bAimRotationOwnerPresentationUntouched =
+				ShooterNetworkTest::GetPresentationAimTargetForTest(Character).IsNearlyZero();
 		}
 
 		// 观察端判据：yaw 连续按 +30°/s 更新（≥3 个采样点），
@@ -4604,7 +4719,11 @@ void AShooterNetworkTestCoordinator::RunAimRotationClientPhase()
 			!bAimRotationOwnerPresentationUntouched)
 		{
 			FailTest(FString::Printf(
-				TEXT("AimRotation session failed; observer_yaw_rate_good=%d max_pitch=%.1f min_pitch=%.1f observer_pres_good=%d observer_quantized=%d observer_pres_seen=%s server_pres_verified=%s owner_untouched=%s smoothing_seen=%s min_smooth_gap=%.1f pitch_contract=%d yaw_stable=%d samples=%d remote=%s"),
+				TEXT(
+					"AimRotation session failed; observer_yaw_rate_good=%d max_pitch=%.1f min_pitch=%.1f "
+					"observer_pres_good=%d observer_quantized=%d observer_pres_seen=%s "
+					"server_pres_verified=%s owner_untouched=%s smoothing_seen=%s min_smooth_gap=%.1f "
+					"pitch_contract=%d yaw_stable=%d samples=%d remote=%s"),
 				AimRotationObserverYawGoodSamples,
 				AimRotationObserverMaxPitch,
 				AimRotationObserverMinPitch,
@@ -4625,7 +4744,12 @@ void AShooterNetworkTestCoordinator::RunAimRotationClientPhase()
 		UE_LOG(
 			LogShootGame,
 			Display,
-			TEXT("AUTOMATION_TEST_CLIENT_SUCCESS AimRotation=true Presentation=true Smoothing=true PlayerId=%d ObserverYawRate=%s ObserverPitchRange=%.1f..%.1f PresentationObserver=%d/%d ServerPresentationVerified=%s OwnerUntouched=%s MinSmoothGap=%.1f PitchContract=%d YawStable=%d ObserverSamples=%d MuzzleAngleObserver=%.1f..%.1f"),
+			TEXT(
+				"AUTOMATION_TEST_CLIENT_SUCCESS AimRotation=true Presentation=true Smoothing=true "
+				"PlayerId=%d ObserverYawRate=%s ObserverPitchRange=%.1f..%.1f "
+				"PresentationObserver=%d/%d ServerPresentationVerified=%s OwnerUntouched=%s "
+				"MinSmoothGap=%.1f PitchContract=%d YawStable=%d ObserverSamples=%d "
+				"MuzzleAngleObserver=%.1f..%.1f"),
 			PlayerId,
 			AimRotationObserverYawGoodSamples >= 3 ? TEXT("true") : TEXT("false"),
 			AimRotationObserverMinPitch,
@@ -4747,7 +4871,8 @@ void AShooterNetworkTestCoordinator::RunAimRotationObserverPhase()
 		}
 
 		// B3：观察端平滑与局部角度契约验证。
-		const FVector SmoothedTarget = ShooterNetworkTest::GetSmoothedPresentationAimTargetForTest(RemoteCharacter);
+		const FVector SmoothedTarget =
+			ShooterNetworkTest::GetSmoothedPresentationAimTargetForTest(RemoteCharacter);
 		const float SmoothGap = FVector::Dist(SmoothedTarget, RemotePresentationTarget);
 		AimRotationObserverMinSmoothGap = FMath::Min(AimRotationObserverMinSmoothGap, SmoothGap);
 		if (!SmoothedTarget.IsNearlyZero())
@@ -4763,8 +4888,9 @@ void AShooterNetworkTestCoordinator::RunAimRotationObserverPhase()
 		{
 			++AimRotationObserverPitchContractSamples;
 		}
-		// 局部 AimYaw 稳定性：第三人称 Mesh 通常带固定相对偏航（如 -90°），绝对值为常数偏移；
-		// 身体随表现方向转向时局部 AimYaw 应保持稳定（相对首个采样点漂移 ≤ 30°）。
+		// 局部 AimYaw 稳定性：第三人称 Mesh 通常带固定相对偏航（如 -90°），
+		// 绝对值为常数偏移；身体随表现方向转向时局部 AimYaw 应保持稳定
+		// （相对首个采样点漂移 ≤ 30°）。
 		if (!bAimRotationObserverAimYawFirstSet)
 		{
 			AimRotationObserverAimYawFirst = LocalAimYaw;
@@ -4777,7 +4903,9 @@ void AShooterNetworkTestCoordinator::RunAimRotationObserverPhase()
 		UE_LOG(
 			LogShootGame,
 			Display,
-			TEXT("B3_AIM_SMOOTHING_OBSERVER t=%.2f smooth_gap=%.1f min_gap=%.1f local_yaw=%.1f local_pitch=%.1f remote_pitch=%.1f pitch_diff=%.1f"),
+			TEXT(
+				"B3_AIM_SMOOTHING_OBSERVER t=%.2f smooth_gap=%.1f min_gap=%.1f local_yaw=%.1f "
+				"local_pitch=%.1f remote_pitch=%.1f pitch_diff=%.1f"),
 			Now,
 			SmoothGap,
 			AimRotationObserverMinSmoothGap,
@@ -4803,7 +4931,9 @@ void AShooterNetworkTestCoordinator::RunAimRotationObserverPhase()
 		UE_LOG(
 			LogShootGame,
 			Display,
-			TEXT("B1_AIM_SAMPLE role=observer t=%.2f remote_yaw=%.1f remote_pitch=%.1f yaw_rate_ok=%s yaw_delta=%.1f expected_delta=%.1f muzzle_aim_angle=%.1f"),
+			TEXT(
+				"B1_AIM_SAMPLE role=observer t=%.2f remote_yaw=%.1f remote_pitch=%.1f yaw_rate_ok=%s "
+				"yaw_delta=%.1f expected_delta=%.1f muzzle_aim_angle=%.1f"),
 			Now,
 			RemoteYaw,
 			NormalizedRemotePitch,

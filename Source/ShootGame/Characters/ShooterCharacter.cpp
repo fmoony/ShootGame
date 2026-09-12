@@ -124,7 +124,9 @@ AShooterCharacter::AShooterCharacter()
 	// Create the Camera Component
 	FirstPersonCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("First Person Camera"));
 	FirstPersonCameraComponent->SetupAttachment(FirstPersonMesh, FName("head"));
-	FirstPersonCameraComponent->SetRelativeLocationAndRotation(FVector(-2.8f, 5.89f, 0.0f), FRotator(0.0f, 90.0f, -90.0f));
+	FirstPersonCameraComponent->SetRelativeLocationAndRotation(
+		FVector(-2.8f, 5.89f, 0.0f),
+		FRotator(0.0f, 90.0f, -90.0f));
 
 	//// 摄像机必须独立于动画骨骼；否则 Reload / Aim 姿势会通过 head 骨骼推动本地视点。
 	//FirstPersonCameraComponent->SetupAttachment(GetCapsuleComponent());
@@ -156,7 +158,8 @@ AShooterCharacter::AShooterCharacter()
 	InventoryComponent = CreateDefaultSubobject<UShooterInventoryComponent>(TEXT("InventoryComponent"));
 
 	// 表现瞄准链路由静态 Component 承接：采样、RPC、复制、平滑与调试不再落在 Character。
-	AimPresentationComponent = CreateDefaultSubobject<UShooterAimPresentationComponent>(TEXT("AimPresentationComponent"));
+	AimPresentationComponent =
+		CreateDefaultSubobject<UShooterAimPresentationComponent>(TEXT("AimPresentationComponent"));
 
 	// 当前装备权威（CurrentWeaponActor）由 EquipmentComponent 唯一持有；Character 只转发读取。
 	EquipmentComponent = CreateDefaultSubobject<UShooterEquipmentComponent>(TEXT("EquipmentComponent"));
@@ -314,7 +317,9 @@ void AShooterCharacter::InitializeAbilityActorInfo()
 	UE_LOG(
 		LogShootGame,
 		Display,
-		TEXT("GAS ActorInfo init: Actor=%s Role=%d NetMode=%d ASC=%s OwnerActor=%s AvatarActor=%s PlayerState=%s Character=%s"),
+		TEXT(
+			"GAS ActorInfo init: Actor=%s Role=%d NetMode=%d ASC=%s "
+			"OwnerActor=%s AvatarActor=%s PlayerState=%s Character=%s"),
 		*GetName(),
 		static_cast<int32>(GetLocalRole()),
 		static_cast<int32>(GetNetMode()),
@@ -406,21 +411,39 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 		// Looking/Aiming
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AShooterCharacter::LookInput);
-		EnhancedInputComponent->BindAction(MouseLookAction, ETriggerEvent::Triggered, this, &AShooterCharacter::LookInput);
+		EnhancedInputComponent->BindAction(
+			MouseLookAction,
+			ETriggerEvent::Triggered,
+			this,
+			&AShooterCharacter::LookInput);
 
 		// Firing
 		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &AShooterCharacter::DoStartFiring);
-		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this, &AShooterCharacter::DoStopFiring);
+		EnhancedInputComponent->BindAction(
+			FireAction,
+			ETriggerEvent::Completed,
+			this,
+			&AShooterCharacter::DoStopFiring);
 
 		// Reload：IA_Reload 只提交 Input.Reload，不直接改弹药。
 		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &AShooterCharacter::DoReload);
 
 		// Switch weapon
-		EnhancedInputComponent->BindAction(SwitchWeaponAction, ETriggerEvent::Triggered, this, &AShooterCharacter::DoSwitchWeapon);
+		EnhancedInputComponent->BindAction(
+			SwitchWeaponAction,
+			ETriggerEvent::Triggered,
+			this,
+			&AShooterCharacter::DoSwitchWeapon);
 	}
 	else
 	{
-		UE_LOG(LogShootGame, Error, TEXT("'%s' Failed to find an Enhanced Input Component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
+		UE_LOG(
+			LogShootGame,
+			Error,
+			TEXT(
+				"'%s' Failed to find an Enhanced Input Component! This template is built to use the Enhanced Input "
+				"system. If you intend to use the legacy system, then you will need to update this C++ file."),
+			*GetNameSafe(this));
 	}
 
 }
@@ -475,7 +498,11 @@ void AShooterCharacter::DoJumpEnd()
 	StopJumping();
 }
 
-float AShooterCharacter::TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+float AShooterCharacter::TakeDamage(
+	float Damage,
+	struct FDamageEvent const& DamageEvent,
+	AController* EventInstigator,
+	AActor* DamageCauser)
 {
 	// 客户端不能自行扣血，且死亡后不重复处理伤害。
 	if (!HasAuthority() || bIsDead || Damage <= 0.0f)
@@ -665,7 +692,7 @@ void AShooterCharacter::AttachWeaponMeshes(AShooterWeapon* Weapon)
 	// attach the weapon meshes
 	Weapon->GetFirstPersonMesh()->AttachToComponent(GetFirstPersonMesh(), AttachmentRule, FirstPersonWeaponSocket);
 	Weapon->GetThirdPersonMesh()->AttachToComponent(GetMesh(), AttachmentRule, ThirdPersonWeaponSocket);
-	
+
 }
 
 void AShooterCharacter::PlayFiringMontage(UAnimMontage* Montage)

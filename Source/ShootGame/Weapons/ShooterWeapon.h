@@ -56,7 +56,7 @@ UCLASS(abstract)
 class SHOOTGAME_API AShooterWeapon : public AActor
 {
 	GENERATED_BODY()
-	
+
 	/** First person perspective mesh */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
 	USkeletalMeshComponent* FirstPersonMesh;
@@ -122,7 +122,7 @@ protected:
 
 	UFUNCTION()
 	void OnRep_ReserveAmmo();
-	
+
 	/** Animation montage to play when firing this weapon */
 	UPROPERTY(EditAnywhere, Category="Animation")
 	UAnimMontage* FiringMontage;
@@ -220,13 +220,13 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "First Person")
 	float FirstPersonCompositionDrop = 0.0f;
 
-public:	
+public:
 
 	/** Constructor */
 	AShooterWeapon();
 
 protected:
-	
+
 	/** Gameplay initialization */
 	virtual void BeginPlay() override;
 

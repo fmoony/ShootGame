@@ -615,7 +615,12 @@ void AShooterWeapon::StartFiring()
 		if (bFullAuto)
 		{
 			const float RemainingRefireTime = RefireRate - TimeSinceLastShot;
-			GetWorld()->GetTimerManager().SetTimer(RefireTimer, this, &AShooterWeapon::Fire, RemainingRefireTime, false);
+			GetWorld()->GetTimerManager().SetTimer(
+				RefireTimer,
+				this,
+				&AShooterWeapon::Fire,
+				RemainingRefireTime,
+				false);
 		}
 
 	}
@@ -670,7 +675,12 @@ void AShooterWeapon::Fire()
 	} else {
 
 		// for semi-auto weapons, schedule the cooldown notification
-		GetWorld()->GetTimerManager().SetTimer(RefireTimer, this, &AShooterWeapon::FireCooldownExpired, RefireRate, false);
+		GetWorld()->GetTimerManager().SetTimer(
+			RefireTimer,
+			this,
+			&AShooterWeapon::FireCooldownExpired,
+			RefireRate,
+			false);
 
 	}
 }
@@ -758,7 +768,7 @@ FTransform AShooterWeapon::CalculateProjectileSpawnTransform(const FVector& Targ
 	// calculate the spawn location ahead of the muzzle
 	const FVector SpawnLoc = MuzzleLoc + (MuzzleToTarget * MuzzleOffset);
 
-	// find the aim rotation vector while applying some variance to the target 
+	// find the aim rotation vector while applying some variance to the target
 	FVector AimDirection =
 		(TargetLocation + (UKismetMathLibrary::RandomUnitVector() * AimVariance) - SpawnLoc).GetSafeNormal();
 	if (!ControlForward.IsNearlyZero() &&
