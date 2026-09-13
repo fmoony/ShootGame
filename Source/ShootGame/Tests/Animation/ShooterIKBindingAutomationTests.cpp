@@ -1,6 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#if WITH_DEV_AUTOMATION_TESTS
+#if WITH_DEV_AUTOMATION_TESTS && WITH_EDITOR
 
 #include "Misc/AutomationTest.h"
 #include "Characters/Animation/AnimNodes/ShooterLeftHandIKMath.h"
@@ -533,4 +533,4 @@ bool FShooterIKBindingNoReversePresentationRepairTest::RunTest(const FString& Pa
 	return true;
 }
 
-#endif // WITH_DEV_AUTOMATION_TESTS
+#endif // WITH_DEV_AUTOMATION_TESTS && WITH_EDITOR

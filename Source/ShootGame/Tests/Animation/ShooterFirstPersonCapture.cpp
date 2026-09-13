@@ -51,7 +51,6 @@ namespace ShooterFirstPersonCapture
 				bool bPistolReview = false;
 				bool bFireSent = false;
 				bool bStopSent = false;
-				TObjectPtr<AShooterWeapon> GrantedWeapon = nullptr;
 			};
 			TSharedRef<FCaptureState> State = MakeShared<FCaptureState>();
 			State->World = World;
@@ -118,17 +117,17 @@ namespace ShooterFirstPersonCapture
 					// S3 授予链：直接从运行时池按正式 WeaponId（DT_WeaponData 行名）Acquire，
 					// 与生产路径读取完全相同的配置（含网格、AnimClass 与构图下沉量）。
 					UShooterWeaponRuntimeSubsystem* CaptureRuntime = TestWorld->GetSubsystem<UShooterWeaponRuntimeSubsystem>();
-					State->GrantedWeapon = CaptureRuntime
+					AShooterWeapon* GrantedWeapon = CaptureRuntime
 						? CaptureRuntime->AcquireWeapon(FName(WeaponRowName), Character, Character)
 						: nullptr;
-					if (!State->GrantedWeapon || CaptureInventory->AddWeapon(State->GrantedWeapon) != EShooterInventoryAddResult::Added)
+					if (!GrantedWeapon || CaptureInventory->AddWeapon(GrantedWeapon) != EShooterInventoryAddResult::Added)
 					{
 						UE_LOG(LogShootGame, Warning, TEXT("FIRST_PERSON_CAPTURE_GRANT_REJECTED Row=%s"), WeaponRowName);
 					}
 					else
 					{
-						Character->GetEquipmentComponent()->EquipWeapon(State->GrantedWeapon);
-						State->GrantedWeapon->ConsumeAmmo(1);
+						Character->GetEquipmentComponent()->EquipWeapon(GrantedWeapon);
+						GrantedWeapon->ConsumeAmmo(1);
 					}
 					AShooterWeapon* EquippedWeapon = Character->GetCurrentWeapon();
 					float DropOverride = -1.0f;
