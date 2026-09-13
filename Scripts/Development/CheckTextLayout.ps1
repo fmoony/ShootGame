@@ -41,6 +41,33 @@ function Get-DisplayWidth
 	return $Width
 }
 
+function Get-LineEndingVerdict
+{
+	param([string]$Path)
+
+	$Bytes = [IO.File]::ReadAllBytes($Path)
+	for ($Index = 0; $Index -lt $Bytes.Length; ++$Index)
+	{
+		if ($Bytes[$Index] -eq 10 -and ($Index -eq 0 -or $Bytes[$Index - 1] -ne 13))
+		{
+			return [pscustomobject]@{ Status = 'Fail'; Reason = 'line endings must use CRLF' }
+		}
+
+		if ($Bytes[$Index] -eq 13 -and
+			(($Index + 1) -ge $Bytes.Length -or $Bytes[$Index + 1] -ne 10))
+		{
+			return [pscustomobject]@{ Status = 'Fail'; Reason = 'line endings must use CRLF' }
+		}
+	}
+
+	if ($Bytes.Length -gt 0 -and $Bytes[$Bytes.Length - 1] -ne 10)
+	{
+		return [pscustomobject]@{ Status = 'Fail'; Reason = 'file must end with a CRLF newline' }
+	}
+
+	return [pscustomobject]@{ Status = 'Pass'; Reason = '' }
+}
+
 function Add-DisplayColumn
 {
 	param([int]$Column, [char]$Character)
@@ -1255,6 +1282,12 @@ try
 		$InFence = $false
 		$InBlockComment = $false
 		$LineNumber = 0
+		$LineEndingVerdict = Get-LineEndingVerdict $FullPath
+		if ($LineEndingVerdict.Status -eq 'Fail')
+		{
+			$Failures.Add("${RelativePath}: $($LineEndingVerdict.Reason)")
+		}
+
 		foreach ($Line in Get-Content -LiteralPath $FullPath -Encoding UTF8)
 		{
 			++$LineNumber
