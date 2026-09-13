@@ -9,8 +9,21 @@ public class ShootGame : ModuleRules
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
 		PublicDependencyModuleNames.AddRange(new string[] {
-			"Core", "CoreUObject", "Engine", "NetCore", "InputCore", "EnhancedInput", "AIModule", "AnimGraphRuntime", "StateTreeModule",
-			"GameplayStateTreeModule", "UMG", "Slate", "GameplayAbilities", "GameplayTags", "GameplayTasks"
+			"Core",
+			"CoreUObject",
+			"Engine",
+			"NetCore",
+			"InputCore",
+			"EnhancedInput",
+			"AIModule",
+			"AnimGraphRuntime",
+			"StateTreeModule",
+			"GameplayStateTreeModule",
+			"UMG",
+			"Slate",
+			"GameplayAbilities",
+			"GameplayTags",
+			"GameplayTasks"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { "AnimationCore", "Niagara" });

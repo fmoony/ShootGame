@@ -496,6 +496,17 @@ function Get-CodeWidthPolicy
 		}
 	}
 
+	foreach ($Comma in $Commas)
+	{
+		if ($Comma.Col -ge 120)
+		{
+			return [pscustomobject]@{
+				Status = 'Fail'
+				Reason = 'comma-separated item is not fully visible within 120'
+				EndInBlockComment = $EndInBlockComment }
+		}
+	}
+
 	foreach ($Pair in $Pairs)
 	{
 		if ($Pair.OpenCol -lt 120 -and $Pair.CloseCol -ge 120)
@@ -710,7 +721,17 @@ function Test-MergeablePair
 		return 'Clear'
 	}
 
+	if ($RightTrimmed -match '^\}')
+	{
+		return 'Clear'
+	}
+
 	if ($LeftTrimmed -match '\($')
+	{
+		return 'Clear'
+	}
+
+	if ($LeftTrimmed -match '\{$' -and $LeftTrimmed -match '\bnew\b')
 	{
 		return 'Clear'
 	}
@@ -985,8 +1006,10 @@ function Get-RedundantBreaks
 	while ($Index -lt $Structures.Count)
 	{
 		$Start = $Structures[$Index]
+		$StartsCollectionInitializer = $Start.Trim -match '\bnew\b.*\{\s*$'
 		if ($Start.HasComment -or !$Start.Trim -or $Start.Trim -match '^[#{}]' -or
-			$Start.Trim -match '[;{}]$' -or $Start.Trim.Contains(';'))
+			(!$StartsCollectionInitializer -and $Start.Trim -match '[;{}]$') -or
+			$Start.Trim.Contains(';'))
 		{
 			++$Index
 			continue
@@ -998,7 +1021,9 @@ function Get-RedundantBreaks
 		while (($Cursor + 1) -lt $Structures.Count)
 		{
 			$Next = $Structures[$Cursor + 1]
-			if ($Next.HasComment -or !$Next.Trim -or $Next.Trim -match '^[#{}]')
+			$ClosesCollectionInitializer = $Next.Trim -match '^\}\s*\)'
+			if ($Next.HasComment -or !$Next.Trim -or
+				(!$ClosesCollectionInitializer -and $Next.Trim -match '^[#{}]'))
 			{
 				break
 			}
