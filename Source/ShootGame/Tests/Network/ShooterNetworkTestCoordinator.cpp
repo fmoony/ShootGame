@@ -39,8 +39,8 @@
 #include "ShooterPlayerState.h"
 #include "ShooterWeapon.h"
 #include "ShooterProjectile.h"
-#include "Weapons/ShooterWeaponConfigRow.h"
-#include "Weapons/ShooterWeaponTable.h"
+#include "Weapons/Data/ShooterWeaponConfigRow.h"
+#include "Weapons/Data/ShooterWeaponTable.h"
 #include "../Weapon/ShooterWeaponTestTableTypes.h"
 #include "UObject/ConstructorHelpers.h"
 

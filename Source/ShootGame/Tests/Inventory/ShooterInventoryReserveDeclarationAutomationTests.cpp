@@ -11,7 +11,7 @@
 #include "Inventory/ShooterInventoryComponent.h"
 #include "ShooterInventoryReserveTestTypes.h"
 #include "Weapons/ShooterWeapon.h"
-#include "Weapons/ShooterWeaponConfigRow.h"
+#include "Weapons/Data/ShooterWeaponConfigRow.h"
 #include "../Equipment/ShooterWeaponPresentationTestTypes.h"
 #include "../Weapon/ShooterWeaponTestTableTypes.h"
 

@@ -1,6 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "ShooterAimMath.h"
+#include "Characters/Aim/ShooterAimMath.h"
 
 float FShooterAimMath::NormalizeAngleDelta(float AngleDegrees)
 {

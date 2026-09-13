@@ -8,7 +8,7 @@
 #include "GameFramework/Pawn.h"
 #include "ShootGame.h"
 #include "Weapons/ShooterWeapon.h"
-#include "Weapons/ShooterWeaponTable.h"
+#include "Weapons/Data/ShooterWeaponTable.h"
 
 bool UShooterWeaponRuntimeSubsystem::DoesSupportWorldType(const EWorldType::Type WorldType) const
 {

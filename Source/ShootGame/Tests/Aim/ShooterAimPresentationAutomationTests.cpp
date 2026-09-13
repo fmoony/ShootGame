@@ -7,7 +7,7 @@
 #include "Characters/ShooterCharacter.h"
 #include "Characters/Animation/ShooterThirdPersonAnimInstance.h"
 #include "ShooterAimPresentationTestHarness.h"
-#include "Weapons/ShooterAimMath.h"
+#include "Characters/Aim/ShooterAimMath.h"
 
 /**
  * C2.5 纯数据测试：PresentationAimTarget 本地有效状态。

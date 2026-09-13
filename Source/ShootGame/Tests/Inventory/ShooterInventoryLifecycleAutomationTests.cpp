@@ -14,7 +14,7 @@
 #include "Inventory/ShooterInventoryComponent.h"
 #include "UObject/UnrealType.h"
 #include "Weapons/ShooterWeapon.h"
-#include "Weapons/ShooterWeaponRuntimeSubsystem.h"
+#include "Weapons/Subsystems/ShooterWeaponRuntimeSubsystem.h"
 #include "ShooterWeaponPresentationTestTypes.h"
 #include "../Weapon/ShooterWeaponTestTableTypes.h"
 

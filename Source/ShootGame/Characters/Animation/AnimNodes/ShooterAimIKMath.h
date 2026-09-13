@@ -6,7 +6,7 @@
 
 /**
  * FAnimNode_ShooterAimIK 的纯数学求解器。
- * 不依赖任何引擎动画对象，可在 Automation 中直接验证（见 Tests/ShooterAimIKMathAutomationTests.cpp）。
+ * 不依赖任何引擎动画对象，可在 Automation 中直接验证（见 Tests/Animation/ShooterAimIKMathAutomationTests.cpp）。
  *
  * 几何定义：
  *   MuzzleForwardInHand = HandToMuzzle.Rotation * +X      （Muzzle 局部 +X 在 hand 坐标系中的方向）

@@ -9,7 +9,7 @@
 #include "Characters/Equipment/ShooterEquipmentComponent.h"
 #include "Characters/ShooterCharacter.h"
 #include "UObject/Package.h"
-#include "Weapons/ShooterPickup.h"
+#include "Weapons/Pickup/ShooterPickup.h"
 #include "Weapons/ShooterWeapon.h"
 #include "../Weapon/ShooterWeaponTestTableTypes.h"
 #include "ShooterWeaponPresentationTestTypes.generated.h"

@@ -13,7 +13,7 @@
 #include "ShooterInventoryTypes.h"
 #include "ShooterInventoryReserveTestTypes.h"
 #include "ShooterWeapon.h"
-#include "Tests/Pool/ShooterWeaponRuntimeTestTypes.h"
+#include "Tests/Weapon/ShooterWeaponRuntimeTestTypes.h"
 
 /**
  * S3 Inventory 契约测试：最小 Actor Entry（WeaponActor + SlotIndex）。

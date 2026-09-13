@@ -9,7 +9,7 @@
 #include "Net/UnrealNetwork.h"
 #include "ShootGame.h"
 #include "Weapons/ShooterWeapon.h"
-#include "Weapons/ShooterWeaponRuntimeSubsystem.h"
+#include "Weapons/Subsystems/ShooterWeaponRuntimeSubsystem.h"
 
 UShooterInventoryComponent::UShooterInventoryComponent()
 {

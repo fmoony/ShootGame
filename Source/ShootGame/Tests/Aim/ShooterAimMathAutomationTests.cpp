@@ -3,7 +3,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "Misc/AutomationTest.h"
-#include "ShooterAimMath.h"
+#include "Characters/Aim/ShooterAimMath.h"
 
 /**
  * B1 纯计算测试：瞄准角度数学（四象限、±180 环绕、最短路径插值）。

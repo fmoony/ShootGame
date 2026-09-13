@@ -16,13 +16,15 @@ Source/ShootGame/
 ├── ShootGame.Build.cs          # 模块依赖和 include 路径
 ├── ShootGame.h / .cpp          # 模块入口 + LogShootGame 日志分类
 ├── GameFramework/              # 框架入口
-│   ├── ShooterGameMode.h/.cpp
-│   ├── ShooterGameState.h/.cpp
-│   ├── ShooterPlayerController.h/.cpp
-│   ├── ShooterPlayerState.h/.cpp
-│   └── ShooterCameraManager.h/.cpp
+│   ├── GameMode/ShooterGameMode.h/.cpp
+│   ├── GameState/ShooterGameState.h/.cpp
+│   ├── PlayerController/       # ShooterPlayerController、ShooterCameraManager
+│   │   ├── ShooterPlayerController.h/.cpp
+│   │   └── ShooterCameraManager.h/.cpp
+│   └── PlayerState/ShooterPlayerState.h/.cpp
 ├── Characters/                 # 玩家角色
 │   ├── ShooterCharacter.h/.cpp
+│   ├── Aim/                    # ShooterAimPresentationComponent、ShooterAimMath
 │   ├── Equipment/              # ShooterEquipmentComponent：CurrentWeaponActor 装备权威
 │   └── Animation/              # 第三人称动画数据源与程序化瞄准 IK 节点
 │       ├── ShooterThirdPersonAnimInstance.h/.cpp
@@ -32,9 +34,24 @@ Source/ShootGame/
 │   ├── ShooterAttributeSet.h/.cpp
 │   └── ShooterGameplayEffectStatics.h/.cpp
 ├── AI/                         # ShooterNPC、ShooterAIController、StateTree 工具
-├── Weapons/                    # ShooterWeapon、ShooterWeaponRuntimeSubsystem、ShooterPickup、ShooterProjectile
+├── Weapons/
+│   ├── ShooterWeapon.h/.cpp
+│   ├── Animation/              # ShooterAnimNotify_WeaponSound
+│   ├── Data/                   # ShooterWeaponConfigRow、ShooterWeaponTable
+│   │   ├── ShooterWeaponConfigRow.h
+│   │   └── ShooterWeaponTable.h/.cpp
+│   ├── Firing/                 # ShooterWeaponFireBehavior
+│   ├── Interfaces/             # ShooterWeaponHolder
+│   ├── Pickup/                 # ShooterPickup
+│   ├── Projectile/             # ShooterProjectile、ShooterProjectileFireBehavior
+│   │   ├── ShooterProjectile.h/.cpp
+│   │   └── ShooterProjectileFireBehavior.h/.cpp
+│   └── Subsystems/             # ShooterWeaponRuntimeSubsystem
 ├── UI/                         # ShooterUI、ShooterBulletCounterUI
-└── Tests/                      # 自动化测试（网络协调器、武器配置检查、池与 Inventory）
+└── Tests/                      # 自动化测试，按功能域归类
+    ├── Ability/、Aim/、Animation/
+    ├── Architecture/、Equipment/、Inventory/
+    └── Network/、Pickup/、UI/、Weapon/
 ```
 
 ## 文档入口

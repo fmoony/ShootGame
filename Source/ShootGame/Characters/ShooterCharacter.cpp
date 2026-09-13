@@ -26,7 +26,7 @@
 #include "ShooterGameMode.h"
 #include "ShooterPlayerState.h"
 #include "ShootGame.h"
-#include "ShooterAimMath.h"
+#include "Characters/Aim/ShooterAimMath.h"
 #include "Animation/AnimInstance.h"
 #include "Components/SkeletalMeshComponent.h"
 

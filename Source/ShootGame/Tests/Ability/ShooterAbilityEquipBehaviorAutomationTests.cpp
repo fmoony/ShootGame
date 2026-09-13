@@ -13,7 +13,7 @@
 #include "ShooterGameplayAbility_Reload.h"
 #include "ShooterInventoryTypes.h"
 #include "ShooterWeapon.h"
-#include "Tests/Pool/ShooterWeaponRuntimeTestTypes.h"
+#include "Tests/Weapon/ShooterWeaponRuntimeTestTypes.h"
 #include "UObject/UnrealType.h"
 
 namespace ShooterAbilityEquipBehaviorAutomationTests

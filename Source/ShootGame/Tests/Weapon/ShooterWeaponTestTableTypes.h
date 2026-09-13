@@ -8,8 +8,8 @@
 #include "Inventory/ShooterInventoryComponent.h"
 #include "UObject/Package.h"
 #include "Weapons/ShooterWeapon.h"
-#include "Weapons/ShooterWeaponConfigRow.h"
-#include "Weapons/ShooterWeaponRuntimeSubsystem.h"
+#include "Weapons/Data/ShooterWeaponConfigRow.h"
+#include "Weapons/Subsystems/ShooterWeaponRuntimeSubsystem.h"
 
 /**
  * 测试用武器运行时配置助手。

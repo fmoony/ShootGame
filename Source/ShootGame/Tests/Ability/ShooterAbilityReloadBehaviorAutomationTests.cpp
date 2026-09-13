@@ -15,7 +15,7 @@
 #include "ShooterPlayerState.h"
 #include "ShooterWeapon.h"
 #include "ShooterInventoryReserveTestTypes.h"
-#include "Tests/Pool/ShooterWeaponRuntimeTestTypes.h"
+#include "Tests/Weapon/ShooterWeaponRuntimeTestTypes.h"
 #include "UObject/UnrealType.h"
 
 namespace ShooterAbilityReloadBehaviorAutomationTests

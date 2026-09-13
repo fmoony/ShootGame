@@ -11,13 +11,13 @@
 #include "EngineUtils.h"
 #include "GameFramework/WorldSettings.h"
 #include "Inventory/ShooterInventoryComponent.h"
-#include "Weapons/ShooterProjectile.h"
-#include "Weapons/ShooterProjectileFireBehavior.h"
+#include "Weapons/Projectile/ShooterProjectile.h"
+#include "Weapons/Projectile/ShooterProjectileFireBehavior.h"
 #include "Weapons/ShooterWeapon.h"
-#include "Weapons/ShooterWeaponConfigRow.h"
+#include "Weapons/Data/ShooterWeaponConfigRow.h"
 #include "../Equipment/ShooterWeaponPresentationTestTypes.h"
 #include "../Weapon/ShooterWeaponTestTableTypes.h"
-#include "Weapons/ShooterWeaponRuntimeSubsystem.h"
+#include "Weapons/Subsystems/ShooterWeaponRuntimeSubsystem.h"
 
 namespace ShooterProjectileFireBehaviorAutomationTests
 {

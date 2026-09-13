@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
-#include "Weapons/ShooterWeaponConfigRow.h"
+#include "Weapons/Data/ShooterWeaponConfigRow.h"
 #include "ShooterWeaponRuntimeSubsystem.generated.h"
 
 class AShooterWeapon;

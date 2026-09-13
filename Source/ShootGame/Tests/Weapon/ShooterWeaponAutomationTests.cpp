@@ -22,7 +22,7 @@
 #include "ShooterWeapon.h"
 #include "ShooterWeaponConfigRow.h"
 #include "ShooterWeaponTable.h"
-#include "Weapons/ShooterAnimNotify_WeaponSound.h"
+#include "Weapons/Animation/ShooterAnimNotify_WeaponSound.h"
 
 namespace ShooterWeaponAutomationTests
 {

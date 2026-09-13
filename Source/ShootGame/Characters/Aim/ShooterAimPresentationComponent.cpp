@@ -16,7 +16,7 @@
 #include "Net/UnrealNetwork.h"
 #include "ShootGame.h"
 #include "TimerManager.h"
-#include "Weapons/ShooterAimMath.h"
+#include "Characters/Aim/ShooterAimMath.h"
 #include "Weapons/ShooterWeapon.h"
 
 namespace ShooterAimPresentationDebug

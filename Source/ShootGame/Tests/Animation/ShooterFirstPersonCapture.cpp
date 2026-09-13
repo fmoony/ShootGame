@@ -20,7 +20,7 @@
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 #include "Weapons/ShooterWeapon.h"
-#include "Weapons/ShooterWeaponRuntimeSubsystem.h"
+#include "Weapons/Subsystems/ShooterWeaponRuntimeSubsystem.h"
 #include "../Equipment/ShooterWeaponPresentationTestTypes.h"
 #include "ShootGame.h"
 #include "UObject/UnrealType.h"

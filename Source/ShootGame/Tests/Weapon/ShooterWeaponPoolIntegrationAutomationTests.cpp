@@ -12,7 +12,7 @@
 #include "GameFramework/WorldSettings.h"
 #include "Inventory/ShooterInventoryComponent.h"
 #include "Weapons/ShooterWeapon.h"
-#include "Weapons/ShooterWeaponRuntimeSubsystem.h"
+#include "Weapons/Subsystems/ShooterWeaponRuntimeSubsystem.h"
 #include "ShooterWeaponPresentationTestTypes.h"
 #include "../Weapon/ShooterWeaponTestTableTypes.h"
 

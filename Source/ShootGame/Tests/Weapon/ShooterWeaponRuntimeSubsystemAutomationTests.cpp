@@ -12,8 +12,8 @@
 #include "UObject/Package.h"
 #include "ShooterWeaponRuntimeTestTypes.h"
 #include "Weapons/ShooterWeapon.h"
-#include "Weapons/ShooterWeaponConfigRow.h"
-#include "Weapons/ShooterWeaponRuntimeSubsystem.h"
+#include "Weapons/Data/ShooterWeaponConfigRow.h"
+#include "Weapons/Subsystems/ShooterWeaponRuntimeSubsystem.h"
 
 /**
  * S1 定向验证：启动配置快照 + WeaponId 预热池（重构方案 8.S1）。
