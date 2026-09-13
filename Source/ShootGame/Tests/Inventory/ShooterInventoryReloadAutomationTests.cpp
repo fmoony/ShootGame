@@ -5,8 +5,8 @@
 #include "Misc/AutomationTest.h"
 #include "Engine/Engine.h"
 #include "Engine/World.h"
-#include "ShooterInventoryReserveTestTypes.h"
-#include "ShooterWeapon.h"
+#include "Tests/Inventory/ShooterInventoryReserveTestTypes.h"
+#include "Weapons/ShooterWeapon.h"
 
 /**
  * S2 起换弹原子事务收敛在 WeaponActor（ReloadFromReserve）。

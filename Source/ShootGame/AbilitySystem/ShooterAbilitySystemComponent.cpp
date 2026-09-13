@@ -4,7 +4,7 @@
 
 #include "Abilities/GameplayAbility.h"
 #include "GameplayTagContainer.h"
-#include "ShooterGameplayTags.h"
+#include "AbilitySystem/ShooterGameplayTags.h"
 #include "ShootGame.h"
 
 void UShooterAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& InputTag)

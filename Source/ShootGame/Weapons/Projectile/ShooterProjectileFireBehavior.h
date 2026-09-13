@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ShooterWeaponFireBehavior.h"
+#include "Weapons/Firing/ShooterWeaponFireBehavior.h"
 #include "ShooterProjectileFireBehavior.generated.h"
 
 /**

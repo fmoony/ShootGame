@@ -21,7 +21,7 @@
 #include "Misc/Parse.h"
 #include "Weapons/ShooterWeapon.h"
 #include "Weapons/Subsystems/ShooterWeaponRuntimeSubsystem.h"
-#include "../Equipment/ShooterWeaponPresentationTestTypes.h"
+#include "Tests/Equipment/ShooterWeaponPresentationTestTypes.h"
 #include "ShootGame.h"
 #include "UObject/UnrealType.h"
 

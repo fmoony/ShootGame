@@ -4,12 +4,12 @@
 
 #include "Misc/AutomationTest.h"
 #include "Abilities/GameplayAbility.h"
-#include "ShooterAbilitySystemComponent.h"
-#include "ShooterGameplayAbility_Fire.h"
-#include "ShooterPlayerState.h"
-#include "ShooterWeapon.h"
-#include "ShooterWeaponConfigRow.h"
-#include "ShooterWeaponTable.h"
+#include "AbilitySystem/ShooterAbilitySystemComponent.h"
+#include "AbilitySystem/Abilities/ShooterGameplayAbility_Fire.h"
+#include "GameFramework/PlayerState/ShooterPlayerState.h"
+#include "Weapons/ShooterWeapon.h"
+#include "Weapons/Data/ShooterWeaponConfigRow.h"
+#include "Weapons/Data/ShooterWeaponTable.h"
 #include "UObject/UnrealType.h"
 
 namespace ShooterAbilityFireBehaviorAutomationTests

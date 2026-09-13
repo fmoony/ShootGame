@@ -4,7 +4,7 @@
 
 #include "Misc/AutomationTest.h"
 #include "Characters/Aim/ShooterAimPresentationComponent.h"
-#include "ShooterAimPresentationTestHarness.h"
+#include "Tests/Aim/ShooterAimPresentationTestHarness.h"
 
 namespace ShooterAimPresentationInputResolutionAutomationTests
 {

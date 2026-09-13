@@ -3,12 +3,12 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "Misc/AutomationTest.h"
-#include "ShooterAbilitySystemComponent.h"
-#include "ShooterGameplayAbility_Equip.h"
-#include "ShooterGameplayAbility_Fire.h"
-#include "ShooterGameplayAbility_Reload.h"
-#include "ShooterPlayerState.h"
-#include "ShooterWeapon.h"
+#include "AbilitySystem/ShooterAbilitySystemComponent.h"
+#include "AbilitySystem/Abilities/ShooterGameplayAbility_Equip.h"
+#include "AbilitySystem/Abilities/ShooterGameplayAbility_Fire.h"
+#include "AbilitySystem/Abilities/ShooterGameplayAbility_Reload.h"
+#include "GameFramework/PlayerState/ShooterPlayerState.h"
+#include "Weapons/ShooterWeapon.h"
 
 namespace ShooterAbilityReloadEquipAutomationTests
 {

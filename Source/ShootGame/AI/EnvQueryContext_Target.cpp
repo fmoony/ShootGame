@@ -4,7 +4,7 @@
 #include "EnvQueryContext_Target.h"
 #include "EnvironmentQuery/Items/EnvQueryItemType_Actor.h"
 #include "EnvironmentQuery/EnvQueryTypes.h"
-#include "ShooterAIController.h"
+#include "AI/ShooterAIController.h"
 
 void UEnvQueryContext_Target::ProvideContext(FEnvQueryInstance& QueryInstance, FEnvQueryContextData& ContextData) const
 {

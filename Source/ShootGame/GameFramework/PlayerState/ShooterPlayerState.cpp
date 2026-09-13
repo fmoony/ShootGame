@@ -4,12 +4,12 @@
 
 #include "Abilities/GameplayAbility.h"
 #include "GameplayEffectTypes.h"
-#include "ShooterAbilitySystemComponent.h"
-#include "ShooterAttributeSet.h"
-#include "ShooterCharacter.h"
-#include "ShooterGameplayAbility_Fire.h"
-#include "ShooterGameplayAbility_Equip.h"
-#include "ShooterGameplayAbility_Reload.h"
+#include "AbilitySystem/ShooterAbilitySystemComponent.h"
+#include "AbilitySystem/ShooterAttributeSet.h"
+#include "Characters/ShooterCharacter.h"
+#include "AbilitySystem/Abilities/ShooterGameplayAbility_Fire.h"
+#include "AbilitySystem/Abilities/ShooterGameplayAbility_Equip.h"
+#include "AbilitySystem/Abilities/ShooterGameplayAbility_Reload.h"
 #include "Net/UnrealNetwork.h"
 
 AShooterPlayerState::AShooterPlayerState()

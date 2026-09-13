@@ -1,6 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "Characters/Animation/AnimNodes/ShooterAimIKMath.h"
+#include "ShooterAimIKMath.h"
 
 FVector FShooterAimIKMath::GetMuzzleForwardInHand(const FTransform& InHandToMuzzle)
 {

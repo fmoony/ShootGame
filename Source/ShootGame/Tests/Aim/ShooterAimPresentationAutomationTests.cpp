@@ -6,7 +6,7 @@
 #include "Characters/Aim/ShooterAimPresentationComponent.h"
 #include "Characters/ShooterCharacter.h"
 #include "Characters/Animation/ShooterThirdPersonAnimInstance.h"
-#include "ShooterAimPresentationTestHarness.h"
+#include "Tests/Aim/ShooterAimPresentationTestHarness.h"
 #include "Characters/Aim/ShooterAimMath.h"
 
 /**

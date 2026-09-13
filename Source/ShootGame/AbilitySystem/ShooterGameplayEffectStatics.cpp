@@ -5,7 +5,7 @@
 #include "AbilitySystemComponent.h"
 #include "GameplayEffect.h"
 #include "GameplayEffectTypes.h"
-#include "ShooterAttributeSet.h"
+#include "AbilitySystem/ShooterAttributeSet.h"
 
 namespace ShooterGameplayEffectStaticsImpl
 {

@@ -3,8 +3,8 @@
 #include "ShooterAnimNotify_WeaponSound.h"
 #include "Characters/Animation/ShooterAnimInstanceBase.h"
 #include "Components/SkeletalMeshComponent.h"
-#include "ShooterCharacter.h"
-#include "ShooterWeapon.h"
+#include "Characters/ShooterCharacter.h"
+#include "Weapons/ShooterWeapon.h"
 
 void UShooterAnimNotify_WeaponSound::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
 	const FAnimNotifyEventReference& EventReference)

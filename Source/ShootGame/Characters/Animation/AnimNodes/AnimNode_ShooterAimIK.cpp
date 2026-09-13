@@ -1,6 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "Characters/Animation/AnimNodes/AnimNode_ShooterAimIK.h"
+#include "AnimNode_ShooterAimIK.h"
 #include "Characters/Animation/AnimNodes/ShooterAimIKMath.h"
 #include "Animation/AnimInstanceProxy.h"
 #include "Misc/CommandLine.h"

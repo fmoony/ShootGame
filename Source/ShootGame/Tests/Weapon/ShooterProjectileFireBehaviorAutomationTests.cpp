@@ -15,8 +15,8 @@
 #include "Weapons/Projectile/ShooterProjectileFireBehavior.h"
 #include "Weapons/ShooterWeapon.h"
 #include "Weapons/Data/ShooterWeaponConfigRow.h"
-#include "../Equipment/ShooterWeaponPresentationTestTypes.h"
-#include "../Weapon/ShooterWeaponTestTableTypes.h"
+#include "Tests/Equipment/ShooterWeaponPresentationTestTypes.h"
+#include "Tests/Weapon/ShooterWeaponTestTableTypes.h"
 #include "Weapons/Subsystems/ShooterWeaponRuntimeSubsystem.h"
 
 namespace ShooterProjectileFireBehaviorAutomationTests

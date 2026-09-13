@@ -1,6 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "Characters/Equipment/ShooterEquipmentComponent.h"
+#include "ShooterEquipmentComponent.h"
 
 #include "Characters/Aim/ShooterAimPresentationComponent.h"
 #include "Characters/ShooterCharacter.h"

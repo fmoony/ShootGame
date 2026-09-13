@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ShooterGameplayAbility.h"
+#include "AbilitySystem/ShooterGameplayAbility.h"
 #include "ShooterGameplayAbility_Fire.generated.h"
 
 class AShooterWeapon;

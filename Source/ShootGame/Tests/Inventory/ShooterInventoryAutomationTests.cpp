@@ -7,12 +7,12 @@
 #include "Engine/World.h"
 #include "UObject/CoreNet.h"
 #include "UObject/UnrealType.h"
-#include "ShooterCharacter.h"
+#include "Characters/ShooterCharacter.h"
 #include "Characters/Equipment/ShooterEquipmentComponent.h"
-#include "ShooterInventoryComponent.h"
-#include "ShooterInventoryTypes.h"
-#include "ShooterInventoryReserveTestTypes.h"
-#include "ShooterWeapon.h"
+#include "Inventory/ShooterInventoryComponent.h"
+#include "Inventory/ShooterInventoryTypes.h"
+#include "Tests/Inventory/ShooterInventoryReserveTestTypes.h"
+#include "Weapons/ShooterWeapon.h"
 #include "Tests/Weapon/ShooterWeaponRuntimeTestTypes.h"
 
 /**

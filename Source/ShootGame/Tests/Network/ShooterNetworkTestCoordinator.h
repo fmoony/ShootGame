@@ -5,8 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "GameplayAbilitySpecHandle.h"
-#include "ShooterNPC.h"
-#include "ShooterWeapon.h"
+#include "AI/ShooterNPC.h"
+#include "Weapons/ShooterWeapon.h"
 #include "ShooterNetworkTestCoordinator.generated.h"
 
 class AShooterCharacter;

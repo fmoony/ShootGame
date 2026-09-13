@@ -1,6 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "Characters/Animation/AnimNodes/ShooterLeftHandIKMath.h"
+#include "ShooterLeftHandIKMath.h"
 
 namespace
 {

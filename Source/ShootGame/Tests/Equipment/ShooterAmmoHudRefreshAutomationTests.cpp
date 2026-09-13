@@ -9,8 +9,8 @@
 #include "Characters/Equipment/ShooterEquipmentComponent.h"
 #include "Characters/ShooterCharacter.h"
 #include "Inventory/ShooterInventoryComponent.h"
-#include "../Weapon/ShooterWeaponTestTableTypes.h"
-#include "ShooterWeaponPresentationTestTypes.h"
+#include "Tests/Weapon/ShooterWeaponTestTableTypes.h"
+#include "Tests/Equipment/ShooterWeaponPresentationTestTypes.h"
 
 /**
  * 备弹 HUD 刷新时序复现：拾取立即装备、换弹提交、开火扣弹三个服务器权威事务

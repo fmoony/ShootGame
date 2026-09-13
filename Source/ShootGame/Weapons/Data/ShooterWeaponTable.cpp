@@ -4,8 +4,8 @@
 
 #include "Engine/DataTable.h"
 #include "ShootGame.h"
-#include "ShooterWeapon.h"
-#include "ShooterWeaponConfigRow.h"
+#include "Weapons/ShooterWeapon.h"
+#include "Weapons/Data/ShooterWeaponConfigRow.h"
 
 namespace ShooterWeaponTable
 {

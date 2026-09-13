@@ -1,6 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "Characters/Aim/ShooterAimPresentationComponent.h"
+#include "ShooterAimPresentationComponent.h"
 
 #include "Camera/CameraComponent.h"
 #include "Characters/Animation/AnimNodes/ShooterAimIKMath.h"

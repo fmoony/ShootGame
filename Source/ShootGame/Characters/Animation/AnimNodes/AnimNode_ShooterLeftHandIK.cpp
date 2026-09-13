@@ -1,6 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "Characters/Animation/AnimNodes/AnimNode_ShooterLeftHandIK.h"
+#include "AnimNode_ShooterLeftHandIK.h"
 #include "Characters/Animation/AnimNodes/ShooterLeftHandIKMath.h"
 #include "Animation/AnimInstanceProxy.h"
 #include "HAL/IConsoleManager.h"

@@ -5,7 +5,7 @@
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
 #include "ShootGame.h"
-#include "ShooterProjectile.h"
+#include "Weapons/Projectile/ShooterProjectile.h"
 #include "Weapons/ShooterWeapon.h"
 
 void UShooterProjectileFireBehavior::ExecuteFire(const FShooterWeaponFireContext& Context)

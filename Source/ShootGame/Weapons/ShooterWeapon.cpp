@@ -7,11 +7,11 @@
 #include "Engine/World.h"
 #include "ShootGame.h"
 #include "Characters/Equipment/ShooterEquipmentComponent.h"
-#include "ShooterCharacter.h"
-#include "ShooterProjectile.h"
-#include "ShooterWeaponHolder.h"
-#include "ShooterWeaponFireBehavior.h"
-#include "ShooterProjectileFireBehavior.h"
+#include "Characters/ShooterCharacter.h"
+#include "Weapons/Projectile/ShooterProjectile.h"
+#include "Weapons/Interfaces/ShooterWeaponHolder.h"
+#include "Weapons/Firing/ShooterWeaponFireBehavior.h"
+#include "Weapons/Projectile/ShooterProjectileFireBehavior.h"
 #include "Components/SceneComponent.h"
 #include "TimerManager.h"
 #include "Animation/AnimInstance.h"
@@ -20,8 +20,8 @@
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
 #include "Net/UnrealNetwork.h"
-#include "ShooterWeaponConfigRow.h"
-#include "ShooterWeaponRuntimeSubsystem.h"
+#include "Weapons/Data/ShooterWeaponConfigRow.h"
+#include "Weapons/Subsystems/ShooterWeaponRuntimeSubsystem.h"
 
 namespace
 {

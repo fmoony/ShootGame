@@ -5,10 +5,10 @@
 #include "AbilitySystemComponent.h"
 #include "Characters/Equipment/ShooterEquipmentComponent.h"
 #include "GameplayTagContainer.h"
-#include "ShooterCharacter.h"
-#include "ShooterGameplayTags.h"
-#include "ShooterWeapon.h"
-#include "ShooterWeaponHolder.h"
+#include "Characters/ShooterCharacter.h"
+#include "AbilitySystem/ShooterGameplayTags.h"
+#include "Weapons/ShooterWeapon.h"
+#include "Weapons/Interfaces/ShooterWeaponHolder.h"
 #include "ShootGame.h"
 
 bool UShooterGameplayAbility_Fire::HasInputFireTag() const

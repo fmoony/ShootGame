@@ -9,7 +9,7 @@
 #include "Components/TextBlock.h"
 #include "Engine/World.h"
 #include "Engine/Engine.h"
-#include "ShooterBulletCounterUI.h"
+#include "UI/ShooterBulletCounterUI.h"
 
 namespace ShooterBulletCounterReserveAutomationTests
 {

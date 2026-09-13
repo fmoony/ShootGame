@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "ShooterInventoryTypes.h"
+#include "Inventory/ShooterInventoryTypes.h"
 #include "ShooterInventoryComponent.generated.h"
 
 class AShooterWeapon;

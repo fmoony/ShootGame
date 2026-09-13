@@ -10,7 +10,7 @@
 #include "GameFramework/WorldSettings.h"
 #include "ShootGame.h"
 #include "UObject/Package.h"
-#include "ShooterWeaponRuntimeTestTypes.h"
+#include "Tests/Weapon/ShooterWeaponRuntimeTestTypes.h"
 #include "Weapons/ShooterWeapon.h"
 #include "Weapons/Data/ShooterWeaponConfigRow.h"
 #include "Weapons/Subsystems/ShooterWeaponRuntimeSubsystem.h"

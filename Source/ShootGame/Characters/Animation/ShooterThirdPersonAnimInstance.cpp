@@ -1,6 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "Characters/Animation/ShooterThirdPersonAnimInstance.h"
+#include "ShooterThirdPersonAnimInstance.h"
 #include "Characters/Animation/AnimNodes/ShooterAimIKMath.h"
 #include "Characters/Aim/ShooterAimPresentationComponent.h"
 #include "Characters/Equipment/ShooterEquipmentComponent.h"

@@ -1,11 +1,11 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "Characters/Animation/ShooterAnimInstanceBase.h"
+#include "ShooterAnimInstanceBase.h"
 
 #include "AbilitySystemComponent.h"
 #include "Characters/ShooterCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "ShooterGameplayTags.h"
+#include "AbilitySystem/ShooterGameplayTags.h"
 #include "Weapons/ShooterWeapon.h"
 
 void UShooterAnimInstanceBase::NativeInitializeAnimation()

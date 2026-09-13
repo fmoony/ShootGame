@@ -5,13 +5,13 @@
 #include "Misc/AutomationTest.h"
 #include "AbilitySystemInterface.h"
 #include "GameplayTagContainer.h"
-#include "ShooterAbilitySystemComponent.h"
-#include "ShooterCharacter.h"
-#include "ShooterGameplayAbility.h"
-#include "ShooterGameplayAbility_Fire.h"
-#include "ShooterGameplayTags.h"
-#include "ShooterNPC.h"
-#include "ShooterPlayerState.h"
+#include "AbilitySystem/ShooterAbilitySystemComponent.h"
+#include "Characters/ShooterCharacter.h"
+#include "AbilitySystem/ShooterGameplayAbility.h"
+#include "AbilitySystem/Abilities/ShooterGameplayAbility_Fire.h"
+#include "AbilitySystem/ShooterGameplayTags.h"
+#include "AI/ShooterNPC.h"
+#include "GameFramework/PlayerState/ShooterPlayerState.h"
 
 namespace ShooterAbilityAutomationTests
 {

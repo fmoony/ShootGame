@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Engine/NetSerialization.h"
-#include "ShooterWeaponHolder.h"
+#include "Weapons/Interfaces/ShooterWeaponHolder.h"
 #include "ShooterCharacter.generated.h"
 
 class AShooterWeapon;

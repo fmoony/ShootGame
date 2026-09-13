@@ -4,8 +4,8 @@
 
 #include "Misc/AutomationTest.h"
 #include "AbilitySystemComponent.h"
-#include "ShooterGameplayTags.h"
-#include "ShooterPlayerState.h"
+#include "AbilitySystem/ShooterGameplayTags.h"
+#include "GameFramework/PlayerState/ShooterPlayerState.h"
 #include "Characters/Equipment/ShooterEquipmentComponent.h"
 #include "Characters/ShooterCharacter.h"
 #include "Engine/Engine.h"
@@ -13,10 +13,10 @@
 #include "GameFramework/WorldSettings.h"
 #include "Inventory/ShooterInventoryComponent.h"
 #include "UObject/UnrealType.h"
-#include "../Weapon/ShooterWeaponTestTableTypes.h"
+#include "Tests/Weapon/ShooterWeaponTestTableTypes.h"
 #include "Weapons/ShooterWeapon.h"
 #include "Weapons/Subsystems/ShooterWeaponRuntimeSubsystem.h"
-#include "ShooterWeaponPresentationTestTypes.h"
+#include "Tests/Equipment/ShooterWeaponPresentationTestTypes.h"
 
 namespace ShooterEquipmentLogicalEventAutomationTests
 {

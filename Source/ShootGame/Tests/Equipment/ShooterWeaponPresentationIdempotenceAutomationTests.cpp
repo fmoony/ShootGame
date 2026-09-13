@@ -11,9 +11,9 @@
 #include "GameFramework/WorldSettings.h"
 #include "Inventory/ShooterInventoryComponent.h"
 #include "UObject/UnrealType.h"
-#include "../Weapon/ShooterWeaponTestTableTypes.h"
+#include "Tests/Weapon/ShooterWeaponTestTableTypes.h"
 #include "Weapons/ShooterWeapon.h"
-#include "ShooterWeaponPresentationTestTypes.h"
+#include "Tests/Equipment/ShooterWeaponPresentationTestTypes.h"
 
 namespace ShooterWeaponPresentationIdempotenceAutomationTests
 {

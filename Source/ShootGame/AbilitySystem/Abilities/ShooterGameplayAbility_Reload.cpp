@@ -6,11 +6,11 @@
 #include "AbilitySystemComponent.h"
 #include "GameplayTagContainer.h"
 #include "Characters/Equipment/ShooterEquipmentComponent.h"
-#include "ShooterAbilitySystemComponent.h"
-#include "ShooterCharacter.h"
-#include "ShooterGameplayTags.h"
-#include "ShooterInventoryComponent.h"
-#include "ShooterWeapon.h"
+#include "AbilitySystem/ShooterAbilitySystemComponent.h"
+#include "Characters/ShooterCharacter.h"
+#include "AbilitySystem/ShooterGameplayTags.h"
+#include "Inventory/ShooterInventoryComponent.h"
+#include "Weapons/ShooterWeapon.h"
 #include "ShootGame.h"
 
 bool UShooterGameplayAbility_Reload::HasInputReloadTag() const

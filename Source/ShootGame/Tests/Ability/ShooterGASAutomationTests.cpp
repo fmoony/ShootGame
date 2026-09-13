@@ -5,9 +5,9 @@
 #include "Misc/AutomationTest.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemInterface.h"
-#include "ShooterAttributeSet.h"
-#include "ShooterNPC.h"
-#include "ShooterPlayerState.h"
+#include "AbilitySystem/ShooterAttributeSet.h"
+#include "AI/ShooterNPC.h"
+#include "GameFramework/PlayerState/ShooterPlayerState.h"
 
 namespace ShooterGASAutomationTests
 {

@@ -9,11 +9,11 @@
 #include "Engine/DataTable.h"
 #include "Engine/SkeletalMesh.h"
 #include "Engine/StaticMesh.h"
-#include "ShooterProjectile.h"
-#include "ShooterWeapon.h"
-#include "ShooterWeaponConfigRow.h"
-#include "ShooterWeaponFireBehavior.h"
-#include "ShooterWeaponTable.h"
+#include "Weapons/Projectile/ShooterProjectile.h"
+#include "Weapons/ShooterWeapon.h"
+#include "Weapons/Data/ShooterWeaponConfigRow.h"
+#include "Weapons/Firing/ShooterWeaponFireBehavior.h"
+#include "Weapons/Data/ShooterWeaponTable.h"
 
 namespace ShooterWeaponRowCompleteness
 {

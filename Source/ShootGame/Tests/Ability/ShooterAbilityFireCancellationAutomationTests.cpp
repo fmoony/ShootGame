@@ -4,12 +4,12 @@
 
 #include "Misc/AutomationTest.h"
 #include "AbilitySystemInterface.h"
-#include "ShooterCharacter.h"
-#include "ShooterGameplayAbility_Fire.h"
-#include "ShooterGameplayTags.h"
-#include "ShooterNPC.h"
-#include "ShooterWeapon.h"
-#include "ShooterWeaponHolder.h"
+#include "Characters/ShooterCharacter.h"
+#include "AbilitySystem/Abilities/ShooterGameplayAbility_Fire.h"
+#include "AbilitySystem/ShooterGameplayTags.h"
+#include "AI/ShooterNPC.h"
+#include "Weapons/ShooterWeapon.h"
+#include "Weapons/Interfaces/ShooterWeaponHolder.h"
 #include "UObject/UnrealType.h"
 
 namespace ShooterAbilityFireCancellationAutomationTests

@@ -14,13 +14,13 @@
 #include "Inventory/ShooterInventoryComponent.h"
 #include "AI/ShooterNPC.h"
 #include "AbilitySystem/ShooterAttributeSet.h"
-#include "ShooterArchitectureTestTypes.h"
-#include "../Equipment/ShooterWeaponPresentationTestTypes.h"
+#include "Tests/Architecture/ShooterArchitectureTestTypes.h"
+#include "Tests/Equipment/ShooterWeaponPresentationTestTypes.h"
 #include "UObject/UnrealType.h"
 #include "Weapons/Pickup/ShooterPickup.h"
 #include "Weapons/ShooterWeapon.h"
 #include "Weapons/Subsystems/ShooterWeaponRuntimeSubsystem.h"
-#include "../Weapon/ShooterWeaponTestTableTypes.h"
+#include "Tests/Weapon/ShooterWeaponTestTableTypes.h"
 
 namespace ShooterArchitectureBaselineAutomationTests
 {

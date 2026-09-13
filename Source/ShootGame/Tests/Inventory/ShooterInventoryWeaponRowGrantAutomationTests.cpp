@@ -13,8 +13,8 @@
 #include "Weapons/ShooterWeapon.h"
 #include "Weapons/Data/ShooterWeaponConfigRow.h"
 #include "Weapons/Subsystems/ShooterWeaponRuntimeSubsystem.h"
-#include "../Equipment/ShooterWeaponPresentationTestTypes.h"
-#include "../Weapon/ShooterWeaponTestTableTypes.h"
+#include "Tests/Equipment/ShooterWeaponPresentationTestTypes.h"
+#include "Tests/Weapon/ShooterWeaponTestTableTypes.h"
 
 /**
  * S3 授予链测试：WeaponId 行 → 运行时快照 → Acquire → Inventory.AddWeapon。

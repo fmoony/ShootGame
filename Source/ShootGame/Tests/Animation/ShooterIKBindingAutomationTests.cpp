@@ -14,7 +14,7 @@
 #include "Animation/Skeleton.h"
 #include "ReferenceSkeleton.h"
 #include "UObject/UnrealType.h"
-#include "ShooterIKBindingTestHarness.h"
+#include "Tests/Animation/ShooterIKBindingTestHarness.h"
 
 /**
  * E4 验证：第三人称 IK 静态 Binding 改为事件驱动。

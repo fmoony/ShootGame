@@ -2,7 +2,7 @@
 
 
 #include "ShooterAIController.h"
-#include "ShooterNPC.h"
+#include "AI/ShooterNPC.h"
 #include "Components/StateTreeAIComponent.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Navigation/PathFollowingComponent.h"

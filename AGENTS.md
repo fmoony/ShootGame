@@ -88,6 +88,8 @@ Source/ShootGame/
 - 新增或修改的文本行必须遵守 [代码规范](Docs/代码规范.md) 的版式与换行要求；
   提交前对暂存内容运行 `Scripts/Development/CheckTextLayout.ps1 -Scope Staged`
   与 `git diff --check`。
+- 项目内部跨目录头文件必须使用相对 `Source/ShootGame` 的模块根路径；涉及模块源码时，
+  提交前运行 `Scripts/Development/CheckSourceIncludePaths.ps1`。
 - 已有历史提交不因本规范补写、修改或重写；本规范只约束其生效后的新提交。
 
 ### Visual Studio 项目文件同步

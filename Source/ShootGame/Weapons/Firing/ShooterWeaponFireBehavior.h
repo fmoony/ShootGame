@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
-#include "ShooterWeaponConfigRow.h"
+#include "Weapons/Data/ShooterWeaponConfigRow.h"
 #include "ShooterWeaponFireBehavior.generated.h"
 
 class AShooterWeapon;

@@ -15,12 +15,7 @@ public class ShootGame : ModuleRules
 
 		PrivateDependencyModuleNames.AddRange(new string[] { "AnimationCore", "Niagara" });
 
-		PublicIncludePaths.AddRange(new string[] {
-			"ShootGame", "ShootGame/GameFramework", "ShootGame/Characters", "ShootGame/Characters/Animation",
-			"ShootGame/Characters/Animation/AnimNodes", "ShootGame/AI", "ShootGame/Weapons", "ShootGame/Inventory",
-			"ShootGame/Tests/Inventory", "ShootGame/Tests/Equipment", "ShootGame/UI", "ShootGame/AbilitySystem",
-			"ShootGame/AbilitySystem/Abilities"
-		});
+		PublicIncludePaths.Add("ShootGame");
 
 		// Uncomment if you are using Slate UI
 		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });

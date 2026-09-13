@@ -13,8 +13,8 @@
 #include "Inventory/ShooterInventoryComponent.h"
 #include "Weapons/ShooterWeapon.h"
 #include "Weapons/Subsystems/ShooterWeaponRuntimeSubsystem.h"
-#include "ShooterWeaponPresentationTestTypes.h"
-#include "../Weapon/ShooterWeaponTestTableTypes.h"
+#include "Tests/Equipment/ShooterWeaponPresentationTestTypes.h"
+#include "Tests/Weapon/ShooterWeaponTestTableTypes.h"
 
 /**
  * S3 定向验证：Inventory 通过 WeaponRuntimeSubsystem 授予与归还 WeaponActor。

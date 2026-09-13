@@ -15,8 +15,8 @@
 #include "UObject/UnrealType.h"
 #include "Weapons/ShooterWeapon.h"
 #include "Weapons/Subsystems/ShooterWeaponRuntimeSubsystem.h"
-#include "ShooterWeaponPresentationTestTypes.h"
-#include "../Weapon/ShooterWeaponTestTableTypes.h"
+#include "Tests/Equipment/ShooterWeaponPresentationTestTypes.h"
+#include "Tests/Weapon/ShooterWeaponTestTableTypes.h"
 
 namespace ShooterInventoryLifecycleAutomationTests
 {

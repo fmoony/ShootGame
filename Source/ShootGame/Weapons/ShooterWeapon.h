@@ -4,10 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "ShooterAnimNotify_WeaponSound.h"
-#include "ShooterWeaponHolder.h"
+#include "Weapons/Animation/ShooterAnimNotify_WeaponSound.h"
+#include "Weapons/Interfaces/ShooterWeaponHolder.h"
 #include "Animation/AnimInstance.h"
-#include "ShooterWeaponConfigRow.h"
+#include "Weapons/Data/ShooterWeaponConfigRow.h"
 #include "ShooterWeapon.generated.h"
 
 class IShooterWeaponHolder;

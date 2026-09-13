@@ -3,11 +3,11 @@
 
 #include "ShooterStateTreeUtility.h"
 #include "StateTreeExecutionContext.h"
-#include "ShooterNPC.h"
+#include "AI/ShooterNPC.h"
 #include "Camera/CameraComponent.h"
 #include "AIController.h"
 #include "Perception/AIPerceptionComponent.h"
-#include "ShooterAIController.h"
+#include "AI/ShooterAIController.h"
 #include "StateTreeAsyncExecutionContext.h"
 
 bool FStateTreeLineOfSightToTargetCondition::TestCondition(FStateTreeExecutionContext& Context) const
