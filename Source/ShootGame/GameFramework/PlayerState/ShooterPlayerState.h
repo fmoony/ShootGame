@@ -14,6 +14,7 @@ class UShooterGameplayAbility_Equip;
 class UShooterGameplayAbility_Reload;
 class UGameplayAbility;
 struct FOnAttributeChangeData;
+struct FGameplayTag;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FPlayerCombatStatsChangedDelegate, int32, Kills, int32, Deaths, float, PersonalScore);
 
@@ -63,10 +64,10 @@ public:
 	/** 返回服务器配置的装备 Ability 类。 */
 	TSubclassOf<UShooterGameplayAbility_Equip> GetEquipAbilityClass() const { return EquipAbilityClass; }
 
-	/** 返回当前 PlayerState ASC 中 Equip Ability Spec 的数量（含尚未完成复制的本地视图）。 */
+	/** 返回当前 PlayerState ASC 中 Equip Ability Spec 的数量；正常为 Next / Previous 两个。 */
 	int32 GetEquipAbilitySpecCount() const;
 
-	/** 服务器幂等授予 Equip Ability；同一 PlayerState 只允许存在一个 Spec，重生只更新 Avatar。 */
+	/** 服务器幂等授予 Next / Previous 两个 Equip Ability Spec，重生只更新 Avatar。 */
 	void GrantEquipAbility();
 
 	/** 幂等绑定 Health 属性变化回调（绑定在 PlayerState 上，跨角色重生保持有效）。 */
@@ -119,6 +120,9 @@ protected:
 
 	/** Ability 授予幂等公共实现：指定类已存在 Spec 时直接跳过。 */
 	void GrantAbilityIfMissing(TSubclassOf<UGameplayAbility> AbilityClass);
+
+	/** 按动态输入标签幂等授予 Ability Spec；同一 Ability 类可以承接多个方向输入。 */
+	void GrantAbilityForInputTagIfMissing(TSubclassOf<UGameplayAbility> AbilityClass, const FGameplayTag& InputTag);
 
 	UPROPERTY(ReplicatedUsing=OnRep_TeamId, VisibleAnywhere, Category="Shooter|Stats")
 	uint8 TeamId = 0;

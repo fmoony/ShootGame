@@ -10,8 +10,6 @@
 #include "Characters/ShooterCharacter.h"
 #include "Weapons/Projectile/ShooterProjectile.h"
 #include "Weapons/Interfaces/ShooterWeaponHolder.h"
-#include "Weapons/Firing/ShooterWeaponFireBehavior.h"
-#include "Weapons/Projectile/ShooterProjectileFireBehavior.h"
 #include "Components/SceneComponent.h"
 #include "TimerManager.h"
 #include "Animation/AnimInstance.h"
@@ -257,7 +255,7 @@ void AShooterWeapon::ApplyWeaponRow(const FShooterWeaponConfigRow& Row)
 	FirstPersonAnimInstanceClass = Row.FirstPersonAnimInstanceClass;
 	ThirdPersonAnimInstanceClass = Row.ThirdPersonAnimInstanceClass;
 
-	// 兼容弹丸路径仍读 CDO 字段，这里同步为行值，保证两条路径的弹丸类一致。
+	// 弹丸类镜像：唯一弹丸生成路径（FireProjectile）直接读本 Actor 字段，运行时不再查表。
 	ProjectileClass = Row.ProjectileClass;
 
 	// 网格沿用当前同步加载边界：行内为软引用，应用时同步加载。
@@ -269,14 +267,6 @@ void AShooterWeapon::ApplyWeaponRow(const FShooterWeaponConfigRow& Row)
 	{
 		ThirdPersonMesh->SetSkeletalMeshAsset(Row.ThirdPersonMesh.LoadSynchronous());
 	}
-
-	// 冻结完整配置快照：开火行为只读该快照，运行时不再解析任何配置资产。
-	ConfigSnapshot = Row;
-
-	// 行为实例按行创建；重复应用行配置时替换旧实例，避免残留上一行的行为类。
-	FireBehaviorInstance = Row.FireBehaviorClass
-		? NewObject<UShooterWeaponFireBehavior>(this, Row.FireBehaviorClass, NAME_None, RF_Transient)
-		: nullptr;
 
 	// 权威端应用新配置即回到该配置的初始弹药经济：绑定、复用与归还路径都经此收敛。
 	if (HasAuthority())
@@ -322,10 +312,6 @@ FShooterWeaponConfigRow AShooterWeapon::CaptureWeaponConfigRow() const
 	if (ThirdPersonMesh)
 	{
 		Row.ThirdPersonMesh = ThirdPersonMesh->GetSkeletalMeshAsset();
-	}
-	if (FireBehaviorInstance)
-	{
-		Row.FireBehaviorClass = FireBehaviorInstance->GetClass();
 	}
 
 	return Row;
@@ -504,8 +490,8 @@ void AShooterWeapon::OnOwnerDestroyed(AActor* DestroyedActor)
 {
 	// 运行时池租出的武器由池接管回收：归还而不是销毁，否则池会留下 PendingKill 引用，
 	// 且该 Actor 只能等 GC 才能复用。归还前由 Inventory 清空 / Equipment 收敛。
-	if (UShooterWeaponRuntimeSubsystem* Runtime = GetWeaponRuntimeSubsystem();
-		Runtime && Runtime->IsLeased(this))
+	UShooterWeaponRuntimeSubsystem* Runtime = GetWeaponRuntimeSubsystem();
+	if (Runtime && Runtime->IsLeased(this))
 	{
 		if (Runtime->ReleaseWeapon(this))
 		{
@@ -658,31 +644,10 @@ void AShooterWeapon::FireCooldownExpired()
 	WeaponOwner->OnSemiWeaponRefire();
 }
 
-UShooterWeaponFireBehavior* AShooterWeapon::ResolveFireBehavior() const
-{
-	// 行为由绑定的武器模板行决定，不从 WeaponActor 默认值读取；未绑定模板行时返回空走兼容路径。
-	return FireBehaviorInstance;
-}
-
 void AShooterWeapon::ExecuteFireAtTarget(const FVector& TargetLocation)
 {
-	// 攻击结果边界：配置了行为类时只委托行为；否则走 NPC / 旧测试兼容路径。
-	if (UShooterWeaponFireBehavior* Behavior = ResolveFireBehavior())
-	{
-		FShooterWeaponFireContext Context;
-		Context.WeaponActor = this;
-		Context.Instigator = PawnOwner;
-		Context.TargetLocation = TargetLocation;
-		Context.MuzzleTransform = CalculateProjectileSpawnTransform(TargetLocation);
-		Context.WeaponId = WeaponId;
-		// 行为只读 Actor 冻结的配置快照，不再解析任何配置资产。
-		Context.Config = ConfigSnapshot;
-		Behavior->ExecuteFire(Context);
-	}
-	else
-	{
-		FireProjectile(TargetLocation);
-	}
+	// 攻击结果边界：生成弹丸；表现入口统一留在本 Actor（行为边界当前休眠，不参与本路径）。
+	FireProjectile(TargetLocation);
 
 	// play the firing montage
 	WeaponOwner->PlayFiringMontage(FiringMontage);
@@ -697,8 +662,8 @@ void AShooterWeapon::ExecuteFireAtTarget(const FVector& TargetLocation)
 
 void AShooterWeapon::FireProjectile(const FVector& TargetLocation)
 {
-	// 兼容路径（PvE / 旧测试）：Definition 行为不可用时的旧弹丸生成实现。
-	// 仅服务器调用（Fire 入口已做权威校验）；正式玩家路径不进入本函数。
+	// 唯一弹丸生成路径：玩家与 NPC 共用，弹丸类来自 ApplyWeaponRow 镜像的行配置。
+	// 仅服务器调用（Fire 入口已做权威校验）；客户端不进入本函数。
 	// get the projectile transform
 	FTransform ProjectileTransform = CalculateProjectileSpawnTransform(TargetLocation);
 

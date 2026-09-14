@@ -13,8 +13,14 @@ namespace ShooterGameplayTags
 	/** 输入标签：换弹输入与 GA_Reload Ability Spec 之间的稳定映射。 */
 	SHOOTGAME_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Reload);
 
-	/** 输入标签：切枪输入与 GA_Equip Ability Spec 之间的稳定映射。 */
+	/** 输入标签：所有切枪 Ability 共用的分类与取消标签。 */
+	SHOOTGAME_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Equip);
+
+	/** 输入标签：按 SlotIndex 升序切换武器。 */
 	SHOOTGAME_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Equip_Next);
+
+	/** 输入标签：按 SlotIndex 降序切换武器。 */
+	SHOOTGAME_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Equip_Previous);
 
 	/** 状态标签：拥有者已死亡，GA_Fire / GA_Reload / GA_Equip 拒绝激活并取消现有事务。 */
 	SHOOTGAME_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Dead);

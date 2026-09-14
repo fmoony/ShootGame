@@ -63,7 +63,7 @@ FGameplayAbilitySpec* UShooterAbilitySystemComponent::FindAbilitySpecFromInputTa
 
 		// AssetTags 来自 Ability CDO，表示 Ability 类型自身的固定标签；
 		// DynamicSpecSourceTags 属于具体 AbilitySpec，可在 GiveAbility 时为本次授予追加标签。
-		if (Spec.Ability->GetAssetTags().HasTag(InputTag) || Spec.GetDynamicSpecSourceTags().HasTag(InputTag))
+		if (Spec.Ability->GetAssetTags().HasTagExact(InputTag) || Spec.GetDynamicSpecSourceTags().HasTagExact(InputTag))
 		{
 			return &Spec;
 		}

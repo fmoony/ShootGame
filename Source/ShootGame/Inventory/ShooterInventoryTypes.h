@@ -164,10 +164,10 @@ struct FShooterWeaponInventoryList : public FFastArraySerializer
 		return nullptr;
 	}
 
-	/** 按 Slot 顺序返回 Current 之后的下一把武器；到达末尾时回绕到最小 Slot。 */
-	AShooterWeapon* FindNextWeapon(const AShooterWeapon* CurrentWeapon) const
+	/** 按 Slot 顺序和 Direction（+1 升序、-1 降序）返回相邻武器，并在边界回绕。 */
+	AShooterWeapon* FindAdjacentWeapon(const AShooterWeapon* CurrentWeapon, int32 Direction) const
 	{
-		if (Items.Num() < 2 || !CurrentWeapon)
+		if (Items.Num() < 2 || !CurrentWeapon || Direction == 0)
 		{
 			return nullptr;
 		}
@@ -178,8 +178,9 @@ struct FShooterWeaponInventoryList : public FFastArraySerializer
 			return nullptr;
 		}
 
+		const bool bForward = Direction > 0;
 		const FShooterInventoryWeaponEntry* WrapCandidate = nullptr;
-		const FShooterInventoryWeaponEntry* NextCandidate = nullptr;
+		const FShooterInventoryWeaponEntry* AdjacentCandidate = nullptr;
 		for (const FShooterInventoryWeaponEntry& Candidate : Items)
 		{
 			if (!Candidate.Weapon)
@@ -187,18 +188,24 @@ struct FShooterWeaponInventoryList : public FFastArraySerializer
 				continue;
 			}
 
-			if (!WrapCandidate || Candidate.SlotIndex < WrapCandidate->SlotIndex)
+			if (!WrapCandidate || (bForward && Candidate.SlotIndex < WrapCandidate->SlotIndex) ||
+				(!bForward && Candidate.SlotIndex > WrapCandidate->SlotIndex))
 			{
 				WrapCandidate = &Candidate;
 			}
 
-			if (Candidate.SlotIndex > Current->SlotIndex && (!NextCandidate || Candidate.SlotIndex < NextCandidate->SlotIndex))
+			const bool bIsInDirection = bForward
+				? Candidate.SlotIndex > Current->SlotIndex
+				: Candidate.SlotIndex < Current->SlotIndex;
+			const bool bIsCloser = !AdjacentCandidate || (bForward && Candidate.SlotIndex < AdjacentCandidate->SlotIndex) ||
+				(!bForward && Candidate.SlotIndex > AdjacentCandidate->SlotIndex);
+			if (bIsInDirection && bIsCloser)
 			{
-				NextCandidate = &Candidate;
+				AdjacentCandidate = &Candidate;
 			}
 		}
 
-		const FShooterInventoryWeaponEntry* Target = NextCandidate ? NextCandidate : WrapCandidate;
+		const FShooterInventoryWeaponEntry* Target = AdjacentCandidate ? AdjacentCandidate : WrapCandidate;
 		return Target ? Target->Weapon.Get() : nullptr;
 	}
 };

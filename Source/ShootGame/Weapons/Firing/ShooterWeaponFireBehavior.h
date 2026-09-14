@@ -4,9 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
-#include "Weapons/Data/ShooterWeaponConfigRow.h"
 #include "ShooterWeaponFireBehavior.generated.h"
 
+class AShooterProjectile;
 class AShooterWeapon;
 class APawn;
 
@@ -36,11 +36,11 @@ struct FShooterWeaponFireContext
 	FVector TargetLocation = FVector::ZeroVector;
 
 	/**
-	 * 本次开火使用的武器配置快照；由 WeaponActor 在应用配置时冻结。
-	 * 行为实现只读本快照，不再解析任何配置资产。
+	 * 本次开火使用的弹丸类；由 WeaponActor 从行配置镜像（WeaponActor.ProjectileClass）填入。
+	 * 上下文只携带这一条武器派生参数，不再携带整行配置快照。
 	 */
 	UPROPERTY(BlueprintReadOnly, Category="Fire")
-	FShooterWeaponConfigRow Config;
+	TSubclassOf<AShooterProjectile> ProjectileClass;
 
 	/** 本次开火的武器种类身份；与 WeaponActor.WeaponId 一致。 */
 	UPROPERTY(BlueprintReadOnly, Category="Fire")
@@ -51,11 +51,14 @@ struct FShooterWeaponFireContext
  * 开火行为边界：只回答"这一枪如何产生攻击结果"。
  *
  * 约束（武器与 Inventory 正式架构实施计划 4.3）：
- * - 无复制、无持久可变状态；武器参数全部来自 FShooterWeaponFireContext::Config；
+ * - 无复制、无持久可变状态；武器派生参数只来自 FShooterWeaponFireContext::ProjectileClass；
  * - GA_Fire 管理 Ability 生命周期与激活条件；
  * - WeaponActor 管理弹药消耗与弹药权威；
- * - WeaponActor 负责 Muzzle、Mesh、Attach、表现入口与调用行为；
+ * - WeaponActor 负责 Muzzle、Mesh、Attach、表现入口与调用行为（当前未接入行为，见下）；
  * - Projectile、Damage 与 Ammo 只由服务器产生。
+ *
+ * 接入现状：本定义当前处于休眠状态 —— WeaponActor 直接生成自己的 ProjectileClass，
+ * 不再实例化或调用行为；重新接入时由 WeaponActor 在表现入口之前填上下文并调用 ExecuteFire。
  */
 UCLASS(Abstract, EditInlineNew, DefaultToInstanced)
 class SHOOTGAME_API UShooterWeaponFireBehavior : public UObject

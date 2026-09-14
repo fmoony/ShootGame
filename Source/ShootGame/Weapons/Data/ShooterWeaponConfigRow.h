@@ -100,13 +100,14 @@ struct SHOOTGAME_API FShooterWeaponConfigRow : public FTableRowBase
 	// ---- Attack ----
 
 	/**
-	 * 开火行为类：只选择无持久可变状态的行为实现，由 WeaponActor 在应用行配置时实例化。
-	 * 空类表示该行回落到 WeaponActor 的兼容弹丸路径。
+	 * 开火行为类：只选择无持久可变状态的行为实现。
+	 * 当前处于休眠状态：WeaponActor 不再实例化或调用行为；本列与 DT_WeaponData 的取值保留，
+	 * 供重新接入开火结果边界时使用，运行时不读本列。
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Attack")
 	TSubclassOf<UShooterWeaponFireBehavior> FireBehaviorClass;
 
-	/** 该行投射物类；由行为实现从本行读取，不再保存在行为实例上。 */
+	/** 该行投射物类；ApplyWeaponRow 镜像到 WeaponActor，由 FireProjectile 生成弹丸时使用。 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Attack")
 	TSubclassOf<AShooterProjectile> ProjectileClass;
 
@@ -192,8 +193,6 @@ struct SHOOTGAME_API FShooterWeaponConfigRow : public FTableRowBase
 	/** 解析实际初始备弹：显式 >=0 直接采用，-1 回落 MagazineSize × 3。 */
 	int32 ResolveInitialReserveAmmo() const
 	{
-		return InitialReserveAmmo >= 0
-			? InitialReserveAmmo
-			: FMath::Max(0, MagazineSize * 3);
+		return InitialReserveAmmo >= 0 ? InitialReserveAmmo : FMath::Max(0, MagazineSize * 3);
 	}
 };

@@ -306,10 +306,15 @@ public:
 	UFUNCTION(NetMulticast, Unreliable)
 	void MulticastPlayFiringMontage(UAnimMontage* Montage);
 
-	/** 处理切换武器输入 */
+	/** 蓝图兼容入口：切换到下一个武器槽位。 */
 	UFUNCTION(BlueprintCallable, Category="Input")
 	void DoSwitchWeapon();
 
+	/** Enhanced Input 入口：按 Axis1D 正负值请求下一个或上一个武器槽位。 */
+	void DoSwitchWeaponInput(const FInputActionValue& Value);
+
+	/** 向 ASC 提交指定方向的切枪输入；Direction > 0 为 Next，否则为 Previous。 */
+	void DoSwitchWeaponInDirection(int32 Direction);
 
 public:
 

@@ -1,4 +1,4 @@
-﻿// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright Epic Games, Inc. All Rights Reserved.
 
 
 #include "ShooterCharacter.h"
@@ -392,15 +392,13 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 		// Firing
 		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &AShooterCharacter::DoStartFiring);
-		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this,
-			&AShooterCharacter::DoStopFiring);
+		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this, &AShooterCharacter::DoStopFiring);
 
 		// Reload：IA_Reload 只提交 Input.Reload，不直接改弹药。
 		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &AShooterCharacter::DoReload);
 
-		// Switch weapon
-		EnhancedInputComponent->BindAction(SwitchWeaponAction, ETriggerEvent::Triggered, this,
-			&AShooterCharacter::DoSwitchWeapon);
+		// 切枪使用 Axis1D：正值切下一把，负值切上一把；Started 保证按钮长按只触发一次。
+		EnhancedInputComponent->BindAction(SwitchWeaponAction, ETriggerEvent::Started, this, &AShooterCharacter::DoSwitchWeaponInput);
 	}
 	else
 	{
@@ -529,7 +527,7 @@ void AShooterCharacter::CancelEquipAbility()
 {
 	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent = Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
 	{
-		ShooterAbilitySystemComponent->CancelAbilitiesByTag(ShooterGameplayTags::Input_Equip_Next);
+		ShooterAbilitySystemComponent->CancelAbilitiesByTag(ShooterGameplayTags::Input_Equip);
 	}
 }
 
@@ -597,11 +595,30 @@ void AShooterCharacter::MulticastPlayFiringMontage_Implementation(UAnimMontage* 
 
 void AShooterCharacter::DoSwitchWeapon()
 {
-	// 输入只提交给 ASC：GA_Equip 为 ServerOnly，客户端按 Input.Equip.Next 发起激活，
-	// GAS 自动把激活请求可靠转发到服务器。
+	DoSwitchWeaponInDirection(1);
+}
+
+void AShooterCharacter::DoSwitchWeaponInput(const FInputActionValue& Value)
+{
+	const float AxisValue = Value.Get<float>();
+	if (FMath::IsNearlyZero(AxisValue))
+	{
+		return;
+	}
+
+	DoSwitchWeaponInDirection(AxisValue > 0.0f ? 1 : -1);
+}
+
+void AShooterCharacter::DoSwitchWeaponInDirection(int32 Direction)
+{
+	// 输入只提交给 ASC：两个动态标签 Spec 共用 ServerOnly GA_Equip，
+	// GAS 自动把选中的 Spec 激活请求可靠转发到服务器。
 	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent = Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
 	{
-		ShooterAbilitySystemComponent->AbilityInputTagPressed(ShooterGameplayTags::Input_Equip_Next);
+		const FGameplayTag& InputTag = Direction > 0
+			? ShooterGameplayTags::Input_Equip_Next
+			: ShooterGameplayTags::Input_Equip_Previous;
+		ShooterAbilitySystemComponent->AbilityInputTagPressed(InputTag);
 		return;
 	}
 

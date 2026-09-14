@@ -310,7 +310,8 @@ bool AShooterNetworkTestCoordinator::TriggerLongEquip(AShooterCharacter* Charact
 	}
 
 	AShooterCharacter* LongEquipCharacter = Cast<AShooterCharacter>(Inventory->GetOwner());
-	AShooterWeapon* TargetWeapon = Inventory->FindNextWeapon(LongEquipCharacter ? LongEquipCharacter->GetCurrentWeapon() : nullptr);
+	AShooterWeapon* TargetWeapon = Inventory->FindAdjacentWeapon(
+		LongEquipCharacter ? LongEquipCharacter->GetCurrentWeapon() : nullptr, 1);
 	if (!TargetWeapon)
 	{
 		FailTest(FString::Printf(TEXT("%s equip precondition could not resolve next weapon"), Context));
@@ -1328,9 +1329,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 				ReloadAbilityClass == UShooterGameplayAbility_Reload::StaticClass() &&
 				EquipAbilityClass == UShooterGameplayAbility_Equip::StaticClass() &&
 				ServerReloadAbilityCount == 1 &&
-				ServerEquipAbilityCount == 1 &&
+				ServerEquipAbilityCount == 2 &&
 				ShooterPlayerState->GetReloadAbilitySpecCount() == 1 &&
-				ShooterPlayerState->GetEquipAbilitySpecCount() == 1 &&
+				ShooterPlayerState->GetEquipAbilitySpecCount() == 2 &&
 				ReloadAbilitySpec &&
 				ReloadAbilitySpec->Ability &&
 				ReloadAbilitySpec->Ability->GetClass() == ReloadAbilityClass &&
@@ -2493,7 +2494,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			RespawnEquipAbilitySpec->Ability->GetClass() ==
 				ShooterPlayerState->GetEquipAbilityClass() &&
 			ShooterPlayerState->GetReloadAbilitySpecCount() == 1 &&
-			ShooterPlayerState->GetEquipAbilitySpecCount() == 1;
+			ShooterPlayerState->GetEquipAbilitySpecCount() == 2;
 
 		UShooterInventoryComponent* RespawnInventory = Character->GetInventoryComponent();
 		bServerRespawnInventoryEmpty = RespawnInventory && RespawnInventory->GetWeaponCount() == 0 &&
@@ -3065,12 +3066,12 @@ void AShooterNetworkTestCoordinator::PollClientState()
 		}
 	}
 
-	// ---- 5A Reload / Equip Ability 授予复制（拥有者客户端视角）：Owner 各一个，远端不收到完整 Spec ----
+	// ---- 5A Reload / Equip Ability 授予复制：Owner 收到一个 Reload 和两个方向 Equip，远端不收到完整 Spec ----
 	if (!bClientReportedReloadEquipGrant)
 	{
 		AShooterPlayerState* ShooterPlayerState = PlayerController->GetPlayerState<AShooterPlayerState>();
 		if (ShooterPlayerState && ShooterPlayerState->GetReloadAbilitySpecCount() == 1 &&
-			ShooterPlayerState->GetEquipAbilitySpecCount() == 1)
+			ShooterPlayerState->GetEquipAbilitySpecCount() == 2)
 		{
 			bool bRemoteReloadSpecsHidden = false;
 			bool bRemoteEquipSpecsHidden = false;
@@ -3100,7 +3101,7 @@ void AShooterNetworkTestCoordinator::PollClientState()
 			if (bRemoteReloadSpecsHidden && bRemoteEquipSpecsHidden)
 			{
 				bClientReportedReloadEquipGrant = true;
-				ServerReportClientObservedReloadEquipAbilityGrant(1, true, 1, true);
+				ServerReportClientObservedReloadEquipAbilityGrant(1, true, 2, true);
 			}
 		}
 	}
@@ -3655,7 +3656,7 @@ void AShooterNetworkTestCoordinator::ServerReportClientObservedFireAbilityGrant_
 void AShooterNetworkTestCoordinator::ServerReportClientObservedReloadEquipAbilityGrant_Implementation(
 	int32 OwnerReloadSpecCount, bool bRemoteReloadSpecsHidden, int32 OwnerEquipSpecCount, bool bRemoteEquipSpecsHidden)
 {
-	bClientObservedReloadEquipGrant = OwnerReloadSpecCount == 1 && OwnerEquipSpecCount == 1 && bRemoteReloadSpecsHidden &&
+	bClientObservedReloadEquipGrant = OwnerReloadSpecCount == 1 && OwnerEquipSpecCount == 2 && bRemoteReloadSpecsHidden &&
 		bRemoteEquipSpecsHidden;
 	UE_LOG(
 		LogShootGame,

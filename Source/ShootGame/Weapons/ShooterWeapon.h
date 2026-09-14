@@ -12,10 +12,8 @@
 
 class IShooterWeaponHolder;
 class AShooterProjectile;
-class UShooterWeaponFireBehavior;
 class UShooterWeaponRuntimeSubsystem;
 struct FShooterWeaponConfigRow;
-struct FShooterWeaponFireContext;
 
 /**
  * WeaponActor 生命周期状态（实施计划 4.4）：InPool -> Holstered -> Equipping -> Equipped -> Holstered -> InPool。
@@ -83,14 +81,6 @@ protected:
 
 	UFUNCTION()
 	void OnRep_WeaponId();
-
-	/** 行配置实例化出的开火行为；无持久可变状态，不复制，两端各自按行创建。 */
-	UPROPERTY(Transient)
-	TObjectPtr<UShooterWeaponFireBehavior> FireBehaviorInstance;
-
-	/** ApplyWeaponRow 时冻结的完整配置快照；开火行为只读本快照，运行时不再查表。 */
-	UPROPERTY(Transient)
-	FShooterWeaponConfigRow ConfigSnapshot;
 
 	/** 生命周期状态；服务器权威，客户端经 OnRep 镜像，不复制。 */
 	EShooterWeaponLifecycleState LifecycleState = EShooterWeaponLifecycleState::InPool;
@@ -261,7 +251,7 @@ protected:
 
 	/**
 	 * 把武器模板行的只读配置应用到本 Actor 的运行时镜像（网格、动画类、表现资产、
-	 * 弹药经济、开火节奏、时序、Socket、视角参数）并实例化行的 FireBehaviorClass。
+	 * 弹药经济、开火节奏、时序、Socket、视角参数、弹丸类）。
 	 * 模板数据本身只读：本函数只写 Actor 自身状态，不修改行或表。
 	 */
 	void ApplyWeaponRow(const FShooterWeaponConfigRow& Row);
@@ -281,9 +271,6 @@ public:
 
 	/** 服务器扣弹 / 换弹提交与 Owner 客户端 OnRep 共用的 HUD 推送入口（装备可见时）。 */
 	void PushAmmoToOwnerHud();
-
-	/** 返回 ApplyWeaponRow 冻结的配置快照；未应用行配置前为结构默认值。 */
-	const FShooterWeaponConfigRow& GetConfigSnapshot() const { return ConfigSnapshot; }
 
 	/** 返回当前生命周期状态。 */
 	EShooterWeaponLifecycleState GetLifecycleState() const { return LifecycleState; }
@@ -315,12 +302,12 @@ protected:
 	void FireCooldownExpired();
 
 	/**
-	 * 服务器权威开火执行：绑定武器模板行且该行配置了行为类时把弹丸生成委托给行为，
-	 * 否则走 NPC / 旧测试兼容的 FireProjectile 路径；表现入口统一留在本 Actor。
+	 * 服务器权威开火执行：生成弹丸，并把表现入口（Montage / Multicast FX / 后坐力）统一留在本 Actor。
+	 * 开火行为边界当前休眠，本函数只调用 FireProjectile；弹丸类来自 ApplyWeaponRow 镜像的行配置。
 	 */
 	void ExecuteFireAtTarget(const FVector& TargetLocation);
 
-	/** 旧弹丸生成路径：仅在武器模板行未配置行为类时执行（NPC / 测试兼容，B4 记录遗留边界）。 */
+	/** 唯一弹丸生成路径：使用 ApplyWeaponRow 从行镜像的 ProjectileClass 生成弹丸；只在服务器执行。 */
 	virtual void FireProjectile(const FVector& TargetLocation);
 
 	/** Broadcast firing effects (muzzle flash + sound) to all clients. Unreliable: dropping a flash is acceptable */
@@ -396,12 +383,6 @@ public:
 
 	/** 返回当前备弹；弹药权威在本 Actor 的 ReserveAmmo。 */
 	int32 GetReserveAmmo() const;
-
-	/**
-	 * 解析本次开火应使用的正式行为：绑定模板行时由行的 FireBehaviorClass 实例化。
-	 * 返回空表示走兼容路径（未绑定模板行或该行未配置行为类）。
-	 */
-	UShooterWeaponFireBehavior* ResolveFireBehavior() const;
 
 	/**
 	 * 把本 Actor 当前的配置镜像导出为一条武器模板行。

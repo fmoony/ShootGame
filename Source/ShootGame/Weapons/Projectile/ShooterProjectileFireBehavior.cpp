@@ -11,8 +11,8 @@
 void UShooterProjectileFireBehavior::ExecuteFire(const FShooterWeaponFireContext& Context)
 {
 	AShooterWeapon* Weapon = Context.WeaponActor;
-	// 弹丸类只来自本次开火的武器模板行快照；行未配置弹丸类时 fail closed。
-	TSubclassOf<AShooterProjectile> ProjectileClass = Context.Config.ProjectileClass;
+	// 弹丸类只来自本次开火的上下文；上下文未携带弹丸类时 fail closed。
+	TSubclassOf<AShooterProjectile> ProjectileClass = Context.ProjectileClass;
 	if (!Weapon || !Context.Instigator || !ProjectileClass)
 	{
 		// 缺少任一必要输入时 fail closed，不产生 Gameplay 结果。

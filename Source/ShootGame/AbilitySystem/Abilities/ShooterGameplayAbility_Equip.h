@@ -13,7 +13,7 @@ class UAbilityTask_WaitDelay;
 /**
  * 服务器权威装备事务 Ability。
  *
- * 5C 闭环：激活时按 Slot 顺序计算下一个合法 WeaponActor，取消 Fire / Reload，
+ * 5C 闭环：激活时按输入 Spec 的方向计算相邻合法 WeaponActor，取消 Fire / Reload，
  * 以 WeaponActor.EquipDuration 为服务器时钟等待，提交前二次确认目标仍有效，
  * 最后通过 Equipment.EquipWeapon 原子提交 CurrentWeaponActor。
  */
@@ -25,8 +25,8 @@ class SHOOTGAME_API UShooterGameplayAbility_Equip : public UShooterGameplayAbili
 public:
 	UShooterGameplayAbility_Equip();
 
-	/** 测试观察接口：Ability 的资产标签是否包含 Input.Equip.Next。 */
-	bool HasInputEquipNextTag() const;
+	/** 测试观察接口：Ability 的资产标签是否包含统一分类 Input.Equip。 */
+	bool HasInputEquipTag() const;
 
 	/** 测试观察接口：State.Dead 是否阻塞本 Ability 激活。 */
 	bool IsBlockedByStateDead() const;
@@ -53,8 +53,12 @@ protected:
 		const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
 private:
-	/** 服务器完整校验：至少两把武器、当前装备有效且能按 Slot 顺序找到下一个目标 Actor。 */
-	bool ResolveEquipTarget(const FGameplayAbilityActorInfo* ActorInfo, AShooterWeapon*& OutWeapon) const;
+	/** 从当前 Ability Spec 的动态输入标签解析方向：Next=+1、Previous=-1。 */
+	int32 ResolveEquipDirection(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo) const;
+
+	/** 服务器完整校验：至少两把武器、当前装备有效且能按 Spec 方向找到相邻目标 Actor。 */
+	bool ResolveEquipTarget(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+		AShooterWeapon*& OutWeapon) const;
 
 	/** 提交前二次校验：目标 WeaponActor 仍在背包且没有其他事务改写当前武器。 */
 	bool IsEquipTargetStillValid() const;

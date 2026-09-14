@@ -51,7 +51,9 @@ git rev-parse HEAD:Content/Shooter/Blueprints/Weapons/BP_ShooterWeapon_Rifle.uas
 WeaponDefaults->GetFirstPersonAnimInstanceClass() == ExpectedFirstPersonClass
 ```
 
-5. [ShooterWeapon.cpp](../Source/ShootGame/Weapons/ShooterWeapon.cpp) 中 `GetFirstPersonAnimInstanceClass()` 只返回 `FirstPersonAnimInstanceClass` 字段，没有运行时选择、Fallback 或网络状态分支。
+5. [ShooterWeapon.cpp](../Source/ShootGame/Weapons/ShooterWeapon.cpp) 的
+   `GetFirstPersonAnimInstanceClass()` 只返回 `FirstPersonAnimInstanceClass` 字段，
+   没有运行时选择、Fallback 或网络状态分支。
 6. 测试框架记录 `Expected 'Rifle FP AnimClass matches baseline' to be true.`，用例为 Fail，自动化进程因测试失败返回 255。
 
 这个比较是严格 UClass 相等，不是检查共同父类或 `IsChildOf`。本测试虽然注释提及 AnimBP 父类分布，实际此失败断言并不验证父类，也与 NewAnimBlueprint 改成 ShooterThirdPersonAnimInstance 的操作没有直接关系。测试还检查 Pistol/TP 配置及 Equipment 的 BlueprintAssignable 委托；本次没有这些断言的错误。

@@ -4,6 +4,10 @@
 
 #include "Misc/AutomationTest.h"
 #include "Abilities/GameplayAbility.h"
+#include "EnhancedActionKeyMapping.h"
+#include "InputAction.h"
+#include "InputMappingContext.h"
+#include "InputModifiers.h"
 #include "Characters/Equipment/ShooterEquipmentComponent.h"
 #include "Engine/Engine.h"
 #include "Engine/World.h"
@@ -70,9 +74,72 @@ namespace ShooterAbilityEquipBehaviorAutomationTests
 			static_cast<int32>(EGameplayAbilityInstancingPolicy::InstancedPerActor));
 		Test.TestFalse(TEXT("GA_Equip does not retrigger an already active instance"),
 			EquipDefaults->CanRetriggerInstancedAbility());
-		Test.TestTrue(TEXT("GA_Equip is bound to Input.Equip.Next"), EquipDefaults->HasInputEquipNextTag());
+		Test.TestTrue(TEXT("GA_Equip uses the Input.Equip category tag"), EquipDefaults->HasInputEquipTag());
 		Test.TestTrue(TEXT("GA_Equip owns State.Equipping while active"),
 			EquipDefaults->OwnsStateEquippingWhileActive());
+		return true;
+	}
+
+	bool TestInputBindingContract(FAutomationTestBase& Test)
+	{
+		const UClass* CharacterClass = LoadClass<AShooterCharacter>(nullptr,
+			TEXT("/Game/Shooter/Blueprints/Characters/BP_ShooterCharacter.BP_ShooterCharacter_C"));
+		if (!Test.TestNotNull(TEXT("BP_ShooterCharacter can be loaded"), CharacterClass))
+		{
+			return false;
+		}
+
+		const FObjectProperty* SwitchActionProperty = FindFProperty<FObjectProperty>(CharacterClass,
+			TEXT("SwitchWeaponAction"));
+		if (!Test.TestNotNull(TEXT("Character exposes SwitchWeaponAction"), SwitchActionProperty))
+		{
+			return false;
+		}
+
+		const AShooterCharacter* CharacterDefaults = CharacterClass->GetDefaultObject<AShooterCharacter>();
+		const UInputAction* SwitchAction = CharacterDefaults
+			? Cast<UInputAction>(SwitchActionProperty->GetObjectPropertyValue_InContainer(CharacterDefaults))
+			: nullptr;
+		if (!Test.TestNotNull(TEXT("BP_ShooterCharacter configures SwitchWeaponAction"), SwitchAction))
+		{
+			return false;
+		}
+
+		Test.TestEqual(TEXT("IA_SwapWeapon uses Axis1D"), static_cast<int32>(SwitchAction->ValueType),
+			static_cast<int32>(EInputActionValueType::Axis1D));
+
+		const UInputMappingContext* InputMappingContext = LoadObject<UInputMappingContext>(nullptr,
+			TEXT("/Game/Shooter/Input/IMC_Weapons.IMC_Weapons"));
+		if (!Test.TestNotNull(TEXT("IMC_Weapons can be loaded"), InputMappingContext))
+		{
+			return false;
+		}
+
+		bool bFoundWheelDown = false;
+		bool bFoundNegatedWheelUp = false;
+		for (const FEnhancedActionKeyMapping& Mapping : InputMappingContext->GetMappings())
+		{
+			if (Mapping.Action != SwitchAction)
+			{
+				continue;
+			}
+
+			if (Mapping.Key == EKeys::MouseScrollDown)
+			{
+				bFoundWheelDown = true;
+			}
+			else if (Mapping.Key == EKeys::MouseScrollUp)
+			{
+				bFoundNegatedWheelUp = Mapping.Modifiers.ContainsByPredicate(
+					[](const TObjectPtr<UInputModifier>& Modifier)
+					{
+						return Modifier && Modifier->IsA<UInputModifierNegate>();
+					});
+			}
+		}
+
+		Test.TestTrue(TEXT("Mouse wheel down maps to next weapon"), bFoundWheelDown);
+		Test.TestTrue(TEXT("Mouse wheel up maps to previous weapon through Negate"), bFoundNegatedWheelUp);
 		return true;
 	}
 }
@@ -83,7 +150,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityEquipServerOnlyTest, "ShootGame.
 bool FShooterAbilityEquipServerOnlyTest::RunTest(const FString& Parameters)
 {
 	using namespace ShooterAbilityEquipBehaviorAutomationTests;
-	return TestServerOnlyContract(*this);
+	return TestServerOnlyContract(*this) && TestInputBindingContract(*this);
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityEquipNextSlotTest, "ShootGame.Ability.Equip.NextSlot",
@@ -113,15 +180,17 @@ bool FShooterAbilityEquipNextSlotTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("Slot 1 is added"), Inventory.AddItem(Slot1, 1));
 	TestTrue(TEXT("Slot 2 is added"), Inventory.AddItem(Slot2, 2));
 
-	TestTrue(TEXT("Slot 0 advances to Slot 1"), Inventory.FindNextWeapon(Slot0) == Slot1);
-	TestTrue(TEXT("Slot 1 advances to Slot 2"), Inventory.FindNextWeapon(Slot1) == Slot2);
-	TestTrue(TEXT("Slot 2 wraps to Slot 0"), Inventory.FindNextWeapon(Slot2) == Slot0);
+	TestTrue(TEXT("Slot 0 advances to Slot 1"), Inventory.FindAdjacentWeapon(Slot0, 1) == Slot1);
+	TestTrue(TEXT("Slot 1 advances to Slot 2"), Inventory.FindAdjacentWeapon(Slot1, 1) == Slot2);
+	TestTrue(TEXT("Slot 2 wraps to Slot 0"), Inventory.FindAdjacentWeapon(Slot2, 1) == Slot0);
+	TestTrue(TEXT("Slot 0 wraps backward to Slot 2"), Inventory.FindAdjacentWeapon(Slot0, -1) == Slot2);
+	TestTrue(TEXT("Slot 2 moves backward to Slot 1"), Inventory.FindAdjacentWeapon(Slot2, -1) == Slot1);
 
 	// 未入库的当前武器：明确拒绝。
 	AShooterRuntimePoolTestWeapon* Unlisted = SpawnEquipContractWeapon(*this, World, TEXT("EquipSlotWeapon_X"));
 	if (TestNotNull(TEXT("Unlisted weapon spawns"), Unlisted))
 	{
-		TestNull(TEXT("Missing current weapon is rejected"), Inventory.FindNextWeapon(Unlisted));
+		TestNull(TEXT("Missing current weapon is rejected"), Inventory.FindAdjacentWeapon(Unlisted, 1));
 	}
 
 	DestroyEquipContractWorld(World);
@@ -172,7 +241,7 @@ bool FShooterAbilityEquipRejectSingleWeaponTest::RunTest(const FString& Paramete
 		if (TestNotNull(TEXT("Single weapon spawns"), Only))
 		{
 			TestTrue(TEXT("Single weapon is added"), Inventory.AddItem(Only, 0));
-			TestNull(TEXT("Single weapon has no next slot"), Inventory.FindNextWeapon(Only));
+			TestNull(TEXT("Single weapon has no adjacent slot"), Inventory.FindAdjacentWeapon(Only, 1));
 		}
 		DestroyEquipContractWorld(World);
 	}

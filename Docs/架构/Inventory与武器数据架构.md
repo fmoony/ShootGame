@@ -67,9 +67,12 @@ AShooterCharacter
 WeaponId
 MagazineSize / InitialReserveAmmo
 Fire / Timing / Attack / Socket / Mesh / Anim / FX / Audio 参数
-FireBehaviorInstance（行为类实例）
-ConfigSnapshot（启动快照复制）
+ProjectileClass（由行配置镜像，唯一弹丸生成路径使用）
 ```
+
+- 开火行为定义（`UShooterWeaponFireBehavior` / `UShooterProjectileFireBehavior`）当前处于休眠状态：
+  WeaponActor 不实例化也不调用行为，弹丸由 `FireProjectile` 直接用 `ProjectileClass` 生成；
+  `FShooterWeaponConfigRow::FireBehaviorClass` 列与 DT_WeaponData 取值保留，运行时不读该列。
 
 运行时可变：
 

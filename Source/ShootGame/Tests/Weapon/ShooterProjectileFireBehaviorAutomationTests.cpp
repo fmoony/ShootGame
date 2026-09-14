@@ -4,20 +4,13 @@
 
 #include "Misc/AutomationTest.h"
 
-#include "Characters/Equipment/ShooterEquipmentComponent.h"
-#include "Characters/ShooterCharacter.h"
 #include "Engine/Engine.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
-#include "GameFramework/WorldSettings.h"
-#include "Inventory/ShooterInventoryComponent.h"
 #include "Weapons/Projectile/ShooterProjectile.h"
 #include "Weapons/Projectile/ShooterProjectileFireBehavior.h"
 #include "Weapons/ShooterWeapon.h"
-#include "Weapons/Data/ShooterWeaponConfigRow.h"
 #include "Tests/Equipment/ShooterWeaponPresentationTestTypes.h"
-#include "Tests/Weapon/ShooterWeaponTestTableTypes.h"
-#include "Weapons/Subsystems/ShooterWeaponRuntimeSubsystem.h"
 
 namespace ShooterProjectileFireBehaviorAutomationTests
 {
@@ -65,9 +58,10 @@ namespace ShooterProjectileFireBehaviorAutomationTests
 }
 
 /**
- * A3 验证：Projectile FireBehavior 是弹丸生成唯一正式边界。
- * 服务器上下文恰好生成一个配置类的弹丸；缺 WeaponActor / 缺弹丸类 / 非服务器全部 fail closed。
- * 单表纠偏后弹丸类来自本次开火的武器模板行快照，行为实例本身保持无状态。
+ * 休眠定义守卫：Projectile FireBehavior 仍按上下文生成弹丸。
+ * 服务器上下文恰好生成一个上下文声明的弹丸类；缺 WeaponActor / 缺弹丸类 / 非服务器全部 fail closed。
+ * 上下文只携带弹丸类这一条武器派生参数，不再携带整行武器配置快照。
+ * 该行为当前未接入产品路径（WeaponActor 直接生成自己的 ProjectileClass），本用例只守定义本身。
  */
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterProjectileFireBehaviorSpawnTest,
 	"ShootGame.Weapon.FireBehavior.ProjectileSpawn",
@@ -113,7 +107,7 @@ bool FShooterProjectileFireBehaviorSpawnTest::RunTest(const FString& Parameters)
 	Context.WeaponActor = nullptr;
 	Context.Instigator = InstigatorPawn;
 	Context.MuzzleTransform = FTransform(FRotator::ZeroRotator, FVector(10.0f, 0.0f, 80.0f));
-	Context.Config.ProjectileClass = PistolBulletClass;
+	Context.ProjectileClass = PistolBulletClass;
 
 	// 缺 WeaponActor：不生成。
 	Behavior->ExecuteFire(Context);
@@ -127,110 +121,19 @@ bool FShooterProjectileFireBehaviorSpawnTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("Non-authority weapon spawns nothing"), CountProjectiles(World, PistolBulletClass), 0);
 	Weapon->SetRole(ROLE_Authority);
 
-	// 行未配置弹丸类：不生成。
-	Context.Config.ProjectileClass = nullptr;
+	// 上下文未携带弹丸类：不生成。
+	Context.ProjectileClass = nullptr;
 	Behavior->ExecuteFire(Context);
 	TestEqual(TEXT("Missing projectile class spawns nothing"), CountProjectiles(World, PistolBulletClass), 0);
 
-	// 合法服务器上下文：恰好一个弹丸，且使用行配置的类与上下文变换。
-	Context.Config.ProjectileClass = PistolBulletClass;
+	// 合法服务器上下文：恰好一个弹丸，且使用上下文声明的类与上下文变换。
+	Context.ProjectileClass = PistolBulletClass;
 	Behavior->ExecuteFire(Context);
 	TestEqual(TEXT("Valid server context spawns exactly one projectile"), CountProjectiles(World, PistolBulletClass), 1);
 
 	for (TActorIterator<AShooterProjectile> It(World, PistolBulletClass); It; ++It)
 	{
 		TestEqual(TEXT("Projectile uses the context transform"), It->GetActorLocation(), FVector(10.0f, 0.0f, 80.0f));
-	}
-
-	DestroyFireBehaviorTestWorld(World);
-	return true;
-}
-
-/**
- * A3 / 单表纠偏验证：WeaponActor 的开火行为完全由武器模板行驱动。
- * 行配置了 FireBehaviorClass 时，授予后的武器解析到该行实例化的行为；
- * 行未配置行为类时解析不到正式行为，回落到兼容弹丸路径。
- */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterProjectileFireBehaviorWeaponRowWiringTest,
-	"ShootGame.Weapon.FireBehavior.WeaponRowWiring",
-	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
-
-bool FShooterProjectileFireBehaviorWeaponRowWiringTest::RunTest(const FString& Parameters)
-{
-	using namespace ShooterProjectileFireBehaviorAutomationTests;
-
-	UClass* PistolBulletClass = LoadPistolBulletClass(*this);
-	if (!PistolBulletClass)
-	{
-		return false;
-	}
-
-	UWorld* World = CreateFireBehaviorTestWorld();
-	if (!TestNotNull(TEXT("Weapon row wiring world created"), World))
-	{
-		return false;
-	}
-
-	AShooterWeaponPresentationTestCharacter* Character = World->SpawnActor<AShooterWeaponPresentationTestCharacter>(
-			FVector::ZeroVector, FRotator::ZeroRotator);
-	if (!TestNotNull(TEXT("Wiring test character spawned"), Character))
-	{
-		DestroyFireBehaviorTestWorld(World);
-		return false;
-	}
-	if (AWorldSettings* WorldSettings = World->GetWorldSettings())
-	{
-		WorldSettings->NotifyBeginPlay();
-	}
-
-	UShooterInventoryComponent* Inventory = Character->GetInventoryComponent();
-	if (!TestNotNull(TEXT("Character owns inventory"), Inventory))
-	{
-		DestroyFireBehaviorTestWorld(World);
-		return false;
-	}
-
-	UDataTable* TestTable = GetOrInjectRuntimeTestTable(World);
-	UShooterWeaponRuntimeSubsystem* Runtime = World->GetSubsystem<UShooterWeaponRuntimeSubsystem>();
-	if (!TestNotNull(TEXT("Test weapon table injected"), TestTable) ||
-		!TestNotNull(TEXT("Weapon runtime subsystem exists"), Runtime))
-	{
-		DestroyFireBehaviorTestWorld(World);
-		return false;
-	}
-
-	// 行 A：配置了正式行为类与弹丸类。
-	FShooterWeaponConfigRow BehaviorRow = MakeTestWeaponRow(AShooterInventoryOrderTestWeapon::StaticClass());
-	BehaviorRow.FireBehaviorClass = UShooterProjectileFireBehavior::StaticClass();
-	BehaviorRow.ProjectileClass = PistolBulletClass;
-	const FName BehaviorRowName = AddTestWeaponRow(TestTable, BehaviorRow);
-	Runtime->InitializeWeaponRuntimeForTest();
-
-	AShooterWeapon* BehaviorWeapon = Runtime->AcquireWeapon(BehaviorRowName, Character, nullptr);
-	if (TestNotNull(TEXT("Row-configured weapon actor exists"), BehaviorWeapon))
-	{
-		const UShooterWeaponFireBehavior* Behavior = BehaviorWeapon->ResolveFireBehavior();
-		TestNotNull(TEXT("Weapon resolves the row fire behavior"), Behavior);
-		TestTrue(TEXT("Resolved behavior uses the row FireBehaviorClass"),
-			Behavior && Behavior->GetClass() == BehaviorRow.FireBehaviorClass.Get());
-		TestTrue(TEXT("Resolved behavior is the projectile behavior"),
-			Cast<UShooterProjectileFireBehavior>(Behavior) != nullptr);
-
-		// 快照必须在创建时完整落到 WeaponActor：弹丸类与行为类都能被重新导出。
-		const FShooterWeaponConfigRow Captured = BehaviorWeapon->CaptureWeaponConfigRow();
-		TestEqual(TEXT("Weapon mirrors the row projectile class"), Captured.ProjectileClass.Get(), PistolBulletClass);
-		TestEqual(TEXT("Weapon mirrors the row fire behavior class"), Captured.FireBehaviorClass.Get(),
-			BehaviorRow.FireBehaviorClass.Get());
-	}
-
-	// 行 B：未配置行为类，必须回落兼容路径。
-	const FName CompatRowName = AddTestWeaponRow(TestTable, MakeTestWeaponRow(AShooterInventoryOrderTestWeapon::StaticClass()));
-	Runtime->InitializeWeaponRuntimeForTest();
-	AShooterWeapon* CompatWeapon = Runtime->AcquireWeapon(CompatRowName, Character, nullptr);
-	if (TestNotNull(TEXT("Compat weapon actor exists"), CompatWeapon))
-	{
-		TestNull(TEXT("Row without a fire behavior class resolves no formal behavior"),
-			CompatWeapon->ResolveFireBehavior());
 	}
 
 	DestroyFireBehaviorTestWorld(World);

@@ -6,6 +6,7 @@
 #include "GameplayEffectTypes.h"
 #include "AbilitySystem/ShooterAbilitySystemComponent.h"
 #include "AbilitySystem/ShooterAttributeSet.h"
+#include "AbilitySystem/ShooterGameplayTags.h"
 #include "Characters/ShooterCharacter.h"
 #include "AbilitySystem/Abilities/ShooterGameplayAbility_Fire.h"
 #include "AbilitySystem/Abilities/ShooterGameplayAbility_Equip.h"
@@ -135,7 +136,8 @@ void AShooterPlayerState::GrantEquipAbility()
 		return;
 	}
 
-	GrantAbilityIfMissing(EquipAbilityClass);
+	GrantAbilityForInputTagIfMissing(EquipAbilityClass, ShooterGameplayTags::Input_Equip_Next);
+	GrantAbilityForInputTagIfMissing(EquipAbilityClass, ShooterGameplayTags::Input_Equip_Previous);
 }
 
 int32 AShooterPlayerState::GetEquipAbilitySpecCount() const
@@ -158,6 +160,30 @@ void AShooterPlayerState::GrantAbilityIfMissing(TSubclassOf<UGameplayAbility> Ab
 	const FGameplayAbilitySpec AbilitySpec(AbilityClass,
 		/*AbilityLevel*/1,
 		INDEX_NONE, this);
+	AbilitySystemComponent->GiveAbility(AbilitySpec);
+}
+
+void AShooterPlayerState::GrantAbilityForInputTagIfMissing(TSubclassOf<UGameplayAbility> AbilityClass,
+	const FGameplayTag& InputTag)
+{
+	if (!AbilityClass || !InputTag.IsValid() || !AbilitySystemComponent)
+	{
+		return;
+	}
+
+	for (const FGameplayAbilitySpec& ExistingSpec : AbilitySystemComponent->GetActivatableAbilities())
+	{
+		if (ExistingSpec.Ability && ExistingSpec.Ability->GetClass() == AbilityClass &&
+			ExistingSpec.GetDynamicSpecSourceTags().HasTagExact(InputTag))
+		{
+			return;
+		}
+	}
+
+	FGameplayAbilitySpec AbilitySpec(AbilityClass,
+		/*AbilityLevel*/1,
+		INDEX_NONE, this);
+	AbilitySpec.GetDynamicSpecSourceTags().AddTag(InputTag);
 	AbilitySystemComponent->GiveAbility(AbilitySpec);
 }
 

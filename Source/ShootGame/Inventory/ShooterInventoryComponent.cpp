@@ -153,9 +153,9 @@ AShooterWeapon* UShooterInventoryComponent::FindWeaponBySlot(int32 SlotIndex) co
 	return Entry ? Entry->Weapon.Get() : nullptr;
 }
 
-AShooterWeapon* UShooterInventoryComponent::FindNextWeapon(const AShooterWeapon* CurrentWeapon) const
+AShooterWeapon* UShooterInventoryComponent::FindAdjacentWeapon(const AShooterWeapon* CurrentWeapon, int32 Direction) const
 {
-	return ReplicatedInventory.FindNextWeapon(CurrentWeapon);
+	return ReplicatedInventory.FindAdjacentWeapon(CurrentWeapon, Direction);
 }
 
 int32 UShooterInventoryComponent::FindFreeSlotIndex() const

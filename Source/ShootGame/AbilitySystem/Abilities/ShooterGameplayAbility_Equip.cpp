@@ -13,9 +13,9 @@
 #include "Weapons/ShooterWeapon.h"
 #include "ShootGame.h"
 
-bool UShooterGameplayAbility_Equip::HasInputEquipNextTag() const
+bool UShooterGameplayAbility_Equip::HasInputEquipTag() const
 {
-	return GetAssetTags().HasTag(ShooterGameplayTags::Input_Equip_Next);
+	return GetAssetTags().HasTagExact(ShooterGameplayTags::Input_Equip);
 }
 
 bool UShooterGameplayAbility_Equip::IsBlockedByStateDead() const
@@ -44,9 +44,9 @@ UShooterGameplayAbility_Equip::UShooterGameplayAbility_Equip()
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerOnly;
 
-	// Input.Equip.Next 是 ASC 输入查找与 Ability Spec 之间的稳定映射。
+	// Input.Equip 只负责统一分类和取消；Next / Previous 由两个 Ability Spec 的动态标签区分。
 	FGameplayTagContainer AssetTags;
-	AssetTags.AddTag(ShooterGameplayTags::Input_Equip_Next);
+	AssetTags.AddTag(ShooterGameplayTags::Input_Equip);
 	SetAssetTags(AssetTags);
 	// 死亡与装备中状态阻塞激活；State.Equipping 在激活期间由 GAS 自动挂到拥有者 ASC。
 	// 激活时显式取消 Fire / Reload，因此这里不把 State.Firing / State.Reloading 设为阻塞。
@@ -82,10 +82,34 @@ bool UShooterGameplayAbility_Equip::CanActivateAbility(
 	}
 
 	AShooterWeapon* Weapon = nullptr;
-	return ResolveEquipTarget(ActorInfo, Weapon);
+	return ResolveEquipTarget(Handle, ActorInfo, Weapon);
 }
 
-bool UShooterGameplayAbility_Equip::ResolveEquipTarget(const FGameplayAbilityActorInfo* ActorInfo, AShooterWeapon*& OutWeapon) const
+int32 UShooterGameplayAbility_Equip::ResolveEquipDirection(const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo) const
+{
+	const UAbilitySystemComponent* AbilitySystemComponent = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
+	const FGameplayAbilitySpec* AbilitySpec = AbilitySystemComponent ? AbilitySystemComponent->FindAbilitySpecFromHandle(Handle) : nullptr;
+	if (!AbilitySpec)
+	{
+		return 0;
+	}
+
+	const FGameplayTagContainer& InputTags = AbilitySpec->GetDynamicSpecSourceTags();
+	if (InputTags.HasTagExact(ShooterGameplayTags::Input_Equip_Next))
+	{
+		return 1;
+	}
+	if (InputTags.HasTagExact(ShooterGameplayTags::Input_Equip_Previous))
+	{
+		return -1;
+	}
+
+	return 0;
+}
+
+bool UShooterGameplayAbility_Equip::ResolveEquipTarget(const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo, AShooterWeapon*& OutWeapon) const
 {
 	OutWeapon = nullptr;
 
@@ -104,8 +128,9 @@ bool UShooterGameplayAbility_Equip::ResolveEquipTarget(const FGameplayAbilityAct
 		return false;
 	}
 
-	// 按 Slot 顺序计算下一个合法 Actor；单武器或当前装备无效时明确拒绝。
-	AShooterWeapon* TargetWeapon = Inventory->FindNextWeapon(Equipment->GetCurrentWeaponActor());
+	const int32 EquipDirection = ResolveEquipDirection(Handle, ActorInfo);
+	// 按输入方向计算相邻合法 Actor；缺少方向、单武器或当前装备无效时明确拒绝。
+	AShooterWeapon* TargetWeapon = Inventory->FindAdjacentWeapon(Equipment->GetCurrentWeaponActor(), EquipDirection);
 	if (!IsValid(TargetWeapon) || TargetWeapon->GetOwner() != Character || TargetWeapon->IsActorBeingDestroyed() ||
 		TargetWeapon == Equipment->GetCurrentWeaponActor())
 	{
@@ -130,7 +155,7 @@ void UShooterGameplayAbility_Equip::ActivateAbility(
 	}
 
 	AShooterWeapon* TargetWeapon = nullptr;
-	if (!ResolveEquipTarget(ActorInfo, TargetWeapon))
+	if (!ResolveEquipTarget(Handle, ActorInfo, TargetWeapon))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;

@@ -72,8 +72,8 @@ public:
 	/** 按 SlotIndex 查找 WeaponActor；不存在时返回 nullptr。 */
 	AShooterWeapon* FindWeaponBySlot(int32 SlotIndex) const;
 
-	/** 按 Slot 顺序返回 CurrentWeapon 之后的下一把武器；单武器或未持有时返回 nullptr。 */
-	AShooterWeapon* FindNextWeapon(const AShooterWeapon* CurrentWeapon) const;
+	/** 按 Slot 顺序和 Direction（+1 升序、-1 降序）返回相邻武器；单武器或未持有时返回 nullptr。 */
+	AShooterWeapon* FindAdjacentWeapon(const AShooterWeapon* CurrentWeapon, int32 Direction) const;
 
 	/** 返回第一个空 SlotIndex；没有空位时返回 INDEX_NONE。 */
 	int32 FindFreeSlotIndex() const;

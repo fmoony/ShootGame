@@ -27,6 +27,23 @@
 
 namespace ShooterFirstPersonCapture
 {
+	struct FCaptureState
+	{
+		TWeakObjectPtr<UWorld> World;
+		FString Folder;
+		FString CSV = TEXT("weapon,pitch,time,reloading,near_clip,left_depth,right_depth,muzzle_depth,")
+			TEXT("view_pitch,ammo,left_upper_ratio,right_upper_ratio,left_forearm_ratio,right_forearm_ratio\n");
+		int32 Case = -1;
+		int32 Frame = 0;
+		float Time = 0.0f;
+		float NextSample = 0.0f;
+		bool bReloadSent = false;
+		bool bExercise = false;
+		bool bPistolReview = false;
+		bool bFireSent = false;
+		bool bStopSent = false;
+	};
+
 	// 仅显式测试启动参数允许此命令：会替换独立测试角色的背包、控制视角并触发换弹。
 	FAutoConsoleCommandWithWorldAndArgs CaptureCommand(TEXT("ShootGame.FirstPerson.Capture"),
 		TEXT("Standalone only, requires -ShootGameFirstPersonCapture. Args: output folder label [exercise]."),
@@ -37,21 +54,6 @@ namespace ShooterFirstPersonCapture
 			{
 				return;
 			}
-			struct FCaptureState
-			{
-				TWeakObjectPtr<UWorld> World;
-				FString Folder;
-				FString CSV = TEXT("weapon,pitch,time,reloading,near_clip,left_depth,right_depth,muzzle_depth,view_pitch,ammo,left_upper_ratio,right_upper_ratio,left_forearm_ratio,right_forearm_ratio\n");
-				int32 Case = -1;
-				int32 Frame = 0;
-				float Time = 0.0f;
-				float NextSample = 0.0f;
-				bool bReloadSent = false;
-				bool bExercise = false;
-				bool bPistolReview = false;
-				bool bFireSent = false;
-				bool bStopSent = false;
-			};
 			TSharedRef<FCaptureState> State = MakeShared<FCaptureState>();
 			State->World = World;
 			State->bExercise = Args.Num() > 1 && Args[1] == TEXT("exercise");

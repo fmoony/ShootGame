@@ -80,7 +80,7 @@ bool FShooterAbilityReloadEquipGrantPlayerTest::RunTest(const FString& Parameter
 	TestTrue(TEXT("GA_Reload owns State.Reloading while active"), ReloadDefaults->OwnsStateReloadingWhileActive());
 	TestFalse(TEXT("GA_Reload does not retrigger an already active instance"), ReloadDefaults->CanRetriggerInstancedAbility());
 
-	TestTrue(TEXT("GA_Equip AbilityTags contains Input.Equip.Next"), EquipDefaults->HasInputEquipNextTag());
+	TestTrue(TEXT("GA_Equip AbilityTags contains Input.Equip"), EquipDefaults->HasInputEquipTag());
 	TestTrue(TEXT("GA_Equip blocked by State.Dead"), EquipDefaults->IsBlockedByStateDead());
 	TestTrue(TEXT("GA_Equip blocked by State.Equipping"), EquipDefaults->IsBlockedByStateEquipping());
 	TestTrue(TEXT("GA_Equip owns State.Equipping while active"), EquipDefaults->OwnsStateEquippingWhileActive());
