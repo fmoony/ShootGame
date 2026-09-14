@@ -650,6 +650,39 @@ void AShooterCharacter::AddWeaponRecoil(float Recoil)
 	AddControllerPitchInput(Recoil);
 }
 
+bool AShooterCharacter::PlayOwnerLocalFiringFeedback(UAnimMontage* Montage, float Recoil)
+{
+	// 只服务本地玩家：服务器上的 NPC 与被模拟的远端角色都不走本入口。
+	if (!IsPlayerControlled() || !IsLocallyControlled())
+	{
+		return false;
+	}
+
+	bool bPlayedAny = false;
+
+	// 第一人称 Montage 作用于拥有者可见的第一人称手臂；网格或 AnimInstance 未就绪时跳过本项。
+	if (Montage)
+	{
+		if (USkeletalMeshComponent* OwnerFirstPersonMesh = GetFirstPersonMesh())
+		{
+			if (UAnimInstance* FirstPersonAnimInstance = OwnerFirstPersonMesh->GetAnimInstance())
+			{
+				FirstPersonAnimInstance->Montage_Play(Montage);
+				bPlayedAny = true;
+			}
+		}
+	}
+
+	// 本地 Recoil 走拥有者自己的控制器，不依赖第一人称网格是否就绪。
+	if (!FMath::IsNearlyZero(Recoil))
+	{
+		AddControllerPitchInput(Recoil);
+		bPlayedAny = true;
+	}
+
+	return bPlayedAny;
+}
+
 void AShooterCharacter::UpdateWeaponHUD(int32 CurrentAmmo, int32 MagazineSize, int32 ReserveAmmo)
 {
 	OnBulletCountUpdated.Broadcast(MagazineSize, CurrentAmmo, ReserveAmmo);

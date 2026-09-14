@@ -2,9 +2,9 @@
 
 ## 1. 阶段定位
 
-本文承接 [Shooter 完整 Demo 最终路线规划](Shooter完整Demo最终路线规划.md)，
-但不再作为当前立即执行阶段。开始本文前必须先完成并验收
-[武器启动预配置与实体池简化重构方案](../已完成计划/武器启动预配置与实体池简化重构方案.md)：
+本文承接 [Shooter 完整 Demo 最终路线规划](Shooter完整Demo最终路线规划.md)。
+[武器启动预配置与实体池简化重构方案](../已完成计划/武器启动预配置与实体池简化重构方案.md)
+已经完成并验收，因此本文是当前下一候选执行阶段，但 P1 尚未开始：
 
 ```text
 GA_Fire / GA_Reload / GA_Equip ServerOnly 基线
@@ -13,12 +13,12 @@ GA_Fire / GA_Reload / GA_Equip ServerOnly 基线
 → Inventory（WeaponActor + SlotIndex）/ Equipment.CurrentWeaponActor
 → 七阶段正式验收
 → P1 Local Predicted 基础射击反馈
+```
 
 > 术语纠偏（2026-09-12）：本文后续出现的 `WeaponDefinition` / `DefinitionId`、
 > `WeaponRowName` / `InstanceId` 术语统一按「历史身份模型」理解；
 > 当前冻结 API 只有 `WeaponId` / `AShooterWeapon*` / `SlotIndex` /
 > `CurrentWeaponActor`。
-```
 
 本阶段只解决一个体验问题：
 
@@ -30,8 +30,8 @@ GA_Fire / GA_Reload / GA_Equip ServerOnly 基线
 
 ## 2. 开始实施前的工作区门槛
 
-Pickup 重生逻辑门的生产修复已由用户完成，P1 不再负责修改。其定向验证、Projectile FireBehavior、
-WeaponActor 生命周期和 Pickup WeaponId 接入统一由启动预配置重构方案完成。
+Pickup 重生逻辑门的生产修复已由用户完成，P1 不再负责修改。其定向验证、
+Projectile 权威生成链、WeaponActor 生命周期和 Pickup WeaponId 接入均已完成。
 
 进入 P1 前必须证明：
 
@@ -46,9 +46,9 @@ WeaponActor 生命周期和 Pickup WeaponId 接入统一由启动预配置重构
 
 此外，启动预配置重构的七阶段正式回归必须通过，且预测实现只能依赖已经冻结的
 `WeaponId` / `AShooterWeapon*` / `SlotIndex` / `CurrentWeaponActor` /
-FireBehavior / WeaponActor Lifecycle API。
+WeaponActor Lifecycle API。
 
-当前前置状态（2026-09-12，正式验收后）：
+当前前置状态（2026-09-14，只读复核）：
 
 ```text
 S1 启动快照与 WeaponId 池：已完成并提交（cf158d0）
@@ -57,10 +57,13 @@ S3 Inventory 与 Equipment 去 InstanceId：已完成并提交（e84951e）
 S4 Pickup 接入与旧路径删除：已完成并提交（832109f）
 弱网切枪输入时序修复：已完成并提交（310faf9）
 S5 七阶段完整回归与正式验收：已通过
-    Saved/Automation/Runs/20260912_130521/Summary.json
+最新玩法收口基线：329444d（玩法：收口武器开火与双向切枪）
+Pickup 跨重生授予：ShootGame.Pickup.RespawnGate.CrossRespawnGrant Passed
+最新七阶段回归：Saved/Automation/Runs/20260914_151623/Summary.json
+Automation：112 项，80 项无警告成功，32 项带警告成功，0 失败，0 NotRun
 ```
 
-上述前置项已经完成；P1 可在用户批准本计划后开始实施，且只能依赖
+上述前置项已经完成；P1 可在用户另行明确要求开始后实施，且只能依赖
 `WeaponId / AShooterWeapon* / SlotIndex / CurrentWeaponActor` 的新身份模型。
 
 ---
@@ -151,12 +154,10 @@ Server Weapon::Fire
 最近一次已提交基线的完整回归：
 
 ```text
-Saved/Automation/Runs/20260911_100510/Summary.json
+Saved/Automation/Runs/20260914_151623/Summary.json
 Build / Automation / Standalone / Dedicated / Listen / Emulated / DisconnectCleanup 全部 Passed
-Automation：98 项，83 项无警告成功，15 项带警告成功，0 失败
+Automation：112 项，80 项无警告成功，32 项带警告成功，0 失败，0 NotRun
 ```
-
-进入 P1 前必须用前置 Pickup 修复后的新 Summary 替代该参考值。
 
 ---
 
@@ -197,8 +198,9 @@ Spread Random Seed 同步
 GA_Reload LocalPredicted
 GA_Equip LocalPredicted
 完整 GameplayCue 迁移
-FireBehavior / 武器配置架构重构（已在 P1 前置阶段完成）
-Weapon / Projectile Pool
+FireBehavior / 武器配置架构重构
+现有 WeaponRuntimeSubsystem 武器实体池改造
+新增 Projectile Pool
 Lobby / Session / Match Flow
 ```
 
@@ -221,33 +223,34 @@ NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
 - 同一次激活在预测客户端和服务器上的角色分流；
 - 缓存本次 Weapon，但每次执行前确认其仍为当前武器；
 - 拥有者本地表现开始/结束；
+- 持有全自动拥有者表现使用的 `PredictedFeedbackTimer`；
 - 服务器权威 `Weapon::StartFiring/StopFiring`；
-- 输入释放、取消、Reject、切枪、死亡和弹药耗尽的幂等清理。
+- 在 `EndAbility` 中统一清理预测 Timer、缓存引用和持续表现；
+- 输入释放、取消、Reject、切枪、死亡和弹药耗尽的幂等收敛。
 
 它不直接生成弹丸或修改 Ammo。
 
 ### 6.2 WeaponActor
 
-Weapon 保留两条互不写同一状态的路径：
+Weapon 保留权威射击状态，并提供无状态的单次拥有者表现入口：
 
 ```text
 Authority Fire Path
 → StartFiring / Fire / RefireTimer
 → Ammo / Projectile / Multicast Remote Feedback
 
-Owner Presentation Path
-→ StartLocalPredictedFiringFeedback
-→ PlayLocalPredictedFiringFeedback
-→ LocalFeedbackTimer
-→ StopLocalPredictedFiringFeedback
+Stateless Owner Presentation
+→ PlayOwnerPredictedShotFeedback
+→ Montage / Niagara / Sound / Recoil
 ```
 
 要求：
 
-- `LocalFeedbackTimer` 与权威 `RefireTimer` 分离；
+- `PredictedFeedbackTimer` 归 GA_Fire，权威 `RefireTimer` 归 Weapon；
 - 本地表现路径不得写 `TimeOfLastShot`、`bIsFiring`、Inventory 或 Projectile；
-- Listen Host 同一 Weapon 实例可以同时运行 Authority 与 Owner Presentation，两条路径不能互相清 Timer；
-- 本地节拍只读取 `bFullAuto`、`RefireRate` 与表现资产；
+- Weapon 归还对象池或重新绑定 Owner 时不承担 GA Timer 生命周期；
+- Listen Host 可以同时执行权威事务与无状态 Owner Presentation，两条路径不能重复可见反馈；
+- GA 的本地节拍只读取 Weapon 已冻结的 `bFullAuto`、`RefireRate` 与表现资产；
 - 所有本地表现函数必须在 Dedicated Server 直接返回。
 
 ### 6.3 Character
@@ -258,7 +261,13 @@ Character 只提供本地视角表现入口：
 - 应用本地 Recoil；
 - 不根据表现回调修改 Gameplay 状态。
 
-现有 Multicast 对拥有者的第一人称部分必须避免重复播放；第三人称 Mesh 的服务器确认播放仍保留，供远端玩家观察。
+现有 Multicast 对拥有者的第一人称部分必须避免重复播放；第三人称 Mesh 的服务器确认播放仍保留，
+供远端玩家观察。具体冻结为：
+
+- Owner 第一人称 Montage、枪口、声音和 Recoil 只由本地预测播放一次；
+- Remote 第三人称 Montage、枪口和声音只由服务器确认播放一次；
+- Owner 仍可接收第三人称服务器确认，以维持同场景第三人称 Mesh 的一致性；
+- Listen Host 不得因同时执行预测与 Authority 分支而双播第一人称表现。
 
 ### 6.4 ASC 输入
 
@@ -278,11 +287,12 @@ IA_Fire Started
 ```text
 IA_Fire Completed
 → 本地活动 GA_Fire 立即 InputReleased
-→ 立即停止 LocalFeedbackTimer
+→ 立即停止 PredictedFeedbackTimer
 → 可靠通知服务器结束 Authority GA_Fire
 ```
 
-必须核对当前 `ServerSetInputReleased` 与 LocalPredicted 活动实例的 UE5.6 行为；不得同时新增第二条 StopFire RPC。
+本地 UE 5.6.1 已核对：当前释放路径会先对本地活动实例调用 `AbilitySpecInputReleased`，
+并通过 `ServerSetInputReleased` 可靠通知服务器。继续复用该 GAS 通道，不新增第二条 StopFire RPC。
 
 ---
 
@@ -292,15 +302,15 @@ IA_Fire Completed
 
 P1 继续冻结以下规则：
 
-### 客户端只做安全预检
+### 客户端只做请求与表现就绪预检
 
 - ASC 和当前 Avatar 有效；
 - Avatar 是本地控制；
-- 当前 WeaponActor 存在且 Owner 正确；
-- Weapon 没有隐藏；
-- 本地镜像显示至少可能开火。
+- ASC 当前 Avatar 与本次 Avatar 一致；
+- 当前 WeaponActor 存在且足以播放本地表现。
 
-客户端不得把迟到的复制 Tag 或 Ammo 当成最终裁决。存在不确定性时允许发出预测请求，由服务器拒绝。
+客户端不得把迟到的复制 Tag、Ammo、Owner 或隐藏状态当成最终裁决。表现对象尚未就绪时可以跳过
+本次本地瞬时反馈，但不能据此批准 Gameplay 结果；存在不确定性时仍允许请求服务器激活。
 
 ### 服务器执行完整校验
 
@@ -310,9 +320,15 @@ P1 继续冻结以下规则：
 - 当前 Weapon 与 Equipment.CurrentWeaponActor 一致；
 - Weapon Owner、可见性和生命周期有效；
 - 权威 MagazineAmmo 可消费；
-- RefireRate 允许本次真实射击。
+- 半自动武器通过只读射速资格查询，确认 `RefireRate` 允许立即射击。
 
 服务器 Reject 后，客户端必须通过 GAS 的预测拒绝结束 Ability，并清理本地持续表现。
+
+半自动不得沿用当前“Ability 激活成功但 `StartFiring` 因冷却静默不发射”的语义。P1-B 应在 Weapon
+提供 `CanStartImmediateShot()` 或等价的无副作用查询，供服务器 `GA_Fire::CanActivateAbility` 使用。
+
+全自动在冷却期重新按下时允许激活：服务器沿用剩余冷却后继续权威射击，Owner 可以立即播放一次
+纯表现反馈；这属于本阶段允许的短暂节拍相位偏移，不得提前生成 Projectile 或消耗 Ammo。
 
 ---
 
@@ -324,11 +340,11 @@ P1 继续冻结以下规则：
 
 实施：
 
-- 完成第 2 节 Pickup 前置提交；
+- 直接引用第 2 节已经通过的 Pickup 与七阶段回归证据，不重复运行完整回归；
 - CodeGraph 检查 GA_Fire 是玩家唯一开火入口；
 - 记录 P0 在 Dedicated 与 `PktLag=100 / PktLoss=2` 下从输入到拥有者表现的日志时序；
 - 记录半自动、全自动的权威 Projectile 数和 Ammo 消耗数；
-- 运行 `ShootGame.Ability.Fire.*` 与七阶段全量回归。
+- 仅在现有证据不足时运行 `ShootGame.Ability.Fire.*` 或定向网络场景。
 
 通过条件：
 
@@ -337,7 +353,7 @@ P1 继续冻结以下规则：
 - NPC 只在服务器执行 GA_Fire；
 - 当前完整回归全部 Passed。
 
-该阶段只生成证据，不修改预测策略。
+该阶段只生成证据，不修改预测策略；没有文件变化时不创建空提交。
 
 ### P1-A：抽取纯本地表现路径，不改变 ServerOnly 行为
 
@@ -347,16 +363,16 @@ P1 继续冻结以下规则：
 
 - 在 Weapon 中提取单次本地表现函数；
 - 分离第一人称与第三人称表现选择；
-- 建立独立 `LocalFeedbackTimer` 的 Start / Stop，但暂不从生产输入调用；
 - 本地函数只播放 Montage、Niagara、Sound、Recoil；
-- 增加测试计数或测试壳，证明本地路径不会改 Ammo、生成 Projectile 或写权威计时字段；
+- 保持该入口无状态，不在 Weapon 中建立本地 Timer；
+- 增加测试计数或测试壳，证明本地路径不会改 Ammo、生成 Projectile 或写权威字段；
 - 保持 GA_Fire `ServerOnly`，全量 Gameplay 行为不变。
 
 建议 Feature Tests：
 
 ```text
 ShootGame.Ability.Fire.Prediction.LocalFeedbackCosmeticOnly
-ShootGame.Ability.Fire.Prediction.LocalFeedbackTimerIsolation
+ShootGame.Ability.Fire.Prediction.LocalFeedbackStateless
 ShootGame.Ability.Fire.Prediction.DedicatedNoLocalFeedback
 ```
 
@@ -376,6 +392,7 @@ ShootGame.Ability.Fire.Prediction.DedicatedNoLocalFeedback
 - 用 `IsPredictingClient / IsLocallyControlled / HasAuthority` 明确分流；
 - 预测客户端只调用单次本地表现；
 - Authority 只调用现有 `Weapon::StartFiring`；
+- 为半自动增加服务器只读射速资格检查，冷却期必须 Reject；
 - Listen Host 同时执行本地表现和权威事务，但不得重复可见的第一人称反馈；
 - Server Multicast 到达拥有者时跳过已经由本地路径承担的第一人称 Montage、枪口和声音；
 - 远端客户端仍只播放服务器确认的第三人称表现；
@@ -389,6 +406,7 @@ ShootGame.Ability.Fire.Prediction.OwnerImmediateSemiAuto
 ShootGame.Ability.Fire.Prediction.ListenNoDuplicate
 ShootGame.Ability.Fire.Prediction.RemoteConfirmedOnly
 ShootGame.Ability.Fire.Prediction.ServerRejectCleanup
+ShootGame.Ability.Fire.Prediction.RejectRefireCooldown
 ShootGame.Ability.Fire.Prediction.SingleAuthorityProjectile
 ```
 
@@ -412,11 +430,13 @@ GAS：实现半自动开火本地预测反馈
 
 实施：
 
-- 仅对 `bFullAuto` 开启 `LocalFeedbackTimer`；
+- 仅对 `bFullAuto` 在 GA_Fire 中开启 `PredictedFeedbackTimer`；
 - Timer 每次只播放纯表现，不扣本地 Ammo；
-- 输入释放先停本地 Timer，再等待服务器权威停止收敛；
-- 切枪、Reload、Equip、Death、Inventory Clear、Avatar 更换、OutOfAmmo、Disconnect、Prediction Reject 全部清理 Timer；
-- Weapon 改变或隐藏后，下一次本地 Tick 必须自停；
+- 输入释放通过 `EndAbility` 停止本地 Timer，并通知服务器停止权威循环；
+- 切枪、Reload、Equip、Death、Inventory Clear、Avatar 更换、OutOfAmmo、Disconnect、
+  Prediction Reject 必须沿既有取消链进入 `EndAbility`；
+- `EndAbility` 幂等清理 Timer、CachedWeapon 和持续表现；
+- Weapon 不再是当前装备、已经隐藏或生命周期失效时，下一次本地 Tick 必须结束 Ability；
 - 服务器权威 `RefireTimer` 与射击次数完全不受本地 Timer 影响；
 - 接受服务器拒绝前已经发生的短暂纯表现，但不接受无限循环或跨武器残留。
 
@@ -476,6 +496,13 @@ ShootGame.Ability.Fire.Prediction.CancelAvatarChanged
 | Listen Host | 立即本地反馈 | 同进程权威事务 | 其他客户端确认表现 | Host 不双播 |
 | NPC 开火 | 无 Owner 预测 | Server GA_Fire + Projectile | TP 确认表现 | NPC 行为不回退 |
 
+还必须定向覆盖以下边界：
+
+- 半自动冷却期再次按下：Owner 瞬时反馈可发生，服务器必须 Reject，Ammo 和 Projectile 不变；
+- 全自动冷却期重新按下：Owner 可立即反馈，服务器只在剩余冷却结束后继续权威射击；
+- 本地 Weapon 表现对象未就绪：允许缺少一次预测反馈，但不得产生客户端 Gameplay 结果或崩溃；
+- Weapon 在预测 Timer Tick 前被切换、隐藏或归还池：Ability 必须结束且不得串到新 Owner。
+
 ---
 
 ## 10. 自动化与可观测性要求
@@ -487,7 +514,7 @@ Niagara、Sound 和 Montage 本身难以在 NullRHI 自动化中直接判断。�
 - 仅在 `WITH_DEV_AUTOMATION_TESTS` 或既有测试协调器范围暴露；
 - 计数来自生产表现入口，不在测试中复制实现；
 - 区分 `OwnerPredicted`、`AuthorityCommit`、`RemoteConfirmed`；
-- 能记录 Weapon、Activation PredictionKey、客户端角色和相对时序；
+- 能记录 Weapon、Activation PredictionKey、ShotOrdinal、客户端角色和相对时序；
 - Shipping 构建不增加预测测试日志带宽。
 
 ### 10.2 必须持续通过的既有测试
@@ -519,8 +546,11 @@ FIRE_LOCAL_FEEDBACK_STOPPED
 日志至少包含：
 
 ```text
-PlayerId / Weapon / PredictionKey / Count / WorldTime / NetMode
+PlayerId / Weapon / PredictionKey / ShotOrdinal / Count / WorldTime / NetMode
 ```
+
+`PredictionKey` 标识一次 Ability 激活或一次 Burst；`ShotOrdinal` 标识该 Burst 中的第几次反馈。
+不得假设全自动每一次反馈都拥有新的 PredictionKey。
 
 ---
 
@@ -530,7 +560,6 @@ PlayerId / Weapon / PredictionKey / Count / WorldTime / NetMode
 
 ```text
 Source/ShootGame/AbilitySystem/Abilities/ShooterGameplayAbility_Fire.h/.cpp
-Source/ShootGame/AbilitySystem/ShooterAbilitySystemComponent.cpp
 Source/ShootGame/Weapons/ShooterWeapon.h/.cpp
 Source/ShootGame/Characters/ShooterCharacter.h/.cpp
 Source/ShootGame/Tests/Ability/ShooterAbilityFireAutomationTests.cpp
@@ -538,6 +567,9 @@ Source/ShootGame/Tests/Ability/ShooterAbilityFireBehaviorAutomationTests.cpp
 Source/ShootGame/Tests/Ability/ShooterAbilityFireCancellationAutomationTests.cpp
 Source/ShootGame/Tests/Network/ShooterNetworkTestCoordinator.h/.cpp
 ```
+
+`ShooterAbilitySystemComponent.cpp` 原则上不需要生产改动；只有新增断言或修正与实际行为不符的注释时
+才进入修改范围，禁止另建 StopFire RPC。
 
 原则上不需要修改 Blueprint 或现有音效、Montage、Niagara 资产。若实现证明必须新增 GameplayCue 资产或修改 AnimBP，停止当前子阶段，先记录证据并重新评审范围。
 
@@ -553,7 +585,7 @@ Scripts/Development/RefreshVisualStudioFiles.ps1
 
 ## 12. 验证流程
 
-每个子阶段：
+每个产生代码改动的子阶段：
 
 ```text
 Preflight / CodeGraph
@@ -567,6 +599,9 @@ Preflight / CodeGraph
 → 开发记录
 → 独立提交
 ```
+
+P1-0 只复用现有七阶段基线并按证据缺口定向验证。子阶段不提前运行 `RunAll.ps1`；
+七阶段完整回归只在 P1-D 大阶段收口时运行一次。
 
 阶段最终：
 

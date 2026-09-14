@@ -536,7 +536,7 @@ void AShooterWeapon::DeactivateWeapon()
 	// 权威端重复卸下幂等：池内或已收起时不重复触发表现回调。
 	// 客户端不做该提前返回，保持与池化前的本地隐藏时机一致。
 	if (HasAuthority() && (LifecycleState == EShooterWeaponLifecycleState::InPool ||
-			LifecycleState == EShooterWeaponLifecycleState::Holstered))
+		 LifecycleState == EShooterWeaponLifecycleState::Holstered))
 	{
 		return;
 	}
@@ -592,6 +592,66 @@ void AShooterWeapon::StopFiring()
 	GetWorld()->GetTimerManager().ClearTimer(RefireTimer);
 }
 
+bool AShooterWeapon::HasOwnerLocalPlayerView() const
+{
+	// 必须同时是玩家控制与本机控制：服务器上的 NPC 在 UE 5.6 的 IsLocallyControlled() 也为真。
+	return PawnOwner != nullptr && PawnOwner->IsPlayerControlled() && PawnOwner->IsLocallyControlled();
+}
+
+bool AShooterWeapon::PlayOwnerPredictedShotFeedback()
+{
+	// Dedicated Server 没有拥有者本地视图；非本地玩家视图也不是本入口的职责。
+	if (IsRunningDedicatedServer() || !HasOwnerLocalPlayerView())
+	{
+		return false;
+	}
+
+	const bool bHasMontage = FiringMontage != nullptr;
+	const bool bHasMuzzle = MuzzleFlash != nullptr;
+	const bool bHasSound = FireSound != nullptr;
+	const bool bHasRecoil = !FMath::IsNearlyZero(FiringRecoil);
+
+	// 四项表现资产全空时没有任何可提交项。
+	if (!bHasMontage && !bHasMuzzle && !bHasSound && !bHasRecoil)
+	{
+		return false;
+	}
+
+	bool bPlayedAny = false;
+
+	// Montage 与 Recoil 共用持有者本地入口；两者各自独立校验，
+	// 缺 Montage 不影响 Recoil，缺 Recoil 也不影响 Montage。
+	if (WeaponOwner)
+	{
+		bPlayedAny |= WeaponOwner->PlayOwnerLocalFiringFeedback(FiringMontage, FiringRecoil);
+	}
+
+	// 第一人称枪口：资产、第一人称网格与 Muzzle Socket 都有效时才提交。
+	if (bHasMuzzle && FirstPersonMesh && FirstPersonMesh->DoesSocketExist(MuzzleSocketName))
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAttached(MuzzleFlash, FirstPersonMesh, MuzzleSocketName,
+			FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::SnapToTarget, true);
+		bPlayedAny = true;
+	}
+
+	// 本地音效挂 RootComponent，不依赖 Muzzle Socket 是否有效。
+	if (bHasSound && RootComponent)
+	{
+		UGameplayStatics::SpawnSoundAttached(FireSound, RootComponent, NAME_None,
+			FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::SnapToTarget, true);
+		bPlayedAny = true;
+	}
+
+#if WITH_DEV_AUTOMATION_TESTS
+	if (bPlayedAny)
+	{
+		++PredictedOwnerFeedbackCount;
+	}
+#endif
+
+	return bPlayedAny;
+}
+
 void AShooterWeapon::Fire()
 {
 	// 纵深防御：即使客户端绕过开火 RPC 直接调用，弹丸也只在服务器生成
@@ -617,6 +677,10 @@ void AShooterWeapon::Fire()
 
 	// 权威弹药消费成功后才执行开火行为与表现。
 	ExecuteFireAtTarget(WeaponOwner->GetWeaponTargetLocation());
+
+#if WITH_DEV_AUTOMATION_TESTS
+	++AuthorityShotCount;
+#endif
 
 	// update the time of our last shot
 	TimeOfLastShot = GetWorld()->GetTimeSeconds();
@@ -821,3 +885,45 @@ FTransform AShooterWeapon::GetThirdPersonLeftHandGripWorldTransform() const
 
 	return ThirdPersonMesh->GetSocketTransform(ThirdPersonLeftHandGripSocketName);
 }
+
+#if WITH_DEV_AUTOMATION_TESTS
+void AShooterWeapon::ResetFireFeedbackCountersForAutomationTest()
+{
+	PredictedOwnerFeedbackCount = 0;
+	OwnerAuthorityConfirmationCount = 0;
+	AuthorityShotCount = 0;
+	RemoteConfirmedFeedbackCount = 0;
+}
+
+int32 AShooterWeapon::GetPredictedOwnerFeedbackCountForAutomationTest() const
+{
+	return PredictedOwnerFeedbackCount;
+}
+
+void AShooterWeapon::RecordOwnerAuthorityConfirmationForAutomationTest()
+{
+	++OwnerAuthorityConfirmationCount;
+}
+
+int32 AShooterWeapon::GetOwnerAuthorityConfirmationCountForAutomationTest() const
+{
+	return OwnerAuthorityConfirmationCount;
+}
+
+int32 AShooterWeapon::GetAuthorityShotCountForAutomationTest() const
+{
+	return AuthorityShotCount;
+}
+
+int32 AShooterWeapon::GetRemoteConfirmedFeedbackCountForAutomationTest() const
+{
+	return RemoteConfirmedFeedbackCount;
+}
+
+bool AShooterWeapon::IsRefireTimerActiveForAutomationTest() const
+{
+	// 只读现有 RefireTimer，不为测试复制生产判定。
+	const UWorld* World = GetWorld();
+	return World != nullptr && World->GetTimerManager().IsTimerActive(RefireTimer);
+}
+#endif

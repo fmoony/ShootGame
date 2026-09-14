@@ -293,6 +293,14 @@ public:
 	/** Stop firing this weapon */
 	void StopFiring();
 
+	/**
+	 * 无状态拥有者本地单次开火表现入口（P1-A 建立，P1-B 起由 GA_Fire 预测路径调用）。
+	 * 只读自身表现配置并在本机播放；不写 MagazineAmmo / ReserveAmmo / TimeOfLastShot /
+	 * bIsFiring / RefireTimer / Inventory / Projectile，也不建立任何 Timer。
+	 * 返回是否向表现通道提交了至少一项；返回值不表示当前机器一定具备音频或渲染设备。
+	 */
+	bool PlayOwnerPredictedShotFeedback();
+
 protected:
 
 	/** Fire the weapon */
@@ -309,6 +317,12 @@ protected:
 
 	/** 唯一弹丸生成路径：使用 ApplyWeaponRow 从行镜像的 ProjectileClass 生成弹丸；只在服务器执行。 */
 	virtual void FireProjectile(const FVector& TargetLocation);
+
+	/**
+	 * 本机是否以“本地玩家”视角拥有该武器：要求 PawnOwner 同时被玩家控制且由本机控制。
+	 * 不得退化为普通 IsLocallyControlled()：服务器上的 NPC 在 UE 5.6 也会返回 true。
+	 */
+	bool HasOwnerLocalPlayerView() const;
 
 	/** Broadcast firing effects (muzzle flash + sound) to all clients. Unreliable: dropping a flash is acceptable */
 	UFUNCTION(NetMulticast, Unreliable)
@@ -415,12 +429,46 @@ public:
 	FShooterWeaponOutOfAmmoDelegate OnOutOfAmmo;
 
 #if WITH_DEV_AUTOMATION_TESTS
+public:
 	/** 测试专用：直接写权威弹药（换弹网络测试构造任意起点状态）；生产代码不得调用。 */
 	void SetAmmoForAutomationTest(int32 InMagazineAmmo, int32 InReserveAmmo)
 	{
 		MagazineAmmo = InMagazineAmmo;
 		ReserveAmmo = InReserveAmmo;
 	}
+
+	// ---- P1 开火表现计数与权威字段只读探针：仅在开发构建存在，Shipping 零增量 ----
+
+	/** 清空本武器的开火表现计数；测试在场景起点调用一次。 */
+	void ResetFireFeedbackCountersForAutomationTest();
+
+	/** 拥有者本地预测反馈提交次数，由 PlayOwnerPredictedShotFeedback 递增。 */
+	int32 GetPredictedOwnerFeedbackCountForAutomationTest() const;
+
+	/** Multicast 到达拥有者并跳过可见 FX 的次数；P1-B 起由 MulticastPlayFiringFX 递增。 */
+	void RecordOwnerAuthorityConfirmationForAutomationTest();
+	int32 GetOwnerAuthorityConfirmationCountForAutomationTest() const;
+
+	/** 权威提交次数：Fire 成功扣弹并执行开火行为后递增。 */
+	int32 GetAuthorityShotCountForAutomationTest() const;
+
+	/** 远端确认反馈次数；P1-B 起由 MulticastPlayFiringFX 在非拥有端递增。 */
+	int32 GetRemoteConfirmedFeedbackCountForAutomationTest() const;
+
+	/** 只读探针：当前开火标志。 */
+	bool IsFiringForAutomationTest() const { return bIsFiring; }
+	/** 只读探针：最近一次权威射击的游戏时间。 */
+	float GetTimeOfLastShotForAutomationTest() const { return TimeOfLastShot; }
+	/** 只读探针：权威 RefireTimer 是否活动。 */
+	bool IsRefireTimerActiveForAutomationTest() const;
+
+private:
+	int32 PredictedOwnerFeedbackCount = 0;
+	int32 OwnerAuthorityConfirmationCount = 0;
+	int32 AuthorityShotCount = 0;
+	int32 RemoteConfirmedFeedbackCount = 0;
+
+public:
 #endif
 
 	float GetFirstPersonCompositionDrop() const { return FirstPersonCompositionDrop; }

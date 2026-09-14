@@ -331,6 +331,9 @@ public:
 	/** Applies weapon recoil to the owner */
 	virtual void AddWeaponRecoil(float Recoil) override;
 
+	/** 拥有者本地第一人称开火表现：只服务本地玩家视图，不触发网络、不修改 Gameplay 状态。 */
+	virtual bool PlayOwnerLocalFiringFeedback(UAnimMontage* Montage, float Recoil) override;
+
 	/** Updates the weapon's HUD with the current ammo count */
 	virtual void UpdateWeaponHUD(int32 CurrentAmmo, int32 MagazineSize, int32 ReserveAmmo) override;
 

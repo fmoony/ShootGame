@@ -180,6 +180,9 @@ public:
 	/** Applies weapon recoil to the owner */
 	virtual void AddWeaponRecoil(float Recoil) override;
 
+	/** NPC 没有拥有者第一人称视图，本地预测表现入口恒不播放任何内容。 */
+	virtual bool PlayOwnerLocalFiringFeedback(UAnimMontage* Montage, float Recoil) override;
+
 	/** Updates the weapon's HUD with the current ammo count; NPC 没有 HUD，仅满足接口。 */
 	virtual void UpdateWeaponHUD(int32 CurrentAmmo, int32 MagazineSize, int32 ReserveAmmo) override;
 

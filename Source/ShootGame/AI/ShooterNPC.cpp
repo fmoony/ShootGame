@@ -229,6 +229,12 @@ void AShooterNPC::AddWeaponRecoil(float Recoil)
 	// unused
 }
 
+bool AShooterNPC::PlayOwnerLocalFiringFeedback(UAnimMontage* Montage, float Recoil)
+{
+	// NPC 没有拥有者第一人称视图；与 PlayFiringMontage / AddWeaponRecoil 的 unused 语义一致。
+	return false;
+}
+
 void AShooterNPC::UpdateWeaponHUD(int32 CurrentAmmo, int32 MagazineSize, int32 ReserveAmmo)
 {
 	// unused
