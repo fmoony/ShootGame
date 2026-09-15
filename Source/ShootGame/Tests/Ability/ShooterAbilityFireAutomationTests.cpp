@@ -25,9 +25,9 @@ namespace ShooterAbilityAutomationTests
 		Test.TestEqual(TEXT("GA_Fire uses InstancedPerActor"),
 			static_cast<int32>(AbilityDefaults->GetInstancingPolicy()),
 			static_cast<int32>(EGameplayAbilityInstancingPolicy::InstancedPerActor));
-		Test.TestEqual(TEXT("GA_Fire uses ServerOnly net execution"),
+		Test.TestEqual(TEXT("GA_Fire uses LocalPredicted net execution"),
 			static_cast<int32>(AbilityDefaults->GetNetExecutionPolicy()),
-			static_cast<int32>(EGameplayAbilityNetExecutionPolicy::ServerOnly));
+			static_cast<int32>(EGameplayAbilityNetExecutionPolicy::LocalPredicted));
 		Test.TestTrue(TEXT("GA_Fire AbilityTags contains Input.Fire"), AbilityDefaults->HasInputFireTag());
 		Test.TestTrue(TEXT("GA_Fire blocked by State.Dead"), AbilityDefaults->IsBlockedByStateDead());
 		Test.TestTrue(TEXT("GA_Fire blocked by State.Reloading"), AbilityDefaults->IsBlockedByStateReloading());

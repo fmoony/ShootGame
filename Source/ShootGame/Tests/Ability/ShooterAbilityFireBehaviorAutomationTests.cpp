@@ -14,7 +14,8 @@
 
 namespace ShooterAbilityFireBehaviorAutomationTests
 {
-	bool TestServerOnlyContract(FAutomationTestBase& Test)
+	/** GA_Fire 的执行策略契约：LocalPredicted 由拥有者预测表现，服务器独占 Gameplay 结果。 */
+	bool TestPredictionPolicyContract(FAutomationTestBase& Test)
 	{
 		const UShooterGameplayAbility_Fire* FireDefaults = GetDefault<UShooterGameplayAbility_Fire>();
 		if (!Test.TestNotNull(TEXT("GA_Fire has defaults"), FireDefaults))
@@ -22,14 +23,17 @@ namespace ShooterAbilityFireBehaviorAutomationTests
 			return false;
 		}
 
-		Test.TestEqual(TEXT("GA_Fire executes only on server"),
+		Test.TestEqual(TEXT("GA_Fire uses LocalPredicted net execution"),
 			static_cast<int32>(FireDefaults->GetNetExecutionPolicy()),
-			static_cast<int32>(EGameplayAbilityNetExecutionPolicy::ServerOnly));
+			static_cast<int32>(EGameplayAbilityNetExecutionPolicy::LocalPredicted));
 		Test.TestEqual(TEXT("GA_Fire is InstancedPerActor"), static_cast<int32>(FireDefaults->GetInstancingPolicy()),
 			static_cast<int32>(EGameplayAbilityInstancingPolicy::InstancedPerActor));
 		Test.TestFalse(TEXT("GA_Fire does not retrigger an already active instance"),
 			FireDefaults->CanRetriggerInstancedAbility());
 		Test.TestTrue(TEXT("GA_Fire is bound to Input.Fire"), FireDefaults->HasInputFireTag());
+		// 权威仍保留在服务器：客户端发来的结束/取消命令不得终止服务器实例。
+		Test.TestFalse(TEXT("GA_Fire does not accept client-side cancellation of the authority instance"),
+			FireDefaults->ServerRespectsRemoteAbilityCancellation());
 		return true;
 	}
 
@@ -96,13 +100,26 @@ namespace ShooterAbilityFireBehaviorAutomationTests
 	}
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityFireServerOnlyTest, "ShootGame.Ability.Fire.ServerOnly",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityFirePredictionPolicyTest,
+	"ShootGame.Ability.Fire.Prediction.Policy",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
-bool FShooterAbilityFireServerOnlyTest::RunTest(const FString& Parameters)
+bool FShooterAbilityFirePredictionPolicyTest::RunTest(const FString& Parameters)
 {
 	using namespace ShooterAbilityFireBehaviorAutomationTests;
-	return TestServerOnlyContract(*this);
+	return TestPredictionPolicyContract(*this);
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityFireAuthorityBoundaryTest, "ShootGame.Ability.Fire.AuthorityBoundary",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FShooterAbilityFireAuthorityBoundaryTest::RunTest(const FString& Parameters)
+{
+	using namespace ShooterAbilityFireBehaviorAutomationTests;
+
+	// P1 之后权威边界更重要：开火入口仍唯一，弹丸与扣弹仍只发生在 WeaponActor，
+	// 客户端无法经 UFUNCTION 绕过 GA_Fire。断言原文保留，不因策略切换而放宽。
+	return TestWeaponExecutionBoundary(*this) && TestAmmoAuthorityContract(*this);
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityFireSingleActivationTest, "ShootGame.Ability.Fire.SingleActivation",
@@ -114,7 +131,7 @@ bool FShooterAbilityFireSingleActivationTest::RunTest(const FString& Parameters)
 
 	// 静态契约：InstancedPerActor + bRetriggerInstancedAbility=false。
 	// 真实“一次按下只激活一个 GA_Fire / 只生成一颗弹丸”由网络测试协调器验证。
-	return TestServerOnlyContract(*this) && TestWeaponExecutionBoundary(*this);
+	return TestPredictionPolicyContract(*this) && TestWeaponExecutionBoundary(*this);
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityFireSingleProjectileTest, "ShootGame.Ability.Fire.SingleProjectile",
@@ -126,7 +143,7 @@ bool FShooterAbilityFireSingleProjectileTest::RunTest(const FString& Parameters)
 
 	// 静态契约：弹丸实现留在 WeaponActor，且无法通过 UFUNCTION 绕过 GA 入口。
 	// 真实 Projectile 数量断言由网络测试协调器的 ProjectileSpawnCount 完成。
-	return TestServerOnlyContract(*this) && TestWeaponExecutionBoundary(*this);
+	return TestPredictionPolicyContract(*this) && TestWeaponExecutionBoundary(*this);
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityFireAmmoConsumeTest, "ShootGame.Ability.Fire.AmmoConsume",
@@ -135,7 +152,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityFireAmmoConsumeTest, "ShootGame.
 bool FShooterAbilityFireAmmoConsumeTest::RunTest(const FString& Parameters)
 {
 	using namespace ShooterAbilityFireBehaviorAutomationTests;
-	return TestServerOnlyContract(*this) && TestAmmoAuthorityContract(*this);
+	return TestPredictionPolicyContract(*this) && TestAmmoAuthorityContract(*this);
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityFireFullAutoReleaseTest, "ShootGame.Ability.Fire.FullAutoRelease",
@@ -147,7 +164,7 @@ bool FShooterAbilityFireFullAutoReleaseTest::RunTest(const FString& Parameters)
 
 	// 静态契约：网络测试所用步枪确实是全自动且 RefireRate 有效；
 	// 保持期间单活动 Ability 与释放后无残留由网络测试协调器验证。
-	return TestServerOnlyContract(*this) && TestFullAutoScenarioConfiguration(*this);
+	return TestPredictionPolicyContract(*this) && TestFullAutoScenarioConfiguration(*this);
 }
 
 #endif

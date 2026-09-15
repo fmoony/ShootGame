@@ -712,6 +712,11 @@ ShootGame.Ability.Fire.Prediction.ListenNoDuplicate
 ShootGame.Ability.Fire.Prediction.RemoteConfirmedOnly
 ShootGame.Ability.Fire.Prediction.DedicatedNoLocalFeedback
 ShootGame.Ability.Fire.Prediction.ServerRejectCleanup
+  （必须由客户端发起：客户端预测到服务器 Reject 到客户端实例结束与本地节拍停止；
+    只查服务器 CanActivateAbility 不算覆盖）
+ShootGame.Ability.Fire.Prediction.ReloadFireImmediate
+  （客户端尚未收到 State.Reloading 时按开火：允许有限本地表现；服务器必须 Reject；
+    0 Authority Commit / 0 Projectile / Ammo 未被扣减；Reject 后本地循环停止并收敛）
 ShootGame.Ability.Fire.Prediction.RejectRefireCooldown
 ShootGame.Ability.Fire.Prediction.FirstShotReadyAfterAcquire
 ShootGame.Ability.Fire.Prediction.SingleAuthorityProjectile
@@ -722,6 +727,7 @@ ShootGame.Ability.Fire.Prediction.SingleAuthorityProjectile
 ```text
 Owner 同一客户端时钟上 FIRE_PREDICTED_OWNER 早于 AUTHORITY_CONFIRMATION_RECEIVED
 一次输入的 Owner 第一人称反馈计数为 1
+  （仅限客户端未处于换弹 / 切枪 / 死亡，且武器可见且为当前装备时）
 无丢包场景的 Authority 与 Remote 单发计数增量都为 1
 Emulated 场景的 Remote 增量不超过 Authority，且多发窗口内至少收到一次
 Reject 后 Projectile / Ammo / Damage 均不变
@@ -1081,11 +1087,25 @@ Emulated 必须确认 Server 与两个 Client 均出现
 客户端能直接扣 Ammo / Spawn Projectile / Apply Damage / 计分
 一次输入在服务器生成两个 Projectile
 Owner 收到两次可见的第一人称反馈
-Listen Host 与 Dedicated Client 行为不一致
+Listen Host 与 Dedicated Client 的 Gameplay 权威不一致
+  （Reject 之前的纯表现次数不要求一致：Host 可能 0 次假反馈，远端 Owner 可能短暂预测若干次）
 Prediction Reject 后残留 Local Timer、Ability 或 State.Firing
 全自动松开后仍持续产生权威弹丸
 P1 修改破坏 NPC ServerOnly 开火
 为消除测试失败而降低既有 Gameplay 断言
+```
+
+必须立即回退的还包括：出现双 Gameplay、预测循环残留、Reject 后继续射击。
+
+可接受的 P1 边界（修订版，替代“只允许一次极短反馈”）：
+
+```text
+Reject 到达前允许有限的纯本地预测表现，含全自动武器的短暂连续反馈
+  前提：不产生任何客户端 Gameplay 结果（不扣 Ammo / 不生成 Projectile / 不结算伤害）
+  要求：Reject 到达后立即停止 PredictedFeedbackTimer，并清理 Ability / State.Firing / CachedWeapon
+本机已知 State.Reloading / State.Equipping / State.Dead，或武器已隐藏、已不是当前装备
+  只禁止本地预测表现，请求仍照常发给服务器，由服务器完整校验并 Reject
+全自动本地预测循环不等待服务器 Confirm，允许与权威节拍存在短暂相位偏移
 ```
 
 同一失败项最多自主修复 3 轮。仍不收敛时停止扩展并报告：

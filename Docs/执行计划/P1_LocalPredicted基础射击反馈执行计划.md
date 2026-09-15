@@ -312,6 +312,22 @@ P1 继续冻结以下规则：
 客户端不得把迟到的复制 Tag、Ammo、Owner 或隐藏状态当成最终裁决。表现对象尚未就绪时可以跳过
 本次本地瞬时反馈，但不能据此批准 Gameplay 结果；存在不确定性时仍允许请求服务器激活。
 
+### 本地预测表现的独立门控
+
+上面的客户端放宽只针对“是否把请求发给服务器”。**本地预测表现另有一道独立门控**，
+本机已知处于下列任一状态时只跳过本地表现，请求仍然照常发送，由服务器完整校验并 Reject：
+
+- 本机 ASC 已挂 `State.Reloading` / `State.Equipping` / `State.Dead`；
+- 当前 Weapon 已隐藏，或已不是 `Equipment.CurrentWeaponActor`。
+
+该门控同时作用于首次预测射击与全自动 `PredictedFeedbackTimer` 的每一次 Tick。
+它不因为“Tag 可能是迟到的”而取消：迟到时最多损失一次本地反馈，
+比在换弹或切枪期间反复播放本地开火表现更可接受。
+
+全自动本地循环**不等待服务器 Confirm**：等待会在高延迟下产生
+“第一枪立即播放 → 停一个 RTT → 才继续连射”的断层。因此允许客户端在尚未收到
+`State.Reloading` 等复制状态时，于 Reject 到达前短暂播放若干次纯本地连续表现。
+
 ### 服务器执行完整校验
 
 - `Super::CanActivateAbility`；
@@ -413,7 +429,8 @@ ShootGame.Ability.Fire.Prediction.SingleAuthorityProjectile
 通过条件：
 
 - 高延迟下 Owner 本地反馈日志早于 Authority Commit；
-- 一次输入的 Owner 第一人称反馈计数为 1；
+- 一次输入的 Owner 第一人称反馈计数为 1（仅限客户端未处于换弹 / 切枪 / 死亡，
+  且武器可见且为当前装备时）；
 - Remote 第三人称反馈只在 Authority Commit 后出现且计数为 1；
 - Reject 后 Projectile、Ammo、Damage 均不变；
 - Reject 后没有活动 Ability、Local Timer 或错误 `State.Firing`。
@@ -636,16 +653,26 @@ PktLoss=2
 - 客户端能直接扣 Ammo、Spawn Projectile、Apply Damage 或计分；
 - 一次输入在服务器生成两个 Projectile；
 - Owner 收到预测与 Multicast 两次可见的第一人称反馈；
-- Listen Host 与 Dedicated Client 行为不一致；
+- Listen Host 与 Dedicated Client 的 Gameplay 权威不一致，或出现双 Gameplay、预测循环残留、
+  Reject 后继续射击；
 - Prediction Reject 后 Local Timer、Ability 或 `State.Firing` 残留；
 - 全自动松开后仍持续产生权威弹丸；
 - P1 修改破坏 NPC ServerOnly 开火；
 - 为消除测试失败而降低既有 Gameplay 断言。
 
+Host 与远端 Owner 在 Reject 之前的纯表现次数不要求一致：
+Host 本地同时拥有权威信息，可能一次假反馈都没有；远端 Owner 因复制状态迟到，
+可能短暂预测若干次。两者都属可接受范围。
+
 ### 可接受的 P1 边界
 
-- Reject 前已经播放的一次极短本地枪口、声音或 Recoil；
-- 本地全自动表现节拍与服务器确认在弱网下短暂相位偏移；
+- Reject 到达前允许有限的纯本地预测表现，包括全自动武器的短暂连续反馈；
+  前提是不产生任何客户端 Gameplay 结果（不扣 Ammo、不生成 Projectile、不结算伤害），
+  且 Reject 到达后必须立即停止 `PredictedFeedbackTimer` 并清理
+  Ability / `State.Firing` / `CachedWeapon` 等预测状态；
+- 本机已知处于 `State.Reloading` / `State.Equipping` / `State.Dead`，
+  或武器已隐藏、已不是当前装备时，只禁止本地预测表现，请求仍照常发给服务器；
+- 全自动本地预测循环不等待服务器 Confirm，因此允许与权威节拍存在短暂相位偏移；
 - HUD Ammo 仍等待 OwnerOnly FastArray 权威复制；
 - 命中、伤害和远端表现仍有服务器确认延迟。
 

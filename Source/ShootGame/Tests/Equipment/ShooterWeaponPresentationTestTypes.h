@@ -120,6 +120,9 @@ public:
 	bool HasWeaponOwnerCacheForTest() const { return WeaponOwner != nullptr; }
 	bool HasCachedOwnerActorForTest(const AActor* Actor) const { return CachedWeaponOwnerActor == Actor; }
 
+	/** 供 P1 半自动与全自动射速资格用例切换武器模式。 */
+	void SetFullAutoForTest(bool bInFullAuto) { bFullAuto = bInFullAuto; }
+
 	/** 模拟客户端收到 Owner 属性复制并执行 RepNotify。 */
 	void SimulateOwnerReplicationForTest(AActor* ReplicatedOwner)
 	{

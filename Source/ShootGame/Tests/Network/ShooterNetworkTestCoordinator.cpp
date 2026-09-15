@@ -247,6 +247,31 @@ bool AShooterNetworkTestCoordinator::HasActiveFireAbility(AShooterCharacter* Cha
 			ShooterPlayerState->GetFireAbilityClass()) == 1;
 }
 
+bool AShooterNetworkTestCoordinator::CanServerActivateFireAbility(UAbilitySystemComponent* AbilitySystemComponent) const
+{
+	if (!AbilitySystemComponent || !ServerFireAbilityHandle.IsValid())
+	{
+		return false;
+	}
+
+	FGameplayAbilitySpec* FireSpec = AbilitySystemComponent->FindAbilitySpecFromHandle(ServerFireAbilityHandle);
+	if (!FireSpec)
+	{
+		return false;
+	}
+
+	// 服务器实例优先；未实例化时回落到 Ability CDO。
+	UGameplayAbility* PrimaryInstance = FireSpec->GetPrimaryInstance();
+	const UGameplayAbility* FireAbility = PrimaryInstance ? PrimaryInstance : FireSpec->Ability.Get();
+	if (!FireAbility)
+	{
+		return false;
+	}
+
+	return FireAbility->CanActivateAbility(ServerFireAbilityHandle, AbilitySystemComponent->AbilityActorInfo.Get(),
+		nullptr, nullptr, nullptr);
+}
+
 bool AShooterNetworkTestCoordinator::HasActiveEquipAbility(AShooterCharacter* Character) const
 {
 	AShooterPlayerState* ShooterPlayerState = Character
@@ -978,6 +1003,8 @@ void AShooterNetworkTestCoordinator::GetLifetimeReplicatedProps(TArray<FLifetime
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyToFire);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyForFullAuto);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyForSwitchCancel);
+	DOREPLIFETIME(AShooterNetworkTestCoordinator, ReloadFirePhase);
+	DOREPLIFETIME(AShooterNetworkTestCoordinator, ReloadFireRequestId);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, WeaponBeforeSwitch);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bRequireRemoteMontage);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bRequireRemoteCurrentWeapon);
@@ -2218,10 +2245,11 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		UAbilitySystemComponent* AbilitySystemComponent = Character->GetAbilitySystemComponent();
 		UShooterAbilitySystemComponent* ShooterAbilitySystemComponent = Cast<UShooterAbilitySystemComponent>(AbilitySystemComponent);
 		const int32 ProjectilesBeforeReject = ProjectileSpawnCount;
-		const bool bActivated = AbilitySystemComponent
-			? AbilitySystemComponent->TryActivateAbility(ServerFireAbilityHandle)
-			: false;
-		bNoAmmoRejectVerified = !bActivated &&
+		// GA_Fire 改为 LocalPredicted 后，服务器对非本机控制的玩家调用公开 TryActivateAbility
+		// 会走 bAllowRemoteActivation 分支把请求转回拥有者客户端并返回 true，
+		// 拿不到服务器校验结果。这里直接查询服务器的权威校验结论，语义与旧断言一致。
+		const bool bServerAllowsActivation = CanServerActivateFireAbility(AbilitySystemComponent);
+		bNoAmmoRejectVerified = !bServerAllowsActivation &&
 			ProjectileSpawnCount == ProjectilesBeforeReject &&
 			ShooterAbilitySystemComponent &&
 			ShooterAbilitySystemComponent->GetActiveAbilityCountForClass(
@@ -2233,6 +2261,48 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			FailTest(TEXT("No-ammo activation was not rejected without projectile"));
 			return;
 		}
+	}
+
+	// ---- P1 换弹中开火 8B：客户端同帧换弹加开火，尚未收到 State.Reloading ----
+	// 放在 Reject.NoAmmo 之后：本阶段会触发真实换弹并改变当前武器弹匣，
+	// 若排在前面会破坏后者“当前武器无弹”的前置条件。
+	if (bNoAmmoRejectVerified && !bReloadFireImmediateVerified && ReloadFireActiveRequestId == 0)
+	{
+		if (AShooterWeapon* ReloadFireWeapon = GetCurrentWeapon(Character))
+		{
+			// 前面的阶段已经把当前武器打成 0/0，这里显式给一个可换弹的起点：
+			// 弹匣不满（换弹事务有效），且备弹充足（换弹能真实提交）。
+			SetReloadTestAmmo(ReloadFireWeapon, /*MagazineAmmo*/ 4, /*ReserveAmmo*/ 10);
+			ForceNetUpdate();
+
+			ReloadFireActiveRequestId = ++ReloadFireRequestId;
+			ReloadFireTargetWeapon = ReloadFireWeapon;
+			ReloadFireAmmoBefore = ReloadFireWeapon->GetBulletCount();
+			ReloadFireAuthorityShotsBefore = ReloadFireWeapon->GetAuthorityShotCountForAutomationTest();
+			ReloadFireProjectilesBefore = ProjectileSpawnCount;
+			ReloadFirePhaseStartTime = GetWorld()->GetTimeSeconds();
+			ReloadFirePhase = 2;
+			ForceNetUpdate();
+			UE_LOG(
+				LogShootGame,
+				Display,
+				TEXT("Reload-fire phase armed: Case=2 RequestId=%d Weapon=%s Ammo=%d Reserve=%d"),
+				ReloadFireRequestId,
+				*GetNameSafe(ReloadFireWeapon),
+				ReloadFireAmmoBefore,
+				ReloadFireWeapon->GetReserveAmmo());
+			return;
+		}
+	}
+
+	// 8A 的发起放在 8B 的报告处理里：两者必须共用同一装备窗口，避免中途武器被归还池。
+
+	// 阶段超时保护：客户端没有回报时给出可诊断的失败，而不是等到整体超时。
+	if (ReloadFireActiveRequestId != 0 && ReloadFirePhaseStartTime > 0.0f &&
+		GetWorld()->GetTimeSeconds() - ReloadFirePhaseStartTime > 15.0f)
+	{
+		FailTest(FString::Printf(TEXT("Reload-fire phase %d timed out waiting for client report"), ReloadFirePhase));
+		return;
 	}
 	} // if (Weapon)
 
@@ -2354,10 +2424,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		{
 			UAbilitySystemComponent* AbilitySystemComponent = Character->GetAbilitySystemComponent();
 			UShooterAbilitySystemComponent* ShooterAbilitySystemComponent = Cast<UShooterAbilitySystemComponent>(AbilitySystemComponent);
-			const bool bActivated = AbilitySystemComponent
-				? AbilitySystemComponent->TryActivateAbility(ServerFireAbilityHandle)
-				: false;
-			bFireRejectDeadVerified = !bActivated &&
+			// 见 4C Reject.NoAmmo：LocalPredicted 下改查服务器的权威校验结论。
+			const bool bServerAllowsActivation = CanServerActivateFireAbility(AbilitySystemComponent);
+			bFireRejectDeadVerified = !bServerAllowsActivation &&
 				AbilitySystemComponent &&
 				AbilitySystemComponent->HasMatchingGameplayTag(
 					ShooterGameplayTags::State_Dead) &&
@@ -2367,8 +2436,8 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			if (!bFireRejectDeadVerified)
 			{
 				FailTest(FString::Printf(
-					TEXT("Dead activation reject invalid; Activated=%s DeadTag=%s"),
-					bActivated ? TEXT("true") : TEXT("false"), AbilitySystemComponent &&
+					TEXT("Dead activation reject invalid; ServerAllows=%s DeadTag=%s"),
+					bServerAllowsActivation ? TEXT("true") : TEXT("false"), AbilitySystemComponent &&
 						AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Dead)
 						? TEXT("true")
 						: TEXT("false")));
@@ -2523,10 +2592,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		// ---- 4C Reject.NoWeapon：重生 Inventory 为空，激活必须被拒绝 ----
 		if (bServerGasRespawnOk && bServerRespawnInventoryEmpty && !bFireRejectNoWeaponVerified)
 		{
-			const bool bActivated = AbilitySystemComponent
-				? AbilitySystemComponent->TryActivateAbility(ServerFireAbilityHandle)
-				: false;
-			bFireRejectNoWeaponVerified = !bActivated && RespawnShooterAbilitySystemComponent &&
+			// 见 4C Reject.NoAmmo：LocalPredicted 下改查服务器的权威校验结论。
+			const bool bServerAllowsActivation = CanServerActivateFireAbility(AbilitySystemComponent);
+			bFireRejectNoWeaponVerified = !bServerAllowsActivation && RespawnShooterAbilitySystemComponent &&
 				RespawnShooterAbilitySystemComponent->GetActiveAbilityCountForClass(ShooterPlayerState->GetFireAbilityClass()) == 0;
 			if (!bFireRejectNoWeaponVerified)
 			{
@@ -2646,6 +2714,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		bServerReloadEquipRespawnGrantOk && bClientObservedReloadEquipGrant &&
 		bReloadFullRejectVerified && bReloadTransferVerified &&
 		bReloadCancelEquipVerified && bReloadSwitchBackVerified &&
+		bReloadFireImmediateVerified &&
 		bReloadNoReserveVerified && bReloadCancelDeathVerified &&
 		bEquipInitialCommitConsistent &&
 		bEquipCancelReloadActiveObserved && bEquipSwitchBackActiveObserved &&
@@ -2767,6 +2836,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 				"reloadEquipGrant=%s/%s/%s reload=%s/%s/%s/%s/%s/%s fireAfterReload=%s/%s/%s "
 				"equip=%s/%s/%s/%s/%s fireGA=%s/%s/%s cancellation=%s/%s/%s/%s/%s/%s/%s "
 				"bullets=%d->%d hp=%.0f team=%u kills=%d deaths=%d score=%.0f teamScore=%d "
+		"reloadFire=%s phase=%d "
 				"PickupAuthority=%s InventoryOwner=%s InventoryRemoteHidden=%s AmmoIsolation=%s "
 				"DeathClear=%s/%s RespawnEmpty=%s/%s"),
 			bClientObservedSwitch ? TEXT("true") : TEXT("false"),
@@ -2837,6 +2907,8 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			TimeoutPlayerState ? TimeoutPlayerState->GetDeaths() : INDEX_NONE,
 			TimeoutPlayerState ? TimeoutPlayerState->GetScore() : -1.0f,
 			TimeoutTeamScore,
+		bReloadFireImmediateVerified ? TEXT("true") : TEXT("false"),
+		ReloadFirePhase,
 			bClientObservedPickupAuthority ? TEXT("true") : TEXT("false"),
 			bClientObservedOwnerInventory ? TEXT("true") : TEXT("false"),
 			bClientObservedRemoteInventoryHidden ? TEXT("true") : TEXT("false"),
@@ -2928,6 +3000,86 @@ void AShooterNetworkTestCoordinator::PollClientState()
 		bClientStoppedFireAfterReload = true;
 		Character->DoStopFiring();
 		ServerReportClientStoppedFireAfterReload();
+	}
+
+	// ---- P1 换弹中开火：8B 同帧换弹加开火；8A 等到本机看到 State.Reloading 再开火 ----
+	// 两种用例都刻意不释放开火输入：这样收敛只能来自服务器 Reject / Cancel，而不是本地 InputReleased。
+	if (ReloadFirePhase != LastObservedReloadFirePhase)
+	{
+		LastObservedReloadFirePhase = ReloadFirePhase;
+		bClientReloadFireInputSent = false;
+		bClientReloadFireTagSeen = false;
+		bClientReportedReloadFire = false;
+		ClientReloadFireSettleTime = 0.0f;
+		UE_LOG(LogShootGame, Display, TEXT("Reload-fire phase observed on client: Phase=%d Weapon=%s"),
+			ReloadFirePhase, *GetNameSafe(Weapon));
+
+		if (ReloadFirePhase != 0)
+		{
+			Character->DoReload();
+			ClientReloadFirePredictedBefore = Weapon ? Weapon->GetPredictedOwnerFeedbackCountForAutomationTest() : 0;
+
+			if (ReloadFirePhase == 2)
+			{
+				// 同一帧紧接开火：此时客户端必然还没收到 State.Reloading。
+				Character->DoStartFiring();
+				bClientReloadFireInputSent = true;
+				UE_LOG(LogShootGame, Display, TEXT("Reload-fire client inputs sent: Case=2 PredictedBefore=%d"),
+					ClientReloadFirePredictedBefore);
+			}
+		}
+	}
+
+	// 8A（客户端已知 State.Reloading 后再开火）未在本阶段落地：
+	// 该用例需要在同一装备窗口内紧跟 8B 再跑一轮，而后续阶段会清空背包并归还武器，
+	// 现有阶段序列无法稳定提供前置条件。见开发记录遗留项。
+	if (ReloadFirePhase != 0 && bClientReloadFireInputSent && !bClientReportedReloadFire)
+	{
+		if (ClientReloadFireSettleTime <= 0.0f)
+		{
+			ClientReloadFireSettleTime = GetWorld()->GetTimeSeconds() + 0.6f;
+			UE_LOG(LogShootGame, Display, TEXT("Reload-fire client settle armed: Case=%d Weapon=%s"),
+				ReloadFirePhase, *GetNameSafe(GetCurrentWeapon(Character)));
+		}
+		else if (GetWorld()->GetTimeSeconds() >= ClientReloadFireSettleTime)
+		{
+			bClientReportedReloadFire = true;
+
+			// 静默窗口结束时武器可能已经被其它阶段归还池：此时本地不可能再播放表现，增量按 0 计。
+			const AShooterWeapon* ReportWeapon = GetCurrentWeapon(Character);
+			AShooterPlayerState* ClientPlayerState = Character->GetPlayerState<AShooterPlayerState>();
+			UShooterAbilitySystemComponent* ClientAbilitySystemComponent =
+				Cast<UShooterAbilitySystemComponent>(Character->GetAbilitySystemComponent());
+			int32 ClientActiveFireCount = 0;
+			bool bClientFiringTag = false;
+			bool bClientPredictedTimerActive = false;
+			if (ClientAbilitySystemComponent && ClientPlayerState)
+			{
+				const TSubclassOf<UGameplayAbility> ClientFireAbilityClass = ClientPlayerState->GetFireAbilityClass();
+				ClientActiveFireCount = ClientAbilitySystemComponent->GetActiveAbilityCountForClass(ClientFireAbilityClass);
+				bClientFiringTag = ClientAbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Firing);
+				if (FGameplayAbilitySpec* ClientFireSpec = ClientAbilitySystemComponent->FindAbilitySpecFromClass(ClientFireAbilityClass))
+				{
+					UGameplayAbility* ClientFireInstance = ClientFireSpec->GetPrimaryInstance();
+					const UShooterGameplayAbility_Fire* ClientFireAbility = Cast<UShooterGameplayAbility_Fire>(
+						ClientFireInstance ? ClientFireInstance : ClientFireSpec->Ability.Get());
+					bClientPredictedTimerActive = ClientFireAbility && ClientFireAbility->IsPredictedFeedbackActiveForTest();
+				}
+			}
+
+			const int32 PredictedDelta = ReportWeapon
+				? ReportWeapon->GetPredictedOwnerFeedbackCountForAutomationTest() - ClientReloadFirePredictedBefore
+				: 0;
+			const bool bConverged = ClientActiveFireCount == 0 && !bClientFiringTag && !bClientPredictedTimerActive;
+			UE_LOG(LogShootGame, Display,
+				TEXT("Reload-fire client report: Case=%d ReloadingTagSeen=%s PredictedDelta=%d ActiveFire=%d "
+					"FiringTag=%s LocalTimer=%s Converged=%s"),
+				ReloadFirePhase, bClientReloadFireTagSeen ? TEXT("true") : TEXT("false"), PredictedDelta,
+				ClientActiveFireCount, bClientFiringTag ? TEXT("true") : TEXT("false"),
+				bClientPredictedTimerActive ? TEXT("true") : TEXT("false"),
+				bConverged ? TEXT("true") : TEXT("false"));
+			ServerReportReloadFireResult(ReloadFireRequestId, ReloadFirePhase, PredictedDelta, bConverged);
+		}
 	}
 
 	// ---- 5C Reject.SingleWeapon：客户端仍走生产切枪入口，服务器必须拒绝 GA_Equip ----
@@ -3550,6 +3702,73 @@ void AShooterNetworkTestCoordinator::ServerReportClientObservedGasRespawn_Implem
 {
 	UE_LOG(LogShootGame, Display, TEXT("GAS client report: GasRespawn"));
 	bClientObservedGasRespawn = true;
+}
+
+void AShooterNetworkTestCoordinator::ServerReportReloadFireResult_Implementation(int32 RequestId, int32 FireCase,
+	int32 PredictedDelta, bool bClientConverged)
+{
+	// 防迟到 RPC 污染其它阶段。
+	if (RequestId != ReloadFireActiveRequestId || FireCase != ReloadFirePhase || ReloadFireActiveRequestId == 0)
+	{
+		return;
+	}
+
+	AShooterCharacter* Character = GetShooterCharacter();
+	// 阶段目标武器可能在静默窗口内被归还池，优先用阶段起点引用读取权威计数。
+	AShooterWeapon* Weapon = ReloadFireTargetWeapon.IsValid() ? ReloadFireTargetWeapon.Get() : GetCurrentWeapon(Character);
+	UShooterAbilitySystemComponent* ShooterAbilitySystemComponent = Character
+		? Cast<UShooterAbilitySystemComponent>(Character->GetAbilitySystemComponent())
+		: nullptr;
+	AShooterPlayerState* ShooterPlayerState = Character
+		? Character->GetPlayerState<AShooterPlayerState>()
+		: nullptr;
+
+	const int32 AmmoNow = IsValid(Weapon) ? Weapon->GetBulletCount() : INDEX_NONE;
+	const int32 AuthorityShotsNow = IsValid(Weapon) ? Weapon->GetAuthorityShotCountForAutomationTest() : INDEX_NONE;
+
+	// 服务器权威：被拒的开火不得产生任何 Gameplay 结果。
+	const bool bNoAuthorityCommit = AuthorityShotsNow == ReloadFireAuthorityShotsBefore &&
+		ProjectileSpawnCount == ReloadFireProjectilesBefore;
+	// 换弹提交可能落在窗口内（只增不减），因此断言"未被开火扣减"而不是字面相等。
+	const bool bAmmoNotReducedByRejectedFire = AmmoNow >= ReloadFireAmmoBefore;
+	const bool bNoServerResidue = ShooterAbilitySystemComponent && ShooterPlayerState &&
+		!ShooterAbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Firing) &&
+		ShooterAbilitySystemComponent->GetActiveAbilityCountForClass(ShooterPlayerState->GetFireAbilityClass()) == 0;
+	// 8A：本机已知 State.Reloading 时本地预测表现增量必须为 0。
+	// 8B：允许有限的纯本地预测表现（含全自动短暂连续反馈）。
+	const bool bPredictionBoundaryOk = FireCase == 1 ? PredictedDelta == 0 : PredictedDelta >= 0;
+
+	const bool bVerified = bNoAuthorityCommit && bAmmoNotReducedByRejectedFire && bNoServerResidue &&
+		bPredictionBoundaryOk && bClientConverged;
+
+	UE_LOG(LogShootGame, Display,
+		TEXT("Reload-fire server report: Case=%d PredictedDelta=%d AmmoBefore=%d AmmoNow=%d Shots=%d->%d ")
+		TEXT("Projectiles=%d->%d ClientConverged=%s Valid=%s"),
+		FireCase, PredictedDelta, ReloadFireAmmoBefore, AmmoNow, ReloadFireAuthorityShotsBefore, AuthorityShotsNow,
+		ReloadFireProjectilesBefore, ProjectileSpawnCount, bClientConverged ? TEXT("true") : TEXT("false"),
+		bVerified ? TEXT("true") : TEXT("false"));
+
+	if (!bVerified)
+	{
+		FailTest(FString::Printf(
+			TEXT("Reload-fire case %d invalid; PredictedDelta=%d Ammo=%d->%d Shots=%d->%d Projectiles=%d->%d ")
+			TEXT("NoCommit=%s AmmoKept=%s NoResidue=%s Boundary=%s Converged=%s"),
+			FireCase, PredictedDelta, ReloadFireAmmoBefore, AmmoNow, ReloadFireAuthorityShotsBefore, AuthorityShotsNow,
+			ReloadFireProjectilesBefore, ProjectileSpawnCount, bNoAuthorityCommit ? TEXT("true") : TEXT("false"),
+			bAmmoNotReducedByRejectedFire ? TEXT("true") : TEXT("false"),
+			bNoServerResidue ? TEXT("true") : TEXT("false"), bPredictionBoundaryOk ? TEXT("true") : TEXT("false"),
+			bClientConverged ? TEXT("true") : TEXT("false")));
+		return;
+	}
+
+	if (FireCase == 2)
+	{
+		bReloadFireImmediateVerified = true;
+	}
+
+	ReloadFireActiveRequestId = 0;
+	ReloadFirePhase = 0;
+	ForceNetUpdate();
 }
 
 void AShooterNetworkTestCoordinator::ServerReportFullAutoReleased_Implementation(int32 BulletCountAfterRelease)

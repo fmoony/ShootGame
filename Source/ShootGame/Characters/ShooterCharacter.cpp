@@ -200,7 +200,24 @@ void AShooterCharacter::BeginPlay()
 
 void AShooterCharacter::EndPlay(EEndPlayReason::Type EndPlayReason)
 {
-	// 角色销毁时若仍是 ASC 的 Avatar，先解除 ActorInfo，避免残留旧 Pawn 引用。
+	// 清理角色自身的延迟回调，避免销毁后继续触发。
+	GetWorld()->GetTimerManager().ClearTimer(RespawnTimer);
+
+	// 必须先于 ClearActorInfo 取消 Ability：清空 ActorInfo 本身不会结束 Ability，
+	// 而 Ability 的清理依赖仍指向本 Character 的 Avatar 关系。
+	// 服务器取消 Fire / Reload / Equip；拥有者本地再取消预测 Fire，避免本地表现节拍残留。
+	if (HasAuthority())
+	{
+		CancelFireAbility();
+		CancelReloadAbility();
+		CancelEquipAbility();
+	}
+	else if (IsPlayerControlled() && IsLocallyControlled())
+	{
+		CancelFireAbility();
+	}
+
+	// 角色销毁时若仍是 ASC 的 Avatar，再解除 ActorInfo，避免残留旧 Pawn 引用。
 	// 服务器复活或客户端收到新 Pawn 时会重新建立 ActorInfo。
 	if (AShooterPlayerState* ShooterPlayerState = GetPlayerState<AShooterPlayerState>())
 	{
@@ -212,17 +229,6 @@ void AShooterCharacter::EndPlay(EEndPlayReason::Type EndPlayReason)
 				AbilitySystemComponent->ClearActorInfo();
 			}
 		}
-	}
-
-	// 清理角色自身的延迟回调，避免销毁后继续触发。
-	GetWorld()->GetTimerManager().ClearTimer(RespawnTimer);
-
-	// 角色销毁 / 断线时先结束 GA_Fire / GA_Reload / GA_Equip，避免 Ability 生命周期残留旧 Avatar 或旧 Weapon。
-	if (HasAuthority())
-	{
-		CancelFireAbility();
-		CancelReloadAbility();
-		CancelEquipAbility();
 	}
 
 	// 武器是服务器按角色生命周期生成的独立 Actor；Owner 关系不会自动级联销毁。
@@ -577,19 +583,12 @@ void AShooterCharacter::MulticastPlayFiringMontage_Implementation(UAnimMontage* 
 		return;
 	}
 
-	// 第三人称 mesh 在所有客户端上播放开火动画
+	// 第三人称 mesh 在所有客户端播放（含拥有者），维持同场景第三人称表现一致性。
+	// 拥有者的第一人称 Montage 只由 PlayOwnerLocalFiringFeedback 在本地预测路径播放，
+	// 因此本 Multicast 不再提供第一人称分支。
 	if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
 	{
 		AnimInstance->Montage_Play(Montage);
-	}
-
-	// 第一人称手臂只对拥有者播放
-	if (IsLocallyControlled())
-	{
-		if (UAnimInstance* FPAnimInstance = GetFirstPersonMesh()->GetAnimInstance())
-		{
-			FPAnimInstance->Montage_Play(Montage);
-		}
 	}
 }
 

@@ -15,6 +15,7 @@
 #include "Animation/AnimInstance.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/Pawn.h"
+#include "GameFramework/PlayerState.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
 #include "Net/UnrealNetwork.h"
@@ -598,6 +599,25 @@ bool AShooterWeapon::HasOwnerLocalPlayerView() const
 	return PawnOwner != nullptr && PawnOwner->IsPlayerControlled() && PawnOwner->IsLocallyControlled();
 }
 
+bool AShooterWeapon::CanStartSemiAutoShotNow() const
+{
+	// 全自动不参与该查询：冷却期允许激活，真实补射时机由权威 RefireTimer 决定。
+	if (bFullAuto)
+	{
+		return false;
+	}
+
+	const UWorld* World = GetWorld();
+	if (!World)
+	{
+		return false;
+	}
+
+	// 半自动开火后会把 RefireTimer 排成 FireCooldownExpired：Timer 活动即表示仍在冷却。
+	// 池取用与归还都会清除该 Timer，因此首次取用时为未激活，可直接开火。
+	return !World->GetTimerManager().IsTimerActive(RefireTimer);
+}
+
 bool AShooterWeapon::PlayOwnerPredictedShotFeedback()
 {
 	// Dedicated Server 没有拥有者本地视图；非本地玩家视图也不是本入口的职责。
@@ -680,6 +700,7 @@ void AShooterWeapon::Fire()
 
 #if WITH_DEV_AUTOMATION_TESTS
 	++AuthorityShotCount;
+	LogFireFeedbackMarker(TEXT("FIRE_AUTHORITY_COMMIT"), AuthorityShotCount, AuthorityShotCount);
 #endif
 
 	// update the time of our last shot
@@ -719,9 +740,12 @@ void AShooterWeapon::ExecuteFireAtTarget(const FVector& TargetLocation)
 	// broadcast the muzzle flash and firing sound
 	MulticastPlayFiringFX();
 
-	// add recoil
-	WeaponOwner->AddWeaponRecoil(FiringRecoil);
-
+	// 拥有者的 Recoil 由本地拥有者表现路径负责；权威端只对非本地玩家视图保留现状。
+	// 否则 Listen Host 与 Standalone 会在本地路径与权威路径各施加一次。
+	if (!HasOwnerLocalPlayerView())
+	{
+		WeaponOwner->AddWeaponRecoil(FiringRecoil);
+	}
 }
 
 void AShooterWeapon::FireProjectile(const FVector& TargetLocation)
@@ -777,32 +801,47 @@ FTransform AShooterWeapon::CalculateProjectileSpawnTransform(const FVector& Targ
 
 void AShooterWeapon::MulticastPlayFiringFX_Implementation()
 {
+	// Dedicated 服务器没有本地观察者；纯表现不在服务器生成。
+	if (IsRunningDedicatedServer())
+	{
+		return;
+	}
+
 	// 没有配置任何表现资产时直接返回
 	if (!MuzzleFlash && !FireSound)
 	{
 		return;
 	}
 
-	// 拥有者只看第一人称 mesh，其他客户端（及服务器模拟端）看第三人称 mesh
-	const bool bLocalOwner = PawnOwner && PawnOwner->IsLocallyControlled();
-
-	// 枪口闪光：挂在 muzzle socket 上，随武器移动
-	if (MuzzleFlash)
+	if (HasOwnerLocalPlayerView())
 	{
-		USkeletalMeshComponent* MuzzleMesh = bLocalOwner ? FirstPersonMesh : ThirdPersonMesh;
-		if (MuzzleMesh)
-		{
-			UNiagaraFunctionLibrary::SpawnSystemAttached(MuzzleFlash, MuzzleMesh, MuzzleSocketName,
-				FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::SnapToTarget, true);
-		}
+		// 拥有者的第一人称枪口与音效已由本地预测路径承担；Multicast 到达这里只登记确认。
+#if WITH_DEV_AUTOMATION_TESTS
+		RecordOwnerAuthorityConfirmationForAutomationTest();
+		LogFireFeedbackMarker(TEXT("FIRE_AUTHORITY_CONFIRMATION_RECEIVED"), OwnerAuthorityConfirmationCount,
+			OwnerAuthorityConfirmationCount);
+#endif
+		return;
 	}
 
-	// 开火音效：所有端在武器位置播放，距离衰减由音频系统处理
+	// Remote 与 NPC 使用第三人称世界网格；拥有者不可见该网格，两者互不重复。
+	if (MuzzleFlash && ThirdPersonMesh)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAttached(MuzzleFlash, ThirdPersonMesh, MuzzleSocketName,
+			FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::SnapToTarget, true);
+	}
+
+	// 开火音效：远端与服务器在武器位置播放，距离衰减由音频系统处理
 	if (FireSound)
 	{
 		UGameplayStatics::SpawnSoundAttached(FireSound, RootComponent, NAME_None,
 			FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::SnapToTarget, true);
 	}
+
+#if WITH_DEV_AUTOMATION_TESTS
+	++RemoteConfirmedFeedbackCount;
+	LogFireFeedbackMarker(TEXT("FIRE_REMOTE_CONFIRMED"), RemoteConfirmedFeedbackCount, RemoteConfirmedFeedbackCount);
+#endif
 }
 
 void AShooterWeapon::PlayReloadSoundStage(EShooterReloadSoundStage Stage)
@@ -925,5 +964,18 @@ bool AShooterWeapon::IsRefireTimerActiveForAutomationTest() const
 	// 只读现有 RefireTimer，不为测试复制生产判定。
 	const UWorld* World = GetWorld();
 	return World != nullptr && World->GetTimerManager().IsTimerActive(RefireTimer);
+}
+
+void AShooterWeapon::LogFireFeedbackMarker(const TCHAR* Marker, int32 ShotOrdinal, int32 Count) const
+{
+	// 武器端只输出自己持有的字段。GA 的 PredictionKey 由 GA 侧标记输出，
+	// 不持久写进池化 Weapon，避免跨租用残留。
+	const APlayerState* OwnerPlayerState = PawnOwner ? PawnOwner->GetPlayerState() : nullptr;
+	const int32 PlayerId = OwnerPlayerState ? OwnerPlayerState->GetPlayerId() : INDEX_NONE;
+	const UWorld* World = GetWorld();
+	const float LocalTime = World ? World->GetTimeSeconds() : 0.0f;
+
+	UE_LOG(LogShootGame, Display, TEXT("%s PlayerId=%d Weapon=%s ShotOrdinal=%d Count=%d LocalTime=%.3f NetMode=%d"),
+		Marker, PlayerId, *GetNameSafe(this), ShotOrdinal, Count, LocalTime, static_cast<int32>(GetNetMode()));
 }
 #endif

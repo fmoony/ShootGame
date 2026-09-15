@@ -301,6 +301,17 @@ public:
 	 */
 	bool PlayOwnerPredictedShotFeedback();
 
+	/** 本地预测节拍只读配置。 */
+	bool IsFullAuto() const { return bFullAuto; }
+	float GetRefireRate() const { return RefireRate; }
+
+	/**
+	 * 服务器只读射速资格查询，无副作用，仅供半自动使用。
+	 * 权威 RefireTimer 未激活时返回 true；全自动恒返回 false，不参与该查询。
+	 * 不使用 TimeOfLastShot == 0.0f 作为“从未开火”哨兵：池取用与归还都会把它复位为 0。
+	 */
+	bool CanStartSemiAutoShotNow() const;
+
 protected:
 
 	/** Fire the weapon */
@@ -461,6 +472,10 @@ public:
 	float GetTimeOfLastShotForAutomationTest() const { return TimeOfLastShot; }
 	/** 只读探针：权威 RefireTimer 是否活动。 */
 	bool IsRefireTimerActiveForAutomationTest() const;
+
+	/** P1 统一预测日志标记（武器端）。只输出武器自身持有的字段，
+	 *  不把 GA 的 PredictionKey 持久写进池化 Weapon。 */
+	void LogFireFeedbackMarker(const TCHAR* Marker, int32 ShotOrdinal, int32 Count) const;
 
 private:
 	int32 PredictedOwnerFeedbackCount = 0;

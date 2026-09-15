@@ -104,19 +104,20 @@ namespace ShooterAbilityFirePredictionAutomationTests
 
 	/** 用指定表现资产组合从运行时池取出一把测试武器；返回 nullptr 表示取用失败。 */
 	AShooterWeapon* AcquireFeedbackTestWeapon(UWorld* World, AActor* WeaponOwner, UAnimMontage* Montage,
-		UNiagaraSystem* Muzzle, USoundBase* Sound, float Recoil)
+		UNiagaraSystem* Muzzle, USoundBase* Sound, float Recoil,
+		TSubclassOf<AShooterWeapon> WeaponClass = AShooterWeaponPresentationTestWeaponPrimary::StaticClass())
 	{
 		UShooterWeaponRuntimeSubsystem* Runtime = World
 			? World->GetSubsystem<UShooterWeaponRuntimeSubsystem>()
 			: nullptr;
 		UDataTable* Table = GetOrInjectRuntimeTestTable(World);
-		if (!Runtime || !Table || !WeaponOwner)
+		if (!Runtime || !Table || !WeaponOwner || !WeaponClass)
 		{
 			return nullptr;
 		}
 
-		FShooterWeaponConfigRow Row = MakeTestWeaponRow(AShooterWeaponPresentationTestWeaponPrimary::StaticClass(),
-			/*MagazineSize*/ 10, /*InitialReserveAmmo*/ -1, /*InitialPoolSize*/ 1);
+		FShooterWeaponConfigRow Row = MakeTestWeaponRow(WeaponClass, /*MagazineSize*/ 10,
+			/*InitialReserveAmmo*/ -1, /*InitialPoolSize*/ 1);
 		Row.FiringMontage = Montage;
 		Row.MuzzleFlash = Muzzle;
 		Row.FireSound = Sound;
@@ -305,6 +306,109 @@ bool FShooterFirePredictionLocalFeedbackStatelessTest::RunTest(const FString& Pa
 		Weapon->GetAuthorityShotCountForAutomationTest(), AuthorityShotsBefore);
 	TestEqual(TEXT("owner feedback counter matches the three calls"),
 		Weapon->GetPredictedOwnerFeedbackCountForAutomationTest(), 3);
+
+	DestroyPredictionTestWorld(World);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterFirePredictionFirstShotReadyAfterAcquireTest,
+	"ShootGame.Ability.Fire.Prediction.FirstShotReadyAfterAcquire",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FShooterFirePredictionFirstShotReadyAfterAcquireTest::RunTest(const FString& Parameters)
+{
+	using namespace ShooterAbilityFirePredictionAutomationTests;
+
+	UWorld* World = CreatePredictionTestWorld();
+	if (!TestNotNull(TEXT("prediction test world created"), World))
+	{
+		return false;
+	}
+
+	AShooterCharacter* Character = SpawnLocalPlayerCharacter(World);
+	if (!TestNotNull(TEXT("local player character spawned"), Character))
+	{
+		DestroyPredictionTestWorld(World);
+		return false;
+	}
+
+	// 用生命周期测试武器暴露 RefireTimer，直接驱动冷却状态。
+	// 修正 11：首次取用时 RefireTimer 未激活，因此可以直接开火；
+	// 不能用 TimeOfLastShot == 0.0f 作哨兵，池取用与归还都会把它复位为 0。
+	AShooterWeaponLifecycleTestWeapon* Weapon = Cast<AShooterWeaponLifecycleTestWeapon>(
+		AcquireFeedbackTestWeapon(World, Character, nullptr, nullptr, nullptr, 0.0f,
+			AShooterWeaponLifecycleTestWeapon::StaticClass()));
+	if (!TestNotNull(TEXT("semi-auto lifecycle test weapon acquired"), Weapon))
+	{
+		DestroyPredictionTestWorld(World);
+		return false;
+	}
+
+	TestFalse(TEXT("acquired weapon is semi-auto"), Weapon->IsFullAuto());
+	TestFalse(TEXT("refire timer is inactive right after acquire"), Weapon->IsRefireTimerActiveForAutomationTest());
+	TestEqual(TEXT("acquire resets TimeOfLastShot to zero"), Weapon->GetTimeOfLastShotForAutomationTest(), 0.0f);
+	TestTrue(TEXT("first shot is allowed right after acquire"), Weapon->CanStartSemiAutoShotNow());
+
+	// 冷却期：RefireTimer 活动 → 半自动必须拒绝立即开火。
+	Weapon->ArmRefireTimerForTest();
+	TestTrue(TEXT("refire timer is active while cooling down"), Weapon->IsRefireTimerActiveForAutomationTest());
+	TestFalse(TEXT("semi-auto is not allowed to fire during cooldown"), Weapon->CanStartSemiAutoShotNow());
+
+	DestroyPredictionTestWorld(World);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterFirePredictionRejectRefireCooldownTest,
+	"ShootGame.Ability.Fire.Prediction.RejectRefireCooldown",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FShooterFirePredictionRejectRefireCooldownTest::RunTest(const FString& Parameters)
+{
+	using namespace ShooterAbilityFirePredictionAutomationTests;
+
+	UWorld* World = CreatePredictionTestWorld();
+	if (!TestNotNull(TEXT("prediction test world created"), World))
+	{
+		return false;
+	}
+
+	AShooterCharacter* Character = SpawnLocalPlayerCharacter(World);
+	if (!TestNotNull(TEXT("local player character spawned"), Character))
+	{
+		DestroyPredictionTestWorld(World);
+		return false;
+	}
+
+	// 半自动：冷却期资格查询必须为 false，服务器 CanActivateAbility 据此拒绝重复激活。
+	AShooterWeaponLifecycleTestWeapon* SemiAuto = Cast<AShooterWeaponLifecycleTestWeapon>(
+		AcquireFeedbackTestWeapon(World, Character, nullptr, nullptr, nullptr, 0.0f,
+			AShooterWeaponLifecycleTestWeapon::StaticClass()));
+	if (!TestNotNull(TEXT("semi-auto weapon acquired"), SemiAuto))
+	{
+		DestroyPredictionTestWorld(World);
+		return false;
+	}
+
+	SemiAuto->ArmRefireTimerForTest();
+	TestFalse(TEXT("semi-auto cooldown rejects immediate shot"), SemiAuto->CanStartSemiAutoShotNow());
+	TestEqual(TEXT("rejected cooldown shot consumes no ammo"), SemiAuto->GetBulletCount(), 10);
+	TestEqual(TEXT("rejected cooldown shot records no authority shot"),
+		SemiAuto->GetAuthorityShotCountForAutomationTest(), 0);
+
+	// 全自动：不参与射速资格查询，冷却期仍允许激活；真实补射时机由权威 RefireTimer 决定。
+	AShooterWeaponLifecycleTestWeapon* FullAuto = Cast<AShooterWeaponLifecycleTestWeapon>(
+		AcquireFeedbackTestWeapon(World, Character, nullptr, nullptr, nullptr, 0.0f,
+			AShooterWeaponLifecycleTestWeapon::StaticClass()));
+	if (!TestNotNull(TEXT("full-auto weapon acquired"), FullAuto))
+	{
+		DestroyPredictionTestWorld(World);
+		return false;
+	}
+
+	FullAuto->SetFullAutoForTest(true);
+	TestTrue(TEXT("full-auto weapon reports full auto"), FullAuto->IsFullAuto());
+	TestFalse(TEXT("full auto does not participate in the semi-auto readiness query"),
+		FullAuto->CanStartSemiAutoShotNow());
 
 	DestroyPredictionTestWorld(World);
 	return true;

@@ -127,6 +127,14 @@ private:
 	UFUNCTION(Server, Reliable)
 	void ServerReportClientTriggeredEquipSingleReject();
 
+	/**
+	 * P1 换弹中开火报告：客户端在换弹状态下按下开火后回报本地观测。
+	 * FireCase：1 = 客户端已知 State.Reloading（8A，要求本地预测增量为 0）；
+	 *           2 = 客户端尚未收到 State.Reloading（8B，允许有限的纯本地预测表现）。
+	 */
+	UFUNCTION(Server, Reliable)
+	void ServerReportReloadFireResult(int32 RequestId, int32 FireCase, int32 PredictedDelta, bool bClientConverged);
+
 	UFUNCTION(Server, Reliable)
 	void ServerReportFullAutoReleased(int32 BulletCountAfterRelease);
 
@@ -176,6 +184,14 @@ private:
 	/** 5B 测试辅助：返回当前 PlayerState 是否有一个活动 GA_Fire。 */
 	bool HasActiveFireAbility(AShooterCharacter* Character) const;
 
+	/**
+	 * 4C 测试辅助：查询服务器对 GA_Fire 的权威激活结论。
+	 * GA_Fire 为 LocalPredicted 后，服务器对非本机控制玩家调用公开 TryActivateAbility
+	 * 会经 bAllowRemoteActivation 把请求转回拥有者客户端并返回 true，拿不到校验结论；
+	 * 因此直接调用服务器实例的 CanActivateAbility。返回 true 表示服务器允许激活。
+	 */
+	bool CanServerActivateFireAbility(UAbilitySystemComponent* AbilitySystemComponent) const;
+
 	/** 5C 测试辅助：返回当前 PlayerState 是否有一个活动 GA_Equip。 */
 	bool HasActiveEquipAbility(AShooterCharacter* Character) const;
 
@@ -218,6 +234,13 @@ private:
 
 	UPROPERTY(Replicated)
 	bool bServerReadyForEquipSingleReject = false;
+
+	/** P1 换弹中开火阶段：0=未开始，2=同帧换弹加开火（8B），1=等到本地 State.Reloading 再开火（8A）。 */
+	UPROPERTY(Replicated)
+	int32 ReloadFirePhase = 0;
+
+	UPROPERTY(Replicated)
+	int32 ReloadFireRequestId = 0;
 
 	UPROPERTY(Replicated)
 	bool bServerReadyToSwitch = false;
@@ -263,6 +286,14 @@ private:
 	bool bClientTriggeredFireAfterReload = false;
 	bool bClientStoppedFireAfterReload = false;
 	bool bClientTriggeredEquipSingleReject = false;
+
+	// ---- P1 换弹中开火：客户端侧跟踪 ----
+	int32 LastObservedReloadFirePhase = 0;
+	bool bClientReloadFireInputSent = false;
+	bool bClientReloadFireTagSeen = false;
+	bool bClientReportedReloadFire = false;
+	float ClientReloadFireSettleTime = 0.0f;
+	int32 ClientReloadFirePredictedBefore = 0;
 	bool bClientReportedSwitch = false;
 	bool bClientReportedOwnerAmmo = false;
 	bool bClientReportedNonOwnerAmmoHidden = false;
@@ -417,6 +448,17 @@ private:
 	bool bSwitchCancelVerified = false;
 	bool bSwitchCancelQuiescentConfirmed = false;
 	bool bNoAmmoRejectVerified = false;
+
+	// ---- P1 换弹中开火：服务器侧记录与验收 ----
+	bool bReloadFireImmediateVerified = false;
+	bool bReloadFireAfterTagVerified = false;
+	int32 ReloadFireActiveRequestId = 0;
+	/** 阶段起点武器引用：归还池后 GetCurrentWeapon 会变空，但该 Actor 仍可用于读取权威计数。 */
+	TWeakObjectPtr<AShooterWeapon> ReloadFireTargetWeapon;
+	int32 ReloadFireAmmoBefore = INDEX_NONE;
+	int32 ReloadFireAuthorityShotsBefore = INDEX_NONE;
+	int32 ReloadFireProjectilesBefore = INDEX_NONE;
+	float ReloadFirePhaseStartTime = 0.0f;
 	bool bFireRejectDeadVerified = false;
 	bool bFireRejectNoWeaponVerified = false;
 	bool bRespawnTagCleanupVerified = false;
