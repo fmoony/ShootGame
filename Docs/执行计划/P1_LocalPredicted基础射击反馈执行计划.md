@@ -232,14 +232,14 @@ NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
 
 ### 6.2 WeaponActor
 
-Weapon 保留权威射击状态，并提供无状态的单次拥有者表现入口：
+Weapon 保留权威射击状态，并提供按武器隔离节拍的单次拥有者表现入口：
 
 ```text
 Authority Fire Path
 → StartFiring / Fire / RefireTimer
 → Ammo / Projectile / Multicast Remote Feedback
 
-Stateless Owner Presentation
+Per-Weapon Owner Presentation
 → PlayOwnerPredictedShotFeedback
 → Montage / Niagara / Sound / Recoil
 ```
@@ -248,7 +248,9 @@ Stateless Owner Presentation
 
 - `PredictedFeedbackTimer` 归 GA_Fire，权威 `RefireTimer` 归 Weapon；
 - 本地表现路径不得写 `TimeOfLastShot`、`bIsFiring`、Inventory 或 Projectile；
-- Weapon 归还对象池或重新绑定 Owner 时不承担 GA Timer 生命周期；
+- 每个 WeaponActor 独立记录下一次允许普通预测表现的本地时间，间隔读取自身 `RefireRate`，
+  不跨武器共享，也不建立第二个 Timer；
+- Weapon 归还对象池或重新绑定 Owner 时复位纯表现冷却，但不承担 GA Timer 生命周期；
 - Listen Host 可以同时执行权威事务与无状态 Owner Presentation，两条路径不能重复可见反馈；
 - GA 的本地节拍只读取 Weapon 已冻结的 `bFullAuto`、`RefireRate` 与表现资产；
 - 所有本地表现函数必须在 Dedicated Server 直接返回。
@@ -321,8 +323,14 @@ P1 继续冻结以下规则：
 - 当前 Weapon 已隐藏，或已不是 `Equipment.CurrentWeaponActor`。
 
 该门控同时作用于首次预测射击与全自动 `PredictedFeedbackTimer` 的每一次 Tick。
-它不因为“Tag 可能是迟到的”而取消：迟到时最多损失一次本地反馈，
-比在换弹或切枪期间反复播放本地开火表现更可接受。
+服务器尚未裁决时，该门控不会因为“Tag 可能是迟到的”而自行取消；但如果客户端因此没有播放，
+而 GAS 随后确认同一次预测激活成功，则 `ConfirmActivateSucceed` 必须在复核当前武器仍有效后补播一次。
+确认回退后，全自动后续 Tick 在这批迟到 Tag 首次清除前继续播放；清除后恢复正常门控，Reject 不补播。
+
+普通预测表现还必须通过当前 WeaponActor 自己的纯表现冷却。冷却按 `RefireRate` 推进，不能放在
+GA、Character 或 ASC 上跨武器共享。服务器确认当前激活成功、但普通预测被该冷却误挡时，
+`ConfirmActivateSucceed` 必须旁路冷却补播一次，并重新推进该武器的纯表现冷却；Reject 不进入确认回调，
+也不得由冷却机制安排任何延迟反馈。该冷却不修改权威 `TimeOfLastShot` 或 `RefireTimer`。
 
 全自动本地循环**不等待服务器 Confirm**：等待会在高延迟下产生
 “第一枪立即播放 → 停一个 RTT → 才继续连射”的断层。因此允许客户端在尚未收到
@@ -343,8 +351,9 @@ P1 继续冻结以下规则：
 半自动不得沿用当前“Ability 激活成功但 `StartFiring` 因冷却静默不发射”的语义。P1-B 应在 Weapon
 提供 `CanStartImmediateShot()` 或等价的无副作用查询，供服务器 `GA_Fire::CanActivateAbility` 使用。
 
-全自动在冷却期重新按下时允许激活：服务器沿用剩余冷却后继续权威射击，Owner 可以立即播放一次
-纯表现反馈；这属于本阶段允许的短暂节拍相位偏移，不得提前生成 Projectile 或消耗 Ammo。
+全自动在冷却期重新按下时仍允许向服务器请求激活：服务器沿用剩余权威冷却；Owner 的普通预测表现
+同样受本武器纯表现冷却约束。若服务器最终接受而本地冷却误挡，确认回退补播一次；不得提前生成
+Projectile 或消耗 Ammo。
 
 ---
 
@@ -411,6 +420,7 @@ ShootGame.Ability.Fire.Prediction.DedicatedNoLocalFeedback
 - 为半自动增加服务器只读射速资格检查，冷却期必须 Reject；
 - Listen Host 同时执行本地表现和权威事务，但不得重复可见的第一人称反馈；
 - Server Multicast 到达拥有者时跳过已经由本地路径承担的第一人称 Montage、枪口和声音；
+- 若初始本地门控跳过反馈但服务器接受激活，GA_Fire 在确认回调中只补播一次拥有者纯表现；
 - 远端客户端仍只播放服务器确认的第三人称表现；
 - Reject、InputReleased 与 EndAbility 共用幂等清理。
 
@@ -449,12 +459,15 @@ GAS：实现半自动开火本地预测反馈
 
 - 仅对 `bFullAuto` 在 GA_Fire 中开启 `PredictedFeedbackTimer`；
 - Timer 每次只播放纯表现，不扣本地 Ammo；
+- 普通预测表现由当前 WeaponActor 按自身 `RefireRate` 限速，不跨武器共享；
+- 服务器接受但本地冷却误挡的激活，由确认回退旁路冷却补播一次；Reject 不安排后续反馈；
 - 输入释放通过 `EndAbility` 停止本地 Timer，并通知服务器停止权威循环；
 - 切枪、Reload、Equip、Death、Inventory Clear、Avatar 更换、OutOfAmmo、Disconnect、
   Prediction Reject 必须沿既有取消链进入 `EndAbility`；
 - `EndAbility` 幂等清理 Timer、CachedWeapon 和持续表现；
 - Weapon 不再是当前装备、已经隐藏或生命周期失效时，下一次本地 Tick 必须结束 Ability；
 - 服务器权威 `RefireTimer` 与射击次数完全不受本地 Timer 影响；
+- 不修改权威 `TimeOfLastShot`，网络用例不得通过反射篡改客户端 `bFullAuto`；
 - 接受服务器拒绝前已经发生的短暂纯表现，但不接受无限循环或跨武器残留。
 
 建议 Feature Tests：
@@ -503,7 +516,8 @@ ShootGame.Ability.Fire.Prediction.CancelAvatarChanged
 | 场景 | Owner | Server | Remote | 必须证明 |
 |---|---|---|---|---|
 | 半自动合法开火 | 立即一次 FP 反馈 | Ammo -1、1 Projectile | 确认后一次 TP 反馈 | Owner 无重复，Gameplay 仅一份 |
-| 半自动无弹 | 最多出现可回收的瞬时预测反馈 | Reject、Ammo 不变、0 Projectile | 无反馈 | 无持续状态残留 |
+| 换弹后迟到 Tag | Confirm 补一次 FP | 接受并提交一发 | 一次 TP | 不先见弹丸后听枪声 |
+| 半自动无弹 | 至多一次反馈 | Reject，无消耗/弹丸 | 无 | Reject 后无延迟反馈/残留 |
 | 全自动按住 | 本地 RefireRate 表现循环 | 权威 RefireRate 扣弹/生成 | 每发权威确认后表现 | 两套 Timer 不互相污染 |
 | 全自动松开 | 当帧停止本地循环 | 收到释放后停止权威循环 | 不再收到新确认 | 无尾部无限开火 |
 | 开火中 Reload | 本地 Fire 表现停止 | Fire 取消，Reload 权威开始 | 只见已确认射击 | Tag 与 Timer 收敛 |
@@ -515,8 +529,11 @@ ShootGame.Ability.Fire.Prediction.CancelAvatarChanged
 
 还必须定向覆盖以下边界：
 
-- 半自动冷却期再次按下：Owner 瞬时反馈可发生，服务器必须 Reject，Ammo 和 Projectile 不变；
-- 全自动冷却期重新按下：Owner 可立即反馈，服务器只在剩余冷却结束后继续权威射击；
+- 半自动冷却期再次按下：Owner 普通预测反馈被当前武器冷却挡下，服务器必须 Reject，
+  Ammo 和 Projectile 不变；
+- 全自动冷却期重新按下：Owner 普通预测同样受当前武器冷却限制，服务器只在剩余权威冷却结束后继续射击；
+- 两把武器的纯表现冷却必须相互独立；切换到另一把武器不继承前一把武器的剩余冷却；
+- 本地冷却误挡但服务器接受：确认回退必须只补播一次，Reject 不补播且不产生延迟反馈；
 - 本地 Weapon 表现对象未就绪：允许缺少一次预测反馈，但不得产生客户端 Gameplay 结果或崩溃；
 - Weapon 在预测 Timer Tick 前被切换、隐藏或归还池：Ability 必须结束且不得串到新 Owner。
 
@@ -662,16 +679,20 @@ PktLoss=2
 
 Host 与远端 Owner 在 Reject 之前的纯表现次数不要求一致：
 Host 本地同时拥有权威信息，可能一次假反馈都没有；远端 Owner 因复制状态迟到，
-可能短暂预测若干次。两者都属可接受范围。
+可能短暂预测有限次数。每次仍必须受当前 WeaponActor 的 `RefireRate` 表现冷却约束。
 
 ### 可接受的 P1 边界
 
 - Reject 到达前允许有限的纯本地预测表现，包括全自动武器的短暂连续反馈；
   前提是不产生任何客户端 Gameplay 结果（不扣 Ammo、不生成 Projectile、不结算伤害），
+  且所有普通预测尝试均受当前 WeaponActor 的 `RefireRate` 表现冷却约束，
   且 Reject 到达后必须立即停止 `PredictedFeedbackTimer` 并清理
   Ability / `State.Firing` / `CachedWeapon` 等预测状态；
 - 本机已知处于 `State.Reloading` / `State.Equipping` / `State.Dead`，
   或武器已隐藏、已不是当前装备时，只禁止本地预测表现，请求仍照常发给服务器；
+- 若上述 Tag 是迟到状态且服务器接受激活，拥有者必须在确认回调中补一次纯表现，
+  已经播放过的激活不得重复补播；
+- 若普通预测被本地表现冷却误挡但服务器接受，确认回调必须旁路冷却补播一次；Reject 不补播；
 - 全自动本地预测循环不等待服务器 Confirm，因此允许与权威节拍存在短暂相位偏移；
 - HUD Ammo 仍等待 OwnerOnly FastArray 权威复制；
 - 命中、伤害和远端表现仍有服务器确认延迟。

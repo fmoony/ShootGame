@@ -53,6 +53,7 @@ protected:
 		FGameplayTagContainer* OptionalRelevantTags) const override;
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 		const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+	virtual void ConfirmActivateSucceed() override;
 	virtual void InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 		const FGameplayAbilityActivationInfo ActivationInfo) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
@@ -64,6 +65,9 @@ private:
 
 	/** 拥有者本地表现：播一次，并按 bFullAuto 决定是否启动本地表现节拍。 */
 	void StartOwnerPredictedFeedback(AShooterWeapon& Weapon);
+
+	/** 提交一次拥有者纯表现；确认回退可旁路纯表现冷却，只有实际播放成功才登记。 */
+	bool TryPlayOwnerFeedback(AShooterWeapon& Weapon, const TCHAR* Marker, bool bConfirmedFallback = false);
 
 	/** 幂等停止本地表现节拍与标志；Reject、释放、取消共用。 */
 	void StopOwnerPredictedFeedback();
@@ -79,7 +83,7 @@ private:
 	 * 在武器可用基础上再排除本机已知的阻塞态：State.Reloading / State.Equipping / State.Dead。
 	 * 该判定只影响本地预测表现，不影响激活请求：请求照常发给服务器，由服务器完整校验并 Reject。
 	 */
-	bool IsOwnerPredictedFeedbackAllowed() const;
+	bool IsOwnerPredictedFeedbackAllowed();
 
 	/** P1 统一预测日志标记；仅开发构建输出。 */
 	void LogFirePredictionMarker(const TCHAR* Marker, const AShooterWeapon* Weapon, int32 ShotOrdinal) const;
@@ -101,6 +105,12 @@ private:
 
 	/** 本地表现节拍是否活动；幂等停止与测试观察共用。 */
 	bool bPredictedFeedbackActive = false;
+
+	/** 当前激活是否至少成功提交过一次拥有者本地反馈。 */
+	bool bOwnerFeedbackPlayedThisActivation = false;
+
+	/** 服务器确认回退后，迟到阻塞 Tag 首次清除前的短暂表现宽限。 */
+	bool bConfirmedBlockerGraceActive = false;
 
 #if WITH_DEV_AUTOMATION_TESTS
 public:

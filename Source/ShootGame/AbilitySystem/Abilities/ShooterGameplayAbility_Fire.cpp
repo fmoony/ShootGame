@@ -175,6 +175,8 @@ void UShooterGameplayAbility_Fire::ActivateAbility(
 	// 本地反馈序号必须按激活复位：Ability 实例跨激活复用，
 	// 不复位会让日志的 ShotOrdinal 跨 Burst 累积（PredictionKey 才标识一次激活或 Burst）。
 	PredictedShotOrdinal = 0;
+	bOwnerFeedbackPlayedThisActivation = false;
+	bConfirmedBlockerGraceActive = false;
 
 	// 第 2 步：拥有者本地视图立即播放一次纯表现；全自动同时启动本地表现节拍。
 	if (bOwnerLocalView && CachedWeapon.IsValid())
@@ -190,6 +192,26 @@ void UShooterGameplayAbility_Fire::ActivateAbility(
 
 		UE_LOG(LogShootGame, Display, TEXT("GA_Fire activated: Avatar=%s Weapon=%s Ammo=%d"),
 			*GetNameSafe(AvatarActor), *GetNameSafe(Weapon), Weapon->GetBulletCount());
+	}
+}
+
+void UShooterGameplayAbility_Fire::ConfirmActivateSucceed()
+{
+	Super::ConfirmActivateSucceed();
+
+	const FGameplayAbilityActorInfo* ActorInfo = GetCurrentActorInfo();
+	if (!ActorInfo || !ActorInfo->IsLocallyControlledPlayer() || bOwnerFeedbackPlayedThisActivation)
+	{
+		return;
+	}
+
+	AShooterWeapon* Weapon = CachedWeapon.Get();
+	if (Weapon && IsCurrentWeaponStillValidForFeedback(GetShooterAvatarActor()))
+	{
+		// 服务器已接受本次激活：此时本地 Reloading / Equipping / Dead 可能只是迟到的旧复制状态。
+		// 若初始预测因此没有播放，只为当前激活补一次纯表现；Reject 路径不会进入本函数。
+		bConfirmedBlockerGraceActive = TryPlayOwnerFeedback(*Weapon, TEXT("FIRE_OWNER_CONFIRMED_FALLBACK"),
+			/*bConfirmedFallback*/ true);
 	}
 }
 
@@ -231,6 +253,9 @@ void UShooterGameplayAbility_Fire::EndAbility(
 		CachedWeapon.Reset();
 	}
 
+	bOwnerFeedbackPlayedThisActivation = false;
+	bConfirmedBlockerGraceActive = false;
+
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 
 	UE_LOG(LogShootGame, Display, TEXT("GA_Fire ended: Cancelled=%s Avatar=%s"),
@@ -252,11 +277,7 @@ void UShooterGameplayAbility_Fire::StartOwnerPredictedFeedback(AShooterWeapon& W
 	// 全自动节拍照常启动，阻塞态解除后可自行恢复，Ability 生命周期始终由服务器决定。
 	if (IsOwnerPredictedFeedbackAllowed())
 	{
-		++PredictedShotOrdinal;
-		if (Weapon.PlayOwnerPredictedShotFeedback())
-		{
-			LogFirePredictionMarker(TEXT("FIRE_PREDICTED_OWNER"), &Weapon, PredictedShotOrdinal);
-		}
+		TryPlayOwnerFeedback(Weapon, TEXT("FIRE_PREDICTED_OWNER"));
 	}
 
 	if (!Weapon.IsFullAuto())
@@ -275,6 +296,22 @@ void UShooterGameplayAbility_Fire::StartOwnerPredictedFeedback(AShooterWeapon& W
 	World->GetTimerManager().SetTimer(PredictedFeedbackTimer, this,
 		&UShooterGameplayAbility_Fire::HandlePredictedFeedbackTick, Interval, /*bLoop*/ true);
 	bPredictedFeedbackActive = true;
+}
+
+bool UShooterGameplayAbility_Fire::TryPlayOwnerFeedback(AShooterWeapon& Weapon, const TCHAR* Marker, bool bConfirmedFallback)
+{
+	++PredictedShotOrdinal;
+	const bool bPlayed = bConfirmedFallback
+		? Weapon.PlayOwnerConfirmedShotFeedback()
+		: Weapon.PlayOwnerPredictedShotFeedback();
+	if (!bPlayed)
+	{
+		return false;
+	}
+
+	bOwnerFeedbackPlayedThisActivation = true;
+	LogFirePredictionMarker(Marker, &Weapon, PredictedShotOrdinal);
+	return true;
 }
 
 void UShooterGameplayAbility_Fire::StopOwnerPredictedFeedback()
@@ -313,11 +350,7 @@ void UShooterGameplayAbility_Fire::HandlePredictedFeedbackTick()
 		return;
 	}
 
-	++PredictedShotOrdinal;
-	if (Weapon->PlayOwnerPredictedShotFeedback())
-	{
-		LogFirePredictionMarker(TEXT("FIRE_PREDICTED_OWNER"), Weapon, PredictedShotOrdinal);
-	}
+	TryPlayOwnerFeedback(*Weapon, TEXT("FIRE_PREDICTED_OWNER"));
 }
 
 bool UShooterGameplayAbility_Fire::IsCurrentWeaponStillValidForFeedback(AActor* AvatarActor) const
@@ -331,7 +364,7 @@ bool UShooterGameplayAbility_Fire::IsCurrentWeaponStillValidForFeedback(AActor* 
 	return GetCurrentWeaponForAvatar(AvatarActor) == Weapon;
 }
 
-bool UShooterGameplayAbility_Fire::IsOwnerPredictedFeedbackAllowed() const
+bool UShooterGameplayAbility_Fire::IsOwnerPredictedFeedbackAllowed()
 {
 	if (!IsCurrentWeaponStillValidForFeedback(GetShooterAvatarActor()))
 	{
@@ -346,9 +379,17 @@ bool UShooterGameplayAbility_Fire::IsOwnerPredictedFeedbackAllowed() const
 		return false;
 	}
 
-	return !AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading) &&
-		!AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Equipping) &&
-		!AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Dead);
+	const bool bBlocked = AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading) ||
+		AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Equipping) ||
+		AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Dead);
+	if (!bBlocked)
+	{
+		// 确认回退只宽限同一批迟到 Tag；首次清除后，后续新阻塞态必须恢复本地门控。
+		bConfirmedBlockerGraceActive = false;
+		return true;
+	}
+
+	return bConfirmedBlockerGraceActive;
 }
 
 void UShooterGameplayAbility_Fire::LogFirePredictionMarker(const TCHAR* Marker, const AShooterWeapon* Weapon, int32 ShotOrdinal) const

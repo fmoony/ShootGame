@@ -2989,17 +2989,46 @@ void AShooterNetworkTestCoordinator::PollClientState()
 	if (bServerReadyForFireAfterReload && !bClientTriggeredFireAfterReload)
 	{
 		bClientTriggeredFireAfterReload = true;
+		const UAbilitySystemComponent* AbilitySystemComponent = Character->GetAbilitySystemComponent();
+		const bool bReloadingTagPresentAtInput = AbilitySystemComponent &&
+			AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading);
+		FireAfterReloadOwnerFeedbackBefore = Weapon
+			? Weapon->GetPredictedOwnerFeedbackCountForAutomationTest()
+			: 0;
+		FireAfterReloadOwnerConfirmationBefore = Weapon
+			? Weapon->GetOwnerAuthorityConfirmationCountForAutomationTest()
+			: 0;
 		Character->DoStartFiring();
-		UE_LOG(LogShootGame, Display, TEXT("Fire-after-reload client input submitted once: PlayerId=%d"),
-			PlayerController->PlayerState ? PlayerController->PlayerState->GetPlayerId() : INDEX_NONE);
-		ServerReportClientTriggeredFireAfterReload();
+		UE_LOG(
+			LogShootGame,
+			Display,
+			TEXT("Fire-after-reload client input submitted once: PlayerId=%d ReloadingTag=%s"),
+			PlayerController->PlayerState ? PlayerController->PlayerState->GetPlayerId() : INDEX_NONE,
+			bReloadingTagPresentAtInput ? TEXT("true") : TEXT("false"));
+		ServerReportClientTriggeredFireAfterReload(bReloadingTagPresentAtInput);
 	}
 
 	if (bServerReadyForStopFireAfterReload && !bClientStoppedFireAfterReload)
 	{
-		bClientStoppedFireAfterReload = true;
-		Character->DoStopFiring();
-		ServerReportClientStoppedFireAfterReload();
+		if (FireAfterReloadStopReadyTime <= 0.0f)
+		{
+			FireAfterReloadStopReadyTime = GetWorld()->GetTimeSeconds();
+		}
+
+		const int32 OwnerFeedbackDelta = Weapon
+			? Weapon->GetPredictedOwnerFeedbackCountForAutomationTest() - FireAfterReloadOwnerFeedbackBefore
+			: 0;
+		const int32 OwnerConfirmationDelta = Weapon
+			? Weapon->GetOwnerAuthorityConfirmationCountForAutomationTest() - FireAfterReloadOwnerConfirmationBefore
+			: 0;
+		const bool bOwnerFeedbackSettled = OwnerFeedbackDelta >= 1 && OwnerConfirmationDelta >= 1;
+		const bool bFeedbackWaitExpired = GetWorld()->GetTimeSeconds() - FireAfterReloadStopReadyTime >= 1.0f;
+		if (bOwnerFeedbackSettled || bFeedbackWaitExpired)
+		{
+			bClientStoppedFireAfterReload = true;
+			Character->DoStopFiring();
+			ServerReportClientStoppedFireAfterReload(OwnerFeedbackDelta, OwnerConfirmationDelta);
+		}
 	}
 
 	// ---- P1 换弹中开火：8B 同帧换弹加开火；8A 等到本机看到 State.Reloading 再开火 ----
@@ -3915,16 +3944,35 @@ void AShooterNetworkTestCoordinator::ServerReportClientTriggeredReloadSwitchBack
 	UE_LOG(LogShootGame, Display, TEXT("Reload client report: Switch back triggered"));
 }
 
-void AShooterNetworkTestCoordinator::ServerReportClientTriggeredFireAfterReload_Implementation()
+void AShooterNetworkTestCoordinator::ServerReportClientTriggeredFireAfterReload_Implementation(bool bReloadingTagPresentAtInput)
 {
 	bClientTriggeredFireAfterReload = true;
-	UE_LOG(LogShootGame, Display, TEXT("Fire-after-reload server report: Fire triggered once"));
+	bFireAfterReloadStaleTagObserved = bReloadingTagPresentAtInput;
+	UE_LOG(LogShootGame, Display, TEXT("Fire-after-reload server report: Fire triggered once ReloadingTag=%s"),
+		bReloadingTagPresentAtInput ? TEXT("true") : TEXT("false"));
+	if (!bFireAfterReloadStaleTagObserved)
+	{
+		FailTest(TEXT("Fire-after-reload did not exercise the stale local State.Reloading gate"));
+	}
 }
 
-void AShooterNetworkTestCoordinator::ServerReportClientStoppedFireAfterReload_Implementation()
+void AShooterNetworkTestCoordinator::ServerReportClientStoppedFireAfterReload_Implementation(
+	int32 OwnerFeedbackDelta, int32 OwnerConfirmationDelta)
 {
 	bClientTriggeredStopFireAfterReload = true;
-	UE_LOG(LogShootGame, Display, TEXT("Fire-after-reload server report: Stop triggered once"));
+	bFireAfterReloadOwnerFeedbackVerified = OwnerFeedbackDelta == 1 && OwnerConfirmationDelta == 1;
+	UE_LOG(
+		LogShootGame,
+		Display,
+		TEXT("Fire-after-reload stop: FeedbackDelta=%d ConfirmationDelta=%d Valid=%s"),
+		OwnerFeedbackDelta,
+		OwnerConfirmationDelta,
+		bFireAfterReloadOwnerFeedbackVerified ? TEXT("true") : TEXT("false"));
+	if (!bFireAfterReloadOwnerFeedbackVerified)
+	{
+		FailTest(FString::Printf(TEXT("Fire-after-reload owner feedback mismatch; Feedback=%d Confirmation=%d"),
+			OwnerFeedbackDelta, OwnerConfirmationDelta));
+	}
 }
 
 void AShooterNetworkTestCoordinator::ServerReportClientTriggeredEquipSingleReject_Implementation()

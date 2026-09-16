@@ -83,6 +83,7 @@ void AShooterWeapon::BeginPlay()
 void AShooterWeapon::OnRep_Owner()
 {
 	Super::OnRep_Owner();
+	ResetOwnerFeedbackCooldown();
 	InitializeWeaponOwner();
 }
 
@@ -191,6 +192,7 @@ void AShooterWeapon::OnAcquiredFromWeaponPool()
 	// 租用复位：开火节拍与开火标志不跨租用继承；WeaponId 与静态配置永久保留。
 	TimeOfLastShot = 0.0f;
 	bIsFiring = false;
+	ResetOwnerFeedbackCooldown();
 
 	// 池在调用本回调前已写入新 Owner，这里重新绑定 Owner/Instigator 缓存与销毁委托。
 	InitializeWeaponOwner();
@@ -215,6 +217,7 @@ void AShooterWeapon::OnReleasedToWeaponPool()
 	{
 		World->GetTimerManager().ClearTimer(RefireTimer);
 	}
+	ResetOwnerFeedbackCooldown();
 
 	// 解除 Owner 销毁委托并清空 Owner 侧缓存；通用隐藏/Detach/Owner 清空由池统一执行。
 	ClearWeaponOwner();
@@ -618,10 +621,51 @@ bool AShooterWeapon::CanStartSemiAutoShotNow() const
 	return !World->GetTimerManager().IsTimerActive(RefireTimer);
 }
 
+bool AShooterWeapon::IsOwnerFeedbackCooldownReady() const
+{
+	const UWorld* World = GetWorld();
+	if (!World)
+	{
+		return false;
+	}
+
+	// Timer 与 Tick 的浮点边界允许 5ms 容差，避免恰好在 RefireRate 边界误挡全自动下一拍。
+	constexpr float CooldownTolerance = 0.005f;
+	return OwnerFeedbackCooldownEndTime < 0.0f || World->GetTimeSeconds() + CooldownTolerance >= OwnerFeedbackCooldownEndTime;
+}
+
+void AShooterWeapon::AdvanceOwnerFeedbackCooldown()
+{
+	if (const UWorld* World = GetWorld())
+	{
+		OwnerFeedbackCooldownEndTime = World->GetTimeSeconds() + FMath::Max(RefireRate, 0.01f);
+	}
+}
+
+void AShooterWeapon::ResetOwnerFeedbackCooldown()
+{
+	OwnerFeedbackCooldownEndTime = -1.0f;
+}
+
 bool AShooterWeapon::PlayOwnerPredictedShotFeedback()
+{
+	return PlayOwnerShotFeedback(/*bBypassLocalCooldown*/ false);
+}
+
+bool AShooterWeapon::PlayOwnerConfirmedShotFeedback()
+{
+	return PlayOwnerShotFeedback(/*bBypassLocalCooldown*/ true);
+}
+
+bool AShooterWeapon::PlayOwnerShotFeedback(bool bBypassLocalCooldown)
 {
 	// Dedicated Server 没有拥有者本地视图；非本地玩家视图也不是本入口的职责。
 	if (IsRunningDedicatedServer() || !HasOwnerLocalPlayerView())
+	{
+		return false;
+	}
+
+	if (!bBypassLocalCooldown && !IsOwnerFeedbackCooldownReady())
 	{
 		return false;
 	}
@@ -660,6 +704,11 @@ bool AShooterWeapon::PlayOwnerPredictedShotFeedback()
 		UGameplayStatics::SpawnSoundAttached(FireSound, RootComponent, NAME_None,
 			FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::SnapToTarget, true);
 		bPlayedAny = true;
+	}
+
+	if (bPlayedAny)
+	{
+		AdvanceOwnerFeedbackCooldown();
 	}
 
 #if WITH_DEV_AUTOMATION_TESTS

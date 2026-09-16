@@ -118,6 +118,7 @@ namespace ShooterAbilityFirePredictionAutomationTests
 
 		FShooterWeaponConfigRow Row = MakeTestWeaponRow(WeaponClass, /*MagazineSize*/ 10,
 			/*InitialReserveAmmo*/ -1, /*InitialPoolSize*/ 1);
+		Row.RefireRate = 0.5f;
 		Row.FiringMontage = Montage;
 		Row.MuzzleFlash = Muzzle;
 		Row.FireSound = Sound;
@@ -205,9 +206,15 @@ bool FShooterFirePredictionLocalFeedbackCosmeticOnlyTest::RunTest(const FString&
 	const bool bSecondSubmit = RecoilWeapon->PlayOwnerPredictedShotFeedback();
 	const bool bThirdSubmit = RecoilWeapon->PlayOwnerPredictedShotFeedback();
 
-	TestTrue(TEXT("recoil-only feedback is submitted on every call"), bFirstSubmit && bSecondSubmit && bThirdSubmit);
-	TestEqual(TEXT("owner feedback counter advances once per call"),
-		RecoilWeapon->GetPredictedOwnerFeedbackCountForAutomationTest(), 3);
+	TestTrue(TEXT("first recoil-only feedback is submitted"), bFirstSubmit);
+	TestFalse(TEXT("second immediate prediction is blocked by the weapon cooldown"), bSecondSubmit);
+	TestFalse(TEXT("third immediate prediction remains blocked by the weapon cooldown"), bThirdSubmit);
+	TestEqual(TEXT("weapon cooldown admits only the first immediate prediction"),
+		RecoilWeapon->GetPredictedOwnerFeedbackCountForAutomationTest(), 1);
+	TestTrue(TEXT("server confirmation bypasses a local cooldown false negative"),
+		RecoilWeapon->PlayOwnerConfirmedShotFeedback());
+	TestEqual(TEXT("confirmed fallback advances the feedback counter exactly once"),
+		RecoilWeapon->GetPredictedOwnerFeedbackCountForAutomationTest(), 2);
 	TestEqual(TEXT("local feedback does not consume magazine ammo"), RecoilWeapon->GetBulletCount(), AmmoBefore);
 	TestEqual(TEXT("local feedback does not spawn a projectile"), CountProjectiles(World), ProjectilesBefore);
 	TestEqual(TEXT("local feedback does not record an authority shot"),
@@ -223,7 +230,8 @@ bool FShooterFirePredictionLocalFeedbackCosmeticOnlyTest::RunTest(const FString&
 	}
 
 	SoundWeapon->ResetFireFeedbackCountersForAutomationTest();
-	TestTrue(TEXT("sound-only feedback is submitted"), SoundWeapon->PlayOwnerPredictedShotFeedback());
+	TestTrue(TEXT("another weapon has an independent feedback cooldown"),
+		SoundWeapon->PlayOwnerPredictedShotFeedback());
 	TestEqual(TEXT("sound-only feedback counted once"),
 		SoundWeapon->GetPredictedOwnerFeedbackCountForAutomationTest(), 1);
 
@@ -288,9 +296,13 @@ bool FShooterFirePredictionLocalFeedbackStatelessTest::RunTest(const FString& Pa
 	TestFalse(TEXT("weapon is not firing before the probe"), bFiringBefore);
 	TestFalse(TEXT("refire timer is not active before the probe"), bRefireActiveBefore);
 
-	Weapon->PlayOwnerPredictedShotFeedback();
-	Weapon->PlayOwnerPredictedShotFeedback();
-	Weapon->PlayOwnerPredictedShotFeedback();
+	const bool bFirstPredicted = Weapon->PlayOwnerPredictedShotFeedback();
+	const bool bImmediatePredicted = Weapon->PlayOwnerPredictedShotFeedback();
+	const bool bConfirmedFallback = Weapon->PlayOwnerConfirmedShotFeedback();
+
+	TestTrue(TEXT("first local prediction plays"), bFirstPredicted);
+	TestFalse(TEXT("immediate repeated prediction is paced"), bImmediatePredicted);
+	TestTrue(TEXT("confirmed fallback bypasses pacing"), bConfirmedFallback);
 
 	// 调用后逐项比对。
 	TestTrue(TEXT("bIsFiring unchanged after local feedback"), Weapon->IsFiringForAutomationTest() == bFiringBefore);
@@ -304,8 +316,8 @@ bool FShooterFirePredictionLocalFeedbackStatelessTest::RunTest(const FString& Pa
 		static_cast<int32>(Weapon->GetLifecycleState()), LifecycleBefore);
 	TestEqual(TEXT("authority shot counter unchanged after local feedback"),
 		Weapon->GetAuthorityShotCountForAutomationTest(), AuthorityShotsBefore);
-	TestEqual(TEXT("owner feedback counter matches the three calls"),
-		Weapon->GetPredictedOwnerFeedbackCountForAutomationTest(), 3);
+	TestEqual(TEXT("owner feedback counter includes one prediction and one confirmed fallback"),
+		Weapon->GetPredictedOwnerFeedbackCountForAutomationTest(), 2);
 
 	DestroyPredictionTestWorld(World);
 	return true;

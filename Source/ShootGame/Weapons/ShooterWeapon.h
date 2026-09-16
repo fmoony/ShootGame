@@ -182,8 +182,6 @@ protected:
 	float EquipDuration = 0.5f;
 
 	/** Game time of last shot fired, used to enforce refire rate on semi auto */
-
-	/** Game time of last shot fired, used to enforce refire rate on semi auto */
 	float TimeOfLastShot = 0.0f;
 
 	/** If true, the weapon is currently firing */
@@ -191,6 +189,12 @@ protected:
 
 	/** Timer to handle full auto refiring */
 	FTimerHandle RefireTimer;
+
+	/**
+	 * 本武器下一次允许普通拥有者预测表现的本地时间。
+	 * 仅限纯表现节拍，不复制、不驱动 Gameplay，也不替代权威 RefireTimer / TimeOfLastShot。
+	 */
+	float OwnerFeedbackCooldownEndTime = -1.0f;
 
 	/** Cast pawn pointer to the owner for AI perception system interactions */
 	TObjectPtr<APawn> PawnOwner;
@@ -243,6 +247,18 @@ protected:
 	/** 返回本 Actor 所在 World 的武器运行时子系统；World 不支持或已销毁时返回 nullptr。 */
 	UShooterWeaponRuntimeSubsystem* GetWeaponRuntimeSubsystem() const;
 
+	/** 普通预测表现是否已越过本武器自己的本地冷却。 */
+	bool IsOwnerFeedbackCooldownReady() const;
+
+	/** 成功提交表现后按本武器 RefireRate 推进本地冷却。 */
+	void AdvanceOwnerFeedbackCooldown();
+
+	/** Owner / 池租用边界复位纯表现冷却，防止跨持有者继承。 */
+	void ResetOwnerFeedbackCooldown();
+
+	/** 共享表现实现；确认回退可旁路普通预测冷却，但仍会推进下一次冷却。 */
+	bool PlayOwnerShotFeedback(bool bBypassLocalCooldown);
+
 	/**
 	 * 统一状态转换入口：状态未变化时是安全 no-op，真实变化时输出一条 Verbose 诊断。
 	 * 表现收敛会重复调用同一转换，诊断必须保持低噪声。
@@ -294,12 +310,18 @@ public:
 	void StopFiring();
 
 	/**
-	 * 无状态拥有者本地单次开火表现入口（P1-A 建立，P1-B 起由 GA_Fire 预测路径调用）。
-	 * 只读自身表现配置并在本机播放；不写 MagazineAmmo / ReserveAmmo / TimeOfLastShot /
-	 * bIsFiring / RefireTimer / Inventory / Projectile，也不建立任何 Timer。
+	 * 拥有者本地普通预测表现入口（P1-A 建立，P1-B 起由 GA_Fire 预测路径调用）。
+	 * 按本 WeaponActor 的 RefireRate 限制纯表现；不写 MagazineAmmo / ReserveAmmo /
+	 * TimeOfLastShot / bIsFiring / RefireTimer / Inventory / Projectile，也不建立任何 Timer。
 	 * 返回是否向表现通道提交了至少一项；返回值不表示当前机器一定具备音频或渲染设备。
 	 */
 	bool PlayOwnerPredictedShotFeedback();
+
+	/**
+	 * 服务器已接受当前预测激活后的单次确认回退。
+	 * 旁路本地纯表现冷却，保证被误挡的合法射击补播一次；Reject 路径不得调用。
+	 */
+	bool PlayOwnerConfirmedShotFeedback();
 
 	/** 本地预测节拍只读配置。 */
 	bool IsFullAuto() const { return bFullAuto; }

@@ -119,10 +119,10 @@ private:
 	void ServerReportClientTriggeredReloadSwitchBack();
 
 	UFUNCTION(Server, Reliable)
-	void ServerReportClientTriggeredFireAfterReload();
+	void ServerReportClientTriggeredFireAfterReload(bool bReloadingTagPresentAtInput);
 
 	UFUNCTION(Server, Reliable)
-	void ServerReportClientStoppedFireAfterReload();
+	void ServerReportClientStoppedFireAfterReload(int32 OwnerFeedbackDelta, int32 OwnerConfirmationDelta);
 
 	UFUNCTION(Server, Reliable)
 	void ServerReportClientTriggeredEquipSingleReject();
@@ -285,6 +285,9 @@ private:
 	bool bClientReportedProjectile = false;
 	bool bClientTriggeredFireAfterReload = false;
 	bool bClientStoppedFireAfterReload = false;
+	int32 FireAfterReloadOwnerFeedbackBefore = 0;
+	int32 FireAfterReloadOwnerConfirmationBefore = 0;
+	float FireAfterReloadStopReadyTime = 0.0f;
 	bool bClientTriggeredEquipSingleReject = false;
 
 	// ---- P1 换弹中开火：客户端侧跟踪 ----
@@ -393,6 +396,8 @@ private:
 	bool bFireAfterReloadSingleShotVerified = false;
 	bool bClientTriggeredStopFireAfterReload = false;
 	bool bFireAfterReloadQuiescentVerified = false;
+	bool bFireAfterReloadStaleTagObserved = false;
+	bool bFireAfterReloadOwnerFeedbackVerified = false;
 	int32 FireAfterReloadMagazineBefore = INDEX_NONE;
 	int32 FireAfterReloadProjectileBefore = INDEX_NONE;
 	float FireAfterReloadQuiescenceCheckTime = 0.0f;

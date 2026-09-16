@@ -126,6 +126,8 @@ NPC 的 `PlayerController` 在 `InitFromActor` 中解析为 null，因此恒为 
 `MulticastPlayFiringFX` 的音效经 `SpawnSoundAttached(FireSound, RootComponent, ...)`
 播放（`ShooterWeapon.cpp:739-740`），拥有者能听到。
 本地路径补充音效后必须抑制这一路。
+若初始预测因迟到的本地阻塞 Tag 没有播放，不能靠恢复 Owner Multicast 兜底；
+应由 GA_Fire 的服务器激活确认回调补播一次，保持拥有者第一人称表现仍只有一个入口。
 
 ### 修正 5：第一人称枪口不是“跳过”，而是“改为第三人称”
 
@@ -353,6 +355,7 @@ Remote 第三人称 Montage / 枪口 Niagara / 音效
 1. 解析当前 Weapon；Authority 侧做 Activate 防御复核，失效时按 Cancelled 结束
 2. bOwnerLocalView → 播一次本地表现；Weapon.IsFullAuto() 时启动 PredictedFeedbackTimer
 3. bAuthoritySide  → CachedWeapon = Weapon；绑定 OnOutOfAmmo；Weapon->StartFiring()
+4. 预测客户端收到服务器接受确认时，若本次激活尚未成功播放且当前武器仍有效，只补播一次
 ```
 
 预测请求的正式 Reject 由服务器 `CanActivateAbility` 返回 false 后通过 GAS 下发；
@@ -382,13 +385,21 @@ bool bPredictedFeedbackActive = false;
 
 ```cpp
 void StartOwnerPredictedFeedback(AShooterWeapon& Weapon);
+bool TryPlayOwnerFeedback(AShooterWeapon& Weapon, const TCHAR* Marker,
+    bool bConfirmedFallback = false);
 void StopOwnerPredictedFeedback();
 void HandlePredictedFeedbackTick();
 bool IsCurrentWeaponStillValidForFeedback(AActor* AvatarActor) const;
 void StopAuthorityWeapon();
 void LogFirePredictionMarker(const TCHAR* Marker, const AShooterWeapon* Weapon,
     int32 ShotOrdinal) const;
+
+virtual void ConfirmActivateSucceed() override;
 ```
+
+GA_Fire 还保存两个仅限当前激活的布尔状态：是否已经成功播放拥有者反馈、
+确认回退后的阻塞 Tag 宽限是否仍有效。宽限在迟到 Tag 首次清除时关闭，后续新阻塞态恢复正常门控。
+`ActivateAbility` 复位，`EndAbility` 清理。Reject 不会进入确认回调，因此不会误补播。
 
 构造函数唯一策略改动：
 
@@ -411,14 +422,18 @@ AssetTags                              保持 Input.Fire
 
 文件：`Source/ShootGame/Weapons/ShooterWeapon.h/.cpp`
 
-新增四个公开只读或无状态函数：
+新增五个公开表现或只读函数：
 
 ```cpp
-/** 无状态拥有者本地单次表现入口。
- *  只读自身表现配置并在本机播放；不写 MagazineAmmo / ReserveAmmo / TimeOfLastShot /
+/** 拥有者本地普通预测表现入口。
+ *  按本 WeaponActor 的 RefireRate 限制纯表现；不写 MagazineAmmo / ReserveAmmo / TimeOfLastShot /
  *  bIsFiring / RefireTimer / Inventory / Projectile。Dedicated Server 直接返回 false。
  *  返回是否真实播放了至少一项表现。 */
 bool PlayOwnerPredictedShotFeedback();
+
+/** 服务器确认当前预测激活后的单次回退。
+ *  旁路本地纯表现冷却并重新推进冷却；Reject 路径不得调用。 */
+bool PlayOwnerConfirmedShotFeedback();
 
 /** 本地预测节拍只读配置。 */
 bool IsFullAuto() const { return bFullAuto; }
@@ -432,6 +447,11 @@ bool CanStartSemiAutoShotNow() const;
 
 `CanStartSemiAutoShotNow()` 不读取 `TimeOfLastShot == 0.0f` 作为“从未开火”哨兵；
 World 不可用或 Weapon 为全自动时返回 false。
+
+WeaponActor 另持有一个不复制的 `OwnerFeedbackCooldownEndTime`。普通预测只有本地时间越过该值才播放；
+成功播放后按 `Max(RefireRate, 0.01f)` 推进。确认回退可旁路判定，但同样推进下一次冷却。
+该字段在池取用、归还和客户端 Owner 复制变化时复位，不建立 Timer，不修改权威
+`TimeOfLastShot` / `RefireTimer`，也不在 GA / Character / ASC 间共享。
 
 Weapon 新增一个私有表现判据，供 Multicast 与权威 Recoil 去重共用：
 
@@ -719,6 +739,8 @@ ShootGame.Ability.Fire.Prediction.ReloadFireImmediate
     0 Authority Commit / 0 Projectile / Ammo 未被扣减；Reject 后本地循环停止并收敛）
 ShootGame.Ability.Fire.Prediction.RejectRefireCooldown
 ShootGame.Ability.Fire.Prediction.FirstShotReadyAfterAcquire
+ShootGame.Ability.Fire.Prediction.LocalFeedbackCadencePerWeapon
+ShootGame.Ability.Fire.Prediction.ConfirmedFallbackBypassesCadence
 ShootGame.Ability.Fire.Prediction.SingleAuthorityProjectile
 ```
 
@@ -732,6 +754,8 @@ Owner 同一客户端时钟上 FIRE_PREDICTED_OWNER 早于 AUTHORITY_CONFIRMATIO
 Emulated 场景的 Remote 增量不超过 Authority，且多发窗口内至少收到一次
 Reject 后 Projectile / Ammo / Damage 均不变
 Reject 后没有活动 Ability、Local Timer 或残留 State.Firing
+同一武器的普通预测表现间隔不小于 RefireRate，不同武器互不继承冷却
+本地冷却误挡但服务器接受时确认回退恰好补播一次
 ```
 
 建议提交：`GAS：实现半自动开火本地预测反馈`
@@ -774,6 +798,9 @@ Inventory Clear 当前只在死亡与 EndPlay 生产路径发生，由它们先�
 
 权威隔离要求：本地路径不得调用
 `StartFiring` / `Fire` / `StopFiring` / `ConsumeAmmo`，也不得写 `TimeOfLastShot`。
+普通预测在进入表现入口后还要通过当前 WeaponActor 的纯表现冷却；不得把冷却放进全局、ASC 或
+GA 实例形成跨武器共享。网络用例必须使用真实半自动武器配置连点，不得用反射在客户端篡改
+`bFullAuto` 制造测试条件。
 
 建议 Feature Tests：
 
@@ -962,6 +989,7 @@ P1-A 需要证明本地路径不写权威状态。做法：
 | 标记 | 输出位置 |
 |---|---|
 | `FIRE_PREDICTED_OWNER` | `PlayOwnerPredictedShotFeedback` 播放成功后（拥有端） |
+| `FIRE_OWNER_CONFIRMED_FALLBACK` | 初始门控跳过、服务器随后接受时补播成功后（拥有端） |
 | `FIRE_AUTHORITY_CONFIRMATION_RECEIVED` | Multicast 到达 Owner 并跳过可见 FX 前 |
 | `FIRE_AUTHORITY_COMMIT` | `Fire()` 成功扣弹并执行开火行为后（权威端） |
 | `FIRE_REMOTE_CONFIRMED` | `MulticastPlayFiringFX` 在非拥有端执行后 |
@@ -1064,9 +1092,10 @@ Emulated 必须确认 Server 与两个 Client 均出现
 - R3 Host / Standalone Recoil 双次。
   触发判据：单次按下俯仰增量为两倍 `FiringRecoil`。
   处置：回退 P1-B；检查 `ExecuteFireAtTarget` 的 Recoil 门。
-- R4 半自动快速连点丢失本地反馈。
-  触发判据：第二次按下未出现 `FIRE_PREDICTED_OWNER`。
-  处置：检查 `InputReleased` 是否真的 `EndAbility`。
+- R4 本地纯表现节拍错误。
+  触发判据：同一武器在 `RefireRate` 内连续提交普通预测，或切换到另一把武器后错误继承前一把冷却；
+  服务器接受的射击被冷却误挡后没有确认回退。
+  处置：检查冷却是否归每个 WeaponActor、确认路径是否显式旁路，以及池 / Owner 边界是否复位。
 - R5 Reject 后本地 Timer 残留。
   触发判据：拒绝后 Timer 仍活动；半自动没有活动 Timer 时不强求停止标记。
   处置：确认清理放在 `EndAbility`，而不是只放在 `InputReleased`。
@@ -1102,9 +1131,14 @@ P1 修改破坏 NPC ServerOnly 开火
 ```text
 Reject 到达前允许有限的纯本地预测表现，含全自动武器的短暂连续反馈
   前提：不产生任何客户端 Gameplay 结果（不扣 Ammo / 不生成 Projectile / 不结算伤害）
+  节拍：普通预测始终受当前 WeaponActor 的 RefireRate 纯表现冷却约束
   要求：Reject 到达后立即停止 PredictedFeedbackTimer，并清理 Ability / State.Firing / CachedWeapon
 本机已知 State.Reloading / State.Equipping / State.Dead，或武器已隐藏、已不是当前装备
   只禁止本地预测表现，请求仍照常发给服务器，由服务器完整校验并 Reject
+若迟到的本地阻塞 Tag 跳过了初始表现，而服务器接受同一次激活
+  ConfirmActivateSucceed 复核当前武器后只补播一次；宽限只持续到这批 Tag 首次清除；Reject 不补播
+若本地纯表现冷却误挡了一个最终被服务器接受的射击
+  ConfirmActivateSucceed 旁路冷却只补播一次并推进冷却；Reject 不产生任何后续反馈
 全自动本地预测循环不等待服务器 Confirm，允许与权威节拍存在短暂相位偏移
 ```
 
