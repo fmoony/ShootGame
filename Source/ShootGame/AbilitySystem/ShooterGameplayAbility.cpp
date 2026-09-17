@@ -21,3 +21,10 @@ bool UShooterGameplayAbility::IsAvatarAuthoritative() const
 	const AActor* AvatarActor = GetShooterAvatarActor();
 	return IsValid(AvatarActor) && AvatarActor->HasAuthority();
 }
+
+bool UShooterGameplayAbility::IsBlockedByOwnActiveTags(const FGameplayTagContainer& BlockingTags) const
+{
+	// 阻塞来自本 Ability 自己的 ActivationOwnedTags 时，说明是同一个动作仍在进行
+	// （例如换弹中再按换弹）；这种重复按下没有意义，不应进入输入缓冲。
+	return ActivationOwnedTags.HasAny(BlockingTags);
+}

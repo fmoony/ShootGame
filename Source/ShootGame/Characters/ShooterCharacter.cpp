@@ -539,8 +539,8 @@ void AShooterCharacter::CancelEquipAbility()
 
 void AShooterCharacter::DoStartFiring()
 {
-	// 输入只提交给 ASC：GA_Fire 为 ServerOnly，客户端按 Input.Fire 发起激活，
-	// GAS 自动把激活请求可靠转发到服务器。
+	// 输入只提交给 ASC：GA_Fire 是本机拥有者的 LocalPredicted Ability，
+	// 本地预测负责表现与本地动作边界，GAS 同时把激活请求可靠交给服务器。
 	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent = Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
 	{
 		ShooterAbilitySystemComponent->AbilityInputTagPressed(ShooterGameplayTags::Input_Fire);
@@ -565,8 +565,8 @@ void AShooterCharacter::DoStopFiring()
 
 void AShooterCharacter::DoReload()
 {
-	// 输入只提交给 ASC：GA_Reload 为 ServerOnly，客户端按 Input.Reload 发起激活，
-	// GAS 自动把激活请求可靠转发到服务器。
+	// 输入只提交给 ASC：GA_Reload 的权威换弹事务始终在服务器执行，
+	// 激活请求由 GAS 可靠转发，不在 Character 里新开事务入口。
 	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent = Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
 	{
 		ShooterAbilitySystemComponent->AbilityInputTagPressed(ShooterGameplayTags::Input_Reload);
@@ -615,7 +615,7 @@ void AShooterCharacter::DoSwitchWeaponInput(const FInputActionValue& Value)
 
 void AShooterCharacter::DoSwitchWeaponInDirection(int32 Direction)
 {
-	// 输入只提交给 ASC：两个动态标签 Spec 共用 ServerOnly GA_Equip，
+	// 输入只提交给 ASC：两个动态标签 Spec 共用 GA_Equip，
 	// GAS 自动把选中的 Spec 激活请求可靠转发到服务器。
 	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent = Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
 	{

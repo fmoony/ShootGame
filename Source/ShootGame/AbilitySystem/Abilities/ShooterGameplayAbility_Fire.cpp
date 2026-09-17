@@ -87,10 +87,14 @@ bool UShooterGameplayAbility_Fire::CanActivateAbility(
 		return false;
 	}
 
-	// 预测客户端只做"本地开火资格"预检，必须先于 Super，且不得读取 ActivationBlockedTags 等复制状态：
-	// 弱网下上一轮 State.Reloading / State.Firing 的移除复制可能迟到，
-	// 若先执行 Super 会把真实玩家唯一一次 Fire 输入吞在本地（修复 310faf9 的语义必须保留）。
-	// 本机已知的阻塞态只用于禁止本地预测表现，见 ActivateAbility 第 2 步；请求仍然照常发给服务器。
+	// 预测客户端的资格判定顺序（本地确定性条件先于 GAS Tag 门控）：
+	// 1. ASC 与 Avatar 一致，且必须是本机拥有者视图；
+	// 2. 本地确定性条件：当前武器有效且未隐藏、半自动本地节拍 Ready、全自动仍处于按住状态；
+	// 3. Super 的 ActivationBlockedTags 门控（State.Reloading / State.Equipping / State.Dead）。
+	//
+	// 第 2 步必须先于第 3 步：这些是硬失败，不产生 Tag 阻塞，因此不会被输入缓冲稍后补枪。
+	// 第 3 步恢复正常门控后，弱网下迟到的阻塞标签只会把这次输入推迟到窗口内，不再永久吞掉它
+	// （输入保留由 UShooterAbilitySystemComponent 负责，见输入缓冲）。
 	if (!AvatarActor->HasAuthority())
 	{
 		const UAbilitySystemComponent* AbilitySystemComponent = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
@@ -105,8 +109,8 @@ bool UShooterGameplayAbility_Fire::CanActivateAbility(
 			return false;
 		}
 
-		// 本地 Shot Attempt 的资格：必须有可用的表现目标（当前武器有效且未隐藏），
-		// 否则会出现"请求已发出、本地却无表现目标"的分裂。
+		// 本地动作边界必须有可用的表现目标（当前武器有效且未隐藏），
+		// 否则会出现「请求已发出、本地却无表现目标」的分裂。
 		// 判据只读本地已知的武器对象，不读 Ammo / Reloading / Equipping / Dead 等可能过期的复制状态。
 		const AShooterWeapon* LocalWeapon = GetCurrentWeaponForAvatar(const_cast<AActor*>(AvatarActor));
 		if (!IsValid(LocalWeapon) || LocalWeapon->IsHidden())
@@ -114,15 +118,22 @@ bool UShooterGameplayAbility_Fire::CanActivateAbility(
 			return false;
 		}
 
-		// 半自动：距上一次本地有效开火不足 RefireRate 时直接拒绝这次输入，
-		// 既不播放开火表现，也不向服务器发送 Fire 请求。
-		// 全自动不参与该判据：它一次按下只发一个开始请求，之后由本地表现 Timer 推进节拍。
-		if (!LocalWeapon->IsFullAuto() && !LocalWeapon->IsLocalFireCooldownReady())
+		if (!LocalWeapon->IsFullAuto())
 		{
+			// 半自动：距上一次本地有效开火不足 RefireRate 时直接拒绝这次输入，
+			// 既不播放开火表现，也不向服务器发送 Fire 请求，更不允许稍后补枪。
+			if (!LocalWeapon->IsLocalFireCooldownReady())
+			{
+				return false;
+			}
+		}
+		else if (!IsInputHeld(Handle, ActorInfo))
+		{
+			// 全自动是「按住持续」语义：已经松开的按下沿不得在短暂阻塞解除后补出一次连发。
 			return false;
 		}
 
-		return true;
+		return Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
 	}
 
 	if (!Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags))
@@ -139,6 +150,13 @@ bool UShooterGameplayAbility_Fire::CanActivateAbility(
 
 	if (!AbilitySystemComponent || AbilitySystemComponent->GetAvatarActor() != AvatarActor || bDead ||
 		!IsValid(Weapon) || Weapon->GetOwner() != AvatarActor || Weapon->IsHidden() || !Weapon->CanConsumeAmmo())
+	{
+		return RecordAuthorityRejectAndReturnFalse();
+	}
+
+	// 全自动的按住语义在权威端同样成立：远端请求的 Spec.InputPressed 由引擎按请求置位，
+	// 主机本地视图则直接反映真实按键；已松开的按下沿不得启动权威连发。
+	if (Weapon->IsFullAuto() && !IsInputHeld(Handle, ActorInfo))
 	{
 		return RecordAuthorityRejectAndReturnFalse();
 	}
@@ -460,4 +478,27 @@ AShooterWeapon* UShooterGameplayAbility_Fire::GetCurrentWeaponForAvatar(AActor* 
 
 	const IShooterWeaponHolder* WeaponHolder = Cast<IShooterWeaponHolder>(AvatarActor);
 	return WeaponHolder ? WeaponHolder->GetCurrentWeapon() : nullptr;
+}
+
+bool UShooterGameplayAbility_Fire::IsSustainedInputAbility() const
+{
+	// 全自动是「按住持续」语义：一次按下只发一个开始请求，之后由本地表现节拍与权威 Timer 推进。
+	// 半自动是「单次按下沿」语义：一次按下只对应一次 Shot Attempt。
+	const AShooterWeapon* Weapon = GetCurrentWeaponForAvatar(GetShooterAvatarActor());
+	return Weapon != nullptr && Weapon->IsFullAuto();
+}
+
+const UObject* UShooterGameplayAbility_Fire::GetInputBufferContext() const
+{
+	// 上下文是「按下时的当前武器」：换枪提交后，旧武器的按下沿不得在新武器上生效。
+	return GetCurrentWeaponForAvatar(GetShooterAvatarActor());
+}
+
+bool UShooterGameplayAbility_Fire::IsInputHeld(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo) const
+{
+	const UAbilitySystemComponent* AbilitySystemComponent = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
+	const FGameplayAbilitySpec* Spec = AbilitySystemComponent
+		? AbilitySystemComponent->FindAbilitySpecFromHandle(Handle)
+		: nullptr;
+	return Spec != nullptr && Spec->InputPressed;
 }

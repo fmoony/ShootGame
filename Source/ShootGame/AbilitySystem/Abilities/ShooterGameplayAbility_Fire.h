@@ -49,6 +49,12 @@ public:
 	/** 测试观察接口：是否接受客户端发来的结束命令（必须为 false，权威保留在服务器）。 */
 	bool ServerRespectsRemoteAbilityCancellation() const;
 
+	/** 输入语义：全自动为按住持续，半自动为单次按下沿。 */
+	virtual bool IsSustainedInputAbility() const override;
+
+	/** 输入缓冲上下文：按下时对应的当前武器；换枪提交后旧输入不得在新武器上生效。 */
+	virtual const UObject* GetInputBufferContext() const override;
+
 protected:
 	virtual bool CanActivateAbility(
 		const FGameplayAbilitySpecHandle Handle,
@@ -107,6 +113,9 @@ private:
 
 	/** Equipment 优先、IShooterWeaponHolder 作为 NPC 兼容回退的当前武器解析。 */
 	AShooterWeapon* GetCurrentWeaponForAvatar(AActor* AvatarActor) const;
+
+	/** 输入当前是否仍处于按住状态；读引擎 Spec 状态，不维护第二份布尔。 */
+	bool IsInputHeld(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo) const;
 
 	/** 激活时缓存的武器；权威端控武器，拥有端控表现；EndAbility 只清理仍指向自己的武器。 */
 	TWeakObjectPtr<AShooterWeapon> CachedWeapon;

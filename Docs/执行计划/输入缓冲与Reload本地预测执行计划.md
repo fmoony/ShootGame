@@ -194,9 +194,22 @@ Press / Release / Held（复用 FGameplayAbilitySpec::InputPressed）
 ### 4.2 `UShooterGameplayAbility` / GA_Fire / GA_Reload
 
 ```text
-Ability 自己声明：输入语义（按下沿 / 按住持续）、ActivationBlockedTags / OwnedTags
+Ability 自己声明：输入语义（按下沿 / 按住持续）、输入上下文、ActivationBlockedTags / OwnedTags
 Ability 自己决定：本地预测资格、权威校验、Owner 表现、服务器事务
 ```
+
+基类只提供两个最小声明钩子，不做策略系统：
+
+```cpp
+/** 输入语义：true = 按住持续（松开才停），false = 单次按下沿。 */
+virtual bool IsSustainedInputAbility() const { return false; }
+
+/** 输入 Buffer 的上下文对象；默认无上下文。上下文变化后不得再消费该输入。 */
+virtual const UObject* GetInputBufferContext() const { return nullptr; }
+```
+
+GA_Fire 分别返回「当前武器是否全自动」与「按下时的当前武器」；
+ASC 只消费这两个声明，不读 Weapon、不判断能不能开火。
 
 ### 4.3 Server
 
@@ -239,10 +252,14 @@ struct FShooterBufferedInput
     FGameplayTag InputTag;
     /** 按下时的上下文对象（GA_Fire 使用当前武器）；上下文变化后不得消费。 */
     TWeakObjectPtr<const UObject> Context;
+    /** 按下时是否约定了上下文；未约定时不做上下文校验。 */
+    bool bHasContext = false;
     /** 绝对过期时间；同一条目不得因重试而续期。 */
     float ExpireTime = 0.0f;
 };
 ```
+
+上下文由 Ability 的 `GetInputBufferContext()` 提供：按下时记录，消费时重新求值并要求一致。
 
 每个 InputTag 最多一条；新的按下沿覆盖旧条目（新输入是新意图，允许刷新窗口）。
 
@@ -755,6 +772,17 @@ Listen / Standalone 出现重复换弹事务或双份第一人称表现
 5. **全自动 5ms 节拍容差**保持不动，不在本轮调整。
 6. **既有不稳定阶段**（`Remote invariant invalid`、`Timed out waiting for network state`）
    不在本轮修复范围，仍可能让完整网络回归出现红点。
+7. **复制动作标签的滞留长于缓冲窗口（2026-09-17 实测，已确认处理方式）**：
+   GA_Reload 目前仍是 ServerOnly，其 `State.Reloading` 由引擎以
+   `AddReplicatedLooseGameplayTags` 挂在拥有者 ASC 上，随 PlayerState 的复制节拍到达。
+   Dedicated 会话实测：服务器 GA_Reload 已结束 361ms，拥有者按 Fire 时该标签仍为 true，
+   于是这次按下被 Tag 门控拦住并进入缓冲；150ms 窗口内标签未清除，该次点击被丢弃。
+   即「短暂阻塞会在窗口内解除」对**复制标签**不成立。
+   已确认处理方式：保持短窗口与诚实门控不变，**单元 2 直接接上**——
+   GA_Reload 改为 LocalPredicted 后，拥有者的 `State.Reloading` 是自己的本地窗口
+   （服务器最小复制对 Owner `COND_SkipOwner`），该滞留从拥有者路径彻底消失。
+   因此单元 1 提交只声明 Build / Automation 与不依赖换弹时序的网络证据，
+   依赖换弹时序的 `FireAfterReload` 阶段在单元 2 之后验证。
 
 ## 20. 按契约标题含义的不变量覆盖确认
 
