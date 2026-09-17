@@ -87,7 +87,7 @@ bool UShooterGameplayAbility_Fire::CanActivateAbility(
 		return false;
 	}
 
-	// 预测客户端只做请求与表现就绪预检，必须先于 Super，且不得读取 ActivationBlockedTags 等复制状态：
+	// 预测客户端只做"本地开火资格"预检，必须先于 Super，且不得读取 ActivationBlockedTags 等复制状态：
 	// 弱网下上一轮 State.Reloading / State.Firing 的移除复制可能迟到，
 	// 若先执行 Super 会把真实玩家唯一一次 Fire 输入吞在本地（修复 310faf9 的语义必须保留）。
 	// 本机已知的阻塞态只用于禁止本地预测表现，见 ActivateAbility 第 2 步；请求仍然照常发给服务器。
@@ -100,7 +100,29 @@ bool UShooterGameplayAbility_Fire::CanActivateAbility(
 		}
 
 		// 只有本机拥有者视图才允许预测；表现对象未就绪时仍允许请求服务器。
-		return ActorInfo->IsLocallyControlledPlayer();
+		if (!ActorInfo->IsLocallyControlledPlayer())
+		{
+			return false;
+		}
+
+		// 本地 Shot Attempt 的资格：必须有可用的表现目标（当前武器有效且未隐藏），
+		// 否则会出现"请求已发出、本地却无表现目标"的分裂。
+		// 判据只读本地已知的武器对象，不读 Ammo / Reloading / Equipping / Dead 等可能过期的复制状态。
+		const AShooterWeapon* LocalWeapon = GetCurrentWeaponForAvatar(const_cast<AActor*>(AvatarActor));
+		if (!IsValid(LocalWeapon) || LocalWeapon->IsHidden())
+		{
+			return false;
+		}
+
+		// 半自动：距上一次本地有效开火不足 RefireRate 时直接拒绝这次输入，
+		// 既不播放开火表现，也不向服务器发送 Fire 请求。
+		// 全自动不参与该判据：它一次按下只发一个开始请求，之后由本地表现 Timer 推进节拍。
+		if (!LocalWeapon->IsFullAuto() && !LocalWeapon->IsLocalFireCooldownReady())
+		{
+			return false;
+		}
+
+		return true;
 	}
 
 	if (!Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags))
@@ -176,8 +198,6 @@ void UShooterGameplayAbility_Fire::ActivateAbility(
 	// 不复位会让日志的 ShotOrdinal 跨 Burst 累积（PredictionKey 才标识一次激活或 Burst）。
 	PredictedShotOrdinal = 0;
 	bOwnerFeedbackPlayedThisActivation = false;
-	bConfirmedBlockerGraceActive = false;
-	bOwnerReleaseAwaitingConfirmation = false;
 
 	// 第 2 步：拥有者本地视图立即播放一次纯表现；全自动同时启动本地表现节拍。
 	if (bOwnerLocalView && CachedWeapon.IsValid())
@@ -196,32 +216,6 @@ void UShooterGameplayAbility_Fire::ActivateAbility(
 	}
 }
 
-void UShooterGameplayAbility_Fire::ConfirmActivateSucceed()
-{
-	Super::ConfirmActivateSucceed();
-
-	const FGameplayAbilityActorInfo* ActorInfo = GetCurrentActorInfo();
-	if (!ActorInfo || !ActorInfo->IsLocallyControlledPlayer() || bOwnerFeedbackPlayedThisActivation)
-	{
-		return;
-	}
-
-	AShooterWeapon* Weapon = CachedWeapon.Get();
-	if (Weapon && IsCurrentWeaponStillValidForFeedback(GetShooterAvatarActor()))
-	{
-		// 服务器已接受本次激活：此时本地 Reloading / Equipping / Dead 可能只是迟到的旧复制状态。
-		// 若初始预测因此没有播放，只为当前激活补一次纯表现；Reject 路径不会进入本函数。
-		bConfirmedBlockerGraceActive = TryPlayOwnerFeedback(*Weapon, TEXT("FIRE_OWNER_CONFIRMED_FALLBACK"),
-			/*bConfirmedFallback*/ true);
-	}
-
-	if (bOwnerReleaseAwaitingConfirmation)
-	{
-		bOwnerReleaseAwaitingConfirmation = false;
-		EndAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), false, false);
-	}
-}
-
 void UShooterGameplayAbility_Fire::InputReleased(const FGameplayAbilitySpecHandle Handle,
 	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 {
@@ -233,14 +227,9 @@ void UShooterGameplayAbility_Fire::InputReleased(const FGameplayAbilitySpecHandl
 	{
 		StopAuthorityWeapon();
 	}
-	else if (!bOwnerFeedbackPlayedThisActivation)
-	{
-		// 初始表现可能被客户端迟到的 Reloading / Equipping Tag 误挡。
-		// 保留本地预测实例直到服务器 Confirm / Reject，避免立即释放后丢失确认回退。
-		bOwnerReleaseAwaitingConfirmation = true;
-		return;
-	}
 
+	// 拥有者第一人称表现只来自本地预测，服务器 Reject 不回滚也不补播，
+	// 因此本地预测实例在释放时即可收口，不再需要等待 Confirm / Reject 决定补播。
 	// 预测客户端的释放意图已由可靠 ServerSetInputReleased 承载；
 	// GA_Fire 显式不接受客户端直接结束服务器实例，因此不复制第二条结束命令。
 	EndAbility(Handle, ActorInfo, ActivationInfo, bAuthoritySide, false);
@@ -268,8 +257,6 @@ void UShooterGameplayAbility_Fire::EndAbility(
 	}
 
 	bOwnerFeedbackPlayedThisActivation = false;
-	bConfirmedBlockerGraceActive = false;
-	bOwnerReleaseAwaitingConfirmation = false;
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 
@@ -288,10 +275,19 @@ void UShooterGameplayAbility_Fire::StopAuthorityWeapon()
 void UShooterGameplayAbility_Fire::StartOwnerPredictedFeedback(AShooterWeapon& Weapon)
 {
 	// 本地表现只提交纯表现：不扣弹、不生成弹丸、不写权威字段。
-	// 本机已知处于换弹 / 切枪 / 死亡，或武器已隐藏或不再是当前装备时，只跳过本地表现；
-	// 全自动节拍照常启动，阻塞态解除后可自行恢复，Ability 生命周期始终由服务器决定。
-	if (IsOwnerPredictedFeedbackAllowed())
+	// 表现目标必须成立（武器有效、未隐藏、仍是当前装备），否则不表现。
+	// 这里不再读取 Ammo / Reloading / Equipping / Dead：它们可能过期，
+	// 一旦用来二次否决，就会把服务器已经接受的真实射击压成"有弹无特效"。
+	if (!IsOwnerPredictedFeedbackAllowed())
 	{
+		return;
+	}
+
+	if (!Weapon.IsFullAuto() || Weapon.IsLocalFireCooldownReady())
+	{
+		// 本地 Shot Attempt 被接受：这是唯一推进本地节拍的地方，
+		// 与 Montage / Niagara / Sound 是否真的播放成功无关。
+		Weapon.AdvanceLocalFireCooldown();
 		TryPlayOwnerFeedback(Weapon, TEXT("FIRE_PREDICTED_OWNER"));
 	}
 
@@ -308,18 +304,18 @@ void UShooterGameplayAbility_Fire::StartOwnerPredictedFeedback(AShooterWeapon& W
 
 	// RefireRate 允许为 0；下限保护避免同帧死循环。
 	const float Interval = FMath::Max(Weapon.GetRefireRate(), 0.01f);
+	// 全自动首拍：刚播过就等一个完整 Interval；上一 Burst 的节拍还没结束就只等剩余 cooldown，
+	// 不允许把"快速 Release → Re-Press"惩罚成一个完整 RefireRate。
+	const float FirstDelay = FMath::Max(Weapon.GetLocalFireCooldownRemaining(), 0.01f);
 	World->GetTimerManager().SetTimer(PredictedFeedbackTimer, this,
-		&UShooterGameplayAbility_Fire::HandlePredictedFeedbackTick, Interval, /*bLoop*/ true);
+		&UShooterGameplayAbility_Fire::HandlePredictedFeedbackTick, Interval, /*bLoop*/ true, FirstDelay);
 	bPredictedFeedbackActive = true;
 }
 
-bool UShooterGameplayAbility_Fire::TryPlayOwnerFeedback(AShooterWeapon& Weapon, const TCHAR* Marker, bool bConfirmedFallback)
+bool UShooterGameplayAbility_Fire::TryPlayOwnerFeedback(AShooterWeapon& Weapon, const TCHAR* Marker)
 {
 	++PredictedShotOrdinal;
-	const bool bPlayed = bConfirmedFallback
-		? Weapon.PlayOwnerConfirmedShotFeedback()
-		: Weapon.PlayOwnerPredictedShotFeedback();
-	if (!bPlayed)
+	if (!Weapon.PlayOwnerPredictedShotFeedback())
 	{
 		return false;
 	}
@@ -361,10 +357,12 @@ void UShooterGameplayAbility_Fire::HandlePredictedFeedbackTick()
 	AShooterWeapon* Weapon = CachedWeapon.Get();
 	if (!IsOwnerPredictedFeedbackAllowed())
 	{
-		// 本机已知进入换弹 / 切枪 / 死亡：本次不播表现，但保留节拍等待阻塞态解除或服务器 Reject。
+		// 表现目标暂不成立：本拍不构成 Shot Attempt，也不推进节拍。
 		return;
 	}
 
+	// 全自动每一拍同样是一次本地 Shot Attempt：先推进节拍，再只负责四路 cosmetic。
+	Weapon->AdvanceLocalFireCooldown();
 	TryPlayOwnerFeedback(*Weapon, TEXT("FIRE_PREDICTED_OWNER"));
 }
 
@@ -387,29 +385,13 @@ bool UShooterGameplayAbility_Fire::IsOwnerPredictedFeedbackAllowed()
 bool UShooterGameplayAbility_Fire::IsOwnerPredictedFeedbackAllowedForContext(AActor* AvatarActor,
 	const AShooterWeapon* Weapon, const UAbilitySystemComponent* AbilitySystemComponent)
 {
-	if (!AvatarActor || !IsValid(Weapon) || Weapon->IsHidden() || GetCurrentWeaponForAvatar(AvatarActor) != Weapon)
-	{
-		return false;
-	}
-
-	// 本机已知的阻塞态只禁止本地预测表现，不禁用请求：
-	// 服务器仍会执行完整 CanActivateAbility 并 Reject，客户端据此收敛。
-	if (!AbilitySystemComponent || !Weapon || !Weapon->CanConsumeAmmo())
-	{
-		return false;
-	}
-
-	const bool bBlocked = AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading) ||
-		AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Equipping) ||
-		AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Dead);
-	if (!bBlocked)
-	{
-		// 确认回退只宽限同一批迟到 Tag；首次清除后，后续新阻塞态必须恢复本地门控。
-		bConfirmedBlockerGraceActive = false;
-		return true;
-	}
-
-	return bConfirmedBlockerGraceActive;
+	// 唯一判据是"表现目标是否成立"：武器有效、未隐藏、仍是当前装备。
+	//
+	// 刻意不读取 Ammo / Reloading / Equipping / Dead：这些复制状态可能过期，
+	// 用它们二次否决首次 Owner 表现，就会让服务器已经接受并生成弹丸的那一发永久没有反馈。
+	// 空枪连点时的 cosmetic phantom 是本模型明确接受的代价（服务器仍会 Reject）。
+	(void)AbilitySystemComponent;
+	return AvatarActor && IsValid(Weapon) && !Weapon->IsHidden() && GetCurrentWeaponForAvatar(AvatarActor) == Weapon;
 }
 
 bool UShooterGameplayAbility_Fire::RecordAuthorityRejectAndReturnFalse() const

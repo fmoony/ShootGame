@@ -83,7 +83,7 @@ void AShooterWeapon::BeginPlay()
 void AShooterWeapon::OnRep_Owner()
 {
 	Super::OnRep_Owner();
-	ResetOwnerFeedbackCooldown();
+	ResetLocalFireCooldown();
 	InitializeWeaponOwner();
 }
 
@@ -192,7 +192,7 @@ void AShooterWeapon::OnAcquiredFromWeaponPool()
 	// 租用复位：开火节拍与开火标志不跨租用继承；WeaponId 与静态配置永久保留。
 	TimeOfLastShot = 0.0f;
 	bIsFiring = false;
-	ResetOwnerFeedbackCooldown();
+	ResetLocalFireCooldown();
 
 	// 池在调用本回调前已写入新 Owner，这里重新绑定 Owner/Instigator 缓存与销毁委托。
 	InitializeWeaponOwner();
@@ -217,7 +217,7 @@ void AShooterWeapon::OnReleasedToWeaponPool()
 	{
 		World->GetTimerManager().ClearTimer(RefireTimer);
 	}
-	ResetOwnerFeedbackCooldown();
+	ResetLocalFireCooldown();
 
 	// 解除 Owner 销毁委托并清空 Owner 侧缓存；通用隐藏/Detach/Owner 清空由池统一执行。
 	ClearWeaponOwner();
@@ -592,8 +592,20 @@ void AShooterWeapon::StopFiring()
 	// lower the firing flag
 	bIsFiring = false;
 
-	// clear the refire timer
-	GetWorld()->GetTimerManager().ClearTimer(RefireTimer);
+	// 半自动的 RefireTimer 持有 FireCooldownExpired，是"距上一次真实射击是否已满 RefireRate"
+	// 的权威冷却标记，不是连发调度器。松开扳机不得取消它，否则 CanStartSemiAutoShotNow()
+	// 会在每次释放后立刻恢复为 true，服务器就会接受冷却期内的重复激活
+	// （激活成功但 Fire 因 TimeSinceLastShot 不足而静默不发射）。
+	// 这种"接受但不开火"的激活会让客户端进入确认回退并补播表现，
+	// 形成与权威弹丸数量不符的高速连续枪口 / 声音 / 后坐力。
+	// 全自动的 RefireTimer 才是下一发调度器，必须在释放时清除以停止连发。
+	if (bFullAuto)
+	{
+		if (UWorld* World = GetWorld())
+		{
+			World->GetTimerManager().ClearTimer(RefireTimer);
+		}
+	}
 }
 
 bool AShooterWeapon::HasOwnerLocalPlayerView() const
@@ -621,7 +633,7 @@ bool AShooterWeapon::CanStartSemiAutoShotNow() const
 	return !World->GetTimerManager().IsTimerActive(RefireTimer);
 }
 
-bool AShooterWeapon::IsOwnerFeedbackCooldownReady() const
+bool AShooterWeapon::IsLocalFireCooldownReady() const
 {
 	const UWorld* World = GetWorld();
 	if (!World)
@@ -629,35 +641,41 @@ bool AShooterWeapon::IsOwnerFeedbackCooldownReady() const
 		return false;
 	}
 
-	// Timer 与 Tick 的浮点边界允许 5ms 容差，避免恰好在 RefireRate 边界误挡全自动下一拍。
-	constexpr float CooldownTolerance = 0.005f;
-	return OwnerFeedbackCooldownEndTime < 0.0f || World->GetTimeSeconds() + CooldownTolerance >= OwnerFeedbackCooldownEndTime;
+	// 全自动的本地节拍由 PredictedFeedbackTimer 驱动，Timer 到期与本地节拍之间存在浮点边界，
+	// 允许 5ms 容差避免恰好在 RefireRate 边界误挡下一拍。
+	// 半自动由离散输入驱动，没有 Timer 对齐问题：必须严格比较，
+	// 否则玩家可以在节拍结束前数毫秒提前开火并看到一次多余表现。
+	const float CooldownTolerance = bFullAuto ? 0.005f : 0.0f;
+	return LocalFireCooldownEndTime < 0.0f || World->GetTimeSeconds() + CooldownTolerance >= LocalFireCooldownEndTime;
 }
 
-void AShooterWeapon::AdvanceOwnerFeedbackCooldown()
+float AShooterWeapon::GetLocalFireCooldownRemaining() const
 {
+	const UWorld* World = GetWorld();
+	return World ? FMath::Max(0.0f, LocalFireCooldownEndTime - World->GetTimeSeconds()) : 0.0f;
+}
+
+void AShooterWeapon::AdvanceLocalFireCooldown()
+{
+	// 只按本武器 RefireRate 推进本地时钟；不读也不写权威 TimeOfLastShot / RefireTimer，
+	// 因此服务器节拍与本地节拍各自独立，不会互相纠缠。
 	if (const UWorld* World = GetWorld())
 	{
-		OwnerFeedbackCooldownEndTime = World->GetTimeSeconds() + FMath::Max(RefireRate, 0.01f);
+		LocalFireCooldownEndTime = World->GetTimeSeconds() + FMath::Max(RefireRate, 0.01f);
 	}
 }
 
-void AShooterWeapon::ResetOwnerFeedbackCooldown()
+void AShooterWeapon::ResetLocalFireCooldown()
 {
-	OwnerFeedbackCooldownEndTime = -1.0f;
+	LocalFireCooldownEndTime = -1.0f;
 }
 
 bool AShooterWeapon::PlayOwnerPredictedShotFeedback()
 {
-	return PlayOwnerShotFeedback(/*bBypassLocalCooldown*/ false);
+	return PlayOwnerShotFeedback();
 }
 
-bool AShooterWeapon::PlayOwnerConfirmedShotFeedback()
-{
-	return PlayOwnerShotFeedback(/*bBypassLocalCooldown*/ true);
-}
-
-bool AShooterWeapon::PlayOwnerShotFeedback(bool bBypassLocalCooldown)
+bool AShooterWeapon::PlayOwnerShotFeedback()
 {
 	// Dedicated Server 没有拥有者本地视图；非本地玩家视图也不是本入口的职责。
 	if (IsRunningDedicatedServer() || !HasOwnerLocalPlayerView())
@@ -665,10 +683,8 @@ bool AShooterWeapon::PlayOwnerShotFeedback(bool bBypassLocalCooldown)
 		return false;
 	}
 
-	if (!bBypassLocalCooldown && !IsOwnerFeedbackCooldownReady())
-	{
-		return false;
-	}
+	// 本入口只负责四路 cosmetic：不判定本地开火节拍，也不推进它。
+	// 节拍只由"本地 Shot Attempt 被接受"处推进，表现通道的成败不得反过来决定射击节拍。
 
 	const bool bHasMontage = FiringMontage != nullptr;
 	const bool bHasMuzzle = MuzzleFlash != nullptr;
@@ -712,10 +728,7 @@ bool AShooterWeapon::PlayOwnerShotFeedback(bool bBypassLocalCooldown)
 #endif
 	}
 
-	if (bPlayedAny)
-	{
-		AdvanceOwnerFeedbackCooldown();
-	}
+	// 表现提交成功与否都不影响本地开火节拍（节拍已由 Shot Attempt 处推进）。
 
 #if WITH_DEV_AUTOMATION_TESTS
 	if (bPlayedAny)
@@ -791,8 +804,12 @@ void AShooterWeapon::Fire()
 
 void AShooterWeapon::FireCooldownExpired()
 {
-	// notify the owner
-	WeaponOwner->OnSemiWeaponRefire();
+	// 半自动冷却到期通知。该 Timer 现在可以跨过输入释放继续存活，
+	// 因此 Owner 已解除（提池、切枪、销毁）时必须静默，不得解引用空接口。
+	if (WeaponOwner)
+	{
+		WeaponOwner->OnSemiWeaponRefire();
+	}
 }
 
 void AShooterWeapon::ExecuteFireAtTarget(const FVector& TargetLocation)
@@ -1045,12 +1062,6 @@ int32 AShooterWeapon::GetAuthorityShotCountForAutomationTest() const
 int32 AShooterWeapon::GetRemoteConfirmedFeedbackCountForAutomationTest() const
 {
 	return RemoteConfirmedFeedbackCount;
-}
-
-float AShooterWeapon::GetOwnerFeedbackCooldownRemainingForAutomationTest() const
-{
-	const UWorld* World = GetWorld();
-	return World ? FMath::Max(0.0f, OwnerFeedbackCooldownEndTime - World->GetTimeSeconds()) : 0.0f;
 }
 
 void AShooterWeapon::ResetOwnerFeedbackTimingForAutomationTest()

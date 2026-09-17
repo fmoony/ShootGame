@@ -1034,6 +1034,7 @@ void AShooterNetworkTestCoordinator::GetLifetimeReplicatedProps(TArray<FLifetime
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyToSwitch);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyToFire);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyForFullAuto);
+	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyForSemiAutoRapidClick);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyForSwitchCancel);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, ReloadFirePhase);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, ReloadFireRequestId);
@@ -1782,9 +1783,48 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		}
 	}
 
+	// ---- Invariant 2 半自动快速连点：真实按下 / 释放输入下的本地表现节拍与权威弹丸一致性 ----
+	// 前置条件由 4C 切枪取消阶段保证：客户端此时已回到半自动手枪，且旧 GA_Fire 已取消并静默。
+	// 该阶段必须在换弹系列之前跑完，因为换弹阶段会改写手枪弹药并占用输入通道。
+	if (bSwitchCancelVerified && !bSemiAutoRapidClickPhaseTriggered)
+	{
+		bSemiAutoRapidClickPhaseTriggered = true;
+		AShooterWeapon* BurstWeapon = ServerInventorySecondWeapon.Get();
+		const int32 BurstMagazineSize = IsValid(BurstWeapon) ? BurstWeapon->GetMagazineSize() : 0;
+		// 连点会连续消耗多发弹药：先用测试夹具补满弹匣与备弹，
+		// 避免中途打空把"冷却限速"混入"弹药不足"，污染本阶段要证明的节拍结论。
+		if (!IsValid(BurstWeapon) || BurstMagazineSize <= 0 ||
+			!SetReloadTestAmmo(BurstWeapon, /*MagazineAmmo*/ BurstMagazineSize, /*ReserveAmmo*/ 20))
+		{
+			FailTest(TEXT("Semi-auto rapid-click preparation failed to set pistol ammo"));
+			return;
+		}
+
+		const UShooterGameplayAbility_Fire* FireAbility = GetFireAbilityInstanceForTest(Character);
+		SemiAutoRapidTargetWeapon = BurstWeapon;
+		SemiAutoRapidAmmoBefore = BurstWeapon->GetBulletCount();
+		SemiAutoRapidAuthorityShotsBefore = BurstWeapon->GetAuthorityShotCountForAutomationTest();
+		SemiAutoRapidProjectilesBefore = ProjectileSpawnCount;
+		SemiAutoRapidRejectsBefore = FireAbility ? FireAbility->GetAuthorityRejectCountForTest() : INDEX_NONE;
+		SemiAutoRapidClickStartTime = GetWorld()->GetTimeSeconds();
+		bServerReadyForSemiAutoRapidClick = true;
+		ForceNetUpdate();
+		return;
+	}
+
+	if (bSemiAutoRapidClickPhaseTriggered && !bClientReportedSemiAutoRapidClick)
+	{
+		// 等待客户端跑完整轮连点并上报；硬超时用于避免阶段卡死时静默拖满整个会话。
+		if (GetWorld()->GetTimeSeconds() - SemiAutoRapidClickStartTime >= 15.0f)
+		{
+			FailTest(TEXT("Semi-auto rapid-click phase timed out without a client report"));
+		}
+		return;
+	}
+
 	// ---- 4C Reject.NoAmmo：手枪弹药耗尽后服务器 TryActivate 必须拒绝 ----
 	// ---- 5B Reject.FullMagazine：满弹匣输入不得产生活动事务或 Ammo 变化 ----
-	if (bSwitchCancelVerified && !bReloadFullRejectPhaseTriggered)
+	if (bSemiAutoRapidClickVerified && !bReloadFullRejectPhaseTriggered)
 	{
 		bReloadFullRejectPhaseTriggered = true;
 		const int32 ReloadPistolMagazineSize = ServerInventorySecondWeapon.IsValid()
@@ -2773,6 +2813,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		bSingleProjectileVerified && bOwnerAcceptedShotEvidenceVerified &&
 		bFullAutoReleaseVerified && bFullAutoLocalCadenceVerified &&
 		bFullAutoAuthorityExactlyOnceVerified && bFullAutoQuiescentConfirmed &&
+		bSemiAutoRapidClickVerified &&
 		(!bRequireRemoteMontage || bRemoteConfirmedVerified) &&
 		bSwitchCancelVerified && bNoAmmoRejectVerified && bFireRejectDeadVerified &&
 		bFireRejectNoWeaponVerified && bRespawnTagCleanupVerified &&
@@ -2790,7 +2831,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 				"GasHealthInit=%s GasDamage=%s GasDeath=%s GasNpcHealth=%s/%s GasClientHealth=%s/%s/%s "
 				"GasHud=%s FireGrant=%s/%s/%s/%s ReloadEquipGrant=%s/%s/%s Reload=%s/%s/%s/%s/%s/%s "
 				"FireAfterReload=%s/%s/%s Equip=%s/%s/%s/%s/%s FireGA=%s/%s/%s "
-				"Cancellation=%s/%s/%s/%s/%s/%s/%s PickupAuthority=%s InventoryOwner=%s "
+				"SemiAutoRapidClick=%s/%d/%.3f/%d Cancellation=%s/%s/%s/%s/%s/%s/%s PickupAuthority=%s InventoryOwner=%s "
 				"InventoryRemoteHidden=%s AmmoIsolation=%s DeathClear=%s/%s RespawnEmpty=%s/%s"),
 			PlayerId,
 			InitialBulletCount,
@@ -2848,6 +2889,10 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			bSingleProjectileVerified ? TEXT("true") : TEXT("false"),
 			bFullAutoReleaseVerified ? TEXT("true") : TEXT("false"),
 			bFullAutoQuiescentConfirmed ? TEXT("true") : TEXT("false"),
+			bSemiAutoRapidClickVerified ? TEXT("true") : TEXT("false"),
+			SemiAutoRapidClicksObserved,
+			SemiAutoRapidMinFeedbackInterval,
+			SemiAutoRapidAuthorityShotDelta,
 			bSwitchCancelVerified ? TEXT("true") : TEXT("false"),
 			bNoAmmoRejectVerified ? TEXT("true") : TEXT("false"),
 			bFireRejectDeadVerified ? TEXT("true") : TEXT("false"),
@@ -3633,6 +3678,93 @@ void AShooterNetworkTestCoordinator::PollClientState()
 			MinimumFeedbackInterval, bLocalTimerStopped, bTargetStable);
 	}
 
+	// ---- 半自动开火语义：真实按下 / 释放输入驱动的本地节拍与权威结果取证 ----
+	// 与全自动阶段不同，这里刻意保持"按一下松一下"的真实鼠标节奏，并且连点间隔小于武器
+	// RefireRate，用来同时制造两类点击：本地节拍未到（应在客户端被直接拒绝、不发请求）
+	// 与本地节拍已到（应立即表现并发送请求）。
+	if (bServerReadyForSemiAutoRapidClick && !bClientSemiAutoBurstReported)
+	{
+		if (!bClientSemiAutoBurstStarted)
+		{
+			// 起跑前置：必须已经拿到半自动手枪；复制落后时保持等待，不退回步枪。
+			AShooterWeapon* BurstWeapon = Weapon && !Weapon->IsFullAuto() ? Weapon : nullptr;
+			const float BurstRefireRate = BurstWeapon ? BurstWeapon->GetRefireRate() : 0.0f;
+			if (BurstWeapon && BurstRefireRate > ShooterNetworkTest::PollIntervalSeconds * 1.5f)
+			{
+				ClientSemiAutoBurstWeapon = BurstWeapon;
+				SemiAutoBurstFeedbackBefore = BurstWeapon->GetPredictedOwnerFeedbackCountForAutomationTest();
+				SemiAutoBurstMontageBefore = Character->GetOwnerLocalMontageCountForAutomationTest();
+				SemiAutoBurstMuzzleBefore = BurstWeapon->GetOwnerMuzzleFeedbackCountForAutomationTest();
+				SemiAutoBurstSoundBefore = BurstWeapon->GetOwnerSoundFeedbackCountForAutomationTest();
+				SemiAutoBurstRecoilBefore = Character->GetOwnerLocalRecoilCountForAutomationTest();
+				BurstWeapon->ResetOwnerFeedbackTimingForAutomationTest();
+				// 连点总次数按武器自身 RefireRate 伸缩：保证窗口覆盖至少两个节拍周期，
+				// 从而既有被本地节拍直接拒绝的点击，也有通过本地检查、真正发往服务器的点击。
+				SemiAutoBurstTargetClicks = FMath::Clamp(FMath::CeilToInt(
+					2.5f * BurstRefireRate / ShooterNetworkTest::PollIntervalSeconds) + 2, 10, 40);
+				SemiAutoBurstNextClickTime = GetWorld()->GetTimeSeconds();
+				bClientSemiAutoBurstStarted = true;
+				UE_LOG(
+					LogShootGame,
+					Display,
+					TEXT("Semi-auto rapid-click burst start: Weapon=%s RefireRate=%.3f TargetClicks=%d"),
+					*GetNameSafe(BurstWeapon),
+					BurstRefireRate,
+					SemiAutoBurstTargetClicks);
+			}
+		}
+		else if (SemiAutoBurstClicksDone < SemiAutoBurstTargetClicks)
+		{
+			// 每个客户端轮询拍按一次扳机：真实的"按下 → 释放"两步输入，间隔等于轮询周期。
+			if (GetWorld()->GetTimeSeconds() >= SemiAutoBurstNextClickTime)
+			{
+				Character->DoStartFiring();
+				Character->DoStopFiring();
+				++SemiAutoBurstClicksDone;
+				SemiAutoBurstNextClickTime = GetWorld()->GetTimeSeconds() + ShooterNetworkTest::PollIntervalSeconds;
+			}
+		}
+		else
+		{
+			// 连点结束后留出收敛窗口：在途的服务器 Reject / Confirm 必须全部落地后再取增量，
+			// 否则会把尚未收敛的反馈算漏，得到偏乐观的节拍结论。
+			if (SemiAutoBurstSettleStartTime <= 0.0f)
+			{
+				SemiAutoBurstSettleStartTime = GetWorld()->GetTimeSeconds();
+			}
+			else if (GetWorld()->GetTimeSeconds() - SemiAutoBurstSettleStartTime >= 0.6f)
+			{
+				AShooterWeapon* BurstWeapon = ClientSemiAutoBurstWeapon.Get();
+				const bool bTargetStable = IsValid(BurstWeapon) && BurstWeapon == Weapon && !BurstWeapon->IsFullAuto();
+				const int32 OwnerFeedbackDelta = bTargetStable && SemiAutoBurstFeedbackBefore != INDEX_NONE
+					? BurstWeapon->GetPredictedOwnerFeedbackCountForAutomationTest() - SemiAutoBurstFeedbackBefore
+					: INDEX_NONE;
+				const float MinimumFeedbackInterval = bTargetStable
+					? BurstWeapon->GetMinimumOwnerFeedbackIntervalForAutomationTest()
+					: -1.0f;
+				const float BurstRefireRate = bTargetStable ? BurstWeapon->GetRefireRate() : -1.0f;
+				bClientSemiAutoBurstReported = true;
+				ServerReportSemiAutoRapidClick(SemiAutoBurstClicksDone, OwnerFeedbackDelta,
+					MinimumFeedbackInterval, BurstRefireRate, bTargetStable);
+
+				// 分通道证据：四路各自必须真正提交过，避免"聚合正常、单路静默失效"。
+				const int32 MontageDelta = bTargetStable
+					? Character->GetOwnerLocalMontageCountForAutomationTest() - SemiAutoBurstMontageBefore
+					: INDEX_NONE;
+				const int32 MuzzleDelta = bTargetStable
+					? BurstWeapon->GetOwnerMuzzleFeedbackCountForAutomationTest() - SemiAutoBurstMuzzleBefore
+					: INDEX_NONE;
+				const int32 SoundDelta = bTargetStable
+					? BurstWeapon->GetOwnerSoundFeedbackCountForAutomationTest() - SemiAutoBurstSoundBefore
+					: INDEX_NONE;
+				const int32 RecoilDelta = bTargetStable
+					? Character->GetOwnerLocalRecoilCountForAutomationTest() - SemiAutoBurstRecoilBefore
+					: INDEX_NONE;
+				ServerReportSemiAutoRapidClickChannels(MontageDelta, MuzzleDelta, SoundDelta, RecoilDelta, bTargetStable);
+			}
+		}
+	}
+
 	// P1-D 远端第三人称确认表现：本机与对手的全自动窗口不一定重叠（Listen 主机会先跑完自己的阶段），
 	// 因此观测窗口从本机起手一直保持到"观测到确认表现后 0.4 秒无增长"或硬超时；
 	// 服务器在收到上报时读取对手武器的权威射击增量，两端窗口因此按同一段真实时间对齐。
@@ -4008,10 +4140,12 @@ void AShooterNetworkTestCoordinator::ServerReportReloadFireResult_Implementation
 		!ShooterAbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Firing) &&
 		ShooterAbilitySystemComponent->GetActiveAbilityCountForClass(ShooterPlayerState->GetFireAbilityClass()) == 0;
 	const bool bServerRejected = ReloadFireAuthorityRejectsBefore != INDEX_NONE && AuthorityRejectsNow > ReloadFireAuthorityRejectsBefore;
-	// 已知阻塞态不得产生本地表现；尚未知阻塞态允许至多一次不可撤销的纯表现。
-	const bool bPredictionBoundaryOk = FireCase == 1
-		? bKnownBlockerObserved && PredictedDelta == 0
-		: !bKnownBlockerObserved && PredictedDelta >= 0 && PredictedDelta <= 1;
+	// 本地表现不再读取任何复制状态（State.Reloading / Equipping / Dead 与 Ammo 只由服务器权威处理），
+	// 且新语义下没有确认回退补播，因此两个分支的预期一致：
+	// 服务器 Reject 之后，拥有者端允许出现至多一次不可撤销的纯 cosmetic phantom。
+	// 上界保持为 1，用来保证"一次输入只可能产生一次本地表现"，不允许按点击或按帧重复。
+	// Reload 目前是 ServerOnly；待后续 Reload Prediction 落地后再收紧本地状态门控。
+	const bool bPredictionBoundaryOk = PredictedDelta >= 0 && PredictedDelta <= 1;
 
 	const bool bVerified = bTargetStable && bServerRejected && bNoAuthorityCommit &&
 		bAmmoNotReducedByRejectedFire && bNoServerResidue && bPredictionBoundaryOk && bClientConverged;
@@ -4086,8 +4220,12 @@ void AShooterNetworkTestCoordinator::ServerReportFullAutoReleased_Implementation
 		? BulletCountBeforeFullAuto - AmmoAfterRelease
 		: INDEX_NONE;
 	const float RefireRate = IsValid(Weapon) ? Weapon->GetRefireRate() : -1.0f;
+	// 全自动的本地节拍由客户端自己的 PredictedFeedbackTimer 驱动，权威射速由服务器 RefireTimer 驱动，
+	// 两者允许存在相位差，不要求逐发对齐：因此不能用 OwnerFeedbackDelta == AuthorityShotDelta 强配对。
+	// 本地侧只要求：确实连续播过（>=2）、节拍不低于 RefireRate、释放后本地 Timer 已停。
+	// 权威侧的一一对应由 bFullAutoAuthorityExactlyOnceVerified 单独证明。
 	bFullAutoLocalCadenceVerified = bTargetStable && bLocalTimerStopped && OwnerFeedbackDelta >= 2 &&
-		AuthorityShotDelta == OwnerFeedbackDelta && MinimumFeedbackInterval >= RefireRate - 0.01f;
+		MinimumFeedbackInterval >= RefireRate - 0.01f;
 	bFullAutoAuthorityExactlyOnceVerified = AuthorityShotDelta >= 2 && ProjectileDelta == AuthorityShotDelta &&
 		AmmoConsumed == AuthorityShotDelta;
 
@@ -4125,6 +4263,145 @@ void AShooterNetworkTestCoordinator::ServerReportFullAutoReleased_Implementation
 			bFullAutoLocalCadenceVerified ? TEXT("true") : TEXT("false"),
 			bFullAutoAuthorityExactlyOnceVerified ? TEXT("true") : TEXT("false"),
 			bFullAutoActiveObserved ? TEXT("true") : TEXT("false")));
+	}
+}
+
+void AShooterNetworkTestCoordinator::ServerReportSemiAutoRapidClick_Implementation(int32 ClicksAttempted,
+	int32 OwnerFeedbackDelta, float MinimumFeedbackInterval, float RefireRate, bool bTargetStable)
+{
+	bClientReportedSemiAutoRapidClick = true;
+	SemiAutoRapidClicksObserved = ClicksAttempted;
+	SemiAutoRapidMinFeedbackInterval = MinimumFeedbackInterval;
+
+	AShooterCharacter* Character = GetShooterCharacter();
+	AShooterWeapon* Weapon = SemiAutoRapidTargetWeapon.Get();
+	const float AuthorityRefireRate = IsValid(Weapon) ? Weapon->GetRefireRate() : -1.0f;
+	const int32 AuthorityShotDelta = IsValid(Weapon) && SemiAutoRapidAuthorityShotsBefore != INDEX_NONE
+		? Weapon->GetAuthorityShotCountForAutomationTest() - SemiAutoRapidAuthorityShotsBefore
+		: INDEX_NONE;
+	const int32 ProjectileDelta = SemiAutoRapidProjectilesBefore != INDEX_NONE
+		? ProjectileSpawnCount - SemiAutoRapidProjectilesBefore
+		: INDEX_NONE;
+	const int32 AmmoConsumed = IsValid(Weapon) && SemiAutoRapidAmmoBefore != INDEX_NONE
+		? SemiAutoRapidAmmoBefore - Weapon->GetBulletCount()
+		: INDEX_NONE;
+	const UShooterGameplayAbility_Fire* FireAbility = GetFireAbilityInstanceForTest(Character);
+	const int32 AuthorityRejectsNow = FireAbility ? FireAbility->GetAuthorityRejectCountForTest() : INDEX_NONE;
+	const int32 RejectDelta = AuthorityRejectsNow != INDEX_NONE && SemiAutoRapidRejectsBefore != INDEX_NONE
+		? AuthorityRejectsNow - SemiAutoRapidRejectsBefore
+		: INDEX_NONE;
+	SemiAutoRapidAuthorityShotDelta = AuthorityShotDelta;
+	SemiAutoRapidFeedbackDelta = OwnerFeedbackDelta;
+
+	// 夹具资格：必须真的是半自动武器，且客户端上报的 RefireRate 与服务器权威配置一致，
+	// 防止用被篡改的客户端配置伪造节拍结论。
+	const bool bSemiAutoWeapon = IsValid(Weapon) && !Weapon->IsFullAuto();
+	const bool bRefireRateMatches = AuthorityRefireRate > 0.0f &&
+		FMath::IsNearlyEqual(RefireRate, AuthorityRefireRate, 0.01f);
+
+	// 新语义下的两条核心事实：
+	// 1) 本地节拍是"发不发请求"的门：未到 RefireRate 的点击在客户端就被拒绝，
+	//    服务器因此只应看到少量激活请求，而不是每一次点击。
+	// 2) 达到 RefireRate 的点击立即表现并发送请求，服务器独立校验后接受。
+	// 服务器可观测到的激活请求 = 接受的射击 + 被拒的激活；它必须远少于客户端真实点击次数。
+	const bool bRequestCountMeasurable = AuthorityShotDelta != INDEX_NONE && RejectDelta != INDEX_NONE;
+	const int32 ServerObservedRequests = bRequestCountMeasurable ? AuthorityShotDelta + RejectDelta : INDEX_NONE;
+	// 客户端按轮询节拍连点，理论请求上限 = 窗口长度 / RefireRate，再留 3 次余量吸收抖动；
+	// 夹具已保证 RefireRate > 轮询周期，因此该上界显著小于点击次数，能真实区分"本地拒绝"与"每击必请求"。
+	const int32 MaxGatedRequests = FMath::FloorToInt(
+		(ClicksAttempted - 1) * ShooterNetworkTest::PollIntervalSeconds / FMath::Max(AuthorityRefireRate, 0.01f)) + 3;
+	const bool bLocalRequestGateVerified = bRequestCountMeasurable && ServerObservedRequests <= MaxGatedRequests;
+
+	bSemiAutoRapidInputVerified = bTargetStable && bSemiAutoWeapon && bRefireRateMatches &&
+		ClicksAttempted >= 4 && AuthorityShotDelta >= 2 && bLocalRequestGateVerified;
+
+	// 本地可见表现节拍：硬约束是最小间隔不得低于 RefireRate，这与网络条件无关，
+	// 也是"按点击频率播放"这一旧缺陷唯一必然违反的一条（旧实现间隔约等于点击间隔 0.1 秒）。
+	// 数量上界：每次被本地接受的 Shot Attempt 都必然播放一次，服务器还可能因到达时刻抖动
+	// Reject 掉其中一部分（本地已播、权威未射），因此 Feedback 只允许比 Authority 多，不允许少。
+	const int32 FeedbackLowerBound = FMath::Max(1, AuthorityShotDelta);
+	const int32 FeedbackUpperBound = AuthorityShotDelta + 3;
+	const bool bFeedbackWithinContractBound = OwnerFeedbackDelta >= FeedbackLowerBound && OwnerFeedbackDelta <= FeedbackUpperBound;
+	bSemiAutoLocalCadenceVerified = bSemiAutoRapidInputVerified && OwnerFeedbackDelta >= 2 &&
+		MinimumFeedbackInterval >= AuthorityRefireRate - 0.001f && bFeedbackWithinContractBound;
+
+	// 权威结果恰好一次：每一发真实射击各消耗一颗弹药、各生成一颗弹丸。
+	bSemiAutoAuthorityExactlyOnceVerified = bSemiAutoRapidInputVerified &&
+		ProjectileDelta == AuthorityShotDelta && AmmoConsumed == AuthorityShotDelta;
+
+	bSemiAutoRapidClickVerified = bSemiAutoRapidInputVerified && bSemiAutoLocalCadenceVerified && bSemiAutoAuthorityExactlyOnceVerified;
+
+	UE_LOG(LogShootGame, Display, TEXT(
+			"Semi-auto rapid-click invariant report: Clicks=%d Requests=%d MaxRequests=%d Feedback=%d "
+			"Authority=%d Projectiles=%d AmmoConsumed=%d Rejects=%d MinInterval=%.3f RefireRate=%.3f "
+			"Stable=%s SemiAuto=%s Valid=%s"),
+		ClicksAttempted,
+		ServerObservedRequests,
+		MaxGatedRequests,
+		OwnerFeedbackDelta,
+		AuthorityShotDelta,
+		ProjectileDelta,
+		AmmoConsumed,
+		RejectDelta,
+		MinimumFeedbackInterval,
+		AuthorityRefireRate,
+		bTargetStable ? TEXT("true") : TEXT("false"),
+		bSemiAutoWeapon ? TEXT("true") : TEXT("false"),
+		bSemiAutoRapidClickVerified ? TEXT("true") : TEXT("false"));
+
+	if (!bSemiAutoRapidClickVerified)
+	{
+		FailTest(FString::Printf(
+			TEXT("Semi-auto rapid-click invariants failed; Clicks=%d Requests=%d MaxRequests=%d Feedback=%d ")
+			TEXT("Authority=%d Projectiles=%d AmmoConsumed=%d Rejects=%d MinInterval=%.3f RefireRate=%.3f ")
+			TEXT("Input=%s Cadence=%s ExactlyOnce=%s"),
+			ClicksAttempted,
+			ServerObservedRequests,
+			MaxGatedRequests,
+			OwnerFeedbackDelta,
+			AuthorityShotDelta,
+			ProjectileDelta,
+			AmmoConsumed,
+			RejectDelta,
+			MinimumFeedbackInterval,
+			AuthorityRefireRate,
+			bSemiAutoRapidInputVerified ? TEXT("true") : TEXT("false"),
+			bSemiAutoLocalCadenceVerified ? TEXT("true") : TEXT("false"),
+			bSemiAutoAuthorityExactlyOnceVerified ? TEXT("true") : TEXT("false")));
+	}
+}
+
+void AShooterNetworkTestCoordinator::ServerReportSemiAutoRapidClickChannels_Implementation(int32 MontageDelta,
+	int32 MuzzleDelta, int32 SoundDelta, int32 RecoilDelta, bool bTargetStable)
+{
+	SemiAutoRapidMontageDelta = MontageDelta;
+	SemiAutoRapidMuzzleDelta = MuzzleDelta;
+	SemiAutoRapidSoundDelta = SoundDelta;
+	SemiAutoRapidRecoilDelta = RecoilDelta;
+
+	// 聚合计数只证明"至少提交了一项表现"；四路不仅各自都必须提交过，
+	// 还必须与本次本地表现次数逐路相等——否则就会出现"第一发四路齐全、后续只提交一部分"
+	// 这类聚合看着正常、玩家却看不到特效的形态。
+	bSemiAutoRapidChannelsVerified = bTargetStable && SemiAutoRapidFeedbackDelta >= 1 &&
+		MontageDelta == SemiAutoRapidFeedbackDelta && MuzzleDelta == SemiAutoRapidFeedbackDelta &&
+		SoundDelta == SemiAutoRapidFeedbackDelta && RecoilDelta == SemiAutoRapidFeedbackDelta;
+
+	UE_LOG(
+		LogShootGame,
+		Display,
+		TEXT("Semi-auto rapid-click channel report: Montage=%d Muzzle=%d Sound=%d Recoil=%d Stable=%s Valid=%s"),
+		MontageDelta,
+		MuzzleDelta,
+		SoundDelta,
+		RecoilDelta,
+		bTargetStable ? TEXT("true") : TEXT("false"),
+		bSemiAutoRapidChannelsVerified ? TEXT("true") : TEXT("false"));
+
+	if (!bSemiAutoRapidChannelsVerified)
+	{
+		FailTest(FString::Printf(
+			TEXT("Semi-auto rapid-click channel evidence failed; Montage=%d Muzzle=%d Sound=%d Recoil=%d Stable=%s"),
+			MontageDelta, MuzzleDelta, SoundDelta, RecoilDelta, bTargetStable ? TEXT("true") : TEXT("false")));
 	}
 }
 
@@ -4286,15 +4563,22 @@ void AShooterNetworkTestCoordinator::ServerReportClientTriggeredFireAfterReload_
 	bFireAfterReloadStaleTagObserved = bReloadingTagPresentAtInput;
 	UE_LOG(LogShootGame, Display, TEXT("Fire-after-reload server report: Fire triggered once ReloadingTag=%s"),
 		bReloadingTagPresentAtInput ? TEXT("true") : TEXT("false"));
-	// Tag 是否仍存在取决于复制时序，不作为单客户端硬门；确定性的阻塞与确认宽限由 Automation 覆盖。
-	// 本场景只验证无论命中哪个分支，服务器接受后都恰好产生一次反馈、一次权威结果并最终收敛。
+	// Tag 是否仍存在取决于复制时序，不作为硬门。本地表现不再读取任何复制状态，
+	// 因此迟到 Reloading Tag 不会抑制这次首帧表现：服务器接受一次，拥有者就应看到一次。
 }
 
 void AShooterNetworkTestCoordinator::ServerReportClientStoppedFireAfterReload_Implementation(
 	int32 OwnerFeedbackDelta, int32 OwnerConfirmationDelta)
 {
 	bClientTriggeredStopFireAfterReload = true;
-	bFireAfterReloadOwnerFeedbackVerified = OwnerFeedbackDelta == 1 && OwnerConfirmationDelta == 1;
+	// 本地表现必须恰好一次：本地预测是唯一正常来源，且表现不再读取任何可能过期的复制状态，
+	// 因此迟到 Reloading Tag 不会抑制它；上界收死以防同一次认可射击出现重复表现。
+	// 权威确认走的是 Unreliable Multicast：无丢包无延迟时要求恰好一次，
+	// Emulated 下允许丢失（契约不承诺 Unreliable 纯表现逐份送达），但绝不允许重复。
+	const bool bConfirmationOk = bRequireExactRemoteConfirmed
+		? OwnerConfirmationDelta == 1
+		: OwnerConfirmationDelta >= 0 && OwnerConfirmationDelta <= 1;
+	bFireAfterReloadOwnerFeedbackVerified = OwnerFeedbackDelta == 1 && bConfirmationOk;
 	UE_LOG(
 		LogShootGame,
 		Display,

@@ -191,10 +191,13 @@ protected:
 	FTimerHandle RefireTimer;
 
 	/**
-	 * 本武器下一次允许普通拥有者预测表现的本地时间。
-	 * 仅限纯表现节拍，不复制、不驱动 Gameplay，也不替代权威 RefireTimer / TimeOfLastShot。
+	 * 本武器下一次允许"本地有效开火"的本地时间。
+	 *
+	 * 本地开火节拍：半自动用它判断本次点击是否已满足距上一次本地有效开火 >= RefireRate。
+	 * 该值只由"本地 Shot Attempt 被接受"推进一次，不复制、不读权威 RefireTimer / TimeOfLastShot，
+	 * 与服务器权威射速是两套互不干涉的时钟。
 	 */
-	float OwnerFeedbackCooldownEndTime = -1.0f;
+	float LocalFireCooldownEndTime = -1.0f;
 
 	/** Cast pawn pointer to the owner for AI perception system interactions */
 	TObjectPtr<APawn> PawnOwner;
@@ -247,17 +250,11 @@ protected:
 	/** 返回本 Actor 所在 World 的武器运行时子系统；World 不支持或已销毁时返回 nullptr。 */
 	UShooterWeaponRuntimeSubsystem* GetWeaponRuntimeSubsystem() const;
 
-	/** 普通预测表现是否已越过本武器自己的本地冷却。 */
-	bool IsOwnerFeedbackCooldownReady() const;
+	/** Owner / 池租用边界复位本地开火节拍，防止跨持有者继承。 */
+	void ResetLocalFireCooldown();
 
-	/** 成功提交表现后按本武器 RefireRate 推进本地冷却。 */
-	void AdvanceOwnerFeedbackCooldown();
-
-	/** Owner / 池租用边界复位纯表现冷却，防止跨持有者继承。 */
-	void ResetOwnerFeedbackCooldown();
-
-	/** 共享表现实现；确认回退可旁路普通预测冷却，但仍会推进下一次冷却。 */
-	bool PlayOwnerShotFeedback(bool bBypassLocalCooldown);
+	/** 拥有者纯表现的唯一实现；只由本地开火路径调用。 */
+	bool PlayOwnerShotFeedback();
 
 	/**
 	 * 统一状态转换入口：状态未变化时是安全 no-op，真实变化时输出一条 Verbose 诊断。
@@ -310,18 +307,33 @@ public:
 	void StopFiring();
 
 	/**
-	 * 拥有者本地普通预测表现入口（P1-A 建立，P1-B 起由 GA_Fire 预测路径调用）。
-	 * 按本 WeaponActor 的 RefireRate 限制纯表现；不写 MagazineAmmo / ReserveAmmo /
-	 * TimeOfLastShot / bIsFiring / RefireTimer / Inventory / Projectile，也不建立任何 Timer。
+	 * 拥有者本地开火表现入口：唯一的第一人称表现来源。
+	 * 内部先判定本地开火节拍，未越过时直接返回 false，绝不播放。
+	 * 不写 MagazineAmmo / ReserveAmmo / TimeOfLastShot / bIsFiring / RefireTimer /
+	 * Inventory / Projectile，也不建立任何 Timer。
 	 * 返回是否向表现通道提交了至少一项；返回值不表示当前机器一定具备音频或渲染设备。
 	 */
 	bool PlayOwnerPredictedShotFeedback();
 
 	/**
-	 * 服务器已接受当前预测激活后的单次确认回退。
-	 * 旁路本地纯表现冷却，保证被误挡的合法射击补播一次；Reject 路径不得调用。
+	 * 本地开火节拍是否已越过：距上一次本地有效开火是否已满 RefireRate。
+	 *
+	 * 客户端半自动只用它决定"这次输入是否构成一次有效 Local Shot Attempt"。
+	 * 该判定只读本地时钟，不读权威 RefireTimer / TimeOfLastShot，
+	 * 也不读 Ammo / Reloading / Equipping / Dead 等可能过期的复制状态。
 	 */
-	bool PlayOwnerConfirmedShotFeedback();
+	bool IsLocalFireCooldownReady() const;
+
+	/** 距本地开火节拍结束还剩多久；已就绪时返回 0。全自动首拍用它安排"剩余 cooldown"。 */
+	float GetLocalFireCooldownRemaining() const;
+
+	/**
+	 * 按本武器 RefireRate 推进本地开火节拍。
+	 *
+	 * 唯一调用点是"本地 Shot Attempt 被接受"处，与 Montage / Niagara / Sound
+	 * 是否成功播放无关：表现通道的成败不得决定射击节拍。
+	 */
+	void AdvanceLocalFireCooldown();
 
 	/** 本地预测节拍只读配置。 */
 	bool IsFullAuto() const { return bFullAuto; }
@@ -494,7 +506,6 @@ public:
 	int32 GetLastOwnerFeedbackSequenceForAutomationTest() const { return LastOwnerFeedbackSequence; }
 	int32 GetLastOwnerConfirmationSequenceForAutomationTest() const { return LastOwnerConfirmationSequence; }
 	float GetMinimumOwnerFeedbackIntervalForAutomationTest() const { return MinimumOwnerFeedbackInterval; }
-	float GetOwnerFeedbackCooldownRemainingForAutomationTest() const;
 	void ResetOwnerFeedbackTimingForAutomationTest();
 
 	/** 只读探针：当前开火标志。 */

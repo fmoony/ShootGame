@@ -138,6 +138,24 @@ private:
 	void ServerReportFullAutoReleased(int32 BulletCountAfterRelease, int32 OwnerFeedbackDelta,
 		float MinimumFeedbackInterval, bool bLocalTimerStopped, bool bTargetStable);
 
+	/**
+	 * Invariant 2 半自动快速连点证据：客户端在真实按下 / 释放输入下跑完一整轮连点后上报本机观测。
+	 * 服务器用同窗口的权威弹药、弹丸与权威射击增量做一一对应比较，
+	 * 并要求本地可见表现的最小间隔不低于武器 RefireRate。
+	 */
+	UFUNCTION(Server, Reliable)
+	void ServerReportSemiAutoRapidClick(int32 ClicksAttempted, int32 OwnerFeedbackDelta,
+		float MinimumFeedbackInterval, float RefireRate, bool bTargetStable);
+
+	/**
+	 * 半自动连点窗口的分通道表现证据。
+	 * 聚合计数只能证明"至少提交了一项表现"，无法发现枪口 / 声音 / 后坐力 / Montage 中
+	 * 某一路在本机静默失效；因此四路各自上报增量，服务器逐路断言。
+	 */
+	UFUNCTION(Server, Reliable)
+	void ServerReportSemiAutoRapidClickChannels(int32 MontageDelta, int32 MuzzleDelta, int32 SoundDelta,
+		int32 RecoilDelta, bool bTargetStable);
+
 	UFUNCTION(Server, Reliable)
 	void ServerReportOwnerAcceptedShotEvidence(
 		int32 OwnerFeedbackDelta,
@@ -275,6 +293,10 @@ private:
 
 	UPROPERTY(Replicated)
 	bool bServerReadyForFullAuto = false;
+
+	/** 半自动快速连点阶段的起跑许可：客户端收到后开始真实连点输入。 */
+	UPROPERTY(Replicated)
+	bool bServerReadyForSemiAutoRapidClick = false;
 
 	UPROPERTY(Replicated)
 	bool bServerReadyForSwitchCancel = false;
@@ -486,6 +508,43 @@ private:
 	TWeakObjectPtr<AShooterWeapon> ClientFullAutoTargetWeapon;
 	int32 ClientFullAutoOwnerFeedbackBefore = INDEX_NONE;
 
+	// ---- Invariant 2 半自动快速连点：服务器侧窗口快照与验收 ----
+	bool bSemiAutoRapidClickPhaseTriggered = false;
+	bool bClientReportedSemiAutoRapidClick = false;
+	bool bSemiAutoRapidClickVerified = false;
+	bool bSemiAutoRapidInputVerified = false;
+	bool bSemiAutoLocalCadenceVerified = false;
+	bool bSemiAutoAuthorityExactlyOnceVerified = false;
+	int32 SemiAutoRapidAuthorityShotsBefore = INDEX_NONE;
+	int32 SemiAutoRapidRejectsBefore = INDEX_NONE;
+	int32 SemiAutoRapidProjectilesBefore = INDEX_NONE;
+	int32 SemiAutoRapidAmmoBefore = INDEX_NONE;
+	int32 SemiAutoRapidClicksObserved = INDEX_NONE;
+	int32 SemiAutoRapidAuthorityShotDelta = INDEX_NONE;
+	int32 SemiAutoRapidFeedbackDelta = INDEX_NONE;
+	float SemiAutoRapidMinFeedbackInterval = -1.0f;
+	float SemiAutoRapidClickStartTime = 0.0f;
+	bool bSemiAutoRapidChannelsVerified = false;
+	int32 SemiAutoRapidMontageDelta = INDEX_NONE;
+	int32 SemiAutoRapidMuzzleDelta = INDEX_NONE;
+	int32 SemiAutoRapidSoundDelta = INDEX_NONE;
+	int32 SemiAutoRapidRecoilDelta = INDEX_NONE;
+	TWeakObjectPtr<AShooterWeapon> SemiAutoRapidTargetWeapon;
+
+	// ---- Invariant 2 半自动快速连点：客户端侧真实输入与观测窗口 ----
+	bool bClientSemiAutoBurstStarted = false;
+	bool bClientSemiAutoBurstReported = false;
+	int32 SemiAutoBurstClicksDone = 0;
+	int32 SemiAutoBurstTargetClicks = 0;
+	int32 SemiAutoBurstFeedbackBefore = INDEX_NONE;
+	int32 SemiAutoBurstMontageBefore = INDEX_NONE;
+	int32 SemiAutoBurstMuzzleBefore = INDEX_NONE;
+	int32 SemiAutoBurstSoundBefore = INDEX_NONE;
+	int32 SemiAutoBurstRecoilBefore = INDEX_NONE;
+	float SemiAutoBurstNextClickTime = 0.0f;
+	float SemiAutoBurstSettleStartTime = 0.0f;
+	TWeakObjectPtr<AShooterWeapon> ClientSemiAutoBurstWeapon;
+
 	// ---- P1-D 远端第三人称确认表现：同一个全自动窗口内的观测端增量与权威增量 ----
 	/** 服务器侧：全自动窗口起点，我方与对手武器的权威射击计数。 */
 	int32 AuthorityShotsBeforeFullAuto = INDEX_NONE;
@@ -509,7 +568,11 @@ private:
 	int32 ClientRemoteConfirmedLastValue = INDEX_NONE;
 	float ClientRemoteConfirmedStableTime = 0.0f;
 	bool bClientReportedRemoteConfirmed = false;
-	/** 丢包模拟下只要求“不重复且至少一次”，无丢包场景（Dedicated / Listen）要求与权威增量相等。 */
+	/**
+	 * Unreliable 纯表现 / 确认通道是否要求精确送达。
+	 * 无丢包无延迟（Dedicated / Listen）时要求逐份送达；Emulated 下契约不承诺 Unreliable 表现必达，
+	 * 只要求不重复。远端第三人称确认与拥有者权威确认两处共用该判据。
+	 */
 	bool bRequireExactRemoteConfirmed = true;
 
 	/** 4C 观测：死亡 / 无武器 / 无弹药拒绝、切枪取消、重生 Tag 清理与 NPC Ability 链路。 */

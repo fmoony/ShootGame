@@ -211,26 +211,28 @@ bool FShooterFirePredictionLocalFeedbackCosmeticOnlyTest::RunTest(const FString&
 	const bool bSecondSubmit = RecoilWeapon->PlayOwnerPredictedShotFeedback();
 	const bool bThirdSubmit = RecoilWeapon->PlayOwnerPredictedShotFeedback();
 
+	// 表现入口只负责四路 cosmetic，不再自己判定/推进本地开火节拍：
+	// 节拍由 GA 在"本地 Shot Attempt 被接受"处统一推进，重复调用本入口一律照播。
 	TestTrue(TEXT("first recoil-only feedback is submitted"), bFirstSubmit);
-	TestFalse(TEXT("second immediate prediction is blocked by the weapon cooldown"), bSecondSubmit);
-	TestFalse(TEXT("third immediate prediction remains blocked by the weapon cooldown"), bThirdSubmit);
-	TestEqual(TEXT("weapon cooldown admits only the first immediate prediction"),
-		RecoilWeapon->GetPredictedOwnerFeedbackCountForAutomationTest(), 1);
-	TestTrue(TEXT("weapon cooldown duration follows RefireRate"),
-		FMath::IsNearlyEqual(RecoilWeapon->GetOwnerFeedbackCooldownRemainingForAutomationTest(),
-			RecoilWeapon->GetRefireRate(), 0.01f));
+	TestTrue(TEXT("the cosmetic entry does not pace itself with the cadence"), bSecondSubmit);
+	TestTrue(TEXT("the cosmetic entry keeps playing on every attempt"), bThirdSubmit);
+	TestEqual(TEXT("every cosmetic attempt is counted"),
+		RecoilWeapon->GetPredictedOwnerFeedbackCountForAutomationTest(), 3);
 	TestEqual(TEXT("recoil-only feedback records the recoil channel"),
-		Character->GetOwnerLocalRecoilCountForAutomationTest(), 1);
+		Character->GetOwnerLocalRecoilCountForAutomationTest(), 3);
 	TestEqual(TEXT("recoil-only feedback does not record montage"),
 		Character->GetOwnerLocalMontageCountForAutomationTest(), 0);
-	TestTrue(TEXT("server confirmation bypasses a local cooldown false negative"),
-		RecoilWeapon->PlayOwnerConfirmedShotFeedback());
-	TestEqual(TEXT("confirmed fallback advances the feedback counter exactly once"),
-		RecoilWeapon->GetPredictedOwnerFeedbackCountForAutomationTest(), 2);
 	TestEqual(TEXT("local feedback does not consume magazine ammo"), RecoilWeapon->GetBulletCount(), AmmoBefore);
 	TestEqual(TEXT("local feedback does not spawn a projectile"), CountProjectiles(World), ProjectilesBefore);
 	TestEqual(TEXT("local feedback does not record an authority shot"),
 		RecoilWeapon->GetAuthorityShotCountForAutomationTest(), 0);
+
+	// 本地节拍只由 Shot Attempt 推进，且时长按本武器 RefireRate。
+	TestTrue(TEXT("the cadence starts ready on a fresh weapon"), RecoilWeapon->IsLocalFireCooldownReady());
+	RecoilWeapon->AdvanceLocalFireCooldown();
+	TestFalse(TEXT("advancing the cadence closes it"), RecoilWeapon->IsLocalFireCooldownReady());
+	TestTrue(TEXT("the cadence duration follows RefireRate"),
+		FMath::IsNearlyEqual(RecoilWeapon->GetLocalFireCooldownRemaining(), RecoilWeapon->GetRefireRate(), 0.01f));
 
 	// ---- 组合 3：只有 Sound → Recoil 为零不得连带吞掉 Sound ----
 	USoundWave* TransientSound = NewObject<USoundWave>(GetTransientPackage());
@@ -319,11 +321,9 @@ bool FShooterFirePredictionLocalFeedbackStatelessTest::RunTest(const FString& Pa
 
 	const bool bFirstPredicted = Weapon->PlayOwnerPredictedShotFeedback();
 	const bool bImmediatePredicted = Weapon->PlayOwnerPredictedShotFeedback();
-	const bool bConfirmedFallback = Weapon->PlayOwnerConfirmedShotFeedback();
 
 	TestTrue(TEXT("first local prediction plays"), bFirstPredicted);
-	TestFalse(TEXT("immediate repeated prediction is paced"), bImmediatePredicted);
-	TestTrue(TEXT("confirmed fallback bypasses pacing"), bConfirmedFallback);
+	TestTrue(TEXT("the cosmetic entry is not paced by the cadence"), bImmediatePredicted);
 
 	// 调用后逐项比对。
 	TestTrue(TEXT("bIsFiring unchanged after local feedback"), Weapon->IsFiringForAutomationTest() == bFiringBefore);
@@ -337,8 +337,88 @@ bool FShooterFirePredictionLocalFeedbackStatelessTest::RunTest(const FString& Pa
 		static_cast<int32>(Weapon->GetLifecycleState()), LifecycleBefore);
 	TestEqual(TEXT("authority shot counter unchanged after local feedback"),
 		Weapon->GetAuthorityShotCountForAutomationTest(), AuthorityShotsBefore);
-	TestEqual(TEXT("owner feedback counter includes one prediction and one confirmed fallback"),
+	TestEqual(TEXT("the cosmetic entry itself never touches the local fire cadence"),
 		Weapon->GetPredictedOwnerFeedbackCountForAutomationTest(), 2);
+	TestTrue(TEXT("the cadence is still ready because no Shot Attempt advanced it"),
+		Weapon->IsLocalFireCooldownReady());
+
+	DestroyPredictionTestWorld(World);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterFirePredictionLocalFireCadenceTest,
+	"ShootGame.Ability.Fire.Prediction.LocalFireCadence",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FShooterFirePredictionLocalFireCadenceTest::RunTest(const FString& Parameters)
+{
+	using namespace ShooterAbilityFirePredictionAutomationTests;
+
+	// 本地开火节拍只决定"这次输入是否构成有效 Local Shot Attempt"，
+	// 表现入口只负责四路 cosmetic。本用例在武器层证明这条节拍的三条性质：
+	//   1. 节拍只读本地时钟，不读服务器权威射速；
+	//   2. 节拍只由 Shot Attempt 推进一次，与表现是否播放成功无关；
+	//   3. 节拍不写服务器权威射速（TimeOfLastShot / RefireTimer 均不受影响）。
+	UWorld* World = CreatePredictionTestWorld();
+	if (!TestNotNull(TEXT("prediction test world created"), World))
+	{
+		return false;
+	}
+
+	AShooterCharacter* Character = SpawnLocalPlayerCharacter(World);
+	AShooterWeaponLifecycleTestWeapon* Weapon = Cast<AShooterWeaponLifecycleTestWeapon>(
+		AcquireFeedbackTestWeapon(World, Character, nullptr, nullptr, nullptr, 5.0f,
+			AShooterWeaponLifecycleTestWeapon::StaticClass()));
+	if (!TestNotNull(TEXT("local player character spawned"), Character) ||
+		!TestNotNull(TEXT("semi-auto lifecycle test weapon acquired"), Weapon))
+	{
+		DestroyPredictionTestWorld(World);
+		return false;
+	}
+
+	TestFalse(TEXT("probe weapon is semi-auto"), Weapon->IsFullAuto());
+
+	// ---- 性质 1：本地节拍不读服务器权威射速 ----
+	// 权威 RefireTimer 被人为置为冷却中：服务器此时会拒绝开火，
+	// 但本地节拍只由本地时钟决定，因此仍然报告"已越过"。
+	TestTrue(TEXT("the local fire cadence starts ready"), Weapon->IsLocalFireCooldownReady());
+	Weapon->ArmRefireTimerForTest();
+	TestTrue(TEXT("the authority refire timer is active"), Weapon->IsRefireTimerActiveForAutomationTest());
+	TestFalse(TEXT("authority refuses a semi-auto shot during its own cooldown"), Weapon->CanStartSemiAutoShotNow());
+	TestTrue(TEXT("the local cadence does not read the authority refire timer"), Weapon->IsLocalFireCooldownReady());
+
+	// ---- 性质 2：本地节拍只由"本地 Shot Attempt 被接受"推进，与表现播放成功无关 ----
+	Weapon->ResetFireFeedbackCountersForAutomationTest();
+	const float TimeOfLastShotBefore = Weapon->GetTimeOfLastShotForAutomationTest();
+	const bool bRefireActiveBefore = Weapon->IsRefireTimerActiveForAutomationTest();
+
+	// 表现入口本身不推进节拍：连播三次后节拍仍然 Ready。
+	TestTrue(TEXT("the first local fire plays owner feedback"), Weapon->PlayOwnerPredictedShotFeedback());
+	TestTrue(TEXT("a second presentation inside the cadence still plays"), Weapon->PlayOwnerPredictedShotFeedback());
+	TestTrue(TEXT("the cosmetic entry never advances the cadence"), Weapon->IsLocalFireCooldownReady());
+	TestEqual(TEXT("every cosmetic attempt is counted"), Weapon->GetPredictedOwnerFeedbackCountForAutomationTest(), 2);
+
+	// Shot Attempt 被接受处推进一次，时长按 RefireRate。
+	Weapon->AdvanceLocalFireCooldown();
+	TestFalse(TEXT("the cadence closes when the Shot Attempt advances it"), Weapon->IsLocalFireCooldownReady());
+	TestTrue(TEXT("the cadence duration follows RefireRate"),
+		FMath::IsNearlyEqual(Weapon->GetLocalFireCooldownRemaining(), Weapon->GetRefireRate(), 0.01f));
+
+	// ---- 性质 2b：不得因为表现被拒就继续推进节拍 ----
+	// 节拍只能随时间自然减少；按调用次数漂移会把后续每一发真实射击的表现挡死。
+	const float RemainingBefore = Weapon->GetLocalFireCooldownRemaining();
+	TestTrue(TEXT("a presentation inside the cadence is still submitted"), Weapon->PlayOwnerPredictedShotFeedback());
+	const float RemainingAfter = Weapon->GetLocalFireCooldownRemaining();
+	TestTrue(TEXT("the cosmetic entry must not push the local cadence further into the future"),
+		RemainingAfter <= RemainingBefore);
+
+	// ---- 性质 3：本地节拍不写服务器权威射速 ----
+	TestEqual(TEXT("a local fire leaves TimeOfLastShot untouched"),
+		Weapon->GetTimeOfLastShotForAutomationTest(), TimeOfLastShotBefore);
+	TestTrue(TEXT("a local fire leaves the authority refire timer untouched"),
+		Weapon->IsRefireTimerActiveForAutomationTest() == bRefireActiveBefore);
+	TestTrue(TEXT("the armed authority refire timer is still the one from the probe"),
+		Weapon->IsRefireTimerActiveForAutomationTest());
 
 	DestroyPredictionTestWorld(World);
 	return true;
@@ -391,40 +471,43 @@ bool FShooterFirePredictionKnownBlockersTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("valid current weapon allows local predicted feedback"),
 		Ability->IsOwnerPredictedFeedbackAllowedForTest(Character, Weapon, AbilitySystemComponent));
 
+	// 复制 Ammo 不得成为 Owner 首次开火表现的硬门：
+	// 它可能落后于服务器，一旦用它二次否决，服务器已经接受并生成弹丸的那一发就永久没有反馈。
 	Weapon->SetAmmoForAutomationTest(0, 0);
-	TestFalse(TEXT("known empty magazine blocks local predicted feedback"),
+	TestTrue(TEXT("an empty replicated magazine must not suppress local predicted feedback"),
 		Ability->IsOwnerPredictedFeedbackAllowedForTest(Character, Weapon, AbilitySystemComponent));
 	Weapon->SetAmmoForAutomationTest(10, 0);
+	TestTrue(TEXT("a non-empty replicated magazine still allows local predicted feedback"),
+		Ability->IsOwnerPredictedFeedbackAllowedForTest(Character, Weapon, AbilitySystemComponent));
 
-	const FGameplayTag BlockedTags[] = {
+	// 复制的 Gameplay 状态同样不得单独抑制表现，全部交由服务器权威 Reject。
+	const FGameplayTag NonSuppressingStates[] = {
 		ShooterGameplayTags::State_Reloading,
 		ShooterGameplayTags::State_Equipping,
 		ShooterGameplayTags::State_Dead,
 	};
-	const TCHAR* BlockedMessages[] = {
-		TEXT("known reloading state blocks local predicted feedback"),
-		TEXT("known equipping state blocks local predicted feedback"),
-		TEXT("known dead state blocks local predicted feedback"),
+	const TCHAR* NonSuppressingMessages[] = {
+		TEXT("a stale reloading state must not suppress local predicted feedback"),
+		TEXT("a stale equipping state must not suppress local predicted feedback"),
+		TEXT("a stale dead state must not suppress local predicted feedback"),
 	};
-	for (int32 Index = 0; Index < UE_ARRAY_COUNT(BlockedTags); ++Index)
+	for (int32 Index = 0; Index < UE_ARRAY_COUNT(NonSuppressingStates); ++Index)
 	{
-		AbilitySystemComponent->AddLooseGameplayTag(BlockedTags[Index]);
-		TestFalse(BlockedMessages[Index],
+		AbilitySystemComponent->AddLooseGameplayTag(NonSuppressingStates[Index]);
+		TestTrue(NonSuppressingMessages[Index],
 			Ability->IsOwnerPredictedFeedbackAllowedForTest(Character, Weapon, AbilitySystemComponent));
-		AbilitySystemComponent->RemoveLooseGameplayTag(BlockedTags[Index]);
+		AbilitySystemComponent->RemoveLooseGameplayTag(NonSuppressingStates[Index]);
 	}
 
+	// 空弹匣 + 换弹中同样必须放行：这正是"服务器完成换弹、客户端镜像还没跟上"的窗口。
+	Weapon->SetAmmoForAutomationTest(0, 0);
 	AbilitySystemComponent->AddLooseGameplayTag(ShooterGameplayTags::State_Reloading);
-	Ability->SetConfirmedBlockerGraceForTest(true);
-	TestTrue(TEXT("server confirmation grants one stale-blocker feedback window"),
+	TestTrue(TEXT("a reload transaction with an empty mirror still allows local predicted feedback"),
 		Ability->IsOwnerPredictedFeedbackAllowedForTest(Character, Weapon, AbilitySystemComponent));
 	AbilitySystemComponent->RemoveLooseGameplayTag(ShooterGameplayTags::State_Reloading);
-	TestTrue(TEXT("clearing the stale blocker keeps valid feedback allowed"),
+	TestTrue(TEXT("clearing the reload transaction keeps local predicted feedback allowed"),
 		Ability->IsOwnerPredictedFeedbackAllowedForTest(Character, Weapon, AbilitySystemComponent));
-	AbilitySystemComponent->AddLooseGameplayTag(ShooterGameplayTags::State_Reloading);
-	TestFalse(TEXT("a later blocker is not covered by the previous confirmation"),
-		Ability->IsOwnerPredictedFeedbackAllowedForTest(Character, Weapon, AbilitySystemComponent));
-	AbilitySystemComponent->RemoveLooseGameplayTag(ShooterGameplayTags::State_Reloading);
+	Weapon->SetAmmoForAutomationTest(10, 0);
 
 	Weapon->SetActorHiddenInGame(true);
 	TestFalse(TEXT("hidden weapon blocks local predicted feedback"),

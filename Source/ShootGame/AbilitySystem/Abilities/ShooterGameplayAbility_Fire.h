@@ -12,9 +12,13 @@ class UAbilitySystemComponent;
 /**
  * 开火事务 Ability：玩家与 NPC 发起开火的唯一 Gameplay 入口。
  *
- * LocalPredicted：拥有者客户端立即播放第一人称表现，
- * 同时把同一次激活按 PredictionKey 请求服务器；服务器仍独占武器、弹药、弹丸与伤害结果。
- * 本地路径只提交纯表现，不写任何权威字段，也不建立预测 Gameplay 状态。
+ * LocalPredicted：拥有者客户端在本地开火资格通过后立即播放第一人称表现，并把这次激活
+ * 按 PredictionKey 请求服务器；服务器独立完成权威射速与 Gameplay 校验，并独占
+ * Shot / Ammo / Projectile / Hit / Damage 结果。
+ *
+ * 拥有者第一人称表现的唯一正常来源就是本地预测：
+ * 本地未通过节拍检查时既不表现也不发请求；服务器 Reject 只做状态收敛，不回滚已播出的瞬时表现，
+ * 也不再为 Server Confirm 补播第二次表现。
  */
 UCLASS(NotBlueprintable)
 class SHOOTGAME_API UShooterGameplayAbility_Fire : public UShooterGameplayAbility
@@ -54,7 +58,6 @@ protected:
 		FGameplayTagContainer* OptionalRelevantTags) const override;
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 		const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
-	virtual void ConfirmActivateSucceed() override;
 	virtual void InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 		const FGameplayAbilityActivationInfo ActivationInfo) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
@@ -64,11 +67,11 @@ private:
 	/** 权威端：停武器；调用方负责随后结束 Ability。 */
 	void StopAuthorityWeapon();
 
-	/** 拥有者本地表现：播一次，并按 bFullAuto 决定是否启动本地表现节拍。 */
+	/** 拥有者本地表现：全自动按"剩余 cooldown"安排首拍，并按 bFullAuto 决定是否启动本地表现节拍。 */
 	void StartOwnerPredictedFeedback(AShooterWeapon& Weapon);
 
-	/** 提交一次拥有者纯表现；确认回退可旁路纯表现冷却，只有实际播放成功才登记。 */
-	bool TryPlayOwnerFeedback(AShooterWeapon& Weapon, const TCHAR* Marker, bool bConfirmedFallback = false);
+	/** 提交一次拥有者纯表现；只有实际播放成功才登记。 */
+	bool TryPlayOwnerFeedback(AShooterWeapon& Weapon, const TCHAR* Marker);
 
 	/** 幂等停止本地表现节拍与标志；Reject、释放、取消共用。 */
 	void StopOwnerPredictedFeedback();
@@ -81,12 +84,15 @@ private:
 
 	/**
 	 * 本机是否允许播放预测表现。
-	 * 在武器可用基础上再排除本机已知的阻塞态：State.Reloading / State.Equipping / State.Dead。
-	 * 该判定只影响本地预测表现，不影响激活请求：请求照常发给服务器，由服务器完整校验并 Reject。
+	 *
+	 * 唯一判据是"表现目标是否成立"：武器有效 / 未隐藏 / 仍是当前装备。
+	 * 刻意**不读取** Ammo / Reloading / Equipping / Dead 等可能过期的复制状态：
+	 * 用它们二次否决首次 Owner 表现，会让服务器已经接受并生成弹丸的那一发永久没有反馈。
+	 * 反之，客户端以为有弹而服务器实际无弹时允许播一次 cosmetic，由服务器 Reject 收敛。
 	 */
 	bool IsOwnerPredictedFeedbackAllowed();
 
-	/** 使用显式上下文执行同一生产门控，供开发测试构造本机已知状态。 */
+	/** 使用显式上下文执行同一生产判定，供开发测试构造表现目标状态。 */
 	bool IsOwnerPredictedFeedbackAllowedForContext(AActor* AvatarActor, const AShooterWeapon* Weapon,
 		const UAbilitySystemComponent* AbilitySystemComponent);
 
@@ -117,15 +123,6 @@ private:
 	/** 当前激活是否至少成功提交过一次拥有者本地反馈。 */
 	bool bOwnerFeedbackPlayedThisActivation = false;
 
-	/** 服务器确认回退后，迟到阻塞 Tag 首次清除前的短暂表现宽限。 */
-	bool bConfirmedBlockerGraceActive = false;
-
-	/**
-	 * 半自动在初始预测被本机已知状态挡下后，可能先收到输入释放、后收到服务器确认。
-	 * 此时只延后本地 Ability 收口，等待 Confirm / Reject 决定是否补播；不影响服务器输入释放。
-	 */
-	bool bOwnerReleaseAwaitingConfirmation = false;
-
 #if WITH_DEV_AUTOMATION_TESTS
 public:
 	/** 测试观察接口：本地表现节拍是否活动。 */
@@ -140,15 +137,12 @@ public:
 	/** 测试观察接口：本实例在权威端明确拒绝的激活次数。 */
 	int32 GetAuthorityRejectCountForTest() const { return AuthorityRejectCountForTest; }
 
-	/** 测试观察接口：用显式本地上下文验证生产预测表现门控。 */
+	/** 测试观察接口：用显式本地上下文验证生产表现门控。 */
 	bool IsOwnerPredictedFeedbackAllowedForTest(AActor* AvatarActor, const AShooterWeapon* Weapon,
 		const UAbilitySystemComponent* AbilitySystemComponent)
 	{
 		return IsOwnerPredictedFeedbackAllowedForContext(AvatarActor, Weapon, AbilitySystemComponent);
 	}
-
-	/** 测试构造接口：模拟服务器确认已补播后、迟到阻塞 Tag 尚未清除的短暂宽限。 */
-	void SetConfirmedBlockerGraceForTest(bool bEnabled) { bConfirmedBlockerGraceActive = bEnabled; }
 
 private:
 	mutable int32 AuthorityRejectCountForTest = 0;

@@ -10,7 +10,10 @@ AActor* UShooterGameplayAbility::GetShooterAvatarActor() const
 		return nullptr;
 	}
 
-	return GetAvatarActorFromActorInfo();
+	// 尚未激活的实例（例如测试夹具直接 NewObject 出来的实例）没有 CurrentActorInfo，
+	// GetAvatarActorFromActorInfo() 会触发 ensure；诊断与只读查询必须按"无 Avatar"返回。
+	const FGameplayAbilityActorInfo* ActorInfo = GetCurrentActorInfo();
+	return ActorInfo ? ActorInfo->AvatarActor.Get() : nullptr;
 }
 
 bool UShooterGameplayAbility::IsAvatarAuthoritative() const
