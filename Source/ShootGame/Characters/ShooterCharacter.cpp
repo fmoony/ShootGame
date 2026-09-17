@@ -588,7 +588,12 @@ void AShooterCharacter::MulticastPlayFiringMontage_Implementation(UAnimMontage* 
 	// 因此本 Multicast 不再提供第一人称分支。
 	if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
 	{
-		AnimInstance->Montage_Play(Montage);
+		if (AnimInstance->Montage_Play(Montage) > 0.0f)
+		{
+#if WITH_DEV_AUTOMATION_TESTS
+			++RemoteConfirmedMontageCount;
+#endif
+		}
 	}
 }
 
@@ -666,8 +671,13 @@ bool AShooterCharacter::PlayOwnerLocalFiringFeedback(UAnimMontage* Montage, floa
 		{
 			if (UAnimInstance* FirstPersonAnimInstance = OwnerFirstPersonMesh->GetAnimInstance())
 			{
-				FirstPersonAnimInstance->Montage_Play(Montage);
-				bPlayedAny = true;
+				if (FirstPersonAnimInstance->Montage_Play(Montage) > 0.0f)
+				{
+					bPlayedAny = true;
+#if WITH_DEV_AUTOMATION_TESTS
+					++OwnerLocalMontageCount;
+#endif
+				}
 			}
 		}
 	}
@@ -677,6 +687,9 @@ bool AShooterCharacter::PlayOwnerLocalFiringFeedback(UAnimMontage* Montage, floa
 	{
 		AddControllerPitchInput(Recoil);
 		bPlayedAny = true;
+#if WITH_DEV_AUTOMATION_TESTS
+		++OwnerLocalRecoilCount;
+#endif
 	}
 
 	return bPlayedAny;

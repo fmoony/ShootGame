@@ -59,6 +59,8 @@ Source/ShootGame/
 - [MCP 外部 Agent 使用契约与能力边界](Plugins/McpAutomationBridge/EXTERNAL_AGENT_GUIDE.md)：工具调用前必读；包含接口全表、读写与保存边界、动画复制限制、失败重试规则及验证范围。
 - [全量回归 AnimClassMapping 失败分析](Docs/全量回归AnimClassMapping失败分析.md)：2026-09-09 只读调查，区分已提交的 Rifle FP 配置与冻结测试基线，未实施修复。
 - [Inventory 与武器数据架构](Docs/架构/Inventory与武器数据架构.md)：当前 WeaponId / WeaponActor / SlotIndex / CurrentWeaponActor 的运行时数据与网络边界。
+- [网络射击 AI 自主验证契约](Docs/架构/网络射击AI自主验证契约.md)：
+  网络射击改动的五条顶层不变量、证据质量、测试分层与固定交付格式；相关工作开始前必须读取。
 - [武器启动预配置与实体池简化重构方案](Docs/已完成计划/武器启动预配置与实体池简化重构方案.md)：
   已完成（2026-09-12）；当前武器与 Inventory 架构的权威重构记录。
 - [Shooter 模板蓝图分析](Docs/Shooter模板蓝图分析.md)：说明 Shooter 模板中的第一/第三人称动画蓝图、Control Rig、武器蓝图及其网络职责边界。
@@ -81,6 +83,8 @@ Source/ShootGame/
 
 - 项目说明、代码备注、提交说明和新增文档优先使用中文。
 - 每次只完成一个可验证的网络闭环，避免同时改造装备、开火、伤害和 UI。
+- 网络射击修改必须先声明受影响的不变量，再由 Agent 自主选择最小充分验证链；
+  不得用 Coordinator 的 Phase / Case 或整体绿色替代不变量证据。
 - 服务器负责产生权威游戏结果；客户端负责输入和本地表现。
 - 第一人称摄像机、第一人称手臂和本地 HUD 只能由本地控制器访问。
 - 修改蓝图资产前先确认其第一人称、第三人称以及服务器职责。

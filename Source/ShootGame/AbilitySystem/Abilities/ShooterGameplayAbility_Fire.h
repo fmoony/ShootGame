@@ -7,6 +7,7 @@
 #include "ShooterGameplayAbility_Fire.generated.h"
 
 class AShooterWeapon;
+class UAbilitySystemComponent;
 
 /**
  * 开火事务 Ability：玩家与 NPC 发起开火的唯一 Gameplay 入口。
@@ -85,8 +86,15 @@ private:
 	 */
 	bool IsOwnerPredictedFeedbackAllowed();
 
+	/** 使用显式上下文执行同一生产门控，供开发测试构造本机已知状态。 */
+	bool IsOwnerPredictedFeedbackAllowedForContext(AActor* AvatarActor, const AShooterWeapon* Weapon,
+		const UAbilitySystemComponent* AbilitySystemComponent);
+
 	/** P1 统一预测日志标记；仅开发构建输出。 */
 	void LogFirePredictionMarker(const TCHAR* Marker, const AShooterWeapon* Weapon, int32 ShotOrdinal) const;
+
+	/** 权威 CanActivate 拒绝的统一测试观测点；返回值恒为 false。 */
+	bool RecordAuthorityRejectAndReturnFalse() const;
 
 	/** WeaponActor 在 Fire 中确认弹药耗尽时回调。 */
 	void HandleWeaponOutOfAmmo(AShooterWeapon* Weapon);
@@ -112,6 +120,12 @@ private:
 	/** 服务器确认回退后，迟到阻塞 Tag 首次清除前的短暂表现宽限。 */
 	bool bConfirmedBlockerGraceActive = false;
 
+	/**
+	 * 半自动在初始预测被本机已知状态挡下后，可能先收到输入释放、后收到服务器确认。
+	 * 此时只延后本地 Ability 收口，等待 Confirm / Reject 决定是否补播；不影响服务器输入释放。
+	 */
+	bool bOwnerReleaseAwaitingConfirmation = false;
+
 #if WITH_DEV_AUTOMATION_TESTS
 public:
 	/** 测试观察接口：本地表现节拍是否活动。 */
@@ -119,5 +133,24 @@ public:
 
 	/** 测试观察接口：本次激活已提交的本地反馈次数。 */
 	int32 GetPredictedShotOrdinalForTest() const { return PredictedShotOrdinal; }
+
+	/** 测试观察接口：Reject / EndAbility 后不得继续持有武器。 */
+	bool HasCachedWeaponForTest() const { return CachedWeapon.IsValid(); }
+
+	/** 测试观察接口：本实例在权威端明确拒绝的激活次数。 */
+	int32 GetAuthorityRejectCountForTest() const { return AuthorityRejectCountForTest; }
+
+	/** 测试观察接口：用显式本地上下文验证生产预测表现门控。 */
+	bool IsOwnerPredictedFeedbackAllowedForTest(AActor* AvatarActor, const AShooterWeapon* Weapon,
+		const UAbilitySystemComponent* AbilitySystemComponent)
+	{
+		return IsOwnerPredictedFeedbackAllowedForContext(AvatarActor, Weapon, AbilitySystemComponent);
+	}
+
+	/** 测试构造接口：模拟服务器确认已补播后、迟到阻塞 Tag 尚未清除的短暂宽限。 */
+	void SetConfirmedBlockerGraceForTest(bool bEnabled) { bConfirmedBlockerGraceActive = bEnabled; }
+
+private:
+	mutable int32 AuthorityRejectCountForTest = 0;
 #endif
 };

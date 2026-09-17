@@ -334,6 +334,13 @@ public:
 	/** 拥有者本地第一人称开火表现：只服务本地玩家视图，不触发网络、不修改 Gameplay 状态。 */
 	virtual bool PlayOwnerLocalFiringFeedback(UAnimMontage* Montage, float Recoil) override;
 
+#if WITH_DEV_AUTOMATION_TESTS
+	/** 测试观察：只有对应表现实际提交时才递增；用于区分 Montage 与 Recoil。 */
+	int32 GetOwnerLocalMontageCountForAutomationTest() const { return OwnerLocalMontageCount; }
+	int32 GetOwnerLocalRecoilCountForAutomationTest() const { return OwnerLocalRecoilCount; }
+	int32 GetRemoteConfirmedMontageCountForAutomationTest() const { return RemoteConfirmedMontageCount; }
+#endif
+
 	/** Updates the weapon's HUD with the current ammo count */
 	virtual void UpdateWeaponHUD(int32 CurrentAmmo, int32 MagazineSize, int32 ReserveAmmo) override;
 
@@ -381,6 +388,12 @@ protected:
 private:
 	/** 本机表现缓存：只用于幂等跳过与事件 Previous，不复制、不保存、不暴露给 Gameplay 读取方。 */
 	TWeakObjectPtr<AShooterWeapon> LastAppliedPresentationWeapon;
+
+#if WITH_DEV_AUTOMATION_TESTS
+	int32 OwnerLocalMontageCount = 0;
+	int32 OwnerLocalRecoilCount = 0;
+	int32 RemoteConfirmedMontageCount = 0;
+#endif
 
 	/** 非空表现后置条件是否已全部满足（含附着 Socket、可见性与 FP/TP AnimClass）。 */
 	bool HasCompleteWeaponPresentation(const AShooterWeapon* Weapon) const;

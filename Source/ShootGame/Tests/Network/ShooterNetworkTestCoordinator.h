@@ -16,6 +16,7 @@ class UAbilitySystemComponent;
 class UBoxComponent;
 class USkeletalMeshComponent;
 class UShooterGameplayAbility_Equip;
+class UShooterGameplayAbility_Fire;
 class UShooterGameplayAbility_Reload;
 struct FOnAttributeChangeData;
 
@@ -97,9 +98,6 @@ private:
 	void ServerReportClientObservedRemoteAim(float PitchN, float ExpectedPitchN);
 
 	UFUNCTION(Server, Reliable)
-	void ServerReportClientObservedRemoteMontage();
-
-	UFUNCTION(Server, Reliable)
 	void ServerReportClientObservedGasLifecycle();
 
 	UFUNCTION(Server, Reliable)
@@ -133,10 +131,30 @@ private:
 	 *           2 = 客户端尚未收到 State.Reloading（8B，允许有限的纯本地预测表现）。
 	 */
 	UFUNCTION(Server, Reliable)
-	void ServerReportReloadFireResult(int32 RequestId, int32 FireCase, int32 PredictedDelta, bool bClientConverged);
+	void ServerReportReloadFireResult(int32 RequestId, int32 FireCase, int32 PredictedDelta,
+		bool bKnownBlockerObserved, bool bTargetStable, bool bClientConverged);
 
 	UFUNCTION(Server, Reliable)
-	void ServerReportFullAutoReleased(int32 BulletCountAfterRelease);
+	void ServerReportFullAutoReleased(int32 BulletCountAfterRelease, int32 OwnerFeedbackDelta,
+		float MinimumFeedbackInterval, bool bLocalTimerStopped, bool bTargetStable);
+
+	UFUNCTION(Server, Reliable)
+	void ServerReportOwnerAcceptedShotEvidence(
+		int32 OwnerFeedbackDelta,
+		int32 MontageDelta,
+		int32 MuzzleDelta,
+		int32 SoundDelta,
+		int32 RecoilDelta,
+		int32 ConfirmationDelta,
+		bool bFeedbackBeforeConfirmation,
+		bool bTargetStable);
+
+	/**
+	 * P1-D 远端第三人称确认表现证据：观测端上报“另一名玩家武器”的确认表现增量。
+	 * 观测源是生产计数器 AShooterWeapon::RemoteConfirmedFeedbackCount，不在协调器里复制实现。
+	 */
+	UFUNCTION(Server, Reliable)
+	void ServerReportRemoteConfirmedFeedback(int32 Count, int32 MontageCount, int32 MuzzleCount, int32 SoundCount, bool bTargetStable);
 
 	UFUNCTION(Server, Reliable)
 	void ServerReportClientObservedCancelSwitch(AShooterWeapon* CurrentWeapon);
@@ -178,11 +196,18 @@ private:
 	int32 CountProjectilesForInstigator(APawn* ProjectileInstigator) const;
 	AController* GetOpponentController() const;
 
+	/** P1-D 观测端：解析另一名玩家当前装备的武器，作为第三人称确认表现的观测源。 */
+	AShooterWeapon* FindRemoteObservedWeapon(AShooterCharacter* LocalCharacter) const;
+
+	/** P1-D 服务器侧：解析对手玩家，用于读取其武器在同一窗口内的权威射击计数。 */
+	AShooterCharacter* GetOpponentCharacter() const;
+
 	/** 5B 测试辅助：把指定 WeaponActor 的权威弹药直接设置为测试起点值。 */
 	bool SetReloadTestAmmo(AShooterWeapon* Weapon, int32 MagazineAmmo, int32 ReserveAmmo);
 
 	/** 5B 测试辅助：返回当前 PlayerState 是否有一个活动 GA_Fire。 */
 	bool HasActiveFireAbility(AShooterCharacter* Character) const;
+	const UShooterGameplayAbility_Fire* GetFireAbilityInstanceForTest(AShooterCharacter* Character) const;
 
 	/**
 	 * 4C 测试辅助：查询服务器对 GA_Fire 的权威激活结论。
@@ -278,6 +303,15 @@ private:
 	bool bClientObservedRemoteAim = false;
 	bool bClientObservedRemoteMontage = false;
 	bool bClientTriggeredFire = false;
+	bool bClientReportedOwnerAcceptedShot = false;
+	float ClientOwnerAcceptedShotStartTime = 0.0f;
+	TWeakObjectPtr<AShooterWeapon> ClientOwnerAcceptedShotWeapon;
+	int32 ClientOwnerFeedbackBefore = INDEX_NONE;
+	int32 ClientOwnerMontageBefore = INDEX_NONE;
+	int32 ClientOwnerMuzzleBefore = INDEX_NONE;
+	int32 ClientOwnerSoundBefore = INDEX_NONE;
+	int32 ClientOwnerRecoilBefore = INDEX_NONE;
+	int32 ClientOwnerConfirmationBefore = INDEX_NONE;
 	bool bClientTriggeredSwitch = false;
 	int32 LastObservedReloadInputRequestId = 0;
 	bool bClientTriggeredReloadSwitch = false;
@@ -297,6 +331,7 @@ private:
 	bool bClientReportedReloadFire = false;
 	float ClientReloadFireSettleTime = 0.0f;
 	int32 ClientReloadFirePredictedBefore = 0;
+	TWeakObjectPtr<AShooterWeapon> ClientReloadFireTargetWeapon;
 	bool bClientReportedSwitch = false;
 	bool bClientReportedOwnerAmmo = false;
 	bool bClientReportedNonOwnerAmmoHidden = false;
@@ -306,7 +341,6 @@ private:
 	bool bClientReportedMatchState = false;
 	bool bClientSetAimPitch = false;
 	bool bClientReportedRemoteAim = false;
-	bool bClientReportedRemoteMontage = false;
 	bool bServerGasLifecycleChecked = false;
 	bool bServerGasOwnerOk = false;
 	bool bServerGasAvatarOk = false;
@@ -429,10 +463,15 @@ private:
 	/** 4B 观测：单次按下只生成一颗弹丸，全自动保持期间只有一个活动 GA_Fire，释放后计时器无残留。 */
 	int32 ProjectileSpawnCount = 0;
 	bool bSingleProjectileVerified = false;
+	bool bOwnerAcceptedShotEvidenceVerified = false;
+	int32 AuthorityShotsBeforeSingleFire = INDEX_NONE;
+	int32 ProjectileCountBeforeSingleFire = INDEX_NONE;
 	bool bFullAutoPhaseTriggered = false;
 	bool bFullAutoActiveObserved = false;
 	bool bClientReportedFullAutoRelease = false;
 	bool bFullAutoReleaseVerified = false;
+	bool bFullAutoLocalCadenceVerified = false;
+	bool bFullAutoAuthorityExactlyOnceVerified = false;
 	bool bFullAutoQuiescentConfirmed = false;
 	bool bClientTriggeredFullAuto = false;
 	bool bClientStoppedFullAuto = false;
@@ -444,6 +483,34 @@ private:
 	int32 AmmoAfterRelease = INDEX_NONE;
 	int32 ClientBulletCountAfterRelease = INDEX_NONE;
 	float FullAutoReleaseCheckTime = 0.0f;
+	TWeakObjectPtr<AShooterWeapon> ClientFullAutoTargetWeapon;
+	int32 ClientFullAutoOwnerFeedbackBefore = INDEX_NONE;
+
+	// ---- P1-D 远端第三人称确认表现：同一个全自动窗口内的观测端增量与权威增量 ----
+	/** 服务器侧：全自动窗口起点，我方与对手武器的权威射击计数。 */
+	int32 AuthorityShotsBeforeFullAuto = INDEX_NONE;
+	int32 RemoteAuthorityShotsBeforeFullAuto = INDEX_NONE;
+	TWeakObjectPtr<AShooterWeapon> RemoteObservedWeaponAtBurstStart;
+	/** 观测端上报的远端确认表现增量，与同窗口内对手武器的权威射击增量比较。 */
+	int32 RemoteConfirmedDeltaObserved = INDEX_NONE;
+	int32 RemoteMontageDeltaObserved = INDEX_NONE;
+	int32 RemoteMuzzleDeltaObserved = INDEX_NONE;
+	int32 RemoteSoundDeltaObserved = INDEX_NONE;
+	int32 RemoteAuthorityShotsForBurst = INDEX_NONE;
+	bool bRemoteConfirmedVerified = false;
+	/** 远端确认必须绑定到同一窗口内的对手权威射击；无权威增量时不得伪造通过。 */
+	/** 客户端侧：窗口起点快照与观测源，窗口在"观测到确认表现后稳定"或超时时结束。 */
+	TWeakObjectPtr<AShooterWeapon> ClientObservedRemoteWeapon;
+	TWeakObjectPtr<AShooterCharacter> ClientObservedRemoteCharacter;
+	int32 ClientRemoteConfirmedBefore = INDEX_NONE;
+	int32 ClientRemoteMontageBefore = INDEX_NONE;
+	int32 ClientRemoteMuzzleBefore = INDEX_NONE;
+	int32 ClientRemoteSoundBefore = INDEX_NONE;
+	int32 ClientRemoteConfirmedLastValue = INDEX_NONE;
+	float ClientRemoteConfirmedStableTime = 0.0f;
+	bool bClientReportedRemoteConfirmed = false;
+	/** 丢包模拟下只要求“不重复且至少一次”，无丢包场景（Dedicated / Listen）要求与权威增量相等。 */
+	bool bRequireExactRemoteConfirmed = true;
 
 	/** 4C 观测：死亡 / 无武器 / 无弹药拒绝、切枪取消、重生 Tag 清理与 NPC Ability 链路。 */
 	bool bSwitchCancelPhaseTriggered = false;
@@ -462,6 +529,7 @@ private:
 	TWeakObjectPtr<AShooterWeapon> ReloadFireTargetWeapon;
 	int32 ReloadFireAmmoBefore = INDEX_NONE;
 	int32 ReloadFireAuthorityShotsBefore = INDEX_NONE;
+	int32 ReloadFireAuthorityRejectsBefore = INDEX_NONE;
 	int32 ReloadFireProjectilesBefore = INDEX_NONE;
 	float ReloadFirePhaseStartTime = 0.0f;
 	bool bFireRejectDeadVerified = false;

@@ -4,11 +4,16 @@
 
 #include "Misc/AutomationTest.h"
 
+#include "AbilitySystem/Abilities/ShooterGameplayAbility_Fire.h"
+#include "AbilitySystem/ShooterGameplayTags.h"
+#include "AbilitySystemComponent.h"
+#include "Characters/Equipment/ShooterEquipmentComponent.h"
 #include "Engine/Engine.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/PlayerState.h"
+#include "Inventory/ShooterInventoryComponent.h"
 #include "NiagaraSystem.h"
 #include "Characters/ShooterCharacter.h"
 #include "Sound/SoundWave.h"
@@ -211,6 +216,13 @@ bool FShooterFirePredictionLocalFeedbackCosmeticOnlyTest::RunTest(const FString&
 	TestFalse(TEXT("third immediate prediction remains blocked by the weapon cooldown"), bThirdSubmit);
 	TestEqual(TEXT("weapon cooldown admits only the first immediate prediction"),
 		RecoilWeapon->GetPredictedOwnerFeedbackCountForAutomationTest(), 1);
+	TestTrue(TEXT("weapon cooldown duration follows RefireRate"),
+		FMath::IsNearlyEqual(RecoilWeapon->GetOwnerFeedbackCooldownRemainingForAutomationTest(),
+			RecoilWeapon->GetRefireRate(), 0.01f));
+	TestEqual(TEXT("recoil-only feedback records the recoil channel"),
+		Character->GetOwnerLocalRecoilCountForAutomationTest(), 1);
+	TestEqual(TEXT("recoil-only feedback does not record montage"),
+		Character->GetOwnerLocalMontageCountForAutomationTest(), 0);
 	TestTrue(TEXT("server confirmation bypasses a local cooldown false negative"),
 		RecoilWeapon->PlayOwnerConfirmedShotFeedback());
 	TestEqual(TEXT("confirmed fallback advances the feedback counter exactly once"),
@@ -222,7 +234,8 @@ bool FShooterFirePredictionLocalFeedbackCosmeticOnlyTest::RunTest(const FString&
 
 	// ---- 组合 3：只有 Sound → Recoil 为零不得连带吞掉 Sound ----
 	USoundWave* TransientSound = NewObject<USoundWave>(GetTransientPackage());
-	AShooterWeapon* SoundWeapon = AcquireFeedbackTestWeapon(World, Character, nullptr, nullptr, TransientSound, 0.0f);
+	AShooterWeapon* SoundWeapon = AcquireFeedbackTestWeapon(World, Character, nullptr, nullptr, TransientSound, 0.0f,
+		AShooterWeaponPresentationTestWeaponSecondary::StaticClass());
 	if (!TestNotNull(TEXT("sound-only test weapon acquired"), SoundWeapon))
 	{
 		DestroyPredictionTestWorld(World);
@@ -234,6 +247,10 @@ bool FShooterFirePredictionLocalFeedbackCosmeticOnlyTest::RunTest(const FString&
 		SoundWeapon->PlayOwnerPredictedShotFeedback());
 	TestEqual(TEXT("sound-only feedback counted once"),
 		SoundWeapon->GetPredictedOwnerFeedbackCountForAutomationTest(), 1);
+	TestEqual(TEXT("sound-only feedback records the sound channel"),
+		SoundWeapon->GetOwnerSoundFeedbackCountForAutomationTest(), 1);
+	TestEqual(TEXT("sound-only feedback does not record muzzle"),
+		SoundWeapon->GetOwnerMuzzleFeedbackCountForAutomationTest(), 0);
 
 	// ---- 组合 4：Montage 与 Muzzle 存在但世界没有骨骼网格 → 仍不得吞掉 Recoil，也不得崩溃 ----
 	UAnimMontage* TransientMontage = NewObject<UAnimMontage>(GetTransientPackage());
@@ -251,6 +268,10 @@ bool FShooterFirePredictionLocalFeedbackCosmeticOnlyTest::RunTest(const FString&
 		MeshlessWeapon->PlayOwnerPredictedShotFeedback());
 	TestEqual(TEXT("meshless presentation feedback counted once"),
 		MeshlessWeapon->GetPredictedOwnerFeedbackCountForAutomationTest(), 1);
+	TestEqual(TEXT("missing first-person socket does not claim a muzzle effect"),
+		MeshlessWeapon->GetOwnerMuzzleFeedbackCountForAutomationTest(), 0);
+	TestEqual(TEXT("missing AnimInstance does not claim a montage"),
+		Character->GetOwnerLocalMontageCountForAutomationTest(), 0);
 
 	DestroyPredictionTestWorld(World);
 	return true;
@@ -318,6 +339,112 @@ bool FShooterFirePredictionLocalFeedbackStatelessTest::RunTest(const FString& Pa
 		Weapon->GetAuthorityShotCountForAutomationTest(), AuthorityShotsBefore);
 	TestEqual(TEXT("owner feedback counter includes one prediction and one confirmed fallback"),
 		Weapon->GetPredictedOwnerFeedbackCountForAutomationTest(), 2);
+
+	DestroyPredictionTestWorld(World);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterFirePredictionKnownBlockersTest,
+	"ShootGame.Ability.Fire.Prediction.KnownBlockers",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FShooterFirePredictionKnownBlockersTest::RunTest(const FString& Parameters)
+{
+	using namespace ShooterAbilityFirePredictionAutomationTests;
+
+	UWorld* World = CreatePredictionTestWorld();
+	if (!TestNotNull(TEXT("prediction test world created"), World))
+	{
+		return false;
+	}
+
+	AShooterCharacter* Character = SpawnLocalPlayerCharacter(World);
+	AShooterWeapon* Weapon = AcquireFeedbackTestWeapon(World, Character, nullptr, nullptr, nullptr, 5.0f);
+	UShooterInventoryComponent* Inventory = Character ? Character->GetInventoryComponent() : nullptr;
+	UShooterEquipmentComponent* Equipment = Character ? Character->GetEquipmentComponent() : nullptr;
+	if (!TestNotNull(TEXT("local player character spawned"), Character) ||
+		!TestNotNull(TEXT("feedback test weapon acquired"), Weapon) ||
+		!TestNotNull(TEXT("inventory component exists"), Inventory) ||
+		!TestNotNull(TEXT("equipment component exists"), Equipment))
+	{
+		DestroyPredictionTestWorld(World);
+		return false;
+	}
+
+	if (!TestTrue(TEXT("weapon added to inventory"),
+		Inventory->AddWeapon(Weapon) == EShooterInventoryAddResult::Added) ||
+		!TestTrue(TEXT("weapon equipped"), Equipment->EquipWeapon(Weapon)))
+	{
+		DestroyPredictionTestWorld(World);
+		return false;
+	}
+
+	UAbilitySystemComponent* AbilitySystemComponent = NewObject<UAbilitySystemComponent>(Character);
+	UShooterGameplayAbility_Fire* Ability = NewObject<UShooterGameplayAbility_Fire>();
+	if (!TestNotNull(TEXT("ability system component created"), AbilitySystemComponent) ||
+		!TestNotNull(TEXT("fire ability created"), Ability))
+	{
+		DestroyPredictionTestWorld(World);
+		return false;
+	}
+
+	TestTrue(TEXT("valid current weapon allows local predicted feedback"),
+		Ability->IsOwnerPredictedFeedbackAllowedForTest(Character, Weapon, AbilitySystemComponent));
+
+	Weapon->SetAmmoForAutomationTest(0, 0);
+	TestFalse(TEXT("known empty magazine blocks local predicted feedback"),
+		Ability->IsOwnerPredictedFeedbackAllowedForTest(Character, Weapon, AbilitySystemComponent));
+	Weapon->SetAmmoForAutomationTest(10, 0);
+
+	const FGameplayTag BlockedTags[] = {
+		ShooterGameplayTags::State_Reloading,
+		ShooterGameplayTags::State_Equipping,
+		ShooterGameplayTags::State_Dead,
+	};
+	const TCHAR* BlockedMessages[] = {
+		TEXT("known reloading state blocks local predicted feedback"),
+		TEXT("known equipping state blocks local predicted feedback"),
+		TEXT("known dead state blocks local predicted feedback"),
+	};
+	for (int32 Index = 0; Index < UE_ARRAY_COUNT(BlockedTags); ++Index)
+	{
+		AbilitySystemComponent->AddLooseGameplayTag(BlockedTags[Index]);
+		TestFalse(BlockedMessages[Index],
+			Ability->IsOwnerPredictedFeedbackAllowedForTest(Character, Weapon, AbilitySystemComponent));
+		AbilitySystemComponent->RemoveLooseGameplayTag(BlockedTags[Index]);
+	}
+
+	AbilitySystemComponent->AddLooseGameplayTag(ShooterGameplayTags::State_Reloading);
+	Ability->SetConfirmedBlockerGraceForTest(true);
+	TestTrue(TEXT("server confirmation grants one stale-blocker feedback window"),
+		Ability->IsOwnerPredictedFeedbackAllowedForTest(Character, Weapon, AbilitySystemComponent));
+	AbilitySystemComponent->RemoveLooseGameplayTag(ShooterGameplayTags::State_Reloading);
+	TestTrue(TEXT("clearing the stale blocker keeps valid feedback allowed"),
+		Ability->IsOwnerPredictedFeedbackAllowedForTest(Character, Weapon, AbilitySystemComponent));
+	AbilitySystemComponent->AddLooseGameplayTag(ShooterGameplayTags::State_Reloading);
+	TestFalse(TEXT("a later blocker is not covered by the previous confirmation"),
+		Ability->IsOwnerPredictedFeedbackAllowedForTest(Character, Weapon, AbilitySystemComponent));
+	AbilitySystemComponent->RemoveLooseGameplayTag(ShooterGameplayTags::State_Reloading);
+
+	Weapon->SetActorHiddenInGame(true);
+	TestFalse(TEXT("hidden weapon blocks local predicted feedback"),
+		Ability->IsOwnerPredictedFeedbackAllowedForTest(Character, Weapon, AbilitySystemComponent));
+	Weapon->SetActorHiddenInGame(false);
+
+	AShooterWeapon* OtherWeapon = AcquireFeedbackTestWeapon(World, Character, nullptr, nullptr, nullptr, 5.0f,
+		AShooterWeaponPresentationTestWeaponSecondary::StaticClass());
+	if (!TestNotNull(TEXT("second feedback test weapon acquired"), OtherWeapon) ||
+		!TestTrue(TEXT("second weapon added to inventory"),
+			Inventory->AddWeapon(OtherWeapon) == EShooterInventoryAddResult::Added) ||
+		!TestTrue(TEXT("second weapon equipped"), Equipment->EquipWeapon(OtherWeapon)))
+	{
+		DestroyPredictionTestWorld(World);
+		return false;
+	}
+
+	Weapon->SetActorHiddenInGame(false);
+	TestFalse(TEXT("weapon that is no longer current blocks local predicted feedback"),
+		Ability->IsOwnerPredictedFeedbackAllowedForTest(Character, Weapon, AbilitySystemComponent));
 
 	DestroyPredictionTestWorld(World);
 	return true;

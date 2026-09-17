@@ -26,6 +26,16 @@ GA_Fire / GA_Reload / GA_Equip ServerOnly 基线
 
 本阶段不是命中预测、弹丸预测或弹药预测。服务器继续拥有所有 Gameplay 结果的最终决定权。
 
+### 1.1 当前验收治理
+
+自 2026-09-16 起，P1 的最终验收、证据质量和对外报告统一遵循
+[网络射击 AI 自主验证契约](../架构/网络射击AI自主验证契约.md)。本文中的 P1 子阶段、网络场景、
+Phase / Case 和建议测试名只用于组织实现，不再要求用户理解或指定。
+
+Agent 必须在每次修改前声明受影响的不变量，自主选择最小充分验证链，并按五条不变量报告结果。
+本文后续旧测试矩阵若与该契约冲突，以契约为准；本文冻结的 Gameplay 范围、生产职责、API 边界与
+非目标继续有效。
+
 ---
 
 ## 2. 开始实施前的工作区门槛
@@ -710,28 +720,20 @@ Host 本地同时拥有权威信息，可能一次假反馈都没有；远端 Ow
 
 ## 14. P1 最终验收
 
-只有全部满足才算完成：
+P1 只有在 [网络射击 AI 自主验证契约](../架构/网络射击AI自主验证契约.md) 的五条不变量全部
+获得有效证据时才算完成：
 
-### 响应性
+1. Owner Immediate Feedback；
+2. Local Prediction Obeys Weapon Rules；
+3. Server Is Final Authority；
+4. Remote Is Confirmed Only；
+5. Exactly One Authority Result。
 
-- Dedicated 与弱网场景中，Owner 预测反馈发生在 Authority Commit 之前；
-- 半自动按下一次只出现一次 Owner 第一人称反馈；
-- 全自动按住立即进入本地表现节拍，松开立即停止。
+Agent 自主决定复用、组合、修正或补充哪些测试。内部 Phase / Case 完成、Coordinator 总门变绿或
+历史测试报告均不能单独作为 P1 验收结论。恒真断言、假 0、未执行目标分支、`Inconclusive` 和
+不可归因的间接现象不得计入通过证据。
 
-### 权威性
-
-- Ammo 仍只由服务器 WeaponActor 事务修改；
-- Projectile、Hit、Damage、Death、Score 仍只由服务器决定；
-- 客户端不能利用预测路径生成 Gameplay 结果；
-- 每次权威 Commit 的 Ammo 与 Projectile 计数一致。
-
-### 一致性
-
-- Owner 不重复播放预测与确认的第一人称表现；
-- Remote 只看到服务器确认的第三人称表现；
-- Listen Host 不双播；
-- NPC 不运行拥有者预测表现；
-- Reject、Release、Reload、Equip、Death、Destroy、Avatar Change、Disconnect 都无残留。
+最终报告必须逐条使用契约第 6 节格式，不再只按“响应性 / 权威性 / 一致性”汇总。
 
 ### 回归
 

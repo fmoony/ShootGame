@@ -487,6 +487,15 @@ public:
 
 	/** 远端确认反馈次数；P1-B 起由 MulticastPlayFiringFX 在非拥有端递增。 */
 	int32 GetRemoteConfirmedFeedbackCountForAutomationTest() const;
+	int32 GetOwnerMuzzleFeedbackCountForAutomationTest() const { return OwnerMuzzleFeedbackCount; }
+	int32 GetOwnerSoundFeedbackCountForAutomationTest() const { return OwnerSoundFeedbackCount; }
+	int32 GetRemoteMuzzleFeedbackCountForAutomationTest() const { return RemoteMuzzleFeedbackCount; }
+	int32 GetRemoteSoundFeedbackCountForAutomationTest() const { return RemoteSoundFeedbackCount; }
+	int32 GetLastOwnerFeedbackSequenceForAutomationTest() const { return LastOwnerFeedbackSequence; }
+	int32 GetLastOwnerConfirmationSequenceForAutomationTest() const { return LastOwnerConfirmationSequence; }
+	float GetMinimumOwnerFeedbackIntervalForAutomationTest() const { return MinimumOwnerFeedbackInterval; }
+	float GetOwnerFeedbackCooldownRemainingForAutomationTest() const;
+	void ResetOwnerFeedbackTimingForAutomationTest();
 
 	/** 只读探针：当前开火标志。 */
 	bool IsFiringForAutomationTest() const { return bIsFiring; }
@@ -504,6 +513,15 @@ private:
 	int32 OwnerAuthorityConfirmationCount = 0;
 	int32 AuthorityShotCount = 0;
 	int32 RemoteConfirmedFeedbackCount = 0;
+	int32 OwnerMuzzleFeedbackCount = 0;
+	int32 OwnerSoundFeedbackCount = 0;
+	int32 RemoteMuzzleFeedbackCount = 0;
+	int32 RemoteSoundFeedbackCount = 0;
+	int32 FireFeedbackEventSequence = 0;
+	int32 LastOwnerFeedbackSequence = 0;
+	int32 LastOwnerConfirmationSequence = 0;
+	float LastOwnerFeedbackTime = -1.0f;
+	float MinimumOwnerFeedbackInterval = TNumericLimits<float>::Max();
 
 public:
 #endif

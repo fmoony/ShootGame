@@ -105,7 +105,7 @@ bool UShooterGameplayAbility_Fire::CanActivateAbility(
 
 	if (!Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags))
 	{
-		return false;
+		return RecordAuthorityRejectAndReturnFalse();
 	}
 
 	// 服务器完整校验：Avatar 必须是 ASC 当前 Avatar、State.Dead 未挂载、
@@ -118,14 +118,14 @@ bool UShooterGameplayAbility_Fire::CanActivateAbility(
 	if (!AbilitySystemComponent || AbilitySystemComponent->GetAvatarActor() != AvatarActor || bDead ||
 		!IsValid(Weapon) || Weapon->GetOwner() != AvatarActor || Weapon->IsHidden() || !Weapon->CanConsumeAmmo())
 	{
-		return false;
+		return RecordAuthorityRejectAndReturnFalse();
 	}
 
 	// 半自动必须显式拒绝冷却期内的重复激活，不再沿用“激活成功但 StartFiring 静默不发射”的语义。
 	// 全自动允许冷却期激活：服务器沿用剩余冷却后继续权威射击，真实补射时机由权威 RefireTimer 决定。
 	if (!Weapon->IsFullAuto() && !Weapon->CanStartSemiAutoShotNow())
 	{
-		return false;
+		return RecordAuthorityRejectAndReturnFalse();
 	}
 
 	return true;
@@ -177,6 +177,7 @@ void UShooterGameplayAbility_Fire::ActivateAbility(
 	PredictedShotOrdinal = 0;
 	bOwnerFeedbackPlayedThisActivation = false;
 	bConfirmedBlockerGraceActive = false;
+	bOwnerReleaseAwaitingConfirmation = false;
 
 	// 第 2 步：拥有者本地视图立即播放一次纯表现；全自动同时启动本地表现节拍。
 	if (bOwnerLocalView && CachedWeapon.IsValid())
@@ -213,6 +214,12 @@ void UShooterGameplayAbility_Fire::ConfirmActivateSucceed()
 		bConfirmedBlockerGraceActive = TryPlayOwnerFeedback(*Weapon, TEXT("FIRE_OWNER_CONFIRMED_FALLBACK"),
 			/*bConfirmedFallback*/ true);
 	}
+
+	if (bOwnerReleaseAwaitingConfirmation)
+	{
+		bOwnerReleaseAwaitingConfirmation = false;
+		EndAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), false, false);
+	}
 }
 
 void UShooterGameplayAbility_Fire::InputReleased(const FGameplayAbilitySpecHandle Handle,
@@ -225,6 +232,13 @@ void UShooterGameplayAbility_Fire::InputReleased(const FGameplayAbilitySpecHandl
 	if (bAuthoritySide)
 	{
 		StopAuthorityWeapon();
+	}
+	else if (!bOwnerFeedbackPlayedThisActivation)
+	{
+		// 初始表现可能被客户端迟到的 Reloading / Equipping Tag 误挡。
+		// 保留本地预测实例直到服务器 Confirm / Reject，避免立即释放后丢失确认回退。
+		bOwnerReleaseAwaitingConfirmation = true;
+		return;
 	}
 
 	// 预测客户端的释放意图已由可靠 ServerSetInputReleased 承载；
@@ -255,6 +269,7 @@ void UShooterGameplayAbility_Fire::EndAbility(
 
 	bOwnerFeedbackPlayedThisActivation = false;
 	bConfirmedBlockerGraceActive = false;
+	bOwnerReleaseAwaitingConfirmation = false;
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 
@@ -366,15 +381,20 @@ bool UShooterGameplayAbility_Fire::IsCurrentWeaponStillValidForFeedback(AActor* 
 
 bool UShooterGameplayAbility_Fire::IsOwnerPredictedFeedbackAllowed()
 {
-	if (!IsCurrentWeaponStillValidForFeedback(GetShooterAvatarActor()))
+	return IsOwnerPredictedFeedbackAllowedForContext(GetShooterAvatarActor(), CachedWeapon.Get(), GetAbilitySystemComponentFromActorInfo());
+}
+
+bool UShooterGameplayAbility_Fire::IsOwnerPredictedFeedbackAllowedForContext(AActor* AvatarActor,
+	const AShooterWeapon* Weapon, const UAbilitySystemComponent* AbilitySystemComponent)
+{
+	if (!AvatarActor || !IsValid(Weapon) || Weapon->IsHidden() || GetCurrentWeaponForAvatar(AvatarActor) != Weapon)
 	{
 		return false;
 	}
 
 	// 本机已知的阻塞态只禁止本地预测表现，不禁用请求：
 	// 服务器仍会执行完整 CanActivateAbility 并 Reject，客户端据此收敛。
-	const UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo();
-	if (!AbilitySystemComponent)
+	if (!AbilitySystemComponent || !Weapon || !Weapon->CanConsumeAmmo())
 	{
 		return false;
 	}
@@ -390,6 +410,14 @@ bool UShooterGameplayAbility_Fire::IsOwnerPredictedFeedbackAllowed()
 	}
 
 	return bConfirmedBlockerGraceActive;
+}
+
+bool UShooterGameplayAbility_Fire::RecordAuthorityRejectAndReturnFalse() const
+{
+#if WITH_DEV_AUTOMATION_TESTS
+	++AuthorityRejectCountForTest;
+#endif
+	return false;
 }
 
 void UShooterGameplayAbility_Fire::LogFirePredictionMarker(const TCHAR* Marker, const AShooterWeapon* Weapon, int32 ShotOrdinal) const

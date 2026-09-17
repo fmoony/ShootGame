@@ -204,6 +204,15 @@ AShooterNetworkTestCoordinator::AShooterNetworkTestCoordinator()
 	AimTurnCsvObstacleComponent->SetGenerateOverlapEvents(false);
 	bRequireRemoteMontage = !FParse::Param(FCommandLine::Get(), TEXT("ShootGameSkipRemoteMontage"));
 	bRequireRemoteCurrentWeapon = !FParse::Param(FCommandLine::Get(), TEXT("ShootGameSkipRemoteCurrentWeapon"));
+
+	// P1-D 远端第三人称确认表现：MulticastPlayFiringFX 是 Unreliable RPC，
+	// Emulated（PktLag / PktLoss）允许丢包，只要求"不重复且至少收到一次"；
+	// Dedicated / Listen 没有丢包，要求远端确认增量与该武器在同一窗口内的权威射击增量相等。
+	float RemoteConfirmedPktLagMs = 0.0f;
+	int32 RemoteConfirmedPktLossPercent = 0;
+	const bool bNoPktLag = !FParse::Value(FCommandLine::Get(), TEXT("PktLag="), RemoteConfirmedPktLagMs);
+	const bool bNoPktLoss = !FParse::Value(FCommandLine::Get(), TEXT("PktLoss="), RemoteConfirmedPktLossPercent);
+	bRequireExactRemoteConfirmed = bNoPktLag && bNoPktLoss;
 	bDisconnectCleanupMode = FParse::Param(FCommandLine::Get(), TEXT("ShootGameDisconnectTest"));
 	bDisconnectEquipMode = FParse::Param(FCommandLine::Get(), TEXT("ShootGameDisconnectEquip"));
 	bAimTurnCsvMode = FParse::Param(FCommandLine::Get(), TEXT("ShootGameAimTurnCsvTest"));
@@ -245,6 +254,29 @@ bool AShooterNetworkTestCoordinator::HasActiveFireAbility(AShooterCharacter* Cha
 			: nullptr;
 	return ShooterAbilitySystemComponent && ShooterAbilitySystemComponent->GetActiveAbilityCountForClass(
 			ShooterPlayerState->GetFireAbilityClass()) == 1;
+}
+
+const UShooterGameplayAbility_Fire* AShooterNetworkTestCoordinator::GetFireAbilityInstanceForTest(AShooterCharacter* Character) const
+{
+	const AShooterPlayerState* ShooterPlayerState = Character
+		? Character->GetPlayerState<AShooterPlayerState>()
+		: nullptr;
+	UAbilitySystemComponent* AbilitySystemComponent = Character
+		? Character->GetAbilitySystemComponent()
+		: nullptr;
+	if (!ShooterPlayerState || !AbilitySystemComponent)
+	{
+		return nullptr;
+	}
+
+	const FGameplayAbilitySpec* FireSpec = AbilitySystemComponent->FindAbilitySpecFromClass(ShooterPlayerState->GetFireAbilityClass());
+	if (!FireSpec)
+	{
+		return nullptr;
+	}
+
+	const UGameplayAbility* FireInstance = FireSpec->GetPrimaryInstance();
+	return Cast<UShooterGameplayAbility_Fire>(FireInstance ? FireInstance : FireSpec->Ability.Get());
 }
 
 bool AShooterNetworkTestCoordinator::CanServerActivateFireAbility(UAbilitySystemComponent* AbilitySystemComponent) const
@@ -1598,6 +1630,8 @@ void AShooterNetworkTestCoordinator::PollServerState()
 	if (InitialBulletCount == INDEX_NONE)
 	{
 		InitialBulletCount = Weapon->GetBulletCount();
+		AuthorityShotsBeforeSingleFire = Weapon->GetAuthorityShotCountForAutomationTest();
+		ProjectileCountBeforeSingleFire = ProjectileSpawnCount;
 		// 网络测试验证权威瞄准链路，关闭单次随机散布以保证方向断言可重复。
 		if (FFloatProperty* AimVarianceProperty =
 			FindFProperty<FFloatProperty>(Weapon->GetClass(), TEXT("AimVariance")))
@@ -1613,7 +1647,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 	const bool bFireReplicationVerified = bClientObservedWeapon && bClientObservedProjectile && bClientObservedOwnerAmmo &&
 		bClientObservedNonOwnerAmmoHidden && bServerObservedProjectile && bAimDirectionValid && bSingleShotVerified;
 
-	if (bFireReplicationVerified && !bPartialDamageApplied)
+	if (bFireReplicationVerified && bOwnerAcceptedShotEvidenceVerified && !bPartialDamageApplied)
 	{
 		BulletCountAfterFire = CurrentBulletCount;
 
@@ -1642,6 +1676,15 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			bFullAutoPhaseTriggered = true;
 			BulletCountBeforeFullAuto = CurrentBulletCount;
 			ProjectileCountBeforeFullAuto = ProjectileSpawnCount;
+			// P1-D：同一窗口内分别快照我方与对手武器的权威射击计数，
+			// 供远端第三人称确认表现证据做同窗口增量比较。
+			AuthorityShotsBeforeFullAuto = ServerInventoryFirstWeapon.IsValid()
+				? ServerInventoryFirstWeapon->GetAuthorityShotCountForAutomationTest()
+				: INDEX_NONE;
+			RemoteObservedWeaponAtBurstStart = GetCurrentWeapon(GetOpponentCharacter());
+			RemoteAuthorityShotsBeforeFullAuto = RemoteObservedWeaponAtBurstStart.IsValid()
+				? RemoteObservedWeaponAtBurstStart->GetAuthorityShotCountForAutomationTest()
+				: INDEX_NONE;
 			bServerReadyForFullAuto = true;
 			ForceNetUpdate();
 			return;
@@ -2279,6 +2322,10 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			ReloadFireTargetWeapon = ReloadFireWeapon;
 			ReloadFireAmmoBefore = ReloadFireWeapon->GetBulletCount();
 			ReloadFireAuthorityShotsBefore = ReloadFireWeapon->GetAuthorityShotCountForAutomationTest();
+			const UShooterGameplayAbility_Fire* FireAbility = GetFireAbilityInstanceForTest(Character);
+			ReloadFireAuthorityRejectsBefore = FireAbility
+				? FireAbility->GetAuthorityRejectCountForTest()
+				: INDEX_NONE;
 			ReloadFireProjectilesBefore = ProjectileSpawnCount;
 			ReloadFirePhaseStartTime = GetWorld()->GetTimeSeconds();
 			ReloadFirePhase = 2;
@@ -2307,6 +2354,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 	} // if (Weapon)
 
 	if (bFullAutoQuiescentConfirmed && bFullAutoReleaseVerified && bSwitchCancelVerified && bNoAmmoRejectVerified &&
+		bReloadFireImmediateVerified && bReloadFireAfterTagVerified &&
 		bReloadCancelDeathActiveObserved && !bPartialDamageApplied)
 	{
 		InitialHP = Character->GetHealthAttributeValue();
@@ -2341,9 +2389,10 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		}
 	}
 
-	if (bPartialDamageApplied && bClientObservedDamage && !bLethalDamageApplied)
+	if (bPartialDamageApplied && bServerGasDamageChecked && !bLethalDamageApplied)
 	{
-		// 致死伤害前确认 Reload 仍在提交窗口且 Ammo 未变化；随后 Die() 必须取消事务。
+		// 服务器确认部分伤害后立即进入致死取消，不能等待客户端伤害复制而错过 Reload 提交窗口。
+		// 客户端是否最终观察到伤害仍由总验收条件独立验证。
 		UShooterInventoryComponent* DeathReloadInventory = Character->GetInventoryComponent();
 		bReloadCancelDeathAmmoUnchanged = DeathReloadInventory &&
 			(ServerInventorySecondWeapon.IsValid() ? ServerInventorySecondWeapon->GetBulletCount() : INDEX_NONE) ==
@@ -2714,15 +2763,17 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		bServerReloadEquipRespawnGrantOk && bClientObservedReloadEquipGrant &&
 		bReloadFullRejectVerified && bReloadTransferVerified &&
 		bReloadCancelEquipVerified && bReloadSwitchBackVerified &&
-		bReloadFireImmediateVerified &&
+		bReloadFireImmediateVerified && bReloadFireAfterTagVerified &&
 		bReloadNoReserveVerified && bReloadCancelDeathVerified &&
 		bEquipInitialCommitConsistent &&
 		bEquipCancelReloadActiveObserved && bEquipSwitchBackActiveObserved &&
 		bEquipSingleRejectVerified && bEquipRejectDeadVerified &&
 		bFireAfterReloadActiveObserved && bFireAfterReloadSingleShotVerified &&
 		bFireAfterReloadQuiescentVerified &&
-		bSingleProjectileVerified &&
-		bFullAutoReleaseVerified && bFullAutoQuiescentConfirmed &&
+		bSingleProjectileVerified && bOwnerAcceptedShotEvidenceVerified &&
+		bFullAutoReleaseVerified && bFullAutoLocalCadenceVerified &&
+		bFullAutoAuthorityExactlyOnceVerified && bFullAutoQuiescentConfirmed &&
+		(!bRequireRemoteMontage || bRemoteConfirmedVerified) &&
 		bSwitchCancelVerified && bNoAmmoRejectVerified && bFireRejectDeadVerified &&
 		bFireRejectNoWeaponVerified && bRespawnTagCleanupVerified &&
 		bNpcFireActivated && bNpcFireStopOk && bNpcFireQuiescenceConfirmed)
@@ -2734,7 +2785,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		UE_LOG(LogShootGame, Display, TEXT(
 				"AUTOMATION_TEST_CLIENT_SUCCESS PlayerId=%d Switch=true OwnerAmmo=true NonOwnerAmmoHidden=true "
 				"Bullets=%d->%d HP=%.0f->0 Dead=true Respawn=true RespawnHP=%.0f AimDot=%.3f Team=%u "
-				"Kills=%d Deaths=%d TeamScore=%d RemotePitch=%.3f/%.3f RemoteMontage=%s "
+				"Kills=%d Deaths=%d TeamScore=%d RemotePitch=%.3f/%.3f RemoteMontage=%s RemoteConfirmed=%s/%d/%d "
 				"GasServer=%s/%s/%s GasNPC=%s GasRespawn=%s GasClient=%s GasClientRespawn=%s "
 				"GasHealthInit=%s GasDamage=%s GasDeath=%s GasNpcHealth=%s/%s GasClientHealth=%s/%s/%s "
 				"GasHud=%s FireGrant=%s/%s/%s/%s ReloadEquipGrant=%s/%s/%s Reload=%s/%s/%s/%s/%s/%s "
@@ -2754,6 +2805,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			ObservedRemotePitchN,
 			ExpectedRemotePitchN,
 			bClientObservedRemoteMontage ? TEXT("true") : TEXT("skipped"),
+			bRemoteConfirmedVerified ? TEXT("true") : (!bRequireRemoteMontage ? TEXT("not-required") : TEXT("false")),
+			RemoteConfirmedDeltaObserved,
+			RemoteAuthorityShotsForBurst,
 			bServerGasOwnerOk ? TEXT("true") : TEXT("false"),
 			bServerGasAvatarOk ? TEXT("true") : TEXT("false"),
 			bServerGasConnectionOk ? TEXT("true") : TEXT("false"),
@@ -3045,12 +3099,18 @@ void AShooterNetworkTestCoordinator::PollClientState()
 
 		if (ReloadFirePhase != 0)
 		{
-			Character->DoReload();
-			ClientReloadFirePredictedBefore = Weapon ? Weapon->GetPredictedOwnerFeedbackCountForAutomationTest() : 0;
+			ClientReloadFireTargetWeapon = Weapon;
+			ClientReloadFirePredictedBefore = Weapon
+				? Weapon->GetPredictedOwnerFeedbackCountForAutomationTest()
+				: INDEX_NONE;
 
 			if (ReloadFirePhase == 2)
 			{
 				// 同一帧紧接开火：此时客户端必然还没收到 State.Reloading。
+				Character->DoReload();
+				const UAbilitySystemComponent* AbilitySystemComponent = Character->GetAbilitySystemComponent();
+				bClientReloadFireTagSeen = AbilitySystemComponent &&
+					AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading);
 				Character->DoStartFiring();
 				bClientReloadFireInputSent = true;
 				UE_LOG(LogShootGame, Display, TEXT("Reload-fire client inputs sent: Case=2 PredictedBefore=%d"),
@@ -3059,9 +3119,18 @@ void AShooterNetworkTestCoordinator::PollClientState()
 		}
 	}
 
-	// 8A（客户端已知 State.Reloading 后再开火）未在本阶段落地：
-	// 该用例需要在同一装备窗口内紧跟 8B 再跑一轮，而后续阶段会清空背包并归还武器，
-	// 现有阶段序列无法稳定提供前置条件。见开发记录遗留项。
+	if (ReloadFirePhase == 1 && !bClientReloadFireInputSent)
+	{
+		const UAbilitySystemComponent* AbilitySystemComponent = Character->GetAbilitySystemComponent();
+		bClientReloadFireTagSeen = AbilitySystemComponent &&
+			AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading);
+		if (bClientReloadFireTagSeen)
+		{
+			Character->DoStartFiring();
+			bClientReloadFireInputSent = true;
+		}
+	}
+
 	if (ReloadFirePhase != 0 && bClientReloadFireInputSent && !bClientReportedReloadFire)
 	{
 		if (ClientReloadFireSettleTime <= 0.0f)
@@ -3074,14 +3143,15 @@ void AShooterNetworkTestCoordinator::PollClientState()
 		{
 			bClientReportedReloadFire = true;
 
-			// 静默窗口结束时武器可能已经被其它阶段归还池：此时本地不可能再播放表现，增量按 0 计。
-			const AShooterWeapon* ReportWeapon = GetCurrentWeapon(Character);
+			const AShooterWeapon* ReportWeapon = ClientReloadFireTargetWeapon.Get();
+			const bool bTargetStable = IsValid(ReportWeapon) && ReportWeapon == GetCurrentWeapon(Character);
 			AShooterPlayerState* ClientPlayerState = Character->GetPlayerState<AShooterPlayerState>();
 			UShooterAbilitySystemComponent* ClientAbilitySystemComponent =
 				Cast<UShooterAbilitySystemComponent>(Character->GetAbilitySystemComponent());
 			int32 ClientActiveFireCount = 0;
 			bool bClientFiringTag = false;
 			bool bClientPredictedTimerActive = false;
+			bool bClientCachedWeaponCleared = false;
 			if (ClientAbilitySystemComponent && ClientPlayerState)
 			{
 				const TSubclassOf<UGameplayAbility> ClientFireAbilityClass = ClientPlayerState->GetFireAbilityClass();
@@ -3093,21 +3163,26 @@ void AShooterNetworkTestCoordinator::PollClientState()
 					const UShooterGameplayAbility_Fire* ClientFireAbility = Cast<UShooterGameplayAbility_Fire>(
 						ClientFireInstance ? ClientFireInstance : ClientFireSpec->Ability.Get());
 					bClientPredictedTimerActive = ClientFireAbility && ClientFireAbility->IsPredictedFeedbackActiveForTest();
+					bClientCachedWeaponCleared = ClientFireAbility && !ClientFireAbility->HasCachedWeaponForTest();
 				}
 			}
 
-			const int32 PredictedDelta = ReportWeapon
+			const int32 PredictedDelta = bTargetStable && ClientReloadFirePredictedBefore != INDEX_NONE
 				? ReportWeapon->GetPredictedOwnerFeedbackCountForAutomationTest() - ClientReloadFirePredictedBefore
-				: 0;
-			const bool bConverged = ClientActiveFireCount == 0 && !bClientFiringTag && !bClientPredictedTimerActive;
+				: INDEX_NONE;
+			const bool bConverged = ClientActiveFireCount == 0 && !bClientFiringTag &&
+				!bClientPredictedTimerActive && bClientCachedWeaponCleared;
 			UE_LOG(LogShootGame, Display,
 				TEXT("Reload-fire client report: Case=%d ReloadingTagSeen=%s PredictedDelta=%d ActiveFire=%d "
-					"FiringTag=%s LocalTimer=%s Converged=%s"),
+					"FiringTag=%s LocalTimer=%s CachedCleared=%s Stable=%s Converged=%s"),
 				ReloadFirePhase, bClientReloadFireTagSeen ? TEXT("true") : TEXT("false"), PredictedDelta,
 				ClientActiveFireCount, bClientFiringTag ? TEXT("true") : TEXT("false"),
 				bClientPredictedTimerActive ? TEXT("true") : TEXT("false"),
+				bClientCachedWeaponCleared ? TEXT("true") : TEXT("false"),
+				bTargetStable ? TEXT("true") : TEXT("false"),
 				bConverged ? TEXT("true") : TEXT("false"));
-			ServerReportReloadFireResult(ReloadFireRequestId, ReloadFirePhase, PredictedDelta, bConverged);
+			ServerReportReloadFireResult(ReloadFireRequestId, ReloadFirePhase, PredictedDelta,
+				bClientReloadFireTagSeen, bTargetStable, bConverged);
 		}
 	}
 
@@ -3365,11 +3440,6 @@ void AShooterNetworkTestCoordinator::PollClientState()
 			}
 		}
 
-		if (!bClientReportedRemoteMontage && RemoteAnimInstance->IsAnyMontagePlaying())
-		{
-			bClientReportedRemoteMontage = true;
-			ServerReportClientObservedRemoteMontage();
-		}
 	}
 
 	if (Weapon)
@@ -3421,14 +3491,11 @@ void AShooterNetworkTestCoordinator::PollClientState()
 
 	if (!bClientReportedNonOwnerAmmoHidden)
 	{
-		for (TActorIterator<AShooterWeapon> It(GetWorld()); It; ++It)
+		if (const AShooterWeapon* RemoteWeapon = FindRemoteObservedWeapon(Character);
+			RemoteWeapon && RemoteWeapon->GetBulletCount() == 0)
 		{
-			if (It->GetOwner() != Character && It->GetBulletCount() == 0)
-			{
-				bClientReportedNonOwnerAmmoHidden = true;
-				ServerReportNonOwnerAmmoHidden();
-				break;
-			}
+			bClientReportedNonOwnerAmmoHidden = true;
+			ServerReportNonOwnerAmmoHidden();
 		}
 	}
 
@@ -3440,10 +3507,53 @@ void AShooterNetworkTestCoordinator::PollClientState()
 	if (!bClientTriggeredFire)
 	{
 		InitialClientBulletCount = Weapon->GetBulletCount();
+		ClientOwnerAcceptedShotWeapon = Weapon;
+		ClientOwnerFeedbackBefore = Weapon->GetPredictedOwnerFeedbackCountForAutomationTest();
+		ClientOwnerMontageBefore = Character->GetOwnerLocalMontageCountForAutomationTest();
+		ClientOwnerMuzzleBefore = Weapon->GetOwnerMuzzleFeedbackCountForAutomationTest();
+		ClientOwnerSoundBefore = Weapon->GetOwnerSoundFeedbackCountForAutomationTest();
+		ClientOwnerRecoilBefore = Character->GetOwnerLocalRecoilCountForAutomationTest();
+		ClientOwnerConfirmationBefore = Weapon->GetOwnerAuthorityConfirmationCountForAutomationTest();
+		ClientOwnerAcceptedShotStartTime = GetWorld()->GetTimeSeconds();
 		bClientTriggeredFire = true;
 		ServerReportClientObservedWeapon();
 		Character->DoStartFiring();
 		Character->DoStopFiring();
+	}
+
+	if (bClientTriggeredFire && !bClientReportedOwnerAcceptedShot)
+	{
+		AShooterWeapon* AcceptedShotWeapon = ClientOwnerAcceptedShotWeapon.Get();
+		const bool bTargetStable = IsValid(AcceptedShotWeapon) && AcceptedShotWeapon == Weapon;
+		const int32 ConfirmationDelta = bTargetStable
+			? AcceptedShotWeapon->GetOwnerAuthorityConfirmationCountForAutomationTest() - ClientOwnerConfirmationBefore
+			: INDEX_NONE;
+		const bool bTimedOut = GetWorld()->GetTimeSeconds() - ClientOwnerAcceptedShotStartTime >= 2.0f;
+		if (ConfirmationDelta >= 1 || bTimedOut)
+		{
+			bClientReportedOwnerAcceptedShot = true;
+			const int32 OwnerFeedbackDelta = bTargetStable
+				? AcceptedShotWeapon->GetPredictedOwnerFeedbackCountForAutomationTest() - ClientOwnerFeedbackBefore
+				: INDEX_NONE;
+			const int32 MontageDelta = bTargetStable
+				? Character->GetOwnerLocalMontageCountForAutomationTest() - ClientOwnerMontageBefore
+				: INDEX_NONE;
+			const int32 MuzzleDelta = bTargetStable
+				? AcceptedShotWeapon->GetOwnerMuzzleFeedbackCountForAutomationTest() - ClientOwnerMuzzleBefore
+				: INDEX_NONE;
+			const int32 SoundDelta = bTargetStable
+				? AcceptedShotWeapon->GetOwnerSoundFeedbackCountForAutomationTest() - ClientOwnerSoundBefore
+				: INDEX_NONE;
+			const int32 RecoilDelta = bTargetStable
+				? Character->GetOwnerLocalRecoilCountForAutomationTest() - ClientOwnerRecoilBefore
+				: INDEX_NONE;
+			const bool bFeedbackBeforeConfirmation = bTargetStable &&
+				AcceptedShotWeapon->GetLastOwnerFeedbackSequenceForAutomationTest() > 0 &&
+				AcceptedShotWeapon->GetLastOwnerFeedbackSequenceForAutomationTest() <
+					AcceptedShotWeapon->GetLastOwnerConfirmationSequenceForAutomationTest();
+			ServerReportOwnerAcceptedShotEvidence(OwnerFeedbackDelta, MontageDelta, MuzzleDelta, SoundDelta,
+				RecoilDelta, ConfirmationDelta, bFeedbackBeforeConfirmation, bTargetStable);
+		}
 	}
 
 	if (!bClientReportedOwnerAmmo && InitialClientBulletCount > 0 && Weapon->GetBulletCount() < InitialClientBulletCount)
@@ -3469,12 +3579,34 @@ void AShooterNetworkTestCoordinator::PollClientState()
 	if (bServerReadyForFullAuto && !bClientTriggeredFullAuto && bClientReportedProjectile)
 	{
 		BulletCountBeforeFullAuto = Weapon->GetBulletCount();
+		ClientFullAutoTargetWeapon = Weapon;
+		ClientFullAutoOwnerFeedbackBefore = Weapon->GetPredictedOwnerFeedbackCountForAutomationTest();
+		Weapon->ResetOwnerFeedbackTimingForAutomationTest();
+		// P1-D 远端第三人称确认表现：与权威窗口同起点，快照另一名玩家武器的确认表现计数。
+		ClientObservedRemoteWeapon = FindRemoteObservedWeapon(Character);
+		ClientObservedRemoteCharacter = ClientObservedRemoteWeapon.IsValid()
+			? Cast<AShooterCharacter>(ClientObservedRemoteWeapon->GetOwner())
+			: nullptr;
+		ClientRemoteConfirmedBefore = ClientObservedRemoteWeapon.IsValid()
+			? ClientObservedRemoteWeapon->GetRemoteConfirmedFeedbackCountForAutomationTest()
+			: INDEX_NONE;
+		ClientRemoteMontageBefore = ClientObservedRemoteCharacter.IsValid()
+			? ClientObservedRemoteCharacter->GetRemoteConfirmedMontageCountForAutomationTest()
+			: INDEX_NONE;
+		ClientRemoteMuzzleBefore = ClientObservedRemoteWeapon.IsValid()
+			? ClientObservedRemoteWeapon->GetRemoteMuzzleFeedbackCountForAutomationTest()
+			: INDEX_NONE;
+		ClientRemoteSoundBefore = ClientObservedRemoteWeapon.IsValid()
+			? ClientObservedRemoteWeapon->GetRemoteSoundFeedbackCountForAutomationTest()
+			: INDEX_NONE;
 		bClientTriggeredFullAuto = true;
 		Character->DoStartFiring();
 	}
 
+	const bool bFullAutoLocalFeedbackReady = ClientFullAutoTargetWeapon.IsValid() && ClientFullAutoOwnerFeedbackBefore != INDEX_NONE &&
+		ClientFullAutoTargetWeapon->GetPredictedOwnerFeedbackCountForAutomationTest() >= ClientFullAutoOwnerFeedbackBefore + 2;
 	if (bClientTriggeredFullAuto && !bClientStoppedFullAuto && BulletCountBeforeFullAuto != INDEX_NONE &&
-		Weapon->GetBulletCount() < BulletCountBeforeFullAuto - 1)
+		Weapon->GetBulletCount() < BulletCountBeforeFullAuto - 1 && bFullAutoLocalFeedbackReady)
 	{
 		Character->DoStopFiring();
 		bClientStoppedFullAuto = true;
@@ -3485,9 +3617,76 @@ void AShooterNetworkTestCoordinator::PollClientState()
 	// 客户端镜像仍落后一发给服务器上报错误 Ammo。
 	if (bClientStoppedFullAuto && !bClientReportedFullAuto && GetWorld()->GetTimeSeconds() - FullAutoReleaseWaitStartTime >= 0.4f)
 	{
-		ClientBulletCountAfterRelease = Weapon->GetBulletCount();
+		AShooterWeapon* FullAutoWeapon = ClientFullAutoTargetWeapon.Get();
+		const bool bTargetStable = IsValid(FullAutoWeapon) && FullAutoWeapon == Weapon;
+		ClientBulletCountAfterRelease = bTargetStable ? FullAutoWeapon->GetBulletCount() : INDEX_NONE;
+		const int32 OwnerFeedbackDelta = bTargetStable && ClientFullAutoOwnerFeedbackBefore != INDEX_NONE
+			? FullAutoWeapon->GetPredictedOwnerFeedbackCountForAutomationTest() - ClientFullAutoOwnerFeedbackBefore
+			: INDEX_NONE;
+		const float MinimumFeedbackInterval = bTargetStable
+			? FullAutoWeapon->GetMinimumOwnerFeedbackIntervalForAutomationTest()
+			: -1.0f;
+		const UShooterGameplayAbility_Fire* FireAbility = GetFireAbilityInstanceForTest(Character);
+		const bool bLocalTimerStopped = FireAbility && !FireAbility->IsPredictedFeedbackActiveForTest();
 		bClientReportedFullAuto = true;
-		ServerReportFullAutoReleased(ClientBulletCountAfterRelease);
+		ServerReportFullAutoReleased(ClientBulletCountAfterRelease, OwnerFeedbackDelta,
+			MinimumFeedbackInterval, bLocalTimerStopped, bTargetStable);
+	}
+
+	// P1-D 远端第三人称确认表现：本机与对手的全自动窗口不一定重叠（Listen 主机会先跑完自己的阶段），
+	// 因此观测窗口从本机起手一直保持到"观测到确认表现后 0.4 秒无增长"或硬超时；
+	// 服务器在收到上报时读取对手武器的权威射击增量，两端窗口因此按同一段真实时间对齐。
+	if (bClientReportedFullAuto && !bClientReportedRemoteConfirmed)
+	{
+		const bool bTargetStable = ClientObservedRemoteWeapon.IsValid() &&
+			ClientObservedRemoteCharacter.IsValid() &&
+			ClientObservedRemoteWeapon.Get() == FindRemoteObservedWeapon(Character) &&
+			ClientObservedRemoteWeapon->GetOwner() == ClientObservedRemoteCharacter.Get();
+		const int32 RemoteConfirmedTotal = ClientObservedRemoteWeapon.IsValid()
+			? ClientObservedRemoteWeapon->GetRemoteConfirmedFeedbackCountForAutomationTest()
+			: INDEX_NONE;
+		const bool bDeltaMeasurable = RemoteConfirmedTotal != INDEX_NONE && ClientRemoteConfirmedBefore != INDEX_NONE;
+		const int32 RemoteConfirmedNow = bDeltaMeasurable
+			? RemoteConfirmedTotal - ClientRemoteConfirmedBefore
+			: INDEX_NONE;
+
+		const float WindowElapsed = GetWorld()->GetTimeSeconds() - FullAutoReleaseWaitStartTime;
+		if (RemoteConfirmedNow != ClientRemoteConfirmedLastValue)
+		{
+			ClientRemoteConfirmedLastValue = RemoteConfirmedNow;
+			ClientRemoteConfirmedStableTime = GetWorld()->GetTimeSeconds();
+		}
+		const float StableElapsed = GetWorld()->GetTimeSeconds() - ClientRemoteConfirmedStableTime;
+
+		const bool bObservedSomething = RemoteConfirmedNow >= 1;
+		const bool bObservationSettled = bObservedSomething && StableElapsed >= 0.4f;
+		// 超时上限：远端确认表现通常在本机释放后 1 秒内到达；
+		// 上限只用于兜底，避免观测窗口拖后成功标记并逼近会话超时。
+		const bool bObservationExpired = WindowElapsed >= 4.0f;
+		if (bObservationSettled || bObservationExpired)
+		{
+			bClientReportedRemoteConfirmed = true;
+			const int32 MontageDelta = bTargetStable && ClientRemoteMontageBefore != INDEX_NONE
+				? ClientObservedRemoteCharacter->GetRemoteConfirmedMontageCountForAutomationTest() - ClientRemoteMontageBefore
+				: INDEX_NONE;
+			const int32 MuzzleDelta = bTargetStable && ClientRemoteMuzzleBefore != INDEX_NONE
+				? ClientObservedRemoteWeapon->GetRemoteMuzzleFeedbackCountForAutomationTest() - ClientRemoteMuzzleBefore
+				: INDEX_NONE;
+			const int32 SoundDelta = bTargetStable && ClientRemoteSoundBefore != INDEX_NONE
+				? ClientObservedRemoteWeapon->GetRemoteSoundFeedbackCountForAutomationTest() - ClientRemoteSoundBefore
+				: INDEX_NONE;
+			UE_LOG(LogShootGame, Display, TEXT(
+					"Remote-confirmed observation window closed: Confirmed=%d Montage=%d Muzzle=%d Sound=%d "
+					"Elapsed=%.2f Settled=%s Stable=%s"),
+				RemoteConfirmedNow,
+				MontageDelta,
+				MuzzleDelta,
+				SoundDelta,
+				WindowElapsed,
+				bObservationSettled ? TEXT("true") : TEXT("false"),
+				bTargetStable ? TEXT("true") : TEXT("false"));
+			ServerReportRemoteConfirmedFeedback(RemoteConfirmedNow, MontageDelta, MuzzleDelta, SoundDelta, bTargetStable);
+		}
 	}
 
 	// ---- 4C Cancel.SwitchWeapon：保持步枪开火，等到再打出一发后直接切枪 ----
@@ -3716,11 +3915,6 @@ void AShooterNetworkTestCoordinator::ServerReportClientObservedRemoteAim_Impleme
 	ExpectedRemotePitchN = ExpectedPitchN;
 }
 
-void AShooterNetworkTestCoordinator::ServerReportClientObservedRemoteMontage_Implementation()
-{
-	bClientObservedRemoteMontage = true;
-}
-
 void AShooterNetworkTestCoordinator::ServerReportClientObservedGasLifecycle_Implementation()
 {
 	UE_LOG(LogShootGame, Display, TEXT("GAS client report: GasLifecycle"));
@@ -3733,8 +3927,55 @@ void AShooterNetworkTestCoordinator::ServerReportClientObservedGasRespawn_Implem
 	bClientObservedGasRespawn = true;
 }
 
+void AShooterNetworkTestCoordinator::ServerReportOwnerAcceptedShotEvidence_Implementation(
+	int32 OwnerFeedbackDelta,
+	int32 MontageDelta,
+	int32 MuzzleDelta,
+	int32 SoundDelta,
+	int32 RecoilDelta,
+	int32 ConfirmationDelta,
+	bool bFeedbackBeforeConfirmation,
+	bool bTargetStable)
+{
+	const AShooterWeapon* Weapon = ServerInventoryFirstWeapon.Get();
+	const int32 AuthorityDelta = IsValid(Weapon) && AuthorityShotsBeforeSingleFire != INDEX_NONE
+		? Weapon->GetAuthorityShotCountForAutomationTest() - AuthorityShotsBeforeSingleFire
+		: INDEX_NONE;
+	const int32 ProjectileDelta = ProjectileCountBeforeSingleFire != INDEX_NONE
+		? ProjectileSpawnCount - ProjectileCountBeforeSingleFire
+		: INDEX_NONE;
+	const int32 AmmoDelta = IsValid(Weapon) && InitialBulletCount != INDEX_NONE
+		? InitialBulletCount - Weapon->GetBulletCount()
+		: INDEX_NONE;
+
+	bOwnerAcceptedShotEvidenceVerified = bTargetStable && bFeedbackBeforeConfirmation &&
+		OwnerFeedbackDelta == 1 && MontageDelta == 1 && MuzzleDelta == 1 && SoundDelta == 1 &&
+		RecoilDelta == 1 && ConfirmationDelta == 1 && AuthorityDelta == 1 && ProjectileDelta == 1 && AmmoDelta == 1;
+
+	UE_LOG(LogShootGame, Display, TEXT(
+			"Owner accepted-shot evidence: Feedback=%d Montage=%d Muzzle=%d Sound=%d Recoil=%d Confirmation=%d "
+			"Authority=%d Projectile=%d Ammo=%d Ordered=%s Stable=%s Valid=%s"),
+		OwnerFeedbackDelta,
+		MontageDelta,
+		MuzzleDelta,
+		SoundDelta,
+		RecoilDelta,
+		ConfirmationDelta,
+		AuthorityDelta,
+		ProjectileDelta,
+		AmmoDelta,
+		bFeedbackBeforeConfirmation ? TEXT("true") : TEXT("false"),
+		bTargetStable ? TEXT("true") : TEXT("false"),
+		bOwnerAcceptedShotEvidenceVerified ? TEXT("true") : TEXT("false"));
+
+	if (!bOwnerAcceptedShotEvidenceVerified)
+	{
+		FailTest(TEXT("Owner accepted-shot evidence did not satisfy immediate-feedback and exactly-once invariants"));
+	}
+}
+
 void AShooterNetworkTestCoordinator::ServerReportReloadFireResult_Implementation(int32 RequestId, int32 FireCase,
-	int32 PredictedDelta, bool bClientConverged)
+	int32 PredictedDelta, bool bKnownBlockerObserved, bool bTargetStable, bool bClientConverged)
 {
 	// 防迟到 RPC 污染其它阶段。
 	if (RequestId != ReloadFireActiveRequestId || FireCase != ReloadFirePhase || ReloadFireActiveRequestId == 0)
@@ -3743,8 +3984,7 @@ void AShooterNetworkTestCoordinator::ServerReportReloadFireResult_Implementation
 	}
 
 	AShooterCharacter* Character = GetShooterCharacter();
-	// 阶段目标武器可能在静默窗口内被归还池，优先用阶段起点引用读取权威计数。
-	AShooterWeapon* Weapon = ReloadFireTargetWeapon.IsValid() ? ReloadFireTargetWeapon.Get() : GetCurrentWeapon(Character);
+	AShooterWeapon* Weapon = ReloadFireTargetWeapon.Get();
 	UShooterAbilitySystemComponent* ShooterAbilitySystemComponent = Character
 		? Cast<UShooterAbilitySystemComponent>(Character->GetAbilitySystemComponent())
 		: nullptr;
@@ -3754,6 +3994,10 @@ void AShooterNetworkTestCoordinator::ServerReportReloadFireResult_Implementation
 
 	const int32 AmmoNow = IsValid(Weapon) ? Weapon->GetBulletCount() : INDEX_NONE;
 	const int32 AuthorityShotsNow = IsValid(Weapon) ? Weapon->GetAuthorityShotCountForAutomationTest() : INDEX_NONE;
+	const UShooterGameplayAbility_Fire* FireAbility = GetFireAbilityInstanceForTest(Character);
+	const int32 AuthorityRejectsNow = FireAbility
+		? FireAbility->GetAuthorityRejectCountForTest()
+		: INDEX_NONE;
 
 	// 服务器权威：被拒的开火不得产生任何 Gameplay 结果。
 	const bool bNoAuthorityCommit = AuthorityShotsNow == ReloadFireAuthorityShotsBefore &&
@@ -3763,29 +4007,35 @@ void AShooterNetworkTestCoordinator::ServerReportReloadFireResult_Implementation
 	const bool bNoServerResidue = ShooterAbilitySystemComponent && ShooterPlayerState &&
 		!ShooterAbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Firing) &&
 		ShooterAbilitySystemComponent->GetActiveAbilityCountForClass(ShooterPlayerState->GetFireAbilityClass()) == 0;
-	// 8A：本机已知 State.Reloading 时本地预测表现增量必须为 0。
-	// 8B：允许有限的纯本地预测表现（含全自动短暂连续反馈）。
-	const bool bPredictionBoundaryOk = FireCase == 1 ? PredictedDelta == 0 : PredictedDelta >= 0;
+	const bool bServerRejected = ReloadFireAuthorityRejectsBefore != INDEX_NONE && AuthorityRejectsNow > ReloadFireAuthorityRejectsBefore;
+	// 已知阻塞态不得产生本地表现；尚未知阻塞态允许至多一次不可撤销的纯表现。
+	const bool bPredictionBoundaryOk = FireCase == 1
+		? bKnownBlockerObserved && PredictedDelta == 0
+		: !bKnownBlockerObserved && PredictedDelta >= 0 && PredictedDelta <= 1;
 
-	const bool bVerified = bNoAuthorityCommit && bAmmoNotReducedByRejectedFire && bNoServerResidue &&
-		bPredictionBoundaryOk && bClientConverged;
+	const bool bVerified = bTargetStable && bServerRejected && bNoAuthorityCommit &&
+		bAmmoNotReducedByRejectedFire && bNoServerResidue && bPredictionBoundaryOk && bClientConverged;
 
 	UE_LOG(LogShootGame, Display,
 		TEXT("Reload-fire server report: Case=%d PredictedDelta=%d AmmoBefore=%d AmmoNow=%d Shots=%d->%d ")
-		TEXT("Projectiles=%d->%d ClientConverged=%s Valid=%s"),
+		TEXT("Projectiles=%d->%d Rejects=%d->%d Known=%s Stable=%s ClientConverged=%s Valid=%s"),
 		FireCase, PredictedDelta, ReloadFireAmmoBefore, AmmoNow, ReloadFireAuthorityShotsBefore, AuthorityShotsNow,
-		ReloadFireProjectilesBefore, ProjectileSpawnCount, bClientConverged ? TEXT("true") : TEXT("false"),
+		ReloadFireProjectilesBefore, ProjectileSpawnCount, ReloadFireAuthorityRejectsBefore, AuthorityRejectsNow,
+		bKnownBlockerObserved ? TEXT("true") : TEXT("false"), bTargetStable ? TEXT("true") : TEXT("false"),
+		bClientConverged ? TEXT("true") : TEXT("false"),
 		bVerified ? TEXT("true") : TEXT("false"));
 
 	if (!bVerified)
 	{
 		FailTest(FString::Printf(
 			TEXT("Reload-fire case %d invalid; PredictedDelta=%d Ammo=%d->%d Shots=%d->%d Projectiles=%d->%d ")
-			TEXT("NoCommit=%s AmmoKept=%s NoResidue=%s Boundary=%s Converged=%s"),
+			TEXT("Rejected=%s NoCommit=%s AmmoKept=%s NoResidue=%s Boundary=%s Stable=%s Converged=%s"),
 			FireCase, PredictedDelta, ReloadFireAmmoBefore, AmmoNow, ReloadFireAuthorityShotsBefore, AuthorityShotsNow,
-			ReloadFireProjectilesBefore, ProjectileSpawnCount, bNoAuthorityCommit ? TEXT("true") : TEXT("false"),
+			ReloadFireProjectilesBefore, ProjectileSpawnCount, bServerRejected ? TEXT("true") : TEXT("false"),
+			bNoAuthorityCommit ? TEXT("true") : TEXT("false"),
 			bAmmoNotReducedByRejectedFire ? TEXT("true") : TEXT("false"),
 			bNoServerResidue ? TEXT("true") : TEXT("false"), bPredictionBoundaryOk ? TEXT("true") : TEXT("false"),
+			bTargetStable ? TEXT("true") : TEXT("false"),
 			bClientConverged ? TEXT("true") : TEXT("false")));
 		return;
 	}
@@ -3793,14 +4043,26 @@ void AShooterNetworkTestCoordinator::ServerReportReloadFireResult_Implementation
 	if (FireCase == 2)
 	{
 		bReloadFireImmediateVerified = true;
+		ReloadFireActiveRequestId = ++ReloadFireRequestId;
+		ReloadFireAmmoBefore = Weapon->GetBulletCount();
+		ReloadFireAuthorityShotsBefore = Weapon->GetAuthorityShotCountForAutomationTest();
+		ReloadFireAuthorityRejectsBefore = AuthorityRejectsNow;
+		ReloadFireProjectilesBefore = ProjectileSpawnCount;
+		ReloadFirePhaseStartTime = GetWorld()->GetTimeSeconds();
+		ReloadFirePhase = 1;
+		ForceNetUpdate();
+		return;
 	}
+
+	bReloadFireAfterTagVerified = true;
 
 	ReloadFireActiveRequestId = 0;
 	ReloadFirePhase = 0;
 	ForceNetUpdate();
 }
 
-void AShooterNetworkTestCoordinator::ServerReportFullAutoReleased_Implementation(int32 BulletCountAfterRelease)
+void AShooterNetworkTestCoordinator::ServerReportFullAutoReleased_Implementation(int32 BulletCountAfterRelease,
+	int32 OwnerFeedbackDelta, float MinimumFeedbackInterval, bool bLocalTimerStopped, bool bTargetStable)
 {
 	bClientReportedFullAutoRelease = true;
 	ClientBulletCountAfterRelease = BulletCountAfterRelease;
@@ -3813,31 +4075,105 @@ void AShooterNetworkTestCoordinator::ServerReportFullAutoReleased_Implementation
 		? (ServerInventoryFirstWeapon.IsValid() ? ServerInventoryFirstWeapon->GetBulletCount() : INDEX_NONE)
 		: INDEX_NONE;
 	ProjectileCountAfterRelease = ProjectileSpawnCount;
+	const AShooterWeapon* Weapon = ServerInventoryFirstWeapon.Get();
+	const int32 AuthorityShotDelta = IsValid(Weapon) && AuthorityShotsBeforeFullAuto != INDEX_NONE
+		? Weapon->GetAuthorityShotCountForAutomationTest() - AuthorityShotsBeforeFullAuto
+		: INDEX_NONE;
+	const int32 ProjectileDelta = ProjectileCountBeforeFullAuto != INDEX_NONE
+		? ProjectileCountAfterRelease - ProjectileCountBeforeFullAuto
+		: INDEX_NONE;
+	const int32 AmmoConsumed = BulletCountBeforeFullAuto != INDEX_NONE && AmmoAfterRelease != INDEX_NONE
+		? BulletCountBeforeFullAuto - AmmoAfterRelease
+		: INDEX_NONE;
+	const float RefireRate = IsValid(Weapon) ? Weapon->GetRefireRate() : -1.0f;
+	bFullAutoLocalCadenceVerified = bTargetStable && bLocalTimerStopped && OwnerFeedbackDelta >= 2 &&
+		AuthorityShotDelta == OwnerFeedbackDelta && MinimumFeedbackInterval >= RefireRate - 0.01f;
+	bFullAutoAuthorityExactlyOnceVerified = AuthorityShotDelta >= 2 && ProjectileDelta == AuthorityShotDelta &&
+		AmmoConsumed == AuthorityShotDelta;
 
 	// 全自动阶段必须在单发基线（1 发）之后再产生至少 2 发，
 	// 且服务器保持期间只观察到一个活动 GA_Fire，释放时客户端镜像与权威 Ammo 一致。
-	bFullAutoReleaseVerified = bFullAutoActiveObserved && ProjectileCountBeforeFullAuto != INDEX_NONE && AmmoAfterRelease != INDEX_NONE &&
-		ProjectileCountAfterRelease >= ProjectileCountBeforeFullAuto + 2 && AmmoAfterRelease == BulletCountAfterRelease;
+	bFullAutoReleaseVerified = bFullAutoActiveObserved && AmmoAfterRelease == BulletCountAfterRelease &&
+		bFullAutoLocalCadenceVerified && bFullAutoAuthorityExactlyOnceVerified;
 	FullAutoReleaseCheckTime = GetWorld()->GetTimeSeconds();
 
-	UE_LOG(
-		LogShootGame,
-		Display,
-		TEXT("Full-auto client report: ClientAmmo=%d ServerAmmo=%d Projectiles=%d->%d ActiveObserved=%s Valid=%s"),
+	UE_LOG(LogShootGame, Display, TEXT(
+			"Full-auto invariant report: ClientAmmo=%d ServerAmmo=%d OwnerFeedback=%d Authority=%d "
+			"Projectiles=%d AmmoConsumed=%d MinInterval=%.3f RefireRate=%.3f TimerStopped=%s Stable=%s Valid=%s"),
 		BulletCountAfterRelease,
 		AmmoAfterRelease,
-		ProjectileCountBeforeFullAuto,
-		ProjectileCountAfterRelease,
-		bFullAutoActiveObserved ? TEXT("true") : TEXT("false"),
+		OwnerFeedbackDelta,
+		AuthorityShotDelta,
+		ProjectileDelta,
+		AmmoConsumed,
+		MinimumFeedbackInterval,
+		RefireRate,
+		bLocalTimerStopped ? TEXT("true") : TEXT("false"),
+		bTargetStable ? TEXT("true") : TEXT("false"),
 		bFullAutoReleaseVerified ? TEXT("true") : TEXT("false"));
 
 	if (!bFullAutoReleaseVerified)
 	{
 		FailTest(FString::Printf(
 			TEXT(
-				"Full-auto release verification invalid; ClientAmmo=%d ServerAmmo=%d Projectiles=%d->%d "
-				"ActiveObserved=%s"), BulletCountAfterRelease, AmmoAfterRelease, ProjectileCountBeforeFullAuto,
-			ProjectileCountAfterRelease, bFullAutoActiveObserved ? TEXT("true") : TEXT("false")));
+				"Full-auto invariant verification invalid; OwnerFeedback=%d Authority=%d Projectiles=%d "
+				"AmmoConsumed=%d Cadence=%s ExactlyOnce=%s ActiveObserved=%s"),
+			OwnerFeedbackDelta,
+			AuthorityShotDelta,
+			ProjectileDelta,
+			AmmoConsumed,
+			bFullAutoLocalCadenceVerified ? TEXT("true") : TEXT("false"),
+			bFullAutoAuthorityExactlyOnceVerified ? TEXT("true") : TEXT("false"),
+			bFullAutoActiveObserved ? TEXT("true") : TEXT("false")));
+	}
+}
+
+void AShooterNetworkTestCoordinator::ServerReportRemoteConfirmedFeedback_Implementation(
+	int32 Count, int32 MontageCount, int32 MuzzleCount, int32 SoundCount, bool bTargetStable)
+{
+	RemoteConfirmedDeltaObserved = Count;
+	RemoteMontageDeltaObserved = MontageCount;
+	RemoteMuzzleDeltaObserved = MuzzleCount;
+	RemoteSoundDeltaObserved = SoundCount;
+	bClientObservedRemoteMontage = MontageCount >= 1;
+
+	// 对标量必须是"另一名玩家武器"在同一窗口内的权威射击增量：
+	// 弹药是 COND_OwnerOnly，远端只能以第三人称确认表现计数为证，不能读真实弹量。
+	AShooterWeapon* RemoteWeapon = RemoteObservedWeaponAtBurstStart.Get();
+	const bool bHasRemoteBaseline = RemoteWeapon != nullptr && RemoteAuthorityShotsBeforeFullAuto != INDEX_NONE;
+	RemoteAuthorityShotsForBurst = bHasRemoteBaseline
+		? RemoteWeapon->GetAuthorityShotCountForAutomationTest() - RemoteAuthorityShotsBeforeFullAuto
+		: INDEX_NONE;
+
+	const bool bHasAllChannels = Count >= 1 && MontageCount >= 1 && MuzzleCount >= 1 && SoundCount >= 1;
+	const bool bNeverExceedsAuthority = RemoteAuthorityShotsForBurst >= 1 && bHasAllChannels &&
+		Count <= RemoteAuthorityShotsForBurst && MontageCount <= RemoteAuthorityShotsForBurst &&
+		MuzzleCount <= RemoteAuthorityShotsForBurst && SoundCount <= RemoteAuthorityShotsForBurst;
+	const bool bExactMatch = !bRequireExactRemoteConfirmed ||
+		(Count == RemoteAuthorityShotsForBurst && MontageCount == RemoteAuthorityShotsForBurst &&
+		MuzzleCount == RemoteAuthorityShotsForBurst && SoundCount == RemoteAuthorityShotsForBurst);
+	bRemoteConfirmedVerified = bTargetStable && bNeverExceedsAuthority && bExactMatch;
+
+	UE_LOG(LogShootGame, Display, TEXT(
+			"Remote-confirmed invariant report: Confirmed=%d Montage=%d Muzzle=%d Sound=%d Authority=%d "
+			"ExactRequired=%s Within=%s Stable=%s Required=%s Valid=%s"),
+		Count,
+		MontageCount,
+		MuzzleCount,
+		SoundCount,
+		RemoteAuthorityShotsForBurst,
+		bRequireExactRemoteConfirmed ? TEXT("true") : TEXT("false"),
+		bNeverExceedsAuthority ? TEXT("true") : TEXT("false"),
+		bTargetStable ? TEXT("true") : TEXT("false"),
+		bRequireRemoteMontage ? TEXT("true") : TEXT("false"),
+		bRemoteConfirmedVerified ? TEXT("true") : TEXT("false"));
+
+	if (bRequireRemoteMontage && !bRemoteConfirmedVerified)
+	{
+		FailTest(FString::Printf(
+			TEXT("Remote invariant invalid: Confirmed=%d Montage=%d Muzzle=%d Sound=%d Auth=%d Exact=%s Stable=%s"),
+			Count, MontageCount, MuzzleCount, SoundCount, RemoteAuthorityShotsForBurst,
+			bExactMatch ? TEXT("true") : TEXT("false"), bTargetStable ? TEXT("true") : TEXT("false")));
 	}
 }
 
@@ -3950,10 +4286,8 @@ void AShooterNetworkTestCoordinator::ServerReportClientTriggeredFireAfterReload_
 	bFireAfterReloadStaleTagObserved = bReloadingTagPresentAtInput;
 	UE_LOG(LogShootGame, Display, TEXT("Fire-after-reload server report: Fire triggered once ReloadingTag=%s"),
 		bReloadingTagPresentAtInput ? TEXT("true") : TEXT("false"));
-	if (!bFireAfterReloadStaleTagObserved)
-	{
-		FailTest(TEXT("Fire-after-reload did not exercise the stale local State.Reloading gate"));
-	}
+	// Tag 是否仍存在取决于复制时序，不作为单客户端硬门；确定性的阻塞与确认宽限由 Automation 覆盖。
+	// 本场景只验证无论命中哪个分支，服务器接受后都恰好产生一次反馈、一次权威结果并最终收敛。
 }
 
 void AShooterNetworkTestCoordinator::ServerReportClientStoppedFireAfterReload_Implementation(
@@ -4101,6 +4435,46 @@ AController* AShooterNetworkTestCoordinator::GetOpponentController() const
 		if (PlayerController && PlayerController != OwnerController)
 		{
 			return PlayerController;
+		}
+	}
+
+	return nullptr;
+}
+
+AShooterCharacter* AShooterNetworkTestCoordinator::GetOpponentCharacter() const
+{
+	const AController* OwnerController = Cast<AController>(GetOwner());
+	for (TActorIterator<AShooterCharacter> It(GetWorld()); It; ++It)
+	{
+		AShooterCharacter* Candidate = *It;
+		if (Candidate && Candidate->GetController() != OwnerController && Candidate->GetLocalRole() == ROLE_Authority)
+		{
+			return Candidate;
+		}
+	}
+
+	return nullptr;
+}
+
+AShooterWeapon* AShooterNetworkTestCoordinator::FindRemoteObservedWeapon(AShooterCharacter* LocalCharacter) const
+{
+	// 观测端只认模拟代理上的武器副本：拥有端自己的武器由本地预测路径计数，不是远端确认证据。
+	for (TActorIterator<AShooterCharacter> It(GetWorld()); It; ++It)
+	{
+		AShooterCharacter* RemoteCharacter = *It;
+		if (RemoteCharacter == nullptr || RemoteCharacter == LocalCharacter)
+		{
+			continue;
+		}
+
+		if (RemoteCharacter->GetLocalRole() != ROLE_SimulatedProxy)
+		{
+			continue;
+		}
+
+		if (AShooterWeapon* RemoteWeapon = RemoteCharacter->GetCurrentWeapon())
+		{
+			return RemoteWeapon;
 		}
 	}
 

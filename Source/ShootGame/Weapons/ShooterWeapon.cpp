@@ -696,6 +696,9 @@ bool AShooterWeapon::PlayOwnerShotFeedback(bool bBypassLocalCooldown)
 		UNiagaraFunctionLibrary::SpawnSystemAttached(MuzzleFlash, FirstPersonMesh, MuzzleSocketName,
 			FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::SnapToTarget, true);
 		bPlayedAny = true;
+#if WITH_DEV_AUTOMATION_TESTS
+		++OwnerMuzzleFeedbackCount;
+#endif
 	}
 
 	// 本地音效挂 RootComponent，不依赖 Muzzle Socket 是否有效。
@@ -704,6 +707,9 @@ bool AShooterWeapon::PlayOwnerShotFeedback(bool bBypassLocalCooldown)
 		UGameplayStatics::SpawnSoundAttached(FireSound, RootComponent, NAME_None,
 			FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::SnapToTarget, true);
 		bPlayedAny = true;
+#if WITH_DEV_AUTOMATION_TESTS
+		++OwnerSoundFeedbackCount;
+#endif
 	}
 
 	if (bPlayedAny)
@@ -715,6 +721,17 @@ bool AShooterWeapon::PlayOwnerShotFeedback(bool bBypassLocalCooldown)
 	if (bPlayedAny)
 	{
 		++PredictedOwnerFeedbackCount;
+		++FireFeedbackEventSequence;
+		LastOwnerFeedbackSequence = FireFeedbackEventSequence;
+		if (const UWorld* World = GetWorld())
+		{
+			const float Now = World->GetTimeSeconds();
+			if (LastOwnerFeedbackTime >= 0.0f)
+			{
+				MinimumOwnerFeedbackInterval = FMath::Min(MinimumOwnerFeedbackInterval, Now - LastOwnerFeedbackTime);
+			}
+			LastOwnerFeedbackTime = Now;
+		}
 	}
 #endif
 
@@ -867,6 +884,7 @@ void AShooterWeapon::MulticastPlayFiringFX_Implementation()
 		// 拥有者的第一人称枪口与音效已由本地预测路径承担；Multicast 到达这里只登记确认。
 #if WITH_DEV_AUTOMATION_TESTS
 		RecordOwnerAuthorityConfirmationForAutomationTest();
+		LastOwnerConfirmationSequence = ++FireFeedbackEventSequence;
 		LogFireFeedbackMarker(TEXT("FIRE_AUTHORITY_CONFIRMATION_RECEIVED"), OwnerAuthorityConfirmationCount,
 			OwnerAuthorityConfirmationCount);
 #endif
@@ -874,10 +892,15 @@ void AShooterWeapon::MulticastPlayFiringFX_Implementation()
 	}
 
 	// Remote 与 NPC 使用第三人称世界网格；拥有者不可见该网格，两者互不重复。
+	bool bPlayedAny = false;
 	if (MuzzleFlash && ThirdPersonMesh)
 	{
 		UNiagaraFunctionLibrary::SpawnSystemAttached(MuzzleFlash, ThirdPersonMesh, MuzzleSocketName,
 			FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::SnapToTarget, true);
+		bPlayedAny = true;
+#if WITH_DEV_AUTOMATION_TESTS
+		++RemoteMuzzleFeedbackCount;
+#endif
 	}
 
 	// 开火音效：远端与服务器在武器位置播放，距离衰减由音频系统处理
@@ -885,11 +908,18 @@ void AShooterWeapon::MulticastPlayFiringFX_Implementation()
 	{
 		UGameplayStatics::SpawnSoundAttached(FireSound, RootComponent, NAME_None,
 			FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::SnapToTarget, true);
+		bPlayedAny = true;
+#if WITH_DEV_AUTOMATION_TESTS
+		++RemoteSoundFeedbackCount;
+#endif
 	}
 
 #if WITH_DEV_AUTOMATION_TESTS
-	++RemoteConfirmedFeedbackCount;
-	LogFireFeedbackMarker(TEXT("FIRE_REMOTE_CONFIRMED"), RemoteConfirmedFeedbackCount, RemoteConfirmedFeedbackCount);
+	if (bPlayedAny)
+	{
+		++RemoteConfirmedFeedbackCount;
+		LogFireFeedbackMarker(TEXT("FIRE_REMOTE_CONFIRMED"), RemoteConfirmedFeedbackCount, RemoteConfirmedFeedbackCount);
+	}
 #endif
 }
 
@@ -981,6 +1011,15 @@ void AShooterWeapon::ResetFireFeedbackCountersForAutomationTest()
 	OwnerAuthorityConfirmationCount = 0;
 	AuthorityShotCount = 0;
 	RemoteConfirmedFeedbackCount = 0;
+	OwnerMuzzleFeedbackCount = 0;
+	OwnerSoundFeedbackCount = 0;
+	RemoteMuzzleFeedbackCount = 0;
+	RemoteSoundFeedbackCount = 0;
+	FireFeedbackEventSequence = 0;
+	LastOwnerFeedbackSequence = 0;
+	LastOwnerConfirmationSequence = 0;
+	LastOwnerFeedbackTime = -1.0f;
+	MinimumOwnerFeedbackInterval = TNumericLimits<float>::Max();
 }
 
 int32 AShooterWeapon::GetPredictedOwnerFeedbackCountForAutomationTest() const
@@ -1006,6 +1045,18 @@ int32 AShooterWeapon::GetAuthorityShotCountForAutomationTest() const
 int32 AShooterWeapon::GetRemoteConfirmedFeedbackCountForAutomationTest() const
 {
 	return RemoteConfirmedFeedbackCount;
+}
+
+float AShooterWeapon::GetOwnerFeedbackCooldownRemainingForAutomationTest() const
+{
+	const UWorld* World = GetWorld();
+	return World ? FMath::Max(0.0f, OwnerFeedbackCooldownEndTime - World->GetTimeSeconds()) : 0.0f;
+}
+
+void AShooterWeapon::ResetOwnerFeedbackTimingForAutomationTest()
+{
+	LastOwnerFeedbackTime = -1.0f;
+	MinimumOwnerFeedbackInterval = TNumericLimits<float>::Max();
 }
 
 bool AShooterWeapon::IsRefireTimerActiveForAutomationTest() const
