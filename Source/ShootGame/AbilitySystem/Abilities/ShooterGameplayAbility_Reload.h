@@ -40,8 +40,11 @@ public:
 	/** 测试观察接口：Ability 活动期间是否向拥有者挂载 State.Reloading。 */
 	bool OwnsStateReloadingWhileActive() const;
 
-	/** 测试观察接口：活动期间重复激活是否会重触发实例（ServerOnly 单事务应为 false）。 */
+	/** 测试观察接口：活动期间重复激活是否会重触发实例（单事务应为 false）。 */
 	bool CanRetriggerInstancedAbility() const;
+
+	/** 测试观察接口：是否接受客户端发来的结束命令（必须为 false，服务器事务不能被本地窗口提前结束）。 */
+	bool ServerRespectsRemoteAbilityCancellation() const;
 
 protected:
 	virtual bool CanActivateAbility(
@@ -58,6 +61,9 @@ protected:
 private:
 	/** 服务器完整校验与目标解析：目标必须是 Equipment 当前装备、可见且弹药需要转移的 WeaponActor。 */
 	bool ResolveReloadTarget(const FGameplayAbilityActorInfo* ActorInfo, AShooterWeapon*& OutWeapon) const;
+
+	/** 预测端解析：只取当前武器作为表现目标与本地时钟来源，不做任何真值判定。 */
+	AShooterWeapon* ResolveLocalReloadWeapon(AActor* AvatarActor) const;
 
 	/** 提交前二次校验：目标 Actor 仍在背包、仍是当前装备且归属未变。 */
 	bool IsReloadTargetStillCurrent() const;

@@ -12,7 +12,9 @@
 
 namespace ShooterAbilityReloadEquipAutomationTests
 {
-	bool TestServerOnlyShell(FAutomationTestBase& Test, const TCHAR* AbilityName, const UShooterGameplayAbility* AbilityDefaults)
+	/** 单事务壳契约：实例化策略与网络执行策略由调用方给出期望值。 */
+	bool TestSingleTransactionShell(FAutomationTestBase& Test, const TCHAR* AbilityName,
+		const UShooterGameplayAbility* AbilityDefaults, EGameplayAbilityNetExecutionPolicy::Type ExpectedPolicy)
 	{
 		if (!Test.TestNotNull(FString::Printf(TEXT("%s has defaults"), AbilityName), AbilityDefaults))
 		{
@@ -22,10 +24,19 @@ namespace ShooterAbilityReloadEquipAutomationTests
 		Test.TestEqual(FString::Printf(TEXT("%s uses InstancedPerActor"), AbilityName),
 			static_cast<int32>(AbilityDefaults->GetInstancingPolicy()),
 			static_cast<int32>(EGameplayAbilityInstancingPolicy::InstancedPerActor));
-		Test.TestEqual(FString::Printf(TEXT("%s uses ServerOnly net execution"), AbilityName),
-			static_cast<int32>(AbilityDefaults->GetNetExecutionPolicy()),
-			static_cast<int32>(EGameplayAbilityNetExecutionPolicy::ServerOnly));
+		Test.TestEqual(FString::Printf(TEXT("%s uses the expected net execution policy"), AbilityName),
+			static_cast<int32>(AbilityDefaults->GetNetExecutionPolicy()), static_cast<int32>(ExpectedPolicy));
 		return true;
+	}
+
+	/** 装备事务仍为 ServerOnly；换弹已经是本地预测窗口。 */
+	bool TestReloadEquipShellContract(FAutomationTestBase& Test)
+	{
+		const bool bReload = TestSingleTransactionShell(Test, TEXT("GA_Reload"),
+			GetDefault<UShooterGameplayAbility_Reload>(), EGameplayAbilityNetExecutionPolicy::LocalPredicted);
+		const bool bEquip = TestSingleTransactionShell(Test, TEXT("GA_Equip"),
+			GetDefault<UShooterGameplayAbility_Equip>(), EGameplayAbilityNetExecutionPolicy::ServerOnly);
+		return bReload && bEquip;
 	}
 }
 
@@ -68,7 +79,7 @@ bool FShooterAbilityReloadEquipGrantPlayerTest::RunTest(const FString& Parameter
 
 	const UShooterGameplayAbility_Reload* ReloadDefaults = GetDefault<UShooterGameplayAbility_Reload>();
 	const UShooterGameplayAbility_Equip* EquipDefaults = GetDefault<UShooterGameplayAbility_Equip>();
-	if (!TestServerOnlyShell(*this, TEXT("GA_Reload"), ReloadDefaults) || !TestServerOnlyShell(*this, TEXT("GA_Equip"), EquipDefaults))
+	if (!TestReloadEquipShellContract(*this))
 	{
 		return false;
 	}

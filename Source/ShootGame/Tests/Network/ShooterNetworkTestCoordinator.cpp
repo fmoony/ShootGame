@@ -3551,6 +3551,39 @@ void AShooterNetworkTestCoordinator::PollClientState()
 
 	if (!bClientTriggeredFire)
 	{
+		// 新语义：本地已知的动作互斥（换弹 / 装备 / 死亡）会真实拦住开火输入，
+		// 弱网下这些复制状态可能比服务器实际状态晚到数百毫秒。
+		// 本阶段验证的是「一次被服务器接受的射击」的恰一次证据，
+		// 因此必须等到拥有者本地确实允许开火再按下；否则这次点击会按设计被本地拒绝或缓冲，
+		// 本阶段就没有可验证对象（「阻塞期间按下」的边界由 Reload-fire 阶段负责）。
+		const UAbilitySystemComponent* LocalAbilitySystemComponent = Character->GetAbilitySystemComponent();
+		const bool bLocalReloading = LocalAbilitySystemComponent &&
+			LocalAbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading);
+		const bool bLocalEquipping = LocalAbilitySystemComponent &&
+			LocalAbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Equipping);
+		const bool bLocalDead = LocalAbilitySystemComponent &&
+			LocalAbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Dead);
+		const bool bLocalActionBlocked = !LocalAbilitySystemComponent || bLocalReloading || bLocalEquipping || bLocalDead;
+		const int32 LocalPlayerId = PlayerController->PlayerState
+			? PlayerController->PlayerState->GetPlayerId()
+			: INDEX_NONE;
+		if (bLocalActionBlocked)
+		{
+			if (ClientOwnerAcceptedShotLocalWaitStart <= 0.0f)
+			{
+				ClientOwnerAcceptedShotLocalWaitStart = GetWorld()->GetTimeSeconds();
+				UE_LOG(
+					LogShootGame,
+					Display,
+					TEXT("Owner single-fire waits for local state: PlayerId=%d Reloading=%s Equipping=%s Dead=%s"),
+					LocalPlayerId,
+					bLocalReloading ? TEXT("true") : TEXT("false"),
+					bLocalEquipping ? TEXT("true") : TEXT("false"),
+					bLocalDead ? TEXT("true") : TEXT("false"));
+			}
+			return;
+		}
+
 		InitialClientBulletCount = Weapon->GetBulletCount();
 		ClientOwnerAcceptedShotWeapon = Weapon;
 		ClientOwnerFeedbackBefore = Weapon->GetPredictedOwnerFeedbackCountForAutomationTest();
@@ -3564,6 +3597,12 @@ void AShooterNetworkTestCoordinator::PollClientState()
 		ServerReportClientObservedWeapon();
 		Character->DoStartFiring();
 		Character->DoStopFiring();
+
+		if (ClientOwnerAcceptedShotLocalWaitStart > 0.0f)
+		{
+			UE_LOG(LogShootGame, Display, TEXT("Owner single-fire proceeded after %.3fs wait: PlayerId=%d"),
+				GetWorld()->GetTimeSeconds() - ClientOwnerAcceptedShotLocalWaitStart, LocalPlayerId);
+		}
 	}
 
 	if (bClientTriggeredFire && !bClientReportedOwnerAcceptedShot)
@@ -4142,20 +4181,27 @@ void AShooterNetworkTestCoordinator::ServerReportReloadFireResult_Implementation
 	const bool bServerRejected = ReloadFireAuthorityRejectsBefore != INDEX_NONE && AuthorityRejectsNow > ReloadFireAuthorityRejectsBefore;
 	// 本地表现不再读取任何复制状态（State.Reloading / Equipping / Dead 与 Ammo 只由服务器权威处理），
 	// 且新语义下没有确认回退补播，因此两个分支的预期一致：
-	// 服务器 Reject 之后，拥有者端允许出现至多一次不可撤销的纯 cosmetic phantom。
-	// 上界保持为 1，用来保证"一次输入只可能产生一次本地表现"，不允许按点击或按帧重复。
-	// Reload 目前是 ServerOnly；待后续 Reload Prediction 落地后再收紧本地状态门控。
+	// 拥有者端允许出现至多一次不可撤销的纯 cosmetic phantom，上界保持为 1，
+	// 用来保证「一次输入只可能产生一次本地表现」，不允许按点击或按帧重复。
 	const bool bPredictionBoundaryOk = PredictedDelta >= 0 && PredictedDelta <= 1;
 
-	const bool bVerified = bTargetStable && bServerRejected && bNoAuthorityCommit &&
+	// 换弹预测落地后，本地已知的换弹窗口会先于服务器拦住开火输入：
+	// 这一次点击要么仍被服务器 Reject（请求已发出），要么在客户端本地就被拒绝（不再绕过 GAS Tag 门控）。
+	// 两条路径都必须满足下面全部条件，缺一不可。
+	const bool bClientRefusedLocally = bKnownBlockerObserved && AuthorityRejectsNow == ReloadFireAuthorityRejectsBefore;
+	const bool bInputHandledByExpectedPath = bServerRejected || bClientRefusedLocally;
+
+	const bool bVerified = bTargetStable && bInputHandledByExpectedPath && bNoAuthorityCommit &&
 		bAmmoNotReducedByRejectedFire && bNoServerResidue && bPredictionBoundaryOk && bClientConverged;
 
 	UE_LOG(LogShootGame, Display,
 		TEXT("Reload-fire server report: Case=%d PredictedDelta=%d AmmoBefore=%d AmmoNow=%d Shots=%d->%d ")
-		TEXT("Projectiles=%d->%d Rejects=%d->%d Known=%s Stable=%s ClientConverged=%s Valid=%s"),
+		TEXT("Projectiles=%d->%d Rejects=%d->%d Known=%s ServerRejected=%s LocalRefused=%s Stable=%s ")
+		TEXT("ClientConverged=%s Valid=%s"),
 		FireCase, PredictedDelta, ReloadFireAmmoBefore, AmmoNow, ReloadFireAuthorityShotsBefore, AuthorityShotsNow,
 		ReloadFireProjectilesBefore, ProjectileSpawnCount, ReloadFireAuthorityRejectsBefore, AuthorityRejectsNow,
-		bKnownBlockerObserved ? TEXT("true") : TEXT("false"), bTargetStable ? TEXT("true") : TEXT("false"),
+		bKnownBlockerObserved ? TEXT("true") : TEXT("false"), bServerRejected ? TEXT("true") : TEXT("false"),
+		bClientRefusedLocally ? TEXT("true") : TEXT("false"), bTargetStable ? TEXT("true") : TEXT("false"),
 		bClientConverged ? TEXT("true") : TEXT("false"),
 		bVerified ? TEXT("true") : TEXT("false"));
 
@@ -4163,9 +4209,10 @@ void AShooterNetworkTestCoordinator::ServerReportReloadFireResult_Implementation
 	{
 		FailTest(FString::Printf(
 			TEXT("Reload-fire case %d invalid; PredictedDelta=%d Ammo=%d->%d Shots=%d->%d Projectiles=%d->%d ")
-			TEXT("Rejected=%s NoCommit=%s AmmoKept=%s NoResidue=%s Boundary=%s Stable=%s Converged=%s"),
+			TEXT("Rejected=%s LocalRefused=%s NoCommit=%s AmmoKept=%s NoResidue=%s Boundary=%s Stable=%s Converged=%s"),
 			FireCase, PredictedDelta, ReloadFireAmmoBefore, AmmoNow, ReloadFireAuthorityShotsBefore, AuthorityShotsNow,
 			ReloadFireProjectilesBefore, ProjectileSpawnCount, bServerRejected ? TEXT("true") : TEXT("false"),
+			bClientRefusedLocally ? TEXT("true") : TEXT("false"),
 			bNoAuthorityCommit ? TEXT("true") : TEXT("false"),
 			bAmmoNotReducedByRejectedFire ? TEXT("true") : TEXT("false"),
 			bNoServerResidue ? TEXT("true") : TEXT("false"), bPredictionBoundaryOk ? TEXT("true") : TEXT("false"),

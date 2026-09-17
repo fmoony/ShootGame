@@ -327,6 +327,8 @@ private:
 	bool bClientTriggeredFire = false;
 	bool bClientReportedOwnerAcceptedShot = false;
 	float ClientOwnerAcceptedShotStartTime = 0.0f;
+	/** 拥有者本地动作互斥导致本次开火输入等待的起始时间；0 表示没有等待。 */
+	float ClientOwnerAcceptedShotLocalWaitStart = 0.0f;
 	TWeakObjectPtr<AShooterWeapon> ClientOwnerAcceptedShotWeapon;
 	int32 ClientOwnerFeedbackBefore = INDEX_NONE;
 	int32 ClientOwnerMontageBefore = INDEX_NONE;

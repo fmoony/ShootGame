@@ -43,11 +43,21 @@ bool UShooterGameplayAbility_Reload::CanRetriggerInstancedAbility() const
 	return bRetriggerInstancedAbility;
 }
 
+bool UShooterGameplayAbility_Reload::ServerRespectsRemoteAbilityCancellation() const
+{
+	return bServerRespectsRemoteAbilityCancellation;
+}
+
 UShooterGameplayAbility_Reload::UShooterGameplayAbility_Reload()
 {
-	// 同一 Avatar 同生命周期内只保留一个实例；网络执行只发生在服务器。
+	// 同一 Avatar 同生命周期内只保留一个实例；拥有者与服务器各自持有一份实例。
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerOnly;
+	// 拥有者本地预测换弹窗口，服务器独立执行权威事务；两端只允许相位差。
+	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
+
+	// UE 5.6 的 UGameplayAbility 构造函数把该标志默认置为 true。
+	// 本地换弹窗口到期只允许结束预测实例，绝不能让客户端提前结束服务器权威事务。
+	bServerRespectsRemoteAbilityCancellation = false;
 
 	// Input.Reload 是 ASC 输入查找与 Ability Spec 之间的稳定映射。
 	FGameplayTagContainer AssetTags;
@@ -73,14 +83,34 @@ bool UShooterGameplayAbility_Reload::CanActivateAbility(
 		return false;
 	}
 
-	// ServerOnly 的客户端本地预检必须只检查“请求确实来自当前 Avatar 的本地 ASC”，
-	// 不能先执行 Super::CanActivateAbility：Super 会读取 ActivationBlockedTags 等依赖复制的状态，
-	// 弱网下客户端可能还残留上一轮 State.Reloading，从而在本地吞掉唯一一次 R 输入。
-	// 权威端仍会执行 Super + ResolveReloadTarget 的完整校验，非法请求由服务器拒绝。
+	// 预测客户端的资格判定顺序（本地确定性条件先于 GAS Tag 门控）：
+	// 1. ASC 与 Avatar 一致，且必须是本机拥有者视图；
+	// 2. 本地换弹窗口必须有表现目标：当前武器有效且未隐藏；
+	// 3. Super 的 ActivationBlockedTags 门控（State.Dead / State.Reloading / State.Equipping）。
+	//
+	// 客户端不得读取复制的 Magazine / Reserve 真值：它们可能过期，
+	// 用「本地弹匣已满」否决会让服务器本会接受的换弹请求永远发不出去。
+	// 权威校验（Inventory / Equipment / ownership / lifecycle / 弹药）全部留在服务器。
 	if (!AvatarActor->HasAuthority())
 	{
 		const UAbilitySystemComponent* AbilitySystemComponent = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
-		return AbilitySystemComponent && AbilitySystemComponent->GetAvatarActor() == AvatarActor;
+		if (!AbilitySystemComponent || AbilitySystemComponent->GetAvatarActor() != AvatarActor)
+		{
+			return false;
+		}
+
+		if (!ActorInfo->IsLocallyControlledPlayer())
+		{
+			return false;
+		}
+
+		const AShooterWeapon* LocalWeapon = ResolveLocalReloadWeapon(const_cast<AActor*>(AvatarActor));
+		if (!IsValid(LocalWeapon) || LocalWeapon->IsHidden())
+		{
+			return false;
+		}
+
+		return Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
 	}
 
 	if (!Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags))
@@ -90,6 +120,20 @@ bool UShooterGameplayAbility_Reload::CanActivateAbility(
 
 	AShooterWeapon* Weapon = nullptr;
 	return ResolveReloadTarget(ActorInfo, Weapon);
+}
+
+AShooterWeapon* UShooterGameplayAbility_Reload::ResolveLocalReloadWeapon(AActor* AvatarActor) const
+{
+	// 预测端只用它取换弹时长与表现目标；不做任何弹药或 Inventory 真值判定。
+	const AShooterCharacter* Character = Cast<AShooterCharacter>(AvatarActor);
+	if (!Character)
+	{
+		return nullptr;
+	}
+
+	UShooterEquipmentComponent* Equipment = Character->GetEquipmentComponent();
+	AShooterWeapon* Weapon = Equipment ? Equipment->GetCurrentWeaponActor() : Character->GetCurrentWeapon();
+	return IsValid(Weapon) && Weapon->GetOwner() == Character ? Weapon : nullptr;
 }
 
 bool UShooterGameplayAbility_Reload::ResolveReloadTarget(const FGameplayAbilityActorInfo* ActorInfo, AShooterWeapon*& OutWeapon) const
@@ -133,31 +177,48 @@ void UShooterGameplayAbility_Reload::ActivateAbility(
 	const FGameplayAbilityActivationInfo ActivationInfo,
 	const FGameplayEventData* TriggerEventData)
 {
-	// 纵深防御：ServerOnly 能力仍显式确认服务器权威。
-	if (!HasAuthority(&ActivationInfo))
+	// 分流的唯一依据：权威侧与本机拥有者本地视图。两者都不成立时不执行任何事务。
+	const bool bAuthoritySide = HasAuthority(&ActivationInfo);
+	const bool bOwnerLocalView = ActorInfo != nullptr && ActorInfo->IsLocallyControlledPlayer();
+	if (!bAuthoritySide && !bOwnerLocalView)
 	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		EndAbility(Handle, ActorInfo, ActivationInfo, /*bReplicateEndAbility*/ false, /*bWasCancelled*/ true);
 		return;
 	}
 
 	AShooterWeapon* Weapon = nullptr;
-	if (!ResolveReloadTarget(ActorInfo, Weapon))
+	if (bAuthoritySide)
 	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-		return;
+		// 服务器权威校验：目标必须仍在背包、仍是当前装备、归属未变且确实需要转移弹药。
+		if (!ResolveReloadTarget(ActorInfo, Weapon))
+		{
+			EndAbility(Handle, ActorInfo, ActivationInfo, /*bReplicateEndAbility*/ true, /*bWasCancelled*/ true);
+			return;
+		}
+	}
+	else
+	{
+		// 预测端只缓存表现目标与本地时钟所需的当前武器，不做任何真值判定。
+		Weapon = ResolveLocalReloadWeapon(ActorInfo->AvatarActor.Get());
+		if (!IsValid(Weapon))
+		{
+			EndAbility(Handle, ActorInfo, ActivationInfo, /*bReplicateEndAbility*/ false, /*bWasCancelled*/ true);
+			return;
+		}
 	}
 
 	CachedWeapon = Weapon;
 
 	// 激活成功时 GAS 已按 ActivationOwnedTags 挂上 State.Reloading；
-	// 这里显式取消 GA_Fire，保证换弹期间不再产生弹丸。
+	// 这里显式取消本端的 GA_Fire：服务器取消权威开火，预测端取消本地预测实例。
 	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent =
 		Cast<UShooterAbilitySystemComponent>(ActorInfo->AbilitySystemComponent.Get()))
 	{
 		ShooterAbilitySystemComponent->CancelAbilitiesByTag(ShooterGameplayTags::Input_Fire);
 	}
 
-	// 服务器事务时钟只来自 WeaponActor 配置；Montage 丢失不影响提交。
+	// 换弹时钟只来自 WeaponActor 配置；Montage 丢失不影响任何一端的时序。
+	// 预测端使用本地时钟，服务器使用权威时钟，两端只允许相位差。
 	const float ReloadDuration = FMath::Max(0.0f, Weapon->GetReloadDuration());
 	UAbilityTask_WaitDelay* WaitTask = UAbilityTask_WaitDelay::WaitDelay(this, ReloadDuration);
 	WaitTask->OnFinish.AddDynamic(this, &UShooterGameplayAbility_Reload::HandleReloadWaitFinished);
@@ -168,7 +229,8 @@ void UShooterGameplayAbility_Reload::ActivateAbility(
 	UE_LOG(
 		LogShootGame,
 		Display,
-		TEXT("GA_Reload activated: Avatar=%s Weapon=%s WeaponId=%s Duration=%.3f Mag=%d Reserve=%d"),
+		TEXT("GA_Reload activated: Side=%s Avatar=%s Weapon=%s WeaponId=%s Duration=%.3f Mag=%d Reserve=%d"),
+		bAuthoritySide ? TEXT("Authority") : TEXT("Predicted"),
 		*GetNameSafe(ReloadCharacter),
 		*GetNameSafe(Weapon),
 		*Weapon->GetWeaponId().ToString(),
@@ -207,6 +269,19 @@ void UShooterGameplayAbility_Reload::HandleReloadWaitFinished()
 	}
 
 	ReloadWaitTask.Reset();
+
+	// 预测端本地窗口到期：只结束本地预测实例。
+	// 不提交任何事务、不改 Ammo，也不允许反向结束服务器权威事务
+	// （bServerRespectsRemoteAbilityCancellation = false + bReplicateEndAbility = false）。
+	// 服务器可能仍在换弹，这是允许的相位差，最终结果仍由服务器决定。
+	if (!IsAvatarAuthoritative())
+	{
+		UE_LOG(LogShootGame, Verbose, TEXT("GA_Reload local window ended: Avatar=%s Weapon=%s"),
+			*GetNameSafe(GetShooterAvatarActor()), *GetNameSafe(CachedWeapon.Get()));
+		EndAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(),
+			/*bReplicateEndAbility*/ false, /*bWasCancelled*/ false);
+		return;
+	}
 
 	if (!IsReloadTargetStillCurrent())
 	{

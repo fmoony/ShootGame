@@ -256,7 +256,8 @@ void UShooterAbilitySystemComponent::HandleTransientBlockedTagChanged(FGameplayT
 		return;
 	}
 
-	LogInputBufferMarker(TEXT("INPUT_BUFFER_TAG_CLEARED"), Tag);
+	LogInputBufferMarker(TEXT("INPUT_BUFFER_TAG_CLEARED"), Tag, TEXT("BlockEnded"),
+		GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0f);
 	RequestBufferedInputProcessing();
 }
 

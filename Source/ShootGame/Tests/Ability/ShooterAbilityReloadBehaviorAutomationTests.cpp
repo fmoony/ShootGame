@@ -43,7 +43,7 @@ namespace ShooterAbilityReloadBehaviorAutomationTests
 		}
 	}
 
-	bool TestServerOnlyContract(FAutomationTestBase& Test)
+	bool TestPredictedWindowContract(FAutomationTestBase& Test)
 	{
 		const UShooterGameplayAbility_Reload* ReloadDefaults = GetDefault<UShooterGameplayAbility_Reload>();
 		if (!Test.TestNotNull(TEXT("GA_Reload has defaults"), ReloadDefaults))
@@ -51,9 +51,12 @@ namespace ShooterAbilityReloadBehaviorAutomationTests
 			return false;
 		}
 
-		Test.TestEqual(TEXT("GA_Reload executes only on server"),
+		Test.TestEqual(TEXT("GA_Reload predicts the owner window locally"),
 			static_cast<int32>(ReloadDefaults->GetNetExecutionPolicy()),
-			static_cast<int32>(EGameplayAbilityNetExecutionPolicy::ServerOnly));
+			static_cast<int32>(EGameplayAbilityNetExecutionPolicy::LocalPredicted));
+		// 本地窗口到期只允许结束预测实例，不能让客户端提前结束服务器权威事务。
+		Test.TestFalse(TEXT("GA_Reload does not let the client end the authority transaction"),
+			ReloadDefaults->ServerRespectsRemoteAbilityCancellation());
 		Test.TestEqual(TEXT("GA_Reload is InstancedPerActor"),
 			static_cast<int32>(ReloadDefaults->GetInstancingPolicy()),
 			static_cast<int32>(EGameplayAbilityInstancingPolicy::InstancedPerActor));
@@ -192,13 +195,13 @@ namespace ShooterAbilityReloadBehaviorAutomationTests
 	}
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityReloadServerOnlyTest, "ShootGame.Ability.Reload.ServerOnly",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityReloadPredictedWindowTest, "ShootGame.Ability.Reload.PredictedWindow",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
-bool FShooterAbilityReloadServerOnlyTest::RunTest(const FString& Parameters)
+bool FShooterAbilityReloadPredictedWindowTest::RunTest(const FString& Parameters)
 {
 	using namespace ShooterAbilityReloadBehaviorAutomationTests;
-	return TestServerOnlyContract(*this) && TestInputBindingContract(*this);
+	return TestPredictedWindowContract(*this) && TestInputBindingContract(*this);
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityReloadTransferOnceTest, "ShootGame.Ability.Reload.TransferOnce",
@@ -210,7 +213,7 @@ bool FShooterAbilityReloadTransferOnceTest::RunTest(const FString& Parameters)
 
 	// 单次激活只提交一次的真实证据由 ShooterNetworkTestCoordinator 的 ReloadTransfer 观测给出；
 	// 这里守住静态边界：单事务 Ability 配置 + Inventory 唯一原子入口 + 服务器时钟配置。
-	return TestServerOnlyContract(*this) && TestAmmoAuthorityContract(*this);
+	return TestPredictedWindowContract(*this) && TestAmmoAuthorityContract(*this);
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityReloadRejectFullMagazineTest,
@@ -220,7 +223,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityReloadRejectFullMagazineTest,
 bool FShooterAbilityReloadRejectFullMagazineTest::RunTest(const FString& Parameters)
 {
 	using namespace ShooterAbilityReloadBehaviorAutomationTests;
-	return TestServerOnlyContract(*this) && TestRejectFullMagazineDataContract(*this);
+	return TestPredictedWindowContract(*this) && TestRejectFullMagazineDataContract(*this);
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityReloadRejectNoReserveTest, "ShootGame.Ability.Reload.Reject.NoReserve",
@@ -229,7 +232,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityReloadRejectNoReserveTest, "Shoo
 bool FShooterAbilityReloadRejectNoReserveTest::RunTest(const FString& Parameters)
 {
 	using namespace ShooterAbilityReloadBehaviorAutomationTests;
-	return TestServerOnlyContract(*this) && TestRejectNoReserveDataContract(*this);
+	return TestPredictedWindowContract(*this) && TestRejectNoReserveDataContract(*this);
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityReloadCancelDeathTest, "ShootGame.Ability.Reload.Cancel.Death",
@@ -243,7 +246,7 @@ bool FShooterAbilityReloadCancelDeathTest::RunTest(const FString& Parameters)
 	this->TestTrue(TEXT("GA_Reload is blocked by State.Dead"),
 		ReloadDefaults && ReloadDefaults->IsBlockedByStateDead());
 	// 死亡取消与 Ammo 不变的真实证据由 ShooterNetworkTestCoordinator 在 Dedicated / Listen 中验证。
-	return TestServerOnlyContract(*this);
+	return TestPredictedWindowContract(*this);
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityReloadCancelEquipTest, "ShootGame.Ability.Reload.Cancel.Equip",
@@ -257,7 +260,7 @@ bool FShooterAbilityReloadCancelEquipTest::RunTest(const FString& Parameters)
 	this->TestTrue(TEXT("GA_Reload is blocked by State.Equipping"),
 		ReloadDefaults && ReloadDefaults->IsBlockedByStateEquipping());
 	// 切枪取消发生在提交窗口的真实证据由 ShooterNetworkTestCoordinator 验证。
-	return TestServerOnlyContract(*this);
+	return TestPredictedWindowContract(*this);
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityReloadCancelDisconnectTest,
@@ -269,7 +272,7 @@ bool FShooterAbilityReloadCancelDisconnectTest::RunTest(const FString& Parameter
 	using namespace ShooterAbilityReloadBehaviorAutomationTests;
 	// EndPlay 的取消链与断线清理由 DisconnectCleanup 阶段验证；
 	// 这里守住 Ability 结束时会释放 OwnedTag 的 GAS 配置面。
-	return TestServerOnlyContract(*this) && TestAmmoAuthorityContract(*this);
+	return TestPredictedWindowContract(*this) && TestAmmoAuthorityContract(*this);
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterAbilityReloadRespawnNoCarryTest, "ShootGame.Ability.Reload.RespawnNoCarry",
@@ -284,7 +287,7 @@ bool FShooterAbilityReloadRespawnNoCarryTest::RunTest(const FString& Parameters)
 		PlayerStateDefaults ? PlayerStateDefaults->GetReloadAbilitySpecCount() : INDEX_NONE, 0);
 	// 重生后弹药与活动 Reload 事务不跨生命，由 ShooterNetworkTestCoordinator 的
 	// ReloadRespawn 观测在 Dedicated / Listen 会话中验证。
-	return TestServerOnlyContract(*this);
+	return TestPredictedWindowContract(*this);
 }
 
 #endif
