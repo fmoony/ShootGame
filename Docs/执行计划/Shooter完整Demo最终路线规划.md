@@ -637,6 +637,7 @@ GA_Reload / GA_Equip ServerOnly
 WeaponActor 成为运行时实例（S2）
 Inventory 与 Equipment 去 InstanceId（S3）
 Pickup 接入 WeaponId 与旧路径删除（S4）
+P1 Local Predicted 基础射击反馈（P1-A ~ P1-D，2026-09-17）
 ```
 
 当前状态：
@@ -644,7 +645,9 @@ Pickup 接入 WeaponId 与旧路径删除（S4）
 ```text
 启动预配置与实体池简化重构 S1～S5 已完成并通过七阶段正式验收
 → Saved/Automation/Runs/20260912_130521/Summary.json
-→ 下一阶段：P1 Local Predicted 基础射击反馈（待用户批准）
+P1 已完成并归档（757545f）；Automation 81 项全过，Dedicated / Emulated / Listen 全部 Failure=0
+→ 遗留：换弹窗口 cosmetic、契约 Invariant 2 措辞、七阶段完整回归待统一收口
+→ 下一阶段：Ability 输入缓冲与 Reload 本地预测（待用户批准）
 ```
 
 武器与 Inventory 当前的事实边界（生产路径）：
@@ -663,15 +666,24 @@ Equipment：CurrentWeaponActor（所有观察者）
 
 默认后续候选：
 
-> P1 Local Predicted 基础射击反馈（前置已满足）。
+> Ability 输入缓冲与 Reload 本地预测（P1 已完成，前置已满足）。
 
 已完成的 Reload / Equip 计划与验收证据见：
 
 [GA_Reload 与 GA_Equip ServerOnly 执行计划](../已完成计划/GA_Reload与GA_Equip_ServerOnly执行计划.md)
 
+P1 Local Predicted 基础射击反馈的归档计划见：
+
+[P1 基础射击反馈执行计划](../已完成计划/P1_LocalPredicted基础射击反馈执行计划.md)、
+[P1 详细实施方案](../已完成计划/P1_LocalPredicted基础射击反馈详细实施方案.md)。
+
+下一阶段的执行计划见：
+
+[输入缓冲与 Reload 本地预测执行计划](输入缓冲与Reload本地预测执行计划.md)。
+
 武器装备表现事件收束与动画切换解耦的验收证据见：
 
-[武器装备表现事件收束与动画切换解耦执行计划](../已完成计划/武器装备表现事件收束与动画切换解耦执行计划.md)
+[武器装备表现事件收束计划](../已完成计划/武器装备表现事件收束与动画切换解耦执行计划.md)
 
 武器与 Inventory 正式架构的当前阶段证据见：
 
@@ -682,4 +694,5 @@ Equipment：CurrentWeaponActor（所有观察者）
 [武器与 Inventory 正式架构实施计划](../已完成计划/武器与Inventory正式架构实施计划.md)、
 [单表武器配置纠偏小计划](../已完成计划/单表武器配置纠偏小计划.md)。
 
-新模型正式验收已通过（2026-09-12）；P1 具备详细执行计划，待用户批准后开始实施。
+新模型正式验收已通过（2026-09-12）；P1 已于 2026-09-17 完成并归档，
+下一阶段为 Ability 输入缓冲与 Reload 本地预测，待用户批准后开始实施。

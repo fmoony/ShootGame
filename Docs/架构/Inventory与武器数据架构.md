@@ -267,5 +267,7 @@ Disconnect：DirtyPooled=0、Orphans=0
 - [武器与 Inventory 正式架构实施计划](../已完成计划/武器与Inventory正式架构实施计划.md)
   （旧身份模型部分为历史）
 - [Shooter 完整 Demo 最终路线规划](../执行计划/Shooter完整Demo最终路线规划.md)
-- [P1 Local Predicted 基础射击反馈执行计划](../执行计划/P1_LocalPredicted基础射击反馈执行计划.md)
+- [P1 Local Predicted 基础射击反馈执行计划](../已完成计划/P1_LocalPredicted基础射击反馈执行计划.md)
+  （已完成）
+- [输入缓冲与 Reload 本地预测执行计划](../执行计划/输入缓冲与Reload本地预测执行计划.md)
 - [Agent 自动化验证操作手册](../Agent自动化验证操作手册.md)

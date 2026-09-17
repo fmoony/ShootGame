@@ -60,7 +60,8 @@ Source/ShootGame/
 - [全量回归 AnimClassMapping 失败分析](Docs/全量回归AnimClassMapping失败分析.md)：2026-09-09 只读调查，区分已提交的 Rifle FP 配置与冻结测试基线，未实施修复。
 - [Inventory 与武器数据架构](Docs/架构/Inventory与武器数据架构.md)：当前 WeaponId / WeaponActor / SlotIndex / CurrentWeaponActor 的运行时数据与网络边界。
 - [网络射击 AI 自主验证契约](Docs/架构/网络射击AI自主验证契约.md)：
-  网络射击改动的五条顶层不变量、证据质量、测试分层与固定交付格式；相关工作开始前必须读取。
+  网络射击改动的五条顶层不变量、含义覆盖确认、证据质量、测试分层与固定交付格式；
+  不变量以标题含义为准，正文清单只是当前阶段的实例；相关工作开始前必须读取。
 - [武器启动预配置与实体池简化重构方案](Docs/已完成计划/武器启动预配置与实体池简化重构方案.md)：
   已完成（2026-09-12）；当前武器与 Inventory 架构的权威重构记录。
 - [Shooter 模板蓝图分析](Docs/Shooter模板蓝图分析.md)：说明 Shooter 模板中的第一/第三人称动画蓝图、Control Rig、武器蓝图及其网络职责边界。
@@ -71,6 +72,11 @@ Source/ShootGame/
   已形成可用基线；以 `State.Reloading` 驱动 WeaponAction 状态机，通过曲线平滑释放/恢复 IK，
   并用分级 Blend Mask 保留实时俯仰、过滤资源头部表演。
 - [武器贴墙稳定与瞄准表现收尾实施计划](Docs/执行计划/武器贴墙稳定与瞄准表现收尾实施计划.md)：当前暂缓；阶段 0～4 已形成可回退表现基线，阶段 5 和大范围快速甩枪同步仍待后续收尾。
+- [输入缓冲与 Reload 本地预测执行计划](Docs/执行计划/输入缓冲与Reload本地预测执行计划.md)：
+  当前下一候选阶段；在 ASC 增加输入缓冲、恢复 GA_Fire 的 GAS Tag 门控，并把 GA_Reload 改为
+  `LocalPredicted`，服务器继续独占 Ammo 与换弹事务。
+- [P1 基础射击反馈执行计划](Docs/已完成计划/P1_LocalPredicted基础射击反馈执行计划.md)
+  已完成（2026-09-17）；P1 Local Predicted 拥有者本地开火表现与本地开火节拍的实现记录。
 - [Shooter 核心玩法架构解耦重构执行计划](Docs/已完成计划/Shooter核心玩法架构解耦重构执行计划.md)：已完成（2026-08-26）；R0～R8 已实施、提交并回归通过。
 - [第三人称 IK Binding 状态机实施计划](Docs/已完成计划/第三人称IKBinding状态机实施计划.md)：已完成（2026-08-27）；Aim / LeftHand IK 开关判定已迁移到统一五状态机，无 `.uasset` 改动；阶段 4 人工 PIE 视觉回归待验收。
 - [代码规范](Docs/代码规范.md)：C++ 命名、文件结构、注释、日志和网络代码约定。
