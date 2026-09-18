@@ -183,10 +183,17 @@ Server Reject 不产生 Gameplay Result
 
 ```text
 Press / Release / Held（复用 FGameplayAbilitySpec::InputPressed）
-短窗口 Press Edge Buffer（绝对过期时间，不续期）
+短窗口 Press Edge Buffer（绝对过期时间，不续期；只服务没有 HeldRepeat 的 Spec）
 失败分类（只把「短暂动作标签阻塞」视为可缓存）
 安全时点的一次延迟重试（下一 Tick，不在 Tag 回调栈内重入；按住型输入按 Spec 行为标签判定）
 生命周期清理（Avatar / 死亡 / ClearActorInfo / EndPlay）
+```
+
+两种输入意图来源互斥（冻结语义）：
+
+```text
+无 HeldRepeat 的 Spec（Semi）    → pending intent 只由短期 Buffered Press Edge 表达
+带 HeldRepeat 的 Spec（FullAuto）→ pending intent 只由 Spec.InputPressed 表达，Release 即终止
 ```
 
 它不读 Weapon、Ammo、Inventory、Projectile，也不判断「现在能不能开火」——那是 Ability 的职责。
@@ -276,7 +283,9 @@ struct FShooterBufferedInput
    覆盖：换弹中再按换弹；阻塞来自该动作自身时重复按下没有意义
 4. BlockingTags 不能全部落在 TransientInputBlockedTags 内 → 丢弃
    覆盖：State.Dead、以及任何未知阻塞标签
-5. 其余情况 → 登记 / 覆盖条目
+5. 被按下的 Spec 带 InputBehavior.HeldRepeat → 丢弃（不登记）
+   覆盖：连发语义的持续意图只由 Spec.InputPressed 表达，不建第二份表达
+6. 其余情况 → 登记 / 覆盖条目
 ```
 
 因此：
@@ -296,6 +305,7 @@ Server Ammo / Reserve / Inventory    → 不由 Buffer 猜测，由 Server 最�
 对每条未过期条目：
   Spec = FindAbilitySpecFromInputTag(InputTag)
   Spec 不存在                → 移除条目
+  Spec 带 HeldRepeat         → 移除条目（该 Spec 的意图只由 Spec.InputPressed 表达）
   Context 失效或与当前上下文不一致 → 移除条目（不允许跨武器补枪）
   Spec->InputPressed 仍为 true → 先 AbilitySpecInputPressed（保持引擎状态一致）
   bActivated = TryActivateAbility(Spec->Handle, true)
@@ -305,12 +315,14 @@ Server Ammo / Reserve / Inventory    → 不由 Buffer 猜测，由 Server 最�
 
 要点：
 
+- **HeldRepeat 的 Spec 不消费条目**：即使条目是按下时（还是 Semi）留下的历史残留，
+  也一律在消费侧丢弃——HeldRepeat 的 pending intent 唯一来源是 `Spec.InputPressed`。
 - **已松开的按下沿**（半自动 1.42 按下 / 1.45 松开 / 1.50 消费）在消费时
   `Spec->InputPressed == false`，因此不伪造按下；激活后立即补一次标准释放，
   避免残留 `State.Firing` 与不结束的本地预测实例。
 - **补释放不新增 RPC**：复用现有 `ServerSetInputReleased` 通道，
   与 `AbilityInputTagReleased` 共用同一个内部释放函数。
-- **已松开的全自动按下沿**由 GA_Fire 自己的门控拒绝（见 7.1），不会在换弹结束后补开枪。
+- **HeldRepeat 的已松开按下沿**不产生任何条目，也就不会被任何人消费。
 
 ### 5.5 Held 重试（Spec 行为标签）
 
@@ -321,6 +333,8 @@ Server Ammo / Reserve / Inventory    → 不由 Buffer 猜测，由 Server 最�
 ```
 
 - Held 状态来自 `Spec.InputPressed`（引擎状态），不新增第二份布尔。
+- 冻结语义：带该标签的 Spec 的 pending intent **唯一来源**就是 `Spec.InputPressed`，
+  既不登记（见 5.3 第 5 条）也不消费（见 5.4）Buffered Press；Release 即终止该意图。
 - 覆盖用户场景：Fire 已激活 → Reload 取消 Fire → 玩家一直按住 → Reload End 后重新启动全自动。
 - 单发 Spec 永远不带该标签，因此一直按住不会跨阻塞补枪。
 - 不建条目、不续期、不排程下一次；被拒后下一次机会只来自新的短暂阻塞解除事件。
@@ -371,13 +385,14 @@ MaxHeldRetryPerPress 这类每个按下沿的再尝试计数与重试定时器
   └─ 已过期：不激活、不表现、不请求
 ```
 
-### 6.2 全自动
+### 6.2 全自动（HeldRepeat）
 
 ```text
-按下（按住）→ 被阻塞则登记条目 → 阻塞结束（安全时点）
-  ├─ 仍按住：激活一次 → 本地表现节拍 PredictedFeedbackTimer + 服务器 Authority RefireTimer
-  └─ 已松开：不激活（GA_Fire 的按住门控拒绝），条目丢弃
-按住期间 Ability 被取消（Reload / Equip）→ Held 再武装在安全时点重新启动
+按下（按住）→ 被短暂阻塞不登记条目：持续意图只由 Spec.InputPressed 表达
+阻塞结束（安全时点）
+  ├─ 仍按住：重试一次 → 本地表现节拍 PredictedFeedbackTimer + 服务器 Authority RefireTimer
+  └─ 已松开：不重试（Release 即终止该意图）
+按住期间 Ability 被取消（Reload / Equip）→ 下一个安全时点按仍按住状态重新启动
 松开 → 现有 InputReleased / EndAbility 链路停本地节拍并通知服务器
 ```
 
@@ -608,6 +623,21 @@ Held 重试：删除 MaxHeldRetryPerPress / HeldRetryIntervalSeconds / HeldRetry
 
 建议提交说明：`重构：按输入意图边界收敛 ASC 职责并统一 Held 语义`
 
+### 单元 5：HeldRepeat 的输入意图来源收敛
+
+状态：**已实施并提交**（提交说明 `重构：收敛 HeldRepeat 的输入意图唯一来源为 Spec.InputPressed`）。
+
+```text
+登记侧：HandleAbilityFailed 对带 HeldRepeat 的 Spec 不登记按下沿
+消费侧：ProcessBufferedInputs 对带 HeldRepeat 的 Spec 丢弃历史残留条目（Reason=HeldRepeat）
+不变：Semi 的短期 Buffered Press Edge（登记 / 过期 / 上下文校验 / 消费一次 / 补 Release）不动
+不变：Held 跨武器行为维持现状，不新增 PressContext
+测试：InputBuffer.HeldRepeatRetriesAfterBlocker 断言改为「不登记条目」；
+     新增 InputBuffer.HeldRepeatDoesNotConsumeResidualEntry
+```
+
+建议提交说明：`重构：收敛 HeldRepeat 的输入意图唯一来源为 Spec.InputPressed`
+
 如新增测试源码文件，结构变化完成后只运行一次
 `Scripts/Development/RefreshVisualStudioFiles.ps1`。
 
@@ -628,12 +658,16 @@ Held 重试：删除 MaxHeldRetryPerPress / HeldRetryIntervalSeconds / HeldRetry
    证据：自动化（扩展 `Prediction.LocalFireCadence`）。
 4. **Full-auto Held**
    换弹期间一直按住 Fire。
-   期望：Reload End 后自动开始全自动。
+   期望：不登记 Buffered Press；Reload End 后按 `Spec.InputPressed` 重试一次并开始全自动。
    证据：自动化 + Dedicated / Emulated。
 5. **Full-auto Released**
    换弹期间按住后提前松开。
-   期望：Reload End 后不自动开始。
+   期望：不登记 Buffered Press，Release 即终止；Reload End 后不自动开始、也不重试。
    证据：自动化。
+5b. **HeldRepeat 不消费历史残留条目**
+   阻塞期间该 Spec 由 Semi 语义变成 HeldRepeat（生产对应换成连发武器）。
+   期望：残留条目在消费侧被丢弃，不产生任何本地动作边界。
+   证据：自动化（`InputBuffer.HeldRepeatDoesNotConsumeResidualEntry`）。
 6. **Reload Local Prediction**
    按 R 后 Owner 当帧获得 `State.Reloading`，Fire 立刻被 Tag 阻塞。
    期望：不需要 LocalReloadIntent，表现仍由现有 `State.Reloading` 驱动。

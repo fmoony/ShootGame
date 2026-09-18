@@ -28,6 +28,8 @@ namespace ShooterGameplayTags
 	 * 语义：Spec.InputPressed 仍为 true 时，短暂动作阻塞解除后允许该 Spec 重新尝试激活。
 	 * 它挂在 FGameplayAbilitySpec 的动态 Spec 标签上（随 Spec 复制），由宿主按当前输入语义同步：
 	 * 同一个 GA_Fire 在连发武器上是 HeldRepeat，在单发武器上不是。
+	 * 带该标签的 Spec 不参与短期 Buffered Press：不登记按下沿、也不消费历史残留条目，
+	 * pending intent 唯一来源是 Spec.InputPressed，Release 即终止。
 	 * ASC 只认这个标签与 Spec.InputPressed，不判断武器或具体 Ability。
 	 */
 	SHOOTGAME_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputBehavior_HeldRepeat);

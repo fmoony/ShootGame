@@ -273,6 +273,14 @@ void UShooterAbilitySystemComponent::HandleAbilityFailed(const UGameplayAbility*
 		return;
 	}
 
+	// 带 HeldRepeat 的 Spec 不登记按下沿：它的持续意图唯一来源是 Spec.InputPressed，
+	// Release 即终止；阻塞解除后由 RetryHeldRepeatInputs 按当前按住状态重试一次。
+	if (const FGameplayAbilitySpec* PressedSpec = FindAbilitySpecFromInputTag(PendingPressInputTag);
+		PressedSpec && HasHeldRepeatInputBehavior(*PressedSpec))
+	{
+		return;
+	}
+
 	RegisterBufferedInput(PendingPressInputTag, ShooterAbility->GetInputBufferContext());
 }
 
@@ -336,6 +344,14 @@ void UShooterAbilitySystemComponent::ProcessBufferedInputs()
 		}
 
 		FGameplayAbilitySpec* Spec = FindAbilitySpecFromInputTag(Entry.InputTag);
+		if (Spec && HasHeldRepeatInputBehavior(*Spec))
+		{
+			// 该 Spec 的意图只由 Spec.InputPressed 表达：历史残留条目不得消费
+			// （覆盖「按下时是 Semi、阻塞期间换成 FullAuto」的窗口）。
+			LogInputBufferMarker(TEXT("INPUT_BUFFER_DROPPED"), Entry.InputTag, TEXT("HeldRepeat"), Now);
+			continue;
+		}
+
 		if (!Spec || !IsBufferedInputContextStillValid(Entry, *Spec))
 		{
 			LogInputBufferMarker(TEXT("INPUT_BUFFER_DROPPED"), Entry.InputTag, TEXT("ContextChanged"), Now);

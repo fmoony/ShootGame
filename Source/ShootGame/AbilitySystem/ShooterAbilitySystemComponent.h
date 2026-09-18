@@ -17,8 +17,14 @@ class UGameplayAbility;
  * 职责：
  * - Press / Release：把输入 Tag 稳定映射到 Ability Spec，并把按下与松开转发给对应 Ability；
  * - Held：直接读 FGameplayAbilitySpec::InputPressed，不维护第二份按住状态；
- * - 短期 Buffered Press：激活只被「短暂动作阻塞」拒绝时保留一次按下沿，阻塞解除后消费一次；
- * - Deferred Retry：声明了 InputBehavior.HeldRepeat 的 Spec 在阻塞解除后按仍按住的状态重试一次。
+ * - 短期 Buffered Press：没有 HeldRepeat 的 Spec 被「短暂动作阻塞」拒绝时保留一次按下沿，
+ *   阻塞解除后消费一次；
+ * - Deferred Retry：带 InputBehavior.HeldRepeat 的 Spec 在阻塞解除后按仍按住的状态重试一次。
+ *
+ * 两种输入意图来源互斥（冻结语义）：
+ * - 无 HeldRepeat 的 Spec（Semi）：pending intent 只由短期 Buffered Press Edge 表达；
+ * - 带 HeldRepeat 的 Spec（FullAuto）：pending intent 只由 Spec.InputPressed 表达，
+ *   既不登记也不消费 Buffered Press，Release 即终止。
  *
  * 边界：
  * - 不判断「现在能不能开火 / 换弹」，那是 Ability 与 GameplayTags 的职责；
@@ -57,6 +63,7 @@ public:
 	 * 由宿主在当前输入语义变化时调用（例如当前武器在连发 / 单发之间切换）。
 	 * 同一个 Ability 可以服务两种语义，因此行为标签写在 Spec 上而不是 Ability 上；
 	 * 标签随 Spec 复制给拥有者，本函数负责标脏。
+	 * 带该标签的 Spec 不参与短期 Buffered Press：不登记按下沿，也不消费历史残留条目。
 	 */
 	void SetHeldRepeatInputBehavior(const FGameplayTag& InputTag, bool bEnabled);
 
