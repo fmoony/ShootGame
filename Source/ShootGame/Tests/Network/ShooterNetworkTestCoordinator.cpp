@@ -333,23 +333,99 @@ void AShooterNetworkTestCoordinator::TriggerDisconnectReload()
 		ActiveWeapon->ConsumeAmmo(1);
 	}
 
-	if (UAbilitySystemComponent* AbilitySystemComponent = Character->GetAbilitySystemComponent())
+	UAbilitySystemComponent* AbilitySystemComponent = Character->GetAbilitySystemComponent();
+	if (!AbilitySystemComponent)
 	{
-		const bool bActivated = AbilitySystemComponent->TryActivateAbility(ServerReloadAbilityHandle);
-		const bool bActive = HasActiveReloadAbility(Character);
-		const bool bReloadingTag = AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading);
-		if (!bActivated || !bActive || !bReloadingTag)
+		return;
+	}
+
+	// GA_Reload 是 LocalPredicted：服务器端对远端 Pawn 直接 TryActivateAbility 会被引擎
+	// 转成 ClientTryActivateAbility（返回 true 但服务器本地不会激活）。
+	// 因此服务器只请拥有者客户端按生产输入路径发起换弹，然后等待权威实例出现。
+	const FGameplayAbilityActorInfo* AbilityActorInfo = AbilitySystemComponent->AbilityActorInfo.Get();
+	const bool bLocalOwnerView = AbilityActorInfo && AbilityActorInfo->IsLocallyControlledPlayer();
+	bool bActivated = true;
+	if (bLocalOwnerView)
+	{
+		bActivated = AbilitySystemComponent->TryActivateAbility(ServerReloadAbilityHandle);
+	}
+	else if (!bDisconnectReloadRequestedToClient)
+	{
+		bDisconnectReloadRequestedToClient = true;
+		ClientTriggerDisconnectReload();
+		UE_LOG(LogShootGame, Display, TEXT("Disconnect reload requested from owner client: Avatar=%s"), *GetNameSafe(Character));
+	}
+
+	const bool bActive = HasActiveReloadAbility(Character);
+	const bool bReloadingTag = AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading);
+	if (!bActivated || !bActive || !bReloadingTag)
+	{
+		// 服务器侧或复制尚未到达：有限次重试，等待客户端预测请求带出权威实例。
+		if (DisconnectReloadRetryCount < 30)
 		{
-			FailTest(FString::Printf(
-				TEXT("Disconnect reload precondition failed; Activated=%s Active=%s Tag=%s Avatar=%s"),
-				bActivated ? TEXT("true") : TEXT("false"), bActive ? TEXT("true") : TEXT("false"),
-				bReloadingTag ? TEXT("true") : TEXT("false"), *GetNameSafe(Character)));
+			++DisconnectReloadRetryCount;
+			GetWorldTimerManager().SetTimer(CleanupAbilityTimer, this,
+				&AShooterNetworkTestCoordinator::TriggerDisconnectReload, 0.1f, false);
 			return;
 		}
 
-		UE_LOG(LogShootGame, Display, TEXT("AUTOMATION_TEST_DISCONNECT_RELOAD_READY Avatar=%s ActiveWeapon=%s "
-				"ActiveReload=true ReloadingTag=true"), *GetNameSafe(Character), *GetNameSafe(ActiveWeapon));
+		FailTest(FString::Printf(
+			TEXT("Disconnect reload precondition failed; Activated=%s Active=%s Tag=%s LocalView=%s Avatar=%s"),
+			bActivated ? TEXT("true") : TEXT("false"), bActive ? TEXT("true") : TEXT("false"),
+			bReloadingTag ? TEXT("true") : TEXT("false"), bLocalOwnerView ? TEXT("true") : TEXT("false"),
+			*GetNameSafe(Character)));
+		return;
 	}
+
+	UE_LOG(LogShootGame, Display, TEXT("AUTOMATION_TEST_DISCONNECT_RELOAD_READY Avatar=%s ActiveWeapon=%s "
+			"ActiveReload=true ReloadingTag=true"), *GetNameSafe(Character), *GetNameSafe(ActiveWeapon));
+}
+
+void AShooterNetworkTestCoordinator::ClientTriggerDisconnectReload_Implementation()
+{
+	if (!bDisconnectReloadInputActive)
+	{
+		bDisconnectReloadInputActive = true;
+		DisconnectReloadInputAttempts = 0;
+		DisconnectReloadInputDeadline = GetWorld()->GetTimeSeconds() + 3.0f;
+	}
+
+	TrySubmitDisconnectReloadInput();
+}
+
+void AShooterNetworkTestCoordinator::TrySubmitDisconnectReloadInput()
+{
+	AShooterCharacter* Character = GetShooterCharacter();
+	if (!Character)
+	{
+		bDisconnectReloadInputActive = false;
+		return;
+	}
+
+	// 本地预测换弹已经成立即可停止重按。
+	if (HasActiveReloadAbility(Character))
+	{
+		bDisconnectReloadInputActive = false;
+		return;
+	}
+
+	// 有限窗口内的重按：弱网下本机可能仍持有迟到的 State.Equipping（GA_Equip 尚未预测），
+	// 该次输入会按设计被本地拒绝或缓冲，等价于玩家在动作结束后再按一次换弹。
+	if (++DisconnectReloadInputAttempts > 12 || GetWorld()->GetTimeSeconds() > DisconnectReloadInputDeadline)
+	{
+		bDisconnectReloadInputActive = false;
+		UE_LOG(LogShootGame, Warning, TEXT("Disconnect reload input gave up after %d attempts: Avatar=%s"),
+			DisconnectReloadInputAttempts - 1, *GetNameSafe(Character));
+		return;
+	}
+
+	// 走生产输入路径：客户端本地预测换弹窗口，服务器独立执行权威事务并提交弹药转移。
+	Character->DoReload();
+	UE_LOG(LogShootGame, Display, TEXT("Disconnect reload input submitted on owner client: Avatar=%s Attempt=%d"),
+		*GetNameSafe(Character), DisconnectReloadInputAttempts);
+
+	GetWorldTimerManager().SetTimer(CleanupAbilityTimer, this,
+		&AShooterNetworkTestCoordinator::TrySubmitDisconnectReloadInput, 0.25f, false);
 }
 
 bool AShooterNetworkTestCoordinator::TriggerLongEquip(AShooterCharacter* Character, const TCHAR* Context)

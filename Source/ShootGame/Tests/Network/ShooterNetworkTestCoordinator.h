@@ -244,6 +244,15 @@ private:
 	/** DisconnectCleanup 专用：在断线前主动激活一次 GA_Reload。 */
 	void TriggerDisconnectReload();
 
+	/**
+	 * DisconnectCleanup 专用：请拥有者客户端按生产输入路径发起换弹。
+	 * GA_Reload 是 LocalPredicted，服务器不能直接为远端 Pawn 激活它。
+	 */
+	UFUNCTION(Client, Reliable)
+	void ClientTriggerDisconnectReload();
+
+	/** DisconnectCleanup 专用：在有限窗口内重按换弹，直到本地预测窗口成立或放弃。 */
+	void TrySubmitDisconnectReloadInput();
 	/** DisconnectCleanup 专用：延长目标武器 EquipDuration 后激活 GA_Equip。 */
 	bool TriggerLongEquip(AShooterCharacter* Character, const TCHAR* Context);
 
@@ -258,6 +267,14 @@ private:
 	FTimerHandle CleanupAbilityTimer;
 	FTimerHandle EquipDeathVerifyTimer;
 	bool bCleanupAbilityScheduled = false;
+	/** 断线前换弹前置条件的有限重试计数；预测换弹需要等服务器实例或复制到达。 */
+	int32 DisconnectReloadRetryCount = 0;
+	/** 是否已经请拥有者客户端发起断线换弹；只请求一次。 */
+	bool bDisconnectReloadRequestedToClient = false;
+	/** 拥有者客户端的断线换弹重按状态。 */
+	bool bDisconnectReloadInputActive = false;
+	int32 DisconnectReloadInputAttempts = 0;
+	float DisconnectReloadInputDeadline = 0.0f;
 	FDelegateHandle ActorSpawnedHandle;
 
 	UPROPERTY(Replicated)

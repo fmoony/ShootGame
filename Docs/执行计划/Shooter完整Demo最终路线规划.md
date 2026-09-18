@@ -638,6 +638,7 @@ WeaponActor 成为运行时实例（S2）
 Inventory 与 Equipment 去 InstanceId（S3）
 Pickup 接入 WeaponId 与旧路径删除（S4）
 P1 Local Predicted 基础射击反馈（P1-A ~ P1-D，2026-09-17）
+Ability 输入缓冲与 Reload 本地预测（2026-09-17）
 ```
 
 当前状态：
@@ -645,9 +646,13 @@ P1 Local Predicted 基础射击反馈（P1-A ~ P1-D，2026-09-17）
 ```text
 启动预配置与实体池简化重构 S1～S5 已完成并通过七阶段正式验收
 → Saved/Automation/Runs/20260912_130521/Summary.json
-P1 已完成并归档（757545f）；Automation 81 项全过，Dedicated / Emulated / Listen 全部 Failure=0
-→ 遗留：换弹窗口 cosmetic、契约 Invariant 2 措辞、七阶段完整回归待统一收口
-→ 下一阶段：Ability 输入缓冲与 Reload 本地预测（待用户批准）
+P1 已完成并归档（757545f）
+Ability 输入缓冲与 Reload 本地预测已完成（bc33437 计划 → 8b61dde 输入缓冲 → 25e274e 换弹预测）
+→ 当前：Build / Automation（128 项）全过；Dedicated / Listen / Emulated / DisconnectCleanup
+   各自通过（详见该阶段开发记录与阶段日志）
+→ 遗留：GA_Equip 仍未本地预测（迟到的 State.Equipping 可能吞掉一次点击）；
+   既有不稳定阶段 Remote invariant invalid 与 Timed out waiting for network state
+→ 下一阶段：按最终路线规划进入 Lobby + LAN Session 或按收益实验高级预测
 ```
 
 武器与 Inventory 当前的事实边界（生产路径）：

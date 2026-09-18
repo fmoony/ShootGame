@@ -553,6 +553,8 @@ Weapon A 的 buffered Fire → 切 Weapon B → 在 B 上消费
 
 ### 单元 1：Input Buffer 与 GA_Fire 门控恢复
 
+状态：**已实施并提交（`8b61dde`）**。
+
 ```text
 ASC：条目 / 失败分类 / 安全时点 / 消费 / Held 再武装 / 有限重试 / 生命周期清理
 GA 基类：IsSustainedInputAbility()（默认 false）
@@ -565,6 +567,8 @@ GA_Fire：CanActivateAbility 顺序收敛（节拍与按住前置、Super 恢复
 
 ### 单元 2：GA_Reload LocalPredicted
 
+状态：**已实施并提交（`25e274e`）**。
+
 ```text
 GA_Reload：NetExecutionPolicy / bServerRespectsRemoteAbilityCancellation
          CanActivateAbility 双端差异、ActivateAbility 双端生命周期、客户端不提交事务
@@ -574,6 +578,8 @@ GA_Reload：NetExecutionPolicy / bServerRespectsRemoteAbilityCancellation
 建议提交说明：`GAS：改为本地预测换弹并隔离服务器事务`
 
 ### 单元 3：网络证据、文档同步与收尾
+
+状态：实施中。
 
 ```text
 NetworkTestCoordinator：半自动 Buffer 窗口 / 换弹窗口 / 全自动 Held 场景
