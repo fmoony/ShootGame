@@ -6,7 +6,6 @@
 #include "AbilitySystemComponent.h"
 #include "GameplayTagContainer.h"
 #include "Characters/Equipment/ShooterEquipmentComponent.h"
-#include "AbilitySystem/ShooterAbilitySystemComponent.h"
 #include "Characters/ShooterCharacter.h"
 #include "AbilitySystem/ShooterGameplayTags.h"
 #include "Inventory/ShooterInventoryComponent.h"
@@ -49,10 +48,13 @@ UShooterGameplayAbility_Equip::UShooterGameplayAbility_Equip()
 	AssetTags.AddTag(ShooterGameplayTags::Input_Equip);
 	SetAssetTags(AssetTags);
 	// 死亡与装备中状态阻塞激活；State.Equipping 在激活期间由 GAS 自动挂到拥有者 ASC。
-	// 激活时显式取消 Fire / Reload，因此这里不把 State.Firing / State.Reloading 设为阻塞。
+	// 切枪期间旧武器必须停火、换弹事务必须让位：关系只通过 GAS Tag 表达，
+	// 由引擎在 PreActivate 里按 AssetTags 执行取消。
 	ActivationBlockedTags.AddTag(ShooterGameplayTags::State_Dead);
 	ActivationBlockedTags.AddTag(ShooterGameplayTags::State_Equipping);
 	ActivationOwnedTags.AddTag(ShooterGameplayTags::State_Equipping);
+	CancelAbilitiesWithTag.AddTag(ShooterGameplayTags::Input_Fire);
+	CancelAbilitiesWithTag.AddTag(ShooterGameplayTags::Input_Reload);
 }
 
 bool UShooterGameplayAbility_Equip::CanActivateAbility(
@@ -169,14 +171,6 @@ void UShooterGameplayAbility_Equip::ActivateAbility(
 		? Equipment->GetCurrentWeaponActor()
 		: nullptr;
 	CachedTargetWeapon = TargetWeapon;
-
-	// 激活成功时 GAS 已挂上 State.Equipping；显式取消 Fire / Reload，保证切换期间旧武器停火。
-	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent =
-		Cast<UShooterAbilitySystemComponent>(ActorInfo->AbilitySystemComponent.Get()))
-	{
-		ShooterAbilitySystemComponent->CancelAbilitiesByTag(ShooterGameplayTags::Input_Fire);
-		ShooterAbilitySystemComponent->CancelAbilitiesByTag(ShooterGameplayTags::Input_Reload);
-	}
 
 	// 服务器事务时钟只来自目标 WeaponActor 配置；表现 Montage 不影响提交。
 	const float EquipDuration = FMath::Max(0.0f, TargetWeapon->GetEquipDuration());

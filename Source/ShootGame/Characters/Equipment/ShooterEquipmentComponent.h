@@ -69,6 +69,14 @@ private:
 	AShooterCharacter* GetOwnerCharacter() const;
 	UShooterInventoryComponent* GetOwnerInventory() const;
 
+	/**
+	 * 同步 Fire Spec 的通用输入行为标签（InputBehavior.HeldRepeat）。
+	 *
+	 * 当前武器是「连发 / 单发」输入语义的唯一来源；同一个 GA_Fire 服务两种语义，
+	 * 因此行为标签写在 Spec 上而不是 Ability 上。这里是不发布逻辑事件也能收敛的统一入口。
+	 */
+	void SyncFireHeldRepeatInputBehavior(AShooterWeapon* CurrentWeapon);
+
 	/** 仅在 Previous != Current 时发布逻辑装备变化事件。 */
 	void BroadcastEquippedWeaponChanged(AShooterWeapon* PreviousWeapon, AShooterWeapon* CurrentWeapon);
 };

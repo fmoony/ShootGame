@@ -2,6 +2,8 @@
 
 #include "ShooterEquipmentComponent.h"
 
+#include "AbilitySystem/ShooterAbilitySystemComponent.h"
+#include "AbilitySystem/ShooterGameplayTags.h"
 #include "Characters/Aim/ShooterAimPresentationComponent.h"
 #include "Characters/ShooterCharacter.h"
 #include "Inventory/ShooterInventoryComponent.h"
@@ -124,7 +126,11 @@ void UShooterEquipmentComponent::HandleWeaponActorReady(AShooterWeapon* Weapon)
 {
 	if (IsValid(Weapon) && Weapon == CurrentWeaponActor)
 	{
-		// WeaponActor 的 Owner / WeaponId 晚到时补做幂等表现收敛，不发布逻辑事件。
+		// WeaponActor 的 Owner / WeaponId / 行配置晚到时补做幂等收敛，不发布逻辑事件。
+		// 连发语义来自行配置，因此必须在这里重新同步输入行为标签：
+		// 客户端先收到 CurrentWeaponActor、随后才收到 WeaponId 并应用配置是常见路径。
+		SyncFireHeldRepeatInputBehavior(Weapon);
+
 		if (AShooterCharacter* Character = GetOwnerCharacter())
 		{
 			Character->EnsureWeaponPresentation(Weapon);
@@ -176,7 +182,31 @@ void UShooterEquipmentComponent::BroadcastEquippedWeaponChanged(AShooterWeapon* 
 		return;
 	}
 
+	// 当前武器是输入语义的唯一来源：逻辑转移时同步 Fire Spec 的通用输入行为标签。
+	// 服务器与拥有者客户端走同一条路径，各自按自己看到的 CurrentWeaponActor 收敛。
+	SyncFireHeldRepeatInputBehavior(CurrentWeapon);
+
 	OnEquippedWeaponChanged.Broadcast(PreviousWeapon, CurrentWeapon);
+}
+
+void UShooterEquipmentComponent::SyncFireHeldRepeatInputBehavior(AShooterWeapon* Weapon)
+{
+	// 「当前武器语义 → 输入行为标签」的唯一同步点：装备逻辑转移与武器配置晚到都收敛到这里。
+	// ASC 只认标签与 Spec.InputPressed，不判断武器类型；Ability 侧不再需要任何输入语义虚函数。
+	// 幂等：语义没有变化时 ASC 不重复标脏，因此这里可以被安全地重复调用。
+	const AShooterCharacter* Character = GetOwnerCharacter();
+	UShooterAbilitySystemComponent* AbilitySystemComponent = Character
+		? Cast<UShooterAbilitySystemComponent>(Character->GetAbilitySystemComponent())
+		: nullptr;
+	if (!AbilitySystemComponent)
+	{
+		// 能力尚未授予（例如拥有者客户端还没收到 PlayerState 的 Spec 复制）：
+		// Spec 复制到达时会带着服务器已同步好的标签，这里不需要补偿。
+		return;
+	}
+
+	AbilitySystemComponent->SetHeldRepeatInputBehavior(ShooterGameplayTags::Input_Fire,
+		IsValid(Weapon) && Weapon->IsFullAuto());
 }
 
 void UShooterEquipmentComponent::OnRep_CurrentWeaponActor(AShooterWeapon* PreviousWeapon)

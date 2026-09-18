@@ -23,12 +23,6 @@ public:
 	bool IsAvatarAuthoritative() const;
 
 	/**
-	 * 输入语义：true = 按住持续（松开才停），false = 单次按下沿。
-	 * 只有按住型输入会在短暂阻塞解除后被重新尝试；默认按单次按下沿处理。
-	 */
-	virtual bool IsSustainedInputAbility() const { return false; }
-
-	/**
 	 * 输入 Buffer 的上下文对象；默认无上下文。
 	 * 上下文变化后，同一输入 Tag 的待消费按下沿不得继续生效。
 	 */

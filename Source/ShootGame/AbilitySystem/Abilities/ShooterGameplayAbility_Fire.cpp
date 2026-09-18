@@ -215,7 +215,6 @@ void UShooterGameplayAbility_Fire::ActivateAbility(
 	// 本地反馈序号必须按激活复位：Ability 实例跨激活复用，
 	// 不复位会让日志的 ShotOrdinal 跨 Burst 累积（PredictionKey 才标识一次激活或 Burst）。
 	PredictedShotOrdinal = 0;
-	bOwnerFeedbackPlayedThisActivation = false;
 
 	// 第 2 步：拥有者本地视图立即播放一次纯表现；全自动同时启动本地表现节拍。
 	if (bOwnerLocalView && CachedWeapon.IsValid())
@@ -273,8 +272,6 @@ void UShooterGameplayAbility_Fire::EndAbility(
 		}
 		CachedWeapon.Reset();
 	}
-
-	bOwnerFeedbackPlayedThisActivation = false;
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 
@@ -338,7 +335,6 @@ bool UShooterGameplayAbility_Fire::TryPlayOwnerFeedback(AShooterWeapon& Weapon, 
 		return false;
 	}
 
-	bOwnerFeedbackPlayedThisActivation = true;
 	LogFirePredictionMarker(Marker, &Weapon, PredictedShotOrdinal);
 	return true;
 }
@@ -408,6 +404,7 @@ bool UShooterGameplayAbility_Fire::IsOwnerPredictedFeedbackAllowedForContext(AAc
 	// 刻意不读取 Ammo / Reloading / Equipping / Dead：这些复制状态可能过期，
 	// 用它们二次否决首次 Owner 表现，就会让服务器已经接受并生成弹丸的那一发永久没有反馈。
 	// 空枪连点时的 cosmetic phantom 是本模型明确接受的代价（服务器仍会 Reject）。
+	// 参数刻意不使用，测试依赖「这些状态存在也不参与门控」这一事实，见头文件说明。
 	(void)AbilitySystemComponent;
 	return AvatarActor && IsValid(Weapon) && !Weapon->IsHidden() && GetCurrentWeaponForAvatar(AvatarActor) == Weapon;
 }
@@ -478,14 +475,6 @@ AShooterWeapon* UShooterGameplayAbility_Fire::GetCurrentWeaponForAvatar(AActor* 
 
 	const IShooterWeaponHolder* WeaponHolder = Cast<IShooterWeaponHolder>(AvatarActor);
 	return WeaponHolder ? WeaponHolder->GetCurrentWeapon() : nullptr;
-}
-
-bool UShooterGameplayAbility_Fire::IsSustainedInputAbility() const
-{
-	// 全自动是「按住持续」语义：一次按下只发一个开始请求，之后由本地表现节拍与权威 Timer 推进。
-	// 半自动是「单次按下沿」语义：一次按下只对应一次 Shot Attempt。
-	const AShooterWeapon* Weapon = GetCurrentWeaponForAvatar(GetShooterAvatarActor());
-	return Weapon != nullptr && Weapon->IsFullAuto();
 }
 
 const UObject* UShooterGameplayAbility_Fire::GetInputBufferContext() const

@@ -6,7 +6,6 @@
 #include "AbilitySystemComponent.h"
 #include "GameplayTagContainer.h"
 #include "Characters/Equipment/ShooterEquipmentComponent.h"
-#include "AbilitySystem/ShooterAbilitySystemComponent.h"
 #include "Characters/ShooterCharacter.h"
 #include "AbilitySystem/ShooterGameplayTags.h"
 #include "Inventory/ShooterInventoryComponent.h"
@@ -68,6 +67,11 @@ UShooterGameplayAbility_Reload::UShooterGameplayAbility_Reload()
 	ActivationBlockedTags.AddTag(ShooterGameplayTags::State_Reloading);
 	ActivationBlockedTags.AddTag(ShooterGameplayTags::State_Equipping);
 	ActivationOwnedTags.AddTag(ShooterGameplayTags::State_Reloading);
+
+	// 与 Fire 的关系只通过 GAS Tag 表达：激活换弹时取消活动中的开火事务。
+	// 引擎在 PreActivate 里按 AssetTags 匹配并执行取消（Ignore 为发起者自身），
+	// 因此这里不需要 ASC 的命令式取消调用，也不需要包含项目 ASC 头文件。
+	CancelAbilitiesWithTag.AddTag(ShooterGameplayTags::Input_Fire);
 }
 
 bool UShooterGameplayAbility_Reload::CanActivateAbility(
@@ -209,14 +213,6 @@ void UShooterGameplayAbility_Reload::ActivateAbility(
 
 	CachedWeapon = Weapon;
 
-	// 激活成功时 GAS 已按 ActivationOwnedTags 挂上 State.Reloading；
-	// 这里显式取消本端的 GA_Fire：服务器取消权威开火，预测端取消本地预测实例。
-	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent =
-		Cast<UShooterAbilitySystemComponent>(ActorInfo->AbilitySystemComponent.Get()))
-	{
-		ShooterAbilitySystemComponent->CancelAbilitiesByTag(ShooterGameplayTags::Input_Fire);
-	}
-
 	// 换弹时钟只来自 WeaponActor 配置；Montage 丢失不影响任何一端的时序。
 	// 预测端使用本地时钟，服务器使用权威时钟，两端只允许相位差。
 	const float ReloadDuration = FMath::Max(0.0f, Weapon->GetReloadDuration());
@@ -242,12 +238,8 @@ void UShooterGameplayAbility_Reload::ActivateAbility(
 bool UShooterGameplayAbility_Reload::IsReloadTargetStillCurrent() const
 {
 	const AShooterCharacter* Character = Cast<AShooterCharacter>(GetShooterAvatarActor());
-	UShooterInventoryComponent* Inventory = Character
-		? Character->GetInventoryComponent()
-		: nullptr;
-	UShooterEquipmentComponent* Equipment = Character
-		? Character->GetEquipmentComponent()
-		: nullptr;
+	UShooterInventoryComponent* Inventory = Character ? Character->GetInventoryComponent() : nullptr;
+	UShooterEquipmentComponent* Equipment = Character ? Character->GetEquipmentComponent() : nullptr;
 	const UAbilitySystemComponent* AbilitySystemComponent = Character ? Character->GetAbilitySystemComponent() : nullptr;
 	if (!Character || !Inventory || !Equipment || !AbilitySystemComponent ||
 		AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Dead) || !CachedWeapon.IsValid() ||

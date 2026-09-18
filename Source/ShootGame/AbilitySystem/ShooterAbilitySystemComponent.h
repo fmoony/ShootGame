@@ -12,13 +12,18 @@ struct FGameplayTagContainer;
 class UGameplayAbility;
 
 /**
- * ShootGame 项目通用 ASC。
+ * ShootGame 项目通用 ASC：只负责通用输入意图，不产生任何 Gameplay 结果。
  *
- * 职责边界：
- * - 把输入 Tag 稳定映射到 Ability Spec（按下 / 松开）；
- * - 保留「短暂动作阻塞」期间的一次按下沿，并在安全时点重新尝试（输入缓冲）；
- * - 不判断「现在能不能开火 / 换弹」——那是 Ability 与 GameplayTags 的职责；
- * - 不读 Weapon / Ammo / Inventory / Projectile，也不产生任何 Gameplay 结果。
+ * 职责：
+ * - Press / Release：把输入 Tag 稳定映射到 Ability Spec，并把按下与松开转发给对应 Ability；
+ * - Held：直接读 FGameplayAbilitySpec::InputPressed，不维护第二份按住状态；
+ * - 短期 Buffered Press：激活只被「短暂动作阻塞」拒绝时保留一次按下沿，阻塞解除后消费一次；
+ * - Deferred Retry：声明了 InputBehavior.HeldRepeat 的 Spec 在阻塞解除后按仍按住的状态重试一次。
+ *
+ * 边界：
+ * - 不判断「现在能不能开火 / 换弹」，那是 Ability 与 GameplayTags 的职责；
+ * - 不读 Weapon / Ammo / Inventory / Projectile，也不做 Ammo / Projectile 预测；
+ * - 重试只发生在「短暂阻塞解除」这一次安全时点，被拒后不再自行排程，不存在 Reject → Retry 循环。
  */
 UCLASS(ClassGroup=(Shooter))
 class SHOOTGAME_API UShooterAbilitySystemComponent : public UAbilitySystemComponent
@@ -45,6 +50,23 @@ public:
 
 	/** 按输入 Tag 取消所有匹配 Ability；死亡、切枪、断线等清理链共用。 */
 	void CancelAbilitiesByTag(const FGameplayTag& InputTag);
+
+	/**
+	 * 同步通用输入行为标签 InputBehavior.HeldRepeat。
+	 *
+	 * 由宿主在当前输入语义变化时调用（例如当前武器在连发 / 单发之间切换）。
+	 * 同一个 Ability 可以服务两种语义，因此行为标签写在 Spec 上而不是 Ability 上；
+	 * 标签随 Spec 复制给拥有者，本函数负责标脏。
+	 */
+	void SetHeldRepeatInputBehavior(const FGameplayTag& InputTag, bool bEnabled);
+
+	/**
+	 * 作废所有待消费的输入意图。
+	 *
+	 * 生命周期边界（Avatar 变化 / ClearActorInfo / EndPlay）由本类自行调用；
+	 * 死亡这类宿主可见的明确边界由宿主显式调用——旧输入绝不跨生命周期消费。
+	 */
+	void ClearBufferedInputs();
 
 	// 引擎把这两个函数声明为 public，覆写不得降低可见性；
 	// 这里承担「输入意图不跨生命周期泄漏」的清理责任。
@@ -75,41 +97,26 @@ private:
 	/** 短暂阻塞标签计数归零：只登记待处理，调度到 Tag 回调栈退出后的安全时点。 */
 	void HandleTransientBlockedTagChanged(FGameplayTag Tag, int32 NewCount);
 
-	/** 硬阻塞标签出现：立即作废所有待消费意图。 */
-	void HandleFatalBlockedTagChanged(FGameplayTag Tag, int32 NewCount);
-
 	/** 请求在下一 Tick 处理输入缓冲；同帧多次请求只执行一次。 */
 	void RequestBufferedInputProcessing();
 
-	/** 安全时点：消费未过期的按下沿，并对按住型输入做有限再武装。 */
+	/** 安全时点：消费未过期的按下沿，并对按住型输入做一次安全重试。 */
 	void ProcessBufferedInputs();
 
 	/** 消费一条按下沿；返回是否真的形成了本地动作边界。 */
 	bool ConsumeBufferedInput(FGameplayAbilitySpec& Spec);
 
-	/** 按住型输入再武装：只在输入仍按住、Ability 未激活时尝试。 */
-	void ReArmSustainedInputs();
+	/** 短暂阻塞解除后的安全重试：只覆盖仍处于按住且未激活的 HeldRepeat Spec。 */
+	void RetryHeldRepeatInputs();
 
-	/** 按住型输入再武装的实际尝试；返回是否发起了激活。 */
-	bool TryReArmSustainedInput(FGameplayAbilitySpec& Spec);
-
-	/** 安排一次按住型输入的有限重试检查。 */
-	void ScheduleHeldRetryCheck();
-
-	/** 按住型输入的有限重试检查回调。 */
-	void HandleHeldRetryCheck();
+	/** Spec 是否声明了「按住可恢复」输入行为。 */
+	static bool HasHeldRepeatInputBehavior(const FGameplayAbilitySpec& Spec);
 
 	/** 登记 / 覆盖一条按下沿。 */
 	void RegisterBufferedInput(const FGameplayTag& InputTag, const UObject* Context);
 
 	/** 移除指定输入 Tag 的按下沿；返回是否移除过。 */
 	bool RemoveBufferedInput(const FGameplayTag& InputTag);
-
-	/** 清空所有待消费意图与按住型重试状态。 */
-	void ClearBufferedInputs();
-
-	/** 停止按住型重试定时器。 */
-	void ClearHeldRetryTimer();
 
 	/** 是否为本机玩家自己的 ASC；只有它参与输入缓冲。 */
 	bool ShouldBufferLocalInput() const;
@@ -120,9 +127,9 @@ private:
 	/** 标准释放路径：可靠 RPC + 本地释放；真实松开与消费后的补释放共用。 */
 	void ReleaseInputTag(FGameplayAbilitySpec& Spec);
 
-	/** 注册 / 注销短暂阻塞与硬阻塞标签监听。 */
-	void RegisterInputTagWatchers();
-	void UnregisterInputTagWatchers();
+	/** 注册 / 注销短暂阻塞标签监听。 */
+	void RegisterTransientBlockedTagWatchers();
+	void UnregisterTransientBlockedTagWatchers();
 
 	/** 输入缓冲的开发构建可搜索标记；Shipping 不输出。 */
 	void LogInputBufferMarker(const TCHAR* Marker, const FGameplayTag& InputTag, const TCHAR* Reason = nullptr,
@@ -136,20 +143,8 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Shooter|Input")
 	FGameplayTagContainer TransientInputBlockedTags;
 
-	/** 这些标签出现时，生命周期已失效，所有待消费意图立即作废。 */
-	UPROPERTY(EditDefaultsOnly, Category = "Shooter|Input")
-	FGameplayTagContainer FatalInputBlockedTags;
-
-	/** 按住型输入在一个按下周期内允许的有限再尝试次数。 */
-	UPROPERTY(EditDefaultsOnly, Category = "Shooter|Input")
-	int32 MaxHeldRetryPerPress = 2;
-
-	/** 按住型输入有限再尝试的间隔（秒）。 */
-	UPROPERTY(EditDefaultsOnly, Category = "Shooter|Input")
-	float HeldRetryIntervalSeconds = 0.2f;
-
 	/** 待消费的按下沿；每个输入 Tag 最多一条。 */
-	TArray<FShooterBufferedInput> BufferedInputs;
+	TMap<FGameplayTag, FShooterBufferedInput> BufferedInputs;
 
 	/** 本次按下期间期待的 Ability 类；用于把失败回调归因到这次按下。 */
 	TObjectPtr<UClass> PendingPressAbilityClass = nullptr;
@@ -163,34 +158,18 @@ private:
 	/** 是否已经安排下一 Tick 的输入缓冲处理。 */
 	bool bBufferProcessScheduled = false;
 
-	/** 按住型输入在本次按下周期内已尝试过的再武装次数。 */
-	int32 HeldReArmAttempts = 0;
-
-	/** 按住型输入的有限重试 Timer。 */
-	FTimerHandle HeldRetryTimer;
-
 	/** 短暂阻塞标签事件绑定。 */
 	TMap<FGameplayTag, FDelegateHandle> TransientTagDelegateHandles;
-
-	/** 硬阻塞标签事件绑定。 */
-	TMap<FGameplayTag, FDelegateHandle> FatalTagDelegateHandles;
 
 #if WITH_DEV_AUTOMATION_TESTS
 public:
 	/** 测试观察接口：当前待消费的按下沿数量。 */
 	int32 GetBufferedInputCountForTest() const { return BufferedInputs.Num(); }
 
-	/** 测试观察接口：指定输入 Tag 是否存在待消费的按下沿。 */
-	bool HasBufferedInputForTest(const FGameplayTag& InputTag) const { return BufferedInputs.ContainsByPredicate(
-		[&InputTag](const FShooterBufferedInput& Entry) { return Entry.InputTag == InputTag; }); }
-
 	/** 测试观察接口：立即执行一次安全时点处理。 */
 	void ProcessBufferedInputsForTest();
 
 	/** 测试观察接口：让所有待消费按下沿立即过期（不推进世界时间）。 */
 	void ExpireBufferedInputsForTest();
-
-	/** 测试观察接口：本次按下周期已尝试的按住型再武装次数。 */
-	int32 GetHeldReArmAttemptsForTest() const { return HeldReArmAttempts; }
 #endif
 };

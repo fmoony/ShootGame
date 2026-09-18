@@ -185,8 +185,8 @@ Server Reject 不产生 Gameplay Result
 Press / Release / Held（复用 FGameplayAbilitySpec::InputPressed）
 短窗口 Press Edge Buffer（绝对过期时间，不续期）
 失败分类（只把「短暂动作标签阻塞」视为可缓存）
-安全时点的延迟重试（下一 Tick，不在 Tag 回调栈内重入）
-生命周期清理（Avatar / 死亡 / ClearActorInfo / Spec 移除）
+安全时点的一次延迟重试（下一 Tick，不在 Tag 回调栈内重入；按住型输入按 Spec 行为标签判定）
+生命周期清理（Avatar / 死亡 / ClearActorInfo / EndPlay）
 ```
 
 它不读 Weapon、Ammo、Inventory、Projectile，也不判断「现在能不能开火」——那是 Ability 的职责。
@@ -194,22 +194,27 @@ Press / Release / Held（复用 FGameplayAbilitySpec::InputPressed）
 ### 4.2 `UShooterGameplayAbility` / GA_Fire / GA_Reload
 
 ```text
-Ability 自己声明：输入语义（按下沿 / 按住持续）、输入上下文、ActivationBlockedTags / OwnedTags
+Ability 自己声明：输入上下文、ActivationBlockedTags / OwnedTags / CancelAbilitiesWithTag
 Ability 自己决定：本地预测资格、权威校验、Owner 表现、服务器事务
 ```
 
-基类只提供两个最小声明钩子，不做策略系统：
+基类只提供一个最小声明钩子，不做策略系统：
 
 ```cpp
-/** 输入语义：true = 按住持续（松开才停），false = 单次按下沿。 */
-virtual bool IsSustainedInputAbility() const { return false; }
-
 /** 输入 Buffer 的上下文对象；默认无上下文。上下文变化后不得再消费该输入。 */
 virtual const UObject* GetInputBufferContext() const { return nullptr; }
 ```
 
-GA_Fire 分别返回「当前武器是否全自动」与「按下时的当前武器」；
-ASC 只消费这两个声明，不读 Weapon、不判断能不能开火。
+GA_Fire 返回「按下时的当前武器」；ASC 只消费这个声明，不读 Weapon、不判断能不能开火。
+
+「按住可恢复」（FullAuto 语义）不是 Ability 声明，而是 **Spec 上的通用输入行为标签**：
+
+```text
+InputBehavior.HeldRepeat（FGameplayAbilitySpec::DynamicSpecSourceTags）
+含义：Spec.InputPressed 仍为 true 时，短暂阻塞解除后允许该 Spec 重新尝试激活
+同步：装备收敛入口按当前武器 IsFullAuto() 写入 / 移除（GA_Fire 同时服务 Semi 与 FullAuto）
+消费：ASC 只认 Spec.InputPressed 与该标签，不认识 Weapon / Semi / FullAuto
+```
 
 ### 4.3 Server
 
@@ -231,17 +236,10 @@ float InputBufferWindowSeconds = 0.15f;
 /** 只有这些标签造成的阻塞才被视为「动作马上结束」，可进入 Buffer。 */
 UPROPERTY(EditDefaultsOnly, Category = "Shooter|Input")
 FGameplayTagContainer TransientInputBlockedTags;
-
-/** 按住型输入在一个 Press Edge 内允许的有限再尝试次数与间隔。 */
-UPROPERTY(EditDefaultsOnly, Category = "Shooter|Input")
-int32 MaxHeldRetryPerPress = 2;
-
-UPROPERTY(EditDefaultsOnly, Category = "Shooter|Input")
-float HeldRetryIntervalSeconds = 0.2f;
 ```
 
 构造函数默认值：`TransientInputBlockedTags = { State.Reloading, State.Equipping }`。
-`State.Dead` 是硬失败，永远不可缓存。
+`State.Dead` 不是可缓冲阻塞，因此死亡状态下的按下不进入 Buffer。
 
 ### 5.2 条目
 
@@ -314,17 +312,18 @@ Server Ammo / Reserve / Inventory    → 不由 Buffer 猜测，由 Server 最�
   与 `AbilityInputTagReleased` 共用同一个内部释放函数。
 - **已松开的全自动按下沿**由 GA_Fire 自己的门控拒绝（见 7.1），不会在换弹结束后补开枪。
 
-### 5.5 Held 再武装（按住语义）
+### 5.5 Held 重试（Spec 行为标签）
 
 ```text
 对每个 AbilitySpec：
-  Ability->IsSustainedInputAbility() && Spec->InputPressed && !Spec->IsActive()
-  → TryActivateAbility
+  Spec.InputPressed && !Spec.IsActive() && Spec 带 InputBehavior.HeldRepeat
+  → TryActivateAbility（一次）
 ```
 
-- Held 状态来自 `Spec->InputPressed`（引擎状态），不新增第二份布尔。
+- Held 状态来自 `Spec.InputPressed`（引擎状态），不新增第二份布尔。
 - 覆盖用户场景：Fire 已激活 → Reload 取消 Fire → 玩家一直按住 → Reload End 后重新启动全自动。
-- 不建条目、不续期；每次再武装都要求输入仍处于按住状态。
+- 单发 Spec 永远不带该标签，因此一直按住不会跨阻塞补枪。
+- 不建条目、不续期、不排程下一次；被拒后下一次机会只来自新的短暂阻塞解除事件。
 
 ### 5.6 安全时点与重入约束
 
@@ -339,21 +338,22 @@ RegisterGameplayTagEvent(TransientInputBlockedTags, NewOrRemoved)
 - 同帧多次 Tag 变化只合并成一次处理。
 - 多标签同时消失只处理一次。
 
-### 5.7 有限重试（只针对按住型输入）
+### 5.7 一次安全重试（没有 Retry Timer）
 
-服务器拒绝全自动启动时（典型场景：客户端本地换弹先结束，服务器还在换弹）：
+安全时点上的重试只有「一次」，没有计数器也没有定时器：
 
 ```text
-安全时点尝试一次 → 若之后 Spec 仍未激活且输入仍按住
-→ 最多再安排 MaxHeldRetryPerPress 次、间隔 HeldRetryIntervalSeconds 的检查
-→ 次数用尽后停止，直到出现新的按下沿或新的安全时点
+短暂阻塞解除 → 下一 Tick ProcessBufferedInputs()
+  1. 消费仍未过期的条目（每个条目最多一次）
+  2. 对带 InputBehavior.HeldRepeat 且仍按住的 Spec 尝试一次
+→ 被拒不会排程下一次：下一次机会只来自新的短暂阻塞解除事件
 ```
 
 禁止：
 
 ```text
-每次 Server Reject 后无条件立即重启
-无上限的 Activation / Reject 循环
+Server Reject → 自动 Retry → Reject 的循环
+MaxHeldRetryPerPress 这类每个按下沿的再尝试计数与重试定时器
 半自动的自动重试（半自动一次点击只对应一次 Shot Attempt）
 ```
 
@@ -519,13 +519,13 @@ Buffer 不是「保证产生真实 Shot」。
 
 全自动：
   已松开 → 结束
-  仍按住 → 允许在安全时点做有限次数的再尝试（MaxHeldRetryPerPress）
+  仍按住 → 允许在下一个安全时点重试一次（InputBehavior.HeldRepeat）
   禁止 Reject → 立即重启 → Reject 的死循环
 ```
 
 明确记录一个既有相位差：Owner 本地换弹窗口先于服务器提交结束约一个单程延迟，
 因此「本地换弹刚结束就开枪」的请求可能被服务器 Reject。
-半自动接受一次 cosmetic phantom；全自动靠有限再尝试收敛。
+半自动接受一次 cosmetic phantom；全自动靠下一个安全时点的一次重试收敛。
 这是不做 Ammo Prediction 的直接代价，本轮接受。
 
 ## 11. 生命周期清理
@@ -535,8 +535,8 @@ Buffer / Held 意图不得跨生命周期泄漏。以下时点必须清理或失
 ```text
 InitAbilityActorInfo（Avatar 更换 / Respawn）
 ClearActorInfo（ASC 失去 Avatar）
-State.Dead 计数 > 0
-PlayerState EndPlay（解绑 Tag 事件并清空）
+EndPlay（解绑 Tag 事件并清空）
+死亡边界（宿主显式调用 ClearBufferedInputs，见 ShooterCharacter::ApplyDeathState）
 Ability Spec 被移除（消费时按 InputTag 找不到 Spec 即丢弃）
 Context 变化（武器切换 / 归还池）
 失去本地控制（处理入口与处理时点都校验本机拥有者视图）
@@ -579,7 +579,7 @@ GA_Reload：NetExecutionPolicy / bServerRespectsRemoteAbilityCancellation
 
 ### 单元 3：网络证据、文档同步与收尾
 
-状态：实施中。
+状态：**已实施并提交（`d7d52da`）**。
 
 ```text
 NetworkTestCoordinator：半自动 Buffer 窗口 / 换弹窗口 / 全自动 Held 场景
@@ -589,6 +589,24 @@ NetworkTestCoordinator：半自动 Buffer 窗口 / 换弹窗口 / 全自动 Held
 ```
 
 建议提交说明：`测试：完成输入缓冲与换弹预测网络回归`
+
+### 单元 4：职责收敛（纯减法）
+
+状态：**已实施并提交**（提交说明 `重构：按输入意图边界收敛 ASC 职责并统一 Held 语义`）。
+
+```text
+输入语义：删除 IsSustainedInputAbility()，改为 Spec 上的 InputBehavior.HeldRepeat
+Held 重试：删除 MaxHeldRetryPerPress / HeldRetryIntervalSeconds / HeldRetryTimer /
+         HeldReArmAttempts 与整条定时重试链，只保留「阻塞解除后一次安全重试」
+同步入口：装备收敛入口（BroadcastEquippedWeaponChanged / HandleWeaponActorReady）
+         按当前武器写入 / 移除行为标签，服务器与拥有者客户端走同一路径
+能力解耦：GA_Reload / GA_Equip 改用引擎原生 CancelAbilitiesWithTag，不再直接依赖 ShooterASC
+生命周期：删除 Fatal watcher，改由宿主在死亡边界显式 ClearBufferedInputs
+清理：bOwnerFeedbackPlayedThisActivation、HasBufferedInputForTest、
+     GetHeldReArmAttemptsForTest、重复的 RELEASE / Retry 路径、TMap 收敛条目表
+```
+
+建议提交说明：`重构：按输入意图边界收敛 ASC 职责并统一 Held 语义`
 
 如新增测试源码文件，结构变化完成后只运行一次
 `Scripts/Development/RefreshVisualStudioFiles.ps1`。
@@ -652,8 +670,9 @@ Server Reject 不产生 Gameplay Result、Remote 只消费服务器确认表现�
 - 同步测试世界没有 NetDriver，`TryActivateAbility` 走本机路径，因此可以同步断言：
   条目登记 / 不登记、过期、消费次数、释放后的 `State.Firing`、上下文变化丢弃。
 - 开发测试钩子沿用 `...ForTest` 命名（只读计数 + 立即处理 + 强制过期）：
-  `GetBufferedInputCountForTest`、`HasBufferedInputForTest`、`ProcessBufferedInputsForTest`、
-  `ExpireBufferedInputsForTest`。
+  `GetBufferedInputCountForTest`、`ProcessBufferedInputsForTest`、`ExpireBufferedInputsForTest`。
+- 输入行为标签本身是生产 API（`SetHeldRepeatInputBehavior`），测试直接调用它，
+  不再为「按住型输入」保留 Ability 侧虚函数钩子。
 - 网络侧继续扩展既有 `ShooterNetworkTestCoordinator`，不新建第二套框架：
   半自动连点窗口新增「换弹结束前的 buffered press」；
   `ReloadFire` 已知阻塞分支允许一次 cosmetic phantom 的语义按新模型重述；

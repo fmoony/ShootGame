@@ -49,9 +49,6 @@ public:
 	/** 测试观察接口：是否接受客户端发来的结束命令（必须为 false，权威保留在服务器）。 */
 	bool ServerRespectsRemoteAbilityCancellation() const;
 
-	/** 输入语义：全自动为按住持续，半自动为单次按下沿。 */
-	virtual bool IsSustainedInputAbility() const override;
-
 	/** 输入缓冲上下文：按下时对应的当前武器；换枪提交后旧输入不得在新武器上生效。 */
 	virtual const UObject* GetInputBufferContext() const override;
 
@@ -98,7 +95,12 @@ private:
 	 */
 	bool IsOwnerPredictedFeedbackAllowed();
 
-	/** 使用显式上下文执行同一生产判定，供开发测试构造表现目标状态。 */
+	/**
+	 * 使用显式上下文执行同一生产判定，供开发测试构造表现目标状态。
+	 *
+	 * AbilitySystemComponent 参数刻意保留且刻意不读：测试用它证明「即使这些复制状态存在，
+	 * 也不参与 Owner 表现门控」。任何把它接回判定的改动都会让该测试失败。
+	 */
 	bool IsOwnerPredictedFeedbackAllowedForContext(AActor* AvatarActor, const AShooterWeapon* Weapon,
 		const UAbilitySystemComponent* AbilitySystemComponent);
 
@@ -128,9 +130,6 @@ private:
 
 	/** 本地表现节拍是否活动；幂等停止与测试观察共用。 */
 	bool bPredictedFeedbackActive = false;
-
-	/** 当前激活是否至少成功提交过一次拥有者本地反馈。 */
-	bool bOwnerFeedbackPlayedThisActivation = false;
 
 #if WITH_DEV_AUTOMATION_TESTS
 public:

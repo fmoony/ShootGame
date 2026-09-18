@@ -23,11 +23,9 @@ namespace
 UShooterAbilitySystemComponent::UShooterAbilitySystemComponent()
 {
 	// 短暂阻塞：动作马上结束，输入值得保留到窗口结束。
+	// 硬失败（本机节拍未 Ready、武器无效）不在这里登记，因而永远不会进入输入缓冲。
 	TransientInputBlockedTags.AddTag(ShooterGameplayTags::State_Reloading);
 	TransientInputBlockedTags.AddTag(ShooterGameplayTags::State_Equipping);
-
-	// 硬阻塞：生命周期已失效，任何待消费意图都必须立即作废。
-	FatalInputBlockedTags.AddTag(ShooterGameplayTags::State_Dead);
 }
 
 void UShooterAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& InputTag)
@@ -44,9 +42,6 @@ void UShooterAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& 
 	// 对 LocalPredicted Ability：客户端 TryActivateAbility 会走 CallServerTryActivateAbility；
 	// 服务器端则直接进入 InternalTryActivateAbility。
 	AbilitySpecInputPressed(*Spec);
-
-	// 新的按下是新的意图：重置按住型输入的有限重试计数。
-	HeldReArmAttempts = 0;
 
 	if (Spec->IsActive())
 	{
@@ -87,12 +82,9 @@ void UShooterAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag&
 	}
 
 	// 真实松开：先经可靠 Server RPC 把松开转发到服务器，再分发给本地活动 Ability 实例。
+	// 松开只清 Spec.InputPressed；按下沿本身不立即丢弃，半自动仍可能在窗口内形成一次本地动作边界，
+	// 条目过期时自然移除。
 	ReleaseInputTag(*Spec);
-
-	// 松开不立即丢弃按下沿：半自动仍可能在窗口内形成一次本地动作边界，条目过期时自然移除。
-	// 但按住型输入的再武装必须以「仍处于按住」为前提，因此这里只清理重试状态。
-	HeldReArmAttempts = 0;
-	ClearHeldRetryTimer();
 }
 
 FGameplayAbilitySpec* UShooterAbilitySystemComponent::FindAbilitySpecFromInputTag(const FGameplayTag& InputTag)
@@ -139,18 +131,6 @@ int32 UShooterAbilitySystemComponent::GetAbilitySpecCountForClass(TSubclassOf<UG
 	return Count;
 }
 
-void UShooterAbilitySystemComponent::CancelAbilitiesByTag(const FGameplayTag& InputTag)
-{
-	if (!InputTag.IsValid())
-	{
-		return;
-	}
-
-	FGameplayTagContainer CancelTags;
-	CancelTags.AddTag(InputTag);
-	CancelAbilities(&CancelTags);
-}
-
 int32 UShooterAbilitySystemComponent::GetActiveAbilityCountForClass(TSubclassOf<UGameplayAbility> AbilityClass) const
 {
 	if (!AbilityClass)
@@ -170,6 +150,54 @@ int32 UShooterAbilitySystemComponent::GetActiveAbilityCountForClass(TSubclassOf<
 	return Count;
 }
 
+void UShooterAbilitySystemComponent::CancelAbilitiesByTag(const FGameplayTag& InputTag)
+{
+	if (!InputTag.IsValid())
+	{
+		return;
+	}
+
+	FGameplayTagContainer CancelTags;
+	CancelTags.AddTag(InputTag);
+	CancelAbilities(&CancelTags);
+}
+
+void UShooterAbilitySystemComponent::SetHeldRepeatInputBehavior(const FGameplayTag& InputTag, bool bEnabled)
+{
+	FGameplayAbilitySpec* Spec = FindAbilitySpecFromInputTag(InputTag);
+	if (!Spec)
+	{
+		return;
+	}
+
+	FGameplayTagContainer& SpecTags = Spec->GetDynamicSpecSourceTags();
+	if (SpecTags.HasTagExact(ShooterGameplayTags::InputBehavior_HeldRepeat) == bEnabled)
+	{
+		// 幂等：语义没有变化时不重复标脏，也不产生复制流量。
+		return;
+	}
+
+	if (bEnabled)
+	{
+		SpecTags.AddTag(ShooterGameplayTags::InputBehavior_HeldRepeat);
+	}
+	else
+	{
+		SpecTags.RemoveTag(ShooterGameplayTags::InputBehavior_HeldRepeat);
+	}
+
+	// 动态 Spec 标签随 Spec 复制；修改后必须标脏，否则拥有者端的 Held 语义会停在旧值。
+	MarkAbilitySpecDirty(*Spec);
+
+	UE_LOG(LogShootGame, Verbose, TEXT("Input behavior synced: InputTag=%s HeldRepeat=%s Owner=%s"),
+		*InputTag.ToString(), bEnabled ? TEXT("true") : TEXT("false"), *GetNameSafe(GetOwnerActor()));
+}
+
+void UShooterAbilitySystemComponent::ClearBufferedInputs()
+{
+	BufferedInputs.Reset();
+}
+
 void UShooterAbilitySystemComponent::InitAbilityActorInfo(AActor* InOwnerActor, AActor* InAvatarActor)
 {
 	// Avatar 变化（重生 / 换 Pawn）后，旧生命周期的输入意图不得延续。
@@ -180,13 +208,13 @@ void UShooterAbilitySystemComponent::InitAbilityActorInfo(AActor* InOwnerActor, 
 	// 失败回调与标签监听按实例绑定；ActorInfo 重建时只保留一份。
 	AbilityFailedCallbacks.RemoveAll(this);
 	AbilityFailedCallbacks.AddUObject(this, &UShooterAbilitySystemComponent::HandleAbilityFailed);
-	RegisterInputTagWatchers();
+	RegisterTransientBlockedTagWatchers();
 }
 
 void UShooterAbilitySystemComponent::ClearActorInfo()
 {
 	ClearBufferedInputs();
-	UnregisterInputTagWatchers();
+	UnregisterTransientBlockedTagWatchers();
 	AbilityFailedCallbacks.RemoveAll(this);
 
 	Super::ClearActorInfo();
@@ -195,7 +223,7 @@ void UShooterAbilitySystemComponent::ClearActorInfo()
 void UShooterAbilitySystemComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	ClearBufferedInputs();
-	UnregisterInputTagWatchers();
+	UnregisterTransientBlockedTagWatchers();
 	AbilityFailedCallbacks.RemoveAll(this);
 
 	Super::EndPlay(EndPlayReason);
@@ -213,7 +241,7 @@ void UShooterAbilitySystemComponent::HandleAbilityFailed(const UGameplayAbility*
 		return;
 	}
 
-	// 只有项目 Ability 参与输入缓冲：它们才能声明输入语义与上下文。
+	// 只有项目 Ability 参与输入缓冲：它们才能声明输入上下文。
 	const UShooterGameplayAbility* ShooterAbility = Cast<UShooterGameplayAbility>(Ability);
 	if (!ShooterAbility)
 	{
@@ -241,7 +269,7 @@ void UShooterAbilitySystemComponent::HandleAbilityFailed(const UGameplayAbility*
 
 	if (!TransientInputBlockedTags.HasAll(BlockingTags))
 	{
-		// 含硬阻塞（例如 State.Dead）或未登记标签：不保留。
+		// 含未登记的阻塞标签（例如 State.Dead）：不保留。
 		return;
 	}
 
@@ -259,17 +287,6 @@ void UShooterAbilitySystemComponent::HandleTransientBlockedTagChanged(FGameplayT
 	LogInputBufferMarker(TEXT("INPUT_BUFFER_TAG_CLEARED"), Tag, TEXT("BlockEnded"),
 		GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0f);
 	RequestBufferedInputProcessing();
-}
-
-void UShooterAbilitySystemComponent::HandleFatalBlockedTagChanged(FGameplayTag /*Tag*/, int32 NewCount)
-{
-	if (NewCount <= 0)
-	{
-		return;
-	}
-
-	// 生命周期已失效：任何待消费意图立即作废。
-	ClearBufferedInputs();
 }
 
 void UShooterAbilitySystemComponent::RequestBufferedInputProcessing()
@@ -304,11 +321,13 @@ void UShooterAbilitySystemComponent::ProcessBufferedInputs()
 	const float Now = World ? World->GetTimeSeconds() : 0.0f;
 
 	// 1. 消费仍未过期的按下沿：一次输入只对应一次尝试。
-	while (BufferedInputs.Num() > 0)
-	{
-		const FShooterBufferedInput Entry = BufferedInputs[0];
-		BufferedInputs.RemoveAt(0);
+	// 先整体取出再处理，保证每个条目在本时点最多被消费一次（消费路径不会再登记新条目）。
+	TMap<FGameplayTag, FShooterBufferedInput> PendingInputs = MoveTemp(BufferedInputs);
+	BufferedInputs.Reset();
 
+	for (const TPair<FGameplayTag, FShooterBufferedInput>& Pair : PendingInputs)
+	{
+		const FShooterBufferedInput& Entry = Pair.Value;
 		if (Now > Entry.ExpireTime)
 		{
 			// 过期：不激活、不表现、不请求，也不重建条目。
@@ -326,19 +345,10 @@ void UShooterAbilitySystemComponent::ProcessBufferedInputs()
 		const bool bActivated = ConsumeBufferedInput(*Spec);
 		LogInputBufferMarker(TEXT("INPUT_BUFFER_CONSUMED"), Entry.InputTag,
 			bActivated ? TEXT("Activated") : TEXT("Rejected"), Now);
-
-		// 按住型输入仍未被激活：允许有限次数的后续再尝试
-		// （典型场景：客户端本地换弹窗口先结束，服务器还在换弹并 Reject）。
-		const UShooterGameplayAbility* ShooterAbility = GetShooterAbilityForSpec(*Spec);
-		const bool bSustained = ShooterAbility && ShooterAbility->IsSustainedInputAbility();
-		if (bSustained && Spec->InputPressed && !Spec->IsActive())
-		{
-			ScheduleHeldRetryCheck();
-		}
 	}
 
-	// 2. 按住型输入再武装：覆盖「Ability 已被取消，但玩家一直按住」的场景。
-	ReArmSustainedInputs();
+	// 2. 按住型输入的一次安全重试：覆盖「仍然按住，但上一次动作已被取消或结束」的场景。
+	RetryHeldRepeatInputs();
 }
 
 bool UShooterAbilitySystemComponent::ConsumeBufferedInput(FGameplayAbilitySpec& Spec)
@@ -364,65 +374,30 @@ bool UShooterAbilitySystemComponent::ConsumeBufferedInput(FGameplayAbilitySpec& 
 	return bActivated;
 }
 
-void UShooterAbilitySystemComponent::ReArmSustainedInputs()
+void UShooterAbilitySystemComponent::RetryHeldRepeatInputs()
 {
-	if (!ShouldBufferLocalInput() || HeldReArmAttempts >= MaxHeldRetryPerPress)
-	{
-		return;
-	}
+	const UWorld* World = GetWorld();
+	const float Now = World ? World->GetTimeSeconds() : 0.0f;
 
 	for (FGameplayAbilitySpec& Spec : GetActivatableAbilities())
 	{
-		if (Spec.IsActive() || !Spec.InputPressed)
+		// 只认两件事：Spec 仍处于按住，且 Spec 声明了 HeldRepeat 输入行为。
+		// 单发（Semi）Spec 永远不带这个标签，因此不会因为一直按住而补枪。
+		if (Spec.IsActive() || !Spec.Ability || !Spec.InputPressed || !HasHeldRepeatInputBehavior(Spec))
 		{
 			continue;
 		}
 
-		TryReArmSustainedInput(Spec);
+		// 一次安全重试：被拒不会排程下一次，下一次机会只来自新的短暂阻塞解除事件。
+		const bool bActivated = TryActivateAbility(Spec.Handle, true);
+		LogInputBufferMarker(TEXT("INPUT_HELD_REPEAT_RETRY"), Spec.Ability->GetAssetTags().First(),
+			bActivated ? TEXT("Activated") : TEXT("Rejected"), Now);
 	}
 }
 
-bool UShooterAbilitySystemComponent::TryReArmSustainedInput(FGameplayAbilitySpec& Spec)
+bool UShooterAbilitySystemComponent::HasHeldRepeatInputBehavior(const FGameplayAbilitySpec& Spec)
 {
-	const UShooterGameplayAbility* ShooterAbility = GetShooterAbilityForSpec(Spec);
-	if (!ShooterAbility || !ShooterAbility->IsSustainedInputAbility())
-	{
-		return false;
-	}
-
-	++HeldReArmAttempts;
-	const bool bActivated = TryActivateAbility(Spec.Handle, true);
-
-	if (Spec.InputPressed && !Spec.IsActive())
-	{
-		ScheduleHeldRetryCheck();
-	}
-
-	return bActivated;
-}
-
-void UShooterAbilitySystemComponent::ScheduleHeldRetryCheck()
-{
-	UWorld* World = GetWorld();
-	if (!World || HeldRetryTimer.IsValid() || HeldReArmAttempts >= MaxHeldRetryPerPress)
-	{
-		return;
-	}
-
-	World->GetTimerManager().SetTimer(HeldRetryTimer, this, &UShooterAbilitySystemComponent::HandleHeldRetryCheck,
-		FMath::Max(HeldRetryIntervalSeconds, 0.01f), /*bLoop*/ false);
-}
-
-void UShooterAbilitySystemComponent::HandleHeldRetryCheck()
-{
-	HeldRetryTimer.Invalidate();
-
-	if (HeldReArmAttempts >= MaxHeldRetryPerPress)
-	{
-		return;
-	}
-
-	ReArmSustainedInputs();
+	return Spec.GetDynamicSpecSourceTags().HasTagExact(ShooterGameplayTags::InputBehavior_HeldRepeat);
 }
 
 void UShooterAbilitySystemComponent::RegisterBufferedInput(const FGameplayTag& InputTag, const UObject* Context)
@@ -433,26 +408,12 @@ void UShooterAbilitySystemComponent::RegisterBufferedInput(const FGameplayTag& I
 		return;
 	}
 
-	const float ExpireTime = World->GetTimeSeconds() + FMath::Max(InputBufferWindowSeconds, 0.0f);
-
 	// 同一个输入 Tag 只保留最新的一条按下沿；新的按下是新意图，允许重置窗口。
-	for (FShooterBufferedInput& Entry : BufferedInputs)
-	{
-		if (Entry.InputTag == InputTag)
-		{
-			Entry.Context = Context;
-			Entry.bHasContext = Context != nullptr;
-			Entry.ExpireTime = ExpireTime;
-			return;
-		}
-	}
-
-	FShooterBufferedInput NewEntry;
-	NewEntry.InputTag = InputTag;
-	NewEntry.Context = Context;
-	NewEntry.bHasContext = Context != nullptr;
-	NewEntry.ExpireTime = ExpireTime;
-	BufferedInputs.Add(NewEntry);
+	FShooterBufferedInput& Entry = BufferedInputs.FindOrAdd(InputTag);
+	Entry.InputTag = InputTag;
+	Entry.Context = Context;
+	Entry.bHasContext = Context != nullptr;
+	Entry.ExpireTime = World->GetTimeSeconds() + FMath::Max(InputBufferWindowSeconds, 0.0f);
 
 	UE_LOG(LogShootGame, Verbose, TEXT("Input buffered: InputTag=%s Window=%.3f Owner=%s"),
 		*InputTag.ToString(), InputBufferWindowSeconds, *GetNameSafe(GetOwnerActor()));
@@ -463,30 +424,7 @@ void UShooterAbilitySystemComponent::RegisterBufferedInput(const FGameplayTag& I
 
 bool UShooterAbilitySystemComponent::RemoveBufferedInput(const FGameplayTag& InputTag)
 {
-	const int32 RemovedCount = BufferedInputs.RemoveAll(
-		[&InputTag](const FShooterBufferedInput& Entry) { return Entry.InputTag == InputTag; });
-	return RemovedCount > 0;
-}
-
-void UShooterAbilitySystemComponent::ClearBufferedInputs()
-{
-	BufferedInputs.Reset();
-	HeldReArmAttempts = 0;
-	ClearHeldRetryTimer();
-}
-
-void UShooterAbilitySystemComponent::ClearHeldRetryTimer()
-{
-	if (!HeldRetryTimer.IsValid())
-	{
-		return;
-	}
-
-	if (UWorld* World = GetWorld())
-	{
-		World->GetTimerManager().ClearTimer(HeldRetryTimer);
-	}
-	HeldRetryTimer.Invalidate();
+	return BufferedInputs.Remove(InputTag) > 0;
 }
 
 bool UShooterAbilitySystemComponent::ShouldBufferLocalInput() const
@@ -524,9 +462,9 @@ void UShooterAbilitySystemComponent::ReleaseInputTag(FGameplayAbilitySpec& Spec)
 	AbilitySpecInputReleased(Spec);
 }
 
-void UShooterAbilitySystemComponent::RegisterInputTagWatchers()
+void UShooterAbilitySystemComponent::RegisterTransientBlockedTagWatchers()
 {
-	UnregisterInputTagWatchers();
+	UnregisterTransientBlockedTagWatchers();
 
 	for (const FGameplayTag& Tag : TransientInputBlockedTags)
 	{
@@ -534,28 +472,15 @@ void UShooterAbilitySystemComponent::RegisterInputTagWatchers()
 			.AddUObject(this, &UShooterAbilitySystemComponent::HandleTransientBlockedTagChanged);
 		TransientTagDelegateHandles.Add(Tag, Handle);
 	}
-
-	for (const FGameplayTag& Tag : FatalInputBlockedTags)
-	{
-		const FDelegateHandle Handle = RegisterGameplayTagEvent(Tag, EGameplayTagEventType::NewOrRemoved)
-			.AddUObject(this, &UShooterAbilitySystemComponent::HandleFatalBlockedTagChanged);
-		FatalTagDelegateHandles.Add(Tag, Handle);
-	}
 }
 
-void UShooterAbilitySystemComponent::UnregisterInputTagWatchers()
+void UShooterAbilitySystemComponent::UnregisterTransientBlockedTagWatchers()
 {
 	for (const TPair<FGameplayTag, FDelegateHandle>& Pair : TransientTagDelegateHandles)
 	{
 		UnregisterGameplayTagEvent(Pair.Value, Pair.Key, EGameplayTagEventType::NewOrRemoved);
 	}
 	TransientTagDelegateHandles.Reset();
-
-	for (const TPair<FGameplayTag, FDelegateHandle>& Pair : FatalTagDelegateHandles)
-	{
-		UnregisterGameplayTagEvent(Pair.Value, Pair.Key, EGameplayTagEventType::NewOrRemoved);
-	}
-	FatalTagDelegateHandles.Reset();
 }
 
 void UShooterAbilitySystemComponent::LogInputBufferMarker(const TCHAR* Marker, const FGameplayTag& InputTag,
@@ -583,9 +508,9 @@ void UShooterAbilitySystemComponent::ExpireBufferedInputsForTest()
 {
 	const UWorld* World = GetWorld();
 	const float ExpiredTime = World ? World->GetTimeSeconds() - 1.0f : -1.0f;
-	for (FShooterBufferedInput& Entry : BufferedInputs)
+	for (TPair<FGameplayTag, FShooterBufferedInput>& Pair : BufferedInputs)
 	{
-		Entry.ExpireTime = ExpiredTime;
+		Pair.Value.ExpireTime = ExpiredTime;
 	}
 }
 #endif
