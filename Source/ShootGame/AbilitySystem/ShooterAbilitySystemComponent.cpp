@@ -67,7 +67,7 @@ void UShooterAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& 
 	if (bActivated)
 	{
 		// 这次按下已经形成本地动作边界：同一个输入 Tag 的旧按下沿失效。
-		RemoveBufferedInput(InputTag);
+		BufferedInputs.Remove(InputTag);
 	}
 }
 
@@ -275,8 +275,8 @@ void UShooterAbilitySystemComponent::HandleAbilityFailed(const UGameplayAbility*
 
 	// 带 HeldRepeat 的 Spec 不登记按下沿：它的持续意图唯一来源是 Spec.InputPressed，
 	// Release 即终止；阻塞解除后由 RetryHeldRepeatInputs 按当前按住状态重试一次。
-	if (const FGameplayAbilitySpec* PressedSpec = FindAbilitySpecFromInputTag(PendingPressInputTag);
-		PressedSpec && HasHeldRepeatInputBehavior(*PressedSpec))
+	const FGameplayAbilitySpec* PressedSpec = FindAbilitySpecFromInputTag(PendingPressInputTag);
+	if (PressedSpec && HasHeldRepeatInputBehavior(*PressedSpec))
 	{
 		return;
 	}
@@ -286,20 +286,9 @@ void UShooterAbilitySystemComponent::HandleAbilityFailed(const UGameplayAbility*
 
 void UShooterAbilitySystemComponent::HandleTransientBlockedTagChanged(FGameplayTag Tag, int32 NewCount)
 {
-	// 只在阻塞解除时安排处理；不在标签回调栈内直接重入激活。
-	if (NewCount > 0)
-	{
-		return;
-	}
-
-	LogInputBufferMarker(TEXT("INPUT_BUFFER_TAG_CLEARED"), Tag, TEXT("BlockEnded"),
-		GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0f);
-	RequestBufferedInputProcessing();
-}
-
-void UShooterAbilitySystemComponent::RequestBufferedInputProcessing()
-{
-	if (bBufferProcessScheduled)
+	// 只在阻塞解除时登记一次待处理；不在标签回调栈内直接重入激活。
+	// 同帧的多次标签变化（含已排程）合并成一次，统一落到下一 Tick 的安全时点。
+	if (NewCount > 0 || bBufferProcessScheduled)
 	{
 		return;
 	}
@@ -310,12 +299,14 @@ void UShooterAbilitySystemComponent::RequestBufferedInputProcessing()
 		return;
 	}
 
+	LogInputBufferMarker(TEXT("INPUT_BUFFER_TAG_CLEARED"), Tag, TEXT("BlockEnded"), World->GetTimeSeconds());
+
 	// 合并到当前 GAS 清理调用栈退出后的安全时点：下一 Tick 只处理一次。
 	bBufferProcessScheduled = true;
-	World->GetTimerManager().SetTimerForNextTick(this, &UShooterAbilitySystemComponent::ProcessBufferedInputs);
+	World->GetTimerManager().SetTimerForNextTick(this, &UShooterAbilitySystemComponent::ProcessDeferredInputIntents);
 }
 
-void UShooterAbilitySystemComponent::ProcessBufferedInputs()
+void UShooterAbilitySystemComponent::ProcessDeferredInputIntents()
 {
 	bBufferProcessScheduled = false;
 
@@ -358,36 +349,24 @@ void UShooterAbilitySystemComponent::ProcessBufferedInputs()
 			continue;
 		}
 
-		const bool bActivated = ConsumeBufferedInput(*Spec);
+		// 按下沿在消费时是否仍按住，直接读引擎的 Spec 状态，不维护第二份布尔。
+		const bool bStillHeld = Spec->InputPressed;
+		// 延迟消费不再登记新条目：这里的失败不会重建、不会续期。
+		const bool bActivated = Spec->IsActive() ? false : TryActivateAbility(Spec->Handle, true);
+
+		if (bActivated && !bStillHeld)
+		{
+			// 按下沿在消费前已经松开：立即走标准释放路径，
+			// 避免残留活动 Ability 与不会结束的本地预测实例。
+			ReleaseInputTag(*Spec);
+		}
+
 		LogInputBufferMarker(TEXT("INPUT_BUFFER_CONSUMED"), Entry.InputTag,
 			bActivated ? TEXT("Activated") : TEXT("Rejected"), Now);
 	}
 
 	// 2. 按住型输入的一次安全重试：覆盖「仍然按住，但上一次动作已被取消或结束」的场景。
 	RetryHeldRepeatInputs();
-}
-
-bool UShooterAbilitySystemComponent::ConsumeBufferedInput(FGameplayAbilitySpec& Spec)
-{
-	if (Spec.IsActive())
-	{
-		return false;
-	}
-
-	// 按下沿在消费时是否仍按住，直接读引擎的 Spec 状态，不维护第二份布尔。
-	const bool bStillHeld = Spec.InputPressed;
-
-	// 延迟消费不再登记新条目：这里的失败不会重建、不会续期。
-	const bool bActivated = TryActivateAbility(Spec.Handle, true);
-
-	if (bActivated && !bStillHeld)
-	{
-		// 按下沿在消费前已经松开：立即走标准释放路径，
-		// 避免残留活动 Ability 与不会结束的本地预测实例。
-		ReleaseInputTag(Spec);
-	}
-
-	return bActivated;
 }
 
 void UShooterAbilitySystemComponent::RetryHeldRepeatInputs()
@@ -436,11 +415,6 @@ void UShooterAbilitySystemComponent::RegisterBufferedInput(const FGameplayTag& I
 
 	// 开发构建输出可搜索标记，供网络场景与自动化定位输入缓冲行为。
 	LogInputBufferMarker(TEXT("INPUT_BUFFER_REGISTERED"), InputTag, TEXT("Registered"), World->GetTimeSeconds());
-}
-
-bool UShooterAbilitySystemComponent::RemoveBufferedInput(const FGameplayTag& InputTag)
-{
-	return BufferedInputs.Remove(InputTag) > 0;
 }
 
 bool UShooterAbilitySystemComponent::ShouldBufferLocalInput() const
@@ -515,9 +489,9 @@ void UShooterAbilitySystemComponent::LogInputBufferMarker(const TCHAR* Marker, c
 }
 
 #if WITH_DEV_AUTOMATION_TESTS
-void UShooterAbilitySystemComponent::ProcessBufferedInputsForTest()
+void UShooterAbilitySystemComponent::ProcessDeferredInputIntentsForTest()
 {
-	ProcessBufferedInputs();
+	ProcessDeferredInputIntents();
 }
 
 void UShooterAbilitySystemComponent::ExpireBufferedInputsForTest()

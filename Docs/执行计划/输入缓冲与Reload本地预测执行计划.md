@@ -299,7 +299,7 @@ Server Ammo / Reserve / Inventory    → 不由 Buffer 猜测，由 Server 最�
 
 ### 5.4 消费规则
 
-在安全时点执行 `ProcessBufferedInputs()`：
+在安全时点执行 `ProcessDeferredInputIntents()`：
 
 ```text
 对每条未过期条目：
@@ -345,7 +345,7 @@ Server Ammo / Reserve / Inventory    → 不由 Buffer 猜测，由 Server 最�
 RegisterGameplayTagEvent(TransientInputBlockedTags, NewOrRemoved)
 → 计数归零时只登记 bBufferProcessScheduled
 → GetWorld()->GetTimerManager().SetTimerForNextTick(...)
-→ 下一 Tick 执行一次 ProcessBufferedInputs()
+→ 下一 Tick 执行一次 ProcessDeferredInputIntents()
 ```
 
 - 不在 Tag 回调栈内调用 `TryActivateAbility`，避免 `EndAbility` / `RemoveTag` 栈内重入。
@@ -357,7 +357,7 @@ RegisterGameplayTagEvent(TransientInputBlockedTags, NewOrRemoved)
 安全时点上的重试只有「一次」，没有计数器也没有定时器：
 
 ```text
-短暂阻塞解除 → 下一 Tick ProcessBufferedInputs()
+短暂阻塞解除 → 下一 Tick ProcessDeferredInputIntents()
   1. 消费仍未过期的条目（每个条目最多一次）
   2. 对带 InputBehavior.HeldRepeat 且仍按住的 Spec 尝试一次
 → 被拒不会排程下一次：下一次机会只来自新的短暂阻塞解除事件
@@ -514,7 +514,7 @@ Input Buffer 不知道 ReloadDuration，也不知道换弹规则：
 ```text
 1.42  Press Fire → 本地节拍 Ready → Super 被 State.Reloading 拦 → Buffer 到 1.57
 1.45  Release Fire → Spec.InputPressed = false，条目保留
-1.50  Owner 本地 Reload End → State.Reloading 移除 → 下一 Tick ProcessBufferedInputs
+1.50  Owner 本地 Reload End → State.Reloading 移除 → 下一 Tick ProcessDeferredInputIntents
 1.50  条目未过期 → 恰好激活一次 → 一次 Owner 表现 → 立即补标准释放
 ```
 
@@ -629,7 +629,7 @@ Held 重试：删除 MaxHeldRetryPerPress / HeldRetryIntervalSeconds / HeldRetry
 
 ```text
 登记侧：HandleAbilityFailed 对带 HeldRepeat 的 Spec 不登记按下沿
-消费侧：ProcessBufferedInputs 对带 HeldRepeat 的 Spec 丢弃历史残留条目（Reason=HeldRepeat）
+消费侧：ProcessDeferredInputIntents 对带 HeldRepeat 的 Spec 丢弃历史残留条目（Reason=HeldRepeat）
 不变：Semi 的短期 Buffered Press Edge（登记 / 过期 / 上下文校验 / 消费一次 / 补 Release）不动
 不变：Held 跨武器行为维持现状，不新增 PressContext
 测试：InputBuffer.HeldRepeatRetriesAfterBlocker 断言改为「不登记条目」；
@@ -704,7 +704,8 @@ Server Reject 不产生 Gameplay Result、Remote 只消费服务器确认表现�
 - 同步测试世界没有 NetDriver，`TryActivateAbility` 走本机路径，因此可以同步断言：
   条目登记 / 不登记、过期、消费次数、释放后的 `State.Firing`、上下文变化丢弃。
 - 开发测试钩子沿用 `...ForTest` 命名（只读计数 + 立即处理 + 强制过期）：
-  `GetBufferedInputCountForTest`、`ProcessBufferedInputsForTest`、`ExpireBufferedInputsForTest`。
+  `GetBufferedInputCountForTest`、`ProcessDeferredInputIntentsForTest`、
+  `ExpireBufferedInputsForTest`。
 - 输入行为标签本身是生产 API（`SetHeldRepeatInputBehavior`），测试直接调用它，
   不再为「按住型输入」保留 Ability 侧虚函数钩子。
 - 网络侧继续扩展既有 `ShooterNetworkTestCoordinator`，不新建第二套框架：

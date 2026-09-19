@@ -60,7 +60,8 @@ namespace ShooterFirstPersonPresentation
 			CameraLocation = Mesh->GetComponentTransform().InverseTransformPosition(Camera->GetComponentLocation());
 			CameraOffset = Camera->GetRelativeLocation();
 			bCameraOnHead = Camera->GetAttachParent() == Mesh && Camera->GetAttachSocketName() == TEXT("head");
-			const TCHAR* Names[] = { TEXT("pelvis"), TEXT("head"), TEXT("clavicle_l"), TEXT("clavicle_r"),
+			const TCHAR* Names[] = {
+				TEXT("pelvis"), TEXT("head"), TEXT("clavicle_l"), TEXT("clavicle_r"),
 				TEXT("upperarm_l"), TEXT("upperarm_r"),
 				TEXT("lowerarm_l"), TEXT("hand_l"), TEXT("lowerarm_r"), TEXT("hand_r"),
 				TEXT("thumb_03_l"), TEXT("index_03_l"), TEXT("middle_03_l"), TEXT("ring_03_l"), TEXT("pinky_03_l"),
@@ -129,7 +130,8 @@ namespace ShooterFirstPersonPresentation
 				for (int32 Corner = 0; Corner < 8; ++Corner)
 				{
 					IncludePoint(WeaponTransform.TransformPosition(FVector(
-						Corner & 1 ? WeaponBounds.Max.X : WeaponBounds.Min.X, Corner & 2 ? WeaponBounds.Max.Y : WeaponBounds.Min.Y,
+						Corner & 1 ? WeaponBounds.Max.X : WeaponBounds.Min.X,
+						Corner & 2 ? WeaponBounds.Max.Y : WeaponBounds.Min.Y,
 						Corner & 4 ? WeaponBounds.Max.Z : WeaponBounds.Min.Z)));
 				}
 			}
@@ -200,8 +202,9 @@ namespace ShooterFirstPersonPresentation
 							FVector::Distance(Position(Joint, false), Position(Elbow, false)), 0.05);
 					}
 				}
-				bValid &= !bConstrainLeftElbow || FVector::DotProduct((Position(LeftHand, true) - Position(LeftElbow, true)).GetSafeNormal(), Up)
-					>= MinimumForearmRise - 0.001f;
+				bValid &= !bConstrainLeftElbow
+						|| FVector::DotProduct((Position(LeftHand, true) - Position(LeftElbow, true)).GetSafeNormal(), Up)
+							>= MinimumForearmRise - 0.001f;
 				if (!bValid)
 				{
 					UE_LOG(LogTemp, Error, TEXT("FIRST_PERSON_POSE_FAILURE: bone length, hand target, head or elbow direction changed"));

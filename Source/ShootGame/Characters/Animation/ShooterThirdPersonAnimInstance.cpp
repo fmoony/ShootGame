@@ -139,8 +139,7 @@ void UShooterThirdPersonAnimInstance::NativeInitializeAnimation()
 		return;
 	}
 
-	Character->OnWeaponPresentationChanged.AddDynamic(this,
-		&UShooterThirdPersonAnimInstance::HandleWeaponPresentationChanged);
+	Character->OnWeaponPresentationChanged.AddDynamic(this, &UShooterThirdPersonAnimInstance::HandleWeaponPresentationChanged);
 
 	// AnimClass 切换可能发生在事件之前：初始化后立即从 Equipment 回放一次当前状态。
 	ReplayWeaponPresentationState(Character);
@@ -151,8 +150,7 @@ void UShooterThirdPersonAnimInstance::NativeUninitializeAnimation()
 	AShooterCharacter* Character = GetCachedShooterCharacter();
 	if (Character)
 	{
-		Character->OnWeaponPresentationChanged.RemoveDynamic(this,
-			&UShooterThirdPersonAnimInstance::HandleWeaponPresentationChanged);
+		Character->OnWeaponPresentationChanged.RemoveDynamic(this, &UShooterThirdPersonAnimInstance::HandleWeaponPresentationChanged);
 	}
 
 	ClearWeaponStaticBindings();
@@ -361,13 +359,9 @@ void UShooterThirdPersonAnimInstance::RefreshIKEnabled()
 void UShooterThirdPersonAnimInstance::UpdateLeftHandIKPresentationAlpha(float DeltaSeconds)
 {
 	const float ReloadCurveAlpha = FMath::Clamp(GetCurveValue(ReloadIKAlphaCurveName), 0.0f, 1.0f);
-	const float ReloadGateAlpha = bIsReloading && !bReloadPresentationRecovering
-		? ReloadCurveAlpha
-		: 1.0f;
+	const float ReloadGateAlpha = bIsReloading && !bReloadPresentationRecovering ? ReloadCurveAlpha : 1.0f;
 	const float TargetAlpha = bLeftHandIKEnabled ? ReloadGateAlpha : 0.0f;
-	const float BlendTime = TargetAlpha > LeftHandIKPresentationAlpha
-		? LeftHandIKBlendInTime
-		: LeftHandIKBlendOutTime;
+	const float BlendTime = TargetAlpha > LeftHandIKPresentationAlpha ? LeftHandIKBlendInTime : LeftHandIKBlendOutTime;
 
 	if (BlendTime <= UE_KINDA_SMALL_NUMBER || DeltaSeconds <= 0.0f)
 	{
@@ -381,13 +375,9 @@ void UShooterThirdPersonAnimInstance::UpdateLeftHandIKPresentationAlpha(float De
 void UShooterThirdPersonAnimInstance::UpdateAimIKPresentationAlpha(float DeltaSeconds)
 {
 	const float ReloadCurveAlpha = FMath::Clamp(GetCurveValue(ReloadIKAlphaCurveName), 0.0f, 1.0f);
-	const float ReloadGateAlpha = bIsReloading && !bReloadPresentationRecovering
-		? ReloadCurveAlpha
-		: 1.0f;
+	const float ReloadGateAlpha = bIsReloading && !bReloadPresentationRecovering ? ReloadCurveAlpha : 1.0;
 	const float TargetAlpha = bAimIKEnabled ? ReloadGateAlpha : 0.0f;
-	const float BlendTime = TargetAlpha > AimIKPresentationAlpha
-		? AimIKBlendInTime
-		: AimIKBlendOutTime;
+	const float BlendTime = TargetAlpha > AimIKPresentationAlpha ? AimIKBlendInTime : AimIKBlendOutTime;
 
 	if (BlendTime <= UE_KINDA_SMALL_NUMBER || DeltaSeconds <= 0.0f)
 	{

@@ -124,12 +124,13 @@ void UShooterEquipmentComponent::ClearEquippedWeapon()
 
 void UShooterEquipmentComponent::HandleWeaponActorReady(AShooterWeapon* Weapon)
 {
+	// 守卫只决定「何时重算」：武器自身的 Owner / WeaponId / 行配置晚到时，
+	// 只有它仍是当前武器才需要重算输入语义；非当前武器的晚到不参与判定。
 	if (IsValid(Weapon) && Weapon == CurrentWeaponActor)
 	{
-		// WeaponActor 的 Owner / WeaponId / 行配置晚到时补做幂等收敛，不发布逻辑事件。
-		// 连发语义来自行配置，因此必须在这里重新同步输入行为标签：
-		// 客户端先收到 CurrentWeaponActor、随后才收到 WeaponId 并应用配置是常见路径。
-		SyncFireHeldRepeatInputBehavior(Weapon);
+		// 客户端先收到 CurrentWeaponActor、随后才收到 WeaponId 并应用行配置是常见路径，
+		// 因此这里必须重算一次（取值始终由 SyncCurrentWeaponFireInputBehavior 内部从权威派生）。
+		SyncCurrentWeaponFireInputBehavior();
 
 		if (AShooterCharacter* Character = GetOwnerCharacter())
 		{
@@ -183,15 +184,17 @@ void UShooterEquipmentComponent::BroadcastEquippedWeaponChanged(AShooterWeapon* 
 	}
 
 	// 当前武器是输入语义的唯一来源：逻辑转移时同步 Fire Spec 的通用输入行为标签。
-	// 服务器与拥有者客户端走同一条路径，各自按自己看到的 CurrentWeaponActor 收敛。
-	SyncFireHeldRepeatInputBehavior(CurrentWeapon);
+	// 服务器与拥有者客户端走同一条路径，取值由 helper 内部按各自的 CurrentWeaponActor 派生。
+	SyncCurrentWeaponFireInputBehavior();
 
 	OnEquippedWeaponChanged.Broadcast(PreviousWeapon, CurrentWeapon);
 }
 
-void UShooterEquipmentComponent::SyncFireHeldRepeatInputBehavior(AShooterWeapon* Weapon)
+void UShooterEquipmentComponent::SyncCurrentWeaponFireInputBehavior()
 {
 	// 「当前武器语义 → 输入行为标签」的唯一同步点：装备逻辑转移与武器配置晚到都收敛到这里。
+	// 一律从 CurrentWeaponActor 派生，不接受调用方传入的武器：
+	// 非当前武器的配置晚到因此不可能覆盖当前武器的输入语义（无论谁调用、按什么顺序调用）。
 	// ASC 只认标签与 Spec.InputPressed，不判断武器类型；Ability 侧不再需要任何输入语义虚函数。
 	// 幂等：语义没有变化时 ASC 不重复标脏，因此这里可以被安全地重复调用。
 	const AShooterCharacter* Character = GetOwnerCharacter();
@@ -206,7 +209,7 @@ void UShooterEquipmentComponent::SyncFireHeldRepeatInputBehavior(AShooterWeapon*
 	}
 
 	AbilitySystemComponent->SetHeldRepeatInputBehavior(ShooterGameplayTags::Input_Fire,
-		IsValid(Weapon) && Weapon->IsFullAuto());
+		IsValid(CurrentWeaponActor) && CurrentWeaponActor->IsFullAuto());
 }
 
 void UShooterEquipmentComponent::OnRep_CurrentWeaponActor(AShooterWeapon* PreviousWeapon)

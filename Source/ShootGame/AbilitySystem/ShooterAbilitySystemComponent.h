@@ -101,17 +101,11 @@ private:
 	/** 激活失败分类：只把「短暂动作标签阻塞」登记为可消费的按下沿。 */
 	void HandleAbilityFailed(const UGameplayAbility* Ability, const FGameplayTagContainer& FailureTags);
 
-	/** 短暂阻塞标签计数归零：只登记待处理，调度到 Tag 回调栈退出后的安全时点。 */
+	/** 短暂阻塞标签计数归零：登记待处理并调度到 Tag 回调栈退出后的安全时点；同帧只调度一次。 */
 	void HandleTransientBlockedTagChanged(FGameplayTag Tag, int32 NewCount);
 
-	/** 请求在下一 Tick 处理输入缓冲；同帧多次请求只执行一次。 */
-	void RequestBufferedInputProcessing();
-
-	/** 安全时点：消费未过期的按下沿，并对按住型输入做一次安全重试。 */
-	void ProcessBufferedInputs();
-
-	/** 消费一条按下沿；返回是否真的形成了本地动作边界。 */
-	bool ConsumeBufferedInput(FGameplayAbilitySpec& Spec);
+	/** 延迟意图处理（下一 Tick 的安全时点）：消费未过期的按下沿，再对按住型输入做一次安全重试。 */
+	void ProcessDeferredInputIntents();
 
 	/** 短暂阻塞解除后的安全重试：只覆盖仍处于按住且未激活的 HeldRepeat Spec。 */
 	void RetryHeldRepeatInputs();
@@ -121,9 +115,6 @@ private:
 
 	/** 登记 / 覆盖一条按下沿。 */
 	void RegisterBufferedInput(const FGameplayTag& InputTag, const UObject* Context);
-
-	/** 移除指定输入 Tag 的按下沿；返回是否移除过。 */
-	bool RemoveBufferedInput(const FGameplayTag& InputTag);
 
 	/** 是否为本机玩家自己的 ASC；只有它参与输入缓冲。 */
 	bool ShouldBufferLocalInput() const;
@@ -173,8 +164,8 @@ public:
 	/** 测试观察接口：当前待消费的按下沿数量。 */
 	int32 GetBufferedInputCountForTest() const { return BufferedInputs.Num(); }
 
-	/** 测试观察接口：立即执行一次安全时点处理。 */
-	void ProcessBufferedInputsForTest();
+	/** 测试观察接口：立即执行一次延迟意图处理（ProcessDeferredInputIntents）。 */
+	void ProcessDeferredInputIntentsForTest();
 
 	/** 测试观察接口：让所有待消费按下沿立即过期（不推进世界时间）。 */
 	void ExpireBufferedInputsForTest();
