@@ -108,10 +108,18 @@ protected:
 	int32 ReserveAmmo = 0;
 
 	UFUNCTION()
-	void OnRep_MagazineAmmo();
+	void OnRep_MagazineAmmo(int32 OldMagazineAmmo);
 
 	UFUNCTION()
 	void OnRep_ReserveAmmo();
+
+	/**
+	 * 已本地预测消费、但尚未被新的服务器 Ammo 状态吸收的弹药数量。
+	 *
+	 * 不复制，只存在于预测型 Owner 客户端（见 IsAmmoPredictionContext）：
+	 * MagazineAmmo / ReserveAmmo 始终只表示服务器确认状态，本地预测只增加这个待吸收计数。
+	 */
+	int32 PendingPredictedShots = 0;
 
 	/** Animation montage to play when firing this weapon */
 	UPROPERTY(EditAnywhere, Category="Animation")
@@ -469,6 +477,38 @@ public:
 
 	/** 服务器权威扣减并推送 Owner HUD；弹匣不足或 Amount 非法时不产生任何变化。 */
 	bool ConsumeAmmo(int32 Amount = 1);
+
+	/**
+	 * 是否处于 Ammo 预测上下文：只有「非权威端 + 本机拥有者视图」才预测。
+	 *
+	 * Listen Host 与 Standalone 是权威端，弹药在本地直接写入 MagazineAmmo，
+	 * 自身复制不会触发 OnRep，因此它们不允许维护 PendingPredictedShots，
+	 * 否则这份待吸收计数永远没有下降复制来收敛。
+	 */
+	bool IsAmmoPredictionContext() const;
+
+	/** 本地当前预测可用弹药 = max(0, MagazineAmmo - PendingPredictedShots)；权威端等于 MagazineAmmo。 */
+	int32 GetPredictedMagazineAmmo() const;
+
+	/** 本地弹药预算是否足够；非预测上下文与 Amount 非法时的语义见实现。 */
+	bool CanConsumePredictedAmmo(int32 Amount = 1) const;
+
+	/**
+	 * 预测消费一次弹药：只增加 PendingPredictedShots，绝不写 replicated MagazineAmmo / ReserveAmmo。
+	 *
+	 * 非预测上下文（权威端 / 非拥有者视图）不维护 Pending，直接返回 true 放行，
+	 * 权威扣弹仍然只由 ConsumeAmmo 负责。
+	 */
+	bool TryConsumePredictedAmmo(int32 Amount = 1);
+
+	/** Reject 退还：只减少 PendingPredictedShots 并 clamp 到 >= 0。 */
+	void RefundPredictedAmmo(int32 Amount);
+
+	/** 生命周期边界：旧预测上下文整体失效（Owner 变化 / 归还池 / teardown）。 */
+	void ResetAmmoPrediction();
+
+	/** 只读观测：当前待吸收的预测发数。 */
+	int32 GetPendingPredictedShots() const { return PendingPredictedShots; }
 
 	/** 弹药在 Fire 事务中耗尽时广播；GA_Fire 用它幂等结束 Ability。 */
 	FShooterWeaponOutOfAmmoDelegate OnOutOfAmmo;

@@ -131,6 +131,9 @@ void AShooterWeapon::ClearWeaponOwner()
 	CachedWeaponOwnerActor = nullptr;
 	WeaponOwner = nullptr;
 	PawnOwner = nullptr;
+
+	// Owner 上下文已失效：旧预测上下文整体作废（Owner 变化 / 归还池 / teardown）。
+	ResetAmmoPrediction();
 }
 
 void AShooterWeapon::InitializeWeaponIdentity(FName InWeaponId)
@@ -461,14 +464,121 @@ void AShooterWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	DOREPLIFETIME(AShooterWeapon, WeaponId);
 }
 
-void AShooterWeapon::OnRep_MagazineAmmo()
+void AShooterWeapon::OnRep_MagazineAmmo(int32 OldMagazineAmmo)
 {
+	// 服务器确认的弹药状态到达：先按差值吸收本地预测，再按结果刷新 Owner HUD。
+	const int32 NewMagazineAmmo = MagazineAmmo;
+
+	if (NewMagazineAmmo < OldMagazineAmmo)
+	{
+		// 下降 = 服务器确认了一部分预测消费。
+		// 一次复制可能跳过多个中间值（例如 10 -> 7，几发落在同一个 net update 内），
+		// 因此按整段差值吸收；差值大于未吸收量时 clamp 到 0，不允许出现负 Pending。
+		const int32 ConfirmedConsumption = OldMagazineAmmo - NewMagazineAmmo;
+		PendingPredictedShots = FMath::Max(0, PendingPredictedShots - ConfirmedConsumption);
+#if WITH_DEV_AUTOMATION_TESTS
+		UE_LOG(LogShootGame, Display, TEXT("AMMO_PREDICT_ABSORB Weapon=%s Absorbed=%d Pending=%d Snapshot=%d"),
+			*GetNameSafe(this), ConfirmedConsumption, PendingPredictedShots, MagazineAmmo);
+#endif
+	}
+	else if (NewMagazineAmmo > OldMagazineAmmo)
+	{
+		// 上升 = 权威端建立了新的弹药基线（换弹提交 / 池取用恢复 / 未来补弹）。
+		// 旧的待吸收预测在结构上已经不适用，直接作废。
+		PendingPredictedShots = 0;
+#if WITH_DEV_AUTOMATION_TESTS
+		UE_LOG(LogShootGame, Display, TEXT("AMMO_PREDICT_REBASELINE Weapon=%s Snapshot=%d"), *GetNameSafe(this), MagazineAmmo);
+#endif
+	}
+
 	PushAmmoToOwnerHud();
 }
 
 void AShooterWeapon::OnRep_ReserveAmmo()
 {
 	PushAmmoToOwnerHud();
+}
+
+bool AShooterWeapon::IsAmmoPredictionContext() const
+{
+	// 只有「非权威端 + 本机拥有者视图」才预测弹药：
+	// Listen Host 与 Standalone 的弹药在本地直接写入 MagazineAmmo，自身复制不会触发 OnRep，
+	// 一旦维护 PendingPredictedShots 就永远没有下降复制可以吸收它。
+	return !HasAuthority() && HasOwnerLocalPlayerView();
+}
+
+int32 AShooterWeapon::GetPredictedMagazineAmmo() const
+{
+	return FMath::Max(0, MagazineAmmo - PendingPredictedShots);
+}
+
+bool AShooterWeapon::CanConsumePredictedAmmo(int32 Amount) const
+{
+	if (Amount <= 0)
+	{
+		return false;
+	}
+
+	if (!IsAmmoPredictionContext())
+	{
+		// 非预测上下文不做预算门控：权威端由 CanConsumeAmmo 负责。
+		return true;
+	}
+
+	return GetPredictedMagazineAmmo() >= Amount;
+}
+
+bool AShooterWeapon::TryConsumePredictedAmmo(int32 Amount)
+{
+	if (Amount <= 0)
+	{
+		return false;
+	}
+
+	if (!IsAmmoPredictionContext())
+	{
+		// 不维护 Pending 的一端直接放行；它不会写任何弹药字段。
+		return true;
+	}
+
+	if (!CanConsumePredictedAmmo(Amount))
+	{
+		return false;
+	}
+
+	PendingPredictedShots += Amount;
+#if WITH_DEV_AUTOMATION_TESTS
+	UE_LOG(LogShootGame, Display, TEXT("AMMO_PREDICT_CONSUME Weapon=%s Pending=%d Snapshot=%d Predicted=%d"),
+		*GetNameSafe(this), PendingPredictedShots, MagazineAmmo, GetPredictedMagazineAmmo());
+#endif
+	return true;
+}
+
+void AShooterWeapon::RefundPredictedAmmo(int32 Amount)
+{
+	if (Amount <= 0)
+	{
+		return;
+	}
+
+	PendingPredictedShots = FMath::Max(0, PendingPredictedShots - Amount);
+#if WITH_DEV_AUTOMATION_TESTS
+	UE_LOG(LogShootGame, Display, TEXT("AMMO_PREDICT_REFUND Weapon=%s Refund=%d Pending=%d Snapshot=%d Predicted=%d"),
+		*GetNameSafe(this), Amount, PendingPredictedShots, MagazineAmmo, GetPredictedMagazineAmmo());
+#endif
+}
+
+void AShooterWeapon::ResetAmmoPrediction()
+{
+	if (PendingPredictedShots == 0)
+	{
+		return;
+	}
+
+	PendingPredictedShots = 0;
+#if WITH_DEV_AUTOMATION_TESTS
+	UE_LOG(LogShootGame, Display, TEXT("AMMO_PREDICT_RESET Weapon=%s Snapshot=%d"), *GetNameSafe(this), MagazineAmmo);
+#endif
 }
 
 void AShooterWeapon::EndPlay(EEndPlayReason::Type EndPlayReason)

@@ -82,6 +82,14 @@ private:
 	/** 提交一次拥有者纯表现；只有实际播放成功才登记。 */
 	bool TryPlayOwnerFeedback(AShooterWeapon& Weapon, const TCHAR* Marker);
 
+	/**
+	 * 本地 Shot Attempt 的统一提交点：先预测消费本地弹药预算，再推进节拍，最后提交表现。
+	 *
+	 * 预算不足时本次 Shot Attempt 不成立：不播表现、也不推进 LocalFireCooldown。
+	 * 只有预测型 Owner 客户端会真正扣预算，权威端与非拥有者视图由 Weapon 侧直接放行。
+	 */
+	bool CommitOwnerShotAttempt(AShooterWeapon& Weapon, const TCHAR* Marker);
+
 	/** 幂等停止本地表现节拍与标志；Reject、释放、取消共用。 */
 	void StopOwnerPredictedFeedback();
 
@@ -133,6 +141,14 @@ private:
 
 	/** 本次激活内的本地反馈序号；不得假设每发都有新的 PredictionKey。 */
 	int32 PredictedShotOrdinal = 0;
+
+	/**
+	 * 本次 activation 已预测消费的本地发数。
+	 *
+	 * 只在 Ammo Prediction 上下文的客户端增长；Rejected 时按它一次性退还 PendingPredictedShots，
+	 * 因为被拒的预测发数永远等不到服务器扣弹复制。
+	 */
+	int32 PredictedShotsThisActivation = 0;
 
 	/** 本地表现节拍是否活动；幂等停止与测试观察共用。 */
 	bool bPredictedFeedbackActive = false;

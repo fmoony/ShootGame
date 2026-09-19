@@ -216,6 +216,9 @@ void UShooterGameplayAbility_Fire::ActivateAbility(
 	// 不复位会让日志的 ShotOrdinal 跨 Burst 累积（PredictionKey 才标识一次激活或 Burst）。
 	PredictedShotOrdinal = 0;
 
+	// 本次激活的预测发数同样按激活复位；Rejected 退还只针对本次 activation。
+	PredictedShotsThisActivation = 0;
+
 	// 第 2 步：拥有者本地视图立即播放一次纯表现；全自动同时启动本地表现节拍。
 	if (bOwnerLocalView && CachedWeapon.IsValid())
 	{
@@ -265,6 +268,15 @@ void UShooterGameplayAbility_Fire::EndAbility(
 
 	if (CachedWeapon.IsValid())
 	{
+		// Reject 退还：引擎在 ClientActivateAbilityFailed 里把本次 activation 标记为 Rejected
+		// 之后再结束实例，这类被拒的预测发数永远等不到服务器扣弹复制，必须在这里一次性退还。
+		// 只处理 Rejected：Cancelled（切枪 / 换弹 / 死亡取消）时服务器可能已经扣过部分弹药，
+		// 退还只会反向过冲，因此绝不按 Cancelled 退还。
+		if (ActivationInfo.ActivationMode == EGameplayAbilityActivationMode::Rejected)
+		{
+			CachedWeapon->RefundPredictedAmmo(PredictedShotsThisActivation);
+		}
+
 		CachedWeapon->OnOutOfAmmo.RemoveAll(this);
 		if (HasAuthority(&ActivationInfo))
 		{
@@ -300,10 +312,9 @@ void UShooterGameplayAbility_Fire::StartOwnerPredictedFeedback(AShooterWeapon& W
 
 	if (!Weapon.IsFullAuto() || Weapon.IsLocalFireCooldownReady())
 	{
-		// 本地 Shot Attempt 被接受：这是唯一推进本地节拍的地方，
-		// 与 Montage / Niagara / Sound 是否真的播放成功无关。
-		Weapon.AdvanceLocalFireCooldown();
-		TryPlayOwnerFeedback(Weapon, TEXT("FIRE_PREDICTED_OWNER"));
+		// 本地 Shot Attempt：先扣本地弹药预算，再推进节拍并播表现；
+		// 预算不足时本次不成立（不播表现、不推进节拍），但激活、请求与 Ability 生命周期都不受影响。
+		CommitOwnerShotAttempt(Weapon, TEXT("FIRE_PREDICTED_OWNER"));
 	}
 
 	if (!Weapon.IsFullAuto())
@@ -336,6 +347,27 @@ bool UShooterGameplayAbility_Fire::TryPlayOwnerFeedback(AShooterWeapon& Weapon, 
 	}
 
 	LogFirePredictionMarker(Marker, &Weapon, PredictedShotOrdinal);
+	return true;
+}
+
+bool UShooterGameplayAbility_Fire::CommitOwnerShotAttempt(AShooterWeapon& Weapon, const TCHAR* Marker)
+{
+	// 本地弹药预算：只有预测型 Owner 客户端会真正扣预算；
+	// 权威端（Listen Host / Standalone）与非拥有者视图由 Weapon 侧直接放行，它们不维护 Pending。
+	if (!Weapon.TryConsumePredictedAmmo())
+	{
+		// 预算不足：本次本地 Shot Attempt 不成立，既不播表现也不推进节拍。
+		// 不结束 Ability、不停 FullAuto timer：预算会随服务器 Ammo 上升（换弹）自动恢复。
+		return false;
+	}
+
+	// 记入本次 activation 的预测发数，供 Rejected 时一次性退还。
+	++PredictedShotsThisActivation;
+
+	// 本地 Shot Attempt 被接受：这是唯一推进本地节拍的地方，
+	// 与 Montage / Niagara / Sound 是否真的播放成功无关。
+	Weapon.AdvanceLocalFireCooldown();
+	TryPlayOwnerFeedback(Weapon, Marker);
 	return true;
 }
 
@@ -375,9 +407,8 @@ void UShooterGameplayAbility_Fire::HandlePredictedFeedbackTick()
 		return;
 	}
 
-	// 全自动每一拍同样是一次本地 Shot Attempt：先推进节拍，再只负责四路 cosmetic。
-	Weapon->AdvanceLocalFireCooldown();
-	TryPlayOwnerFeedback(*Weapon, TEXT("FIRE_PREDICTED_OWNER"));
+	// 全自动每一拍同样是一次本地 Shot Attempt：先扣预算并推进节拍，再只负责四路 cosmetic。
+	CommitOwnerShotAttempt(*Weapon, TEXT("FIRE_PREDICTED_OWNER"));
 }
 
 bool UShooterGameplayAbility_Fire::IsCurrentWeaponStillValidForFeedback(AActor* AvatarActor) const
