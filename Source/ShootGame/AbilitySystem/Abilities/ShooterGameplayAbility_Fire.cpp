@@ -483,6 +483,18 @@ const UObject* UShooterGameplayAbility_Fire::GetInputBufferContext() const
 	return GetCurrentWeaponForAvatar(GetShooterAvatarActor());
 }
 
+EShooterAbilityActivationPolicy UShooterGameplayAbility_Fire::GetActivationPolicy(const FGameplayAbilityActorInfo* ActorInfo) const
+{
+	// 同一个 GA_Fire 同时服务单发与连发，因此策略是动态 Gameplay Context 查询：
+	// 由当前武器决定，不依赖任何由装备路径同步的派生状态，也没有「同步落后于武器」的窗口。
+	// 显式使用传入的 ActorInfo：未激活的实例上没有 CurrentActorInfo，不能读实例缓存。
+	AActor* AvatarActor = ActorInfo ? ActorInfo->AvatarActor.Get() : nullptr;
+	const AShooterWeapon* Weapon = GetCurrentWeaponForAvatar(AvatarActor);
+	return Weapon && Weapon->IsFullAuto()
+		? EShooterAbilityActivationPolicy::WhileInputActive
+		: EShooterAbilityActivationPolicy::OnInputTriggered;
+}
+
 bool UShooterGameplayAbility_Fire::IsInputHeld(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo) const
 {
 	const UAbilitySystemComponent* AbilitySystemComponent = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;

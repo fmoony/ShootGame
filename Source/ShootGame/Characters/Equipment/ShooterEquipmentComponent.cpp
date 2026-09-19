@@ -2,8 +2,6 @@
 
 #include "ShooterEquipmentComponent.h"
 
-#include "AbilitySystem/ShooterAbilitySystemComponent.h"
-#include "AbilitySystem/ShooterGameplayTags.h"
 #include "Characters/Aim/ShooterAimPresentationComponent.h"
 #include "Characters/ShooterCharacter.h"
 #include "Inventory/ShooterInventoryComponent.h"
@@ -124,14 +122,9 @@ void UShooterEquipmentComponent::ClearEquippedWeapon()
 
 void UShooterEquipmentComponent::HandleWeaponActorReady(AShooterWeapon* Weapon)
 {
-	// 守卫只决定「何时重算」：武器自身的 Owner / WeaponId / 行配置晚到时，
-	// 只有它仍是当前武器才需要重算输入语义；非当前武器的晚到不参与判定。
 	if (IsValid(Weapon) && Weapon == CurrentWeaponActor)
 	{
-		// 客户端先收到 CurrentWeaponActor、随后才收到 WeaponId 并应用行配置是常见路径，
-		// 因此这里必须重算一次（取值始终由 SyncCurrentWeaponFireInputBehavior 内部从权威派生）。
-		SyncCurrentWeaponFireInputBehavior();
-
+		// WeaponActor 的 Owner / WeaponId / 行配置晚到时补做幂等表现收敛，不发布逻辑事件。
 		if (AShooterCharacter* Character = GetOwnerCharacter())
 		{
 			Character->EnsureWeaponPresentation(Weapon);
@@ -183,33 +176,7 @@ void UShooterEquipmentComponent::BroadcastEquippedWeaponChanged(AShooterWeapon* 
 		return;
 	}
 
-	// 当前武器是输入语义的唯一来源：逻辑转移时同步 Fire Spec 的通用输入行为标签。
-	// 服务器与拥有者客户端走同一条路径，取值由 helper 内部按各自的 CurrentWeaponActor 派生。
-	SyncCurrentWeaponFireInputBehavior();
-
 	OnEquippedWeaponChanged.Broadcast(PreviousWeapon, CurrentWeapon);
-}
-
-void UShooterEquipmentComponent::SyncCurrentWeaponFireInputBehavior()
-{
-	// 「当前武器语义 → 输入行为标签」的唯一同步点：装备逻辑转移与武器配置晚到都收敛到这里。
-	// 一律从 CurrentWeaponActor 派生，不接受调用方传入的武器：
-	// 非当前武器的配置晚到因此不可能覆盖当前武器的输入语义（无论谁调用、按什么顺序调用）。
-	// ASC 只认标签与 Spec.InputPressed，不判断武器类型；Ability 侧不再需要任何输入语义虚函数。
-	// 幂等：语义没有变化时 ASC 不重复标脏，因此这里可以被安全地重复调用。
-	const AShooterCharacter* Character = GetOwnerCharacter();
-	UShooterAbilitySystemComponent* AbilitySystemComponent = Character
-		? Cast<UShooterAbilitySystemComponent>(Character->GetAbilitySystemComponent())
-		: nullptr;
-	if (!AbilitySystemComponent)
-	{
-		// 能力尚未授予（例如拥有者客户端还没收到 PlayerState 的 Spec 复制）：
-		// Spec 复制到达时会带着服务器已同步好的标签，这里不需要补偿。
-		return;
-	}
-
-	AbilitySystemComponent->SetHeldRepeatInputBehavior(ShooterGameplayTags::Input_Fire,
-		IsValid(CurrentWeaponActor) && CurrentWeaponActor->IsFullAuto());
 }
 
 void UShooterEquipmentComponent::OnRep_CurrentWeaponActor(AShooterWeapon* PreviousWeapon)

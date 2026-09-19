@@ -18,13 +18,15 @@
 /**
  * 输入缓冲的运行时证据。
  *
- * 这里使用生产 ASC 的真实输入路径（AbilityInputTagPressed / 失败分类 / 安全时点消费），
+ * 这里使用生产 ASC 的真实输入路径（AbilityInputTagPressed / 采集集合 / 失败分类 / ProcessAbilityInput），
  * 只把被驱动对象换成测试 Ability，避免把 Weapon / Ammo / Inventory 规则搬进测试。
  *
- * 冻结语义的两侧各有一组用例：
- * - 无 HeldRepeat 的 Spec（Semi）：pending intent 只由短期 Buffered Press Edge 表达；
- * - 带 InputBehavior.HeldRepeat 的 Spec（FullAuto）：pending intent 只由 Spec.InputPressed 表达，
- *   既不登记也不消费 Buffered Press。
+ * 采集与解释已分离：输入回调只记录 Press / Release / Held，解释发生在 ProcessAbilityInput；
+ * 因此每个用例都在"按下之后、断言之前"显式推进一次处理时点。
+ *
+ * 两种输入策略各有一组用例：
+ * - OnInputTriggered（Semi）：pending intent 由短期 Buffered Press Edge 表达；
+ * - WhileInputActive（FullAuto）：pending intent 只由 Held 集合与 Spec.InputPressed 表达，Release 即终止。
  */
 namespace ShooterAbilityInputBufferAutomationTests
 {
@@ -54,7 +56,7 @@ namespace ShooterAbilityInputBufferAutomationTests
 
 	/**
 	 * 建立「本机拥有者视图 + ShooterPlayerState ASC」最小上下文。
-	 * 只有同时满足 IsPlayerControlled 与本地控制器，ASC 才会进入输入缓冲路径。
+	 * 只有同时满足 IsPlayerControlled 与本地控制器，ASC 才会进入输入处理路径。
 	 */
 	UShooterAbilitySystemComponent* CreateLocalInputContext(FAutomationTestBase& Test, UWorld* World, AShooterPlayerState*& OutPlayerState)
 	{
@@ -176,17 +178,27 @@ bool FShooterInputBufferTransientBlockKeepsPressTest::RunTest(const FString& Par
 	}
 
 	// 半自动式场景：按下时被短暂动作阻塞 → 松开 → 阻塞解除后恰好消费一次。
+	// 按下只采集；失败分类与窗口登记发生在解释时点。
 	AbilitySystemComponent->AddLooseGameplayTag(ShooterGameplayTags::State_Reloading);
 	AbilitySystemComponent->AbilityInputTagPressed(ShooterGameplayTags::Input_Fire);
+	TestEqual(TEXT("a press is collected as held"), AbilitySystemComponent->GetHeldInputTagCountForTest(), 1);
+	TestEqual(TEXT("collection alone does not interpret input"), Ability->ActivationCountForTest, 0);
+	TestEqual(TEXT("collection alone does not create a pending entry"),
+		AbilitySystemComponent->GetBufferedInputCountForTest(), 0);
+
+	AbilitySystemComponent->ProcessAbilityInputForTest();
 	TestEqual(TEXT("transient blocked press is buffered"), AbilitySystemComponent->GetBufferedInputCountForTest(), 1);
 	TestEqual(TEXT("blocked press does not activate"), Ability->ActivationCountForTest, 0);
 
+	// 松开后窗口仍然保留；本次解释的失败尝试不删除也不续期。
 	AbilitySystemComponent->AbilityInputTagReleased(ShooterGameplayTags::Input_Fire);
+	AbilitySystemComponent->ProcessAbilityInputForTest();
 	TestEqual(TEXT("release keeps the press edge until it expires"),
 		AbilitySystemComponent->GetBufferedInputCountForTest(), 1);
+	TestEqual(TEXT("release clears the held collection"), AbilitySystemComponent->GetHeldInputTagCountForTest(), 0);
 
 	AbilitySystemComponent->RemoveLooseGameplayTag(ShooterGameplayTags::State_Reloading);
-	AbilitySystemComponent->ProcessDeferredInputIntentsForTest();
+	AbilitySystemComponent->ProcessAbilityInputForTest();
 
 	TestEqual(TEXT("buffered press activates exactly once after the block ends"), Ability->ActivationCountForTest, 1);
 	TestEqual(TEXT("consumed press leaves no pending entry"), AbilitySystemComponent->GetBufferedInputCountForTest(), 0);
@@ -223,8 +235,11 @@ bool FShooterInputBufferHeldPressStaysActiveTest::RunTest(const FString& Paramet
 
 	AbilitySystemComponent->AddLooseGameplayTag(ShooterGameplayTags::State_Reloading);
 	AbilitySystemComponent->AbilityInputTagPressed(ShooterGameplayTags::Input_Fire);
+	AbilitySystemComponent->ProcessAbilityInputForTest();
+	TestEqual(TEXT("blocked held press is buffered"), AbilitySystemComponent->GetBufferedInputCountForTest(), 1);
+
 	AbilitySystemComponent->RemoveLooseGameplayTag(ShooterGameplayTags::State_Reloading);
-	AbilitySystemComponent->ProcessDeferredInputIntentsForTest();
+	AbilitySystemComponent->ProcessAbilityInputForTest();
 
 	TestEqual(TEXT("held buffered press activates once"), Ability->ActivationCountForTest, 1);
 	TestEqual(TEXT("a still held press is not released by the buffer"),
@@ -232,6 +247,7 @@ bool FShooterInputBufferHeldPressStaysActiveTest::RunTest(const FString& Paramet
 
 	// 真实松开仍然走标准释放路径。
 	AbilitySystemComponent->AbilityInputTagReleased(ShooterGameplayTags::Input_Fire);
+	AbilitySystemComponent->ProcessAbilityInputForTest();
 	TestEqual(TEXT("real release ends the predicted instance"),
 		AbilitySystemComponent->GetActiveAbilityCountForClass(UShooterInputBufferTestAbility::StaticClass()), 0);
 
@@ -265,10 +281,11 @@ bool FShooterInputBufferHardFailureIsNotBufferedTest::RunTest(const FString& Par
 
 	// 硬失败（本地节拍未 Ready / 武器无效这一类的代表）不产生 Tag 阻塞，因此绝不被缓冲。
 	AbilitySystemComponent->AbilityInputTagPressed(ShooterGameplayTags::Input_Fire);
+	AbilitySystemComponent->ProcessAbilityInputForTest();
 	TestEqual(TEXT("hard failure is not buffered"), AbilitySystemComponent->GetBufferedInputCountForTest(), 0);
 
 	AbilitySystemComponent->AbilityInputTagReleased(ShooterGameplayTags::Input_Fire);
-	AbilitySystemComponent->ProcessDeferredInputIntentsForTest();
+	AbilitySystemComponent->ProcessAbilityInputForTest();
 	TestEqual(TEXT("hard failed press never activates later"), Ability->ActivationCountForTest, 0);
 
 	DestroyInputBufferTestWorld(World);
@@ -302,10 +319,11 @@ bool FShooterInputBufferSelfBlockedPressIsDroppedTest::RunTest(const FString& Pa
 	// 阻塞标签同时是该 Ability 自己的活动标签：重复按下没有意义，不得保留。
 	AbilitySystemComponent->AddLooseGameplayTag(ShooterGameplayTags::State_Reloading);
 	AbilitySystemComponent->AbilityInputTagPressed(ShooterGameplayTags::Input_Fire);
+	AbilitySystemComponent->ProcessAbilityInputForTest();
 	TestEqual(TEXT("self blocked press is dropped"), AbilitySystemComponent->GetBufferedInputCountForTest(), 0);
 
 	AbilitySystemComponent->RemoveLooseGameplayTag(ShooterGameplayTags::State_Reloading);
-	AbilitySystemComponent->ProcessDeferredInputIntentsForTest();
+	AbilitySystemComponent->ProcessAbilityInputForTest();
 	TestEqual(TEXT("dropped press never activates later"), Ability->ActivationCountForTest, 0);
 
 	DestroyInputBufferTestWorld(World);
@@ -338,12 +356,17 @@ bool FShooterInputBufferExpiredPressIsNotConsumedTest::RunTest(const FString& Pa
 
 	AbilitySystemComponent->AddLooseGameplayTag(ShooterGameplayTags::State_Reloading);
 	AbilitySystemComponent->AbilityInputTagPressed(ShooterGameplayTags::Input_Fire);
+	AbilitySystemComponent->ProcessAbilityInputForTest();
+	TestEqual(TEXT("blocked press leaves a pending entry"), AbilitySystemComponent->GetBufferedInputCountForTest(), 1);
+
 	AbilitySystemComponent->AbilityInputTagReleased(ShooterGameplayTags::Input_Fire);
+	AbilitySystemComponent->ProcessAbilityInputForTest();
+	TestEqual(TEXT("failed retry keeps the pending entry"), AbilitySystemComponent->GetBufferedInputCountForTest(), 1);
 
 	// 窗口按绝对时间过期，且重试不得续期。
 	AbilitySystemComponent->ExpireBufferedInputsForTest();
 	AbilitySystemComponent->RemoveLooseGameplayTag(ShooterGameplayTags::State_Reloading);
-	AbilitySystemComponent->ProcessDeferredInputIntentsForTest();
+	AbilitySystemComponent->ProcessAbilityInputForTest();
 
 	TestEqual(TEXT("expired press is removed"), AbilitySystemComponent->GetBufferedInputCountForTest(), 0);
 	TestEqual(TEXT("expired press never activates later"), Ability->ActivationCountForTest, 0);
@@ -382,12 +405,13 @@ bool FShooterInputBufferContextChangeDropsPressTest::RunTest(const FString& Para
 
 	AbilitySystemComponent->AddLooseGameplayTag(ShooterGameplayTags::State_Reloading);
 	AbilitySystemComponent->AbilityInputTagPressed(ShooterGameplayTags::Input_Fire);
+	AbilitySystemComponent->ProcessAbilityInputForTest();
 	TestEqual(TEXT("context carrying press is buffered"), AbilitySystemComponent->GetBufferedInputCountForTest(), 1);
 
 	// 上下文变化（换枪提交 / 武器归还池）：旧武器的按下沿不得在新上下文上消费。
 	Ability->SetInputContextForTest(AbilitySystemComponent);
 	AbilitySystemComponent->RemoveLooseGameplayTag(ShooterGameplayTags::State_Reloading);
-	AbilitySystemComponent->ProcessDeferredInputIntentsForTest();
+	AbilitySystemComponent->ProcessAbilityInputForTest();
 
 	TestEqual(TEXT("context change drops the press"), AbilitySystemComponent->GetBufferedInputCountForTest(), 0);
 	TestEqual(TEXT("context changed press never activates"), Ability->ActivationCountForTest, 0);
@@ -396,11 +420,11 @@ bool FShooterInputBufferContextChangeDropsPressTest::RunTest(const FString& Para
 	return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterInputBufferHeldRepeatRetriesAfterBlockerTest,
-	"ShootGame.Ability.InputBuffer.HeldRepeatRetriesAfterBlocker",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterInputBufferWhileInputActiveRetriesWhileHeldTest,
+	"ShootGame.Ability.InputBuffer.WhileInputActiveRetriesWhileHeld",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
-bool FShooterInputBufferHeldRepeatRetriesAfterBlockerTest::RunTest(const FString& Parameters)
+bool FShooterInputBufferWhileInputActiveRetriesWhileHeldTest::RunTest(const FString& Parameters)
 {
 	using namespace ShooterAbilityInputBufferAutomationTests;
 
@@ -420,43 +444,48 @@ bool FShooterInputBufferHeldRepeatRetriesAfterBlockerTest::RunTest(const FString
 		return false;
 	}
 
-	// 走生产同步路径：HeldRepeat 是 Spec 上的通用输入行为标签（生产由装备入口按当前武器写入）。
-	AbilitySystemComponent->SetHeldRepeatInputBehavior(ShooterGameplayTags::Input_Fire, true);
-
-	// 1. 冻结语义：HeldRepeat 的 Spec 不登记按下沿，持续意图唯一来源是 Spec.InputPressed。
+	// 1. WhileInputActive：按下沿不登记短期按下沿；被短暂阻塞时当场尝试一次但不成立。
+	//    首帧由 Press edge 分支发起尝试，Held 分支不在同一帧重复发起。
 	AbilitySystemComponent->AddLooseGameplayTag(ShooterGameplayTags::State_Reloading);
 	AbilitySystemComponent->AbilityInputTagPressed(ShooterGameplayTags::Input_Fire);
-	TestEqual(TEXT("a held repeat press never registers a buffered entry"),
+	AbilitySystemComponent->ProcessAbilityInputForTest();
+	TestEqual(TEXT("a while-input-active press never registers a buffered entry"),
 		AbilitySystemComponent->GetBufferedInputCountForTest(), 0);
+	TestEqual(TEXT("a blocked while-input-active press does not activate"), Ability->ActivationCountForTest, 0);
+
+	// 2. 阻塞解除后由解释时点的 Held 分支激活；已激活时同一时点不重复请求。
 	AbilitySystemComponent->RemoveLooseGameplayTag(ShooterGameplayTags::State_Reloading);
-	AbilitySystemComponent->ProcessDeferredInputIntentsForTest();
+	AbilitySystemComponent->ProcessAbilityInputForTest();
 	TestEqual(TEXT("held intent starts once after the block ends"), Ability->ActivationCountForTest, 1);
 
-	// 2. 动作被取消但玩家仍按住：下一个安全时点允许再尝试一次（无计数、无 Timer）。
+	AbilitySystemComponent->ProcessAbilityInputForTest();
+	TestEqual(TEXT("an active ability is never re-activated by the held pass"), Ability->ActivationCountForTest, 1);
+
+	// 3. 动作被取消但玩家仍按住：下一个解释时点重试一次（无 timer、无计数）。
 	AbilitySystemComponent->CancelAbilitiesByTag(ShooterGameplayTags::Input_Fire);
 	TestEqual(TEXT("cancel ends the running instance"),
 		AbilitySystemComponent->GetActiveAbilityCountForClass(UShooterInputBufferSustainedTestAbility::StaticClass()), 0);
-
-	AbilitySystemComponent->ProcessDeferredInputIntentsForTest();
-	TestEqual(TEXT("held input is retried once after a cancel"), Ability->ActivationCountForTest, 2);
-	TestEqual(TEXT("a retry never creates a pending buffered entry"),
+	AbilitySystemComponent->ProcessAbilityInputForTest();
+	TestEqual(TEXT("held input is retried after a cancel"), Ability->ActivationCountForTest, 2);
+	TestEqual(TEXT("a held retry never creates a pending buffered entry"),
 		AbilitySystemComponent->GetBufferedInputCountForTest(), 0);
 
-	// 3. 语义切回单发（生产对应换到单发武器）：移除行为标签后即使仍按住也不再重试。
-	AbilitySystemComponent->SetHeldRepeatInputBehavior(ShooterGameplayTags::Input_Fire, false);
-	AbilitySystemComponent->CancelAbilitiesByTag(ShooterGameplayTags::Input_Fire);
-	AbilitySystemComponent->ProcessDeferredInputIntentsForTest();
-	TestEqual(TEXT("removing the behavior tag stops held retries"), Ability->ActivationCountForTest, 2);
+	// 4. Release 终止持续意图：活动实例走标准释放路径，之后不再重试。
+	AbilitySystemComponent->AbilityInputTagReleased(ShooterGameplayTags::Input_Fire);
+	AbilitySystemComponent->ProcessAbilityInputForTest();
+	TestEqual(TEXT("a released held intent is never retried"), Ability->ActivationCountForTest, 2);
+	TestEqual(TEXT("release ends the active instance"),
+		AbilitySystemComponent->GetActiveAbilityCountForClass(UShooterInputBufferSustainedTestAbility::StaticClass()), 0);
 
 	DestroyInputBufferTestWorld(World);
 	return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterInputBufferHeldWithoutBehaviorTagIsNotRetriedTest,
-	"ShootGame.Ability.InputBuffer.HeldWithoutBehaviorTagIsNotRetried",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterInputBufferOnInputTriggeredDoesNotRetryWhileHeldTest,
+	"ShootGame.Ability.InputBuffer.OnInputTriggeredDoesNotRetryWhileHeld",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
-bool FShooterInputBufferHeldWithoutBehaviorTagIsNotRetriedTest::RunTest(const FString& Parameters)
+bool FShooterInputBufferOnInputTriggeredDoesNotRetryWhileHeldTest::RunTest(const FString& Parameters)
 {
 	using namespace ShooterAbilityInputBufferAutomationTests;
 
@@ -476,34 +505,32 @@ bool FShooterInputBufferHeldWithoutBehaviorTagIsNotRetriedTest::RunTest(const FS
 		return false;
 	}
 
-	// 单发语义：一次按下只对应一次本地动作边界；一直按住不得跨阻塞补枪。
-	// 这里刻意不写 HeldRepeat 标签，证明「是否重试」只由 Spec 行为标签决定。
+	// 单发语义（OnInputTriggered）：按下沿在解释时点尝试；被短暂阻塞时保留一条短期按下沿。
 	AbilitySystemComponent->AddLooseGameplayTag(ShooterGameplayTags::State_Reloading);
 	AbilitySystemComponent->AbilityInputTagPressed(ShooterGameplayTags::Input_Fire);
+	AbilitySystemComponent->ProcessAbilityInputForTest();
+	TestEqual(TEXT("a single press edge is buffered while transiently blocked"),
+		AbilitySystemComponent->GetBufferedInputCountForTest(), 1);
+	TestEqual(TEXT("a blocked press edge does not activate"), Ability->ActivationCountForTest, 0);
+
 	AbilitySystemComponent->RemoveLooseGameplayTag(ShooterGameplayTags::State_Reloading);
-	AbilitySystemComponent->ProcessDeferredInputIntentsForTest();
+	AbilitySystemComponent->ProcessAbilityInputForTest();
 	TestEqual(TEXT("the buffered press edge is consumed exactly once"), Ability->ActivationCountForTest, 1);
 
-	// 动作结束但仍按住：没有行为标签时不得自动重试。
+	// 仍按住但动作被取消：OnInputTriggered 不因 Held 补枪（这是 Semi 的核心语义）。
 	AbilitySystemComponent->CancelAbilitiesByTag(ShooterGameplayTags::Input_Fire);
-	AbilitySystemComponent->ProcessDeferredInputIntentsForTest();
-	TestEqual(TEXT("a held input without the behavior tag is never retried"), Ability->ActivationCountForTest, 1);
-
-	// 反向证明：同一个 Spec 加上行为标签后，同一时点就会重试。
-	AbilitySystemComponent->SetHeldRepeatInputBehavior(ShooterGameplayTags::Input_Fire, true);
-	AbilitySystemComponent->ProcessDeferredInputIntentsForTest();
-	TestEqual(TEXT("the same held input is retried once the behavior tag is present"),
-		Ability->ActivationCountForTest, 2);
+	AbilitySystemComponent->ProcessAbilityInputForTest();
+	TestEqual(TEXT("held input without WhileInputActive is never retried"), Ability->ActivationCountForTest, 1);
 
 	DestroyInputBufferTestWorld(World);
 	return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterInputBufferHeldRepeatReleasedPressIsNotRetriedTest,
-	"ShootGame.Ability.InputBuffer.HeldRepeatReleasedPressIsNotRetried",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterInputBufferWhileInputActiveReleasedPressDoesNotRetryTest,
+	"ShootGame.Ability.InputBuffer.WhileInputActiveReleasedPressDoesNotRetry",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
-bool FShooterInputBufferHeldRepeatReleasedPressIsNotRetriedTest::RunTest(const FString& Parameters)
+bool FShooterInputBufferWhileInputActiveReleasedPressDoesNotRetryTest::RunTest(const FString& Parameters)
 {
 	using namespace ShooterAbilityInputBufferAutomationTests;
 
@@ -524,37 +551,82 @@ bool FShooterInputBufferHeldRepeatReleasedPressIsNotRetriedTest::RunTest(const F
 		return false;
 	}
 
-	AbilitySystemComponent->SetHeldRepeatInputBehavior(ShooterGameplayTags::Input_Fire, true);
-
-	// 冻结语义：HeldRepeat 的 Spec 不登记按下沿，Release 即终止持续意图。
+	// WhileInputActive 的持续意图只由 Held 集合表达：Release 即终止，也不留下按下沿。
+	// 阻塞保持到解释时点，因此这次按下沿尝试在阻塞中失败，且不登记任何窗口。
 	AbilitySystemComponent->AddLooseGameplayTag(ShooterGameplayTags::State_Reloading);
 	AbilitySystemComponent->AbilityInputTagPressed(ShooterGameplayTags::Input_Fire);
 	AbilitySystemComponent->AbilityInputTagReleased(ShooterGameplayTags::Input_Fire);
-	AbilitySystemComponent->RemoveLooseGameplayTag(ShooterGameplayTags::State_Reloading);
-	AbilitySystemComponent->ProcessDeferredInputIntentsForTest();
+	TestEqual(TEXT("release clears the held collection before interpretation"),
+		AbilitySystemComponent->GetHeldInputTagCountForTest(), 0);
 
-	TestEqual(TEXT("a released held press does not start"), Ability->ActivationCountForTest, 0);
-	TestEqual(TEXT("released held press leaves no pending entry"),
+	AbilitySystemComponent->ProcessAbilityInputForTest();
+	TestEqual(TEXT("a released while-input-active press does not start"), Ability->ActivationCountForTest, 0);
+	TestEqual(TEXT("a released while-input-active press leaves no pending entry"),
 		AbilitySystemComponent->GetBufferedInputCountForTest(), 0);
 
-	AbilitySystemComponent->ProcessDeferredInputIntentsForTest();
-	TestEqual(TEXT("a released held press is never retried"), Ability->ActivationCountForTest, 0);
+	AbilitySystemComponent->RemoveLooseGameplayTag(ShooterGameplayTags::State_Reloading);
+	AbilitySystemComponent->ProcessAbilityInputForTest();
+	TestEqual(TEXT("a released while-input-active press is never retried"), Ability->ActivationCountForTest, 0);
 
 	DestroyInputBufferTestWorld(World);
 	return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterInputBufferHeldRepeatDoesNotConsumeResidualEntryTest,
-	"ShootGame.Ability.InputBuffer.HeldRepeatDoesNotConsumeResidualEntry",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterInputBufferSameFramePressReleaseFiresOnceTest,
+	"ShootGame.Ability.InputBuffer.SameFramePressReleaseFiresOnce",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
-bool FShooterInputBufferHeldRepeatDoesNotConsumeResidualEntryTest::RunTest(const FString& Parameters)
+bool FShooterInputBufferSameFramePressReleaseFiresOnceTest::RunTest(const FString& Parameters)
 {
 	using namespace ShooterAbilityInputBufferAutomationTests;
 
 	UWorld* World = CreateInputBufferTestWorld();
 	if (!TestNotNull(TEXT("input buffer test world created"), World))
 	{
+		DestroyInputBufferTestWorld(World);
+		return false;
+	}
+
+	AShooterPlayerState* PlayerState = nullptr;
+	UShooterAbilitySystemComponent* AbilitySystemComponent = CreateLocalInputContext(*this, World, PlayerState);
+	UShooterInputBufferTestAbility* Ability = GrantInputBufferTestAbility(*this,
+		AbilitySystemComponent, UShooterInputBufferSustainedTestAbility::StaticClass());
+	if (!AbilitySystemComponent || !Ability)
+	{
+		DestroyInputBufferTestWorld(World);
+		return false;
+	}
+
+	// 同帧「按下 + 松开」必须形成一次动作边界：按下沿在同一次解释里先激活，松开随后走标准释放。
+	AbilitySystemComponent->AbilityInputTagPressed(ShooterGameplayTags::Input_Fire);
+	AbilitySystemComponent->AbilityInputTagReleased(ShooterGameplayTags::Input_Fire);
+	AbilitySystemComponent->ProcessAbilityInputForTest();
+
+	TestEqual(TEXT("a same frame tap activates exactly once"), Ability->ActivationCountForTest, 1);
+	TestEqual(TEXT("a same frame tap is released in the same pass"),
+		AbilitySystemComponent->GetActiveAbilityCountForClass(UShooterInputBufferSustainedTestAbility::StaticClass()), 0);
+	TestEqual(TEXT("a same frame tap leaves no pending entry"),
+		AbilitySystemComponent->GetBufferedInputCountForTest(), 0);
+
+	AbilitySystemComponent->ProcessAbilityInputForTest();
+	TestEqual(TEXT("a same frame tap is never retried after release"), Ability->ActivationCountForTest, 1);
+
+	DestroyInputBufferTestWorld(World);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterInputBufferNewPressEdgeSupersedesBufferedPressTest,
+	"ShootGame.Ability.InputBuffer.NewPressEdgeSupersedesBufferedPress",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FShooterInputBufferNewPressEdgeSupersedesBufferedPressTest::RunTest(const FString& Parameters)
+{
+	using namespace ShooterAbilityInputBufferAutomationTests;
+
+	UWorld* World = CreateInputBufferTestWorld();
+	if (!TestNotNull(TEXT("input buffer test world created"), World))
+	{
+		DestroyInputBufferTestWorld(World);
 		return false;
 	}
 
@@ -568,22 +640,33 @@ bool FShooterInputBufferHeldRepeatDoesNotConsumeResidualEntryTest::RunTest(const
 		return false;
 	}
 
-	// 单发按下 + 松开：按下沿留在窗口内，语义不变。
+	// 被短暂阻塞的第一次按下留下窗口，随后松开（窗口保留到过期，不被释放清除）。
 	AbilitySystemComponent->AddLooseGameplayTag(ShooterGameplayTags::State_Reloading);
 	AbilitySystemComponent->AbilityInputTagPressed(ShooterGameplayTags::Input_Fire);
-	AbilitySystemComponent->AbilityInputTagReleased(ShooterGameplayTags::Input_Fire);
-	TestEqual(TEXT("a semi press edge is buffered while transiently blocked"),
+	AbilitySystemComponent->ProcessAbilityInputForTest();
+	TestEqual(TEXT("the first blocked press leaves a pending entry"),
 		AbilitySystemComponent->GetBufferedInputCountForTest(), 1);
 
-	// 阻塞期间该 Spec 变成 HeldRepeat（生产对应换成连发武器）：
-	// 此后它的意图只由 Spec.InputPressed 表达，历史残留条目不得被消费。
-	AbilitySystemComponent->SetHeldRepeatInputBehavior(ShooterGameplayTags::Input_Fire, true);
-	AbilitySystemComponent->RemoveLooseGameplayTag(ShooterGameplayTags::State_Reloading);
-	AbilitySystemComponent->ProcessDeferredInputIntentsForTest();
+	AbilitySystemComponent->AbilityInputTagReleased(ShooterGameplayTags::Input_Fire);
+	AbilitySystemComponent->ProcessAbilityInputForTest();
+	TestEqual(TEXT("the pending entry survives the release"),
+		AbilitySystemComponent->GetBufferedInputCountForTest(), 1);
 
-	TestEqual(TEXT("a residual press edge is never consumed by a held repeat spec"),
-		Ability->ActivationCountForTest, 0);
-	TestEqual(TEXT("the residual press edge leaves no pending entry"),
+	// 阻塞解除后的新按下沿立即废弃旧窗口：新边自己形成动作边界，旧边不再补出第二枪。
+	AbilitySystemComponent->RemoveLooseGameplayTag(ShooterGameplayTags::State_Reloading);
+	AbilitySystemComponent->AbilityInputTagPressed(ShooterGameplayTags::Input_Fire);
+	AbilitySystemComponent->ProcessAbilityInputForTest();
+
+	TestEqual(TEXT("the new press edge activates once"), Ability->ActivationCountForTest, 1);
+	TestEqual(TEXT("the new press edge supersedes the old pending entry"),
+		AbilitySystemComponent->GetBufferedInputCountForTest(), 0);
+
+	AbilitySystemComponent->AbilityInputTagReleased(ShooterGameplayTags::Input_Fire);
+	AbilitySystemComponent->ProcessAbilityInputForTest();
+	AbilitySystemComponent->ProcessAbilityInputForTest();
+
+	TestEqual(TEXT("a superseded window never fires a second shot"), Ability->ActivationCountForTest, 1);
+	TestEqual(TEXT("no pending entry survives the supersede"),
 		AbilitySystemComponent->GetBufferedInputCountForTest(), 0);
 
 	DestroyInputBufferTestWorld(World);
@@ -614,30 +697,92 @@ bool FShooterInputBufferLifecycleClearsIntentTest::RunTest(const FString& Parame
 		return false;
 	}
 
-	// 死亡：State.Dead 不是可缓冲的阻塞，因此死亡状态下的按下不进入缓冲；
-	// 待消费意图的清理由宿主在死亡边界显式调用（ShooterCharacter::ApplyDeathState 走同一入口）。
+	// 死亡：State.Dead 不是可缓冲的阻塞，因此死亡状态下的按下不进入短期按下沿；
+	// 旧意图的清理由宿主在死亡边界显式调用（ShooterCharacter::ApplyDeathState 走同一入口）。
 	AbilitySystemComponent->AddLooseGameplayTag(ShooterGameplayTags::State_Reloading);
 	AbilitySystemComponent->AbilityInputTagPressed(ShooterGameplayTags::Input_Fire);
+	TestEqual(TEXT("press is collected as held before death"),
+		AbilitySystemComponent->GetHeldInputTagCountForTest(), 1);
+
+	AbilitySystemComponent->ProcessAbilityInputForTest();
 	TestEqual(TEXT("reloading press is buffered before death"),
 		AbilitySystemComponent->GetBufferedInputCountForTest(), 1);
 
 	AbilitySystemComponent->AddLooseGameplayTag(ShooterGameplayTags::State_Dead);
-	AbilitySystemComponent->ClearBufferedInputs();
-	TestEqual(TEXT("the death boundary clears pending input intent"),
+	AbilitySystemComponent->InvalidateInputIntents();
+	TestEqual(TEXT("the death boundary invalidates pending input intent"),
 		AbilitySystemComponent->GetBufferedInputCountForTest(), 0);
+	TestEqual(TEXT("the death boundary clears the held collection"),
+		AbilitySystemComponent->GetHeldInputTagCountForTest(), 0);
 
 	AbilitySystemComponent->AbilityInputTagPressed(ShooterGameplayTags::Input_Fire);
+	AbilitySystemComponent->ProcessAbilityInputForTest();
 	TestEqual(TEXT("dead press is not buffered"), AbilitySystemComponent->GetBufferedInputCountForTest(), 0);
 	TestEqual(TEXT("dead press never activates"), Ability->ActivationCountForTest, 0);
 
 	// Avatar 生命周期更新（重生）：不继承旧生命周期的意图。
 	AbilitySystemComponent->RemoveLooseGameplayTag(ShooterGameplayTags::State_Dead);
 	AbilitySystemComponent->AbilityInputTagPressed(ShooterGameplayTags::Input_Fire);
+	AbilitySystemComponent->ProcessAbilityInputForTest();
 	TestEqual(TEXT("reloading press is buffered again after death tag removal"),
 		AbilitySystemComponent->GetBufferedInputCountForTest(), 1);
+
 	AbilitySystemComponent->ClearActorInfo();
 	TestEqual(TEXT("actor info reset clears pending input intent"),
 		AbilitySystemComponent->GetBufferedInputCountForTest(), 0);
+	TestEqual(TEXT("actor info reset clears the held collection"),
+		AbilitySystemComponent->GetHeldInputTagCountForTest(), 0);
+
+	DestroyInputBufferTestWorld(World);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterInputBufferLifecycleResetsHeldInputPressedTest,
+	"ShootGame.Ability.InputBuffer.LifecycleResetsHeldInputPressed",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FShooterInputBufferLifecycleResetsHeldInputPressedTest::RunTest(const FString& Parameters)
+{
+	using namespace ShooterAbilityInputBufferAutomationTests;
+
+	UWorld* World = CreateInputBufferTestWorld();
+	if (!TestNotNull(TEXT("input buffer test world created"), World))
+	{
+		DestroyInputBufferTestWorld(World);
+		return false;
+	}
+
+	AShooterPlayerState* PlayerState = nullptr;
+	UShooterAbilitySystemComponent* AbilitySystemComponent = CreateLocalInputContext(*this, World, PlayerState);
+	UShooterInputBufferTestAbility* Ability = GrantInputBufferTestAbility(*this,
+		AbilitySystemComponent, UShooterInputBufferSustainedTestAbility::StaticClass());
+	if (!AbilitySystemComponent || !Ability)
+	{
+		DestroyInputBufferTestWorld(World);
+		return false;
+	}
+
+	FGameplayAbilitySpec* Spec = AbilitySystemComponent->FindAbilitySpecFromClass(UShooterInputBufferSustainedTestAbility::StaticClass());
+	if (!TestNotNull(TEXT("sustained test ability spec found"), Spec))
+	{
+		DestroyInputBufferTestWorld(World);
+		return false;
+	}
+
+	// Spec.InputPressed 是引擎标记为 NotReplicated 的本地真值，由解释时点通过标准入口写入：
+	// 采集本身不写它，生命周期边界直接复位它（不派发 Release）。
+	AbilitySystemComponent->AbilityInputTagPressed(ShooterGameplayTags::Input_Fire);
+	TestFalse(TEXT("collection alone does not write Spec.InputPressed"), Spec->InputPressed);
+
+	AbilitySystemComponent->ProcessAbilityInputForTest();
+	TestTrue(TEXT("the input pass writes Spec.InputPressed through the engine entry point"), Spec->InputPressed);
+	const int32 ActivationCountBeforeInvalidate = Ability->ActivationCountForTest;
+
+	// 生命周期边界是「旧输入意图作废」，不是真实 Release：直接复位本地真值，不派发 Release。
+	AbilitySystemComponent->ClearActorInfo();
+	TestFalse(TEXT("actor info reset invalidates Spec.InputPressed"), Spec->InputPressed);
+	TestEqual(TEXT("invalidated held intent does not activate again"),
+		Ability->ActivationCountForTest, ActivationCountBeforeInvalidate);
 
 	DestroyInputBufferTestWorld(World);
 	return true;

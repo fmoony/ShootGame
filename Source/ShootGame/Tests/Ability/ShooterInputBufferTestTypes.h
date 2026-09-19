@@ -9,14 +9,14 @@
 #include "ShooterInputBufferTestTypes.generated.h"
 
 /**
- * 输入缓冲自动化测试使用的 Ability 类型。
+ * 输入处理自动化测试使用的 Ability 类型。
  *
  * 这些类型只存在于测试代码路径，不代表任何生产 Ability 的语义；
  * 它们复用生产的 UShooterAbilitySystemComponent 输入路径与 GAS Tag 门控，
- * 用来验证「短暂阻塞保留一次按下沿」「硬失败不保留」「按住型输入在阻塞解除后重试一次」等判定。
+ * 用来验证「单次按下沿的短期保留」「硬失败不保留」「按住持续在每帧输入处理时重试」等判定。
  */
 
-/** 基础测试 Ability：被 State.Reloading / State.Dead 阻塞，一次按下对应一次本地动作边界。 */
+/** 基础测试 Ability（OnInputTriggered）：被 State.Reloading / State.Dead 阻塞，一次按下对应一次本地动作边界。 */
 UCLASS(Transient, NotBlueprintable)
 class UShooterInputBufferTestAbility : public UShooterGameplayAbility
 {
@@ -110,16 +110,23 @@ public:
 };
 
 /**
- * 按住型（Held）测试 Ability：只有仍处于按住状态才允许启动。
+ * 按住持续（WhileInputActive）测试 Ability：只有仍处于按住状态才允许启动。
  *
- * 与生产的全自动 GA_Fire 一致：Ability 本身不声明输入语义，
- * 「阻塞解除后仍按住是否允许重试」由 Spec 上的 InputBehavior.HeldRepeat 决定，
- * 测试通过 ASC.SetHeldRepeatInputBehavior 写入（生产由装备入口做同一件事）。
+ * 与生产的全自动 GA_Fire 一致：输入语义由 Ability 自己的 ActivationPolicy 声明，
+ * 持续意图只由 Spec.InputPressed 表达，不需要任何由外部同步的派生状态。
  */
 UCLASS(Transient, NotBlueprintable)
 class UShooterInputBufferSustainedTestAbility : public UShooterInputBufferTestAbility
 {
 	GENERATED_BODY()
+
+public:
+	/** 与生产的全自动 GA_Fire 一致：按住持续，由 ASC 的输入处理时点决定何时重试。 */
+	virtual EShooterAbilityActivationPolicy GetActivationPolicy(const FGameplayAbilityActorInfo* ActorInfo) const override
+	{
+		(void)ActorInfo;
+		return EShooterAbilityActivationPolicy::WhileInputActive;
+	}
 
 protected:
 	/** 与生产的全自动 GA_Fire 一致：已经松开的按下沿不得补出一次启动。 */

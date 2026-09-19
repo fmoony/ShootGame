@@ -3227,11 +3227,9 @@ void AShooterNetworkTestCoordinator::PollClientState()
 
 			if (ReloadFirePhase == 2)
 			{
-				// 同一帧紧接开火：此时客户端必然还没收到 State.Reloading。
+				// 同一帧紧接开火：采集层只记录按下沿，本地换弹窗口要到输入处理时点才落地，
+				// 因此「本机是否已知换弹阻塞」由结算时的延迟探测给出，见下方 settle 块。
 				Character->DoReload();
-				const UAbilitySystemComponent* AbilitySystemComponent = Character->GetAbilitySystemComponent();
-				bClientReloadFireTagSeen = AbilitySystemComponent &&
-					AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading);
 				Character->DoStartFiring();
 				bClientReloadFireInputSent = true;
 				UE_LOG(LogShootGame, Display, TEXT("Reload-fire client inputs sent: Case=2 PredictedBefore=%d"),
@@ -3254,6 +3252,16 @@ void AShooterNetworkTestCoordinator::PollClientState()
 
 	if (ReloadFirePhase != 0 && bClientReloadFireInputSent && !bClientReportedReloadFire)
 	{
+		// 输入回调只采集，本地换弹窗口在输入处理时点才落地：
+		// 因此「本机何时知道 State.Reloading」必须在解释之后观测。
+		// 同帧用例（Case=2）在按下当帧探测必然读到 false，这里取解释后的首次观测结果。
+		if (!bClientReloadFireTagSeen)
+		{
+			const UAbilitySystemComponent* ProbeAbilitySystemComponent = Character->GetAbilitySystemComponent();
+			bClientReloadFireTagSeen = ProbeAbilitySystemComponent &&
+				ProbeAbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading);
+		}
+
 		if (ClientReloadFireSettleTime <= 0.0f)
 		{
 			ClientReloadFireSettleTime = GetWorld()->GetTimeSeconds() + 0.6f;

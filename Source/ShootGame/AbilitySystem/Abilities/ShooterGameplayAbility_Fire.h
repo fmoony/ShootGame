@@ -49,6 +49,12 @@ public:
 	/** 测试观察接口：是否接受客户端发来的结束命令（必须为 false，权威保留在服务器）。 */
 	bool ServerRespectsRemoteAbilityCancellation() const;
 
+	/**
+	 * 输入激活策略：当前武器连发时按住持续（WhileInputActive），单发时单次按下沿。
+	 * 动态 Gameplay Context 查询，不依赖任何由外部同步的派生状态。
+	 */
+	virtual EShooterAbilityActivationPolicy GetActivationPolicy(const FGameplayAbilityActorInfo* ActorInfo) const override;
+
 	/** 输入缓冲上下文：按下时对应的当前武器；换枪提交后旧输入不得在新武器上生效。 */
 	virtual const UObject* GetInputBufferContext() const override;
 

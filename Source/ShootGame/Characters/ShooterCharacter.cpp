@@ -982,12 +982,12 @@ void AShooterCharacter::Die(AController* KillerController)
 
 void AShooterCharacter::ApplyDeathState()
 {
-	// 死亡是明确的生命周期边界：所有待消费输入意图立即作废。
+	// 死亡是明确的生命周期边界：所有旧输入意图立即作废（含 Spec.InputPressed 的本地真值）。
 	// 服务器在 Die() 里、拥有者客户端在 OnRep_IsDead 里都会进入本函数，两端都不允许
-	// 把死亡前的按下沿带到重生后的新 Avatar 上（Avatar 变化另有 ASC 生命周期清理兜底）。
+	// 把死亡前的按下状态带到重生后的新 Avatar 上（Avatar 变化另有 ASC 生命周期清理兜底）。
 	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent = Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
 	{
-		ShooterAbilitySystemComponent->ClearBufferedInputs();
+		ShooterAbilitySystemComponent->InvalidateInputIntents();
 	}
 
 	// deactivate the weapon（Equipment 已由 Inventory Clear 事件清空；这里只处理客户端本地镜像）。

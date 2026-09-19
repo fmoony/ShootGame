@@ -1,9 +1,11 @@
-﻿// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright Epic Games, Inc. All Rights Reserved.
 
 
 #include "ShooterPlayerController.h"
+#include "AbilitySystem/ShooterAbilitySystemComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Engine/LocalPlayer.h"
+#include "GameFramework/PlayerState/ShooterPlayerState.h"
 #include "InputMappingContext.h"
 #include "Characters/ShooterCharacter.h"
 #include "GameFramework/GameState/ShooterGameState.h"
@@ -18,6 +20,24 @@ AShooterPlayerController::AShooterPlayerController()
 {
 	// 使用 Shooter 摄像机管理器，保持与原模板一致的俯仰范围限制。
 	PlayerCameraManagerClass = AShooterCameraManager::StaticClass();
+}
+
+void AShooterPlayerController::PostProcessInput(const float DeltaTime, const bool bGamePaused)
+{
+	// 输入解释发生在本帧全部输入回调之后：引擎在 UPlayerInput::ProcessInputStack 里先执行
+	// EvaluateInputDelegates（全部 Started / Triggered / Completed 回调），再调用本函数。
+	// 因此这里采集已完整：同帧「按下 + 松开」的点击也能形成一次动作边界。
+	// 只有本机控制器会进入本函数；ASC 侧仍会再次确认本机拥有者视图。
+	if (const AShooterPlayerState* ShooterPlayerState = GetPlayerState<AShooterPlayerState>())
+	{
+		if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent =
+			Cast<UShooterAbilitySystemComponent>(ShooterPlayerState->GetAbilitySystemComponent()))
+		{
+			ShooterAbilitySystemComponent->ProcessAbilityInput();
+		}
+	}
+
+	Super::PostProcessInput(DeltaTime, bGamePaused);
 }
 
 void AShooterPlayerController::BeginPlay()

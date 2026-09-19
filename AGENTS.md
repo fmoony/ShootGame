@@ -72,9 +72,9 @@ Source/ShootGame/
   已形成可用基线；以 `State.Reloading` 驱动 WeaponAction 状态机，通过曲线平滑释放/恢复 IK，
   并用分级 Blend Mask 保留实时俯仰、过滤资源头部表演。
 - [武器贴墙稳定与瞄准表现收尾实施计划](Docs/执行计划/武器贴墙稳定与瞄准表现收尾实施计划.md)：当前暂缓；阶段 0～4 已形成可回退表现基线，阶段 5 和大范围快速甩枪同步仍待后续收尾。
-- [输入缓冲与 Reload 本地预测执行计划](Docs/执行计划/输入缓冲与Reload本地预测执行计划.md)：
-  已实施（2026-09-17～09-18）；ASC 输入缓冲、`InputBehavior.HeldRepeat` 通用输入行为标签、
-  GA_Reload `LocalPredicted`，服务器继续独占 Ammo 与换弹事务。
+- [输入缓冲与 Reload 本地预测执行计划](Docs/已完成计划/输入缓冲与Reload本地预测执行计划.md)：
+  已完成（2026-09-17～09-19）；ASC 输入控制流按「采集 / 解释」分层，GA_Reload `LocalPredicted`，
+  服务器继续独占 Ammo 与换弹事务；输入行为标签已由 `ActivationPolicy`（Semi / FullAuto）取代。
 - [P1 基础射击反馈执行计划](Docs/已完成计划/P1_LocalPredicted基础射击反馈执行计划.md)
   已完成（2026-09-17）；P1 Local Predicted 拥有者本地开火表现与本地开火节拍的实现记录。
 - [Shooter 核心玩法架构解耦重构执行计划](Docs/已完成计划/Shooter核心玩法架构解耦重构执行计划.md)：已完成（2026-08-26）；R0～R8 已实施、提交并回归通过。

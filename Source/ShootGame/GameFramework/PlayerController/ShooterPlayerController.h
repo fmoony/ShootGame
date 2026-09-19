@@ -28,6 +28,12 @@ public:
 	/** 构造函数，指定 Shooter 摄像机管理器并应用俯仰限制。 */
 	AShooterPlayerController();
 
+	/**
+	 * 输入处理时点：本帧全部输入回调已在引擎输入管线中执行完毕，
+	 * 这里把采集到的输入意图交给 ASC 解释（Press / Held / Buffered / Release）。
+	 */
+	virtual void PostProcessInput(const float DeltaTime, const bool bGamePaused) override;
+
 protected:
 
 	/** Input mapping contexts for this player */

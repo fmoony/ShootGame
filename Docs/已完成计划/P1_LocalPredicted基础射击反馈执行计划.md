@@ -5,7 +5,7 @@
 - 完成提交：`b66723b`（P1-A）→ `2bf3d59`（P1-B）→ `a4466ca` → `3c05044` → `757545f`
 - 验证证据：Automation `Passed=81 Failed=0 NotRun=0`；Dedicated / Emulated / Listen 全部 Failure=0
 - 遗留项见开发记录 `Docs/开发记录/2026-09-17-1930-按本地预测语义收敛开火表现与本地开火节拍.md`
-- 后续阶段：[输入缓冲与 Reload 本地预测执行计划](../执行计划/输入缓冲与Reload本地预测执行计划.md)
+- 后续阶段：[输入缓冲与 Reload 本地预测执行计划](输入缓冲与Reload本地预测执行计划.md)
 
 ## 1. 阶段定位
 

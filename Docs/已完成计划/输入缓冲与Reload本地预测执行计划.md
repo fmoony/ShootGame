@@ -1,5 +1,11 @@
 # Ability 输入缓冲与 Reload 本地预测执行计划
 
+> **归档说明（2026-09-19）**：本计划已实施并归档；正文保留为历史计划，不再更新。
+> 输入行为标签 `InputBehavior.HeldRepeat` 与宿主的标签同步已由单元 6 的
+> `ActivationPolicy`（Semi / FullAuto 动态查询）取代，ASC 输入控制流随后按
+> 「采集 / 解释」分层重构；提交与验证证据见
+> `Docs/开发记录/2026-09-19-1445-输入控制流分层与WhileInputActive策略.md`。
+
 - 日期：2026-09-17
 - 基线提交：`757545f`（射击：按本地预测语义收敛开火表现与本地开火节拍）
 - 核对引擎：`E:\Unreal_Engine\UE_5.6`，版本 `5.6.1-44394996`
@@ -7,7 +13,7 @@
 - 上游依赖：[Shooter 完整 Demo 最终路线规划](Shooter完整Demo最终路线规划.md)
 - 前置阶段（已归档）：
   [P1 Local Predicted 基础射击反馈执行计划](../已完成计划/P1_LocalPredicted基础射击反馈执行计划.md)
-- 状态：待用户批准后实施
+- 状态：已实施并归档（2026-09-19）
 
 ## 1. 阶段定位
 
@@ -182,18 +188,19 @@ Server Reject 不产生 Gameplay Result
 ### 4.1 `UShooterAbilitySystemComponent`
 
 ```text
-Press / Release / Held（复用 FGameplayAbilitySpec::InputPressed）
-短窗口 Press Edge Buffer（绝对过期时间，不续期；只服务没有 HeldRepeat 的 Spec）
-失败分类（只把「短暂动作标签阻塞」视为可缓存）
-安全时点的一次延迟重试（下一 Tick，不在 Tag 回调栈内重入；按住型输入按 Spec 行为标签判定）
-生命周期清理（Avatar / 死亡 / ClearActorInfo / EndPlay）
+Press / Release（写 / 清 FGameplayAbilitySpec::InputPressed）
+每帧 ProcessAbilityInput（本机拥有者，由组件 Tick 驱动）：
+  1. 短期按下沿：被「短暂动作标签阻塞」拒绝后保留的按下沿，有效期内每帧最多尝试一次
+  2. WhileInputActive：按住持续，只由 Spec.InputPressed 表达，未激活时重试一次
+失败分类（只把「短暂动作标签阻塞」视为可进入短期缓冲）
+生命周期作废（Avatar / 死亡 / ClearActorInfo / EndPlay：清按下沿 + 复位 InputPressed）
 ```
 
-两种输入意图来源互斥（冻结语义）：
+两种输入策略（由 Ability 动态声明，互不共享状态）：
 
 ```text
-无 HeldRepeat 的 Spec（Semi）    → pending intent 只由短期 Buffered Press Edge 表达
-带 HeldRepeat 的 Spec（FullAuto）→ pending intent 只由 Spec.InputPressed 表达，Release 即终止
+OnInputTriggered（Semi）    → Press edge 当场尝试一次；失败可按短期按下沿补一次
+WhileInputActive（FullAuto）→ 持续意图只由 Spec.InputPressed 表达，Release 即终止
 ```
 
 它不读 Weapon、Ammo、Inventory、Projectile，也不判断「现在能不能开火」——那是 Ability 的职责。
@@ -201,27 +208,22 @@ Press / Release / Held（复用 FGameplayAbilitySpec::InputPressed）
 ### 4.2 `UShooterGameplayAbility` / GA_Fire / GA_Reload
 
 ```text
-Ability 自己声明：输入上下文、ActivationBlockedTags / OwnedTags / CancelAbilitiesWithTag
+Ability 自己声明：输入激活策略、输入上下文、ActivationBlockedTags / OwnedTags / CancelAbilitiesWithTag
 Ability 自己决定：本地预测资格、权威校验、Owner 表现、服务器事务
 ```
 
-基类只提供一个最小声明钩子，不做策略系统：
+基类提供两个最小声明钩子，不做策略系统：
 
 ```cpp
+/** 输入激活策略；默认单次按下沿。显式传 ActorInfo，允许按当前 Gameplay Context 动态返回。 */
+virtual EShooterAbilityActivationPolicy GetActivationPolicy(const FGameplayAbilityActorInfo* ActorInfo) const;
+
 /** 输入 Buffer 的上下文对象；默认无上下文。上下文变化后不得再消费该输入。 */
 virtual const UObject* GetInputBufferContext() const { return nullptr; }
 ```
 
-GA_Fire 返回「按下时的当前武器」；ASC 只消费这个声明，不读 Weapon、不判断能不能开火。
-
-「按住可恢复」（FullAuto 语义）不是 Ability 声明，而是 **Spec 上的通用输入行为标签**：
-
-```text
-InputBehavior.HeldRepeat（FGameplayAbilitySpec::DynamicSpecSourceTags）
-含义：Spec.InputPressed 仍为 true 时，短暂阻塞解除后允许该 Spec 重新尝试激活
-同步：装备收敛入口按当前武器 IsFullAuto() 写入 / 移除（GA_Fire 同时服务 Semi 与 FullAuto）
-消费：ASC 只认 Spec.InputPressed 与该标签，不认识 Weapon / Semi / FullAuto
-```
+GA_Fire 的策略是动态查询：当前武器连发 → `WhileInputActive`，否则 `OnInputTriggered`；
+ASC 只消费这个声明，不读 Weapon、不判断能不能开火，也不需要任何由装备路径同步的派生状态。
 
 ### 4.3 Server
 
@@ -270,9 +272,9 @@ struct FShooterBufferedInput
 
 ### 5.3 失败分类：什么可以 Buffer
 
-按下时先按现有语义调用 `AbilitySpecInputPressed` + `TryActivateAbility`，同时订阅
-`AbilityFailedCallbacks`（引擎 `AbilitySystemComponent_Abilities.cpp:2533`）。只有本次按下对应的
-失败才会被分类，判定顺序：
+`OnInputTriggered` 的 Press edge 先按现有语义调用 `AbilitySpecInputPressed` + `TryActivateAbility`，
+同时订阅 `AbilityFailedCallbacks`（引擎 `AbilitySystemComponent_Abilities.cpp:2533`）。
+只有本次按下对应的失败才会被分类，判定顺序：
 
 ```text
 1. 失败容器与本机 OwnedTags 求交 → BlockingTags
@@ -283,9 +285,7 @@ struct FShooterBufferedInput
    覆盖：换弹中再按换弹；阻塞来自该动作自身时重复按下没有意义
 4. BlockingTags 不能全部落在 TransientInputBlockedTags 内 → 丢弃
    覆盖：State.Dead、以及任何未知阻塞标签
-5. 被按下的 Spec 带 InputBehavior.HeldRepeat → 丢弃（不登记）
-   覆盖：连发语义的持续意图只由 Spec.InputPressed 表达，不建第二份表达
-6. 其余情况 → 登记 / 覆盖条目
+5. 其余情况 → 登记 / 覆盖条目
 ```
 
 因此：
@@ -295,80 +295,73 @@ Semi-auto 本地 RefireRate 未 Ready  → 硬失败，绝不 Buffer，绝不稍
 Weapon 无效                          → 硬失败，绝不 Buffer
 生命周期失效（Dead / 失去控制）      → 硬失败，绝不 Buffer
 Server Ammo / Reserve / Inventory    → 不由 Buffer 猜测，由 Server 最终 Reject
+WhileInputActive                     → 不登记条目（持续意图只由 Spec.InputPressed 表达）
 ```
 
-### 5.4 消费规则
-
-在安全时点执行 `ProcessDeferredInputIntents()`：
+### 5.4 消费规则（每帧输入处理时点）
 
 ```text
-对每条未过期条目：
-  Spec = FindAbilitySpecFromInputTag(InputTag)
-  Spec 不存在                → 移除条目
-  Spec 带 HeldRepeat         → 移除条目（该 Spec 的意图只由 Spec.InputPressed 表达）
-  Context 失效或与当前上下文不一致 → 移除条目（不允许跨武器补枪）
-  Spec->InputPressed 仍为 true → 先 AbilitySpecInputPressed（保持引擎状态一致）
-  bActivated = TryActivateAbility(Spec->Handle, true)
-  if (bActivated && !Spec->InputPressed) → 立即走标准释放路径（本地释放 + ServerSetInputReleased）
-  移除条目：失败不重建、不延期、不自动再次 Buffer
+ProcessAbilityInput()：
+  对每条未过期条目：
+    Spec = FindAbilitySpecFromInputTag(InputTag)
+    Spec 不存在                → 移除条目
+    Context 失效或与当前上下文不一致 → 移除条目（不允许跨武器补枪）
+    bActivated = TryActivateAbility(Spec->Handle, true)（已激活时直接跳过）
+    if (bActivated && !Spec->InputPressed) → 立即走标准释放路径（本地释放 + ServerSetInputReleased）
+    移除条目：失败不重建、不延期、不自动再次 Buffer
 ```
 
 要点：
 
-- **HeldRepeat 的 Spec 不消费条目**：即使条目是按下时（还是 Semi）留下的历史残留，
-  也一律在消费侧丢弃——HeldRepeat 的 pending intent 唯一来源是 `Spec.InputPressed`。
-- **已松开的按下沿**（半自动 1.42 按下 / 1.45 松开 / 1.50 消费）在消费时
-  `Spec->InputPressed == false`，因此不伪造按下；激活后立即补一次标准释放，
-  避免残留 `State.Firing` 与不结束的本地预测实例。
+- **每帧最多一次**：条目在有效期内每个输入处理时点最多尝试一次，本地首次激活成功即消费；
+- **已松开的按下沿**在消费时 `Spec->InputPressed == false`，因此不伪造按下；
+  激活后立即补一次标准释放，避免残留 `State.Firing` 与不结束的本地预测实例；
 - **补释放不新增 RPC**：复用现有 `ServerSetInputReleased` 通道，
   与 `AbilityInputTagReleased` 共用同一个内部释放函数。
-- **HeldRepeat 的已松开按下沿**不产生任何条目，也就不会被任何人消费。
 
-### 5.5 Held 重试（Spec 行为标签）
+### 5.5 WhileInputActive（按住持续）
 
 ```text
 对每个 AbilitySpec：
-  Spec.InputPressed && !Spec.IsActive() && Spec 带 InputBehavior.HeldRepeat
+  Spec.InputPressed && !Spec.IsActive() && 当前策略 == WhileInputActive
   → TryActivateAbility（一次）
 ```
 
-- Held 状态来自 `Spec.InputPressed`（引擎状态），不新增第二份布尔。
-- 冻结语义：带该标签的 Spec 的 pending intent **唯一来源**就是 `Spec.InputPressed`，
-  既不登记（见 5.3 第 5 条）也不消费（见 5.4）Buffered Press；Release 即终止该意图。
-- 覆盖用户场景：Fire 已激活 → Reload 取消 Fire → 玩家一直按住 → Reload End 后重新启动全自动。
-- 单发 Spec 永远不带该标签，因此一直按住不会跨阻塞补枪。
-- 不建条目、不续期、不排程下一次；被拒后下一次机会只来自新的短暂阻塞解除事件。
+- Held 状态来自 `Spec.InputPressed`（引擎状态，NotReplicated），不新增第二份布尔；
+- 不登记、不消费短期按下沿：Press 只建立 `Spec.InputPressed`，Release 即终止；
+- 覆盖用户场景：Fire 已激活 → Reload 取消 Fire → 玩家一直按住 → Reload End 后重新启动全自动；
+- 单发（`OnInputTriggered`）永远不参与这条链，因此一直按住不会跨阻塞补枪；
+- Ability 已激活时不重复请求，因此重试频率由「本地预测实例的存活时间（≈一个 RTT）」天然限制，
+  不需要 cooldown / retry timer。
 
-### 5.6 安全时点与重入约束
+### 5.6 输入处理时点与重入约束
 
 ```text
-RegisterGameplayTagEvent(TransientInputBlockedTags, NewOrRemoved)
-→ 计数归零时只登记 bBufferProcessScheduled
-→ GetWorld()->GetTimerManager().SetTimerForNextTick(...)
-→ 下一 Tick 执行一次 ProcessDeferredInputIntents()
+本机拥有者视图：PrimaryComponentTick 每帧一次 → ProcessAbilityInput()
+（InitAbilityActorInfo 时启用，ClearActorInfo / EndPlay 时关闭；其余 ASC 不参与）
 ```
 
-- 不在 Tag 回调栈内调用 `TryActivateAbility`，避免 `EndAbility` / `RemoveTag` 栈内重入。
-- 同帧多次 Tag 变化只合并成一次处理。
-- 多标签同时消失只处理一次。
+- 处理时点不在 GAS 的 Tag 回调栈内，因此不需要延迟到下一 Tick，也不注册任何 blocker 监听；
+- 同帧内按下与处理互不重入：Press 只写 `Spec.InputPressed`，激活统一发生在处理时点。
 
-### 5.7 一次安全重试（没有 Retry Timer）
-
-安全时点上的重试只有「一次」，没有计数器也没有定时器：
+### 5.7 重试边界（没有 Retry Timer、没有计数）
 
 ```text
-短暂阻塞解除 → 下一 Tick ProcessDeferredInputIntents()
-  1. 消费仍未过期的条目（每个条目最多一次）
-  2. 对带 InputBehavior.HeldRepeat 且仍按住的 Spec 尝试一次
-→ 被拒不会排程下一次：下一次机会只来自新的短暂阻塞解除事件
+OnInputTriggered：条目在 150ms 窗口内每帧最多一次；失败不续期、不重建
+WhileInputActive：按住且未激活时每帧一次；Reject 后本地实例结束，下一次尝试最快在一个 RTT 后
+```
+
+明确接受：
+
+```text
+空弹匣持续按住时按 RTT 频率重复「本地 cosmetic + 服务器 Reject」，不新增 Ammo 镜像硬门控
 ```
 
 禁止：
 
 ```text
-Server Reject → 自动 Retry → Reject 的循环
-MaxHeldRetryPerPress 这类每个按下沿的再尝试计数与重试定时器
-半自动的自动重试（半自动一次点击只对应一次 Shot Attempt）
+每个按下沿的再尝试计数（MaxHeldRetryPerPress 这类）与重试定时器
+半自动（OnInputTriggered）因 Held 自动重试
 ```
 
 ## 6. Press / Release / Held 语义
@@ -385,18 +378,30 @@ MaxHeldRetryPerPress 这类每个按下沿的再尝试计数与重试定时器
   └─ 已过期：不激活、不表现、不请求
 ```
 
-### 6.2 全自动（HeldRepeat）
+### 6.2 全自动（WhileInputActive）
 
 ```text
-按下（按住）→ 被短暂阻塞不登记条目：持续意图只由 Spec.InputPressed 表达
-阻塞结束（安全时点）
-  ├─ 仍按住：重试一次 → 本地表现节拍 PredictedFeedbackTimer + 服务器 Authority RefireTimer
-  └─ 已松开：不重试（Release 即终止该意图）
-按住期间 Ability 被取消（Reload / Equip）→ 下一个安全时点按仍按住状态重新启动
+按下 → Press edge 当场尝试一次（保证「点一下」也形成一次本地动作边界）
+按住 + 未激活 + 策略 WhileInputActive → 每个输入处理时点重试一次
+  → 本地表现节拍 PredictedFeedbackTimer + 服务器 Authority RefireTimer
+已松开 → 不重试（Release 即终止该意图）
+按住期间 Ability 被取消（Reload / Equip / Reject）→ 下一个处理时点按仍按住状态重新启动
 松开 → 现有 InputReleased / EndAbility 链路停本地节拍并通知服务器
 ```
 
-两侧 Timer 允许相位差，不做逐发对齐；Reject / Release 只停止未来行为，不回滚已播 cosmetic。
+- 不登记短期按下沿：被短暂阻塞时只依赖 `Spec.InputPressed`，阻塞解除后由按住分支恢复；
+- 「按下与松开同帧」的点击必须仍然开火，因此 Press edge 对两种策略都当场尝试一次；
+- 两侧 Timer 允许相位差，不做逐发对齐；Reject / Release 只停止未来行为，不回滚已播 cosmetic。
+
+### 6.3 Press / Release 分支
+
+```text
+Press（本机拥有者）→ Spec.InputPressed = true → 当场 TryActivateAbility 一次
+  ├─ 成功：本次按下形成本地动作边界，同一 Tag 的旧按下沿失效
+  └─ 失败：按失败分类决定是否登记短期按下沿（仅 OnInputTriggered）
+Release → 可靠 ServerSetInputReleased + 本地 AbilitySpecInputReleased
+  单次按下沿不立即丢弃（仍可能在窗口内形成一次动作边界）
+```
 
 ## 7. GA_Fire 收敛
 
@@ -529,38 +534,53 @@ Input Buffer 不知道 ReloadDuration，也不知道换弹规则：
 Buffer 不是「保证产生真实 Shot」。
 
 ```text
-半自动：
-  这次点击结束；cosmetic 不回滚；不自动再次 Buffer；不无限重试
+半自动（OnInputTriggered）：
+  这次点击结束；cosmetic 不回滚；不自动再次 Buffer
 
-全自动：
+全自动（WhileInputActive）：
   已松开 → 结束
-  仍按住 → 允许在下一个安全时点重试一次（InputBehavior.HeldRepeat）
-  禁止 Reject → 立即重启 → Reject 的死循环
+  仍按住 → 下一次输入处理时点再次尝试（这是标准 WhileInputActive 语义）
+  重试频率由「本地预测实例在等待 Accept/Reject 期间保持 Active」决定：
+  实例存活期间不会重复请求，因此上限是「每次 Reject 往返一次」，不是每帧一次；
+  在几乎零延迟的场景（本机联调）该上限退化为每隔一两帧一次
 ```
 
 明确记录一个既有相位差：Owner 本地换弹窗口先于服务器提交结束约一个单程延迟，
 因此「本地换弹刚结束就开枪」的请求可能被服务器 Reject。
-半自动接受一次 cosmetic phantom；全自动靠下一个安全时点的一次重试收敛。
-这是不做 Ammo Prediction 的直接代价，本轮接受。
+半自动接受一次 cosmetic phantom；全自动在按住期间按上述频率收敛。
+这是不做 Ammo Prediction 的直接代价，本轮接受；不为此新增 cooldown 或 retry timer。
 
 ## 11. 生命周期清理
 
-Buffer / Held 意图不得跨生命周期泄漏。以下时点必须清理或失效：
+输入意图不得跨生命周期泄漏。以下时点统一调用 `InvalidateInputIntents()`：
 
 ```text
 InitAbilityActorInfo（Avatar 更换 / Respawn）
 ClearActorInfo（ASC 失去 Avatar）
-EndPlay（解绑 Tag 事件并清空）
-死亡边界（宿主显式调用 ClearBufferedInputs，见 ShooterCharacter::ApplyDeathState）
+EndPlay
+死亡边界（宿主显式调用，见 ShooterCharacter::ApplyDeathState）
+```
+
+`InvalidateInputIntents()` 表达的是「旧输入意图作废」，不是「玩家产生了一次真实 Release」：
+
+```text
+清空待消费按下沿
+对每个 Spec 直接复位 FGameplayAbilitySpec::InputPressed（引擎标记为 NotReplicated 的本地真值）
+不派发 UGameplayAbility::InputReleased，不发送任何 Release RPC
+```
+
+其余失效路径（不需要额外清理，靠判定本身兜住）：
+
+```text
 Ability Spec 被移除（消费时按 InputTag 找不到 Spec 即丢弃）
-Context 变化（武器切换 / 归还池）
+Context 变化（武器切换 / 归还池，消费前重新求值上下文）
 失去本地控制（处理入口与处理时点都校验本机拥有者视图）
 ```
 
 明确禁止：
 
 ```text
-死亡前按下 Fire → Respawn 后旧 Buffer 自动开枪
+死亡前按住 Fire → Respawn 后仍按旧意图自动开火
 Weapon A 的 buffered Fire → 切 Weapon B → 在 B 上消费
 ```
 
@@ -625,7 +645,8 @@ Held 重试：删除 MaxHeldRetryPerPress / HeldRetryIntervalSeconds / HeldRetry
 
 ### 单元 5：HeldRepeat 的输入意图来源收敛
 
-状态：**已实施并提交**（提交说明 `重构：收敛 HeldRepeat 的输入意图唯一来源为 Spec.InputPressed`）。
+状态：**已实施并提交**（提交说明 `重构：收敛 HeldRepeat 的输入意图唯一来源为 Spec.InputPressed`；
+该方案已在单元 6 被 ActivationPolicy 取代，保留为历史记录）。
 
 ```text
 登记侧：HandleAbilityFailed 对带 HeldRepeat 的 Spec 不登记按下沿
@@ -637,6 +658,26 @@ Held 重试：删除 MaxHeldRetryPerPress / HeldRetryIntervalSeconds / HeldRetry
 ```
 
 建议提交说明：`重构：收敛 HeldRepeat 的输入意图唯一来源为 Spec.InputPressed`
+
+### 单元 6：ActivationPolicy 与每帧输入处理（当前方向）
+
+状态：**实施中**（未提交）。
+
+```text
+策略：EShooterAbilityActivationPolicy{OnInputTriggered, WhileInputActive}
+      UShooterGameplayAbility::GetActivationPolicy(ActorInfo) 默认 OnInputTriggered
+      GA_Fire 按当前武器 IsFullAuto() 动态返回 WhileInputActive / OnInputTriggered
+ASC：ProcessAbilityInput()（本机控制的 Character Tick 每帧调用一次）
+      1. 消费短期按下沿（OnInputTriggered 的失败补偿）
+      2. WhileInputActive：Spec.InputPressed && !Spec.IsActive() → TryActivateAbility 一次
+      Press：两种策略都当场尝试一次（同帧 press+release 的点击必须开火）
+      失败分类：只有 OnInputTriggered 登记按下沿
+      生命周期：InvalidateInputIntents()（清按下沿 + 复位 InputPressed，不派发 Release）
+删除：InputBehavior.HeldRepeat 标签 / SetHeldRepeatInputBehavior / MarkAbilitySpecDirty 复制
+      Equipment::SyncCurrentWeaponFireInputBehavior 与 Equipment 对 ASC 的依赖
+      RetryHeldRepeatInputs / transient blocker watcher / next-tick 调度链 /
+      bBufferProcessScheduled / TransientTagDelegateHandles
+```
 
 如新增测试源码文件，结构变化完成后只运行一次
 `Scripts/Development/RefreshVisualStudioFiles.ps1`。

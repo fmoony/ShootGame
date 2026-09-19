@@ -3,11 +3,9 @@
 #include "ShooterAbilitySystemComponent.h"
 
 #include "Abilities/GameplayAbility.h"
-#include "AbilitySystem/ShooterGameplayAbility.h"
 #include "AbilitySystem/ShooterGameplayTags.h"
 #include "Engine/World.h"
 #include "GameplayTagContainer.h"
-#include "TimerManager.h"
 #include "ShootGame.h"
 
 namespace
@@ -22,8 +20,8 @@ namespace
 
 UShooterAbilitySystemComponent::UShooterAbilitySystemComponent()
 {
-	// 短暂阻塞：动作马上结束，输入值得保留到窗口结束。
-	// 硬失败（本机节拍未 Ready、武器无效）不在这里登记，因而永远不会进入输入缓冲。
+	// 短暂阻塞：动作马上结束，单次按下沿值得保留到窗口结束。
+	// 硬失败（本机节拍未 Ready、武器无效）不在这里登记，因而永远不会进入短期缓冲。
 	TransientInputBlockedTags.AddTag(ShooterGameplayTags::State_Reloading);
 	TransientInputBlockedTags.AddTag(ShooterGameplayTags::State_Equipping);
 }
@@ -38,37 +36,21 @@ void UShooterAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& 
 		return;
 	}
 
-	// 先把按下状态写进 Spec，再尝试激活。
-	// 对 LocalPredicted Ability：客户端 TryActivateAbility 会走 CallServerTryActivateAbility；
-	// 服务器端则直接进入 InternalTryActivateAbility。
-	AbilitySpecInputPressed(*Spec);
-
-	if (Spec->IsActive())
+	// 非本机拥有者视图（服务器上的 NPC）没有每帧输入解释入口，保持既有的「按下即尝试一次」直通语义。
+	// 采集集合只属于本机拥有者视图，这里不写，避免产生无人清理的残留。
+	if (!ShouldProcessLocalAbilityInput())
 	{
+		AbilitySpecInputPressed(*Spec);
+		if (!Spec->IsActive())
+		{
+			TryActivateAbility(Spec->Handle, true);
+		}
 		return;
 	}
 
-	if (!ShouldBufferLocalInput())
-	{
-		// 服务器上的远端玩家 ASC 与 NPC 不参与输入缓冲：保持既有的「失败即结束」语义。
-		TryActivateAbility(Spec->Handle, true);
-		return;
-	}
-
-	// 本次按下期间的所有激活失败都归因到这个 Ability，失败分类见 HandleAbilityFailed。
-	PendingPressAbilityClass = Spec->Ability ? Spec->Ability->GetClass() : nullptr;
-	PendingPressInputTag = InputTag;
-	bPressInFlight = true;
-	const bool bActivated = TryActivateAbility(Spec->Handle, true);
-	bPressInFlight = false;
-	PendingPressAbilityClass = nullptr;
-	PendingPressInputTag = FGameplayTag();
-
-	if (bActivated)
-	{
-		// 这次按下已经形成本地动作边界：同一个输入 Tag 的旧按下沿失效。
-		BufferedInputs.Remove(InputTag);
-	}
+	// 采集层：只记录本帧按下沿与持续按住，不尝试激活、不写 Spec.InputPressed、不建立输入缓冲。
+	PressedInputTags.AddUnique(InputTag);
+	HeldInputTags.AddUnique(InputTag);
 }
 
 void UShooterAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& InputTag)
@@ -81,10 +63,157 @@ void UShooterAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag&
 		return;
 	}
 
-	// 真实松开：先经可靠 Server RPC 把松开转发到服务器，再分发给本地活动 Ability 实例。
-	// 松开只清 Spec.InputPressed；按下沿本身不立即丢弃，半自动仍可能在窗口内形成一次本地动作边界，
-	// 条目过期时自然移除。
-	ReleaseInputTag(*Spec);
+	// 非本机拥有者视图同样直通：没有每帧输入解释入口，立即执行标准释放。
+	if (!ShouldProcessLocalAbilityInput())
+	{
+		ReleaseInputTag(*Spec);
+		return;
+	}
+
+	// 采集层：只记录本帧松开并退出持续按住；释放业务在 ProcessAbilityInput 里统一执行。
+	ReleasedInputTags.AddUnique(InputTag);
+	HeldInputTags.RemoveSingleSwap(InputTag);
+}
+
+void UShooterAbilitySystemComponent::ProcessAbilityInput()
+{
+	if (!ShouldProcessLocalAbilityInput())
+	{
+		// 非本机拥有者视图不参与输入解释：只清本机采集残留。
+		// 权威端自己的 Spec.InputPressed 属于引擎 RPC 真值，不得由这里复位。
+		PressedInputTags.Reset();
+		ReleasedInputTags.Reset();
+		HeldInputTags.Reset();
+		BufferedInputs.Reset();
+		return;
+	}
+
+	const UWorld* World = GetWorld();
+	const float Now = World ? World->GetTimeSeconds() : 0.0f;
+
+	// 短期按下沿（只有 OnInputTriggered 会有条目）：
+	// 固定窗口内每帧最多尝试一次；本地失败既不删除也不续期，成功 / 过期 / 上下文变化才删除。
+	// 遍历用键快照：成功路径会在遍历中移除条目。
+	TArray<FGameplayTag> BufferedInputTags;
+	BufferedInputs.GetKeys(BufferedInputTags);
+	for (const FGameplayTag& InputTag : BufferedInputTags)
+	{
+		if (PressedInputTags.Contains(InputTag))
+		{
+			// 同一 Tag 出现新的 Press edge：旧窗口立即作废。
+			// 新边若再被短暂阻塞，由失败分类登记一个新的固定窗口。
+			BufferedInputs.Remove(InputTag);
+			continue;
+		}
+
+		const FShooterBufferedInput* Entry = BufferedInputs.Find(InputTag);
+		if (!Entry)
+		{
+			continue;
+		}
+
+		FGameplayAbilitySpec* Spec = FindAbilitySpecFromInputTag(InputTag);
+		if (!Spec)
+		{
+			BufferedInputs.Remove(InputTag);
+			continue;
+		}
+
+		if (Now > Entry->ExpireTime)
+		{
+			// 过期：不激活、不表现、不请求，失败不续期。
+			BufferedInputs.Remove(InputTag);
+			LogInputBufferMarker(TEXT("INPUT_BUFFER_DROPPED"), InputTag, TEXT("Expired"), Now);
+			continue;
+		}
+
+		if (!IsBufferedInputContextStillValid(*Entry, *Spec))
+		{
+			// 上下文变化（例如换枪提交、武器归还池）后不得在新上下文上消费旧输入。
+			BufferedInputs.Remove(InputTag);
+			LogInputBufferMarker(TEXT("INPUT_BUFFER_DROPPED"), InputTag, TEXT("ContextChanged"), Now);
+			continue;
+		}
+
+		const bool bActivated = TryActivateInputTag(InputTag, *Spec, /*bPressEdge*/ false);
+		if (!bActivated)
+		{
+			// 本地失败：窗口保留到绝对过期时间，既不移除也不续期。
+			LogInputBufferMarker(TEXT("INPUT_BUFFER_RETRY"), InputTag, TEXT("Rejected"), Now);
+			continue;
+		}
+
+		// 已经形成本地动作边界：消费该窗口。
+		BufferedInputs.Remove(InputTag);
+		if (!Spec->InputPressed)
+		{
+			// 按下沿在消费前已经松开：立即走标准释放路径，
+			// 避免残留活动 Ability 与不会结束的本地预测实例。
+			ReleaseInputTag(*Spec);
+		}
+
+		LogInputBufferMarker(TEXT("INPUT_BUFFER_CONSUMED"), InputTag, TEXT("Activated"), Now);
+	}
+
+	// 按住持续（WhileInputActive）：意图只由 Held 集合表达。
+	// 本帧新按下不从本分支出发，避免同一 Tag 在一帧内产生两种来源的尝试。
+	for (const FGameplayTag& InputTag : HeldInputTags)
+	{
+		if (PressedInputTags.Contains(InputTag))
+		{
+			continue;
+		}
+
+		FGameplayAbilitySpec* Spec = FindAbilitySpecFromInputTag(InputTag);
+		if (!Spec || !Spec->Ability || Spec->IsActive())
+		{
+			continue;
+		}
+
+		if (GetInputActivationPolicy(*Spec) != EShooterAbilityActivationPolicy::WhileInputActive)
+		{
+			continue;
+		}
+
+		const bool bActivated = TryActivateInputTag(InputTag, *Spec, /*bPressEdge*/ false);
+		LogInputBufferMarker(TEXT("INPUT_HELD_RETRY"), InputTag, bActivated ? TEXT("Activated") : TEXT("Rejected"), Now);
+	}
+
+	// 本帧按下沿：两种策略都至少尝试一次，
+	// 因为「按下与松开落在同一帧」的点击也必须形成一次本地动作边界。
+	for (const FGameplayTag& InputTag : PressedInputTags)
+	{
+		FGameplayAbilitySpec* Spec = FindAbilitySpecFromInputTag(InputTag);
+		if (!Spec || !Spec->Ability)
+		{
+			continue;
+		}
+
+		// 引擎标准输入入口：写 Spec.InputPressed，并在 Ability 已活动时把按下事件转发给活动实例。
+		// 本次请求的「是否按住」语义由它承载，权威端的全自动门控依赖该值。
+		AbilitySpecInputPressed(*Spec);
+
+		if (Spec->IsActive())
+		{
+			// 已激活的 Ability 只完成输入事件转发，不再尝试激活。
+			continue;
+		}
+
+		TryActivateInputTag(InputTag, *Spec, /*bPressEdge*/ true);
+	}
+
+	// 本帧松开：真实松开仍然走可靠 ServerSetInputReleased + AbilitySpecInputReleased。
+	for (const FGameplayTag& InputTag : ReleasedInputTags)
+	{
+		if (FGameplayAbilitySpec* Spec = FindAbilitySpecFromInputTag(InputTag))
+		{
+			ReleaseInputTag(*Spec);
+		}
+	}
+
+	// 只清帧级采集；Held 集合由 Press / Release 回调与 InvalidateInputIntents 改变。
+	PressedInputTags.Reset();
+	ReleasedInputTags.Reset();
 }
 
 FGameplayAbilitySpec* UShooterAbilitySystemComponent::FindAbilitySpecFromInputTag(const FGameplayTag& InputTag)
@@ -162,59 +291,51 @@ void UShooterAbilitySystemComponent::CancelAbilitiesByTag(const FGameplayTag& In
 	CancelAbilities(&CancelTags);
 }
 
-void UShooterAbilitySystemComponent::SetHeldRepeatInputBehavior(const FGameplayTag& InputTag, bool bEnabled)
+EShooterAbilityActivationPolicy UShooterAbilitySystemComponent::GetInputActivationPolicy(const FGameplayAbilitySpec& Spec) const
 {
-	FGameplayAbilitySpec* Spec = FindAbilitySpecFromInputTag(InputTag);
-	if (!Spec)
+	const UShooterGameplayAbility* ShooterAbility = GetShooterAbilityForSpec(Spec);
+	if (!ShooterAbility)
 	{
-		return;
+		return EShooterAbilityActivationPolicy::OnInputTriggered;
 	}
 
-	FGameplayTagContainer& SpecTags = Spec->GetDynamicSpecSourceTags();
-	if (SpecTags.HasTagExact(ShooterGameplayTags::InputBehavior_HeldRepeat) == bEnabled)
-	{
-		// 幂等：语义没有变化时不重复标脏，也不产生复制流量。
-		return;
-	}
-
-	if (bEnabled)
-	{
-		SpecTags.AddTag(ShooterGameplayTags::InputBehavior_HeldRepeat);
-	}
-	else
-	{
-		SpecTags.RemoveTag(ShooterGameplayTags::InputBehavior_HeldRepeat);
-	}
-
-	// 动态 Spec 标签随 Spec 复制；修改后必须标脏，否则拥有者端的 Held 语义会停在旧值。
-	MarkAbilitySpecDirty(*Spec);
-
-	UE_LOG(LogShootGame, Verbose, TEXT("Input behavior synced: InputTag=%s HeldRepeat=%s Owner=%s"),
-		*InputTag.ToString(), bEnabled ? TEXT("true") : TEXT("false"), *GetNameSafe(GetOwnerActor()));
+	// 显式传本 ASC 当前的 ActorInfo：未激活（或重生后尚未再次激活）的 Ability 实例上没有
+	// CurrentActorInfo，策略查询不得读实例缓存，因此由这里提供权威的运行时上下文。
+	return ShooterAbility->GetActivationPolicy(AbilityActorInfo.Get());
 }
 
-void UShooterAbilitySystemComponent::ClearBufferedInputs()
+void UShooterAbilitySystemComponent::InvalidateInputIntents()
 {
+	// 生命周期边界表达的是「旧输入意图作废」，不是「玩家产生了一次真实 Release」：
+	// Spec.InputPressed 是引擎标记为 NotReplicated 的本地真值，直接复位即可维护引擎不变量，
+	// 因此这里不派发 UGameplayAbility::InputReleased，也不发送任何 Release RPC。
+	// 采集状态、宽容窗口与输入真值必须一起作废，否则会留下「仍然按着」的残留意图。
+	PressedInputTags.Reset();
+	ReleasedInputTags.Reset();
+	HeldInputTags.Reset();
 	BufferedInputs.Reset();
+
+	for (FGameplayAbilitySpec& Spec : GetActivatableAbilities())
+	{
+		Spec.InputPressed = false;
+	}
 }
 
 void UShooterAbilitySystemComponent::InitAbilityActorInfo(AActor* InOwnerActor, AActor* InAvatarActor)
 {
 	// Avatar 变化（重生 / 换 Pawn）后，旧生命周期的输入意图不得延续。
-	ClearBufferedInputs();
+	InvalidateInputIntents();
 
 	Super::InitAbilityActorInfo(InOwnerActor, InAvatarActor);
 
-	// 失败回调与标签监听按实例绑定；ActorInfo 重建时只保留一份。
+	// 失败回调按实例绑定；ActorInfo 重建时只保留一份。
 	AbilityFailedCallbacks.RemoveAll(this);
 	AbilityFailedCallbacks.AddUObject(this, &UShooterAbilitySystemComponent::HandleAbilityFailed);
-	RegisterTransientBlockedTagWatchers();
 }
 
 void UShooterAbilitySystemComponent::ClearActorInfo()
 {
-	ClearBufferedInputs();
-	UnregisterTransientBlockedTagWatchers();
+	InvalidateInputIntents();
 	AbilityFailedCallbacks.RemoveAll(this);
 
 	Super::ClearActorInfo();
@@ -222,8 +343,7 @@ void UShooterAbilitySystemComponent::ClearActorInfo()
 
 void UShooterAbilitySystemComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	ClearBufferedInputs();
-	UnregisterTransientBlockedTagWatchers();
+	InvalidateInputIntents();
 	AbilityFailedCallbacks.RemoveAll(this);
 
 	Super::EndPlay(EndPlayReason);
@@ -231,18 +351,28 @@ void UShooterAbilitySystemComponent::EndPlay(const EEndPlayReason::Type EndPlayR
 
 void UShooterAbilitySystemComponent::HandleAbilityFailed(const UGameplayAbility* Ability, const FGameplayTagContainer& FailureTags)
 {
-	if (!bPressInFlight || !Ability || !ShouldBufferLocalInput())
+	// 只有 Press edge 尝试的失败才可能进入 Semi 缓冲：Held 与 Buffered 分支的尝试不设置归因游标，
+	// 因此它们既不能创建窗口，也不能刷新窗口的过期时间。
+	if (!CurrentPressAttemptInputTag.IsValid() || !Ability || !ShouldProcessLocalAbilityInput())
 	{
 		return;
 	}
 
-	if (PendingPressAbilityClass && Ability->GetClass() != PendingPressAbilityClass)
+	FGameplayAbilitySpec* Spec = FindAbilitySpecFromInputTag(CurrentPressAttemptInputTag);
+	if (!Spec || !Spec->Ability)
 	{
 		return;
 	}
 
-	// 只有项目 Ability 参与输入缓冲：它们才能声明输入上下文。
-	const UShooterGameplayAbility* ShooterAbility = Cast<UShooterGameplayAbility>(Ability);
+	// 失败回调必须属于本次 Press 尝试的 Ability：引擎对 InstancedPerActor 传主实例，
+	// 也会在「本地 / 服务器执行策略不允许」的早退路径上传 CDO，因此按类比对。
+	if (Ability->GetClass() != Spec->Ability->GetClass())
+	{
+		return;
+	}
+
+	// 只有项目 Ability 参与短期按下沿：它们才能声明输入上下文。
+	const UShooterGameplayAbility* ShooterAbility = GetShooterAbilityForSpec(*Spec);
 	if (!ShooterAbility)
 	{
 		return;
@@ -273,126 +403,14 @@ void UShooterAbilitySystemComponent::HandleAbilityFailed(const UGameplayAbility*
 		return;
 	}
 
-	// 带 HeldRepeat 的 Spec 不登记按下沿：它的持续意图唯一来源是 Spec.InputPressed，
-	// Release 即终止；阻塞解除后由 RetryHeldRepeatInputs 按当前按住状态重试一次。
-	const FGameplayAbilitySpec* PressedSpec = FindAbilitySpecFromInputTag(PendingPressInputTag);
-	if (PressedSpec && HasHeldRepeatInputBehavior(*PressedSpec))
+	// WhileInputActive 不登记短期按下沿：它的持续意图只由 Held 集合表达，Release 即终止；
+	// 阻塞解除后的重试由 ProcessAbilityInput 的 Held 分支负责，不需要第二条意图表达。
+	if (GetInputActivationPolicy(*Spec) == EShooterAbilityActivationPolicy::WhileInputActive)
 	{
 		return;
 	}
 
-	RegisterBufferedInput(PendingPressInputTag, ShooterAbility->GetInputBufferContext());
-}
-
-void UShooterAbilitySystemComponent::HandleTransientBlockedTagChanged(FGameplayTag Tag, int32 NewCount)
-{
-	// 只在阻塞解除时登记一次待处理；不在标签回调栈内直接重入激活。
-	// 同帧的多次标签变化（含已排程）合并成一次，统一落到下一 Tick 的安全时点。
-	if (NewCount > 0 || bBufferProcessScheduled)
-	{
-		return;
-	}
-
-	UWorld* World = GetWorld();
-	if (!World)
-	{
-		return;
-	}
-
-	LogInputBufferMarker(TEXT("INPUT_BUFFER_TAG_CLEARED"), Tag, TEXT("BlockEnded"), World->GetTimeSeconds());
-
-	// 合并到当前 GAS 清理调用栈退出后的安全时点：下一 Tick 只处理一次。
-	bBufferProcessScheduled = true;
-	World->GetTimerManager().SetTimerForNextTick(this, &UShooterAbilitySystemComponent::ProcessDeferredInputIntents);
-}
-
-void UShooterAbilitySystemComponent::ProcessDeferredInputIntents()
-{
-	bBufferProcessScheduled = false;
-
-	if (!ShouldBufferLocalInput())
-	{
-		ClearBufferedInputs();
-		return;
-	}
-
-	const UWorld* World = GetWorld();
-	const float Now = World ? World->GetTimeSeconds() : 0.0f;
-
-	// 1. 消费仍未过期的按下沿：一次输入只对应一次尝试。
-	// 先整体取出再处理，保证每个条目在本时点最多被消费一次（消费路径不会再登记新条目）。
-	TMap<FGameplayTag, FShooterBufferedInput> PendingInputs = MoveTemp(BufferedInputs);
-	BufferedInputs.Reset();
-
-	for (const TPair<FGameplayTag, FShooterBufferedInput>& Pair : PendingInputs)
-	{
-		const FShooterBufferedInput& Entry = Pair.Value;
-		if (Now > Entry.ExpireTime)
-		{
-			// 过期：不激活、不表现、不请求，也不重建条目。
-			LogInputBufferMarker(TEXT("INPUT_BUFFER_DROPPED"), Entry.InputTag, TEXT("Expired"), Now);
-			continue;
-		}
-
-		FGameplayAbilitySpec* Spec = FindAbilitySpecFromInputTag(Entry.InputTag);
-		if (Spec && HasHeldRepeatInputBehavior(*Spec))
-		{
-			// 该 Spec 的意图只由 Spec.InputPressed 表达：历史残留条目不得消费
-			// （覆盖「按下时是 Semi、阻塞期间换成 FullAuto」的窗口）。
-			LogInputBufferMarker(TEXT("INPUT_BUFFER_DROPPED"), Entry.InputTag, TEXT("HeldRepeat"), Now);
-			continue;
-		}
-
-		if (!Spec || !IsBufferedInputContextStillValid(Entry, *Spec))
-		{
-			LogInputBufferMarker(TEXT("INPUT_BUFFER_DROPPED"), Entry.InputTag, TEXT("ContextChanged"), Now);
-			continue;
-		}
-
-		// 按下沿在消费时是否仍按住，直接读引擎的 Spec 状态，不维护第二份布尔。
-		const bool bStillHeld = Spec->InputPressed;
-		// 延迟消费不再登记新条目：这里的失败不会重建、不会续期。
-		const bool bActivated = Spec->IsActive() ? false : TryActivateAbility(Spec->Handle, true);
-
-		if (bActivated && !bStillHeld)
-		{
-			// 按下沿在消费前已经松开：立即走标准释放路径，
-			// 避免残留活动 Ability 与不会结束的本地预测实例。
-			ReleaseInputTag(*Spec);
-		}
-
-		LogInputBufferMarker(TEXT("INPUT_BUFFER_CONSUMED"), Entry.InputTag,
-			bActivated ? TEXT("Activated") : TEXT("Rejected"), Now);
-	}
-
-	// 2. 按住型输入的一次安全重试：覆盖「仍然按住，但上一次动作已被取消或结束」的场景。
-	RetryHeldRepeatInputs();
-}
-
-void UShooterAbilitySystemComponent::RetryHeldRepeatInputs()
-{
-	const UWorld* World = GetWorld();
-	const float Now = World ? World->GetTimeSeconds() : 0.0f;
-
-	for (FGameplayAbilitySpec& Spec : GetActivatableAbilities())
-	{
-		// 只认两件事：Spec 仍处于按住，且 Spec 声明了 HeldRepeat 输入行为。
-		// 单发（Semi）Spec 永远不带这个标签，因此不会因为一直按住而补枪。
-		if (Spec.IsActive() || !Spec.Ability || !Spec.InputPressed || !HasHeldRepeatInputBehavior(Spec))
-		{
-			continue;
-		}
-
-		// 一次安全重试：被拒不会排程下一次，下一次机会只来自新的短暂阻塞解除事件。
-		const bool bActivated = TryActivateAbility(Spec.Handle, true);
-		LogInputBufferMarker(TEXT("INPUT_HELD_REPEAT_RETRY"), Spec.Ability->GetAssetTags().First(),
-			bActivated ? TEXT("Activated") : TEXT("Rejected"), Now);
-	}
-}
-
-bool UShooterAbilitySystemComponent::HasHeldRepeatInputBehavior(const FGameplayAbilitySpec& Spec)
-{
-	return Spec.GetDynamicSpecSourceTags().HasTagExact(ShooterGameplayTags::InputBehavior_HeldRepeat);
+	RegisterBufferedInput(CurrentPressAttemptInputTag, ShooterAbility->GetInputBufferContext());
 }
 
 void UShooterAbilitySystemComponent::RegisterBufferedInput(const FGameplayTag& InputTag, const UObject* Context)
@@ -413,13 +431,13 @@ void UShooterAbilitySystemComponent::RegisterBufferedInput(const FGameplayTag& I
 	UE_LOG(LogShootGame, Verbose, TEXT("Input buffered: InputTag=%s Window=%.3f Owner=%s"),
 		*InputTag.ToString(), InputBufferWindowSeconds, *GetNameSafe(GetOwnerActor()));
 
-	// 开发构建输出可搜索标记，供网络场景与自动化定位输入缓冲行为。
+	// 开发构建输出可搜索标记，供网络场景与自动化定位输入行为。
 	LogInputBufferMarker(TEXT("INPUT_BUFFER_REGISTERED"), InputTag, TEXT("Registered"), World->GetTimeSeconds());
 }
 
-bool UShooterAbilitySystemComponent::ShouldBufferLocalInput() const
+bool UShooterAbilitySystemComponent::ShouldProcessLocalAbilityInput() const
 {
-	// 只有本机玩家自己的 ASC 参与输入缓冲：
+	// 只有本机玩家自己的 ASC 参与输入解释：
 	// 服务器上的远端玩家 ASC 与 NPC 保持既有语义，避免改变权威侧行为。
 	const FGameplayAbilityActorInfo* ActorInfo = AbilityActorInfo.Get();
 	return ActorInfo && ActorInfo->IsLocallyControlledPlayer();
@@ -452,25 +470,14 @@ void UShooterAbilitySystemComponent::ReleaseInputTag(FGameplayAbilitySpec& Spec)
 	AbilitySpecInputReleased(Spec);
 }
 
-void UShooterAbilitySystemComponent::RegisterTransientBlockedTagWatchers()
+bool UShooterAbilitySystemComponent::TryActivateInputTag(const FGameplayTag& InputTag, FGameplayAbilitySpec& Spec, bool bPressEdge)
 {
-	UnregisterTransientBlockedTagWatchers();
-
-	for (const FGameplayTag& Tag : TransientInputBlockedTags)
-	{
-		const FDelegateHandle Handle = RegisterGameplayTagEvent(Tag, EGameplayTagEventType::NewOrRemoved)
-			.AddUObject(this, &UShooterAbilitySystemComponent::HandleTransientBlockedTagChanged);
-		TransientTagDelegateHandles.Add(Tag, Handle);
-	}
-}
-
-void UShooterAbilitySystemComponent::UnregisterTransientBlockedTagWatchers()
-{
-	for (const TPair<FGameplayTag, FDelegateHandle>& Pair : TransientTagDelegateHandles)
-	{
-		UnregisterGameplayTagEvent(Pair.Value, Pair.Key, EGameplayTagEventType::NewOrRemoved);
-	}
-	TransientTagDelegateHandles.Reset();
+	// 归因游标：只有 Press edge 尝试期间有效。HandleAbilityFailed 只按它判定
+	// 「这次失败是否值得进入 Semi 缓冲」，因此其余分支的失败不可能创建窗口。
+	CurrentPressAttemptInputTag = bPressEdge ? InputTag : FGameplayTag();
+	const bool bActivated = TryActivateAbility(Spec.Handle, true);
+	CurrentPressAttemptInputTag = FGameplayTag();
+	return bActivated;
 }
 
 void UShooterAbilitySystemComponent::LogInputBufferMarker(const TCHAR* Marker, const FGameplayTag& InputTag,
@@ -489,9 +496,9 @@ void UShooterAbilitySystemComponent::LogInputBufferMarker(const TCHAR* Marker, c
 }
 
 #if WITH_DEV_AUTOMATION_TESTS
-void UShooterAbilitySystemComponent::ProcessDeferredInputIntentsForTest()
+void UShooterAbilitySystemComponent::ProcessAbilityInputForTest()
 {
-	ProcessDeferredInputIntents();
+	ProcessAbilityInput();
 }
 
 void UShooterAbilitySystemComponent::ExpireBufferedInputsForTest()

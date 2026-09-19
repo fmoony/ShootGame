@@ -22,6 +22,13 @@ bool UShooterGameplayAbility::IsAvatarAuthoritative() const
 	return IsValid(AvatarActor) && AvatarActor->HasAuthority();
 }
 
+EShooterAbilityActivationPolicy UShooterGameplayAbility::GetActivationPolicy(const FGameplayAbilityActorInfo* ActorInfo) const
+{
+	// 默认单次按下沿；是否按住持续由具体 Ability 按当前 Gameplay Context 决定。
+	(void)ActorInfo;
+	return EShooterAbilityActivationPolicy::OnInputTriggered;
+}
+
 bool UShooterGameplayAbility::IsBlockedByOwnActiveTags(const FGameplayTagContainer& BlockingTags) const
 {
 	// 阻塞来自本 Ability 自己的 ActivationOwnedTags 时，说明是同一个动作仍在进行
