@@ -12,31 +12,6 @@
 #include "Weapons/ShooterWeapon.h"
 #include "ShootGame.h"
 
-bool UShooterGameplayAbility_Equip::HasInputEquipTag() const
-{
-	return GetAssetTags().HasTagExact(ShooterGameplayTags::Input_Equip);
-}
-
-bool UShooterGameplayAbility_Equip::IsBlockedByStateDead() const
-{
-	return ActivationBlockedTags.HasTag(ShooterGameplayTags::State_Dead);
-}
-
-bool UShooterGameplayAbility_Equip::IsBlockedByStateEquipping() const
-{
-	return ActivationBlockedTags.HasTag(ShooterGameplayTags::State_Equipping);
-}
-
-bool UShooterGameplayAbility_Equip::OwnsStateEquippingWhileActive() const
-{
-	return ActivationOwnedTags.HasTag(ShooterGameplayTags::State_Equipping);
-}
-
-bool UShooterGameplayAbility_Equip::CanRetriggerInstancedAbility() const
-{
-	return bRetriggerInstancedAbility;
-}
-
 UShooterGameplayAbility_Equip::UShooterGameplayAbility_Equip()
 {
 	// 同一 Avatar 同生命周期内只保留一个实例；网络执行只发生在服务器。
@@ -56,6 +31,8 @@ UShooterGameplayAbility_Equip::UShooterGameplayAbility_Equip()
 	CancelAbilitiesWithTag.AddTag(ShooterGameplayTags::Input_Fire);
 	CancelAbilitiesWithTag.AddTag(ShooterGameplayTags::Input_Reload);
 }
+
+// ============================ 资格判定 ============================
 
 bool UShooterGameplayAbility_Equip::CanActivateAbility(
 	const FGameplayAbilitySpecHandle Handle,
@@ -86,6 +63,8 @@ bool UShooterGameplayAbility_Equip::CanActivateAbility(
 	AShooterWeapon* Weapon = nullptr;
 	return ResolveEquipTarget(Handle, ActorInfo, Weapon);
 }
+
+// ============================ 目标解析与校验 ============================
 
 int32 UShooterGameplayAbility_Equip::ResolveEquipDirection(const FGameplayAbilitySpecHandle Handle,
 	const FGameplayAbilityActorInfo* ActorInfo) const
@@ -142,6 +121,8 @@ bool UShooterGameplayAbility_Equip::ResolveEquipTarget(const FGameplayAbilitySpe
 	OutWeapon = TargetWeapon;
 	return true;
 }
+
+// ============================ 装备事务（激活 → 等待 → 提交） ============================
 
 void UShooterGameplayAbility_Equip::ActivateAbility(
 	const FGameplayAbilitySpecHandle Handle,
@@ -247,6 +228,8 @@ void UShooterGameplayAbility_Equip::HandleEquipWaitFinished()
 	EndAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), true, false);
 }
 
+// ============================ 清理与结束 ============================
+
 void UShooterGameplayAbility_Equip::CleanupEquipTransaction()
 {
 	if (EquipWaitTask.IsValid())
@@ -273,4 +256,31 @@ void UShooterGameplayAbility_Equip::EndAbility(
 
 	UE_LOG(LogShootGame, Display, TEXT("GA_Equip ended: Cancelled=%s Avatar=%s"),
 		bWasCancelled ? TEXT("true") : TEXT("false"), *GetNameSafe(GetShooterAvatarActor()));
+}
+
+// ============================ 测试观察接口 ============================
+
+bool UShooterGameplayAbility_Equip::HasInputEquipTag() const
+{
+	return GetAssetTags().HasTagExact(ShooterGameplayTags::Input_Equip);
+}
+
+bool UShooterGameplayAbility_Equip::IsBlockedByStateDead() const
+{
+	return ActivationBlockedTags.HasTag(ShooterGameplayTags::State_Dead);
+}
+
+bool UShooterGameplayAbility_Equip::IsBlockedByStateEquipping() const
+{
+	return ActivationBlockedTags.HasTag(ShooterGameplayTags::State_Equipping);
+}
+
+bool UShooterGameplayAbility_Equip::OwnsStateEquippingWhileActive() const
+{
+	return ActivationOwnedTags.HasTag(ShooterGameplayTags::State_Equipping);
+}
+
+bool UShooterGameplayAbility_Equip::CanRetriggerInstancedAbility() const
+{
+	return bRetriggerInstancedAbility;
 }

@@ -25,6 +25,57 @@ class SHOOTGAME_API UShooterGameplayAbility_Equip : public UShooterGameplayAbili
 public:
 	UShooterGameplayAbility_Equip();
 
+protected:
+	virtual bool CanActivateAbility(
+		const FGameplayAbilitySpecHandle Handle,
+		const FGameplayAbilityActorInfo* ActorInfo,
+		const FGameplayTagContainer* SourceTags,
+		const FGameplayTagContainer* TargetTags,
+		FGameplayTagContainer* OptionalRelevantTags) const override;
+	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+		const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+		const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
+
+private:
+	// ---- 目标解析与校验 ----
+
+	/** 从当前 Ability Spec 的动态输入标签解析方向：Next=+1、Previous=-1。 */
+	int32 ResolveEquipDirection(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo) const;
+
+	/** 服务器完整校验：至少两把武器、当前装备有效且能按 Spec 方向找到相邻目标 Actor。 */
+	bool ResolveEquipTarget(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+		AShooterWeapon*& OutWeapon) const;
+
+	/** 提交前二次校验：目标 WeaponActor 仍在背包且没有其他事务改写当前武器。 */
+	bool IsEquipTargetStillValid() const;
+
+	// ---- 装备事务（等待 → 提交） ----
+
+	/** WaitDelay 到期：原子提交 CurrentWeaponActor。 */
+	UFUNCTION()
+	void HandleEquipWaitFinished();
+
+	/** 结束前清理 WaitDelay、Weapon 引用与事务快照。 */
+	void CleanupEquipTransaction();
+
+	// ---- 事务状态 ----
+
+	/** 激活前的 CurrentWeaponActor；提交前确认没有第三方切换。 */
+	TWeakObjectPtr<AShooterWeapon> CachedPreviousWeapon;
+
+	/** 等待提交的目标 WeaponActor。 */
+	TWeakObjectPtr<AShooterWeapon> CachedTargetWeapon;
+
+	/** 服务器权威时钟任务；等待期间被取消时由 EndAbility 清理。 */
+	TWeakObjectPtr<UAbilityTask_WaitDelay> EquipWaitTask;
+
+	/** 是否已经提交装备事务；重复回调不得再次提交。 */
+	bool bEquipCommitted = false;
+
+	// ---- 测试观察接口 ----
+
+public:
 	/** 测试观察接口：Ability 的资产标签是否包含统一分类 Input.Equip。 */
 	bool HasInputEquipTag() const;
 
@@ -39,46 +90,4 @@ public:
 
 	/** 测试观察接口：活动期间重复激活是否会重触发实例（ServerOnly 单事务应为 false）。 */
 	bool CanRetriggerInstancedAbility() const;
-
-protected:
-	virtual bool CanActivateAbility(
-		const FGameplayAbilitySpecHandle Handle,
-		const FGameplayAbilityActorInfo* ActorInfo,
-		const FGameplayTagContainer* SourceTags,
-		const FGameplayTagContainer* TargetTags,
-		FGameplayTagContainer* OptionalRelevantTags) const override;
-	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-		const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
-	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-		const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
-
-private:
-	/** 从当前 Ability Spec 的动态输入标签解析方向：Next=+1、Previous=-1。 */
-	int32 ResolveEquipDirection(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo) const;
-
-	/** 服务器完整校验：至少两把武器、当前装备有效且能按 Spec 方向找到相邻目标 Actor。 */
-	bool ResolveEquipTarget(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-		AShooterWeapon*& OutWeapon) const;
-
-	/** 提交前二次校验：目标 WeaponActor 仍在背包且没有其他事务改写当前武器。 */
-	bool IsEquipTargetStillValid() const;
-
-	/** WaitDelay 到期：原子提交 CurrentWeaponActor。 */
-	UFUNCTION()
-	void HandleEquipWaitFinished();
-
-	/** 结束前清理 WaitDelay、Weapon 引用与事务快照。 */
-	void CleanupEquipTransaction();
-
-	/** 激活前的 CurrentWeaponActor；提交前确认没有第三方切换。 */
-	TWeakObjectPtr<AShooterWeapon> CachedPreviousWeapon;
-
-	/** 等待提交的目标 WeaponActor。 */
-	TWeakObjectPtr<AShooterWeapon> CachedTargetWeapon;
-
-	/** 服务器权威时钟任务；等待期间被取消时由 EndAbility 清理。 */
-	TWeakObjectPtr<UAbilityTask_WaitDelay> EquipWaitTask;
-
-	/** 是否已经提交装备事务；重复回调不得再次提交。 */
-	bool bEquipCommitted = false;
 };

@@ -141,5 +141,15 @@ Source/ShootGame/
 
 ## License
 
-本仓库当前未附带开源许可证。除非后续明确添加许可证，否则请勿假定代码和资产可被
-复制、修改或再分发。
+FMoony 独立创作且有权授权的程序代码采用 [MIT License](LICENSE)；这包括 C++、
+脚本及自行编写的 Blueprint 逻辑。若文件同时包含其他来源的内容，MIT 仅适用于
+FMoony 拥有权利的代码部分，不改变其他内容的许可。
+
+- Unreal Engine 代码、模板与示例内容适用
+  [Unreal Engine EULA](https://www.unrealengine.com/eula/unreal)，保留其版权声明。
+- `Plugins/McpAutomationBridge` 中的第三方代码适用其目录内的
+  [MIT 许可证](Plugins/McpAutomationBridge/LICENSE)，并保留原版权声明。
+- `Content` 中的非代码资产不因本仓库的 MIT 声明获得授权；使用与再分发须遵守
+  各资产来源的许可，包括适用时的
+  [Epic Content License](https://www.unrealengine.com/eula/content) 或
+  [Fab Standard License](https://www.fab.com/eula)。

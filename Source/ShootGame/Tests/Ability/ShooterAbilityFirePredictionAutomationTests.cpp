@@ -469,16 +469,16 @@ bool FShooterFirePredictionKnownBlockersTest::RunTest(const FString& Parameters)
 	}
 
 	TestTrue(TEXT("valid current weapon allows local predicted feedback"),
-		Ability->IsOwnerPredictedFeedbackAllowedForTest(Character, Weapon, AbilitySystemComponent));
+		Ability->IsOwnerFireContextValidForTest(Character, Weapon, AbilitySystemComponent));
 
 	// 复制 Ammo 不得成为 Owner 首次开火表现的硬门：
 	// 它可能落后于服务器，一旦用它二次否决，服务器已经接受并生成弹丸的那一发就永久没有反馈。
 	Weapon->SetAmmoForAutomationTest(0, 0);
 	TestTrue(TEXT("an empty replicated magazine must not suppress local predicted feedback"),
-		Ability->IsOwnerPredictedFeedbackAllowedForTest(Character, Weapon, AbilitySystemComponent));
+		Ability->IsOwnerFireContextValidForTest(Character, Weapon, AbilitySystemComponent));
 	Weapon->SetAmmoForAutomationTest(10, 0);
 	TestTrue(TEXT("a non-empty replicated magazine still allows local predicted feedback"),
-		Ability->IsOwnerPredictedFeedbackAllowedForTest(Character, Weapon, AbilitySystemComponent));
+		Ability->IsOwnerFireContextValidForTest(Character, Weapon, AbilitySystemComponent));
 
 	// 复制的 Gameplay 状态同样不得单独抑制表现，全部交由服务器权威 Reject。
 	const FGameplayTag NonSuppressingStates[] = {
@@ -495,7 +495,7 @@ bool FShooterFirePredictionKnownBlockersTest::RunTest(const FString& Parameters)
 	{
 		AbilitySystemComponent->AddLooseGameplayTag(NonSuppressingStates[Index]);
 		TestTrue(NonSuppressingMessages[Index],
-			Ability->IsOwnerPredictedFeedbackAllowedForTest(Character, Weapon, AbilitySystemComponent));
+			Ability->IsOwnerFireContextValidForTest(Character, Weapon, AbilitySystemComponent));
 		AbilitySystemComponent->RemoveLooseGameplayTag(NonSuppressingStates[Index]);
 	}
 
@@ -503,15 +503,15 @@ bool FShooterFirePredictionKnownBlockersTest::RunTest(const FString& Parameters)
 	Weapon->SetAmmoForAutomationTest(0, 0);
 	AbilitySystemComponent->AddLooseGameplayTag(ShooterGameplayTags::State_Reloading);
 	TestTrue(TEXT("a reload transaction with an empty mirror still allows local predicted feedback"),
-		Ability->IsOwnerPredictedFeedbackAllowedForTest(Character, Weapon, AbilitySystemComponent));
+		Ability->IsOwnerFireContextValidForTest(Character, Weapon, AbilitySystemComponent));
 	AbilitySystemComponent->RemoveLooseGameplayTag(ShooterGameplayTags::State_Reloading);
 	TestTrue(TEXT("clearing the reload transaction keeps local predicted feedback allowed"),
-		Ability->IsOwnerPredictedFeedbackAllowedForTest(Character, Weapon, AbilitySystemComponent));
+		Ability->IsOwnerFireContextValidForTest(Character, Weapon, AbilitySystemComponent));
 	Weapon->SetAmmoForAutomationTest(10, 0);
 
 	Weapon->SetActorHiddenInGame(true);
 	TestFalse(TEXT("hidden weapon blocks local predicted feedback"),
-		Ability->IsOwnerPredictedFeedbackAllowedForTest(Character, Weapon, AbilitySystemComponent));
+		Ability->IsOwnerFireContextValidForTest(Character, Weapon, AbilitySystemComponent));
 	Weapon->SetActorHiddenInGame(false);
 
 	AShooterWeapon* OtherWeapon = AcquireFeedbackTestWeapon(World, Character, nullptr, nullptr, nullptr, 5.0f,
@@ -527,7 +527,7 @@ bool FShooterFirePredictionKnownBlockersTest::RunTest(const FString& Parameters)
 
 	Weapon->SetActorHiddenInGame(false);
 	TestFalse(TEXT("weapon that is no longer current blocks local predicted feedback"),
-		Ability->IsOwnerPredictedFeedbackAllowedForTest(Character, Weapon, AbilitySystemComponent));
+		Ability->IsOwnerFireContextValidForTest(Character, Weapon, AbilitySystemComponent));
 
 	DestroyPredictionTestWorld(World);
 	return true;

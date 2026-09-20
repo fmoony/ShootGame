@@ -12,41 +12,6 @@
 #include "Weapons/ShooterWeapon.h"
 #include "ShootGame.h"
 
-bool UShooterGameplayAbility_Reload::HasInputReloadTag() const
-{
-	return GetAssetTags().HasTag(ShooterGameplayTags::Input_Reload);
-}
-
-bool UShooterGameplayAbility_Reload::IsBlockedByStateDead() const
-{
-	return ActivationBlockedTags.HasTag(ShooterGameplayTags::State_Dead);
-}
-
-bool UShooterGameplayAbility_Reload::IsBlockedByStateReloading() const
-{
-	return ActivationBlockedTags.HasTag(ShooterGameplayTags::State_Reloading);
-}
-
-bool UShooterGameplayAbility_Reload::IsBlockedByStateEquipping() const
-{
-	return ActivationBlockedTags.HasTag(ShooterGameplayTags::State_Equipping);
-}
-
-bool UShooterGameplayAbility_Reload::OwnsStateReloadingWhileActive() const
-{
-	return ActivationOwnedTags.HasTag(ShooterGameplayTags::State_Reloading);
-}
-
-bool UShooterGameplayAbility_Reload::CanRetriggerInstancedAbility() const
-{
-	return bRetriggerInstancedAbility;
-}
-
-bool UShooterGameplayAbility_Reload::ServerRespectsRemoteAbilityCancellation() const
-{
-	return bServerRespectsRemoteAbilityCancellation;
-}
-
 UShooterGameplayAbility_Reload::UShooterGameplayAbility_Reload()
 {
 	// 同一 Avatar 同生命周期内只保留一个实例；拥有者与服务器各自持有一份实例。
@@ -73,6 +38,8 @@ UShooterGameplayAbility_Reload::UShooterGameplayAbility_Reload()
 	// 因此这里不需要 ASC 的命令式取消调用，也不需要包含项目 ASC 头文件。
 	CancelAbilitiesWithTag.AddTag(ShooterGameplayTags::Input_Fire);
 }
+
+// ============================ 资格判定 ============================
 
 bool UShooterGameplayAbility_Reload::CanActivateAbility(
 	const FGameplayAbilitySpecHandle Handle,
@@ -108,7 +75,7 @@ bool UShooterGameplayAbility_Reload::CanActivateAbility(
 			return false;
 		}
 
-		const AShooterWeapon* LocalWeapon = ResolveLocalReloadWeapon(const_cast<AActor*>(AvatarActor));
+		const AShooterWeapon* LocalWeapon = ResolveCurrentReloadWeapon(const_cast<AActor*>(AvatarActor));
 		if (!IsValid(LocalWeapon) || LocalWeapon->IsHidden())
 		{
 			return false;
@@ -126,9 +93,12 @@ bool UShooterGameplayAbility_Reload::CanActivateAbility(
 	return ResolveReloadTarget(ActorInfo, Weapon);
 }
 
-AShooterWeapon* UShooterGameplayAbility_Reload::ResolveLocalReloadWeapon(AActor* AvatarActor) const
+// ============================ 目标解析与校验 ============================
+
+AShooterWeapon* UShooterGameplayAbility_Reload::ResolveCurrentReloadWeapon(AActor* AvatarActor) const
 {
-	// 预测端只用它取换弹时长与表现目标；不做任何弹药或 Inventory 真值判定。
+	// 只做解析，不做真值校验：预测端用它取换弹时长与表现目标，
+	// 权威端随后用 IsReloadWeaponStillValid 做完整校验。
 	const AShooterCharacter* Character = Cast<AShooterCharacter>(AvatarActor);
 	if (!Character)
 	{
@@ -140,27 +110,35 @@ AShooterWeapon* UShooterGameplayAbility_Reload::ResolveLocalReloadWeapon(AActor*
 	return IsValid(Weapon) && Weapon->GetOwner() == Character ? Weapon : nullptr;
 }
 
+bool UShooterGameplayAbility_Reload::IsReloadWeaponStillValid(const FGameplayAbilityActorInfo* ActorInfo,
+	const AShooterWeapon* Weapon) const
+{
+	// 起手校验与提交前二次校验共享的核心条件：
+	// 仍是 Equipment 当前装备、仍在背包、归属未变、可见、未回池。
+	const AShooterCharacter* Character = Cast<AShooterCharacter>(ActorInfo ? ActorInfo->AvatarActor.Get() : nullptr);
+	UShooterInventoryComponent* Inventory = Character ? Character->GetInventoryComponent() : nullptr;
+	UShooterEquipmentComponent* Equipment = Character ? Character->GetEquipmentComponent() : nullptr;
+
+	return Character && Inventory && Equipment && IsValid(Weapon) && Inventory->ContainsWeapon(Weapon) &&
+		Equipment->GetCurrentWeaponActor() == Weapon && Weapon->GetOwner() == Character && !Weapon->IsHidden() &&
+		Weapon->GetLifecycleState() != EShooterWeaponLifecycleState::InPool;
+}
+
 bool UShooterGameplayAbility_Reload::ResolveReloadTarget(const FGameplayAbilityActorInfo* ActorInfo, AShooterWeapon*& OutWeapon) const
 {
 	OutWeapon = nullptr;
 
-	const AShooterCharacter* Character = Cast<AShooterCharacter>(ActorInfo ? ActorInfo->AvatarActor.Get() : nullptr);
+	const AActor* AvatarActor = ActorInfo ? ActorInfo->AvatarActor.Get() : nullptr;
 	const UAbilitySystemComponent* AbilitySystemComponent = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
-	if (!Character || !AbilitySystemComponent || AbilitySystemComponent->GetAvatarActor() != Character ||
+	if (!AvatarActor || !AbilitySystemComponent || AbilitySystemComponent->GetAvatarActor() != AvatarActor ||
 		AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Dead))
 	{
 		return false;
 	}
 
-	UShooterInventoryComponent* Inventory = Character->GetInventoryComponent();
-	UShooterEquipmentComponent* Equipment = Character->GetEquipmentComponent();
-	AShooterWeapon* Weapon = Equipment
-		? Equipment->GetCurrentWeaponActor()
-		: Character->GetCurrentWeapon();
-	// 提交前校验（重构方案 4.7）：Actor 仍在背包、归属未变、是当前装备且不在池内。
-	if (!Inventory || !Equipment || !IsValid(Weapon) || !Inventory->ContainsWeapon(Weapon) ||
-		Weapon->GetOwner() != Character || Weapon->IsHidden() ||
-		Weapon->GetLifecycleState() == EShooterWeaponLifecycleState::InPool)
+	// 目标校验（重构方案 4.7）：仍是当前装备、仍在背包、归属未变、可见、未回池。
+	AShooterWeapon* Weapon = ResolveCurrentReloadWeapon(const_cast<AActor*>(AvatarActor));
+	if (!IsReloadWeaponStillValid(ActorInfo, Weapon))
 	{
 		return false;
 	}
@@ -174,6 +152,8 @@ bool UShooterGameplayAbility_Reload::ResolveReloadTarget(const FGameplayAbilityA
 	OutWeapon = Weapon;
 	return true;
 }
+
+// ============================ 换弹事务（激活 → 等待 → 提交） ============================
 
 void UShooterGameplayAbility_Reload::ActivateAbility(
 	const FGameplayAbilitySpecHandle Handle,
@@ -194,6 +174,8 @@ void UShooterGameplayAbility_Reload::ActivateAbility(
 	if (bAuthoritySide)
 	{
 		// 服务器权威校验：目标必须仍在背包、仍是当前装备、归属未变且确实需要转移弹药。
+		// 这里刻意再校验一次：CanActivateAbility 与 ActivateAbility 之间存在窗口（远端请求尤其明显），
+		// 起手资格通过不代表此刻仍然成立。
 		if (!ResolveReloadTarget(ActorInfo, Weapon))
 		{
 			EndAbility(Handle, ActorInfo, ActivationInfo, /*bReplicateEndAbility*/ true, /*bWasCancelled*/ true);
@@ -203,7 +185,7 @@ void UShooterGameplayAbility_Reload::ActivateAbility(
 	else
 	{
 		// 预测端只缓存表现目标与本地时钟所需的当前武器，不做任何真值判定。
-		Weapon = ResolveLocalReloadWeapon(ActorInfo->AvatarActor.Get());
+		Weapon = ResolveCurrentReloadWeapon(ActorInfo->AvatarActor.Get());
 		if (!IsValid(Weapon))
 		{
 			EndAbility(Handle, ActorInfo, ActivationInfo, /*bReplicateEndAbility*/ false, /*bWasCancelled*/ true);
@@ -238,19 +220,15 @@ void UShooterGameplayAbility_Reload::ActivateAbility(
 bool UShooterGameplayAbility_Reload::IsReloadTargetStillCurrent() const
 {
 	const AShooterCharacter* Character = Cast<AShooterCharacter>(GetShooterAvatarActor());
-	UShooterInventoryComponent* Inventory = Character ? Character->GetInventoryComponent() : nullptr;
-	UShooterEquipmentComponent* Equipment = Character ? Character->GetEquipmentComponent() : nullptr;
 	const UAbilitySystemComponent* AbilitySystemComponent = Character ? Character->GetAbilitySystemComponent() : nullptr;
-	if (!Character || !Inventory || !Equipment || !AbilitySystemComponent ||
-		AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Dead) || !CachedWeapon.IsValid() ||
-		Equipment->GetCurrentWeaponActor() != CachedWeapon.Get() || !Inventory->ContainsWeapon(CachedWeapon.Get()) ||
-		CachedWeapon->GetOwner() != Character || CachedWeapon->IsHidden() ||
-		CachedWeapon->GetLifecycleState() == EShooterWeaponLifecycleState::InPool)
+	if (!Character || !AbilitySystemComponent ||
+		AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Dead) || !CachedWeapon.IsValid())
 	{
 		return false;
 	}
 
-	return true;
+	// 起手校验通过后状态仍可能变化（换枪、提池、死亡）：提交前用同一组核心条件复核。
+	return IsReloadWeaponStillValid(GetCurrentActorInfo(), CachedWeapon.Get());
 }
 
 void UShooterGameplayAbility_Reload::HandleReloadWaitFinished()
@@ -300,6 +278,8 @@ void UShooterGameplayAbility_Reload::HandleReloadWaitFinished()
 	EndAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), true, false);
 }
 
+// ============================ 清理与结束 ============================
+
 void UShooterGameplayAbility_Reload::CleanupReloadTransaction()
 {
 	if (ReloadWaitTask.IsValid())
@@ -326,4 +306,41 @@ void UShooterGameplayAbility_Reload::EndAbility(
 
 	UE_LOG(LogShootGame, Display, TEXT("GA_Reload ended: Cancelled=%s Avatar=%s"),
 		bWasCancelled ? TEXT("true") : TEXT("false"), *GetNameSafe(GetShooterAvatarActor()));
+}
+
+// ============================ 测试观察接口 ============================
+
+bool UShooterGameplayAbility_Reload::HasInputReloadTag() const
+{
+	return GetAssetTags().HasTag(ShooterGameplayTags::Input_Reload);
+}
+
+bool UShooterGameplayAbility_Reload::IsBlockedByStateDead() const
+{
+	return ActivationBlockedTags.HasTag(ShooterGameplayTags::State_Dead);
+}
+
+bool UShooterGameplayAbility_Reload::IsBlockedByStateReloading() const
+{
+	return ActivationBlockedTags.HasTag(ShooterGameplayTags::State_Reloading);
+}
+
+bool UShooterGameplayAbility_Reload::IsBlockedByStateEquipping() const
+{
+	return ActivationBlockedTags.HasTag(ShooterGameplayTags::State_Equipping);
+}
+
+bool UShooterGameplayAbility_Reload::OwnsStateReloadingWhileActive() const
+{
+	return ActivationOwnedTags.HasTag(ShooterGameplayTags::State_Reloading);
+}
+
+bool UShooterGameplayAbility_Reload::CanRetriggerInstancedAbility() const
+{
+	return bRetriggerInstancedAbility;
+}
+
+bool UShooterGameplayAbility_Reload::ServerRespectsRemoteAbilityCancellation() const
+{
+	return bServerRespectsRemoteAbilityCancellation;
 }
