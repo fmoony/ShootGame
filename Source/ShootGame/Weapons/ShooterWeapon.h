@@ -13,6 +13,7 @@
 class IShooterWeaponHolder;
 class AShooterProjectile;
 class UShooterWeaponRuntimeSubsystem;
+class UStaticMeshComponent;
 struct FShooterWeaponConfigRow;
 
 /**
@@ -62,6 +63,14 @@ class SHOOTGAME_API AShooterWeapon : public AActor
 	/** Third person perspective mesh */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
 	USkeletalMeshComponent* ThirdPersonMesh;
+
+	/** 第一人称换弹期间显示的独立弹匣视觉代理；始终挂在 Weapon Root。 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
+	UStaticMeshComponent* FirstPersonMagazineProxy;
+
+	/** 第三人称换弹期间显示的独立弹匣视觉代理；始终挂在 Weapon Root。 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
+	UStaticMeshComponent* ThirdPersonMagazineProxy;
 
 protected:
 
@@ -393,6 +402,20 @@ public:
 	/** Returns the third person mesh */
 	UFUNCTION(BlueprintPure, Category="Weapon")
 	USkeletalMeshComponent* GetThirdPersonMesh() const { return ThirdPersonMesh; };
+
+	/** 返回第一人称换弹视觉代理。 */
+	UStaticMeshComponent* GetFirstPersonMagazineProxy() const { return FirstPersonMagazineProxy; }
+
+	/** 返回第三人称换弹视觉代理。 */
+	UStaticMeshComponent* GetThirdPersonMagazineProxy() const { return ThirdPersonMagazineProxy; }
+
+	/** 在各自整枪 MagazineSocket 位置显示独立弹匣，并隐藏 Socket 的父骨骼弹匣。 */
+	UFUNCTION(BlueprintCallable, Category="Weapon")
+	void ShowMagazineProxyInPlace();
+
+	/** 恢复原弹匣并清理独立弹匣代理的临时可见性、附着和变换。 */
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	void ResetMagazinePresentation();
 
 	/** 返回第三人称网格 Muzzle socket 的世界变换；网格或 socket 缺失时返回 Identity（不回退 Actor 变换）。
 	 *  调用方必须先确认 HasThirdPersonMuzzleSocket() 为真。 */

@@ -175,7 +175,7 @@ def extract(dynamic, triangles):
 
 
 def magazine_path(name):
-    return "/Game/Shooter/Weapons/" + name + "/Meshes/SM_" + name + "_Magazine"
+    return "/Game/Weapons/" + name + "/Meshes/SM_" + name + "_Magazine"
 
 
 def add_bone(mesh, name):

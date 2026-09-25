@@ -135,6 +135,10 @@ struct SHOOTGAME_API FShooterWeaponConfigRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Mesh")
 	TSoftObjectPtr<USkeletalMesh> ThirdPersonMesh;
 
+	/** 换弹期间显示的独立弹匣视觉代理；不参与弹药或换弹事务。 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Mesh")
+	TSoftObjectPtr<UStaticMesh> MagazineMesh;
+
 	/** Pickup 预览网格；由 Pickup 在 OnConstruction 同步加载。 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Mesh")
 	TSoftObjectPtr<UStaticMesh> PickupMesh;

@@ -14,6 +14,7 @@
 #include "TimerManager.h"
 #include "Animation/AnimInstance.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Components/StaticMeshComponent.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerState.h"
 #include "NiagaraFunctionLibrary.h"
@@ -24,6 +25,8 @@
 
 namespace
 {
+	const FName MagazineSocketName(TEXT("MagazineSocket"));
+
 	/** 生命周期状态名；用于低噪声状态转换诊断与非法转换拒绝日志。 */
 	const TCHAR* LifecycleStateToString(EShooterWeaponLifecycleState State)
 	{
@@ -64,6 +67,28 @@ AShooterWeapon::AShooterWeapon()
 	ThirdPersonMesh->SetCollisionProfileName(FName("NoCollision"));
 	ThirdPersonMesh->SetFirstPersonPrimitiveType(EFirstPersonPrimitiveType::WorldSpaceRepresentation);
 	ThirdPersonMesh->bOwnerNoSee = true;
+
+	FirstPersonMagazineProxy = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("First Person Magazine Proxy"));
+	FirstPersonMagazineProxy->SetupAttachment(RootComponent);
+	FirstPersonMagazineProxy->SetCollisionProfileName(FName("NoCollision"));
+	FirstPersonMagazineProxy->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	FirstPersonMagazineProxy->SetGenerateOverlapEvents(false);
+	FirstPersonMagazineProxy->SetIsReplicated(false);
+	FirstPersonMagazineProxy->SetFirstPersonPrimitiveType(EFirstPersonPrimitiveType::FirstPerson);
+	FirstPersonMagazineProxy->bOnlyOwnerSee = true;
+	FirstPersonMagazineProxy->SetVisibility(false);
+	FirstPersonMagazineProxy->SetHiddenInGame(true);
+
+	ThirdPersonMagazineProxy = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Third Person Magazine Proxy"));
+	ThirdPersonMagazineProxy->SetupAttachment(RootComponent);
+	ThirdPersonMagazineProxy->SetCollisionProfileName(FName("NoCollision"));
+	ThirdPersonMagazineProxy->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	ThirdPersonMagazineProxy->SetGenerateOverlapEvents(false);
+	ThirdPersonMagazineProxy->SetIsReplicated(false);
+	ThirdPersonMagazineProxy->SetFirstPersonPrimitiveType(EFirstPersonPrimitiveType::WorldSpaceRepresentation);
+	ThirdPersonMagazineProxy->bOwnerNoSee = true;
+	ThirdPersonMagazineProxy->SetVisibility(false);
+	ThirdPersonMagazineProxy->SetHiddenInGame(true);
 }
 
 void AShooterWeapon::BeginPlay()
@@ -71,6 +96,18 @@ void AShooterWeapon::BeginPlay()
 	Super::BeginPlay();
 
 	InitializeWeaponOwner();
+
+	if (!HasAuthority())
+	{
+		UE_LOG(
+			LogShootGame,
+			Display,
+			TEXT("[MagazineNetDiag][WeaponBeginPlay] NetMode=%d Weapon=%s Owner=%s WeaponId=%s"),
+			static_cast<int32>(GetNetMode()),
+			*GetNameSafe(this),
+			*GetNameSafe(GetOwner()),
+			*WeaponId.ToString());
+	}
 
 	// 弹药只由服务器初始化，拥有者客户端通过复制获得。
 	if (HasAuthority())
@@ -85,6 +122,9 @@ void AShooterWeapon::OnRep_Owner()
 	Super::OnRep_Owner();
 	ResetLocalFireCooldown();
 	InitializeWeaponOwner();
+
+	UE_LOG(LogShootGame, Display, TEXT("[MagazineNetDiag][WeaponOwner] Net=%d Weapon=%s Owner=%s Id=%s"),
+		static_cast<int32>(GetNetMode()), *GetNameSafe(this), *GetNameSafe(GetOwner()), *WeaponId.ToString());
 }
 
 void AShooterWeapon::InitializeWeaponOwner()
@@ -123,6 +163,8 @@ void AShooterWeapon::InitializeWeaponOwner()
 
 void AShooterWeapon::ClearWeaponOwner()
 {
+	ResetMagazinePresentation();
+
 	if (CachedWeaponOwnerActor)
 	{
 		CachedWeaponOwnerActor->OnDestroyed.RemoveAll(this);
@@ -157,6 +199,15 @@ void AShooterWeapon::InitializeWeaponIdentity(FName InWeaponId)
 
 void AShooterWeapon::OnRep_WeaponId()
 {
+	UE_LOG(
+		LogShootGame,
+		Display,
+		TEXT("[MagazineNetDiag][WeaponOnRepWeaponId] NetMode=%d Weapon=%s Owner=%s WeaponId=%s"),
+		static_cast<int32>(GetNetMode()),
+		*GetNameSafe(this),
+		*GetNameSafe(GetOwner()),
+		*WeaponId.ToString());
+
 	// 客户端：WeaponId 是创建后不变的初始复制数据，静态表现从本地启动快照恢复（内存查询，非 DataTable）。
 	if (!WeaponId.IsNone())
 	{
@@ -208,6 +259,8 @@ void AShooterWeapon::OnAcquiredFromWeaponPool()
 
 void AShooterWeapon::OnReleasedToWeaponPool()
 {
+	ResetMagazinePresentation();
+
 	// 纵深防御：归还前必须已脱离装备态（Equipment 先清空当前装备）。
 	if (LifecycleState == EShooterWeaponLifecycleState::Equipped || LifecycleState == EShooterWeaponLifecycleState::Equipping)
 	{
@@ -274,6 +327,14 @@ void AShooterWeapon::ApplyWeaponRow(const FShooterWeaponConfigRow& Row)
 	{
 		ThirdPersonMesh->SetSkeletalMeshAsset(Row.ThirdPersonMesh.LoadSynchronous());
 	}
+	if (FirstPersonMagazineProxy)
+	{
+		FirstPersonMagazineProxy->SetStaticMesh(Row.MagazineMesh.LoadSynchronous());
+	}
+	if (ThirdPersonMagazineProxy)
+	{
+		ThirdPersonMagazineProxy->SetStaticMesh(Row.MagazineMesh.LoadSynchronous());
+	}
 
 	// 权威端应用新配置即回到该配置的初始弹药经济：绑定、复用与归还路径都经此收敛。
 	if (HasAuthority())
@@ -319,6 +380,14 @@ FShooterWeaponConfigRow AShooterWeapon::CaptureWeaponConfigRow() const
 	if (ThirdPersonMesh)
 	{
 		Row.ThirdPersonMesh = ThirdPersonMesh->GetSkeletalMeshAsset();
+	}
+	if (FirstPersonMagazineProxy && FirstPersonMagazineProxy->GetStaticMesh())
+	{
+		Row.MagazineMesh = FirstPersonMagazineProxy->GetStaticMesh();
+	}
+	else if (ThirdPersonMagazineProxy)
+	{
+		Row.MagazineMesh = ThirdPersonMagazineProxy->GetStaticMesh();
 	}
 
 	return Row;
@@ -583,6 +652,7 @@ void AShooterWeapon::ResetAmmoPrediction()
 
 void AShooterWeapon::EndPlay(EEndPlayReason::Type EndPlayReason)
 {
+	ResetMagazinePresentation();
 	Super::EndPlay(EndPlayReason);
 
 	// clear the refire timer
@@ -647,6 +717,8 @@ void AShooterWeapon::ActivateWeapon()
 
 void AShooterWeapon::DeactivateWeapon()
 {
+	ResetMagazinePresentation();
+
 	// 权威端重复卸下幂等：池内或已收起时不重复触发表现回调。
 	// 客户端不做该提前返回，保持与池化前的本地隐藏时机一致。
 	if (HasAuthority() && (LifecycleState == EShooterWeaponLifecycleState::InPool ||
@@ -668,6 +740,63 @@ void AShooterWeapon::DeactivateWeapon()
 	{
 		WeaponOwner->OnWeaponDeactivated(this);
 	}
+}
+
+void AShooterWeapon::ShowMagazineProxyInPlace()
+{
+	auto ShowForMesh = [this](USkeletalMeshComponent* SourceMesh, UStaticMeshComponent* Proxy)
+	{
+		if (!SourceMesh || !Proxy || !Proxy->GetStaticMesh() || !SourceMesh->DoesSocketExist(MagazineSocketName))
+		{
+			return;
+		}
+
+		const FName ParentBoneName = SourceMesh->GetSocketBoneName(MagazineSocketName);
+		if (ParentBoneName.IsNone())
+		{
+			return;
+		}
+
+		// 必须在隐藏父骨骼前读取 Socket 变换；代理不挂在被隐藏的骨骼树下。
+		const FTransform SocketWorldTransform = SourceMesh->GetSocketTransform(MagazineSocketName, RTS_World);
+		Proxy->SetWorldTransform(SocketWorldTransform);
+		Proxy->SetHiddenInGame(false);
+		Proxy->SetVisibility(true);
+		SourceMesh->HideBoneByName(ParentBoneName, PBO_None);
+	};
+
+	ShowForMesh(FirstPersonMesh, FirstPersonMagazineProxy);
+	ShowForMesh(ThirdPersonMesh, ThirdPersonMagazineProxy);
+}
+
+void AShooterWeapon::ResetMagazinePresentation()
+{
+	auto ResetForMesh = [this](USkeletalMeshComponent* SourceMesh, UStaticMeshComponent* Proxy)
+	{
+		if (SourceMesh && SourceMesh->DoesSocketExist(MagazineSocketName))
+		{
+			const FName ParentBoneName = SourceMesh->GetSocketBoneName(MagazineSocketName);
+			if (!ParentBoneName.IsNone())
+			{
+				SourceMesh->UnHideBoneByName(ParentBoneName);
+			}
+		}
+
+		if (Proxy)
+		{
+			Proxy->SetHiddenInGame(true);
+			Proxy->SetVisibility(false);
+			Proxy->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+			if (RootComponent)
+			{
+				Proxy->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepWorldTransform);
+				Proxy->SetRelativeTransform(FTransform::Identity);
+			}
+		}
+	};
+
+	ResetForMesh(FirstPersonMesh, FirstPersonMagazineProxy);
+	ResetForMesh(ThirdPersonMesh, ThirdPersonMagazineProxy);
 }
 
 void AShooterWeapon::StartFiring()

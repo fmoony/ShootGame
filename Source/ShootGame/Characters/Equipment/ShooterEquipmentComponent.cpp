@@ -76,6 +76,24 @@ bool UShooterEquipmentComponent::EquipWeapon(AShooterWeapon* TargetWeapon)
 
 	CurrentWeaponActor = TargetWeapon;
 
+	UE_LOG(LogShootGame, Display,
+		TEXT("[MagazineNetDiag][ServerEquip] NetMode=%d Character=%s Role=%d CurrentWeapon=%s "
+			"WeaponOwner=%s WeaponReplicated=%s WeaponNetStartup=%s")
+			TEXT(" CharacterLocation=(%.2f,%.2f,%.2f) WeaponLocation=(%.2f,%.2f,%.2f)"),
+		static_cast<int32>(Character->GetNetMode()),
+		*GetNameSafe(Character),
+		static_cast<int32>(Character->GetLocalRole()),
+		*GetNameSafe(CurrentWeaponActor),
+		*GetNameSafe(TargetWeapon->GetOwner()),
+		TargetWeapon->GetIsReplicated() ? TEXT("true") : TEXT("false"),
+		TargetWeapon->IsNetStartupActor() ? TEXT("true") : TEXT("false"),
+		Character->GetActorLocation().X,
+		Character->GetActorLocation().Y,
+		Character->GetActorLocation().Z,
+		TargetWeapon->GetActorLocation().X,
+		TargetWeapon->GetActorLocation().Y,
+		TargetWeapon->GetActorLocation().Z);
+
 	// E2：逻辑变化只在真实转移时发布；相同武器重复提交不再重复广播。
 	BroadcastEquippedWeaponChanged(PreviousWeapon, TargetWeapon);
 
@@ -181,6 +199,17 @@ void UShooterEquipmentComponent::BroadcastEquippedWeaponChanged(AShooterWeapon* 
 
 void UShooterEquipmentComponent::OnRep_CurrentWeaponActor(AShooterWeapon* PreviousWeapon)
 {
+	const AShooterCharacter* OwnerCharacter = GetOwnerCharacter();
+	const UWorld* World = GetWorld();
+	UE_LOG(LogShootGame, Display,
+		TEXT("[MagazineNetDiag][OnRepCurrentWeapon] NetMode=%d Character=%s PreviousWeapon=%s "
+			"CurrentWeapon=%s LocallyControlled=%s"),
+		World ? static_cast<int32>(World->GetNetMode()) : -1,
+		*GetNameSafe(OwnerCharacter),
+		*GetNameSafe(PreviousWeapon),
+		*GetNameSafe(CurrentWeaponActor),
+		OwnerCharacter && OwnerCharacter->IsLocallyControlled() ? TEXT("true") : TEXT("false"));
+
 	// E2：逻辑事件只由 CurrentWeaponActor 真实转移产生；表现随后进入同一幂等入口。
 	BroadcastEquippedWeaponChanged(PreviousWeapon, CurrentWeaponActor);
 	if (AShooterCharacter* Character = GetOwnerCharacter())

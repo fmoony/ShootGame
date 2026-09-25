@@ -18,6 +18,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Engine/World.h"
+#include "EngineUtils.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "InputActionValue.h"
@@ -186,6 +187,53 @@ float AShooterCharacter::GetAimPitchN() const
 void AShooterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (!HasAuthority() && !IsLocallyControlled())
+	{
+		UShooterEquipmentComponent* Equipment = GetEquipmentComponent();
+		AShooterWeapon* CurrentWeapon = Equipment ? Equipment->GetCurrentWeaponActor() : nullptr;
+		int32 OwnedWeaponCount = 0;
+
+		const int32 NetMode = static_cast<int32>(GetNetMode());
+		const int32 LocalRoleValue = static_cast<int32>(GetLocalRole());
+		const TCHAR* EquipmentValid = Equipment ? TEXT("true") : TEXT("false");
+		const FString CurrentWeaponName = GetNameSafe(CurrentWeapon);
+		UE_LOG(
+			LogShootGame,
+			Display,
+			TEXT("[MagazineNetDiag][RemoteCharacter] Net=%d Character=%s Role=%d Equipment=%s Weapon=%s"),
+			NetMode,
+			*GetNameSafe(this),
+			LocalRoleValue,
+			EquipmentValid,
+			*CurrentWeaponName);
+
+		for (TActorIterator<AShooterWeapon> It(GetWorld()); It; ++It)
+		{
+			AShooterWeapon* Weapon = *It;
+			if (!IsValid(Weapon) || Weapon->GetOwner() != this)
+			{
+				continue;
+			}
+
+			++OwnedWeaponCount;
+			UE_LOG(
+				LogShootGame,
+				Display,
+				TEXT("[MagazineNetDiag][RemoteCharacterOwnedWeapon] Character=%s Weapon=%s Owner=%s WeaponId=%s"),
+				*GetNameSafe(this),
+				*GetNameSafe(Weapon),
+				*GetNameSafe(Weapon->GetOwner()),
+				*Weapon->GetWeaponId().ToString());
+		}
+
+		UE_LOG(
+			LogShootGame,
+			Display,
+			TEXT("[MagazineNetDiag][RemoteCharacterOwnedWeaponSummary] Character=%s OwnedWeaponCount=%d"),
+			*GetNameSafe(this),
+			OwnedWeaponCount);
+	}
 
 	// 生命值只由服务器初始化，客户端通过初始复制获得。
 	if (HasAuthority())
