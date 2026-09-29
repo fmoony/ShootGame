@@ -99,6 +99,161 @@ bool FShooterWeaponMagazineNotifyConfigurationTest::RunTest(const FString& Param
 	return bHasDetachNotify && bHasInsertNotify;
 }
 
+/** Pistol 使用独立 TP Sequence，必须且只能包含顺序正确的两个弹匣阶段。 */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterPistolMagazineNotifyConfigurationTest,
+	"ShootGame.Weapon.Magazine.PistolReloadNotifyConfiguration",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FShooterPistolMagazineNotifyConfigurationTest::RunTest(const FString& Parameters)
+{
+	const UAnimSequence* Sequence = LoadObject<UAnimSequence>(nullptr,
+		TEXT("/Game/Characters/Mannequins/Anims/Pistol/MM_Pistol_Reload.MM_Pistol_Reload"));
+	if (!TestNotNull(TEXT("Pistol reload sequence resolves"), Sequence))
+	{
+		return false;
+	}
+
+	int32 DetachCount = 0;
+	int32 InsertCount = 0;
+	float DetachTime = -1.0f;
+	float InsertTime = -1.0f;
+	for (const FAnimNotifyEvent& Event : Sequence->Notifies)
+	{
+		const UShooterAnimNotify_WeaponMagazine* Notify = Cast<UShooterAnimNotify_WeaponMagazine>(Event.Notify);
+		if (!Notify)
+		{
+			continue;
+		}
+		if (Notify->Stage == EShooterMagazinePresentationStage::Detach)
+		{
+			++DetachCount;
+			DetachTime = Event.GetTriggerTime();
+		}
+		else
+		{
+			++InsertCount;
+			InsertTime = Event.GetTriggerTime();
+		}
+	}
+	TestEqual(TEXT("Pistol has exactly one Detach Notify"), DetachCount, 1);
+	TestEqual(TEXT("Pistol has exactly one Insert Notify"), InsertCount, 1);
+	TestTrue(TEXT("Pistol Magazine Notify order is valid"),
+		DetachTime > 0.0f && InsertTime > DetachTime && InsertTime < Sequence->GetPlayLength());
+	return true;
+}
+
+/** 用正式四枪行配置租用实体，验证实际网格、抓握与恢复；不注入替代武器配置。 */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterProductionMagazinePresentationTest,
+	"ShootGame.Weapon.Magazine.ProductionWeaponsPresentation",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FShooterProductionMagazinePresentationTest::RunTest(const FString& Parameters)
+{
+	using namespace ShooterWeaponMagazinePresentationAutomationTests;
+	UWorld* World = CreateTestWorld();
+	if (!TestNotNull(TEXT("Production Magazine world exists"), World))
+	{
+		return false;
+	}
+	UShooterWeaponRuntimeSubsystem* Runtime = World->GetSubsystem<UShooterWeaponRuntimeSubsystem>();
+	if (!Runtime || !TestTrue(TEXT("Production weapon runtime initializes"), Runtime->InitializeWeaponRuntime()))
+	{
+		DestroyTestWorld(World);
+		return false;
+	}
+	UClass* CharacterClass = StaticLoadClass(AShooterCharacter::StaticClass(), nullptr, ShooterCharacterClassPath);
+	AShooterCharacter* Character = CharacterClass
+		? Cast<AShooterCharacter>(World->SpawnActor(CharacterClass))
+		: nullptr;
+	if (!TestNotNull(TEXT("Production Magazine character exists"), Character))
+	{
+		DestroyTestWorld(World);
+		return false;
+	}
+
+	for (const FName WeaponId : {FName(TEXT("Rifle")), FName(TEXT("Pistol")),
+		 FName(TEXT("AWP")), FName(TEXT("GrenadeLauncher"))})
+	{
+		AddInfo(FString::Printf(TEXT("Magazine production weapon: %s"), *WeaponId.ToString()));
+		const FShooterWeaponConfigRow* Row = Runtime->FindRuntimeConfig(WeaponId);
+		AShooterWeapon* Weapon = Runtime->AcquireWeapon(WeaponId, Character, Character);
+		if (!TestNotNull(TEXT("Production row exists"), Row) || !TestNotNull(TEXT("Production weapon acquired"), Weapon))
+		{
+			DestroyTestWorld(World);
+			return false;
+		}
+		const FShooterWeaponConfigRow Captured = Weapon->CaptureWeaponConfigRow();
+		TestTrue(TEXT("FP Grip survives production row application"),
+			Captured.FirstPersonMagazineGripTransform.Equals(Row->FirstPersonMagazineGripTransform));
+		TestTrue(TEXT("TP Grip survives production row application"),
+			Captured.ThirdPersonMagazineGripTransform.Equals(Row->ThirdPersonMagazineGripTransform));
+		TestTrue(TEXT("FP unit scale"), Row->FirstPersonMagazineGripTransform.GetScale3D().Equals(FVector::OneVector));
+		TestTrue(TEXT("TP unit scale"), Row->ThirdPersonMagazineGripTransform.GetScale3D().Equals(FVector::OneVector));
+		const int32 AmmoBefore = Weapon->GetBulletCount();
+		const int32 ReserveBefore = Weapon->GetReserveAmmo();
+		UStaticMeshComponent* FPProxy = Weapon->GetFirstPersonMagazineProxy();
+		UStaticMeshComponent* TPProxy = Weapon->GetThirdPersonMagazineProxy();
+		TestTrue(TEXT("Production proxies start hidden"), FPProxy->bHiddenInGame && TPProxy->bHiddenInGame);
+		TestTrue(TEXT("FP uses MagazineMesh"), FPProxy->GetStaticMesh() == Row->MagazineMesh.LoadSynchronous());
+		TestEqual(TEXT("TP proxy uses production MagazineMesh"), TPProxy->GetStaticMesh(), FPProxy->GetStaticMesh());
+
+		for (USkeletalMeshComponent* Mesh : {Weapon->GetFirstPersonMesh(), Weapon->GetThirdPersonMesh()})
+		{
+			TestTrue(TEXT("Mesh has MagazineSocket"), Mesh->DoesSocketExist(MagazineSocketName));
+			const FName Bone = Mesh->GetSocketBoneName(MagazineSocketName);
+			TestTrue(TEXT("Socket parent bone is valid"), !Bone.IsNone() && Mesh->GetBoneIndex(Bone) != INDEX_NONE);
+		}
+		Weapon->ShowMagazineProxyInPlace();
+		TestTrue(TEXT("Production Show displays both proxies"), FPProxy->IsVisible() && TPProxy->IsVisible());
+		for (USkeletalMeshComponent* Mesh : {Weapon->GetFirstPersonMesh(), Weapon->GetThirdPersonMesh()})
+		{
+			TestTrue(TEXT("Show hides production Magazine bone"),
+				Mesh->IsBoneHiddenByName(Mesh->GetSocketBoneName(MagazineSocketName)));
+		}
+		Weapon->ResetMagazinePresentation();
+		TestTrue(TEXT("FP Detach succeeds"), Weapon->DetachFirstPersonMagazineProxy(Character->GetFirstPersonMesh()));
+		TestTrue(TEXT("Production repeated FP Detach is safe"),
+			Weapon->DetachFirstPersonMagazineProxy(Character->GetFirstPersonMesh()));
+		TestTrue(TEXT("Production FP uses configured local Grip"),
+			FPProxy->GetRelativeTransform().Equals(Row->FirstPersonMagazineGripTransform));
+		TestTrue(TEXT("FP proxy attaches to FP hand_l"),
+			FPProxy->GetAttachParent() == Character->GetFirstPersonMesh() &&
+			FPProxy->GetAttachSocketName() == FName(TEXT("hand_l")));
+		TestTrue(TEXT("FP Detach hides source Magazine bone"), Weapon->GetFirstPersonMesh()->IsBoneHiddenByName(
+			Weapon->GetFirstPersonMesh()->GetSocketBoneName(MagazineSocketName)));
+		TestFalse(TEXT("FP Detach leaves TP proxy hidden"), TPProxy->IsVisible());
+		TestTrue(TEXT("Production FP Insert succeeds"), Weapon->InsertFirstPersonMagazineProxy());
+		TestTrue(TEXT("Production TP Detach succeeds"), Weapon->DetachThirdPersonMagazineProxy(Character->GetMesh()));
+		TestTrue(TEXT("Repeated TP Detach is safe"), Weapon->DetachThirdPersonMagazineProxy(Character->GetMesh()));
+		TestTrue(TEXT("Production TP uses configured local Grip"),
+			TPProxy->GetRelativeTransform().Equals(Row->ThirdPersonMagazineGripTransform));
+		TestTrue(TEXT("TP proxy attaches to TP hand_l"), TPProxy->GetAttachParent() == Character->GetMesh() &&
+			TPProxy->GetAttachSocketName() == FName(TEXT("hand_l")));
+		TestTrue(TEXT("TP Detach hides source Magazine bone"), Weapon->GetThirdPersonMesh()->IsBoneHiddenByName(
+			Weapon->GetThirdPersonMesh()->GetSocketBoneName(MagazineSocketName)));
+		TestFalse(TEXT("TP Detach leaves FP proxy hidden"), FPProxy->IsVisible());
+		TestTrue(TEXT("Production TP Insert succeeds"), Weapon->InsertThirdPersonMagazineProxy());
+		Weapon->ResetMagazinePresentation();
+		Weapon->ResetMagazinePresentation();
+		for (UStaticMeshComponent* Proxy : {FPProxy, TPProxy})
+		{
+			TestTrue(TEXT("Reset hides proxy and restores root attachment with Identity"),
+				Proxy->bHiddenInGame && !Proxy->IsVisible() && Proxy->GetAttachParent() == Weapon->GetRootComponent() &&
+				Proxy->GetRelativeTransform().Equals(FTransform::Identity));
+		}
+		for (USkeletalMeshComponent* Mesh : {Weapon->GetFirstPersonMesh(), Weapon->GetThirdPersonMesh()})
+		{
+			TestFalse(TEXT("Reset unhides production Magazine bone"),
+				Mesh->IsBoneHiddenByName(Mesh->GetSocketBoneName(MagazineSocketName)));
+		}
+		TestEqual(TEXT("Production Magazine presentation preserves Ammo"), Weapon->GetBulletCount(), AmmoBefore);
+		TestEqual(TEXT("Presentation preserves ReserveAmmo"), Weapon->GetReserveAmmo(), ReserveBefore);
+		Runtime->ReleaseWeapon(Weapon);
+	}
+	DestroyTestWorld(World);
+	return true;
+}
+
 /** MagazineMesh 应在行配置进入运行时快照并回写 Actor 后保持同一资源引用。 */
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterWeaponMagazineConfigRoundTripTest, "ShootGame.Weapon.Magazine.ConfigRoundTrip",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
