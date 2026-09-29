@@ -26,6 +26,7 @@
 namespace
 {
 	const FName MagazineSocketName(TEXT("MagazineSocket"));
+	const FName MagazineHandBoneName(TEXT("hand_l"));
 
 	/** 生命周期状态名；用于低噪声状态转换诊断与非法转换拒绝日志。 */
 	const TCHAR* LifecycleStateToString(EShooterWeaponLifecycleState State)
@@ -38,6 +39,77 @@ namespace
 		case EShooterWeaponLifecycleState::Equipped: return TEXT("Equipped");
 		default: return TEXT("Unknown");
 		}
+	}
+
+	bool ResetMagazineProxyForMesh(USkeletalMeshComponent* SourceMesh, UStaticMeshComponent* Proxy, USceneComponent* WeaponRoot)
+	{
+		if (SourceMesh && SourceMesh->DoesSocketExist(MagazineSocketName))
+		{
+			const FName ParentBoneName = SourceMesh->GetSocketBoneName(MagazineSocketName);
+			if (!ParentBoneName.IsNone())
+			{
+				SourceMesh->UnHideBoneByName(ParentBoneName);
+			}
+		}
+
+		if (!Proxy)
+		{
+			return false;
+		}
+
+		Proxy->SetHiddenInGame(true);
+		Proxy->SetVisibility(false);
+		Proxy->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+		if (WeaponRoot)
+		{
+			Proxy->AttachToComponent(WeaponRoot, FAttachmentTransformRules::KeepWorldTransform);
+			Proxy->SetRelativeTransform(FTransform::Identity);
+		}
+		return true;
+	}
+
+	bool DetachMagazineProxyToHand(USkeletalMeshComponent* SourceMesh, UStaticMeshComponent* Proxy,
+		USkeletalMeshComponent* CharacterMesh, const FTransform& GripTransform, USceneComponent* WeaponRoot)
+	{
+		if (!SourceMesh || !Proxy || !Proxy->GetStaticMesh() || !CharacterMesh || !WeaponRoot ||
+			!SourceMesh->DoesSocketExist(MagazineSocketName) ||
+			CharacterMesh->GetBoneIndex(MagazineHandBoneName) == INDEX_NONE)
+		{
+			return false;
+		}
+
+		const FName ParentBoneName = SourceMesh->GetSocketBoneName(MagazineSocketName);
+		if (ParentBoneName.IsNone())
+		{
+			return false;
+		}
+
+		// 重复 Notify 在同一侧已经完成换手时保持幂等，避免从已隐藏骨骼再次取变换。
+		if (SourceMesh->IsBoneHiddenByName(ParentBoneName))
+		{
+			return Proxy->GetAttachParent() == CharacterMesh &&
+				Proxy->GetAttachSocketName() == MagazineHandBoneName && !Proxy->bHiddenInGame;
+		}
+
+		// 必须在隐藏原弹匣前读取 Socket 世界变换；代理始终脱离 Weapon 骨骼树。
+		const FTransform SocketWorldTransform = SourceMesh->GetSocketTransform(MagazineSocketName, RTS_World);
+		Proxy->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+		Proxy->SetWorldTransform(SocketWorldTransform);
+		Proxy->AttachToComponent(CharacterMesh, FAttachmentTransformRules::KeepWorldTransform, MagazineHandBoneName);
+		if (Proxy->GetAttachParent() != CharacterMesh || Proxy->GetAttachSocketName() != MagazineHandBoneName)
+		{
+			Proxy->AttachToComponent(WeaponRoot, FAttachmentTransformRules::KeepWorldTransform);
+			Proxy->SetRelativeTransform(FTransform::Identity);
+			return false;
+		}
+
+		// GripTransform 是 hand_l 下的最终局部姿态，不是要叠加的 Delta。
+		Proxy->SetRelativeTransform(GripTransform);
+		Proxy->SetHiddenInGame(false);
+		Proxy->SetVisibility(true);
+		// 最后才隐藏原弹匣骨骼，避免隐藏骨骼改变 Socket 读取结果。
+		SourceMesh->HideBoneByName(ParentBoneName, PBO_None);
+		return true;
 	}
 }
 
@@ -303,6 +375,8 @@ void AShooterWeapon::ApplyWeaponRow(const FShooterWeaponConfigRow& Row)
 	MuzzleOffset = Row.MuzzleOffset;
 	MuzzleSocketName = Row.MuzzleSocketName;
 	ThirdPersonLeftHandGripSocketName = Row.LeftHandGripSocketName;
+	FirstPersonMagazineGripTransform = Row.FirstPersonMagazineGripTransform;
+	ThirdPersonMagazineGripTransform = Row.ThirdPersonMagazineGripTransform;
 	FiringRecoil = Row.FiringRecoil;
 	FirstPersonCompositionDrop = Row.FirstPersonCompositionDrop;
 
@@ -362,6 +436,8 @@ FShooterWeaponConfigRow AShooterWeapon::CaptureWeaponConfigRow() const
 	Row.MuzzleOffset = MuzzleOffset;
 	Row.MuzzleSocketName = MuzzleSocketName;
 	Row.LeftHandGripSocketName = ThirdPersonLeftHandGripSocketName;
+	Row.FirstPersonMagazineGripTransform = FirstPersonMagazineGripTransform;
+	Row.ThirdPersonMagazineGripTransform = ThirdPersonMagazineGripTransform;
 	Row.FirstPersonAnimInstanceClass = FirstPersonAnimInstanceClass;
 	Row.ThirdPersonAnimInstanceClass = ThirdPersonAnimInstanceClass;
 	Row.FiringMontage = FiringMontage;
@@ -769,34 +845,32 @@ void AShooterWeapon::ShowMagazineProxyInPlace()
 	ShowForMesh(ThirdPersonMesh, ThirdPersonMagazineProxy);
 }
 
+bool AShooterWeapon::DetachFirstPersonMagazineProxy(USkeletalMeshComponent* CharacterMesh)
+{
+	return DetachMagazineProxyToHand(FirstPersonMesh, FirstPersonMagazineProxy, CharacterMesh,
+		FirstPersonMagazineGripTransform, RootComponent);
+}
+
+bool AShooterWeapon::InsertFirstPersonMagazineProxy()
+{
+	return ResetMagazineProxyForMesh(FirstPersonMesh, FirstPersonMagazineProxy, RootComponent);
+}
+
+bool AShooterWeapon::DetachThirdPersonMagazineProxy(USkeletalMeshComponent* CharacterMesh)
+{
+	return DetachMagazineProxyToHand(ThirdPersonMesh, ThirdPersonMagazineProxy, CharacterMesh,
+		ThirdPersonMagazineGripTransform, RootComponent);
+}
+
+bool AShooterWeapon::InsertThirdPersonMagazineProxy()
+{
+	return ResetMagazineProxyForMesh(ThirdPersonMesh, ThirdPersonMagazineProxy, RootComponent);
+}
+
 void AShooterWeapon::ResetMagazinePresentation()
 {
-	auto ResetForMesh = [this](USkeletalMeshComponent* SourceMesh, UStaticMeshComponent* Proxy)
-	{
-		if (SourceMesh && SourceMesh->DoesSocketExist(MagazineSocketName))
-		{
-			const FName ParentBoneName = SourceMesh->GetSocketBoneName(MagazineSocketName);
-			if (!ParentBoneName.IsNone())
-			{
-				SourceMesh->UnHideBoneByName(ParentBoneName);
-			}
-		}
-
-		if (Proxy)
-		{
-			Proxy->SetHiddenInGame(true);
-			Proxy->SetVisibility(false);
-			Proxy->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-			if (RootComponent)
-			{
-				Proxy->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepWorldTransform);
-				Proxy->SetRelativeTransform(FTransform::Identity);
-			}
-		}
-	};
-
-	ResetForMesh(FirstPersonMesh, FirstPersonMagazineProxy);
-	ResetForMesh(ThirdPersonMesh, ThirdPersonMagazineProxy);
+	ResetMagazineProxyForMesh(FirstPersonMesh, FirstPersonMagazineProxy, RootComponent);
+	ResetMagazineProxyForMesh(ThirdPersonMesh, ThirdPersonMagazineProxy, RootComponent);
 }
 
 void AShooterWeapon::StartFiring()

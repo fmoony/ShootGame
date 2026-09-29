@@ -139,6 +139,14 @@ struct SHOOTGAME_API FShooterWeaponConfigRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Mesh")
 	TSoftObjectPtr<UStaticMesh> MagazineMesh;
 
+	/** 第一人称弹匣代理挂到 Character hand_l 后的最终局部抓握姿态；Identity 保持 Socket 姿态。 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Magazine")
+	FTransform FirstPersonMagazineGripTransform = FTransform::Identity;
+
+	/** 第三人称弹匣代理挂到 Character hand_l 后的最终局部抓握姿态；Identity 保持 Socket 姿态。 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Magazine")
+	FTransform ThirdPersonMagazineGripTransform = FTransform::Identity;
+
 	/** Pickup 预览网格；由 Pickup 在 OnConstruction 同步加载。 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Mesh")
 	TSoftObjectPtr<UStaticMesh> PickupMesh;

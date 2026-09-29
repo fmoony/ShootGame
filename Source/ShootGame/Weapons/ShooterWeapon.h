@@ -64,13 +64,21 @@ class SHOOTGAME_API AShooterWeapon : public AActor
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
 	USkeletalMeshComponent* ThirdPersonMesh;
 
-	/** 第一人称换弹期间显示的独立弹匣视觉代理；始终挂在 Weapon Root。 */
+	/** 第一人称独立弹匣视觉代理；默认挂在 Weapon Root，换弹期间临时挂到 Character hand_l。 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
 	UStaticMeshComponent* FirstPersonMagazineProxy;
 
-	/** 第三人称换弹期间显示的独立弹匣视觉代理；始终挂在 Weapon Root。 */
+	/** 第三人称独立弹匣视觉代理；默认挂在 Weapon Root，换弹期间临时挂到 Character hand_l。 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
 	UStaticMeshComponent* ThirdPersonMagazineProxy;
+
+	/** 第一人称弹匣代理挂到 Character hand_l 后的最终局部抓握姿态。 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Magazine", meta = (AllowPrivateAccess = "true"))
+	FTransform FirstPersonMagazineGripTransform = FTransform::Identity;
+
+	/** 第三人称弹匣代理挂到 Character hand_l 后的最终局部抓握姿态。 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Magazine", meta = (AllowPrivateAccess = "true"))
+	FTransform ThirdPersonMagazineGripTransform = FTransform::Identity;
 
 protected:
 
@@ -413,6 +421,22 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Weapon")
 	void ShowMagazineProxyInPlace();
 
+	/** 将第一人称弹匣代理从 MagazineSocket 原位换手到 Character 的 hand_l。 */
+	UFUNCTION(BlueprintCallable, Category="Weapon")
+	bool DetachFirstPersonMagazineProxy(USkeletalMeshComponent* CharacterMesh);
+
+	/** 将第一人称弹匣代理从 Character 的 hand_l 插回武器并恢复原弹匣。 */
+	UFUNCTION(BlueprintCallable, Category="Weapon")
+	bool InsertFirstPersonMagazineProxy();
+
+	/** 将第三人称弹匣代理从 MagazineSocket 原位换手到 Character 的 hand_l。 */
+	UFUNCTION(BlueprintCallable, Category="Weapon")
+	bool DetachThirdPersonMagazineProxy(USkeletalMeshComponent* CharacterMesh);
+
+	/** 将第三人称弹匣代理从 Character 的 hand_l 插回武器并恢复原弹匣。 */
+	UFUNCTION(BlueprintCallable, Category="Weapon")
+	bool InsertThirdPersonMagazineProxy();
+
 	/** 恢复原弹匣并清理独立弹匣代理的临时可见性、附着和变换。 */
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	void ResetMagazinePresentation();
@@ -543,6 +567,13 @@ public:
 	{
 		MagazineAmmo = InMagazineAmmo;
 		ReserveAmmo = InReserveAmmo;
+	}
+
+	/** 测试专用：写入两侧弹匣抓握姿态；生产代码不得调用。 */
+	void SetMagazineGripTransformsForAutomationTest(const FTransform& InFirstPersonTransform, const FTransform& InThirdPersonTransform)
+	{
+		FirstPersonMagazineGripTransform = InFirstPersonTransform;
+		ThirdPersonMagazineGripTransform = InThirdPersonTransform;
 	}
 
 	// ---- P1 开火表现计数与权威字段只读探针：仅在开发构建存在，Shipping 零增量 ----

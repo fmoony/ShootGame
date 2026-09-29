@@ -2,10 +2,12 @@
 
 #if WITH_DEV_AUTOMATION_TESTS
 
+#include "Animation/AnimSequence.h"
 #include "Misc/AutomationTest.h"
 
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Characters/ShooterCharacter.h"
 #include "Engine/DataTable.h"
 #include "Engine/Engine.h"
 #include "Engine/StaticMesh.h"
@@ -14,6 +16,7 @@
 #include "Tests/Weapon/ShooterWeaponRuntimeTestTypes.h"
 #include "Weapons/Data/ShooterWeaponConfigRow.h"
 #include "Weapons/Data/ShooterWeaponTable.h"
+#include "Weapons/Animation/ShooterAnimNotify_WeaponMagazine.h"
 #include "Weapons/ShooterWeapon.h"
 #include "Weapons/Subsystems/ShooterWeaponRuntimeSubsystem.h"
 
@@ -21,6 +24,8 @@ namespace ShooterWeaponMagazinePresentationAutomationTests
 {
 	const FName MagazineSocketName(TEXT("MagazineSocket"));
 	const TCHAR* RifleMagazineMeshPath = TEXT("/Game/Weapons/Rifle/Meshes/SM_Rifle_Magazine.SM_Rifle_Magazine");
+	const TCHAR* RifleReloadSequencePath = TEXT("/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_Reload.MM_Rifle_Reload");
+	const TCHAR* ShooterCharacterClassPath = TEXT("/Game/Shooter/Blueprints/Characters/BP_ShooterCharacter.BP_ShooterCharacter_C");
 
 	UWorld* CreateTestWorld()
 	{
@@ -58,6 +63,40 @@ namespace ShooterWeaponMagazinePresentationAutomationTests
 		Test.TestNotNull(TEXT("Production Rifle row resolves"), Row);
 		return Row;
 	}
+}
+
+/** Rifle 的 TP Reload Sequence 是弹匣表现唯一时间源，并同时包含 Detach / Insert Notify。 */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterWeaponMagazineNotifyConfigurationTest,
+	"ShootGame.Weapon.Magazine.RifleReloadNotifyConfiguration",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FShooterWeaponMagazineNotifyConfigurationTest::RunTest(const FString& Parameters)
+{
+	using namespace ShooterWeaponMagazinePresentationAutomationTests;
+
+	const UAnimSequence* ReloadSequence = LoadObject<UAnimSequence>(nullptr, RifleReloadSequencePath);
+	if (!TestNotNull(TEXT("Rifle reload sequence for Magazine Notify resolves"), ReloadSequence))
+	{
+		return false;
+	}
+
+	bool bHasDetachNotify = false;
+	bool bHasInsertNotify = false;
+	for (const FAnimNotifyEvent& NotifyEvent : ReloadSequence->Notifies)
+	{
+		const UShooterAnimNotify_WeaponMagazine* MagazineNotify = Cast<UShooterAnimNotify_WeaponMagazine>(NotifyEvent.Notify);
+		if (!MagazineNotify)
+		{
+			continue;
+		}
+
+		bHasDetachNotify |= MagazineNotify->Stage == EShooterMagazinePresentationStage::Detach;
+		bHasInsertNotify |= MagazineNotify->Stage == EShooterMagazinePresentationStage::Insert;
+	}
+
+	TestTrue(TEXT("Rifle reload sequence contains Magazine Detach Notify"), bHasDetachNotify);
+	TestTrue(TEXT("Rifle reload sequence contains Magazine Insert Notify"), bHasInsertNotify);
+	return bHasDetachNotify && bHasInsertNotify;
 }
 
 /** MagazineMesh 应在行配置进入运行时快照并回写 Actor 后保持同一资源引用。 */
@@ -98,6 +137,10 @@ bool FShooterWeaponMagazineConfigRoundTripTest::RunTest(const FString& Parameter
 	TestRow.WeaponActorClass = AShooterRuntimePoolTestWeapon::StaticClass();
 	TestRow.InitialPoolSize = 1;
 	TestRow.MagazineMesh = MagazineMesh;
+	const FTransform ExpectedFirstPersonGrip(FRotator(5.0f, 10.0f, 15.0f), FVector(1.0f, 2.0f, 3.0f), FVector::OneVector);
+	const FTransform ExpectedThirdPersonGrip(FRotator(-8.0f, 20.0f, -12.0f), FVector(-2.0f, 1.5f, 0.5f), FVector::OneVector);
+	TestRow.FirstPersonMagazineGripTransform = ExpectedFirstPersonGrip;
+	TestRow.ThirdPersonMagazineGripTransform = ExpectedThirdPersonGrip;
 	Table->AddRow(FName(TEXT("MagazineRoundTrip")), TestRow);
 	Runtime->SetWeaponTableOverride(Table);
 	World->BeginPlay();
@@ -109,6 +152,10 @@ bool FShooterWeaponMagazineConfigRoundTripTest::RunTest(const FString& Parameter
 		return false;
 	}
 	TestEqual(TEXT("Runtime snapshot keeps MagazineMesh reference"), RuntimeRow->MagazineMesh.Get(), MagazineMesh);
+	TestTrue(TEXT("Runtime snapshot keeps first-person MagazineGripTransform"),
+		RuntimeRow->FirstPersonMagazineGripTransform.Equals(ExpectedFirstPersonGrip, 0.001f));
+	TestTrue(TEXT("Runtime snapshot keeps third-person MagazineGripTransform"),
+		RuntimeRow->ThirdPersonMagazineGripTransform.Equals(ExpectedThirdPersonGrip, 0.001f));
 
 	AActor* Owner = World->SpawnActor<AActor>(AActor::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator);
 	AShooterWeapon* Weapon = Runtime->AcquireWeapon(TEXT("MagazineRoundTrip"), Owner, nullptr);
@@ -124,6 +171,10 @@ bool FShooterWeaponMagazineConfigRoundTripTest::RunTest(const FString& Parameter
 		Weapon->GetThirdPersonMagazineProxy()->GetStaticMesh() == MagazineMesh);
 	const FShooterWeaponConfigRow CapturedRow = Weapon->CaptureWeaponConfigRow();
 	TestEqual(TEXT("CaptureWeaponConfigRow preserves MagazineMesh"), CapturedRow.MagazineMesh.Get(), MagazineMesh);
+	TestTrue(TEXT("CaptureWeaponConfigRow preserves first-person MagazineGripTransform"),
+		CapturedRow.FirstPersonMagazineGripTransform.Equals(ExpectedFirstPersonGrip, 0.001f));
+	TestTrue(TEXT("CaptureWeaponConfigRow preserves third-person MagazineGripTransform"),
+		CapturedRow.ThirdPersonMagazineGripTransform.Equals(ExpectedThirdPersonGrip, 0.001f));
 
 	DestroyTestWorld(World);
 	return true;
@@ -167,6 +218,9 @@ bool FShooterWeaponMagazinePresentationTest::RunTest(const FString& Parameters)
 	Weapon->GetThirdPersonMesh()->SetSkeletalMeshAsset(ThirdPersonMesh);
 	Weapon->GetFirstPersonMagazineProxy()->SetStaticMesh(MagazineMesh);
 	Weapon->GetThirdPersonMagazineProxy()->SetStaticMesh(MagazineMesh);
+	const FTransform ExpectedFirstPersonGrip(FRotator(7.0f, -13.0f, 21.0f), FVector(2.0f, -1.0f, 3.0f), FVector::OneVector);
+	const FTransform ExpectedThirdPersonGrip(FRotator(-11.0f, 17.0f, 9.0f), FVector(-1.5f, 2.5f, 0.75f), FVector::OneVector);
+	Weapon->SetMagazineGripTransformsForAutomationTest(ExpectedFirstPersonGrip, ExpectedThirdPersonGrip);
 	Weapon->SetAmmoForAutomationTest(7, 13);
 
 	UStaticMeshComponent* FirstPersonProxy = Weapon->GetFirstPersonMagazineProxy();
@@ -242,6 +296,82 @@ bool FShooterWeaponMagazinePresentationTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("Repeated Reset keeps third-person proxy hidden"),
 		ThirdPersonProxy->bHiddenInGame && !ThirdPersonProxy->IsVisible());
 
+	UClass* ShooterCharacterClass = StaticLoadClass(AShooterCharacter::StaticClass(), nullptr, ShooterCharacterClassPath);
+	const FVector CharacterSpawnLocation(100.0f, 0.0f, 0.0f);
+	const FRotator CharacterSpawnRotation = FRotator::ZeroRotator;
+	AActor* SpawnedCharacter = ShooterCharacterClass
+		? World->SpawnActor(ShooterCharacterClass, &CharacterSpawnLocation, &CharacterSpawnRotation)
+		: nullptr;
+	AShooterCharacter* PresentationCharacter = static_cast<AShooterCharacter*>(SpawnedCharacter);
+	TestNotNull(TEXT("Magazine hand test character exists"), PresentationCharacter);
+	if (!PresentationCharacter || !PresentationCharacter->GetMesh() || !PresentationCharacter->GetFirstPersonMesh())
+	{
+		DestroyTestWorld(World);
+		return false;
+	}
+
+	TestNotNull(TEXT("Magazine hand test character third-person mesh resolves"),
+		PresentationCharacter->GetMesh()->GetSkeletalMeshAsset());
+	TestNotNull(TEXT("Magazine hand test character first-person mesh resolves"),
+		PresentationCharacter->GetFirstPersonMesh()->GetSkeletalMeshAsset());
+	TestTrue(TEXT("Third-person Character mesh contains hand_l"),
+		PresentationCharacter->GetMesh()->GetBoneIndex(FName(TEXT("hand_l"))) != INDEX_NONE);
+	TestTrue(TEXT("First-person Character mesh contains hand_l"),
+		PresentationCharacter->GetFirstPersonMesh()->GetBoneIndex(FName(TEXT("hand_l"))) != INDEX_NONE);
+
+	Weapon->ResetMagazinePresentation();
+	const FTransform FirstPersonHandTransform =
+		PresentationCharacter->GetFirstPersonMesh()->GetSocketTransform(FName(TEXT("hand_l")), RTS_World);
+	TestTrue(TEXT("First-person detach succeeds"),
+		Weapon->DetachFirstPersonMagazineProxy(PresentationCharacter->GetFirstPersonMesh()));
+	TestTrue(TEXT("First-person proxy attaches to Character hand_l"),
+		FirstPersonProxy->GetAttachParent() == PresentationCharacter->GetFirstPersonMesh() &&
+		FirstPersonProxy->GetAttachSocketName() == FName(TEXT("hand_l")));
+	TestTrue(TEXT("First-person detach applies final hand_l relative GripTransform"),
+		FirstPersonProxy->GetRelativeTransform().Equals(ExpectedFirstPersonGrip, 0.01f));
+	TestTrue(TEXT("First-person detach applies GripTransform in hand_l space"),
+		FirstPersonProxy->GetComponentTransform().Equals(ExpectedFirstPersonGrip * FirstPersonHandTransform, 0.01f));
+	TestTrue(TEXT("First-person detach hides source Magazine bone"),
+		Weapon->GetFirstPersonMesh()->IsBoneHiddenByName(FirstPersonParentBone));
+	TestTrue(TEXT("Third-person side is unchanged during first-person detach"),
+		!ThirdPersonProxy->IsVisible() && !Weapon->GetThirdPersonMesh()->IsBoneHiddenByName(ThirdPersonParentBone));
+
+	TestTrue(TEXT("First-person insert succeeds"), Weapon->InsertFirstPersonMagazineProxy());
+	TestFalse(TEXT("First-person insert unhides source Magazine bone"),
+		Weapon->GetFirstPersonMesh()->IsBoneHiddenByName(FirstPersonParentBone));
+	TestTrue(TEXT("First-person insert hides proxy"),
+		FirstPersonProxy->bHiddenInGame && !FirstPersonProxy->IsVisible());
+	TestTrue(TEXT("First-person insert restores proxy to Weapon Root"),
+		FirstPersonProxy->GetAttachParent() == Weapon->GetRootComponent() &&
+		FirstPersonProxy->GetRelativeTransform().Equals(FTransform::Identity, 0.01f));
+
+	Weapon->ResetMagazinePresentation();
+	const FTransform ThirdPersonHandTransform =
+		PresentationCharacter->GetMesh()->GetSocketTransform(FName(TEXT("hand_l")), RTS_World);
+	TestTrue(TEXT("Third-person detach succeeds"),
+		Weapon->DetachThirdPersonMagazineProxy(PresentationCharacter->GetMesh()));
+	TestTrue(TEXT("Third-person proxy attaches to Character hand_l"),
+		ThirdPersonProxy->GetAttachParent() == PresentationCharacter->GetMesh() &&
+		ThirdPersonProxy->GetAttachSocketName() == FName(TEXT("hand_l")));
+	TestTrue(TEXT("Third-person detach applies final hand_l relative GripTransform"),
+		ThirdPersonProxy->GetRelativeTransform().Equals(ExpectedThirdPersonGrip, 0.01f));
+	TestTrue(TEXT("Third-person detach applies GripTransform in hand_l space"),
+		ThirdPersonProxy->GetComponentTransform().Equals(ExpectedThirdPersonGrip * ThirdPersonHandTransform, 0.01f));
+	TestTrue(TEXT("Third-person detach hides source Magazine bone"),
+		Weapon->GetThirdPersonMesh()->IsBoneHiddenByName(ThirdPersonParentBone));
+
+	Weapon->ResetMagazinePresentation();
+	TestTrue(TEXT("Reset clears first-person hand attachment"),
+		FirstPersonProxy->GetAttachParent() == Weapon->GetRootComponent());
+	TestTrue(TEXT("Reset clears third-person hand attachment"),
+		ThirdPersonProxy->GetAttachParent() == Weapon->GetRootComponent());
+	TestFalse(TEXT("Reset restores first-person source Magazine bone"),
+		Weapon->GetFirstPersonMesh()->IsBoneHiddenByName(FirstPersonParentBone));
+	TestFalse(TEXT("Reset restores third-person source Magazine bone"),
+		Weapon->GetThirdPersonMesh()->IsBoneHiddenByName(ThirdPersonParentBone));
+	TestEqual(TEXT("Side presentation keeps MagazineAmmo unchanged"), Weapon->GetBulletCount(), 7);
+	TestEqual(TEXT("Side presentation keeps ReserveAmmo unchanged"), Weapon->GetReserveAmmo(), 13);
+
 	// 生命周期清理即使武器当前处于 InPool 也必须复位，不依赖 Deactivate 的状态转换分支。
 	Weapon->ShowMagazineProxyInPlace();
 	Weapon->DeactivateWeapon();
@@ -258,12 +388,34 @@ bool FShooterWeaponMagazinePresentationTest::RunTest(const FString& Parameters)
 		FirstPersonProxyProperty && FirstPersonProxyProperty->HasAnyPropertyFlags(CPF_Net));
 	TestFalse(TEXT("Third-person proxy property is not replicated"),
 		ThirdPersonProxyProperty && ThirdPersonProxyProperty->HasAnyPropertyFlags(CPF_Net));
+	const FProperty* FirstPersonGripProperty =
+		FindFProperty<FProperty>(AShooterWeapon::StaticClass(), TEXT("FirstPersonMagazineGripTransform"));
+	const FProperty* ThirdPersonGripProperty =
+		FindFProperty<FProperty>(AShooterWeapon::StaticClass(), TEXT("ThirdPersonMagazineGripTransform"));
+	TestTrue(TEXT("First-person MagazineGripTransform property exists"), FirstPersonGripProperty != nullptr);
+	TestTrue(TEXT("Third-person MagazineGripTransform property exists"), ThirdPersonGripProperty != nullptr);
+	TestFalse(TEXT("First-person MagazineGripTransform is not replicated"),
+		FirstPersonGripProperty && FirstPersonGripProperty->HasAnyPropertyFlags(CPF_Net));
+	TestFalse(TEXT("Third-person MagazineGripTransform is not replicated"),
+		ThirdPersonGripProperty && ThirdPersonGripProperty->HasAnyPropertyFlags(CPF_Net));
 	const UFunction* ShowFunction = AShooterWeapon::StaticClass()->FindFunctionByName(TEXT("ShowMagazineProxyInPlace"));
+	const UFunction* DetachFirstPersonFunction = AShooterWeapon::StaticClass()->FindFunctionByName(TEXT("DetachFirstPersonMagazineProxy"));
+	const UFunction* InsertFirstPersonFunction = AShooterWeapon::StaticClass()->FindFunctionByName(TEXT("InsertFirstPersonMagazineProxy"));
+	const UFunction* DetachThirdPersonFunction = AShooterWeapon::StaticClass()->FindFunctionByName(TEXT("DetachThirdPersonMagazineProxy"));
+	const UFunction* InsertThirdPersonFunction = AShooterWeapon::StaticClass()->FindFunctionByName(TEXT("InsertThirdPersonMagazineProxy"));
 	const UFunction* ResetFunction = AShooterWeapon::StaticClass()->FindFunctionByName(TEXT("ResetMagazinePresentation"));
 	TestFalse(TEXT("ShowMagazineProxyInPlace is not an RPC"),
 		ShowFunction && ShowFunction->HasAnyFunctionFlags(FUNC_Net));
 	TestFalse(TEXT("ResetMagazinePresentation is not an RPC"),
 		ResetFunction && ResetFunction->HasAnyFunctionFlags(FUNC_Net));
+	TestFalse(TEXT("DetachFirstPersonMagazineProxy is not an RPC"),
+		DetachFirstPersonFunction && DetachFirstPersonFunction->HasAnyFunctionFlags(FUNC_Net));
+	TestFalse(TEXT("InsertFirstPersonMagazineProxy is not an RPC"),
+		InsertFirstPersonFunction && InsertFirstPersonFunction->HasAnyFunctionFlags(FUNC_Net));
+	TestFalse(TEXT("DetachThirdPersonMagazineProxy is not an RPC"),
+		DetachThirdPersonFunction && DetachThirdPersonFunction->HasAnyFunctionFlags(FUNC_Net));
+	TestFalse(TEXT("InsertThirdPersonMagazineProxy is not an RPC"),
+		InsertThirdPersonFunction && InsertThirdPersonFunction->HasAnyFunctionFlags(FUNC_Net));
 
 	DestroyTestWorld(World);
 	return true;
