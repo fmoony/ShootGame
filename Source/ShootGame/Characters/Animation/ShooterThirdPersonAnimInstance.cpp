@@ -9,6 +9,10 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "KismetAnimationLibrary.h"
+#include "Animation/AnimInstanceProxy.h"
+#include "Animation/AnimNode_StateMachine.h"
+#include "GameFramework/PlayerState/ShooterPlayerState.h"
+#include "ShootGame.h"
 
 FTransform UShooterThirdPersonAnimInstance::ComputeHandToMuzzleTransform(const FTransform& InHandWorld, const FTransform& InMuzzleWorld)
 {
@@ -154,7 +158,116 @@ void UShooterThirdPersonAnimInstance::NativeUninitializeAnimation()
 	}
 
 	ClearWeaponStaticBindings();
+	ReloadIdentityPlayerState.Reset();
+	ObservedReloadId = 0;
+	bNewReloadIdentityPending = false;
+	bReloadGraphInitializationPending = false;
+	bReloadGraphInitialized = false;
+	bWasReloadPresentationActive = false;
+	bLastLoggedReloading = false;
 	Super::NativeUninitializeAnimation();
+}
+
+void UShooterThirdPersonAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds)
+{
+	Super::NativeThreadSafeUpdateAnimation(DeltaSeconds);
+	if (!bReloadGraphInitializationPending || !bIsReloading)
+	{
+		return;
+	}
+	FAnimInstanceProxy& Proxy = GetProxyOnAnyThread<FAnimInstanceProxy>();
+	const int32 MachineIndex = GetStateMachineIndex(TEXT("WeaponAction"));
+	FAnimNode_StateMachine* Machine = MachineIndex != INDEX_NONE
+		? Proxy.GetMutableNodeFromIndex<FAnimNode_StateMachine>(MachineIndex) : nullptr;
+	if (Machine)
+	{
+		// 只初始化现有 WeaponAction：清掉旧过渡与播放时间，随后仍由原布尔规则进入 Reload。
+		// 不修改 bIsReloading，不重建整个 AnimInstance，也不触碰 Locomotion / FP CopyPose。
+		Machine->Initialize_AnyThread(FAnimationInitializeContext(&Proxy));
+		bReloadGraphInitialized = true;
+	}
+	bReloadGraphInitializationPending = false;
+}
+
+void UShooterThirdPersonAnimInstance::NativePostEvaluateAnimation()
+{
+	Super::NativePostEvaluateAnimation();
+	const FAnimNode_StateMachine* Machine = GetStateMachineInstanceFromName(TEXT("WeaponAction"));
+	const bool bActive = Machine && Machine->GetCurrentStateName() == TEXT("Reload");
+	if (bActive && (!bWasReloadPresentationActive || bReloadGraphInitialized))
+	{
+#if WITH_DEV_AUTOMATION_TESTS
+		++ReloadPresentationEntryCount;
+#endif
+		LogReloadPresentation(bReloadGraphInitialized ? TEXT("PresentationRestartEnter") : TEXT("PresentationEnter"));
+	}
+	else if (!bActive && bWasReloadPresentationActive)
+	{
+		LogReloadPresentation(TEXT("PresentationExit"));
+	}
+	bWasReloadPresentationActive = bActive;
+	bReloadGraphInitialized = false;
+}
+
+void UShooterThirdPersonAnimInstance::RefreshReloadPresentationIdentity(const AShooterCharacter* Character)
+{
+	// Owner 本地预测已经有时间轴；权威 ID 返回不能补播或重置它。
+	if (Character->IsLocallyControlled())
+	{
+		return;
+	}
+	AShooterPlayerState* PlayerState = Character->GetPlayerState<AShooterPlayerState>();
+	if (!PlayerState)
+	{
+		return;
+	}
+	if (ReloadIdentityPlayerState.Get() != PlayerState)
+	{
+		ReloadIdentityPlayerState = PlayerState;
+		ObservedReloadId = 0;
+		bNewReloadIdentityPending = false;
+		bReloadGraphInitializationPending = false;
+	}
+	if (PlayerState->GetReloadId() != ObservedReloadId)
+	{
+		ObservedReloadId = PlayerState->GetReloadId();
+		bNewReloadIdentityPending = ObservedReloadId != 0;
+		bReloadPresentationRecovering = false;
+		LogReloadPresentation(TEXT("ObservedIdRecoveryCleared"));
+	}
+	if (bNewReloadIdentityPending && bIsReloading)
+	{
+		bNewReloadIdentityPending = false;
+		bReloadPresentationRecovering = false;
+		bReloadGraphInitializationPending = true;
+#if WITH_DEV_AUTOMATION_TESTS
+		++NewReloadPresentationCount;
+#endif
+		LogReloadPresentation(TEXT("NewReload"));
+	}
+}
+
+void UShooterThirdPersonAnimInstance::LogReloadPresentation(const TCHAR* Event) const
+{
+	const AShooterCharacter* Character = GetCachedShooterCharacter();
+	if (!Character)
+	{
+		return;
+	}
+	const AShooterWeapon* Weapon = Character->GetCurrentWeaponActor();
+	const AShooterPlayerState* PlayerState = Character->GetPlayerState<AShooterPlayerState>();
+	UE_LOG(LogShootGame, Verbose,
+		TEXT("[TEMP ReloadIdentity] Event=%s Net=%d Character=%s Role=%d Local=%d ")
+		TEXT("WeaponId=%s ReloadId=%u Reloading=%d Recovery=%d"),
+		Event,
+		static_cast<int32>(Character->GetNetMode()),
+		*GetNameSafe(Character),
+		static_cast<int32>(Character->GetLocalRole()),
+		Character->IsLocallyControlled(),
+		Weapon ? *Weapon->GetWeaponId().ToString() : TEXT("None"),
+		PlayerState ? PlayerState->GetReloadId() : 0,
+		bIsReloading,
+		bReloadPresentationRecovering);
 }
 
 void UShooterThirdPersonAnimInstance::HandleWeaponPresentationChanged(AShooterWeapon* PreviousWeapon, AShooterWeapon* CurrentWeapon)
@@ -326,9 +439,10 @@ void UShooterThirdPersonAnimInstance::ClearWeaponStaticBindings()
 void UShooterThirdPersonAnimInstance::BeginReloadPresentationRecovery()
 {
 	// Notify 可能在低权重混合或取消后的残余帧到达；只接受仍处于权威 Reload 表现期的事件。
-	if (bIsReloading)
+	if (bIsReloading && !bReloadGraphInitializationPending)
 	{
 		bReloadPresentationRecovering = true;
+		LogReloadPresentation(TEXT("RecoveryBegin"));
 	}
 }
 
@@ -413,8 +527,18 @@ void UShooterThirdPersonAnimInstance::UpdateShooterAnimationData(float DeltaSeco
 	}
 
 	// Gameplay Reload 结束后清除本地表现闩锁；下一次 Reload 才能重新进入动作状态。
+	if (bLastLoggedReloading != bIsReloading)
+	{
+		bLastLoggedReloading = bIsReloading;
+		LogReloadPresentation(TEXT("ReloadingTagChanged"));
+	}
+	RefreshReloadPresentationIdentity(Character);
 	if (!bIsReloading)
 	{
+		if (bReloadPresentationRecovering)
+		{
+			LogReloadPresentation(TEXT("TagEndedRecoveryCleared"));
+		}
 		bReloadPresentationRecovering = false;
 	}
 

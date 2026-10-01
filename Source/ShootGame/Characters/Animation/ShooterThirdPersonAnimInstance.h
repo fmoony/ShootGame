@@ -87,6 +87,17 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Shooter|Reload")
 	void BeginReloadPresentationRecovery();
 
+	/** 最近读取的服务器 Reload 身份；不修改 Gameplay，也不作为 Ammo 提交条件。 */
+	uint32 GetObservedReloadId() const { return ObservedReloadId; }
+
+#if WITH_DEV_AUTOMATION_TESTS
+	/** 测试观察：已确认的新 Reload 表现次数，不含 Owner 的本地预测。 */
+	int32 GetNewReloadPresentationCountForAutomationTest() const { return NewReloadPresentationCount; }
+
+	/** 测试观察：真实 WeaponAction 进入或重新初始化为 Reload 的次数。 */
+	int32 GetReloadPresentationEntryCountForAutomationTest() const { return ReloadPresentationEntryCount; }
+#endif
+
 	/** 进入换弹时把 Aim IK 从当前权重释放到 0 所需的近似时长。 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter Aim",
 		meta = (ClampMin = "0.0", Units = "s"))
@@ -178,6 +189,12 @@ protected:
 	/** 反初始化：解除订阅并清空静态 Binding 与弱引用。 */
 	virtual void NativeUninitializeAnimation() override;
 
+	/** 图更新前的安全节点修改点；只处理 WeaponAction 的一次性初始化请求。 */
+	virtual void NativeThreadSafeUpdateAnimation(float DeltaSeconds) override;
+
+	/** TEMP：在游戏线程读取实际状态机结果，记录进入 / 退出。 */
+	virtual void NativePostEvaluateAnimation() override;
+
 	/** 基类完成公共快照后采集第三人称专用数据。 */
 	virtual void UpdateShooterAnimationData(float DeltaSeconds) override;
 
@@ -202,6 +219,38 @@ protected:
 
 	/** 根据 Reload 表现状态平滑更新左手 IK 最终权重。 */
 	void UpdateLeftHandIKPresentationAlpha(float DeltaSeconds);
+
+	/** 观察端按服务器动作身份清理旧 Recovery；Owner 仍只使用既有预测窗口。 */
+	void RefreshReloadPresentationIdentity(const AShooterCharacter* Character);
+
+	/** TEMP：低噪声边界日志，不参与表现或 Gameplay 决策。 */
+	void LogReloadPresentation(const TCHAR* Event) const;
+
+	/** 最近观察的 PlayerState，切换 Avatar / 宿主时不能继承旧身份。 */
+	TWeakObjectPtr<class AShooterPlayerState> ReloadIdentityPlayerState;
+
+	/** 已读取的最新身份；ID 和 Tag 的到达不假定固定先后顺序。 */
+	uint32 ObservedReloadId = 0;
+
+	/** ID 先于 Reload Tag 到达时保留请求，待现有 Tag 门控允许表现。 */
+	bool bNewReloadIdentityPending = false;
+
+	/** 只在动画安全更新点消费；不建立第二套 Gameplay 状态机。 */
+	bool bReloadGraphInitializationPending = false;
+
+	/** 本次图更新是否重新初始化，用于区分同状态的新动作与旧动作继续。 */
+	bool bReloadGraphInitialized = false;
+
+	/** 上次实际求值结果，用于低噪声进入 / 退出诊断。 */
+	bool bWasReloadPresentationActive = false;
+
+	/** 上次采集的 Tag 快照，只用于变化日志。 */
+	bool bLastLoggedReloading = false;
+
+#if WITH_DEV_AUTOMATION_TESTS
+	int32 NewReloadPresentationCount = 0;
+	int32 ReloadPresentationEntryCount = 0;
+#endif
 
 	/** 根据 Reload 表现状态平滑更新 hand_r 瞄准校正的最终权重。 */
 	void UpdateAimIKPresentationAlpha(float DeltaSeconds);

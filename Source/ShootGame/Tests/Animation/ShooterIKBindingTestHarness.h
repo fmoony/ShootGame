@@ -92,6 +92,14 @@ public:
 		UpdateShooterAnimationData(DeltaSeconds);
 	}
 
+	/** 调用真实身份消费入口；测试可模拟 Tag 尚未发生 false 的连续换弹。 */
+	void CallRefreshReloadIdentityForTest(const AShooterCharacter* Character)
+	{
+		RefreshReloadPresentationIdentity(Character);
+	}
+
+	bool HasReloadGraphInitializationPendingForTest() const { return bReloadGraphInitializationPending; }
+
 	bool IsAimBindingValidForTest() const { return bAimIKBindingValid; }
 	bool IsLeftHandBindingValidForTest() const { return bLeftHandIKBindingValid; }
 	bool HasPendingRebuildForTest() const { return bStaticBindingRebuildPending; }

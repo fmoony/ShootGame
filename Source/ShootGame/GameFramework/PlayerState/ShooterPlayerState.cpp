@@ -8,6 +8,10 @@
 #include "AbilitySystem/ShooterAttributeSet.h"
 #include "AbilitySystem/ShooterGameplayTags.h"
 #include "Characters/ShooterCharacter.h"
+#include "Characters/Animation/ShooterThirdPersonAnimInstance.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Weapons/ShooterWeapon.h"
+#include "ShootGame.h"
 #include "AbilitySystem/Abilities/ShooterGameplayAbility_Fire.h"
 #include "AbilitySystem/Abilities/ShooterGameplayAbility_Equip.h"
 #include "AbilitySystem/Abilities/ShooterGameplayAbility_Reload.h"
@@ -228,6 +232,39 @@ void AShooterPlayerState::OnRep_TeamId()
 	OnRep_CombatStats();
 }
 
+void AShooterPlayerState::AdvanceAcceptedReloadId()
+{
+	if (HasAuthority())
+	{
+		// 0 保留为未开始；溢出后跳过 0，观察端只比较身份是否改变。
+		if (++ReloadId == 0)
+		{
+			++ReloadId;
+		}
+		ForceNetUpdate();
+	}
+}
+
+void AShooterPlayerState::OnRep_ReloadId()
+{
+	const AShooterCharacter* Character = AbilitySystemComponent
+		? Cast<AShooterCharacter>(AbilitySystemComponent->GetAvatarActor()) : nullptr;
+	const AShooterWeapon* Weapon = Character ? Character->GetCurrentWeaponActor() : nullptr;
+	const UShooterThirdPersonAnimInstance* Anim = Character && Character->GetMesh()
+		? Cast<UShooterThirdPersonAnimInstance>(Character->GetMesh()->GetAnimInstance()) : nullptr;
+	UE_LOG(LogShootGame, Verbose,
+		TEXT("[TEMP ReloadIdentity] Event=ReceivedId Net=%d Character=%s Role=%d Local=%d ")
+		TEXT("WeaponId=%s ReloadId=%u Reloading=%d Recovery=%d"),
+		static_cast<int32>(GetNetMode()),
+		*GetNameSafe(Character),
+		Character ? static_cast<int32>(Character->GetLocalRole()) : -1,
+		Character && Character->IsLocallyControlled(),
+		Weapon ? *Weapon->GetWeaponId().ToString() : TEXT("None"),
+		ReloadId,
+		AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading),
+		Anim && Anim->bReloadPresentationRecovering);
+}
+
 void AShooterPlayerState::OnRep_CombatStats()
 {
 	OnCombatStatsChanged.Broadcast(Kills, Deaths, GetScore());
@@ -239,4 +276,5 @@ void AShooterPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	DOREPLIFETIME(AShooterPlayerState, TeamId);
 	DOREPLIFETIME(AShooterPlayerState, Kills);
 	DOREPLIFETIME(AShooterPlayerState, Deaths);
+	DOREPLIFETIME(AShooterPlayerState, ReloadId);
 }

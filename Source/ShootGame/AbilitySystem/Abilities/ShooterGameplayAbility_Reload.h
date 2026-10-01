@@ -61,6 +61,9 @@ private:
 	/** 结束前清理 WaitDelay、Weapon 引用与事务快照。 */
 	void CleanupReloadTransaction();
 
+	/** TEMP：记录服务器请求裁决与动作边界，不参与 Gameplay 门控。 */
+	void LogReloadIdentity(const FGameplayAbilityActorInfo* ActorInfo, const TCHAR* Event) const;
+
 	// ---- 事务状态 ----
 
 	/** 本次事务对应的当前 WeaponActor；EndAbility 只清理仍属于自己的引用。 */
@@ -71,6 +74,9 @@ private:
 
 	/** 是否已经提交 ReloadFromReserve；重复回调不得再次提交。 */
 	bool bReloadCommitted = false;
+
+	/** 本次激活是否已通过服务器二次校验；拒绝激活不记录为已接受的取消。 */
+	bool bServerReloadAccepted = false;
 
 	// ---- 测试观察接口 ----
 

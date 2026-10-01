@@ -7,6 +7,9 @@
 #include "GameplayTagContainer.h"
 #include "Characters/Equipment/ShooterEquipmentComponent.h"
 #include "Characters/ShooterCharacter.h"
+#include "Characters/Animation/ShooterThirdPersonAnimInstance.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "GameFramework/PlayerState/ShooterPlayerState.h"
 #include "AbilitySystem/ShooterGameplayTags.h"
 #include "Inventory/ShooterInventoryComponent.h"
 #include "Weapons/ShooterWeapon.h"
@@ -84,13 +87,20 @@ bool UShooterGameplayAbility_Reload::CanActivateAbility(
 		return Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
 	}
 
+	LogReloadIdentity(ActorInfo, TEXT("RequestReceived"));
 	if (!Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags))
 	{
+		LogReloadIdentity(ActorInfo, TEXT("RequestRejectedTags"));
 		return false;
 	}
 
 	AShooterWeapon* Weapon = nullptr;
-	return ResolveReloadTarget(ActorInfo, Weapon);
+	const bool bValidTarget = ResolveReloadTarget(ActorInfo, Weapon);
+	if (!bValidTarget)
+	{
+		LogReloadIdentity(ActorInfo, TEXT("RequestRejectedTarget"));
+	}
+	return bValidTarget;
 }
 
 // ============================ 目标解析与校验 ============================
@@ -178,6 +188,7 @@ void UShooterGameplayAbility_Reload::ActivateAbility(
 		// 起手资格通过不代表此刻仍然成立。
 		if (!ResolveReloadTarget(ActorInfo, Weapon))
 		{
+			LogReloadIdentity(ActorInfo, TEXT("RejectedRevalidation"));
 			EndAbility(Handle, ActorInfo, ActivationInfo, /*bReplicateEndAbility*/ true, /*bWasCancelled*/ true);
 			return;
 		}
@@ -194,6 +205,20 @@ void UShooterGameplayAbility_Reload::ActivateAbility(
 	}
 
 	CachedWeapon = Weapon;
+	if (bAuthoritySide)
+	{
+		// 正式接受点：二次权威资格校验通过，尚未启动等待或提交弹药。
+		bServerReloadAccepted = true;
+		if (AShooterPlayerState* PlayerState = Cast<AShooterPlayerState>(ActorInfo->OwnerActor.Get()))
+		{
+			PlayerState->AdvanceAcceptedReloadId();
+		}
+		if (UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get())
+		{
+			ASC->ForceReplication();
+		}
+		LogReloadIdentity(ActorInfo, TEXT("AcceptedBegin"));
+	}
 
 	// 换弹时钟只来自 WeaponActor 配置；Montage 丢失不影响任何一端的时序。
 	// 预测端使用本地时钟，服务器使用权威时钟，两端只允许相位差。
@@ -299,13 +324,50 @@ void UShooterGameplayAbility_Reload::EndAbility(
 	bool bReplicateEndAbility,
 	bool bWasCancelled)
 {
+	const bool bAcceptedAuthority = bServerReloadAccepted;
 	// 完成、取消、失败共用清理：不会依赖 Ability 对象销毁来解除引用。
 	CleanupReloadTransaction();
+	bServerReloadAccepted = false;
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+	if (bAcceptedAuthority)
+	{
+		// Super 已经移除 ActivationOwnedTags，刷新实际宿主而不是 Weapon。
+		if (UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr)
+		{
+			ASC->ForceReplication();
+		}
+		LogReloadIdentity(ActorInfo, bWasCancelled ? TEXT("Cancel") : TEXT("Finish"));
+	}
 
 	UE_LOG(LogShootGame, Display, TEXT("GA_Reload ended: Cancelled=%s Avatar=%s"),
 		bWasCancelled ? TEXT("true") : TEXT("false"), *GetNameSafe(GetShooterAvatarActor()));
+}
+
+void UShooterGameplayAbility_Reload::LogReloadIdentity(const FGameplayAbilityActorInfo* ActorInfo, const TCHAR* Event) const
+{
+	const AShooterCharacter* Character = ActorInfo ? Cast<AShooterCharacter>(ActorInfo->AvatarActor.Get()) : nullptr;
+	if (!Character || !Character->HasAuthority())
+	{
+		return;
+	}
+	const AShooterPlayerState* PlayerState = Cast<AShooterPlayerState>(ActorInfo->OwnerActor.Get());
+	const AShooterWeapon* Weapon = Character->GetCurrentWeaponActor();
+	const UShooterThirdPersonAnimInstance* Anim = Character->GetMesh()
+		? Cast<UShooterThirdPersonAnimInstance>(Character->GetMesh()->GetAnimInstance()) : nullptr;
+	const UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
+	UE_LOG(LogShootGame, Verbose,
+		TEXT("[TEMP ReloadIdentity] Event=%s Net=%d Character=%s Role=%d Local=%d ")
+		TEXT("WeaponId=%s ReloadId=%u Reloading=%d Recovery=%d"),
+		Event,
+		static_cast<int32>(Character->GetNetMode()),
+		*GetNameSafe(Character),
+		static_cast<int32>(Character->GetLocalRole()),
+		Character->IsLocallyControlled(),
+		Weapon ? *Weapon->GetWeaponId().ToString() : TEXT("None"),
+		PlayerState ? PlayerState->GetReloadId() : 0,
+		ASC && ASC->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading),
+		Anim && Anim->bReloadPresentationRecovering);
 }
 
 // ============================ 测试观察接口 ============================

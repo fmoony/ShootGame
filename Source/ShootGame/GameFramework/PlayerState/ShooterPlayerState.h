@@ -61,6 +61,12 @@ public:
 	/** 服务器幂等授予 Reload Ability；同一 PlayerState 只允许存在一个 Spec，重生只更新 Avatar。 */
 	void GrantReloadAbility();
 
+	/** 只读的服务器换弹动作身份；不承载弹药或换弹提交结果。 */
+	uint32 GetReloadId() const { return ReloadId; }
+
+	/** 仅供 GA_Reload 正式接受新事务后调用；客户端调用无效。 */
+	void AdvanceAcceptedReloadId();
+
 	/** 返回服务器配置的装备 Ability 类。 */
 	TSubclassOf<UShooterGameplayAbility_Equip> GetEquipAbilityClass() const { return EquipAbilityClass; }
 
@@ -126,6 +132,14 @@ protected:
 
 	UPROPERTY(ReplicatedUsing=OnRep_TeamId, VisibleAnywhere, Category="Shooter|Stats")
 	uint8 TeamId = 0;
+
+	/** 与 ASC 共用 PlayerState 复制通道；所有观察者可读，只有服务器接受时递增。 */
+	UPROPERTY(ReplicatedUsing=OnRep_ReloadId)
+	uint32 ReloadId = 0;
+
+	/** 临时低噪声诊断；表现消费在 AnimInstance 的普通更新点进行。 */
+	UFUNCTION()
+	void OnRep_ReloadId();
 
 	UPROPERTY(ReplicatedUsing=OnRep_CombatStats, VisibleAnywhere, Category="Shooter|Stats")
 	int32 Kills = 0;

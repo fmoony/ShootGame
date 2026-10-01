@@ -18,7 +18,63 @@ class USkeletalMeshComponent;
 class UShooterGameplayAbility_Equip;
 class UShooterGameplayAbility_Fire;
 class UShooterGameplayAbility_Reload;
+class UGameplayAbility;
 struct FOnAttributeChangeData;
+struct FGameplayTagContainer;
+
+/** Reload identity 定向会话的逐端快照；无效目标保留为无效证据，不折算为零。 */
+USTRUCT()
+struct FShooterReloadIdentityObservation
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	int32 Step = INDEX_NONE;
+	UPROPERTY()
+	TObjectPtr<AShooterCharacter> Subject = nullptr;
+	UPROPERTY()
+	TObjectPtr<AShooterWeapon> Weapon = nullptr;
+	UPROPERTY()
+	uint32 ReloadId = 0;
+	UPROPERTY()
+	uint32 ObservedReloadId = 0;
+	UPROPERTY()
+	int32 NewPresentationCount = INDEX_NONE;
+	UPROPERTY()
+	int32 EntryCount = INDEX_NONE;
+	UPROPERTY()
+	int32 OwnerActivationCount = 0;
+	UPROPERTY()
+	int32 OwnerRejectCount = 0;
+	UPROPERTY()
+	int32 PredictionKey = 0;
+	UPROPERTY()
+	int32 OwnerFireFeedbackCount = INDEX_NONE;
+	UPROPERTY()
+	int32 OwnerFireConfirmationCount = INDEX_NONE;
+	UPROPERTY()
+	int32 MagazineAmmo = INDEX_NONE;
+	UPROPERTY()
+	int32 ReserveAmmo = INDEX_NONE;
+	UPROPERTY()
+	FName AnimationState;
+	UPROPERTY()
+	float AnimationTime = 0.0f;
+	UPROPERTY()
+	bool bValid = false;
+	UPROPERTY()
+	bool bOwner = false;
+	UPROPERTY()
+	bool bActive = false;
+	UPROPERTY()
+	bool bReloading = false;
+	UPROPERTY()
+	bool bRecovering = false;
+	UPROPERTY()
+	bool bSawReloadState = false;
+	UPROPERTY()
+	bool bSawRecovery = false;
+};
 
 /**
  * 仅用于网络测试的 NPC 子类：验证 ShooterNPC C++ 基类的 ASC 生命周期
@@ -62,6 +118,65 @@ protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 private:
+	/** 专用 flag 分支复用现有三名玩家的 OwnerOnly Coordinator，不进入旧整体回归。 */
+	UPROPERTY(Replicated)
+	bool bReloadIdentityMode = false;
+
+	UFUNCTION(Client, Reliable)
+	void ClientPrepareReloadIdentityStep(int32 SubjectPlayerId, int32 Step);
+
+	UFUNCTION(Client, Reliable)
+	void ClientSubmitReloadIdentityInput(int32 Step, bool bFire);
+
+	UFUNCTION(Server, Reliable)
+	void ServerReportReloadIdentitySample(const FShooterReloadIdentityObservation& Observation);
+
+	void RunReloadIdentityServerPhase();
+	void SampleReloadIdentityLocalState();
+	void StartReloadIdentityStep(int32 Step);
+	void CleanupReloadIdentityTest();
+	void BindReloadIdentityAbilityObservers(UAbilitySystemComponent* AbilitySystemComponent);
+	void HandleReloadIdentityActivated(UGameplayAbility* Ability);
+	void HandleReloadIdentityFailed(const UGameplayAbility* Ability, const FGameplayTagContainer& FailureTags);
+	void HandleReloadIdentityEnded(UGameplayAbility* Ability);
+
+	TArray<TWeakObjectPtr<AShooterNetworkTestCoordinator>> ReloadIdentityParticipants;
+	TWeakObjectPtr<AShooterCharacter> ReloadIdentitySubject;
+	TWeakObjectPtr<AShooterWeapon> ReloadIdentityWeapon;
+	TWeakObjectPtr<UAbilitySystemComponent> ReloadIdentityObservedASC;
+	TWeakObjectPtr<USkeletalMeshComponent> ReloadIdentityTickMesh;
+	FDelegateHandle ReloadIdentityActivatedHandle;
+	FDelegateHandle ReloadIdentityFailedHandle;
+	FDelegateHandle ReloadIdentityEndedHandle;
+	FShooterReloadIdentityObservation ReloadIdentityLatest;
+	FShooterReloadIdentityObservation ReloadIdentityBefore;
+	int32 ReloadIdentityServerStep = 0;
+	int32 ReloadIdentityClientStep = INDEX_NONE;
+	int32 ReloadIdentitySubjectPlayerId = INDEX_NONE;
+	int32 ReloadIdentitySubmittedStep = INDEX_NONE;
+	int32 ReloadIdentityOwnerActivations = 0;
+	int32 ReloadIdentityOwnerRejects = 0;
+	int32 ReloadIdentityPredictionKey = 0;
+	int32 ReloadIdentityAuthorityActivations = 0;
+	int32 ReloadIdentityAuthorityRejects = 0;
+	int32 ReloadIdentityAuthorityActivationsBefore = 0;
+	int32 ReloadIdentityAuthorityRejectsBefore = 0;
+	int32 ReloadIdentityShotsBefore = 0;
+	int32 ReloadIdentityProjectilesBefore = 0;
+	int32 ReloadIdentityMagazineBefore = 0;
+	int32 ReloadIdentityReserveBefore = 0;
+	uint32 ReloadIdentityIdBefore = 0;
+	float ReloadIdentityStepStartTime = 0.0f;
+	float ReloadIdentityNextReportTime = 0.0f;
+	uint8 ReloadIdentityPreviousTickOption = 0;
+	bool bReloadIdentityPreviousMeshTick = false;
+	bool bReloadIdentityPreviousUpdateOptimization = false;
+	bool bReloadIdentitySetup = false;
+	bool bReloadIdentityCancelSent = false;
+	bool bReloadIdentityFinished = false;
+	bool bReloadIdentitySawReloadState = false;
+	bool bReloadIdentitySawRecovery = false;
+
 	void PollServerState();
 	void PollClientState();
 	void HandleActorSpawned(AActor* SpawnedActor);

@@ -217,6 +217,9 @@ AShooterNetworkTestCoordinator::AShooterNetworkTestCoordinator()
 	bDisconnectEquipMode = FParse::Param(FCommandLine::Get(), TEXT("ShootGameDisconnectEquip"));
 	bAimTurnCsvMode = FParse::Param(FCommandLine::Get(), TEXT("ShootGameAimTurnCsvTest"));
 	bAimRotationMode = bAimTurnCsvMode || FParse::Param(FCommandLine::Get(), TEXT("ShootGameAimRotationTest"));
+#if WITH_DEV_AUTOMATION_TESTS
+	bReloadIdentityMode = FParse::Param(FCommandLine::Get(), TEXT("ShootGameReloadIdentityTest"));
+#endif
 }
 
 bool AShooterNetworkTestCoordinator::SetReloadTestAmmo(AShooterWeapon* Weapon, int32 MagazineAmmo, int32 ReserveAmmo)
@@ -553,7 +556,7 @@ void AShooterNetworkTestCoordinator::VerifyEquipDeathCleanup()
 void AShooterNetworkTestCoordinator::BeginPlay()
 {
 	Super::BeginPlay();
-	SetActorTickEnabled(bAimTurnCsvMode);
+	SetActorTickEnabled(bAimTurnCsvMode || bReloadIdentityMode);
 
 	TestStartTime = GetWorld()->GetTimeSeconds();
 	if (HasAuthority())
@@ -572,6 +575,7 @@ void AShooterNetworkTestCoordinator::BeginPlay()
 
 void AShooterNetworkTestCoordinator::EndPlay(EEndPlayReason::Type EndPlayReason)
 {
+	CleanupReloadIdentityTest();
 	UnregisterAimTurnCsvPoseProbe(AimTurnCsvOwnerPoseProbe);
 	UnregisterAimTurnCsvPoseProbe(AimTurnCsvObserverPoseProbe);
 
@@ -595,6 +599,11 @@ void AShooterNetworkTestCoordinator::EndPlay(EEndPlayReason::Type EndPlayReason)
 void AShooterNetworkTestCoordinator::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+	if (bReloadIdentityMode)
+	{
+		SampleReloadIdentityLocalState();
+		return;
+	}
 	if (bAimTurnCsvMode)
 	{
 		RunAimTurnCsvFrame(DeltaSeconds);
@@ -1107,6 +1116,7 @@ void AShooterNetworkTestCoordinator::FlushAimTurnCsv()
 void AShooterNetworkTestCoordinator::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AShooterNetworkTestCoordinator, bReloadIdentityMode);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyToSwitch);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyToFire);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyForFullAuto);
@@ -1130,6 +1140,11 @@ void AShooterNetworkTestCoordinator::GetLifetimeReplicatedProps(TArray<FLifetime
 
 void AShooterNetworkTestCoordinator::PollServerState()
 {
+	if (bReloadIdentityMode)
+	{
+		RunReloadIdentityServerPhase();
+		return;
+	}
 	// B1 瞄准表现基线模式：只做旋转调度跟踪与枪口夹角采样，跳过常规事务阶段。
 	if (bAimRotationMode)
 	{
@@ -3106,6 +3121,10 @@ void AShooterNetworkTestCoordinator::HandleActorSpawned(AActor* SpawnedActor)
 
 	bServerObservedProjectile = true;
 	++ProjectileSpawnCount;
+	if (bReloadIdentityMode)
+	{
+		return;
+	}
 	const FVector ExpectedDirection = Character->GetControlRotation().Vector();
 	const FVector ProjectileDirection = Projectile->GetActorForwardVector();
 	ObservedAimDot = FVector::DotProduct(ExpectedDirection, ProjectileDirection);
@@ -3123,6 +3142,10 @@ void AShooterNetworkTestCoordinator::HandleActorSpawned(AActor* SpawnedActor)
 
 void AShooterNetworkTestCoordinator::PollClientState()
 {
+	if (bReloadIdentityMode)
+	{
+		return;
+	}
 	APlayerController* PlayerController = Cast<APlayerController>(GetOwner());
 	if (!PlayerController || !PlayerController->IsLocalController())
 	{
