@@ -76,6 +76,48 @@ struct FShooterReloadIdentityObservation
 	bool bSawRecovery = false;
 };
 
+/** Ammo Prediction 复现夹具的拥有端快照；无效目标保留为无效证据，不折算为零。 */
+USTRUCT()
+struct FShooterAmmoPredictionObservation
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	int32 Step = INDEX_NONE;
+	UPROPERTY()
+	TObjectPtr<AShooterCharacter> Subject = nullptr;
+	UPROPERTY()
+	TObjectPtr<AShooterWeapon> Weapon = nullptr;
+	UPROPERTY()
+	int32 MagazineAmmo = INDEX_NONE;
+	UPROPERTY()
+	int32 ReserveAmmo = INDEX_NONE;
+	UPROPERTY()
+	int32 PendingShots = INDEX_NONE;
+	UPROPERTY()
+	int32 PredictedMagazineAmmo = INDEX_NONE;
+	UPROPERTY()
+	int32 OwnerFeedbackCount = INDEX_NONE;
+	UPROPERTY()
+	int32 OwnerConfirmationCount = INDEX_NONE;
+	UPROPERTY()
+	int32 OwnerFireActivationCount = 0;
+	UPROPERTY()
+	int32 OwnerFireRejectCount = 0;
+	UPROPERTY()
+	int32 LastPredictionKey = 0;
+	UPROPERTY()
+	bool bFireActive = false;
+	UPROPERTY()
+	bool bReloadActive = false;
+	UPROPERTY()
+	bool bReloading = false;
+	UPROPERTY()
+	bool bLocalFireCooldownReady = false;
+	UPROPERTY()
+	bool bValid = false;
+};
+
 /**
  * 仅用于网络测试的 NPC 子类：验证 ShooterNPC C++ 基类的 ASC 生命周期
  * （Owner = Avatar = NPC），避免依赖 BP_ShooterNPC 的自动占有与武器配置。
@@ -122,6 +164,10 @@ private:
 	UPROPERTY(Replicated)
 	bool bReloadIdentityMode = false;
 
+	/** Ammo Prediction 复现专用模式；-ShootGameAmmoPredictionTest 开启。只加测试夹具，不改生产语义。 */
+	UPROPERTY(Replicated)
+	bool bAmmoPredictionMode = false;
+
 	UFUNCTION(Client, Reliable)
 	void ClientPrepareReloadIdentityStep(int32 SubjectPlayerId, int32 Step);
 
@@ -139,6 +185,31 @@ private:
 	void HandleReloadIdentityActivated(UGameplayAbility* Ability);
 	void HandleReloadIdentityFailed(const UGameplayAbility* Ability, const FGameplayTagContainer& FailureTags);
 	void HandleReloadIdentityEnded(UGameplayAbility* Ability);
+
+	UFUNCTION(Client, Reliable)
+	void ClientPrepareAmmoPredictionStep(int32 SubjectPlayerId, int32 Step);
+
+	UFUNCTION(Client, Reliable)
+	void ClientSubmitAmmoPredictionFire(int32 Step);
+
+	UFUNCTION(Server, Reliable)
+	void ServerReportAmmoPredictionSample(const FShooterAmmoPredictionObservation& Observation);
+
+	void RunAmmoPredictionServerPhase();
+	void SampleAmmoPredictionLocalState();
+	void StartAmmoPredictionStep(int32 Step);
+	void RunAmmoPredictionSameValueStep();
+	void RunAmmoPredictionBudgetVetoStep();
+	void RunAmmoPredictionLateRejectStep();
+	void ConcludeAmmoPredictionCase(const TCHAR* CaseName, bool bConverged, const FString& Detail);
+	bool IsAmmoPredictionClientSampleFresh(int32 Step) const;
+	void ClearAmmoPredictionServerTag();
+	void CleanupAmmoPredictionTest();
+	void BindAmmoPredictionClientObservers(UAbilitySystemComponent* AbilitySystemComponent);
+	void BindAmmoPredictionServerObserver(UAbilitySystemComponent* AbilitySystemComponent);
+	void HandleAmmoPredictionFireActivated(UGameplayAbility* Ability);
+	void HandleAmmoPredictionFireEnded(UGameplayAbility* Ability);
+	void HandleAmmoPredictionAuthorityFailed(const UGameplayAbility* Ability, const FGameplayTagContainer& FailureTags);
 
 	TArray<TWeakObjectPtr<AShooterNetworkTestCoordinator>> ReloadIdentityParticipants;
 	TWeakObjectPtr<AShooterCharacter> ReloadIdentitySubject;
@@ -176,6 +247,47 @@ private:
 	bool bReloadIdentityFinished = false;
 	bool bReloadIdentitySawReloadState = false;
 	bool bReloadIdentitySawRecovery = false;
+
+	// ---- Ammo Prediction 复现夹具：只服务 -ShootGameAmmoPredictionTest ----
+	TWeakObjectPtr<AShooterCharacter> AmmoPredictionSubject;
+	TWeakObjectPtr<AShooterWeapon> AmmoPredictionWeapon;
+	TWeakObjectPtr<UAbilitySystemComponent> AmmoPredictionObservedASC;
+	FDelegateHandle AmmoPredictionActivatedHandle;
+	FDelegateHandle AmmoPredictionEndedHandle;
+	FDelegateHandle AmmoPredictionFailedHandle;
+	/** 拥有端最近一次上报；服务器只在收到对应 Step 的样本后推进。 */
+	FShooterAmmoPredictionObservation AmmoPredictionLatest;
+	/** 步骤开始时的拥有端样本，用于计算本地增量。 */
+	FShooterAmmoPredictionObservation AmmoPredictionBefore;
+	int32 AmmoPredictionClientStep = INDEX_NONE;
+	int32 AmmoPredictionServerStep = 0;
+	int32 AmmoPredictionSubjectPlayerId = INDEX_NONE;
+	int32 AmmoPredictionSubmittedStep = INDEX_NONE;
+	int32 AmmoPredictionOwnerFireActivations = 0;
+	int32 AmmoPredictionOwnerFireRejects = 0;
+	int32 AmmoPredictionLastPredictionKey = 0;
+	int32 AmmoPredictionAuthorityRejects = 0;
+	int32 AmmoPredictionAuthorityShotsBefore = 0;
+	int32 AmmoPredictionAuthorityRejectsBefore = 0;
+	int32 AmmoPredictionMagazineBefore = 0;
+	int32 AmmoPredictionReserveBefore = 0;
+	int32 AmmoPredictionProjectilesBefore = 0;
+	int32 AmmoPredictionMismatchCount = 0;
+	int32 AmmoPredictionConvergedCount = 0;
+	float AmmoPredictionStepStartTime = 0.0f;
+	float AmmoPredictionSettleStartTime = 0.0f;
+	float AmmoPredictionNextReportTime = 0.0f;
+	float AmmoPredictionLatestArrivalTime = 0.0f;
+	bool bAmmoPredictionSetup = false;
+	bool bAmmoPredictionFinished = false;
+	bool bAmmoPredictionSettleStarted = false;
+	bool bAmmoPredictionStepCommandSent = false;
+	bool bAmmoPredictionLateRejectFixtureSet = false;
+	bool bAmmoPredictionRejectObserved = false;
+	/** 同值快照阶段：已武装，等待下一次权威弹丸生成时立即补弹。 */
+	bool bAmmoPredictionSameValueArmed = false;
+	/** 服务器仅本地持有的阻塞 Tag 是否已挂载。 */
+	bool bAmmoPredictionServerTagApplied = false;
 
 	void PollServerState();
 	void PollClientState();

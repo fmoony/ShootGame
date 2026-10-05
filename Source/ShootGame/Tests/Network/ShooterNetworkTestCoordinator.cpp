@@ -219,6 +219,7 @@ AShooterNetworkTestCoordinator::AShooterNetworkTestCoordinator()
 	bAimRotationMode = bAimTurnCsvMode || FParse::Param(FCommandLine::Get(), TEXT("ShootGameAimRotationTest"));
 #if WITH_DEV_AUTOMATION_TESTS
 	bReloadIdentityMode = FParse::Param(FCommandLine::Get(), TEXT("ShootGameReloadIdentityTest"));
+	bAmmoPredictionMode = FParse::Param(FCommandLine::Get(), TEXT("ShootGameAmmoPredictionTest"));
 #endif
 }
 
@@ -556,7 +557,7 @@ void AShooterNetworkTestCoordinator::VerifyEquipDeathCleanup()
 void AShooterNetworkTestCoordinator::BeginPlay()
 {
 	Super::BeginPlay();
-	SetActorTickEnabled(bAimTurnCsvMode || bReloadIdentityMode);
+	SetActorTickEnabled(bAimTurnCsvMode || bReloadIdentityMode || bAmmoPredictionMode);
 
 	TestStartTime = GetWorld()->GetTimeSeconds();
 	if (HasAuthority())
@@ -576,6 +577,7 @@ void AShooterNetworkTestCoordinator::BeginPlay()
 void AShooterNetworkTestCoordinator::EndPlay(EEndPlayReason::Type EndPlayReason)
 {
 	CleanupReloadIdentityTest();
+	CleanupAmmoPredictionTest();
 	UnregisterAimTurnCsvPoseProbe(AimTurnCsvOwnerPoseProbe);
 	UnregisterAimTurnCsvPoseProbe(AimTurnCsvObserverPoseProbe);
 
@@ -599,6 +601,11 @@ void AShooterNetworkTestCoordinator::EndPlay(EEndPlayReason::Type EndPlayReason)
 void AShooterNetworkTestCoordinator::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+	if (bAmmoPredictionMode)
+	{
+		SampleAmmoPredictionLocalState();
+		return;
+	}
 	if (bReloadIdentityMode)
 	{
 		SampleReloadIdentityLocalState();
@@ -1117,6 +1124,7 @@ void AShooterNetworkTestCoordinator::GetLifetimeReplicatedProps(TArray<FLifetime
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bReloadIdentityMode);
+	DOREPLIFETIME(AShooterNetworkTestCoordinator, bAmmoPredictionMode);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyToSwitch);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyToFire);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyForFullAuto);
@@ -1140,6 +1148,11 @@ void AShooterNetworkTestCoordinator::GetLifetimeReplicatedProps(TArray<FLifetime
 
 void AShooterNetworkTestCoordinator::PollServerState()
 {
+	if (bAmmoPredictionMode)
+	{
+		RunAmmoPredictionServerPhase();
+		return;
+	}
 	if (bReloadIdentityMode)
 	{
 		RunReloadIdentityServerPhase();
@@ -3114,6 +3127,21 @@ void AShooterNetworkTestCoordinator::HandleActorSpawned(AActor* SpawnedActor)
 {
 	const AShooterProjectile* Projectile = Cast<AShooterProjectile>(SpawnedActor);
 	AShooterCharacter* Character = GetShooterCharacter();
+	if (bAmmoPredictionMode && bAmmoPredictionSameValueArmed && Projectile && Projectile->GetInstigator() == AmmoPredictionSubject.Get())
+	{
+		// H-A1 夹具：弹丸生成回调发生在 ConsumeAmmo 之后、下一复制帧之前。
+		// 生产 Rifle 的 MagazineSize 大于 1，ReloadFromReserve 会补满而不是只补 1 发；
+		// 这里用既有测试弹药钩子把权威弹药恢复到步骤起点值，等价于一次
+		// 「射击 → 补弹回到原值」在拥有端完全不可观察的权威结果。
+		bAmmoPredictionSameValueArmed = false;
+		if (AShooterWeapon* Weapon = AmmoPredictionWeapon.Get())
+		{
+			Weapon->SetAmmoForAutomationTest(AmmoPredictionMagazineBefore, AmmoPredictionReserveBefore);
+			Weapon->ForceNetUpdate();
+			UE_LOG(LogShootGame, Display, TEXT("AMMO_PREDICTION_SAME_VALUE_RESTORE Mag=%d Reserve=%d"),
+				Weapon->GetBulletCount(), Weapon->GetReserveAmmo());
+		}
+	}
 	if (!Projectile || !Character || Projectile->GetInstigator() != Character)
 	{
 		return;
@@ -3121,7 +3149,7 @@ void AShooterNetworkTestCoordinator::HandleActorSpawned(AActor* SpawnedActor)
 
 	bServerObservedProjectile = true;
 	++ProjectileSpawnCount;
-	if (bReloadIdentityMode)
+	if (bReloadIdentityMode || bAmmoPredictionMode)
 	{
 		return;
 	}
@@ -3142,7 +3170,7 @@ void AShooterNetworkTestCoordinator::HandleActorSpawned(AActor* SpawnedActor)
 
 void AShooterNetworkTestCoordinator::PollClientState()
 {
-	if (bReloadIdentityMode)
+	if (bReloadIdentityMode || bAmmoPredictionMode)
 	{
 		return;
 	}
