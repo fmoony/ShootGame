@@ -148,53 +148,91 @@ private:
 	void LogFirePredictionMarker(const TCHAR* Marker, const AShooterWeapon* Weapon, int32 ShotOrdinal) const;
 
 	/**
-	 * 一次本地预测激活的退款上下文：在 Reject 结果到达前按 PredictionKey 保留。
+	 * 一轮本地预测 Fire Activation 的对账账本。
 	 *
-	 * 拥有端释放输入会在 Reject 到达前结束实例并清空 CachedWeapon；
-	 * 只靠 EndAbility 的 Rejected 分支会丢失原消费的武器与发数。
-	 * 本上下文不复制任何权威状态，只记本地预测消费，供迟到 Reject 精确退还。
+	 * 以 PredictionKey 为身份，记录 Owner 已提前表现的发数、服务器已提交的发数、
+	 * 已补播的 confirmed 表现和 Pending 结清进度；Reject 与 Settled 都在这里收口。
+	 * 不复制任何权威状态，只服务拥有端表现收敛。
 	 */
-	struct FPredictedFireRefundContext
+	struct FPredictedFireActivationLedger
 	{
-		/** 只弱引用 WeaponActor：池化 / 切枪 / 销毁后不得被退款路径延长生命周期。 */
+		/** 只弱引用 WeaponActor：池化 / 切枪 / 销毁后不得被账本延长生命周期。 */
 		TWeakObjectPtr<AShooterWeapon> Weapon;
 
-		/** 本次激活已预测消费的发数。 */
+		/** 首次观察到服务器结果时固定的轮次号；用于忽略 key 复用或旧槽污染。 */
+		int32 ActivationSerial = 0;
+
+		/** Owner 已提前表现并发起 Pending 的本地 Shot 数。 */
 		int32 PredictedShots = 0;
 
-		/** 表示本次激活已经结清（已退还或无需退还），保证两条路径只处理一次。 */
+		/** 从服务器结果观察到的最新已提交 Shot 数（单调不回退）。 */
+		int32 ProcessedSeen = 0;
+
+		/** 已通过 PlayOwnerConfirmedShotFeedback 补齐的表现数。 */
+		int32 BackfilledShots = 0;
+
+		/** 已按服务器确认从 Pending 结清的预测发数。 */
+		int32 ReconciledPredictedShots = 0;
+
+		/** 已补播覆盖到的服务器 Shot ordinal；本地 cadence 追到该范围内时不再重复表现。 */
+		int32 HighestBackfilledOrdinal = 0;
+
+		/** 下一次本地 Shot Attempt 对应的服务器 ordinal；只由本地 attempt 推进。 */
+		int32 NextLocalAttemptOrdinal = 1;
+
+		/** 收到明确 Activation Success（ConfirmActivateSucceed）；此后不可能再 Reject。 */
+		bool bServerConfirmed = false;
+
+		/** 已结清（Reject 退款或 Settled 结清），两条路径只处理一次。 */
 		bool bResolved = false;
 	};
 
-	/** 按 PredictionKey 索引的迟到 Reject 退款上下文；只在拥有端本地预测路径写入。 */
-	TMap<int32, FPredictedFireRefundContext> PendingRefundContexts;
+public:
+	/** 本地 Shot Attempt 的对账判定结果。 */
+	enum class EShooterOwnerShotAttemptDecision : uint8
+	{
+		/** 正常本地预测：消费预算、表现并推进 cadence。 */
+		Predict,
+		/** 该 ordinal 已由 confirmed backfill 覆盖：不表现、不加 Pending，只推进 cadence。 */
+		SkipCovered,
+		/** 本轮已结清：不再产生任何表现或 Pending。 */
+		RefusedResolved,
+	};
 
-	/**
-	 * 登记本次本地预测激活的退款上下文。
-	 * 返回后由调用方在对应 PredictionKey 上绑定 Rejected 委托。
-	 */
-	void RegisterPredictedActivationRefund(int32 PredictionKey, AShooterWeapon* Weapon);
+private:
 
-	/** 记录一次本地预测消费，使迟到 Reject 能退还准确发数。 */
-	void RecordPredictedShotForRefund(int32 PredictionKey);
+	/** 按 PredictionKey 索引的拥有端 Activation 账本；只在本地预测路径写入。 */
+	TMap<int32, FPredictedFireActivationLedger> PendingActivationLedgers;
+
+	/** 登记本次本地预测 Activation 的账本。 */
+	void RegisterActivationLedger(int32 PredictionKey, AShooterWeapon* Weapon);
+
+	/** 本地 Shot Attempt 前的对账判定；SkipCovered 会推进 attempt ordinal。 */
+	EShooterOwnerShotAttemptDecision DecideOwnerShotAttempt(int32 PredictionKey);
+
+	/** 记录一次本地预测表现；与 Pending 增加同步推进账本 cursor。 */
+	void NoteOwnerPredictedShot(int32 PredictionKey);
+
+	/** OnConfirmDelegate：明确 Activation Success；只标记，不代替 Settled 结清。 */
+	void HandleActivationConfirmed(UGameplayAbility* Ability, int32 PredictionKey);
 
 	/** PredictionKey Rejected 委托：不依赖 Ability 实例是否仍然活动。 */
 	void HandlePredictedActivationRejected(int32 PredictionKey);
 
-	/** PredictionKey CaughtUp 委托：确认到达后本次激活不再可能被拒，可回收上下文。 */
-	void HandlePredictedActivationCaughtUp(int32 PredictionKey);
+	/** Reject 到达时的幂等退款入口；账本不存在时保留 EndAbility 的原退还语义。 */
+	void ResolveRejectedActivation(int32 PredictionKey, AShooterWeapon* FallbackWeapon, int32 FallbackShots);
 
-	/**
-	 * Reject 到达时的幂等退还入口。
-	 * 上下文存在时按上下文退还；不存在时保留 EndAbility 的原退还语义。
-	 */
-	void RefundPredictedActivation(int32 PredictionKey, AShooterWeapon* FallbackWeapon, int32 FallbackShots);
+	/** 把服务器结果（含 Settled）应用到账本；幂等，可重复调用。 */
+	void ApplyActivationResultToLedger(int32 PredictionKey, bool bSettled);
 
-	/** 新激活开始时清理已结清与超额上下文，避免拒绝 / 确认通道异常时无限累积。 */
-	void PrunePredictedRefundContexts(int32 NewPredictionKey);
+	/** 新激活开始时清理已结清账本；只按结清状态清理，不按 PredictionKey 大小判断新旧。 */
+	void PruneActivationLedgers();
 
 	/** 本次拥有端本地预测激活的 PredictionKey；非拥有端保持 0。 */
 	int32 EffectivePredictionKey = 0;
+
+	/** OnConfirmDelegate 绑定句柄；新激活登记前先移除，避免同一实例累积回调。 */
+	FDelegateHandle ConfirmDelegateHandle;
 
 	/** 激活时缓存的武器；权威端控武器，拥有端控表现；EndAbility 只清理仍指向自己的武器。 */
 	TWeakObjectPtr<AShooterWeapon> CachedWeapon;
@@ -238,6 +276,9 @@ public:
 	/** 测试观察接口：是否接受客户端发来的结束命令（必须为 false，权威保留在服务器）。 */
 	bool ServerRespectsRemoteAbilityCancellation() const;
 
+	/** 武器端在收到服务器 Activation 结果复制时转发到本地账本；由 ShooterWeapon 调用。 */
+	void HandleAuthorityFireActivationResult(int32 ActivationKey, int32 ActivationSerial, int32 ProcessedShots, bool bSettled);
+
 #if WITH_DEV_AUTOMATION_TESTS
 	/** 测试观察接口：本地表现节拍是否活动。 */
 	bool IsPredictedFeedbackActiveForTest() const { return bPredictedFeedbackActive; }
@@ -245,15 +286,53 @@ public:
 	/** 测试观察接口：本次激活已提交的本地反馈次数。 */
 	int32 GetPredictedShotOrdinalForTest() const { return PredictedShotOrdinal; }
 
-	/** 测试观察接口：尚未结清的迟到 Reject 退款上下文数量。 */
-	int32 GetPendingRefundContextCountForTest() const { return PendingRefundContexts.Num(); }
+	/** 测试观察接口：当前拥有端本地预测激活的 PredictionKey。 */
+	int32 GetEffectivePredictionKeyForTest() const { return EffectivePredictionKey; }
 
-	/** 测试观察接口：指定预测身份是否已经结清。 */
-	bool IsPredictionRefundResolvedForTest(int32 PredictionKey) const
+	/** 测试观察接口：最近一次 Settled 账本的快照；账本被 prune 后仍可用于夹具断言。 */
+	int32 GetLastSettledActivationKeyForTest() const;
+	int32 GetLastSettledActivationPredictedShotsForTest() const;
+	int32 GetLastSettledActivationProcessedShotsForTest() const;
+	int32 GetLastSettledActivationBackfilledShotsForTest() const;
+
+	/** 测试观察接口：当前 Activation 账本数量。 */
+	int32 GetActivationLedgerCountForTest() const { return PendingActivationLedgers.Num(); }
+
+	/** 测试观察接口：尚未结清的 Activation 账本数量。 */
+	int32 GetUnresolvedActivationLedgerCountForTest() const;
+
+	/** 测试观察接口：驱动生产 Attempt 判定，验证 backfill 覆盖后的 skip cursor。 */
+	EShooterOwnerShotAttemptDecision DecideOwnerShotAttemptForTest(int32 PredictionKey)
 	{
-		const FPredictedFireRefundContext* Context = PendingRefundContexts.Find(PredictionKey);
-		return Context != nullptr && Context->bResolved;
+		return DecideOwnerShotAttempt(PredictionKey);
 	}
+
+	/** 测试观察接口：指定账本的 PredictedShots。 */
+	int32 GetActivationLedgerPredictedShotsForTest(int32 PredictionKey) const;
+
+	/** 测试观察接口：指定账本的 ProcessedSeen。 */
+	int32 GetActivationLedgerProcessedShotsForTest(int32 PredictionKey) const;
+
+	/** 测试观察接口：指定账本的 BackfilledShots。 */
+	int32 GetActivationLedgerBackfilledShotsForTest(int32 PredictionKey) const;
+
+	/** 测试观察接口：指定账本已结清的预测发数。 */
+	int32 GetActivationLedgerReconciledShotsForTest(int32 PredictionKey) const;
+
+	/** 测试观察接口：指定账本是否已结清。 */
+	bool IsActivationLedgerResolvedForTest(int32 PredictionKey) const;
+
+	/** 测试观察接口：指定账本是否已收到明确 Activation Success。 */
+	bool IsActivationLedgerServerConfirmedForTest(int32 PredictionKey) const;
+
+	/** 测试专用：建立账本并写入预测发数，验证 Confirm -> Reject 的幂等退款语义。 */
+	void RegisterActivationLedgerForTest(int32 PredictionKey, AShooterWeapon* Weapon);
+	void NoteOwnerPredictedShotsForTest(int32 PredictionKey, int32 Count);
+
+	/** 测试专用：驱动生产账本处理路径。 */
+	void HandleAuthorityFireActivationResultForTest(int32 PredictionKey, int32 ActivationSerial, int32 ProcessedShots, bool bSettled);
+	void MarkActivationServerConfirmedForTest(int32 PredictionKey);
+	void ResolveRejectedActivationForTest(int32 PredictionKey);
 
 	/** 测试观察接口：Reject / EndAbility 后不得继续持有武器。 */
 	bool HasCachedWeaponForTest() const { return CachedWeapon.IsValid(); }
@@ -270,5 +349,9 @@ public:
 
 private:
 	mutable int32 AuthorityRejectCountForTest = 0;
+	int32 LastSettledActivationKeyForTest = INDEX_NONE;
+	int32 LastSettledActivationPredictedShotsForTest = 0;
+	int32 LastSettledActivationProcessedShotsForTest = 0;
+	int32 LastSettledActivationBackfilledShotsForTest = 0;
 #endif
 };

@@ -192,10 +192,19 @@ void UShooterGameplayAbility_Fire::ActivateAbility(
 	// 权威上下文失效或节拍不成立时按 Cancelled 结束；与起手资格共用同一组共享谓词。
 	if (bAuthoritySide)
 	{
+		if (Weapon)
+		{
+			// 先打开本轮结果记录：即使随后的防御复核按 Cancelled 结束，也会以 Processed=0 结清。
+			Weapon->BeginAuthorityFireActivation(ActivationInfo.GetActivationPredictionKey().Current);
+		}
 		const bool bAuthorityContextOk = IsAuthorityFireContextValid(AvatarActor, AbilitySystemComponent, Weapon) &&
 			IsAuthorityCadenceReady(*Weapon);
 		if (!bAuthorityContextOk)
 		{
+			if (Weapon)
+			{
+				Weapon->SettleAuthorityFireActivation();
+			}
 			EndAbility(Handle, ActorInfo, ActivationInfo, /*bReplicateEndAbility*/ true, /*bWasCancelled*/ true);
 			return;
 		}
@@ -213,19 +222,28 @@ void UShooterGameplayAbility_Fire::ActivateAbility(
 	// Owner Local：本地预测表现路径。
 	if (bOwnerLocalView && CachedWeapon.IsValid())
 	{
-		// 迟到 Reject 退款：必须在建立本地预测消费之前登记，并直接绑定到 PredictionKey。
+		// Activation 对账账本：必须在建立本地预测消费之前登记，并绑定明确结果通道。
 		// 拥有端释放输入会在 Reject 到达前结束实例并清空 CachedWeapon，
-		// 只靠 EndAbility 的 Rejected 分支会丢失原消费的武器与发数。
+		// 只有按 PredictionKey 保留的账本才能在迟到 Reject / 迟到服务器结果下正确结清。
 		FPredictionKey ActivationPredictionKey = ActivationInfo.GetActivationPredictionKey();
 		EffectivePredictionKey = ActivationPredictionKey.Current;
-		RegisterPredictedActivationRefund(EffectivePredictionKey, CachedWeapon.Get());
+		RegisterActivationLedger(EffectivePredictionKey, CachedWeapon.Get());
+		CachedWeapon->BindPredictionAbility(this);
 		if (ActivationPredictionKey.IsValidKey())
 		{
 			ActivationPredictionKey.NewRejectedDelegate().BindUObject(
 				this, &UShooterGameplayAbility_Fire::HandlePredictedActivationRejected, EffectivePredictionKey);
-			ActivationPredictionKey.NewCaughtUpDelegate().BindUObject(
-				this, &UShooterGameplayAbility_Fire::HandlePredictedActivationCaughtUp, EffectivePredictionKey);
 		}
+
+		// 明确 Activation Success 只标记"不可能再 Reject"，不代替服务器结果 Settled 结清。
+		// PredictionKey CaughtUp 不再参与退款 / 结清判定（它不代表 Accept 或 Reject）。
+		if (ConfirmDelegateHandle.IsValid())
+		{
+			OnConfirmDelegate.Remove(ConfirmDelegateHandle);
+		}
+		ConfirmDelegateHandle = OnConfirmDelegate.AddUObject(
+			this, &UShooterGameplayAbility_Fire::HandleActivationConfirmed, EffectivePredictionKey);
+
 		StartOwnerFirePath(*CachedWeapon.Get());
 	}
 
@@ -260,13 +278,18 @@ void UShooterGameplayAbility_Fire::EndAbility(
 
 	if (CachedWeapon.IsValid())
 	{
-		// Reject 退还：引擎在 ClientActivateAbilityFailed 里把本次 activation 标记为 Rejected
-		// 之后再结束实例，这类被拒的预测发数永远等不到服务器扣弹复制，必须在这里一次性退还。
+		// 权威端无论正常结束、取消、打空还是切换都标记本轮 Settled；客户端通过结果记录收口。
+		if (HasAuthority(&ActivationInfo))
+		{
+			CachedWeapon->SettleAuthorityFireActivation();
+		}
+
+		// Reject 退还：迟到 Reject 由 PredictionKey 委托与本分支共同收口，账本保证只退一次。
 		// 只处理 Rejected：Cancelled（切枪 / 换弹 / 死亡取消）时服务器可能已经扣过部分弹药，
-		// 退还只会反向过冲，因此绝不按 Cancelled 退还。
+		// 退款只会反向过冲，因此绝不按 Cancelled 退还。
 		if (ActivationInfo.ActivationMode == EGameplayAbilityActivationMode::Rejected)
 		{
-			RefundPredictedActivation(ActivationInfo.GetActivationPredictionKey().Current, CachedWeapon.Get(),
+			ResolveRejectedActivation(ActivationInfo.GetActivationPredictionKey().Current, CachedWeapon.Get(),
 				PredictedShotsThisActivation);
 		}
 
@@ -330,19 +353,31 @@ bool UShooterGameplayAbility_Fire::TryOwnerPredictedShot(AShooterWeapon& Weapon)
 		return false;
 	}
 
+	// Activation 对账判定：已结清不再产生预测；已被 confirmed backfill 覆盖的 ordinal
+	// 只推进本地 cadence，不重复表现、不再次增加 Pending。
+	const EShooterOwnerShotAttemptDecision Decision = DecideOwnerShotAttempt(EffectivePredictionKey);
+	if (Decision == EShooterOwnerShotAttemptDecision::RefusedResolved)
+	{
+		return false;
+	}
+	if (Decision == EShooterOwnerShotAttemptDecision::SkipCovered)
+	{
+		Weapon.AdvanceLocalFireCooldown();
+		return false;
+	}
+
 	// 预测弹药预算：只有预测型 Owner 客户端会真正扣预算；
 	// 权威端（Listen Host / Standalone）与非拥有者视图由 Weapon 侧直接放行，它们不维护 Pending。
 	if (!Weapon.TryConsumePredictedAmmo())
 	{
 		// 预算不足：本次本地 Shot Attempt 不成立，既不播表现也不推进节拍。
-		// 不结束 Ability、不停 FullAuto timer：预算会随服务器 Ammo 上升（换弹）自动恢复。
+		// 不结束 Ability、不停 FullAuto timer：预算会随服务器结果结清自动恢复。
 		return false;
 	}
 
-	// 记入本次 activation 的预测发数，供 Rejected 时一次性退还；
-	// 同时按 PredictionKey 记账，保证实例已结束的迟到 Reject 仍能退还。
+	// 记入本次 activation 的预测发数，供 Reject 退款与服务器结果结清使用。
 	++PredictedShotsThisActivation;
-	RecordPredictedShotForRefund(EffectivePredictionKey);
+	NoteOwnerPredictedShot(EffectivePredictionKey);
 
 	// 本地节拍：这是唯一推进 LocalFireCooldown 的地方，
 	// 与 Montage / Niagara / Sound 是否真的播放成功无关。
@@ -394,114 +429,6 @@ void UShooterGameplayAbility_Fire::StopOwnerFireLoop()
 	{
 		bPredictedFeedbackActive = false;
 		LogFirePredictionMarker(TEXT("FIRE_LOCAL_FEEDBACK_STOPPED"), CachedWeapon.Get(), PredictedShotOrdinal);
-	}
-}
-
-void UShooterGameplayAbility_Fire::RegisterPredictedActivationRefund(int32 PredictionKey, AShooterWeapon* Weapon)
-{
-	if (PredictionKey <= 0 || !Weapon)
-	{
-		return;
-	}
-
-	PrunePredictedRefundContexts(PredictionKey);
-	FPredictedFireRefundContext& Context = PendingRefundContexts.FindOrAdd(PredictionKey);
-	Context.Weapon = Weapon;
-	Context.PredictedShots = 0;
-	Context.bResolved = false;
-}
-
-void UShooterGameplayAbility_Fire::RecordPredictedShotForRefund(int32 PredictionKey)
-{
-	FPredictedFireRefundContext* Context = PendingRefundContexts.Find(PredictionKey);
-	if (Context && !Context->bResolved)
-	{
-		++Context->PredictedShots;
-	}
-}
-
-void UShooterGameplayAbility_Fire::HandlePredictedActivationRejected(int32 PredictionKey)
-{
-	// 委托在 ClientActivateAbilityFailed 里先于实例匹配与 K2_EndAbility 广播；
-	// 即使实例已经结束、CachedWeapon 已清空，也能按上下文退还。
-	RefundPredictedActivation(PredictionKey, nullptr, 0);
-}
-
-void UShooterGameplayAbility_Fire::HandlePredictedActivationCaughtUp(int32 PredictionKey)
-{
-	if (FPredictedFireRefundContext* Context = PendingRefundContexts.Find(PredictionKey))
-	{
-		// 确认与拒绝互斥：确认到达后本次激活不可能再被拒，不再保留退款额度。
-		// 已播出的本地预测消费仍由后续弹药快照按既有差值语义吸收。
-		Context->bResolved = true;
-	}
-}
-
-void UShooterGameplayAbility_Fire::RefundPredictedActivation(int32 PredictionKey, AShooterWeapon* FallbackWeapon, int32 FallbackShots)
-{
-	if (FPredictedFireRefundContext* Context = PendingRefundContexts.Find(PredictionKey))
-	{
-		if (Context->bResolved)
-		{
-			// Reject 委托与 EndAbility 都可能到达，本次激活只允许结清一次。
-			return;
-		}
-
-		Context->bResolved = true;
-		AShooterWeapon* Weapon = Context->Weapon.Get();
-		if (!Weapon)
-		{
-			UE_LOG(LogShootGame, Display, TEXT("FIRE_PREDICTION_REFUND_SKIPPED Key=%d Amount=%d Reason=WeaponGone"),
-				PredictionKey, Context->PredictedShots);
-			return;
-		}
-
-		if (Context->PredictedShots > 0)
-		{
-			Weapon->RefundPredictedAmmo(Context->PredictedShots);
-			UE_LOG(LogShootGame, Display, TEXT("FIRE_PREDICTION_REFUND Key=%d Amount=%d Weapon=%s Source=Context"),
-				PredictionKey, Context->PredictedShots, *GetNameSafe(Weapon));
-		}
-		return;
-	}
-
-	// 没有登记上下文（例如 PredictionKey 无效）：保留 EndAbility 原有退还语义。
-	if (FallbackWeapon && FallbackShots > 0)
-	{
-		FallbackWeapon->RefundPredictedAmmo(FallbackShots);
-		UE_LOG(LogShootGame, Display, TEXT("FIRE_PREDICTION_REFUND Key=%d Amount=%d Weapon=%s Source=Fallback"),
-			PredictionKey, FallbackShots, *GetNameSafe(FallbackWeapon));
-	}
-}
-
-void UShooterGameplayAbility_Fire::PrunePredictedRefundContexts(int32 NewPredictionKey)
-{
-	for (auto It = PendingRefundContexts.CreateIterator(); It; ++It)
-	{
-		if (It->Value.bResolved)
-		{
-			It.RemoveCurrent();
-		}
-	}
-
-	// 只做数量上限保护：PredictionKey 是 int16，不能按大小判断新旧。
-	constexpr int32 MaxPendingRefundContexts = 4;
-	while (PendingRefundContexts.Num() >= MaxPendingRefundContexts)
-	{
-		bool bRemoved = false;
-		for (auto It = PendingRefundContexts.CreateIterator(); It; ++It)
-		{
-			if (It->Key != NewPredictionKey)
-			{
-				It.RemoveCurrent();
-				bRemoved = true;
-				break;
-			}
-		}
-		if (!bRemoved)
-		{
-			break;
-		}
 	}
 }
 
@@ -677,3 +604,366 @@ bool UShooterGameplayAbility_Fire::ServerRespectsRemoteAbilityCancellation() con
 {
 	return bServerRespectsRemoteAbilityCancellation;
 }
+
+void UShooterGameplayAbility_Fire::RegisterActivationLedger(int32 PredictionKey, AShooterWeapon* Weapon)
+{
+	if (PredictionKey <= 0 || !Weapon)
+	{
+		return;
+	}
+
+	PruneActivationLedgers();
+	FPredictedFireActivationLedger& Ledger = PendingActivationLedgers.FindOrAdd(PredictionKey);
+	Ledger.Weapon = Weapon;
+	Ledger.ActivationSerial = 0;
+	Ledger.PredictedShots = 0;
+	Ledger.ProcessedSeen = 0;
+	Ledger.BackfilledShots = 0;
+	Ledger.ReconciledPredictedShots = 0;
+	Ledger.HighestBackfilledOrdinal = 0;
+	Ledger.NextLocalAttemptOrdinal = 1;
+	Ledger.bServerConfirmed = false;
+	Ledger.bResolved = false;
+}
+
+UShooterGameplayAbility_Fire::EShooterOwnerShotAttemptDecision UShooterGameplayAbility_Fire::DecideOwnerShotAttempt(int32 PredictionKey)
+{
+	FPredictedFireActivationLedger* Ledger = PendingActivationLedgers.Find(PredictionKey);
+	if (!Ledger)
+	{
+		// 无账本（例如 PredictionKey 无效）：退回旧行为，不改变本地预测边界。
+		return EShooterOwnerShotAttemptDecision::Predict;
+	}
+	if (Ledger->bResolved)
+	{
+		return EShooterOwnerShotAttemptDecision::RefusedResolved;
+	}
+	if (Ledger->NextLocalAttemptOrdinal <= Ledger->HighestBackfilledOrdinal)
+	{
+		// 服务器已提交并由 confirmed backfill 覆盖过该 ordinal：本地节拍追上来时不得双播。
+		UE_LOG(
+			LogShootGame,
+			Display,
+			TEXT("FIRE_PREDICTED_SKIPPED_BACKFILL_COVERED Key=%d Ordinal=%d HighestBackfilled=%d"),
+			PredictionKey,
+			Ledger->NextLocalAttemptOrdinal,
+			Ledger->HighestBackfilledOrdinal);
+		++Ledger->NextLocalAttemptOrdinal;
+		return EShooterOwnerShotAttemptDecision::SkipCovered;
+	}
+	return EShooterOwnerShotAttemptDecision::Predict;
+}
+
+void UShooterGameplayAbility_Fire::NoteOwnerPredictedShot(int32 PredictionKey)
+{
+	FPredictedFireActivationLedger* Ledger = PendingActivationLedgers.Find(PredictionKey);
+	if (Ledger)
+	{
+		++Ledger->PredictedShots;
+		++Ledger->NextLocalAttemptOrdinal;
+	}
+}
+
+void UShooterGameplayAbility_Fire::HandleAuthorityFireActivationResult(int32 ActivationKey, int32 ActivationSerial,
+	int32 ProcessedShots, bool bSettled)
+{
+	FPredictedFireActivationLedger* Ledger = PendingActivationLedgers.Find(ActivationKey);
+	if (!Ledger || Ledger->bResolved)
+	{
+		return;
+	}
+
+	if (Ledger->ActivationSerial == 0)
+	{
+		Ledger->ActivationSerial = ActivationSerial;
+	}
+	else if (ActivationSerial != 0 && Ledger->ActivationSerial != ActivationSerial)
+	{
+		// 不同轮次复用同一 PredictionKey：忽略旧槽内容。
+		return;
+	}
+
+	Ledger->ProcessedSeen = FMath::Max(Ledger->ProcessedSeen, ProcessedShots);
+	ApplyActivationResultToLedger(ActivationKey, bSettled);
+}
+
+void UShooterGameplayAbility_Fire::ApplyActivationResultToLedger(int32 PredictionKey, bool bSettled)
+{
+	FPredictedFireActivationLedger* Ledger = PendingActivationLedgers.Find(PredictionKey);
+	if (!Ledger || Ledger->bResolved)
+	{
+		return;
+	}
+
+	AShooterWeapon* Weapon = Ledger->Weapon.Get();
+
+	// 1) 服务器真实提交、但 Owner 没有提前表现的 Shot：按差值补播一次 confirmed feedback。
+	const int32 CoveredBefore = Ledger->PredictedShots + Ledger->BackfilledShots;
+	const int32 RequiredBackfill = FMath::Max(0, Ledger->ProcessedSeen - CoveredBefore);
+	if (RequiredBackfill > 0)
+	{
+		if (Weapon)
+		{
+			for (int32 Index = 0; Index < RequiredBackfill; ++Index)
+			{
+				Weapon->PlayOwnerConfirmedShotFeedback();
+			}
+		}
+		Ledger->BackfilledShots += RequiredBackfill;
+		Ledger->HighestBackfilledOrdinal = FMath::Max(Ledger->HighestBackfilledOrdinal, Ledger->ProcessedSeen);
+		UE_LOG(LogShootGame, Display, TEXT("FIRE_CONFIRMED_BACKFILL Key=%d Amount=%d Backfilled=%d Processed=%d"),
+			PredictionKey, RequiredBackfill, Ledger->BackfilledShots, Ledger->ProcessedSeen);
+	}
+
+	// 2) 已确认的预测发数从 Pending 结清：这些枪已经被 Owner 提前表现覆盖，不重复播放。
+	const int32 AcceptedPredicted = FMath::Max(0, Ledger->ProcessedSeen - Ledger->BackfilledShots);
+	const int32 NewlyReconciled = FMath::Max(0, AcceptedPredicted - Ledger->ReconciledPredictedShots);
+	if (NewlyReconciled > 0)
+	{
+		if (Weapon)
+		{
+			Weapon->ConfirmPredictedAmmo(NewlyReconciled);
+		}
+		Ledger->ReconciledPredictedShots += NewlyReconciled;
+	}
+
+	// 3) Settled：补齐最后的缺表现，并清掉服务器最终没有执行的预测（phantom）。
+	if (bSettled)
+	{
+		const int32 CoveredNow = Ledger->PredictedShots + Ledger->BackfilledShots;
+		const int32 RemainingBackfill = FMath::Max(0, Ledger->ProcessedSeen - CoveredNow);
+		if (RemainingBackfill > 0)
+		{
+			if (Weapon)
+			{
+				for (int32 Index = 0; Index < RemainingBackfill; ++Index)
+				{
+					Weapon->PlayOwnerConfirmedShotFeedback();
+				}
+			}
+			Ledger->BackfilledShots += RemainingBackfill;
+			Ledger->HighestBackfilledOrdinal = FMath::Max(Ledger->HighestBackfilledOrdinal, Ledger->ProcessedSeen);
+		}
+
+		const int32 RemainingPredicted = FMath::Max(0, Ledger->PredictedShots - Ledger->ReconciledPredictedShots);
+		if (RemainingPredicted > 0)
+		{
+			if (Weapon)
+			{
+				Weapon->DiscardPhantomPredictedAmmo(RemainingPredicted);
+			}
+			Ledger->ReconciledPredictedShots += RemainingPredicted;
+			UE_LOG(LogShootGame, Display, TEXT("FIRE_ACTIVATION_PHANTOM_CLEAR Key=%d Amount=%d"), PredictionKey, RemainingPredicted);
+		}
+
+		Ledger->bResolved = true;
+#if WITH_DEV_AUTOMATION_TESTS
+		LastSettledActivationKeyForTest = PredictionKey;
+		LastSettledActivationPredictedShotsForTest = Ledger->PredictedShots;
+		LastSettledActivationProcessedShotsForTest = Ledger->ProcessedSeen;
+		LastSettledActivationBackfilledShotsForTest = Ledger->BackfilledShots;
+#endif
+		UE_LOG(
+			LogShootGame,
+			Display,
+			TEXT("FIRE_ACTIVATION_SETTLED Key=%d Processed=%d Predicted=%d Backfilled=%d Reconciled=%d"),
+			PredictionKey,
+			Ledger->ProcessedSeen,
+			Ledger->PredictedShots,
+			Ledger->BackfilledShots,
+			Ledger->ReconciledPredictedShots);
+	}
+}
+
+void UShooterGameplayAbility_Fire::HandleActivationConfirmed(UGameplayAbility* Ability, int32 PredictionKey)
+{
+	FPredictedFireActivationLedger* Ledger = PendingActivationLedgers.Find(PredictionKey);
+	if (Ledger)
+	{
+		// 明确 Success：只保证此后不会再有 Reject，不代替服务器结果 Settled 结清。
+		Ledger->bServerConfirmed = true;
+	}
+}
+
+void UShooterGameplayAbility_Fire::HandlePredictedActivationRejected(int32 PredictionKey)
+{
+	// 委托在 ClientActivateAbilityFailed 里先于实例匹配与 K2_EndAbility 广播；
+	// 即使实例已经结束、CachedWeapon 已清空，也能按账本退还。
+	ResolveRejectedActivation(PredictionKey, nullptr, 0);
+}
+
+void UShooterGameplayAbility_Fire::ResolveRejectedActivation(int32 PredictionKey, AShooterWeapon* FallbackWeapon, int32 FallbackShots)
+{
+	if (FPredictedFireActivationLedger* Ledger = PendingActivationLedgers.Find(PredictionKey))
+	{
+		if (Ledger->bResolved)
+		{
+			// Reject 委托与 EndAbility 都可能到达，本轮只允许结清一次。
+			return;
+		}
+
+		if (Ledger->bServerConfirmed)
+		{
+			// 明确 Success 与 Reject 互斥；若异常顺序出现，保留账本等待服务器结果结清。
+			return;
+		}
+
+		const int32 Remaining = FMath::Max(0, Ledger->PredictedShots - Ledger->ReconciledPredictedShots);
+		if (Remaining > 0)
+		{
+			if (AShooterWeapon* Weapon = Ledger->Weapon.Get())
+			{
+				Weapon->RefundPredictedAmmo(Remaining);
+			}
+			Ledger->ReconciledPredictedShots += Remaining;
+		}
+		Ledger->bResolved = true;
+		UE_LOG(LogShootGame, Display, TEXT("FIRE_ACTIVATION_REJECT_REFUND Key=%d Refund=%d"), PredictionKey, Remaining);
+		return;
+	}
+
+	// 没有登记账本（例如 PredictionKey 无效）：保留 EndAbility 原有退还语义。
+	if (FallbackWeapon && FallbackShots > 0)
+	{
+		FallbackWeapon->RefundPredictedAmmo(FallbackShots);
+		UE_LOG(LogShootGame, Display, TEXT("FIRE_PREDICTION_REFUND Key=%d Amount=%d Weapon=%s Source=Fallback"),
+			PredictionKey, FallbackShots, *GetNameSafe(FallbackWeapon));
+	}
+}
+
+void UShooterGameplayAbility_Fire::PruneActivationLedgers()
+{
+	for (auto It = PendingActivationLedgers.CreateIterator(); It; ++It)
+	{
+		if (It->Value.bResolved)
+		{
+			It.RemoveCurrent();
+		}
+	}
+
+	// 异常通道（结果长期不达）下不要无限累积：超过 4 条未结清账本按"服务器信息丢失"清理，
+	// 只清 Pending、不补播；正常单 Activation 流程不会触发该上限。
+	constexpr int32 MaxUnresolvedLedgers = 4;
+	while (PendingActivationLedgers.Num() > MaxUnresolvedLedgers)
+	{
+		auto It = PendingActivationLedgers.CreateIterator();
+		if (!It)
+		{
+			break;
+		}
+		FPredictedFireActivationLedger& Ledger = It->Value;
+		const int32 Remaining = FMath::Max(0, Ledger.PredictedShots - Ledger.ReconciledPredictedShots);
+		if (Remaining > 0)
+		{
+			if (AShooterWeapon* Weapon = Ledger.Weapon.Get())
+			{
+				Weapon->DiscardPhantomPredictedAmmo(Remaining);
+			}
+			Ledger.ReconciledPredictedShots += Remaining;
+		}
+		UE_LOG(LogShootGame, Warning, TEXT("FIRE_ACTIVATION_LEDGER_DROPPED Key=%d Reason=Overflow"), It->Key);
+		It.RemoveCurrent();
+	}
+}
+
+#if WITH_DEV_AUTOMATION_TESTS
+
+int32 UShooterGameplayAbility_Fire::GetLastSettledActivationKeyForTest() const
+{
+	return LastSettledActivationKeyForTest;
+}
+
+int32 UShooterGameplayAbility_Fire::GetLastSettledActivationPredictedShotsForTest() const
+{
+	return LastSettledActivationPredictedShotsForTest;
+}
+
+int32 UShooterGameplayAbility_Fire::GetLastSettledActivationProcessedShotsForTest() const
+{
+	return LastSettledActivationProcessedShotsForTest;
+}
+
+int32 UShooterGameplayAbility_Fire::GetLastSettledActivationBackfilledShotsForTest() const
+{
+	return LastSettledActivationBackfilledShotsForTest;
+}
+
+int32 UShooterGameplayAbility_Fire::GetUnresolvedActivationLedgerCountForTest() const
+{
+	int32 Count = 0;
+	for (const TPair<int32, FPredictedFireActivationLedger>& Pair : PendingActivationLedgers)
+	{
+		Count += Pair.Value.bResolved ? 0 : 1;
+	}
+	return Count;
+}
+
+int32 UShooterGameplayAbility_Fire::GetActivationLedgerPredictedShotsForTest(int32 PredictionKey) const
+{
+	const FPredictedFireActivationLedger* Ledger = PendingActivationLedgers.Find(PredictionKey);
+	return Ledger ? Ledger->PredictedShots : INDEX_NONE;
+}
+
+int32 UShooterGameplayAbility_Fire::GetActivationLedgerProcessedShotsForTest(int32 PredictionKey) const
+{
+	const FPredictedFireActivationLedger* Ledger = PendingActivationLedgers.Find(PredictionKey);
+	return Ledger ? Ledger->ProcessedSeen : INDEX_NONE;
+}
+
+int32 UShooterGameplayAbility_Fire::GetActivationLedgerBackfilledShotsForTest(int32 PredictionKey) const
+{
+	const FPredictedFireActivationLedger* Ledger = PendingActivationLedgers.Find(PredictionKey);
+	return Ledger ? Ledger->BackfilledShots : INDEX_NONE;
+}
+
+int32 UShooterGameplayAbility_Fire::GetActivationLedgerReconciledShotsForTest(int32 PredictionKey) const
+{
+	const FPredictedFireActivationLedger* Ledger = PendingActivationLedgers.Find(PredictionKey);
+	return Ledger ? Ledger->ReconciledPredictedShots : INDEX_NONE;
+}
+
+bool UShooterGameplayAbility_Fire::IsActivationLedgerResolvedForTest(int32 PredictionKey) const
+{
+	const FPredictedFireActivationLedger* Ledger = PendingActivationLedgers.Find(PredictionKey);
+	return Ledger != nullptr && Ledger->bResolved;
+}
+
+bool UShooterGameplayAbility_Fire::IsActivationLedgerServerConfirmedForTest(int32 PredictionKey) const
+{
+	const FPredictedFireActivationLedger* Ledger = PendingActivationLedgers.Find(PredictionKey);
+	return Ledger != nullptr && Ledger->bServerConfirmed;
+}
+
+void UShooterGameplayAbility_Fire::RegisterActivationLedgerForTest(int32 PredictionKey, AShooterWeapon* Weapon)
+{
+	RegisterActivationLedger(PredictionKey, Weapon);
+}
+
+void UShooterGameplayAbility_Fire::NoteOwnerPredictedShotsForTest(int32 PredictionKey, int32 Count)
+{
+	for (int32 Index = 0; Index < Count; ++Index)
+	{
+		NoteOwnerPredictedShot(PredictionKey);
+	}
+}
+
+void UShooterGameplayAbility_Fire::HandleAuthorityFireActivationResultForTest(int32 PredictionKey,
+	int32 ActivationSerial, int32 ProcessedShots, bool bSettled)
+{
+	HandleAuthorityFireActivationResult(PredictionKey, ActivationSerial, ProcessedShots, bSettled);
+}
+
+void UShooterGameplayAbility_Fire::MarkActivationServerConfirmedForTest(int32 PredictionKey)
+{
+	if (FPredictedFireActivationLedger* Ledger = PendingActivationLedgers.Find(PredictionKey))
+	{
+		Ledger->bServerConfirmed = true;
+	}
+}
+
+void UShooterGameplayAbility_Fire::ResolveRejectedActivationForTest(int32 PredictionKey)
+{
+	ResolveRejectedActivation(PredictionKey, nullptr, 0);
+}
+
+#endif

@@ -636,4 +636,145 @@ bool FShooterFirePredictionRejectRefireCooldownTest::RunTest(const FString& Para
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterFireActivationLedgerBackfillTest,
+	"ShootGame.Ability.Fire.Prediction.ActivationLedgerBackfill",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FShooterFireActivationLedgerBackfillTest::RunTest(const FString& Parameters)
+{
+	using namespace ShooterAbilityFirePredictionAutomationTests;
+
+	UWorld* World = CreatePredictionTestWorld();
+	if (!TestNotNull(TEXT("prediction test world created"), World))
+	{
+		return false;
+	}
+
+	AShooterCharacter* Character = SpawnLocalPlayerCharacter(World);
+	AShooterWeapon* Weapon = Character
+		? AcquireFeedbackTestWeapon(World, Character, nullptr, nullptr, nullptr, 5.0f)
+		: nullptr;
+	if (!TestNotNull(TEXT("local player character spawned"), Character) ||
+		!TestNotNull(TEXT("ledger test weapon acquired"), Weapon))
+	{
+		DestroyPredictionTestWorld(World);
+		return false;
+	}
+
+	UShooterGameplayAbility_Fire* Ability = NewObject<UShooterGameplayAbility_Fire>();
+	if (!TestNotNull(TEXT("fire ability created"), Ability))
+	{
+		DestroyPredictionTestWorld(World);
+		return false;
+	}
+
+	Weapon->ResetFireActivationStateForAutomationTest();
+	Ability->RegisterActivationLedgerForTest(11, Weapon);
+	Ability->NoteOwnerPredictedShotsForTest(11, 2);
+	Weapon->SetPendingPredictedShotsForAutomationTest(2);
+	TestEqual(TEXT("predicted ledger starts at 2"), Ability->GetActivationLedgerPredictedShotsForTest(11), 2);
+	TestEqual(TEXT("pending starts at 2"), Weapon->GetPendingPredictedShots(), 2);
+
+	// 第一部分结果：服务器已提交 1 发 <= 预测 2 发。只结清 Pending，不补播。
+	Ability->HandleAuthorityFireActivationResultForTest(11, 1, 1, false);
+	TestEqual(TEXT("processed first result"), Ability->GetActivationLedgerProcessedShotsForTest(11), 1);
+	TestEqual(TEXT("no backfill below prediction"), Ability->GetActivationLedgerBackfilledShotsForTest(11), 0);
+	TestEqual(TEXT("predicted shot confirmed into pending"), Ability->GetActivationLedgerReconciledShotsForTest(11), 1);
+	TestEqual(TEXT("pending reduced by confirmed prediction"), Weapon->GetPendingPredictedShots(), 1);
+	TestEqual(TEXT("no confirmed feedback submitted"), Weapon->GetConfirmedBackfillCountForAutomationTest(), 0);
+
+	// 第二部分结果：服务器提交 4 发 > 预测 2 发，缺 2 发必须补播一次；随后 Settled 收口。
+	Ability->HandleAuthorityFireActivationResultForTest(11, 1, 4, true);
+	TestEqual(TEXT("processed jumped to 4"), Ability->GetActivationLedgerProcessedShotsForTest(11), 4);
+	TestEqual(TEXT("exactly two confirmed backfills"), Ability->GetActivationLedgerBackfilledShotsForTest(11), 2);
+	TestEqual(TEXT("weapon confirmed backfill counter matches"),
+		Weapon->GetConfirmedBackfillCountForAutomationTest(), 2);
+	TestEqual(TEXT("all predicted shots reconciled"), Ability->GetActivationLedgerReconciledShotsForTest(11), 2);
+	TestEqual(TEXT("pending fully settled"), Weapon->GetPendingPredictedShots(), 0);
+	TestTrue(TEXT("ledger resolved after settle"), Ability->IsActivationLedgerResolvedForTest(11));
+	TestEqual(TEXT("no unresolved ledger left"), Ability->GetUnresolvedActivationLedgerCountForTest(), 0);
+
+	DestroyPredictionTestWorld(World);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterFireActivationLedgerCorrectionTest,
+	"ShootGame.Ability.Fire.Prediction.ActivationLedgerCorrection",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FShooterFireActivationLedgerCorrectionTest::RunTest(const FString& Parameters)
+{
+	using namespace ShooterAbilityFirePredictionAutomationTests;
+
+	UWorld* World = CreatePredictionTestWorld();
+	if (!TestNotNull(TEXT("prediction test world created"), World))
+	{
+		return false;
+	}
+
+	AShooterCharacter* Character = SpawnLocalPlayerCharacter(World);
+	AShooterWeapon* Weapon = Character
+		? AcquireFeedbackTestWeapon(World, Character, nullptr, nullptr, nullptr, 5.0f)
+		: nullptr;
+	UShooterGameplayAbility_Fire* Ability = NewObject<UShooterGameplayAbility_Fire>();
+	if (!TestNotNull(TEXT("local player character spawned"), Character) ||
+		!TestNotNull(TEXT("ledger test weapon acquired"), Weapon) ||
+		!TestNotNull(TEXT("fire ability created"), Ability))
+	{
+		DestroyPredictionTestWorld(World);
+		return false;
+	}
+
+	// 反例 1：多预测。最终 Settled 必须清掉服务器没有执行的预测，且不补播。
+	Weapon->ResetFireActivationStateForAutomationTest();
+	Weapon->SetPendingPredictedShotsForAutomationTest(3);
+	Ability->RegisterActivationLedgerForTest(21, Weapon);
+	Ability->NoteOwnerPredictedShotsForTest(21, 3);
+	Ability->HandleAuthorityFireActivationResultForTest(21, 2, 1, true);
+	TestEqual(TEXT("phantom pending cleared at settle"), Weapon->GetPendingPredictedShots(), 0);
+	TestEqual(TEXT("no backfill when processed below predicted"),
+		Ability->GetActivationLedgerBackfilledShotsForTest(21), 0);
+	TestTrue(TEXT("phantom ledger resolved"), Ability->IsActivationLedgerResolvedForTest(21));
+	TestEqual(TEXT("phantom did not submit confirmed feedback"),
+		Weapon->GetConfirmedBackfillCountForAutomationTest(), 0);
+
+	// 反例 2：明确 Success 先到，随后迟到 Reject 不得提前退款；必须等服务器结果结清。
+	Weapon->SetPendingPredictedShotsForAutomationTest(2);
+	Ability->RegisterActivationLedgerForTest(22, Weapon);
+	Ability->NoteOwnerPredictedShotsForTest(22, 2);
+	Ability->MarkActivationServerConfirmedForTest(22);
+	Ability->ResolveRejectedActivationForTest(22);
+	TestTrue(TEXT("late reject cannot refute explicit success"), Ability->IsActivationLedgerServerConfirmedForTest(22));
+	TestFalse(TEXT("confirmed ledger not resolved by reject"), Ability->IsActivationLedgerResolvedForTest(22));
+	TestEqual(TEXT("pending kept for server result"), Weapon->GetPendingPredictedShots(), 2);
+	Ability->HandleAuthorityFireActivationResultForTest(22, 3, 0, true);
+	TestEqual(TEXT("confirmed-but-zero-shot activation clears pending"), Weapon->GetPendingPredictedShots(), 0);
+	TestTrue(TEXT("confirmed ledger settles by server result"), Ability->IsActivationLedgerResolvedForTest(22));
+
+	// 反例 3：普通 Reject 只退款一次；重复 Reject 不得二次退款。
+	Weapon->SetPendingPredictedShotsForAutomationTest(2);
+	Ability->RegisterActivationLedgerForTest(23, Weapon);
+	Ability->NoteOwnerPredictedShotsForTest(23, 2);
+	Ability->ResolveRejectedActivationForTest(23);
+	TestEqual(TEXT("reject refunds predicted pending"), Weapon->GetPendingPredictedShots(), 0);
+	TestTrue(TEXT("reject ledger resolved"), Ability->IsActivationLedgerResolvedForTest(23));
+	Ability->ResolveRejectedActivationForTest(23);
+	TestEqual(TEXT("duplicate reject is idempotent"), Weapon->GetPendingPredictedShots(), 0);
+
+	// 反例 4：Server 领先并已补播后，本地 cadence 追到已覆盖 ordinal 不得再次预测。
+	Weapon->SetPendingPredictedShotsForAutomationTest(0);
+	Ability->RegisterActivationLedgerForTest(24, Weapon);
+	Ability->HandleAuthorityFireActivationResultForTest(24, 4, 2, false);
+	TestEqual(TEXT("backfill covers two server shots"), Ability->GetActivationLedgerBackfilledShotsForTest(24), 2);
+	TestEqual(TEXT("first covered attempt is skipped"), static_cast<int32>(Ability->DecideOwnerShotAttemptForTest(24)),
+		static_cast<int32>(UShooterGameplayAbility_Fire::EShooterOwnerShotAttemptDecision::SkipCovered));
+	TestEqual(TEXT("second covered attempt is skipped"), static_cast<int32>(Ability->DecideOwnerShotAttemptForTest(24)),
+		static_cast<int32>(UShooterGameplayAbility_Fire::EShooterOwnerShotAttemptDecision::SkipCovered));
+	TestEqual(TEXT("next ordinal can predict again"), static_cast<int32>(Ability->DecideOwnerShotAttemptForTest(24)),
+		static_cast<int32>(UShooterGameplayAbility_Fire::EShooterOwnerShotAttemptDecision::Predict));
+
+	DestroyPredictionTestWorld(World);
+	return true;
+}
+
 #endif

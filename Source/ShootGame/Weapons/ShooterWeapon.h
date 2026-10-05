@@ -13,6 +13,7 @@
 class IShooterWeaponHolder;
 class AShooterProjectile;
 class UShooterWeaponRuntimeSubsystem;
+class UShooterGameplayAbility_Fire;
 class UStaticMeshComponent;
 struct FShooterWeaponConfigRow;
 
@@ -36,6 +37,34 @@ enum class EShooterWeaponLifecycleState : uint8
 	Equipping,
 	/** 当前装备：激活并对外表现。 */
 	Equipped,
+};
+
+/**
+ * 一轮 GA_Fire Activation 的服务器结果，OwnerOnly 复制。
+ *
+ * 只记录「服务器真实提交了几发」与「这一轮是否已经结束」；
+ * 不做 per-shot id，也不承担预测账本，预测/补播账本在 GA_Fire 实例内。
+ */
+USTRUCT()
+struct FShooterFireActivationResult
+{
+	GENERATED_BODY()
+
+	/** 该轮 Activation 的 PredictionKey.Current；0 表示空槽。 */
+	UPROPERTY()
+	int32 ActivationKey = 0;
+
+	/** 服务器为该轮真实提交的 Shot 数；只在 ConsumeAmmo 成功提交时递增。 */
+	UPROPERTY()
+	int32 ProcessedShots = 0;
+
+	/** 服务器不会再为该轮产生新 Shot（正常结束 / 松开 / Cancel / 打空 / 切换 / 死亡等）。 */
+	UPROPERTY()
+	bool bSettled = false;
+
+	/** 服务器单调轮次号，只用于日志和槽位覆盖诊断，不参与客户端配对。 */
+	UPROPERTY()
+	int32 ActivationSerial = 0;
 };
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FShooterWeaponOutOfAmmoDelegate, AShooterWeapon*);
@@ -129,6 +158,34 @@ protected:
 
 	UFUNCTION()
 	void OnRep_ReserveAmmo();
+
+	UFUNCTION()
+	void OnRep_FireActivationResults();
+
+	/**
+	 * 最近数轮 GA_Fire 的服务器结果环形记录；只有拥有者客户端需要消费。
+	 * 保留最近 4 轮，避免一次短 Activation 的最终结果被下一轮覆盖后无法补播。
+	 */
+	UPROPERTY(ReplicatedUsing=OnRep_FireActivationResults)
+	TArray<FShooterFireActivationResult> FireActivationResults;
+
+	/** 服务器结果环大小；最近数轮足够覆盖一次短 Activation 的最终结果。 */
+	static constexpr int32 FireActivationResultRingSize = 4;
+
+	/** 服务器环形槽位游标；只在权威端写入。 */
+	int32 NextFireActivationResultSlot = 0;
+
+	/** 服务器当前未结清的槽位；INDEX_NONE 表示没有打开的 Activation。 */
+	int32 OpenFireActivationResultSlot = INDEX_NONE;
+
+	/** 服务器单调轮次号；只服务日志与槽位覆盖诊断。 */
+	int32 NextFireActivationSerial = 1;
+
+	/** 客户端每槽最近一次观察值：槽位换轮时用于结清上一轮。 */
+	TArray<FShooterFireActivationResult> CachedFireActivationResults;
+
+	/** 当前绑定到本武器的拥有端 Fire Ability；以 UObject 弱引用避免头文件循环依赖。 */
+	TWeakObjectPtr<UObject> BoundPredictionAbility;
 
 	/**
 	 * 已本地预测消费、但尚未被新的服务器 Ammo 状态吸收的弹药数量。
@@ -278,8 +335,20 @@ protected:
 	/** Owner / 池租用边界复位本地开火节拍，防止跨持有者继承。 */
 	void ResetLocalFireCooldown();
 
-	/** 拥有者纯表现的唯一实现；只由本地开火路径调用。 */
-	bool PlayOwnerShotFeedback();
+	/**
+	 * 拥有者纯表现的唯一实现；只由本地开火 / 服务器确认补播入口调用。
+	 * bConfirmedBackfill=false 为本地预测来源，true 为服务器确认后的补播来源。
+	 */
+	bool PlayOwnerShotFeedbackInternal(bool bConfirmedBackfill);
+
+	/** PendingPredictedShots 的统一减少入口；Marker 用于区分 confirm / phantom / reject 诊断。 */
+	void ReducePendingPredictedAmmo(int32 Amount, const TCHAR* Marker);
+
+	/** 把服务器结果在本地权威 / 拥有端直接发布；Listen Host 与 Standalone 不经过 OnRep。 */
+	void PublishAuthorityFireActivationResult(const FShooterFireActivationResult& Result, bool bForceSettled);
+
+	/** 生命周期边界：清空环形记录与转发状态，避免上一持有者的结果污染下一轮。 */
+	void ResetFireActivationResultState();
 
 	/**
 	 * 统一状态转换入口：状态未变化时是安全 no-op，真实变化时输出一条 Verbose 诊断。
@@ -339,6 +408,12 @@ public:
 	 * 返回是否向表现通道提交了至少一项；返回值不表示当前机器一定具备音频或渲染设备。
 	 */
 	bool PlayOwnerPredictedShotFeedback();
+
+	/**
+	 * 服务器确认补播入口：只播放四路纯表现，绝不消费 Pending、推进节拍、发 RPC、
+	 * 生成 Projectile 或修改 Ammo；只由拥有端 Activation 账本按缺发数调用。
+	 */
+	bool PlayOwnerConfirmedShotFeedback();
 
 	/**
 	 * 本地开火节拍是否已越过：距上一次本地有效开火是否已满 RefireRate。
@@ -551,6 +626,27 @@ public:
 	/** Reject 退还：只减少 PendingPredictedShots 并 clamp 到 >= 0。 */
 	void RefundPredictedAmmo(int32 Amount);
 
+	/** 服务器结果确认：减少对应数量的 PendingPredictedShots（只由 Activation 账本调用）。 */
+	void ConfirmPredictedAmmo(int32 Amount);
+
+	/** 本轮结束后清理服务器最终没有执行的预测发数（phantom），不补任何表现。 */
+	void DiscardPhantomPredictedAmmo(int32 Amount);
+
+	/** 拥有端 Fire Ability 在本地激活时绑定；用于接收服务器 Activation 结果复制。 */
+	void BindPredictionAbility(UShooterGameplayAbility_Fire* Ability);
+
+	/** Owner / 池 / Destroy 边界解绑结果转发；不依赖 PredictionKey 大小。 */
+	void ClearPredictionAbility();
+
+	/** 服务器：开始一轮 GA_Fire Activation 的结果记录；同一时刻只允许一轮打开。 */
+	void BeginAuthorityFireActivation(int32 ActivationKey);
+
+	/** 服务器：真实提交一发 Shot 时递增当前轮的 ProcessedShots。 */
+	void RecordAuthorityShotCommitted();
+
+	/** 服务器：GA_Fire 结束（任何路径）时标记当前轮 Settled。 */
+	void SettleAuthorityFireActivation();
+
 	/** 生命周期边界：旧预测上下文整体失效（Owner 变化 / 归还池 / teardown）。 */
 	void ResetAmmoPrediction();
 
@@ -580,6 +676,24 @@ public:
 
 	/** 清空本武器的开火表现计数；测试在场景起点调用一次。 */
 	void ResetFireFeedbackCountersForAutomationTest();
+
+	/** 拥有者服务器确认补播的提交次数，由 PlayOwnerConfirmedShotFeedback 递增。 */
+	int32 GetConfirmedBackfillCountForAutomationTest() const;
+
+	/** 测试专用：直接建立 PendingPredictedShots 起点；只用于验证 Activation 对账算术。 */
+	void SetPendingPredictedShotsForAutomationTest(int32 InPendingShots);
+
+	/** 测试观察：指定槽位的服务器结果记录。 */
+	FShooterFireActivationResult GetFireActivationResultForTest(int32 SlotIndex) const;
+
+	/** 测试观察：当前未结清的服务器槽位；INDEX_NONE 表示没有打开的 Activation。 */
+	int32 GetOpenFireActivationResultSlotForTest() const { return OpenFireActivationResultSlot; }
+
+	/** 测试专用：服务器侧复位结果环，构造独立起点。 */
+	void ResetFireActivationStateForAutomationTest();
+
+	/** 测试专用：设置本地开火节拍剩余时间；用于构造"本地 cadence 落后于服务器"的夹具。 */
+	void SetLocalFireCooldownRemainingForAutomationTest(float RemainingSeconds);
 
 	/** 拥有者本地预测反馈提交次数，由 PlayOwnerPredictedShotFeedback 递增。 */
 	int32 GetPredictedOwnerFeedbackCountForAutomationTest() const;
@@ -615,6 +729,7 @@ public:
 
 private:
 	int32 PredictedOwnerFeedbackCount = 0;
+	int32 ConfirmedBackfillFeedbackCount = 0;
 	int32 OwnerAuthorityConfirmationCount = 0;
 	int32 AuthorityShotCount = 0;
 	int32 RemoteConfirmedFeedbackCount = 0;

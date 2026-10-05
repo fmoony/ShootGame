@@ -103,6 +103,20 @@ struct FShooterAmmoPredictionObservation
 	UPROPERTY()
 	int32 OwnerFireActivationCount = 0;
 	UPROPERTY()
+	int32 ConfirmedBackfillCount = INDEX_NONE;
+	UPROPERTY()
+	int32 UnresolvedLedgerCount = INDEX_NONE;
+	UPROPERTY()
+	int32 LedgerPredictedShots = INDEX_NONE;
+	UPROPERTY()
+	int32 LedgerProcessedShots = INDEX_NONE;
+	UPROPERTY()
+	int32 LedgerBackfilledShots = INDEX_NONE;
+	UPROPERTY()
+	bool bLedgerResolved = false;
+	UPROPERTY()
+	bool bLedgerServerConfirmed = false;
+	UPROPERTY()
 	int32 OwnerFireRejectCount = 0;
 	UPROPERTY()
 	int32 LastPredictionKey = 0;
@@ -192,6 +206,12 @@ private:
 	UFUNCTION(Client, Reliable)
 	void ClientSubmitAmmoPredictionFire(int32 Step);
 
+	UFUNCTION(Client, Reliable)
+	void ClientSubmitAmmoPredictionHoldFire(int32 Step, float HoldSeconds, float LocalCooldownSeconds, bool bReloadDuringHold);
+
+	UFUNCTION(Client, Reliable)
+	void ClientSubmitAmmoPredictionReload(int32 Step);
+
 	UFUNCTION(Server, Reliable)
 	void ServerReportAmmoPredictionSample(const FShooterAmmoPredictionObservation& Observation);
 
@@ -199,7 +219,9 @@ private:
 	void SampleAmmoPredictionLocalState();
 	void StartAmmoPredictionStep(int32 Step);
 	void RunAmmoPredictionSameValueStep();
-	void RunAmmoPredictionBudgetVetoStep();
+	void RunAmmoPredictionBackfillStep();
+	void RunAmmoPredictionPredictedAcceptedStep();
+	void RunAmmoPredictionReloadLifecycleStep();
 	void RunAmmoPredictionLateRejectStep();
 	void ConcludeAmmoPredictionCase(const TCHAR* CaseName, bool bConverged, const FString& Detail);
 	bool IsAmmoPredictionClientSampleFresh(int32 Step) const;
@@ -263,6 +285,7 @@ private:
 	int32 AmmoPredictionServerStep = 0;
 	int32 AmmoPredictionSubjectPlayerId = INDEX_NONE;
 	int32 AmmoPredictionSubmittedStep = INDEX_NONE;
+	int32 AmmoPredictionStepActivationKey = 0;
 	int32 AmmoPredictionOwnerFireActivations = 0;
 	int32 AmmoPredictionOwnerFireRejects = 0;
 	int32 AmmoPredictionLastPredictionKey = 0;
@@ -282,6 +305,11 @@ private:
 	bool bAmmoPredictionFinished = false;
 	bool bAmmoPredictionSettleStarted = false;
 	bool bAmmoPredictionStepCommandSent = false;
+	bool bAmmoPredictionHoldingFire = false;
+	bool bAmmoPredictionReloadDuringHold = false;
+	bool bAmmoPredictionReloadSubmitted = false;
+	float AmmoPredictionHoldEndTime = 0.0f;
+	float AmmoPredictionHoldReloadTime = 0.0f;
 	bool bAmmoPredictionLateRejectFixtureSet = false;
 	bool bAmmoPredictionRejectObserved = false;
 	/** 同值快照阶段：已武装，等待下一次权威弹丸生成时立即补弹。 */

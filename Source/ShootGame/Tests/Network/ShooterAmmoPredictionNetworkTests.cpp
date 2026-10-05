@@ -41,13 +41,21 @@ namespace ShooterAmmoPredictionNetworkTests
 
 	constexpr int32 StepSetup = 0;
 	constexpr int32 StepSameValueSnapshot = 1;
-	constexpr int32 StepBudgetVeto = 2;
-	constexpr int32 StepLateReject = 3;
-	constexpr int32 StepDone = 4;
+	constexpr int32 StepConfirmedBackfill = 2;
+	constexpr int32 StepPredictedAccepted = 3;
+	constexpr int32 StepLateReject = 4;
+	constexpr int32 StepReloadLifecycle = 5;
+	constexpr int32 StepDone = 6;
 
 	constexpr int32 FixtureMagazine = 1;
 	constexpr int32 FixtureReserve = 5;
 	constexpr int32 RejectMagazine = 10;
+	constexpr int32 BackfillMagazine = 3;
+	constexpr int32 ReloadShortfall = 3;
+	constexpr float BackfillHoldSeconds = 1.5f;
+	constexpr float BackfillLocalCooldownSeconds = 1.2f;
+	constexpr float ReloadHoldSeconds = 1.2f;
+	constexpr float HoldReloadAtSeconds = 0.25f;
 
 	bool IsFireAbility(const UGameplayAbility* Ability)
 	{
@@ -92,6 +100,11 @@ void AShooterNetworkTestCoordinator::HandleAmmoPredictionFireActivated(UGameplay
 
 	++AmmoPredictionOwnerFireActivations;
 	AmmoPredictionLastPredictionKey = Ability->GetCurrentActivationInfo().GetActivationPredictionKey().Current;
+	if (AmmoPredictionStepActivationKey == 0)
+	{
+		// 固定本步骤第一次真实激活的 key；服务器打空后的 Held 重试不应污染观察目标。
+		AmmoPredictionStepActivationKey = AmmoPredictionLastPredictionKey;
+	}
 	UE_LOG(LogShootGame, Display, TEXT("AMMO_PREDICTION_OWNER_FIRE_ACTIVATED Step=%d Key=%d Count=%d"),
 		AmmoPredictionClientStep, AmmoPredictionLastPredictionKey, AmmoPredictionOwnerFireActivations);
 }
@@ -171,6 +184,25 @@ void AShooterNetworkTestCoordinator::SampleAmmoPredictionLocalState()
 		return;
 	}
 
+	const float Now = GetWorld()->GetTimeSeconds();
+
+	// Hold 夹具：服务器 cadence 领先场景需要本地持续按住，并在指定时刻触发 Reload 取消。
+	if (bAmmoPredictionHoldingFire)
+	{
+		if (bAmmoPredictionReloadDuringHold && !bAmmoPredictionReloadSubmitted && Now >= AmmoPredictionHoldReloadTime)
+		{
+			bAmmoPredictionReloadSubmitted = true;
+			Subject->DoReload();
+			UE_LOG(LogShootGame, Display, TEXT("AMMO_PREDICTION_CLIENT_HOLD_RELOAD Step=%d"), AmmoPredictionClientStep);
+		}
+		if (Now >= AmmoPredictionHoldEndTime)
+		{
+			bAmmoPredictionHoldingFire = false;
+			Subject->DoStopFiring();
+			UE_LOG(LogShootGame, Display, TEXT("AMMO_PREDICTION_CLIENT_HOLD_RELEASE Step=%d"), AmmoPredictionClientStep);
+		}
+	}
+
 	if (!AmmoPredictionWeapon.IsValid())
 	{
 		AmmoPredictionWeapon = Subject->GetCurrentWeaponActor();
@@ -202,10 +234,41 @@ void AShooterNetworkTestCoordinator::SampleAmmoPredictionLocalState()
 		Sample.bReloadActive = HasActiveReloadAbility(Subject);
 		Sample.bReloading = ShooterAbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading);
 		Sample.bLocalFireCooldownReady = Weapon->IsLocalFireCooldownReady();
+		Sample.ConfirmedBackfillCount = Weapon->GetConfirmedBackfillCountForAutomationTest();
+
+		if (const UShooterGameplayAbility_Fire* FireAbility = GetFireAbilityInstanceForTest(Subject))
+		{
+			const int32 LedgerKey = AmmoPredictionStepActivationKey != 0
+				? AmmoPredictionStepActivationKey
+				: FireAbility->GetEffectivePredictionKeyForTest();
+			Sample.UnresolvedLedgerCount = FireAbility->GetUnresolvedActivationLedgerCountForTest();
+			Sample.LedgerPredictedShots = FireAbility->GetActivationLedgerPredictedShotsForTest(LedgerKey);
+			Sample.LedgerProcessedShots = FireAbility->GetActivationLedgerProcessedShotsForTest(LedgerKey);
+			Sample.LedgerBackfilledShots = FireAbility->GetActivationLedgerBackfilledShotsForTest(LedgerKey);
+			Sample.bLedgerResolved = FireAbility->IsActivationLedgerResolvedForTest(LedgerKey);
+			Sample.bLedgerServerConfirmed = FireAbility->IsActivationLedgerServerConfirmedForTest(LedgerKey);
+
+			// 固定步骤账本一旦 Settled 可能立刻被下一轮激活 prune；
+			// 快照保留最近一次 Settled 的计数，夹具仍能断言本轮结果。
+			if (Sample.LedgerPredictedShots == INDEX_NONE && FireAbility->GetLastSettledActivationKeyForTest() == LedgerKey)
+			{
+				Sample.LedgerPredictedShots = FireAbility->GetLastSettledActivationPredictedShotsForTest();
+				Sample.LedgerProcessedShots = FireAbility->GetLastSettledActivationProcessedShotsForTest();
+				Sample.LedgerBackfilledShots = FireAbility->GetLastSettledActivationBackfilledShotsForTest();
+				Sample.bLedgerResolved = true;
+			}
+		}
+	}
+
+	// Hold 夹具：固定账本一旦 Settled，立即释放输入，避免 Held 重试洪水掩盖本轮结果。
+	if (bAmmoPredictionHoldingFire && Sample.bLedgerResolved && Sample.PendingShots == 0)
+	{
+		bAmmoPredictionHoldingFire = false;
+		Subject->DoStopFiring();
+		UE_LOG(LogShootGame, Display, TEXT("AMMO_PREDICTION_CLIENT_HOLD_RELEASE_RESOLVED Step=%d"), AmmoPredictionClientStep);
 	}
 
 	AmmoPredictionLatest = Sample;
-	const float Now = GetWorld()->GetTimeSeconds();
 	if (Now >= AmmoPredictionNextReportTime)
 	{
 		AmmoPredictionNextReportTime = Now + 0.05f;
@@ -223,6 +286,14 @@ void AShooterNetworkTestCoordinator::ClientPrepareAmmoPredictionStep_Implementat
 	AmmoPredictionClientStep = Step;
 	AmmoPredictionSubjectPlayerId = SubjectPlayerId;
 	AmmoPredictionSubmittedStep = INDEX_NONE;
+	AmmoPredictionStepActivationKey = 0;
+
+	// 每步从干净的本地节拍开始；Hold 夹具会在此之后显式设置落后的 cadence。
+	if (AShooterWeapon* Weapon = AmmoPredictionWeapon.Get())
+	{
+		Weapon->SetLocalFireCooldownRemainingForAutomationTest(0.0f);
+	}
+
 	SampleAmmoPredictionLocalState();
 	const AShooterCharacter* LocalCharacter = GetShooterCharacter();
 	const APlayerState* LocalPlayerState = LocalCharacter ? LocalCharacter->GetPlayerState() : nullptr;
@@ -251,6 +322,59 @@ void AShooterNetworkTestCoordinator::ClientSubmitAmmoPredictionFire_Implementati
 	UE_LOG(LogShootGame, Display, TEXT("AMMO_PREDICTION_CLIENT_FIRE Step=%d Subject=%s"), Step, *GetNameSafe(Subject));
 }
 
+void AShooterNetworkTestCoordinator::ClientSubmitAmmoPredictionHoldFire_Implementation(int32 Step, float HoldSeconds,
+	float LocalCooldownSeconds, bool bReloadDuringHold)
+{
+	using namespace ShooterAmmoPredictionNetworkTests;
+
+	if (!bAmmoPredictionMode || Step != AmmoPredictionClientStep || Step == AmmoPredictionSubmittedStep)
+	{
+		return;
+	}
+
+	AShooterCharacter* Subject = AmmoPredictionSubject.Get();
+	if (!Subject || !Subject->IsLocallyControlled() || Subject != GetShooterCharacter())
+	{
+		return;
+	}
+
+	AShooterWeapon* Weapon = AmmoPredictionWeapon.Get();
+	if (Weapon)
+	{
+		// 夹具专用：把本地 cadence 人为推迟，构造「Server 已开火、Owner 尚未预测」的窗口。
+		Weapon->SetLocalFireCooldownRemainingForAutomationTest(FMath::Max(0.0f, LocalCooldownSeconds));
+	}
+
+	AmmoPredictionSubmittedStep = Step;
+	const float Now = GetWorld()->GetTimeSeconds();
+	AmmoPredictionHoldEndTime = Now + FMath::Max(0.1f, HoldSeconds);
+	AmmoPredictionHoldReloadTime = Now + HoldReloadAtSeconds;
+	bAmmoPredictionReloadDuringHold = bReloadDuringHold;
+	bAmmoPredictionReloadSubmitted = false;
+	bAmmoPredictionHoldingFire = true;
+	Subject->DoStartFiring();
+	UE_LOG(LogShootGame, Display, TEXT("AMMO_PREDICTION_CLIENT_HOLD_START Step=%d Hold=%.2f Cooldown=%.2f Reload=%d"),
+		Step, HoldSeconds, LocalCooldownSeconds, bReloadDuringHold ? 1 : 0);
+}
+
+void AShooterNetworkTestCoordinator::ClientSubmitAmmoPredictionReload_Implementation(int32 Step)
+{
+	if (!bAmmoPredictionMode || Step != AmmoPredictionClientStep || Step == AmmoPredictionSubmittedStep)
+	{
+		return;
+	}
+
+	AShooterCharacter* Subject = AmmoPredictionSubject.Get();
+	if (!Subject || !Subject->IsLocallyControlled() || Subject != GetShooterCharacter())
+	{
+		return;
+	}
+
+	AmmoPredictionSubmittedStep = Step;
+	Subject->DoReload();
+	UE_LOG(LogShootGame, Display, TEXT("AMMO_PREDICTION_CLIENT_RELOAD Step=%d Subject=%s"), Step, *GetNameSafe(Subject));
+}
+
 void AShooterNetworkTestCoordinator::ServerReportAmmoPredictionSample_Implementation(const FShooterAmmoPredictionObservation& Observation)
 {
 	if (!bAmmoPredictionMode || Observation.Step != AmmoPredictionClientStep)
@@ -262,8 +386,8 @@ void AShooterNetworkTestCoordinator::ServerReportAmmoPredictionSample_Implementa
 	AmmoPredictionLatestArrivalTime = GetWorld()->GetTimeSeconds();
 	UE_LOG(LogShootGame, Display,
 		TEXT("AMMO_PREDICTION_SAMPLE Step=%d Valid=%d Mag=%d Reserve=%d Pending=%d Predicted=%d ")
-		TEXT("Feedback=%d Confirm=%d Activations=%d Rejects=%d FireActive=%d ReloadActive=%d ")
-		TEXT("Reloading=%d CooldownReady=%d Key=%d"),
+		TEXT("Feedback=%d Backfill=%d Confirm=%d Activations=%d Rejects=%d FireActive=%d ReloadActive=%d ")
+		TEXT("Reloading=%d CooldownReady=%d Key=%d Ledger(P=%d S=%d B=%d Resolved=%d Confirmed=%d Unresolved=%d)"),
 		Observation.Step,
 		Observation.bValid ? 1 : 0,
 		Observation.MagazineAmmo,
@@ -271,6 +395,7 @@ void AShooterNetworkTestCoordinator::ServerReportAmmoPredictionSample_Implementa
 		Observation.PendingShots,
 		Observation.PredictedMagazineAmmo,
 		Observation.OwnerFeedbackCount,
+		Observation.ConfirmedBackfillCount,
 		Observation.OwnerConfirmationCount,
 		Observation.OwnerFireActivationCount,
 		Observation.OwnerFireRejectCount,
@@ -278,7 +403,13 @@ void AShooterNetworkTestCoordinator::ServerReportAmmoPredictionSample_Implementa
 		Observation.bReloadActive ? 1 : 0,
 		Observation.bReloading ? 1 : 0,
 		Observation.bLocalFireCooldownReady ? 1 : 0,
-		Observation.LastPredictionKey);
+		Observation.LastPredictionKey,
+		Observation.LedgerPredictedShots,
+		Observation.LedgerProcessedShots,
+		Observation.LedgerBackfilledShots,
+		Observation.bLedgerResolved ? 1 : 0,
+		Observation.bLedgerServerConfirmed ? 1 : 0,
+		Observation.UnresolvedLedgerCount);
 }
 
 // ============================ 服务器阶段 ============================
@@ -315,6 +446,9 @@ void AShooterNetworkTestCoordinator::StartAmmoPredictionStep(int32 Step)
 	bAmmoPredictionRejectObserved = false;
 	bAmmoPredictionLateRejectFixtureSet = false;
 	bAmmoPredictionSameValueArmed = false;
+	bAmmoPredictionHoldingFire = false;
+	bAmmoPredictionReloadDuringHold = false;
+	bAmmoPredictionReloadSubmitted = false;
 
 	const AShooterWeapon* Weapon = AmmoPredictionWeapon.Get();
 	AmmoPredictionAuthorityShotsBefore = Weapon ? Weapon->GetAuthorityShotCountForAutomationTest() : 0;
@@ -384,10 +518,12 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionSameValueStep()
 
 	const FShooterAmmoPredictionObservation& Sample = AmmoPredictionLatest;
 	const bool bConverged = Sample.bValid && Sample.MagazineAmmo == AmmoPredictionMagazineBefore &&
-		Sample.PendingShots == 0 && Sample.PredictedMagazineAmmo == AmmoPredictionMagazineBefore;
+		Sample.PendingShots == 0 && Sample.PredictedMagazineAmmo == AmmoPredictionMagazineBefore &&
+		Sample.LedgerPredictedShots == 1 && Sample.LedgerProcessedShots == 1 &&
+		Sample.LedgerBackfilledShots == 0 && Sample.bLedgerResolved && Sample.UnresolvedLedgerCount == 0;
 	const FString Detail = FString::Printf(
 		TEXT("ServerMag=%d ServerReserve=%d Shots=%d Projectiles=%d OwnerMag=%d Pending=%d Predicted=%d ")
-		TEXT("Feedback=%d Confirm=%d"),
+		TEXT("Feedback=%d Confirm=%d Ledger(P=%d S=%d B=%d Resolved=%d Unresolved=%d)"),
 		Weapon->GetBulletCount(),
 		Weapon->GetReserveAmmo(),
 		ShotDelta,
@@ -396,12 +532,17 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionSameValueStep()
 		Sample.PendingShots,
 		Sample.PredictedMagazineAmmo,
 		Sample.OwnerFeedbackCount,
-		Sample.OwnerConfirmationCount);
+		Sample.OwnerConfirmationCount,
+		Sample.LedgerPredictedShots,
+		Sample.LedgerProcessedShots,
+		Sample.LedgerBackfilledShots,
+		Sample.bLedgerResolved ? 1 : 0,
+		Sample.UnresolvedLedgerCount);
 	ConcludeAmmoPredictionCase(TEXT("SameValueSnapshot"), bConverged, Detail);
-	StartAmmoPredictionStep(StepBudgetVeto);
+	StartAmmoPredictionStep(StepConfirmedBackfill);
 }
 
-void AShooterNetworkTestCoordinator::RunAmmoPredictionBudgetVetoStep()
+void AShooterNetworkTestCoordinator::RunAmmoPredictionBackfillStep()
 {
 	using namespace ShooterAmmoPredictionNetworkTests;
 
@@ -411,19 +552,117 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionBudgetVetoStep()
 		return;
 	}
 
+	if (!bAmmoPredictionLateRejectFixtureSet)
+	{
+		bAmmoPredictionLateRejectFixtureSet = true;
+		SetReloadTestAmmo(Weapon, BackfillMagazine, 0);
+		return;
+	}
+
 	if (!bAmmoPredictionStepCommandSent)
 	{
-		if (!IsAmmoPredictionClientSampleFresh(StepBudgetVeto))
+		if (!IsAmmoPredictionClientSampleFresh(StepConfirmedBackfill))
 		{
 			return;
 		}
 		const FShooterAmmoPredictionObservation& Ready = AmmoPredictionLatest;
-		if (!Ready.bValid || !Ready.bLocalFireCooldownReady || Ready.bFireActive || Ready.bReloadActive)
+		if (!Ready.bValid || Ready.MagazineAmmo != BackfillMagazine || Ready.PendingShots != 0 ||
+			Ready.bFireActive || Ready.bReloadActive || Ready.bReloading)
 		{
 			return;
 		}
+
+		// 夹具专用：把本地 cadence 推迟到服务器之后，构造 Server 领先、Owner 未预测的窗口。
 		bAmmoPredictionStepCommandSent = true;
-		ClientSubmitAmmoPredictionFire(StepBudgetVeto);
+		ClientSubmitAmmoPredictionHoldFire(StepConfirmedBackfill, BackfillHoldSeconds,
+			BackfillLocalCooldownSeconds, /*bReloadDuringHold*/ false);
+		return;
+	}
+
+	const int32 ShotDelta = Weapon->GetAuthorityShotCountForAutomationTest() - AmmoPredictionAuthorityShotsBefore;
+	if (!bAmmoPredictionSettleStarted)
+	{
+		if (ShotDelta < BackfillMagazine)
+		{
+			return;
+		}
+
+		// 弹药打空后服务器结束本轮；等待结果复制、补播与本地 hold 释放完成。
+		AmmoPredictionSettleStartTime = GetWorld()->GetTimeSeconds();
+		bAmmoPredictionSettleStarted = true;
+		return;
+	}
+
+	if (!IsAmmoPredictionClientSampleFresh(StepConfirmedBackfill) ||
+		GetWorld()->GetTimeSeconds() - AmmoPredictionSettleStartTime < SettleSeconds + BackfillHoldSeconds)
+	{
+		return;
+	}
+
+	const FShooterAmmoPredictionObservation& Sample = AmmoPredictionLatest;
+	if (Sample.bFireActive || Sample.bReloadActive)
+	{
+		return;
+	}
+
+	const int32 FeedbackDelta = Sample.OwnerFeedbackCount - AmmoPredictionBefore.OwnerFeedbackCount;
+	const int32 BackfillDelta = Sample.ConfirmedBackfillCount - AmmoPredictionBefore.ConfirmedBackfillCount;
+	// 目标语义：每个 Server Accepted Shot 恰好一次 Owner 表现。
+	// 允许本地 cadence 先抢到少量预测，但 预测数 + 补播数 必须等于服务器真实发数，且不得有 phantom 残留。
+	const bool bConverged = ShotDelta == BackfillMagazine &&
+		FeedbackDelta + BackfillDelta == ShotDelta && Sample.PendingShots == 0 &&
+		Sample.LedgerProcessedShots == ShotDelta &&
+		Sample.LedgerPredictedShots + Sample.LedgerBackfilledShots == ShotDelta &&
+		Sample.bLedgerResolved && Sample.UnresolvedLedgerCount == 0;
+	const FString Detail = FString::Printf(
+		TEXT("ServerShots=%d ServerMag=%d OwnerFeedbackDelta=%d BackfillDelta=%d Pending=%d ")
+		TEXT("Ledger(P=%d S=%d B=%d Resolved=%d Unresolved=%d)"),
+		ShotDelta,
+		Weapon->GetBulletCount(),
+		FeedbackDelta,
+		BackfillDelta,
+		Sample.PendingShots,
+		Sample.LedgerPredictedShots,
+		Sample.LedgerProcessedShots,
+		Sample.LedgerBackfilledShots,
+		Sample.bLedgerResolved ? 1 : 0,
+		Sample.UnresolvedLedgerCount);
+	ConcludeAmmoPredictionCase(TEXT("ConfirmedBackfill"), bConverged, Detail);
+	StartAmmoPredictionStep(StepPredictedAccepted);
+}
+
+void AShooterNetworkTestCoordinator::RunAmmoPredictionPredictedAcceptedStep()
+{
+	using namespace ShooterAmmoPredictionNetworkTests;
+
+	AShooterWeapon* Weapon = AmmoPredictionWeapon.Get();
+	if (!Weapon)
+	{
+		return;
+	}
+
+	if (!bAmmoPredictionLateRejectFixtureSet)
+	{
+		bAmmoPredictionLateRejectFixtureSet = true;
+		SetReloadTestAmmo(Weapon, BackfillMagazine, 0);
+		return;
+	}
+
+	if (!bAmmoPredictionStepCommandSent)
+	{
+		if (!IsAmmoPredictionClientSampleFresh(StepPredictedAccepted))
+		{
+			return;
+		}
+		const FShooterAmmoPredictionObservation& Ready = AmmoPredictionLatest;
+		if (!Ready.bValid || Ready.MagazineAmmo != BackfillMagazine || Ready.PendingShots != 0 ||
+			Ready.bFireActive || Ready.bReloadActive || Ready.bReloading)
+		{
+			return;
+		}
+
+		bAmmoPredictionStepCommandSent = true;
+		ClientSubmitAmmoPredictionFire(StepPredictedAccepted);
 		return;
 	}
 
@@ -434,52 +673,35 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionBudgetVetoStep()
 		{
 			return;
 		}
-		if (ProjectileSpawnCount - AmmoPredictionProjectilesBefore != 1)
-		{
-			FailTest(TEXT("Budget-veto fixture expected exactly one authority projectile"));
-			bAmmoPredictionFinished = true;
-			return;
-		}
 		AmmoPredictionSettleStartTime = GetWorld()->GetTimeSeconds();
 		bAmmoPredictionSettleStarted = true;
 		return;
 	}
 
-	if (!IsAmmoPredictionClientSampleFresh(StepBudgetVeto) || GetWorld()->GetTimeSeconds() - AmmoPredictionSettleStartTime < SettleSeconds)
+	if (!IsAmmoPredictionClientSampleFresh(StepPredictedAccepted) ||
+		GetWorld()->GetTimeSeconds() - AmmoPredictionSettleStartTime < SettleSeconds)
 	{
 		return;
 	}
 
 	const FShooterAmmoPredictionObservation& Sample = AmmoPredictionLatest;
-	const int32 ActivationDelta = Sample.OwnerFireActivationCount - AmmoPredictionBefore.OwnerFireActivationCount;
 	const int32 FeedbackDelta = Sample.OwnerFeedbackCount - AmmoPredictionBefore.OwnerFeedbackCount;
-	const int32 ConfirmationDelta = Sample.OwnerConfirmationCount - AmmoPredictionBefore.OwnerConfirmationCount;
-	if (ActivationDelta < 1)
-	{
-		// 没有建立本地动作边界：这是证据不足，不是 H-A3 的预算否决。
-		UE_LOG(
-			LogShootGame,
-			Display,
-			TEXT("AMMO_PREDICTION_EVIDENCE_GAP Case=BudgetVeto Reason=NoLocalActivation Shots=%d Mag=%d"),
-			ShotDelta,
-			Sample.MagazineAmmo);
-	}
-	else
-	{
-		const bool bConverged = FeedbackDelta >= 1 && ConfirmationDelta >= 1;
-		const FString Detail = FString::Printf(
-			TEXT("AuthorityShots=%d ServerMag=%d OwnerMag=%d Pending=%d Predicted=%d ")
-			TEXT("ActivationDelta=%d FeedbackDelta=%d ConfirmationDelta=%d"),
-			ShotDelta,
-			Weapon->GetBulletCount(),
-			Sample.MagazineAmmo,
-			Sample.PendingShots,
-			Sample.PredictedMagazineAmmo,
-			ActivationDelta,
-			FeedbackDelta,
-			ConfirmationDelta);
-		ConcludeAmmoPredictionCase(TEXT("BudgetVeto"), bConverged, Detail);
-	}
+	const int32 BackfillDelta = Sample.ConfirmedBackfillCount - AmmoPredictionBefore.ConfirmedBackfillCount;
+	const bool bConverged = ShotDelta == 1 && FeedbackDelta == 1 && BackfillDelta == 0 &&
+		Sample.PendingShots == 0 && Sample.LedgerPredictedShots == 1 && Sample.LedgerProcessedShots == 1 &&
+		Sample.LedgerBackfilledShots == 0 && Sample.bLedgerResolved && Sample.UnresolvedLedgerCount == 0;
+	const FString Detail = FString::Printf(
+		TEXT("ServerShots=%d OwnerFeedbackDelta=%d BackfillDelta=%d Pending=%d ")
+		TEXT("Ledger(P=%d S=%d B=%d Resolved=%d)"),
+		ShotDelta,
+		FeedbackDelta,
+		BackfillDelta,
+		Sample.PendingShots,
+		Sample.LedgerPredictedShots,
+		Sample.LedgerProcessedShots,
+		Sample.LedgerBackfilledShots,
+		Sample.bLedgerResolved ? 1 : 0);
+	ConcludeAmmoPredictionCase(TEXT("PredictedAccepted"), bConverged, Detail);
 	StartAmmoPredictionStep(StepLateReject);
 }
 
@@ -565,10 +787,11 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionLateRejectStep()
 	else
 	{
 		const bool bConverged = Sample.PendingShots == 0 &&
-			Sample.PredictedMagazineAmmo == RejectMagazine && Sample.MagazineAmmo == RejectMagazine;
+			Sample.PredictedMagazineAmmo == RejectMagazine && Sample.MagazineAmmo == RejectMagazine &&
+			Sample.bLedgerResolved && Sample.UnresolvedLedgerCount == 0;
 		const FString Detail = FString::Printf(
 			TEXT("ServerMag=%d ServerShots=%d LocalRejects=%d OwnerMag=%d Pending=%d Predicted=%d ")
-			TEXT("ActivationDelta=%d FeedbackDelta=%d"),
+			TEXT("ActivationDelta=%d FeedbackDelta=%d LedgerResolved=%d Unresolved=%d"),
 			Weapon->GetBulletCount(),
 			Weapon->GetAuthorityShotCountForAutomationTest() - AmmoPredictionAuthorityShotsBefore,
 			AmmoPredictionAuthorityRejects - AmmoPredictionAuthorityRejectsBefore,
@@ -576,14 +799,99 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionLateRejectStep()
 			Sample.PendingShots,
 			Sample.PredictedMagazineAmmo,
 			ActivationDelta,
-			FeedbackDelta);
+			FeedbackDelta,
+			Sample.bLedgerResolved ? 1 : 0,
+			Sample.UnresolvedLedgerCount);
 		ConcludeAmmoPredictionCase(TEXT("LateReject"), bConverged, Detail);
 		if (bConverged)
 		{
-			// H-A2 修复的定向验收标记：H-A1 / H-A3 仍保持 MISMATCH 观察，不由本标记代替。
+			// H-A2 修复的定向验收标记：CaughtUp 不再参与结清，本标记只表示拒绝退款收敛。
 			UE_LOG(LogShootGame, Display, TEXT("AUTOMATION_TEST_AMMO_PREDICTION_H_A2_SUCCESS"));
 		}
 	}
+	StartAmmoPredictionStep(StepReloadLifecycle);
+}
+
+void AShooterNetworkTestCoordinator::RunAmmoPredictionReloadLifecycleStep()
+{
+	using namespace ShooterAmmoPredictionNetworkTests;
+
+	AShooterWeapon* Weapon = AmmoPredictionWeapon.Get();
+	if (!Weapon)
+	{
+		return;
+	}
+
+	if (!bAmmoPredictionLateRejectFixtureSet)
+	{
+		bAmmoPredictionLateRejectFixtureSet = true;
+		const int32 Size = Weapon->GetMagazineSize();
+		const int32 Shortfall = FMath::Min(ReloadShortfall, FMath::Max(0, Size - 1));
+		// 备弹给足：Hold 期间会先打掉几发，Reload 必须能补满到容量，便于断言完成态。
+		SetReloadTestAmmo(Weapon, Size - Shortfall, Size);
+		return;
+	}
+
+	if (!bAmmoPredictionStepCommandSent)
+	{
+		if (!IsAmmoPredictionClientSampleFresh(StepReloadLifecycle))
+		{
+			return;
+		}
+		const FShooterAmmoPredictionObservation& Ready = AmmoPredictionLatest;
+		if (!Ready.bValid || Ready.bReloading || Ready.bReloadActive || Ready.bFireActive ||
+			Ready.MagazineAmmo >= Weapon->GetMagazineSize() || Weapon->GetReserveAmmo() <= 0)
+		{
+			return;
+		}
+
+		// Hold 期间触发 Reload：Reload PreActivate 会取消活动中的 Fire，验证取消后账本收敛。
+		bAmmoPredictionStepCommandSent = true;
+		ClientSubmitAmmoPredictionHoldFire(StepReloadLifecycle, ReloadHoldSeconds, 0.0f,
+			/*bReloadDuringHold*/ true);
+		return;
+	}
+
+	if (!IsAmmoPredictionClientSampleFresh(StepReloadLifecycle))
+	{
+		return;
+	}
+	const FShooterAmmoPredictionObservation& Sample = AmmoPredictionLatest;
+	if (!bAmmoPredictionSettleStarted)
+	{
+		const bool bReloadFinished = !Sample.bFireActive && !Sample.bReloadActive && !Sample.bReloading &&
+			Sample.MagazineAmmo == Weapon->GetMagazineSize();
+		if (!bReloadFinished)
+		{
+			return;
+		}
+		AmmoPredictionSettleStartTime = GetWorld()->GetTimeSeconds();
+		bAmmoPredictionSettleStarted = true;
+		return;
+	}
+
+	if (GetWorld()->GetTimeSeconds() - AmmoPredictionSettleStartTime < SettleSeconds)
+	{
+		return;
+	}
+
+	const int32 ShotDelta = Weapon->GetAuthorityShotCountForAutomationTest() - AmmoPredictionAuthorityShotsBefore;
+	const bool bConverged = !Sample.bFireActive && !Sample.bReloadActive && !Sample.bReloading &&
+		Sample.MagazineAmmo == Weapon->GetMagazineSize() && Sample.PendingShots == 0 &&
+		Sample.UnresolvedLedgerCount == 0 && Sample.bLedgerResolved && ShotDelta >= 0;
+	const FString Detail = FString::Printf(
+		TEXT("ServerShots=%d Mag=%d/%d Pending=%d FireActive=%d ReloadActive=%d Reloading=%d ")
+		TEXT("LedgerResolved=%d Unresolved=%d"),
+		ShotDelta,
+		Sample.MagazineAmmo,
+		Weapon->GetMagazineSize(),
+		Sample.PendingShots,
+		Sample.bFireActive ? 1 : 0,
+		Sample.bReloadActive ? 1 : 0,
+		Sample.bReloading ? 1 : 0,
+		Sample.bLedgerResolved ? 1 : 0,
+		Sample.UnresolvedLedgerCount);
+	ConcludeAmmoPredictionCase(TEXT("ReloadLifecycle"), bConverged, Detail);
 	StartAmmoPredictionStep(StepDone);
 }
 
@@ -730,11 +1038,17 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionServerPhase()
 	case StepSameValueSnapshot:
 		RunAmmoPredictionSameValueStep();
 		return;
-	case StepBudgetVeto:
-		RunAmmoPredictionBudgetVetoStep();
+	case StepConfirmedBackfill:
+		RunAmmoPredictionBackfillStep();
+		return;
+	case StepPredictedAccepted:
+		RunAmmoPredictionPredictedAcceptedStep();
 		return;
 	case StepLateReject:
 		RunAmmoPredictionLateRejectStep();
+		return;
+	case StepReloadLifecycle:
+		RunAmmoPredictionReloadLifecycleStep();
 		return;
 	case StepDone:
 		if (!bAmmoPredictionStepCommandSent)
@@ -744,7 +1058,7 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionServerPhase()
 			UE_LOG(
 				LogShootGame,
 				Display,
-				TEXT("AUTOMATION_TEST_AMMO_PREDICTION_DONE Cases=3 Converged=%d Mismatches=%d"),
+				TEXT("AUTOMATION_TEST_AMMO_PREDICTION_DONE Cases=5 Converged=%d Mismatches=%d"),
 				AmmoPredictionConvergedCount,
 				AmmoPredictionMismatchCount);
 			bAmmoPredictionFinished = true;
@@ -777,6 +1091,15 @@ void AShooterNetworkTestCoordinator::ClientPrepareAmmoPredictionStep_Implementat
 }
 
 void AShooterNetworkTestCoordinator::ClientSubmitAmmoPredictionFire_Implementation(int32 Step)
+{
+}
+
+void AShooterNetworkTestCoordinator::ClientSubmitAmmoPredictionHoldFire_Implementation(int32 Step, float HoldSeconds,
+	float LocalCooldownSeconds, bool bReloadDuringHold)
+{
+}
+
+void AShooterNetworkTestCoordinator::ClientSubmitAmmoPredictionReload_Implementation(int32 Step)
 {
 }
 

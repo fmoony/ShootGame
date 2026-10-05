@@ -5,6 +5,8 @@
 - 源码基线：`3df68e6`；引擎：本机 UE 5.6.1。
 - 当前阶段：只建立针对性复现证据，不修改生产预测语义。
   是否引入 Activation / Shot acknowledgement、是否扩大预测边界，留待复现结果后由用户确认。
+- 2026-10-05 更新：H-A2 修复与 B-light（按 Activation 对账 + 确认补播）已实施，
+  边界与不变量覆盖见下文对应小节；原始复现计划文本保持原样。
 
 ## 1. 目标与边界
 
@@ -190,6 +192,81 @@ H-A1 与 H-A3 保持复现夹具证据，另行决策。
 - 退款只调用既有 `RefundPredictedAmmo`，不写任何权威字段。
 - 两条到达路径（PredictionKey Rejected 委托与 `EndAbility` Rejected）共享幂等入口。
 - 上下文只弱引用 WeaponActor，并在新激活时清理已结清与超额条目。
+
+## B-light 实现的不变量覆盖确认
+
+用户于 2026-10-05 确认实施 B-light：按 `GA_Fire` Activation 对账 Owner 预测与服务器结果，
+服务器结果领先时补播一次「已确认」表现；不扩大预测内容。
+
+### 实现范围
+
+- `AShooterWeapon` 增加 OwnerOnly 的最近 4 轮 `FShooterFireActivationResult` 环：
+  `{ActivationKey, ProcessedShots, bSettled, ActivationSerial}`；
+  `ProcessedShots` 只在服务器 `ConsumeAmmo` 真实提交成功后递增，
+  `bSettled` 在服务器 `EndAbility` 置位；不记录 per-shot id。
+- 拥有端 `GA_Fire` 按 ActivationKey 维护账本：
+  预测发数、已见服务器结果、已补播、已对账预测、补播序号游标与本地尝试序号游标。
+  `PendingPredictedShots` 不再由 `OnRep_MagazineAmmo` 吸收或重订。
+- 结清只由账本完成：
+  - `Processed <= Predicted`：确认对应预测发数并清空剩余 Pending，不补播；
+  - `Processed > Predicted`：先确认全部已预测发数，再按缺口调用
+    `PlayOwnerConfirmedShotFeedback()` 补播恰好一次；
+  - 本地已预测、服务器最终未提交的发数在结清时按 phantom 清理，不补表现。
+- 服务器是否认可本次 Activation 以 `OnConfirmDelegate` / Rejected 为准，
+  CaughtUp 不再充当接受证明。
+- 不新增 per-shot RPC / ShotId、不预测空弹、不推测换弹转移、不增加表现猜测，
+  不改 HUD / Phase B / Projectile / Damage / Manager / Subsystem。
+
+### Invariant 1 Owner Immediate Feedback
+
+- 触及：H-A3 的服务器领先窗口改由「确认补播」补齐；H-A1 同值快照不再依赖数值吸收。
+- 不改变：本地动作边界的产生来源；Reject 不回滚也不补播已播出的预测表现。
+- 新增证据：ConfirmedBackfill 场景 3 发权威射击对应 0 发预测反馈与 3 发确认补播，合计 3 发。
+- 不在范围：画面、声音与后坐力的主观质量。
+
+### Invariant 2 Local Prediction Obeys Weapon Rules
+
+- 触及：`PendingPredictedShots` 只由 Activation 账本确认、phantom 清理、Reject 退还
+  与生命周期复位修改，不再跟随 `MagazineAmmo` 差值。
+- 不改变：本地射速与节拍、弹药门控；预测仍不写任何权威字段。
+- 新增证据：SameValueSnapshot 收敛（Mag=1、Pending=0、Resolved=1）；
+  PredictedAccepted 保持 1 发预测反馈、0 发补播。
+- 不在范围：空弹预测与换弹期间预测仍被禁止，未扩大预测边界。
+
+### Invariant 3 Server Is Final Authority
+
+- 触及：无；`ProcessedShots` 只读服务器提交计数，客户端不反写。
+- 不改变：Ammo、Reload、Projectile 的权威边界。
+- 新增证据：每个场景的权威射击、权威弹药与 Projectile 增量由服务器日志给出。
+- 不在范围：Hit / Damage / Death / Score。
+
+### Invariant 4 Remote Is Confirmed Only
+
+- 触及：无；新结果记录为 `COND_OwnerOnly`，不进入远端表现通道。
+- 不改变：远端表现只来自服务器确认。
+- 新增证据：补播只在拥有端目标执行；本夹具不构造远端第三人称表现。
+- 不在范围：远端动画与音效质量。
+
+### Invariant 5 Exactly One Authority Result
+
+- 触及：一次 Activation 的每发服务器 Shot 只能对应一次预测或一次补播。
+- 不改变：一次认可动作只产生一份权威结果。
+- 新增证据：PredictedAccepted 无补播；ConfirmedBackfill 补播数等于缺口数；
+  LateReject 恰好一次退还且账本结清；ReloadLifecycle 无未结清账本。
+- 不在范围：权威事务计数不变。
+
+### B-light 实现约束
+
+- OwnerOnly 结果记录只承担服务器提交计数与结束标记，不承担预测账本；
+  预测账本只存在于拥有端 `GA_Fire` 实例内。
+- 补播只调用 `PlayOwnerConfirmedShotFeedback()`：
+  不消费 Pending、不推进本地节拍、不发 RPC、不生成 Projectile、不写 Ammo。
+- 同一次 Activation 的补播游标单调向前；
+  本地节拍追上已被服务器确认补播的序号时跳过该次本地尝试，不重复播放。
+- 账本在新激活时清理已结清与超额条目（未结清上限 4）；
+  `FPredictionKey::Current` 为 int16，槽位键以 int32 存储，不按数值大小判断新旧。
+- 生命周期边界（Owner 变化、归还池、Destroy、重新绑定）清空结果环与 Pending，
+  防止上一持有者状态污染下一轮。
 
 ## 7. 实施顺序
 
