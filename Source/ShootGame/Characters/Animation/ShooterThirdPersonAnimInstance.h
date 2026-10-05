@@ -27,6 +27,9 @@ class SHOOTGAME_API UShooterThirdPersonAnimInstance : public UShooterAnimInstanc
 	GENERATED_BODY()
 
 public:
+	/** TEMP：用更新前后的局部 Tag 快照记录变化，不保存额外成员状态。 */
+	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
+
 	/** 世界空间基础瞄准方向；本地拥有者直接使用，观察端用于目标安全投影与 IK 求解参考。 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter Aim")
 	FVector AimDirectionWorld = FVector::ZeroVector;
@@ -232,8 +235,8 @@ protected:
 	/** 已读取的最新身份；ID 和 Tag 的到达不假定固定先后顺序。 */
 	uint32 ObservedReloadId = 0;
 
-	/** ID 先于 Reload Tag 到达时保留请求，待现有 Tag 门控允许表现。 */
-	bool bNewReloadIdentityPending = false;
+	/** 最近已排入图初始化请求的身份；不代表动画已播放，由实际求值单独取证。 */
+	uint32 LastHandledReloadId = 0;
 
 	/** 只在动画安全更新点消费；不建立第二套 Gameplay 状态机。 */
 	bool bReloadGraphInitializationPending = false;
@@ -243,9 +246,6 @@ protected:
 
 	/** 上次实际求值结果，用于低噪声进入 / 退出诊断。 */
 	bool bWasReloadPresentationActive = false;
-
-	/** 上次采集的 Tag 快照，只用于变化日志。 */
-	bool bLastLoggedReloading = false;
 
 #if WITH_DEV_AUTOMATION_TESTS
 	int32 NewReloadPresentationCount = 0;

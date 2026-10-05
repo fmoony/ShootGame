@@ -160,12 +160,21 @@ void UShooterThirdPersonAnimInstance::NativeUninitializeAnimation()
 	ClearWeaponStaticBindings();
 	ReloadIdentityPlayerState.Reset();
 	ObservedReloadId = 0;
-	bNewReloadIdentityPending = false;
+	LastHandledReloadId = 0;
 	bReloadGraphInitializationPending = false;
 	bReloadGraphInitialized = false;
 	bWasReloadPresentationActive = false;
-	bLastLoggedReloading = false;
 	Super::NativeUninitializeAnimation();
+}
+
+void UShooterThirdPersonAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
+{
+	const bool bPreviouslyReloading = bIsReloading;
+	Super::NativeUpdateAnimation(DeltaSeconds);
+	if (bPreviouslyReloading != bIsReloading)
+	{
+		LogReloadPresentation(TEXT("ReloadingTagChanged"));
+	}
 }
 
 void UShooterThirdPersonAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds)
@@ -194,7 +203,9 @@ void UShooterThirdPersonAnimInstance::NativePostEvaluateAnimation()
 	Super::NativePostEvaluateAnimation();
 	const FAnimNode_StateMachine* Machine = GetStateMachineInstanceFromName(TEXT("WeaponAction"));
 	const bool bActive = Machine && Machine->GetCurrentStateName() == TEXT("Reload");
-	if (bActive && (!bWasReloadPresentationActive || bReloadGraphInitialized))
+	const bool bEnteredReloadState = bActive && !bWasReloadPresentationActive;
+	const bool bRestartedReloadState = bActive && bReloadGraphInitialized;
+	if (bEnteredReloadState || bRestartedReloadState)
 	{
 #if WITH_DEV_AUTOMATION_TESTS
 		++ReloadPresentationEntryCount;
@@ -225,26 +236,27 @@ void UShooterThirdPersonAnimInstance::RefreshReloadPresentationIdentity(const AS
 	{
 		ReloadIdentityPlayerState = PlayerState;
 		ObservedReloadId = 0;
-		bNewReloadIdentityPending = false;
+		LastHandledReloadId = 0;
 		bReloadGraphInitializationPending = false;
 	}
 	if (PlayerState->GetReloadId() != ObservedReloadId)
 	{
 		ObservedReloadId = PlayerState->GetReloadId();
-		bNewReloadIdentityPending = ObservedReloadId != 0;
 		bReloadPresentationRecovering = false;
 		LogReloadPresentation(TEXT("ObservedIdRecoveryCleared"));
 	}
-	if (bNewReloadIdentityPending && bIsReloading)
+	const bool bHasUnhandledReloadId = ObservedReloadId != 0 && ObservedReloadId != LastHandledReloadId;
+	if (!bHasUnhandledReloadId || !bIsReloading)
 	{
-		bNewReloadIdentityPending = false;
-		bReloadPresentationRecovering = false;
-		bReloadGraphInitializationPending = true;
-#if WITH_DEV_AUTOMATION_TESTS
-		++NewReloadPresentationCount;
-#endif
-		LogReloadPresentation(TEXT("NewReload"));
+		return;
 	}
+	LastHandledReloadId = ObservedReloadId;
+	bReloadPresentationRecovering = false;
+	bReloadGraphInitializationPending = true;
+#if WITH_DEV_AUTOMATION_TESTS
+	++NewReloadPresentationCount;
+#endif
+	LogReloadPresentation(TEXT("NewReload"));
 }
 
 void UShooterThirdPersonAnimInstance::LogReloadPresentation(const TCHAR* Event) const
@@ -527,11 +539,6 @@ void UShooterThirdPersonAnimInstance::UpdateShooterAnimationData(float DeltaSeco
 	}
 
 	// Gameplay Reload 结束后清除本地表现闩锁；下一次 Reload 才能重新进入动作状态。
-	if (bLastLoggedReloading != bIsReloading)
-	{
-		bLastLoggedReloading = bIsReloading;
-		LogReloadPresentation(TEXT("ReloadingTagChanged"));
-	}
 	RefreshReloadPresentationIdentity(Character);
 	if (!bIsReloading)
 	{
