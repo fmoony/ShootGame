@@ -578,6 +578,11 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionLateRejectStep()
 			ActivationDelta,
 			FeedbackDelta);
 		ConcludeAmmoPredictionCase(TEXT("LateReject"), bConverged, Detail);
+		if (bConverged)
+		{
+			// H-A2 修复的定向验收标记：H-A1 / H-A3 仍保持 MISMATCH 观察，不由本标记代替。
+			UE_LOG(LogShootGame, Display, TEXT("AUTOMATION_TEST_AMMO_PREDICTION_H_A2_SUCCESS"));
+		}
 	}
 	StartAmmoPredictionStep(StepDone);
 }

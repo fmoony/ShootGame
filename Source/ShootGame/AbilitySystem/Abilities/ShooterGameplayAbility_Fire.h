@@ -147,6 +147,55 @@ private:
 	/** P1 统一预测日志标记；仅开发构建输出。 */
 	void LogFirePredictionMarker(const TCHAR* Marker, const AShooterWeapon* Weapon, int32 ShotOrdinal) const;
 
+	/**
+	 * 一次本地预测激活的退款上下文：在 Reject 结果到达前按 PredictionKey 保留。
+	 *
+	 * 拥有端释放输入会在 Reject 到达前结束实例并清空 CachedWeapon；
+	 * 只靠 EndAbility 的 Rejected 分支会丢失原消费的武器与发数。
+	 * 本上下文不复制任何权威状态，只记本地预测消费，供迟到 Reject 精确退还。
+	 */
+	struct FPredictedFireRefundContext
+	{
+		/** 只弱引用 WeaponActor：池化 / 切枪 / 销毁后不得被退款路径延长生命周期。 */
+		TWeakObjectPtr<AShooterWeapon> Weapon;
+
+		/** 本次激活已预测消费的发数。 */
+		int32 PredictedShots = 0;
+
+		/** 表示本次激活已经结清（已退还或无需退还），保证两条路径只处理一次。 */
+		bool bResolved = false;
+	};
+
+	/** 按 PredictionKey 索引的迟到 Reject 退款上下文；只在拥有端本地预测路径写入。 */
+	TMap<int32, FPredictedFireRefundContext> PendingRefundContexts;
+
+	/**
+	 * 登记本次本地预测激活的退款上下文。
+	 * 返回后由调用方在对应 PredictionKey 上绑定 Rejected 委托。
+	 */
+	void RegisterPredictedActivationRefund(int32 PredictionKey, AShooterWeapon* Weapon);
+
+	/** 记录一次本地预测消费，使迟到 Reject 能退还准确发数。 */
+	void RecordPredictedShotForRefund(int32 PredictionKey);
+
+	/** PredictionKey Rejected 委托：不依赖 Ability 实例是否仍然活动。 */
+	void HandlePredictedActivationRejected(int32 PredictionKey);
+
+	/** PredictionKey CaughtUp 委托：确认到达后本次激活不再可能被拒，可回收上下文。 */
+	void HandlePredictedActivationCaughtUp(int32 PredictionKey);
+
+	/**
+	 * Reject 到达时的幂等退还入口。
+	 * 上下文存在时按上下文退还；不存在时保留 EndAbility 的原退还语义。
+	 */
+	void RefundPredictedActivation(int32 PredictionKey, AShooterWeapon* FallbackWeapon, int32 FallbackShots);
+
+	/** 新激活开始时清理已结清与超额上下文，避免拒绝 / 确认通道异常时无限累积。 */
+	void PrunePredictedRefundContexts(int32 NewPredictionKey);
+
+	/** 本次拥有端本地预测激活的 PredictionKey；非拥有端保持 0。 */
+	int32 EffectivePredictionKey = 0;
+
 	/** 激活时缓存的武器；权威端控武器，拥有端控表现；EndAbility 只清理仍指向自己的武器。 */
 	TWeakObjectPtr<AShooterWeapon> CachedWeapon;
 
@@ -195,6 +244,16 @@ public:
 
 	/** 测试观察接口：本次激活已提交的本地反馈次数。 */
 	int32 GetPredictedShotOrdinalForTest() const { return PredictedShotOrdinal; }
+
+	/** 测试观察接口：尚未结清的迟到 Reject 退款上下文数量。 */
+	int32 GetPendingRefundContextCountForTest() const { return PendingRefundContexts.Num(); }
+
+	/** 测试观察接口：指定预测身份是否已经结清。 */
+	bool IsPredictionRefundResolvedForTest(int32 PredictionKey) const
+	{
+		const FPredictedFireRefundContext* Context = PendingRefundContexts.Find(PredictionKey);
+		return Context != nullptr && Context->bResolved;
+	}
 
 	/** 测试观察接口：Reject / EndAbility 后不得继续持有武器。 */
 	bool HasCachedWeaponForTest() const { return CachedWeapon.IsValid(); }

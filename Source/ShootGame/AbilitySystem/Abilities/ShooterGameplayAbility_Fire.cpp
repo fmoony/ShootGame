@@ -204,14 +204,28 @@ void UShooterGameplayAbility_Fire::ActivateAbility(
 	// 双端缓存：权威端控武器，拥有端控表现。
 	CachedWeapon = Weapon;
 
-	// 两个按激活复位的本地状态：反馈序号与本次预测发数（Rejected 退还只针对本次 activation）。
+	// 三个按激活复位的本地状态：反馈序号、本次预测发数与迟到 Reject 归因身份。
 	// 不复位会让日志的 ShotOrdinal 跨 Burst 累积，也会让退还额度跨激活继承。
 	PredictedShotOrdinal = 0;
 	PredictedShotsThisActivation = 0;
+	EffectivePredictionKey = 0;
 
 	// Owner Local：本地预测表现路径。
 	if (bOwnerLocalView && CachedWeapon.IsValid())
 	{
+		// 迟到 Reject 退款：必须在建立本地预测消费之前登记，并直接绑定到 PredictionKey。
+		// 拥有端释放输入会在 Reject 到达前结束实例并清空 CachedWeapon，
+		// 只靠 EndAbility 的 Rejected 分支会丢失原消费的武器与发数。
+		FPredictionKey ActivationPredictionKey = ActivationInfo.GetActivationPredictionKey();
+		EffectivePredictionKey = ActivationPredictionKey.Current;
+		RegisterPredictedActivationRefund(EffectivePredictionKey, CachedWeapon.Get());
+		if (ActivationPredictionKey.IsValidKey())
+		{
+			ActivationPredictionKey.NewRejectedDelegate().BindUObject(
+				this, &UShooterGameplayAbility_Fire::HandlePredictedActivationRejected, EffectivePredictionKey);
+			ActivationPredictionKey.NewCaughtUpDelegate().BindUObject(
+				this, &UShooterGameplayAbility_Fire::HandlePredictedActivationCaughtUp, EffectivePredictionKey);
+		}
 		StartOwnerFirePath(*CachedWeapon.Get());
 	}
 
@@ -252,7 +266,8 @@ void UShooterGameplayAbility_Fire::EndAbility(
 		// 退还只会反向过冲，因此绝不按 Cancelled 退还。
 		if (ActivationInfo.ActivationMode == EGameplayAbilityActivationMode::Rejected)
 		{
-			CachedWeapon->RefundPredictedAmmo(PredictedShotsThisActivation);
+			RefundPredictedActivation(ActivationInfo.GetActivationPredictionKey().Current, CachedWeapon.Get(),
+				PredictedShotsThisActivation);
 		}
 
 		CachedWeapon->OnOutOfAmmo.RemoveAll(this);
@@ -324,8 +339,10 @@ bool UShooterGameplayAbility_Fire::TryOwnerPredictedShot(AShooterWeapon& Weapon)
 		return false;
 	}
 
-	// 记入本次 activation 的预测发数，供 Rejected 时一次性退还。
+	// 记入本次 activation 的预测发数，供 Rejected 时一次性退还；
+	// 同时按 PredictionKey 记账，保证实例已结束的迟到 Reject 仍能退还。
 	++PredictedShotsThisActivation;
+	RecordPredictedShotForRefund(EffectivePredictionKey);
 
 	// 本地节拍：这是唯一推进 LocalFireCooldown 的地方，
 	// 与 Montage / Niagara / Sound 是否真的播放成功无关。
@@ -377,6 +394,114 @@ void UShooterGameplayAbility_Fire::StopOwnerFireLoop()
 	{
 		bPredictedFeedbackActive = false;
 		LogFirePredictionMarker(TEXT("FIRE_LOCAL_FEEDBACK_STOPPED"), CachedWeapon.Get(), PredictedShotOrdinal);
+	}
+}
+
+void UShooterGameplayAbility_Fire::RegisterPredictedActivationRefund(int32 PredictionKey, AShooterWeapon* Weapon)
+{
+	if (PredictionKey <= 0 || !Weapon)
+	{
+		return;
+	}
+
+	PrunePredictedRefundContexts(PredictionKey);
+	FPredictedFireRefundContext& Context = PendingRefundContexts.FindOrAdd(PredictionKey);
+	Context.Weapon = Weapon;
+	Context.PredictedShots = 0;
+	Context.bResolved = false;
+}
+
+void UShooterGameplayAbility_Fire::RecordPredictedShotForRefund(int32 PredictionKey)
+{
+	FPredictedFireRefundContext* Context = PendingRefundContexts.Find(PredictionKey);
+	if (Context && !Context->bResolved)
+	{
+		++Context->PredictedShots;
+	}
+}
+
+void UShooterGameplayAbility_Fire::HandlePredictedActivationRejected(int32 PredictionKey)
+{
+	// 委托在 ClientActivateAbilityFailed 里先于实例匹配与 K2_EndAbility 广播；
+	// 即使实例已经结束、CachedWeapon 已清空，也能按上下文退还。
+	RefundPredictedActivation(PredictionKey, nullptr, 0);
+}
+
+void UShooterGameplayAbility_Fire::HandlePredictedActivationCaughtUp(int32 PredictionKey)
+{
+	if (FPredictedFireRefundContext* Context = PendingRefundContexts.Find(PredictionKey))
+	{
+		// 确认与拒绝互斥：确认到达后本次激活不可能再被拒，不再保留退款额度。
+		// 已播出的本地预测消费仍由后续弹药快照按既有差值语义吸收。
+		Context->bResolved = true;
+	}
+}
+
+void UShooterGameplayAbility_Fire::RefundPredictedActivation(int32 PredictionKey, AShooterWeapon* FallbackWeapon, int32 FallbackShots)
+{
+	if (FPredictedFireRefundContext* Context = PendingRefundContexts.Find(PredictionKey))
+	{
+		if (Context->bResolved)
+		{
+			// Reject 委托与 EndAbility 都可能到达，本次激活只允许结清一次。
+			return;
+		}
+
+		Context->bResolved = true;
+		AShooterWeapon* Weapon = Context->Weapon.Get();
+		if (!Weapon)
+		{
+			UE_LOG(LogShootGame, Display, TEXT("FIRE_PREDICTION_REFUND_SKIPPED Key=%d Amount=%d Reason=WeaponGone"),
+				PredictionKey, Context->PredictedShots);
+			return;
+		}
+
+		if (Context->PredictedShots > 0)
+		{
+			Weapon->RefundPredictedAmmo(Context->PredictedShots);
+			UE_LOG(LogShootGame, Display, TEXT("FIRE_PREDICTION_REFUND Key=%d Amount=%d Weapon=%s Source=Context"),
+				PredictionKey, Context->PredictedShots, *GetNameSafe(Weapon));
+		}
+		return;
+	}
+
+	// 没有登记上下文（例如 PredictionKey 无效）：保留 EndAbility 原有退还语义。
+	if (FallbackWeapon && FallbackShots > 0)
+	{
+		FallbackWeapon->RefundPredictedAmmo(FallbackShots);
+		UE_LOG(LogShootGame, Display, TEXT("FIRE_PREDICTION_REFUND Key=%d Amount=%d Weapon=%s Source=Fallback"),
+			PredictionKey, FallbackShots, *GetNameSafe(FallbackWeapon));
+	}
+}
+
+void UShooterGameplayAbility_Fire::PrunePredictedRefundContexts(int32 NewPredictionKey)
+{
+	for (auto It = PendingRefundContexts.CreateIterator(); It; ++It)
+	{
+		if (It->Value.bResolved)
+		{
+			It.RemoveCurrent();
+		}
+	}
+
+	// 只做数量上限保护：PredictionKey 是 int16，不能按大小判断新旧。
+	constexpr int32 MaxPendingRefundContexts = 4;
+	while (PendingRefundContexts.Num() >= MaxPendingRefundContexts)
+	{
+		bool bRemoved = false;
+		for (auto It = PendingRefundContexts.CreateIterator(); It; ++It)
+		{
+			if (It->Key != NewPredictionKey)
+			{
+				It.RemoveCurrent();
+				bRemoved = true;
+				break;
+			}
+		}
+		if (!bRemoved)
+		{
+			break;
+		}
 	}
 }
 
