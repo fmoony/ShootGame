@@ -76,7 +76,123 @@ struct FShooterReloadIdentityObservation
 	bool bSawRecovery = false;
 };
 
-/** Ammo Prediction 复现夹具的拥有端快照；无效目标保留为无效证据，不折算为零。 */
+/**
+ * 夹具读取的 NetConnection 累计网络计数快照（窗口差值口径）。
+ *
+ * 使用累计系列 `InTotalBytes` / `OutTotalBytes` / `InTotalPackets` / `OutTotalPackets`：
+ * 它们在收包 / 发包路径上无条件累加，且**不在** `UNetConnection::Tick` 的 StatPeriod 重置列表内
+ * （NetConnection.cpp:4619-4631），因此可以安全做窗口差值。
+ *
+ * 刻意不使用 `InBytes` / `OutBytes` / `InPackets` / `OutPackets`：它们在
+ * `UNetConnection::Tick` 里被"除以统计周期实际时长"后写入 `*PerSecond`，随即清零重置
+ * （NetConnection.cpp:4608-4628），是瞬时速率而不是累计值，做差值没有意义。
+ * 速率口径请用 FShooterAmmoPredictionNetRateWindow 的采样平均值 / 峰值。
+ */
+struct FShooterAmmoPredictionNetCounters
+{
+	/** 连接不存在时为 false；此时所有字段不得被当作 0 使用。 */
+	bool bValid = false;
+	uint32 InBytes = 0;
+	uint32 OutBytes = 0;
+	uint32 InPackets = 0;
+	uint32 OutPackets = 0;
+	/** `UNetDriver::TotalRPCsCalled`：本机累计发起的 RPC 次数（Driver 级，非连接级）。 */
+	uint32 RPCsCalled = 0;
+};
+
+/**
+ * 对一个 NetConnection 的瞬时速率做窗口采样：平均值 + 峰值。
+ *
+ * 采样对象是 `InBytesPerSecond` / `OutBytesPerSecond` / `InPacketsPerSecond` /
+ * `OutPacketsPerSecond`：`UNetConnection::Tick` 每个 StatPeriod（`StatPeriod` 默认 1s）
+ * 用"本周期累计值 / 实际时长"刷新它们一次，所以窗口内只能周期采样后取平均与峰值，
+ * 不能做差值。采样上限 10Hz（比底层刷新更密只会重复同一个瞬时值，不会失真）。
+ * 连接解析失败时 `bConnectionResolved` 保持 false：这是证据缺口，不得用 0 代替。
+ */
+struct FShooterAmmoPredictionNetRateWindow
+{
+	static constexpr float SampleIntervalSeconds = 0.1f;
+
+	bool bConnectionResolved = false;
+	int32 Samples = 0;
+	float LastSampleTime = -1.0f;
+	double SumInBytesPerSecond = 0.0;
+	double SumOutBytesPerSecond = 0.0;
+	double SumInPacketsPerSecond = 0.0;
+	double SumOutPacketsPerSecond = 0.0;
+	float PeakInBytesPerSecond = 0.0f;
+	float PeakOutBytesPerSecond = 0.0f;
+	float PeakInPacketsPerSecond = 0.0f;
+	float PeakOutPacketsPerSecond = 0.0f;
+
+	void Reset()
+	{
+		bConnectionResolved = false;
+		Samples = 0;
+		LastSampleTime = -1.0f;
+		SumInBytesPerSecond = 0.0;
+		SumOutBytesPerSecond = 0.0;
+		SumInPacketsPerSecond = 0.0;
+		SumOutPacketsPerSecond = 0.0;
+		PeakInBytesPerSecond = 0.0f;
+		PeakOutBytesPerSecond = 0.0f;
+		PeakInPacketsPerSecond = 0.0f;
+		PeakOutPacketsPerSecond = 0.0f;
+	}
+
+	bool CanSample(float Now) const
+	{
+		return LastSampleTime < 0.0f || Now - LastSampleTime >= SampleIntervalSeconds;
+	}
+
+	void Accumulate(float Now, float InBytesRate, float OutBytesRate, float InPacketRate, float OutPacketRate)
+	{
+		bConnectionResolved = true;
+		++Samples;
+		LastSampleTime = Now;
+		SumInBytesPerSecond += InBytesRate;
+		SumOutBytesPerSecond += OutBytesRate;
+		SumInPacketsPerSecond += InPacketRate;
+		SumOutPacketsPerSecond += OutPacketRate;
+		PeakInBytesPerSecond = FMath::Max(PeakInBytesPerSecond, InBytesRate);
+		PeakOutBytesPerSecond = FMath::Max(PeakOutBytesPerSecond, OutBytesRate);
+		PeakInPacketsPerSecond = FMath::Max(PeakInPacketsPerSecond, InPacketRate);
+		PeakOutPacketsPerSecond = FMath::Max(PeakOutPacketsPerSecond, OutPacketRate);
+	}
+
+	float GetAverageInBytesPerSecond() const
+	{
+		return Samples > 0 ? static_cast<float>(SumInBytesPerSecond / Samples) : 0.0f;
+	}
+
+	float GetAverageOutBytesPerSecond() const
+	{
+		return Samples > 0 ? static_cast<float>(SumOutBytesPerSecond / Samples) : 0.0f;
+	}
+
+	float GetAverageInPacketsPerSecond() const
+	{
+		return Samples > 0 ? static_cast<float>(SumInPacketsPerSecond / Samples) : 0.0f;
+	}
+
+	float GetAverageOutPacketsPerSecond() const
+	{
+		return Samples > 0 ? static_cast<float>(SumOutPacketsPerSecond / Samples) : 0.0f;
+	}
+};
+
+/**
+ * Ammo Prediction 夹具的拥有端快照；无效目标保留为无效证据，不折算为零。
+ *
+ * 字段口径与「一次 GA_Fire Activation = 恰好一发 Shot」对齐：
+ * - PendingShots 只由这一发的裁决结清（Committed / Rejected），Ammo 复制不参与结清；
+ * - PredictedOwnerFeedbackCount 与 ConfirmedBackfillCount 分别是提前表现与确认补播的实际播放次数，
+ *   ConfirmedBackfillRequestCount 是 GA 侧发出的补播请求次数；
+ * - ShotVerdictCount 是拥有端武器收到的单发裁决通知（ClientShotCommitted）次数；
+ * - UnresolvedShotRecordCount 是拥有端 GA_Fire 上尚未结清的 Shot 记录数；
+ * - bReleaseSettled / ActivationsAtRelease 只在松手后置位，用于断言松手不再产生新激活；
+ * - RefireRate 与 Net* 只在射速测量用例里被断言，但每个步骤都会如实上报。
+ */
 USTRUCT()
 struct FShooterAmmoPredictionObservation
 {
@@ -105,13 +221,17 @@ struct FShooterAmmoPredictionObservation
 	UPROPERTY()
 	int32 HudUnsettledCount = INDEX_NONE;
 	UPROPERTY()
-	int32 OwnerFeedbackCount = INDEX_NONE;
+	int32 PredictedOwnerFeedbackCount = INDEX_NONE;
 	UPROPERTY()
-	int32 OwnerConfirmationCount = INDEX_NONE;
+	int32 ConfirmedBackfillCount = INDEX_NONE;
+	UPROPERTY()
+	int32 ConfirmedBackfillRequestCount = INDEX_NONE;
+	UPROPERTY()
+	int32 ShotVerdictCount = INDEX_NONE;
 	UPROPERTY()
 	int32 OwnerFireActivationCount = 0;
 	UPROPERTY()
-	int32 ConfirmedBackfillCount = INDEX_NONE;
+	int32 OwnerFireRejectCount = 0;
 	UPROPERTY()
 	int32 MontageCount = INDEX_NONE;
 	UPROPERTY()
@@ -121,27 +241,67 @@ struct FShooterAmmoPredictionObservation
 	UPROPERTY()
 	int32 RecoilCount = INDEX_NONE;
 	UPROPERTY()
-	int32 FinalResultCount = INDEX_NONE;
+	int32 UnresolvedShotRecordCount = INDEX_NONE;
 	UPROPERTY()
-	bool bConfirmedQueuePending = false;
+	int32 PeakUnresolvedShotRecords = 0;
 	UPROPERTY()
-	int32 UnresolvedLedgerCount = INDEX_NONE;
+	int32 DistinctPredictionKeyCount = 0;
 	UPROPERTY()
-	int32 PeakUnresolvedLedgers = 0;
-	UPROPERTY()
-	int32 LedgerPredictedShots = INDEX_NONE;
-	UPROPERTY()
-	int32 LedgerProcessedShots = INDEX_NONE;
-	UPROPERTY()
-	int32 LedgerBackfilledShots = INDEX_NONE;
-	UPROPERTY()
-	bool bLedgerResolved = false;
-	UPROPERTY()
-	bool bLedgerServerConfirmed = false;
-	UPROPERTY()
-	int32 OwnerFireRejectCount = 0;
+	int32 FirstPredictionKey = 0;
 	UPROPERTY()
 	int32 LastPredictionKey = 0;
+	UPROPERTY()
+	int32 LastResolvedShotKey = 0;
+	UPROPERTY()
+	bool bLastResolvedShotCommitted = false;
+	UPROPERTY()
+	bool bLastResolvedShotRejectedByEngine = false;
+	UPROPERTY()
+	bool bReleaseSettled = false;
+	UPROPERTY()
+	int32 ActivationsAtRelease = INDEX_NONE;
+	/** 拥有端武器当前的 RefireRate；射速用例要求两端一致，否则测到的是两端节拍之差。 */
+	UPROPERTY()
+	float RefireRate = -1.0f;
+	/** 拥有端网络计数窗口（本步骤起点 → 本次采样）的增量；counter 不可用时保持 INDEX_NONE。 */
+	UPROPERTY()
+	int32 NetInBytes = INDEX_NONE;
+	UPROPERTY()
+	int32 NetOutBytes = INDEX_NONE;
+	UPROPERTY()
+	int32 NetInPackets = INDEX_NONE;
+	UPROPERTY()
+	int32 NetOutPackets = INDEX_NONE;
+	UPROPERTY()
+	int32 NetRPCsCalled = INDEX_NONE;
+	/** 窗口内夹具自身的采样上报次数（含本条）；从 NetRPCsCalled 扣除即得到玩家动作 RPC 数。 */
+	UPROPERTY()
+	int32 NetSampleReports = INDEX_NONE;
+	/** 拥有端网络计数窗口时长（秒）；窗口未开启时为 -1。 */
+	UPROPERTY()
+	float NetWindowSeconds = -1.0f;
+	/** 拥有端连接是否解析成功；false 表示速率证据存在缺口，不得当成 0 速率。 */
+	UPROPERTY()
+	bool bNetConnectionResolved = false;
+	/** 拥有端连接速率窗口的采样次数（上限 10Hz）与平均值 / 峰值。 */
+	UPROPERTY()
+	int32 NetRateSamples = 0;
+	UPROPERTY()
+	float NetInBytesPerSecondAvg = 0.0f;
+	UPROPERTY()
+	float NetInBytesPerSecondPeak = 0.0f;
+	UPROPERTY()
+	float NetOutBytesPerSecondAvg = 0.0f;
+	UPROPERTY()
+	float NetOutBytesPerSecondPeak = 0.0f;
+	UPROPERTY()
+	float NetInPacketsPerSecondAvg = 0.0f;
+	UPROPERTY()
+	float NetInPacketsPerSecondPeak = 0.0f;
+	UPROPERTY()
+	float NetOutPacketsPerSecondAvg = 0.0f;
+	UPROPERTY()
+	float NetOutPacketsPerSecondPeak = 0.0f;
 	UPROPERTY()
 	bool bFireActive = false;
 	UPROPERTY()
@@ -150,6 +310,8 @@ struct FShooterAmmoPredictionObservation
 	bool bReloading = false;
 	UPROPERTY()
 	bool bLocalFireCooldownReady = false;
+	UPROPERTY()
+	bool bWeaponFullAuto = false;
 	UPROPERTY()
 	bool bValid = false;
 };
@@ -225,23 +387,22 @@ private:
 	UFUNCTION(Client, Reliable)
 	void ClientPrepareAmmoPredictionStep(int32 SubjectPlayerId, int32 Step);
 
+	/** 夹具专用：把拥有端 RefireRate 设成夹具指定值，使请求节拍与服务器权威门控使用同一射速。 */
+	UFUNCTION(Client, Reliable)
+	void ClientSetAmmoPredictionRefireRate(int32 Step, float RefireRate);
+
 	UFUNCTION(Client, Reliable)
 	void ClientSubmitAmmoPredictionFire(int32 Step);
 
+	/** HoldSeconds 为按住时长；ReloadAtSeconds < 0 表示本步骤不触发换弹；本地节拍起点在步骤准备时统一复位。 */
 	UFUNCTION(Client, Reliable)
-	void ClientSubmitAmmoPredictionHoldFire(int32 Step, float HoldSeconds, float LocalCooldownSeconds, bool bReloadDuringHold);
-
-	UFUNCTION(Client, Reliable)
-	void ClientSubmitAmmoPredictionReload(int32 Step);
-
-	UFUNCTION(Client, Reliable)
-	void ClientSubmitAmmoPredictionStress(int32 Step);
+	void ClientSubmitAmmoPredictionHoldFire(int32 Step, float HoldSeconds, float LocalCooldownSeconds, float ReloadAtSeconds);
 
 	UFUNCTION(Client, Reliable)
 	void ClientVerifyAmmoPredictionObserver(int32 SubjectPlayerId);
 
 	UFUNCTION(Server, Reliable)
-	void ServerReportAmmoPredictionObserver(bool bValid, int32 BackfillCount, int32 FinalResultCount);
+	void ServerReportAmmoPredictionObserver(bool bValid, int32 PredictedCount, int32 BackfillCount, int32 VerdictCount);
 
 	UFUNCTION(Server, Reliable)
 	void ServerReportAmmoPredictionSample(const FShooterAmmoPredictionObservation& Observation);
@@ -249,13 +410,23 @@ private:
 	void RunAmmoPredictionServerPhase();
 	void SampleAmmoPredictionLocalState();
 	void StartAmmoPredictionStep(int32 Step);
-	void RunAmmoPredictionSameValueStep();
-	void RunAmmoPredictionBackfillStep();
+	/** 单发用例的公共编排：就绪门 → 下发输入 → 等待权威结果 → 结算窗口；返回 true 表示可以断言。 */
+	bool AdvanceAmmoPredictionSingleFireStep(int32 Step, bool bExpectAuthorityReject);
+	void RunAmmoPredictionSemiAutoSingleShotStep();
+	void RunAmmoPredictionFullAutoHoldStep();
 	void RunAmmoPredictionPredictedAcceptedStep();
+	void RunAmmoPredictionPredictedRejectedStep();
+	void RunAmmoPredictionFullAutoReleaseStep();
 	void RunAmmoPredictionReloadLifecycleStep();
-	void RunAmmoPredictionLateRejectStep();
+	/** 射速测量用例：Step 必须是两个射速步骤之一，达成射速按权威时钟测量。 */
+	void RunAmmoPredictionRateStep(int32 Step);
+	void RunAmmoPredictionUnpredictedAcceptedStep();
+	void RunAmmoPredictionUnpredictedRejectedStep();
 	void ConcludeAmmoPredictionCase(const TCHAR* CaseName, bool bConverged, const FString& Detail);
 	bool IsAmmoPredictionClientSampleFresh(int32 Step) const;
+	bool IsAmmoPredictionFixtureReady(int32 Step, int32 ExpectedPending) const;
+	/** 权威 GA 实例上的拒绝计数探针；只作旁证记录，不作为硬判据。 */
+	int32 GetAmmoPredictionAuthorityRejectProbe() const;
 	void ClearAmmoPredictionServerTag();
 	void CleanupAmmoPredictionTest();
 	void BindAmmoPredictionClientObservers(UAbilitySystemComponent* AbilitySystemComponent);
@@ -316,25 +487,58 @@ private:
 	int32 AmmoPredictionServerStep = 0;
 	int32 AmmoPredictionSubjectPlayerId = INDEX_NONE;
 	int32 AmmoPredictionSubmittedStep = INDEX_NONE;
-	int32 AmmoPredictionStepActivationKey = 0;
+	/** 拥有端本步骤出现过的 PredictionKey 集合；用于证明每次激活都有独立的 Shot 记录身份。 */
+	TSet<int32> AmmoPredictionStepPredictionKeys;
+	/** 权威端本步骤被接受的 Activation 的 PredictionKey 集合。 */
+	TSet<int32> AmmoPredictionAuthorityActivationKeys;
+	int32 AmmoPredictionFirstPredictionKey = 0;
 	int32 AmmoPredictionOwnerFireActivations = 0;
 	int32 AmmoPredictionOwnerFireRejects = 0;
 	int32 AmmoPredictionLastPredictionKey = 0;
-	int32 AmmoPredictionHudRefreshKey = 0;
+	int32 AmmoPredictionAuthorityActivations = 0;
 	int32 AmmoPredictionAuthorityRejects = 0;
 	int32 AmmoPredictionAuthorityShotsBefore = 0;
+	int32 AmmoPredictionAuthorityActivationsBefore = 0;
 	int32 AmmoPredictionAuthorityRejectsBefore = 0;
+	int32 AmmoPredictionAuthorityRejectProbeBefore = 0;
 	int32 AmmoPredictionMagazineBefore = 0;
 	int32 AmmoPredictionReserveBefore = 0;
 	int32 AmmoPredictionProjectilesBefore = 0;
 	int32 AmmoPredictionMismatchCount = 0;
 	int32 AmmoPredictionConvergedCount = 0;
-	int32 AmmoPredictionStressRemaining = 0;
-	int32 AmmoPredictionPeakUnresolved = 0;
-	float AmmoPredictionStressNextTime = 0.0f;
-	bool bAmmoPredictionSawActiveFire = false;
-	bool bAmmoPredictionSawAuthorityTimer = false;
+	int32 AmmoPredictionPeakUnresolvedShotRecords = 0;
+	/** Reload 阻塞窗口起点上的权威 Shot 计数；INDEX_NONE 表示窗口还没被观察到。 */
+	int32 AmmoPredictionShotsAtReloadCommit = INDEX_NONE;
+	/** 全自动窗口时长与请求数上限，由武器自身 RefireRate 在 setup 时算出。 */
+	float AmmoPredictionFullAutoHoldSeconds = 0.0f;
+	int32 AmmoPredictionMaxPacedShots = 0;
+	/** Reload 用例的 Hold 时长，由武器自身 ReloadDuration 在 setup 时算出，保证松手早于换弹完成。 */
+	float AmmoPredictionReloadHoldSeconds = 0.0f;
+	/** 武器行配置的原始 RefireRate；每个步骤起点都会把两端恢复到这个值。 */
+	float AmmoPredictionOriginalRefireRate = 0.0f;
+	/** 本步骤两端必须一致的 RefireRate。 */
+	float AmmoPredictionStepRefireRate = 0.0f;
+	/** 本步骤第一次被服务器接受的 Activation 的服务器时间；射速窗口只用它到最后一发的跨度。 */
+	float AmmoPredictionFirstAuthorityActivationTime = -1.0f;
+	/** 射速窗口内相邻两次被接受 Activation 的间隔统计，用于判断节拍是否被帧率量化。 */
+	float AmmoPredictionRateLastActivationTime = -1.0f;
+	float AmmoPredictionRateMinInterval = -1.0f;
+	float AmmoPredictionRateMaxInterval = -1.0f;
+	int32 AmmoPredictionRateIntervalSamples = 0;
+	/** 服务器下发本步骤 Hold 指令的时间。 */
+	float AmmoPredictionHoldStartTime = -1.0f;
+	/** 网络计数窗口起点快照与起点时间；两端各自持有自己的一份。 */
+	FShooterAmmoPredictionNetCounters AmmoPredictionNetBase;
+	float AmmoPredictionNetWindowStartTime = -1.0f;
+	/** 连接瞬时速率的窗口采样（平均值 / 峰值）；两端各自持有自己的一份。 */
+	FShooterAmmoPredictionNetRateWindow AmmoPredictionNetRateWindow;
+	/** 拥有端累计的采样上报次数与窗口起点值（用于把夹具自身流量从 RPC 计数里分离）。 */
+	int32 AmmoPredictionClientSampleReports = 0;
+	int32 AmmoPredictionNetBaseSampleReports = 0;
+	/** 松手时刻的拥有端激活计数，用于断言松手后不再产生新激活。 */
+	int32 AmmoPredictionActivationsAtRelease = 0;
 	bool bAmmoPredictionObserverVerified = false;
+	bool bAmmoPredictionStartupProbeChecked = false;
 	float AmmoPredictionStepStartTime = 0.0f;
 	float AmmoPredictionSettleStartTime = 0.0f;
 	float AmmoPredictionNextReportTime = 0.0f;
@@ -344,14 +548,14 @@ private:
 	bool bAmmoPredictionSettleStarted = false;
 	bool bAmmoPredictionStepCommandSent = false;
 	bool bAmmoPredictionHoldingFire = false;
-	bool bAmmoPredictionReloadDuringHold = false;
 	bool bAmmoPredictionReloadSubmitted = false;
+	bool bAmmoPredictionReleaseObserved = false;
+	bool bAmmoPredictionShotDuringReload = false;
 	float AmmoPredictionHoldEndTime = 0.0f;
-	float AmmoPredictionHoldReloadTime = 0.0f;
-	bool bAmmoPredictionLateRejectFixtureSet = false;
-	bool bAmmoPredictionRejectObserved = false;
-	/** 同值快照阶段：已武装，等待下一次权威弹丸生成时立即补弹。 */
-	bool bAmmoPredictionSameValueArmed = false;
+	/** Hold 中触发 Reload 的时刻；负值表示本步骤不触发换弹。 */
+	float AmmoPredictionHoldReloadTime = -1.0f;
+	/** 松手后跨过一个完整本地节拍的时刻；早于它不能断言"松手不再产生新激活"。 */
+	float AmmoPredictionReleaseSettleTime = 0.0f;
 	/** 服务器仅本地持有的阻塞 Tag 是否已挂载。 */
 	bool bAmmoPredictionServerTagApplied = false;
 
@@ -429,7 +633,7 @@ private:
 
 	UFUNCTION(Server, Reliable)
 	void ServerReportFullAutoReleased(int32 BulletCountAfterRelease, int32 OwnerFeedbackDelta,
-		float MinimumFeedbackInterval, bool bLocalTimerStopped, bool bTargetStable);
+		float MinimumFeedbackInterval, bool bLocalFeedbackSettled, bool bTargetStable);
 
 	/**
 	 * Invariant 2 半自动快速连点证据：客户端在真实按下 / 释放输入下跑完一整轮连点后上报本机观测。

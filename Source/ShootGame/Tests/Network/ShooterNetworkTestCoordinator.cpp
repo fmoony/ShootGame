@@ -3127,21 +3127,6 @@ void AShooterNetworkTestCoordinator::HandleActorSpawned(AActor* SpawnedActor)
 {
 	const AShooterProjectile* Projectile = Cast<AShooterProjectile>(SpawnedActor);
 	AShooterCharacter* Character = GetShooterCharacter();
-	if (bAmmoPredictionMode && bAmmoPredictionSameValueArmed && Projectile && Projectile->GetInstigator() == AmmoPredictionSubject.Get())
-	{
-		// H-A1 夹具：弹丸生成回调发生在 ConsumeAmmo 之后、下一复制帧之前。
-		// 生产 Rifle 的 MagazineSize 大于 1，ReloadFromReserve 会补满而不是只补 1 发；
-		// 这里用既有测试弹药钩子把权威弹药恢复到步骤起点值，等价于一次
-		// 「射击 → 补弹回到原值」在拥有端完全不可观察的权威结果。
-		bAmmoPredictionSameValueArmed = false;
-		if (AShooterWeapon* Weapon = AmmoPredictionWeapon.Get())
-		{
-			Weapon->SetAmmoForAutomationTest(AmmoPredictionMagazineBefore, AmmoPredictionReserveBefore);
-			Weapon->ForceNetUpdate();
-			UE_LOG(LogShootGame, Display, TEXT("AMMO_PREDICTION_SAME_VALUE_RESTORE Mag=%d Reserve=%d"),
-				Weapon->GetBulletCount(), Weapon->GetReserveAmmo());
-		}
-	}
 	if (!Projectile || !Character || Projectile->GetInstigator() != Character)
 	{
 		return;
@@ -3330,7 +3315,7 @@ void AShooterNetworkTestCoordinator::PollClientState()
 				Cast<UShooterAbilitySystemComponent>(Character->GetAbilitySystemComponent());
 			int32 ClientActiveFireCount = 0;
 			bool bClientFiringTag = false;
-			bool bClientPredictedTimerActive = false;
+			bool bClientUnresolvedShots = false;
 			bool bClientCachedWeaponCleared = false;
 			if (ClientAbilitySystemComponent && ClientPlayerState)
 			{
@@ -3342,8 +3327,14 @@ void AShooterNetworkTestCoordinator::PollClientState()
 					UGameplayAbility* ClientFireInstance = ClientFireSpec->GetPrimaryInstance();
 					const UShooterGameplayAbility_Fire* ClientFireAbility = Cast<UShooterGameplayAbility_Fire>(
 						ClientFireInstance ? ClientFireInstance : ClientFireSpec->Ability.Get());
-					bClientPredictedTimerActive = ClientFireAbility && ClientFireAbility->IsPredictedFeedbackActiveForTest();
-					bClientCachedWeaponCleared = ClientFireAbility && !ClientFireAbility->HasCachedWeaponForTest();
+					// 取代已删除的 IsPredictedFeedbackActiveForTest：GA_Fire 不再持有跨发的表现 Timer，
+					// State.Firing 与 Activation 同生命周期，因此这里断言的等价事实是
+					// 「没有未结清的 Shot 记录」——它才表示这一发的裁决已经落地。
+					if (ClientFireAbility)
+					{
+						bClientUnresolvedShots = ClientFireAbility->GetUnresolvedShotRecordCountForTest() > 0;
+						bClientCachedWeaponCleared = !ClientFireAbility->HasCachedWeaponForTest();
+					}
 				}
 			}
 
@@ -3351,13 +3342,13 @@ void AShooterNetworkTestCoordinator::PollClientState()
 				? ReportWeapon->GetPredictedOwnerFeedbackCountForAutomationTest() - ClientReloadFirePredictedBefore
 				: INDEX_NONE;
 			const bool bConverged = ClientActiveFireCount == 0 && !bClientFiringTag &&
-				!bClientPredictedTimerActive && bClientCachedWeaponCleared;
+				!bClientUnresolvedShots && bClientCachedWeaponCleared;
 			UE_LOG(LogShootGame, Display,
 				TEXT("Reload-fire client report: Case=%d ReloadingTagSeen=%s PredictedDelta=%d ActiveFire=%d "
-					"FiringTag=%s LocalTimer=%s CachedCleared=%s Stable=%s Converged=%s"),
+					"FiringTag=%s UnresolvedShots=%s CachedCleared=%s Stable=%s Converged=%s"),
 				ReloadFirePhase, bClientReloadFireTagSeen ? TEXT("true") : TEXT("false"), PredictedDelta,
 				ClientActiveFireCount, bClientFiringTag ? TEXT("true") : TEXT("false"),
-				bClientPredictedTimerActive ? TEXT("true") : TEXT("false"),
+				bClientUnresolvedShots ? TEXT("true") : TEXT("false"),
 				bClientCachedWeaponCleared ? TEXT("true") : TEXT("false"),
 				bTargetStable ? TEXT("true") : TEXT("false"),
 				bConverged ? TEXT("true") : TEXT("false"));
@@ -3846,10 +3837,15 @@ void AShooterNetworkTestCoordinator::PollClientState()
 			? FullAutoWeapon->GetMinimumOwnerFeedbackIntervalForAutomationTest()
 			: -1.0f;
 		const UShooterGameplayAbility_Fire* FireAbility = GetFireAbilityInstanceForTest(Character);
-		const bool bLocalTimerStopped = FireAbility && !FireAbility->IsPredictedFeedbackActiveForTest();
+		// 取代已删除的 IsPredictedFeedbackActiveForTest：GA_Fire 不再持有跨发的表现 Timer，
+		// State.Firing 与 Activation 同生命周期，所以「释放后本地预测反馈已经收口」的等价事实是
+		// 没有未结清 Shot 记录、没有待结清预测预算，并且没有活动的 GA_Fire。
+		const bool bRecordsSettled = FireAbility && FireAbility->GetUnresolvedShotRecordCountForTest() == 0;
+		const bool bPendingSettled = !FullAutoWeapon || FullAutoWeapon->GetPendingPredictedShots() == 0;
+		const bool bLocalFeedbackSettled = bRecordsSettled && bPendingSettled && !HasActiveFireAbility(Character);
 		bClientReportedFullAuto = true;
 		ServerReportFullAutoReleased(ClientBulletCountAfterRelease, OwnerFeedbackDelta,
-			MinimumFeedbackInterval, bLocalTimerStopped, bTargetStable);
+			MinimumFeedbackInterval, bLocalFeedbackSettled, bTargetStable);
 	}
 
 	// ---- 半自动开火语义：真实按下 / 释放输入驱动的本地节拍与权威结果取证 ----
@@ -4378,7 +4374,7 @@ void AShooterNetworkTestCoordinator::ServerReportReloadFireResult_Implementation
 }
 
 void AShooterNetworkTestCoordinator::ServerReportFullAutoReleased_Implementation(int32 BulletCountAfterRelease,
-	int32 OwnerFeedbackDelta, float MinimumFeedbackInterval, bool bLocalTimerStopped, bool bTargetStable)
+	int32 OwnerFeedbackDelta, float MinimumFeedbackInterval, bool bLocalFeedbackSettled, bool bTargetStable)
 {
 	bClientReportedFullAutoRelease = true;
 	ClientBulletCountAfterRelease = BulletCountAfterRelease;
@@ -4402,11 +4398,12 @@ void AShooterNetworkTestCoordinator::ServerReportFullAutoReleased_Implementation
 		? BulletCountBeforeFullAuto - AmmoAfterRelease
 		: INDEX_NONE;
 	const float RefireRate = IsValid(Weapon) ? Weapon->GetRefireRate() : -1.0f;
-	// 全自动的本地节拍由客户端自己的 PredictedFeedbackTimer 驱动，权威射速由服务器 RefireTimer 驱动，
+	// 全自动的本地节拍由客户端自己的本地开火节拍驱动，权威射速由服务器 RefireTimer 驱动，
 	// 两者允许存在相位差，不要求逐发对齐：因此不能用 OwnerFeedbackDelta == AuthorityShotDelta 强配对。
-	// 本地侧只要求：确实连续播过（>=2）、节拍不低于 RefireRate、释放后本地 Timer 已停。
+	// 本地侧只要求：确实连续播过（>=2）、节拍不低于 RefireRate、释放后本地预测反馈已经收口
+	// （无未结清 Shot 记录、无待结清预算、无活动 GA_Fire）。
 	// 权威侧的一一对应由 bFullAutoAuthorityExactlyOnceVerified 单独证明。
-	bFullAutoLocalCadenceVerified = bTargetStable && bLocalTimerStopped && OwnerFeedbackDelta >= 2 &&
+	bFullAutoLocalCadenceVerified = bTargetStable && bLocalFeedbackSettled && OwnerFeedbackDelta >= 2 &&
 		MinimumFeedbackInterval >= RefireRate - 0.01f;
 	bFullAutoAuthorityExactlyOnceVerified = AuthorityShotDelta >= 2 && ProjectileDelta == AuthorityShotDelta &&
 		AmmoConsumed == AuthorityShotDelta;
@@ -4419,7 +4416,7 @@ void AShooterNetworkTestCoordinator::ServerReportFullAutoReleased_Implementation
 
 	UE_LOG(LogShootGame, Display, TEXT(
 			"Full-auto invariant report: ClientAmmo=%d ServerAmmo=%d OwnerFeedback=%d Authority=%d "
-			"Projectiles=%d AmmoConsumed=%d MinInterval=%.3f RefireRate=%.3f TimerStopped=%s Stable=%s Valid=%s"),
+			"Projectiles=%d AmmoConsumed=%d MinInterval=%.3f RefireRate=%.3f Settled=%s Stable=%s Valid=%s"),
 		BulletCountAfterRelease,
 		AmmoAfterRelease,
 		OwnerFeedbackDelta,
@@ -4428,7 +4425,7 @@ void AShooterNetworkTestCoordinator::ServerReportFullAutoReleased_Implementation
 		AmmoConsumed,
 		MinimumFeedbackInterval,
 		RefireRate,
-		bLocalTimerStopped ? TEXT("true") : TEXT("false"),
+		bLocalFeedbackSettled ? TEXT("true") : TEXT("false"),
 		bTargetStable ? TEXT("true") : TEXT("false"),
 		bFullAutoReleaseVerified ? TEXT("true") : TEXT("false"));
 

@@ -152,19 +152,11 @@ bool FShooterEquipmentLogicalEventSemanticsTest::RunTest(const FString& Paramete
 		DestroyEquipmentEventTestWorld(World);
 		return false;
 	}
-	AShooterWeaponPresentationTestWeaponPrimary* PrimaryTestWeapon = Cast<AShooterWeaponPresentationTestWeaponPrimary>(PrimaryWeapon);
-	if (!TestNotNull(TEXT("Primary test weapon exposes firing state"), PrimaryTestWeapon))
-	{
-		DestroyEquipmentEventTestWorld(World);
-		return false;
-	}
-	PrimaryTestWeapon->SetFiringForTest(true);
 
 	TestTrue(TEXT("Secondary weapon is equipped"), Equipment->EquipWeapon(SecondaryWeapon));
 	TestEqual(TEXT("Switch publishes exactly one logical change"), Listener->EventCount, 2);
 	TestTrue(TEXT("Switch PreviousWeapon is primary"), Listener->LastPreviousWeapon == PrimaryWeapon);
 	TestTrue(TEXT("Switch CurrentWeapon is secondary"), Listener->LastCurrentWeapon == SecondaryWeapon);
-	TestFalse(TEXT("Switch stops the previous weapon before commit"), PrimaryTestWeapon->IsFiringForTest());
 	TestTrue(TEXT("Switch hides the previous weapon"), PrimaryWeapon->IsHidden());
 	TestEqual(TEXT("Switch deactivates previous presentation exactly once"), Character->WeaponDeactivatedCount, 1);
 

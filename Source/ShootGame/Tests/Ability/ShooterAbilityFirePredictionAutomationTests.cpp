@@ -5,6 +5,7 @@
 #include "Misc/AutomationTest.h"
 
 #include "AbilitySystem/Abilities/ShooterGameplayAbility_Fire.h"
+#include "AbilitySystem/ShooterAbilitySystemComponent.h"
 #include "AbilitySystem/ShooterGameplayTags.h"
 #include "AbilitySystemComponent.h"
 #include "Characters/Equipment/ShooterEquipmentComponent.h"
@@ -13,6 +14,7 @@
 #include "EngineUtils.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/PlayerState.h"
+#include "GameFramework/PlayerState/ShooterPlayerState.h"
 #include "Inventory/ShooterInventoryComponent.h"
 #include "NiagaraSystem.h"
 #include "Characters/ShooterCharacter.h"
@@ -27,15 +29,15 @@
 #include "Weapons/Subsystems/ShooterWeaponRuntimeSubsystem.h"
 
 /**
- * P1-A：拥有者本地开火表现路径的运行时证据。
+ * 单发语义下的拥有端预测与裁决证据。
  *
  * 本文件不使用纯 CDO 断言。先建立最小 Editor Test World，生成真实 Weapon 与本地玩家 Holder，
- * 再驱动 PlayOwnerPredictedShotFeedback 并比对调用前后的权威字段。
+ * 再驱动生产入口比对调用前后的权威字段。
  *
  * 世界能力边界：本世界不加载骨骼网格与 AnimBP，因此第一人称 Montage 实际播放、
  * 以及挂在 Muzzle Socket 上的 Niagara 生成都无法在这里正向断言。
- * 前者由 FirstPersonCapture 与 P1-B 网络场景覆盖；这里只覆盖可确定判定的组合。
- * Dedicated 不播放的结论按计划移到 P1-B / P1-D 网络场景。
+ * 前者由 FirstPersonCapture 与网络场景覆盖；这里只覆盖可确定判定的组合。
+ * "一次 Activation = 一发权威 Shot"的服务器侧证据在网络夹具中取证。
  */
 namespace ShooterAbilityFirePredictionAutomationTests
 {
@@ -92,8 +94,9 @@ namespace ShooterAbilityFirePredictionAutomationTests
 			FActorSpawnParameters PlayerStateSpawnParameters;
 			PlayerStateSpawnParameters.Owner = PlayerController;
 			PlayerStateSpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-			PlayerController->PlayerState = World->SpawnActor<APlayerState>(APlayerState::StaticClass(),
-				PlayerStateSpawnParameters);
+			// 用项目自己的 PlayerState：本文件的输入策略断言需要真实存在的 Shooter ASC。
+			PlayerController->PlayerState = World->SpawnActor<AShooterPlayerState>(
+				AShooterPlayerState::StaticClass(), PlayerStateSpawnParameters);
 		}
 
 		AShooterCharacter* Character = World->SpawnActor<AShooterWeaponPresentationTestCharacter>(
@@ -151,6 +154,19 @@ namespace ShooterAbilityFirePredictionAutomationTests
 			++Count;
 		}
 		return Count;
+	}
+
+	/** 把武器真正装备到角色：确认补播与裁决结清都要求武器仍是当前装备。 */
+	bool EquipWeaponForOwner(AShooterCharacter* Character, AShooterWeapon* Weapon)
+	{
+		UShooterInventoryComponent* Inventory = Character ? Character->GetInventoryComponent() : nullptr;
+		UShooterEquipmentComponent* Equipment = Character ? Character->GetEquipmentComponent() : nullptr;
+		if (!Inventory || !Equipment || !Weapon)
+		{
+			return false;
+		}
+
+		return Inventory->AddWeapon(Weapon) == EShooterInventoryAddResult::Added && Equipment->EquipWeapon(Weapon);
 	}
 }
 
@@ -212,8 +228,8 @@ bool FShooterFirePredictionLocalFeedbackCosmeticOnlyTest::RunTest(const FString&
 	const bool bSecondSubmit = RecoilWeapon->PlayOwnerPredictedShotFeedback();
 	const bool bThirdSubmit = RecoilWeapon->PlayOwnerPredictedShotFeedback();
 
-	// 表现入口只负责四路 cosmetic，不再自己判定/推进本地开火节拍：
-	// 节拍由 GA 在"本地 Shot Attempt 被接受"处统一推进，重复调用本入口一律照播。
+	// 表现入口只负责四路 cosmetic，不自己判定/推进本地开火节拍：
+	// 节拍由 GA 在"本地提交一次 Shot Attempt"处统一推进，重复调用本入口一律照播。
 	TestTrue(TEXT("first recoil-only feedback is submitted"), bFirstSubmit);
 	TestTrue(TEXT("the cosmetic entry does not pace itself with the cadence"), bSecondSubmit);
 	TestTrue(TEXT("the cosmetic entry keeps playing on every attempt"), bThirdSubmit);
@@ -246,7 +262,7 @@ bool FShooterFirePredictionLocalFeedbackCosmeticOnlyTest::RunTest(const FString&
 	}
 
 	SoundWeapon->ResetFireFeedbackCountersForAutomationTest();
-	TestTrue(TEXT("another weapon has an independent feedback cooldown"),
+	TestTrue(TEXT("another weapon has an independent feedback cadence"),
 		SoundWeapon->PlayOwnerPredictedShotFeedback());
 	TestEqual(TEXT("sound-only feedback counted once"),
 		SoundWeapon->GetPredictedOwnerFeedbackCountForAutomationTest(), 1);
@@ -308,16 +324,15 @@ bool FShooterFirePredictionLocalFeedbackStatelessTest::RunTest(const FString& Pa
 		return false;
 	}
 
-	// 调用前快照：三个权威字段都用 WITH_DEV_AUTOMATION_TESTS 只读探针读取，
+	// 调用前快照：权威字段都用 WITH_DEV_AUTOMATION_TESTS 只读探针读取，
 	// 不使用 FindFProperty 假装读取非反射字段。
-	const bool bFiringBefore = Weapon->IsFiringForAutomationTest();
 	const float TimeOfLastShotBefore = Weapon->GetTimeOfLastShotForAutomationTest();
 	const bool bRefireActiveBefore = Weapon->IsRefireTimerActiveForAutomationTest();
 	const int32 AmmoBefore = Weapon->GetBulletCount();
-	const int32 LifecycleBefore = static_cast<int32>(Weapon->GetLifecycleState());
+	const int32 LifecycleBefore = static_cast<int32>( Weapon->GetLifecycleState());
 	const int32 AuthorityShotsBefore = Weapon->GetAuthorityShotCountForAutomationTest();
 
-	TestFalse(TEXT("weapon is not firing before the probe"), bFiringBefore);
+	TestTrue(TEXT("a fresh lease has no authority shot yet"), TimeOfLastShotBefore < 0.0f);
 	TestFalse(TEXT("refire timer is not active before the probe"), bRefireActiveBefore);
 
 	const bool bFirstPredicted = Weapon->PlayOwnerPredictedShotFeedback();
@@ -327,7 +342,6 @@ bool FShooterFirePredictionLocalFeedbackStatelessTest::RunTest(const FString& Pa
 	TestTrue(TEXT("the cosmetic entry is not paced by the cadence"), bImmediatePredicted);
 
 	// 调用后逐项比对。
-	TestTrue(TEXT("bIsFiring unchanged after local feedback"), Weapon->IsFiringForAutomationTest() == bFiringBefore);
 	TestEqual(TEXT("TimeOfLastShot unchanged after local feedback"),
 		Weapon->GetTimeOfLastShotForAutomationTest(), TimeOfLastShotBefore);
 	TestTrue(TEXT("RefireTimer active state unchanged after local feedback"),
@@ -355,11 +369,11 @@ bool FShooterFirePredictionLocalFireCadenceTest::RunTest(const FString& Paramete
 {
 	using namespace ShooterAbilityFirePredictionAutomationTests;
 
-	// 本地开火节拍只决定"这次输入是否构成有效 Local Shot Attempt"，
+	// 本地开火节拍只决定"这次输入是否值得形成一次本地 Shot Attempt"，
 	// 表现入口只负责四路 cosmetic。本用例在武器层证明这条节拍的三条性质：
 	//   1. 节拍只读本地时钟，不读服务器权威射速；
 	//   2. 节拍只由 Shot Attempt 推进一次，与表现是否播放成功无关；
-	//   3. 节拍不写服务器权威射速（TimeOfLastShot / RefireTimer 均不受影响）。
+	//   3. 节拍不写服务器权威射速（TimeOfLastShot 不受影响）。
 	UWorld* World = CreatePredictionTestWorld();
 	if (!TestNotNull(TEXT("prediction test world created"), World))
 	{
@@ -380,26 +394,24 @@ bool FShooterFirePredictionLocalFireCadenceTest::RunTest(const FString& Paramete
 	TestFalse(TEXT("probe weapon is semi-auto"), Weapon->IsFullAuto());
 
 	// ---- 性质 1：本地节拍不读服务器权威射速 ----
-	// 权威 RefireTimer 被人为置为冷却中：服务器此时会拒绝开火，
-	// 但本地节拍只由本地时钟决定，因此仍然报告"已越过"。
+	// 权威射速被人为置为冷却中：服务器此时会拒绝开火，
+	// 但本地节拍只由本地时钟决定，因此仍然报告"已就绪"。
 	TestTrue(TEXT("the local fire cadence starts ready"), Weapon->IsLocalFireCooldownReady());
-	Weapon->ArmRefireTimerForTest();
-	TestTrue(TEXT("the authority refire timer is active"), Weapon->IsRefireTimerActiveForAutomationTest());
-	TestFalse(TEXT("authority refuses a semi-auto shot during its own cooldown"), Weapon->CanStartSemiAutoShotNow());
-	TestTrue(TEXT("the local cadence does not read the authority refire timer"), Weapon->IsLocalFireCooldownReady());
+	Weapon->SetAuthorityRefireRemainingForAutomationTest(0.4f);
+	TestFalse(TEXT("authority refuses a shot during its own cooldown"), Weapon->CanCommitAuthorityShot());
+	TestTrue(TEXT("the local cadence does not read the authority refire clock"), Weapon->IsLocalFireCooldownReady());
 
-	// ---- 性质 2：本地节拍只由"本地 Shot Attempt 被接受"推进，与表现播放成功无关 ----
+	// ---- 性质 2：本地节拍只由"本地提交一次 Shot Attempt"推进，与表现播放成功无关 ----
 	Weapon->ResetFireFeedbackCountersForAutomationTest();
 	const float TimeOfLastShotBefore = Weapon->GetTimeOfLastShotForAutomationTest();
-	const bool bRefireActiveBefore = Weapon->IsRefireTimerActiveForAutomationTest();
 
-	// 表现入口本身不推进节拍：连播三次后节拍仍然 Ready。
+	// 表现入口本身不推进节拍：连播两次后节拍仍然 Ready。
 	TestTrue(TEXT("the first local fire plays owner feedback"), Weapon->PlayOwnerPredictedShotFeedback());
 	TestTrue(TEXT("a second presentation inside the cadence still plays"), Weapon->PlayOwnerPredictedShotFeedback());
 	TestTrue(TEXT("the cosmetic entry never advances the cadence"), Weapon->IsLocalFireCooldownReady());
 	TestEqual(TEXT("every cosmetic attempt is counted"), Weapon->GetPredictedOwnerFeedbackCountForAutomationTest(), 2);
 
-	// Shot Attempt 被接受处推进一次，时长按 RefireRate。
+	// Shot Attempt 处推进一次，时长按 RefireRate。
 	Weapon->AdvanceLocalFireCooldown();
 	TestFalse(TEXT("the cadence closes when the Shot Attempt advances it"), Weapon->IsLocalFireCooldownReady());
 	TestTrue(TEXT("the cadence duration follows RefireRate"),
@@ -416,10 +428,6 @@ bool FShooterFirePredictionLocalFireCadenceTest::RunTest(const FString& Paramete
 	// ---- 性质 3：本地节拍不写服务器权威射速 ----
 	TestEqual(TEXT("a local fire leaves TimeOfLastShot untouched"),
 		Weapon->GetTimeOfLastShotForAutomationTest(), TimeOfLastShotBefore);
-	TestTrue(TEXT("a local fire leaves the authority refire timer untouched"),
-		Weapon->IsRefireTimerActiveForAutomationTest() == bRefireActiveBefore);
-	TestTrue(TEXT("the armed authority refire timer is still the one from the probe"),
-		Weapon->IsRefireTimerActiveForAutomationTest());
 
 	DestroyPredictionTestWorld(World);
 	return true;
@@ -534,14 +542,17 @@ bool FShooterFirePredictionKnownBlockersTest::RunTest(const FString& Parameters)
 	return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterFirePredictionFirstShotReadyAfterAcquireTest,
-	"ShootGame.Ability.Fire.Prediction.FirstShotReadyAfterAcquire",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterFirePredictionAuthorityRefireGateTest,
+	"ShootGame.Ability.Fire.Prediction.AuthorityRefireGate",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
-bool FShooterFirePredictionFirstShotReadyAfterAcquireTest::RunTest(const FString& Parameters)
+bool FShooterFirePredictionAuthorityRefireGateTest::RunTest(const FString& Parameters)
 {
 	using namespace ShooterAbilityFirePredictionAutomationTests;
 
+	// 权威射速是服务器自己的判据：半自动与全自动共用同一个"距上一次真实提交是否已满 RefireRate"。
+	// 一次 Activation 只提交一发，因此这个判据直接决定这次 Activation 是 Accept 还是 Reject，
+	// 不存在"接受 Ability 但最终没有开枪"的中间态。
 	UWorld* World = CreatePredictionTestWorld();
 	if (!TestNotNull(TEXT("prediction test world created"), World))
 	{
@@ -555,54 +566,7 @@ bool FShooterFirePredictionFirstShotReadyAfterAcquireTest::RunTest(const FString
 		return false;
 	}
 
-	// 用生命周期测试武器暴露 RefireTimer，直接驱动冷却状态。
-	// 修正 11：首次取用时 RefireTimer 未激活，因此可以直接开火；
-	// 不能用 TimeOfLastShot == 0.0f 作哨兵，池取用与归还都会把它复位为 0。
-	AShooterWeaponLifecycleTestWeapon* Weapon = Cast<AShooterWeaponLifecycleTestWeapon>(
-		AcquireFeedbackTestWeapon(World, Character, nullptr, nullptr, nullptr, 0.0f,
-			AShooterWeaponLifecycleTestWeapon::StaticClass()));
-	if (!TestNotNull(TEXT("semi-auto lifecycle test weapon acquired"), Weapon))
-	{
-		DestroyPredictionTestWorld(World);
-		return false;
-	}
-
-	TestFalse(TEXT("acquired weapon is semi-auto"), Weapon->IsFullAuto());
-	TestFalse(TEXT("refire timer is inactive right after acquire"), Weapon->IsRefireTimerActiveForAutomationTest());
-	TestEqual(TEXT("acquire resets TimeOfLastShot to zero"), Weapon->GetTimeOfLastShotForAutomationTest(), 0.0f);
-	TestTrue(TEXT("first shot is allowed right after acquire"), Weapon->CanStartSemiAutoShotNow());
-
-	// 冷却期：RefireTimer 活动 → 半自动必须拒绝立即开火。
-	Weapon->ArmRefireTimerForTest();
-	TestTrue(TEXT("refire timer is active while cooling down"), Weapon->IsRefireTimerActiveForAutomationTest());
-	TestFalse(TEXT("semi-auto is not allowed to fire during cooldown"), Weapon->CanStartSemiAutoShotNow());
-
-	DestroyPredictionTestWorld(World);
-	return true;
-}
-
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterFirePredictionRejectRefireCooldownTest,
-	"ShootGame.Ability.Fire.Prediction.RejectRefireCooldown",
-	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
-
-bool FShooterFirePredictionRejectRefireCooldownTest::RunTest(const FString& Parameters)
-{
-	using namespace ShooterAbilityFirePredictionAutomationTests;
-
-	UWorld* World = CreatePredictionTestWorld();
-	if (!TestNotNull(TEXT("prediction test world created"), World))
-	{
-		return false;
-	}
-
-	AShooterCharacter* Character = SpawnLocalPlayerCharacter(World);
-	if (!TestNotNull(TEXT("local player character spawned"), Character))
-	{
-		DestroyPredictionTestWorld(World);
-		return false;
-	}
-
-	// 半自动：冷却期资格查询必须为 false，服务器 CanActivateAbility 据此拒绝重复激活。
+	// ---- 首次取用：权威射速必须已就绪，第一发不得被冷却误挡 ----
 	AShooterWeaponLifecycleTestWeapon* SemiAuto = Cast<AShooterWeaponLifecycleTestWeapon>(
 		AcquireFeedbackTestWeapon(World, Character, nullptr, nullptr, nullptr, 0.0f,
 			AShooterWeaponLifecycleTestWeapon::StaticClass()));
@@ -612,13 +576,64 @@ bool FShooterFirePredictionRejectRefireCooldownTest::RunTest(const FString& Para
 		return false;
 	}
 
-	SemiAuto->ArmRefireTimerForTest();
-	TestFalse(TEXT("semi-auto cooldown rejects immediate shot"), SemiAuto->CanStartSemiAutoShotNow());
+	TestFalse(TEXT("acquired weapon is semi-auto"), SemiAuto->IsFullAuto());
+	TestTrue(TEXT("a fresh lease has no authority shot time"), SemiAuto->GetTimeOfLastShotForAutomationTest() < 0.0f);
+	TestTrue(TEXT("first shot is allowed right after acquire"), SemiAuto->CanCommitAuthorityShot());
+
+	// ---- 动态输入策略：生产的 GA_Fire 必须由当前武器的连发语义决定输入边沿 ----
+	// 半自动走按下沿（一次按下最多一次动作边界），全自动走按住持续（由输入层按节拍反复激活）。
+	// 这条映射是"一次 Activation 一发"在输入侧的入口，因此在这里用生产 Ability 类直接取证。
+	if (!TestTrue(TEXT("the semi-auto weapon is equipped as the current weapon"), EquipWeaponForOwner(Character, SemiAuto)))
+	{
+		DestroyPredictionTestWorld(World);
+		return false;
+	}
+
+	AShooterPlayerState* ShooterPlayerState = Character->GetPlayerState<AShooterPlayerState>();
+	UShooterAbilitySystemComponent* AbilitySystemComponent = ShooterPlayerState
+		? Cast<UShooterAbilitySystemComponent>(ShooterPlayerState->GetAbilitySystemComponent())
+		: nullptr;
+	if (!TestNotNull(TEXT("the character PlayerState exposes the shooter ASC"), AbilitySystemComponent))
+	{
+		DestroyPredictionTestWorld(World);
+		return false;
+	}
+	// 本测试世界没有 GameMode，ASC 的 ActorInfo 需要显式建立；建立失败必须显式失败而不是静默跳过断言。
+	ShooterPlayerState->InitializeAbilityActorInfo(Character);
+	const FGameplayAbilityActorInfo* ActorInfo = AbilitySystemComponent->AbilityActorInfo.Get();
+	if (!TestNotNull(TEXT("the shooter ASC exposes a ready AbilityActorInfo"), ActorInfo))
+	{
+		DestroyPredictionTestWorld(World);
+		return false;
+	}
+
+	UShooterGameplayAbility_Fire* Ability = NewObject<UShooterGameplayAbility_Fire>();
+	TestTrue(TEXT("a semi-auto weapon maps to the single press-edge policy"),
+		Ability->GetActivationPolicy(ActorInfo) == EShooterAbilityActivationPolicy::OnInputTriggered);
+
+	SemiAuto->SetFullAutoForTest(true);
+	TestTrue(TEXT("a full-auto weapon maps to the held-input policy"),
+		Ability->GetActivationPolicy(ActorInfo) == EShooterAbilityActivationPolicy::WhileInputActive);
+	SemiAuto->SetFullAutoForTest(false);
+	TestTrue(TEXT("switching back to semi-auto restores the press-edge policy"),
+		Ability->GetActivationPolicy(ActorInfo) == EShooterAbilityActivationPolicy::OnInputTriggered);
+
+	// 冷却期内：两种模式都必须拒绝。
+	SemiAuto->SetAuthorityRefireRemainingForAutomationTest(0.2f);
+	TestFalse(TEXT("semi-auto cooldown rejects an immediate shot"), SemiAuto->CanCommitAuthorityShot());
 	TestEqual(TEXT("rejected cooldown shot consumes no ammo"), SemiAuto->GetBulletCount(), 10);
 	TestEqual(TEXT("rejected cooldown shot records no authority shot"),
 		SemiAuto->GetAuthorityShotCountForAutomationTest(), 0);
 
-	// 全自动：不参与射速资格查询，冷却期仍允许激活；真实补射时机由权威 RefireTimer 决定。
+	// ---- 容差：只吸收节拍抖动，不接受明显提前的开火 ----
+	SemiAuto->SetAuthorityRefireRemainingForAutomationTest(SemiAuto->GetRefireRate());
+	TestFalse(TEXT("a shot clearly early in the cadence is refused"), SemiAuto->CanCommitAuthorityShot());
+	SemiAuto->SetAuthorityRefireRemainingForAutomationTest(0.005f);
+	TestTrue(TEXT("a shot within the jitter tolerance is accepted"), SemiAuto->CanCommitAuthorityShot());
+	SemiAuto->SetAuthorityRefireRemainingForAutomationTest(0.0f);
+	TestTrue(TEXT("a shot exactly on the cadence boundary is accepted"), SemiAuto->CanCommitAuthorityShot());
+
+	// ---- 全自动使用同一判据：服务器独立判定射速，而不是"冷却期一律放行" ----
 	AShooterWeaponLifecycleTestWeapon* FullAuto = Cast<AShooterWeaponLifecycleTestWeapon>(
 		AcquireFeedbackTestWeapon(World, Character, nullptr, nullptr, nullptr, 0.0f,
 			AShooterWeaponLifecycleTestWeapon::StaticClass()));
@@ -630,21 +645,25 @@ bool FShooterFirePredictionRejectRefireCooldownTest::RunTest(const FString& Para
 
 	FullAuto->SetFullAutoForTest(true);
 	TestTrue(TEXT("full-auto weapon reports full auto"), FullAuto->IsFullAuto());
-	TestFalse(TEXT("full auto does not participate in the semi-auto readiness query"),
-		FullAuto->CanStartSemiAutoShotNow());
+	TestTrue(TEXT("full auto is ready on a fresh lease"), FullAuto->CanCommitAuthorityShot());
+
+	FullAuto->SetAuthorityRefireRemainingForAutomationTest(0.2f);
+	TestFalse(TEXT("full auto also refuses a shot that is early in the cadence"), FullAuto->CanCommitAuthorityShot());
 
 	DestroyPredictionTestWorld(World);
 	return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterFireActivationLedgerBackfillTest,
-	"ShootGame.Ability.Fire.Prediction.ActivationLedgerBackfill",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterFirePredictionShotVerdictBudgetTest,
+	"ShootGame.Ability.Fire.Prediction.ShotVerdictBudget",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
-bool FShooterFireActivationLedgerBackfillTest::RunTest(const FString& Parameters)
+bool FShooterFirePredictionShotVerdictBudgetTest::RunTest(const FString& Parameters)
 {
 	using namespace ShooterAbilityFirePredictionAutomationTests;
 
+	// 一次 GA_Fire = 一发 Shot = 一个 PredictionKey：预算的结清只需要这一个键上的裁决，
+	// 不再需要"这一轮预测了几发 / 服务器提交了几发"的整轮对账。
 	UWorld* World = CreatePredictionTestWorld();
 	if (!TestNotNull(TEXT("prediction test world created"), World))
 	{
@@ -652,11 +671,9 @@ bool FShooterFireActivationLedgerBackfillTest::RunTest(const FString& Parameters
 	}
 
 	AShooterCharacter* Character = SpawnLocalPlayerCharacter(World);
-	AShooterWeapon* Weapon = Character
-		? AcquireFeedbackTestWeapon(World, Character, nullptr, nullptr, nullptr, 5.0f)
-		: nullptr;
+	AShooterWeapon* Weapon = AcquireFeedbackTestWeapon(World, Character, nullptr, nullptr, nullptr, 5.0f);
 	if (!TestNotNull(TEXT("local player character spawned"), Character) ||
-		!TestNotNull(TEXT("ledger test weapon acquired"), Weapon))
+		!TestNotNull(TEXT("verdict test weapon acquired"), Weapon))
 	{
 		DestroyPredictionTestWorld(World);
 		return false;
@@ -669,48 +686,68 @@ bool FShooterFireActivationLedgerBackfillTest::RunTest(const FString& Parameters
 		return false;
 	}
 
-	Weapon->ResetFireActivationStateForAutomationTest();
-	TestTrue(TEXT("ledger weapon added"),
-		Character->GetInventoryComponent()->AddWeapon(Weapon) == EShooterInventoryAddResult::Added);
-	TestTrue(TEXT("ledger weapon equipped"), Character->GetEquipmentComponent()->EquipWeapon(Weapon));
-	Ability->RegisterActivationLedgerForTest(11, Weapon);
-	Ability->NoteOwnerPredictedShotsForTest(11, 2);
-	Weapon->SetPendingPredictedShotsForAutomationTest(2);
-	TestEqual(TEXT("predicted ledger starts at 2"), Ability->GetActivationLedgerPredictedShotsForTest(11), 2);
-	TestEqual(TEXT("pending starts at 2"), Weapon->GetPendingPredictedShots(), 2);
+	// ---- 情形 1：预测 + Committed → 预算结清一次，不重复播放 ----
+	Weapon->ResetFireFeedbackCountersForAutomationTest();
+	Weapon->SetPendingPredictedShotsForAutomationTest(1);
+	Ability->RegisterShotRecordForTest(/*PredictionKey*/ 101, Weapon, /*bBudgetConsumed*/ true, /*bFeedbackPlayed*/ true);
+	TestTrue(TEXT("the shot record is registered"), Ability->HasShotRecordForTest(101));
+	TestTrue(TEXT("the shot record records the consumed prediction budget"),
+		Ability->IsShotRecordBudgetConsumedForTest(101));
+	TestEqual(TEXT("one prediction is outstanding"), Ability->GetUnresolvedShotRecordCountForTest(), 1);
 
-	// 第一部分结果：服务器已提交 1 发 <= 预测 2 发。只结清 Pending，不补播。
-	Ability->HandleAuthorityFireActivationResultForTest(11, 1, 1, false);
-	TestEqual(TEXT("processed first result"), Ability->GetActivationLedgerProcessedShotsForTest(11), 1);
-	TestEqual(TEXT("no backfill below prediction"), Ability->GetActivationLedgerBackfilledShotsForTest(11), 0);
-	TestEqual(TEXT("predicted shot confirmed into pending"), Ability->GetActivationLedgerReconciledShotsForTest(11), 1);
-	TestEqual(TEXT("pending reduced by confirmed prediction"), Weapon->GetPendingPredictedShots(), 1);
-	TestEqual(TEXT("no confirmed feedback submitted"), Weapon->GetConfirmedBackfillCountForAutomationTest(), 0);
+	Ability->HandleAuthorityShotVerdictForTest(101, /*bCommitted*/ true);
+	TestEqual(TEXT("a committed prediction settles the local budget"), Weapon->GetPendingPredictedShots(), 0);
+	TestTrue(TEXT("the committed shot record is resolved"), Ability->IsShotRecordResolvedForTest(101));
+	TestEqual(TEXT("no backfill is played for an already predicted shot"),
+		Ability->GetConfirmedBackfillRequestCountForTest(), 0);
+	TestEqual(TEXT("no confirmed owner feedback is played for an already predicted shot"),
+		Weapon->GetConfirmedBackfillCountForAutomationTest(), 0);
 
-	// 第二部分结果：服务器提交 4 发 > 预测 2 发，缺 2 发必须补播一次；随后 Settled 收口。
-	Ability->HandleAuthorityFireActivationResultForTest(11, 1, 4, true);
-	TestEqual(TEXT("processed jumped to 4"), Ability->GetActivationLedgerProcessedShotsForTest(11), 4);
-	TestEqual(TEXT("exactly two confirmed backfills"), Ability->GetActivationLedgerBackfilledShotsForTest(11), 2);
-	TestEqual(TEXT("merged result plays only first feedback immediately"),
-		Weapon->GetConfirmedBackfillCountForAutomationTest(), 1);
-	TestTrue(TEXT("second confirmed feedback is queued"), Weapon->HasPendingConfirmedFeedback());
-	TestEqual(TEXT("all predicted shots reconciled"), Ability->GetActivationLedgerReconciledShotsForTest(11), 2);
-	TestEqual(TEXT("pending fully settled"), Weapon->GetPendingPredictedShots(), 0);
-	TestTrue(TEXT("ledger resolved after settle"), Ability->IsActivationLedgerResolvedForTest(11));
-	TestEqual(TEXT("no unresolved ledger left"), Ability->GetUnresolvedActivationLedgerCountForTest(), 0);
+	// 幂等：重复裁决不得二次结清或二次补播。
+	Ability->HandleAuthorityShotVerdictForTest(101, /*bCommitted*/ true);
+	TestEqual(TEXT("a duplicated verdict cannot settle the budget twice"), Weapon->GetPendingPredictedShots(), 0);
+	TestEqual(TEXT("a duplicated verdict cannot backfill twice"),
+		Ability->GetConfirmedBackfillRequestCountForTest(), 0);
+
+	// ---- 情形 2：预测 + Rejected → 只退款一次，不补播 ----
+	Weapon->SetPendingPredictedShotsForAutomationTest(1);
+	Ability->RegisterShotRecordForTest(/*PredictionKey*/ 102, Weapon, /*bBudgetConsumed*/ true, /*bFeedbackPlayed*/ true);
+	Ability->HandleAuthorityShotVerdictForTest(102, /*bCommitted*/ false);
+	TestEqual(TEXT("a rejected prediction refunds the local budget"), Weapon->GetPendingPredictedShots(), 0);
+	TestTrue(TEXT("the rejected shot record is resolved"), Ability->IsShotRecordResolvedForTest(102));
+	TestEqual(TEXT("a rejected shot never backfills owner feedback"),
+		Ability->GetConfirmedBackfillRequestCountForTest(), 0);
+
+	Ability->HandleAuthorityShotVerdictForTest(102, /*bCommitted*/ false);
+	TestEqual(TEXT("a duplicated rejection refunds only once"), Weapon->GetPendingPredictedShots(), 0);
+
+	// ---- 情形 3：未预测 + Rejected → 什么都不发生 ----
+	Weapon->SetPendingPredictedShotsForAutomationTest(0);
+	Ability->RegisterShotRecordForTest(/*PredictionKey*/ 103, Weapon, /*bBudgetConsumed*/ false, /*bFeedbackPlayed*/ false);
+	Ability->HandleAuthorityShotVerdictForTest(103, /*bCommitted*/ false);
+	TestEqual(TEXT("an unpredicted rejection leaves the budget untouched"), Weapon->GetPendingPredictedShots(), 0);
+	TestEqual(TEXT("an unpredicted rejection plays nothing"), Ability->GetConfirmedBackfillRequestCountForTest(), 0);
+
+	// ---- 情形 4：记录不存在时的裁决必须完全无副作用 ----
+	Ability->HandleAuthorityShotVerdictForTest(/*PredictionKey*/ 999, /*bCommitted*/ false);
+	Ability->HandleAuthorityShotVerdictForTest(/*PredictionKey*/ 999, /*bCommitted*/ true);
+	TestEqual(TEXT("an unknown key cannot change the budget"), Weapon->GetPendingPredictedShots(), 0);
+	TestEqual(TEXT("an unknown key cannot backfill"), Ability->GetConfirmedBackfillRequestCountForTest(), 0);
 
 	DestroyPredictionTestWorld(World);
 	return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterFireActivationLedgerCorrectionTest,
-	"ShootGame.Ability.Fire.Prediction.ActivationLedgerCorrection",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterFirePredictionUnpredictedCommittedBackfillTest,
+	"ShootGame.Ability.Fire.Prediction.UnpredictedCommittedBackfill",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
-bool FShooterFireActivationLedgerCorrectionTest::RunTest(const FString& Parameters)
+bool FShooterFirePredictionUnpredictedCommittedBackfillTest::RunTest(const FString& Parameters)
 {
 	using namespace ShooterAbilityFirePredictionAutomationTests;
 
+	// 情形 5：拥有端因为本地弹药预算为 0 而没有提前表现，但请求仍然到达服务器并被接受。
+	// 这一发必须由 Committed 裁决补播恰好一次表现，且不修改任何权威字段。
 	UWorld* World = CreatePredictionTestWorld();
 	if (!TestNotNull(TEXT("prediction test world created"), World))
 	{
@@ -718,191 +755,150 @@ bool FShooterFireActivationLedgerCorrectionTest::RunTest(const FString& Paramete
 	}
 
 	AShooterCharacter* Character = SpawnLocalPlayerCharacter(World);
-	AShooterWeapon* Weapon = Character
-		? AcquireFeedbackTestWeapon(World, Character, nullptr, nullptr, nullptr, 5.0f)
-		: nullptr;
-	UShooterGameplayAbility_Fire* Ability = NewObject<UShooterGameplayAbility_Fire>();
+	AShooterWeapon* Weapon = AcquireFeedbackTestWeapon(World, Character, nullptr, nullptr, nullptr, 5.0f);
 	if (!TestNotNull(TEXT("local player character spawned"), Character) ||
-		!TestNotNull(TEXT("ledger test weapon acquired"), Weapon) ||
-		!TestNotNull(TEXT("fire ability created"), Ability))
+		!TestNotNull(TEXT("backfill test weapon acquired"), Weapon))
 	{
 		DestroyPredictionTestWorld(World);
 		return false;
 	}
 
-	// 反例 1：多预测。最终 Settled 必须清掉服务器没有执行的预测，且不补播。
-	TestTrue(TEXT("correction weapon added"),
-		Character->GetInventoryComponent()->AddWeapon(Weapon) == EShooterInventoryAddResult::Added);
-	TestTrue(TEXT("correction weapon equipped"), Character->GetEquipmentComponent()->EquipWeapon(Weapon));
-	Weapon->ResetFireActivationStateForAutomationTest();
-	Weapon->SetPendingPredictedShotsForAutomationTest(3);
-	Ability->RegisterActivationLedgerForTest(21, Weapon);
-	Ability->NoteOwnerPredictedShotsForTest(21, 3);
-	Ability->HandleAuthorityFireActivationResultForTest(21, 2, 1, true);
-	TestEqual(TEXT("phantom pending cleared at settle"), Weapon->GetPendingPredictedShots(), 0);
-	TestEqual(TEXT("no backfill when processed below predicted"),
-		Ability->GetActivationLedgerBackfilledShotsForTest(21), 0);
-	TestTrue(TEXT("phantom ledger resolved"), Ability->IsActivationLedgerResolvedForTest(21));
-	TestEqual(TEXT("phantom did not submit confirmed feedback"),
-		Weapon->GetConfirmedBackfillCountForAutomationTest(), 0);
+	if (!TestTrue(TEXT("weapon is equipped as the current weapon"), EquipWeaponForOwner(Character, Weapon)))
+	{
+		DestroyPredictionTestWorld(World);
+		return false;
+	}
 
-	// 反例 2：明确 Success 先到，随后迟到 Reject 不得提前退款；必须等服务器结果结清。
-	Weapon->SetPendingPredictedShotsForAutomationTest(2);
-	Ability->RegisterActivationLedgerForTest(22, Weapon);
-	Ability->NoteOwnerPredictedShotsForTest(22, 2);
-	Ability->MarkActivationServerConfirmedForTest(22);
-	Ability->ResolveRejectedActivationForTest(22);
-	TestTrue(TEXT("late reject cannot refute explicit success"), Ability->IsActivationLedgerServerConfirmedForTest(22));
-	TestFalse(TEXT("confirmed ledger not resolved by reject"), Ability->IsActivationLedgerResolvedForTest(22));
-	TestEqual(TEXT("pending kept for server result"), Weapon->GetPendingPredictedShots(), 2);
-	Ability->HandleAuthorityFireActivationResultForTest(22, 3, 0, true);
-	TestEqual(TEXT("confirmed-but-zero-shot activation clears pending"), Weapon->GetPendingPredictedShots(), 0);
-	TestTrue(TEXT("confirmed ledger settles by server result"), Ability->IsActivationLedgerResolvedForTest(22));
-
-	// 反例 3：普通 Reject 只退款一次；重复 Reject 不得二次退款。
-	Weapon->SetPendingPredictedShotsForAutomationTest(2);
-	Ability->RegisterActivationLedgerForTest(23, Weapon);
-	Ability->NoteOwnerPredictedShotsForTest(23, 2);
-	Ability->ResolveRejectedActivationForTest(23);
-	TestEqual(TEXT("reject refunds predicted pending"), Weapon->GetPendingPredictedShots(), 0);
-	TestTrue(TEXT("reject ledger resolved"), Ability->IsActivationLedgerResolvedForTest(23));
-	Ability->ResolveRejectedActivationForTest(23);
-	TestEqual(TEXT("duplicate reject is idempotent"), Weapon->GetPendingPredictedShots(), 0);
-
-	// 反例 4：Server 领先并已补播后，本地 cadence 追到已覆盖 ordinal 不得再次预测。
-	Weapon->SetPendingPredictedShotsForAutomationTest(0);
-	Ability->RegisterActivationLedgerForTest(24, Weapon);
-	Ability->HandleAuthorityFireActivationResultForTest(24, 4, 2, false);
-	TestEqual(TEXT("backfill covers two server shots"), Ability->GetActivationLedgerBackfilledShotsForTest(24), 2);
-	TestEqual(TEXT("first covered attempt is skipped"), static_cast<int32>(Ability->DecideOwnerShotAttemptForTest(24)),
-		static_cast<int32>(UShooterGameplayAbility_Fire::EShooterOwnerShotAttemptDecision::SkipCovered));
-	TestEqual(TEXT("second covered attempt is skipped"), static_cast<int32>(Ability->DecideOwnerShotAttemptForTest(24)),
-		static_cast<int32>(UShooterGameplayAbility_Fire::EShooterOwnerShotAttemptDecision::SkipCovered));
-	TestEqual(TEXT("next ordinal can predict again"), static_cast<int32>(Ability->DecideOwnerShotAttemptForTest(24)),
-		static_cast<int32>(UShooterGameplayAbility_Fire::EShooterOwnerShotAttemptDecision::Predict));
-
-	DestroyPredictionTestWorld(World);
-	return true;
-}
-
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterFireLedgerLifetimeTest, "ShootGame.Ability.Fire.Prediction.LedgerLifetime",
-	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
-
-bool FShooterFireLedgerLifetimeTest::RunTest(const FString& Parameters)
-{
-	using namespace ShooterAbilityFirePredictionAutomationTests;
-	UWorld* World = CreatePredictionTestWorld();
-	AShooterCharacter* Character = SpawnLocalPlayerCharacter(World);
-	AShooterWeapon* Weapon = AcquireFeedbackTestWeapon(World, Character, nullptr, nullptr, nullptr, 5.0f);
 	UShooterGameplayAbility_Fire* Ability = NewObject<UShooterGameplayAbility_Fire>();
-	if (!TestNotNull(TEXT("lifetime weapon"), Weapon) || !TestNotNull(TEXT("lifetime character"), Character))
+	if (!TestNotNull(TEXT("fire ability created"), Ability))
 	{
 		DestroyPredictionTestWorld(World);
 		return false;
 	}
-	TArray<FShooterFireActivationResult> FinalResults;
-	// 八轮都等待裁决，不能为了容量提前退款或丢账。之后不再发起新激活。
-	for (int32 Key = 101; Key <= 108; ++Key)
-	{
-		Ability->RegisterActivationLedgerForTest(Key, Weapon);
-		Ability->NoteOwnerPredictedShotsForTest(Key, 1);
-		Weapon->BeginAuthorityFireActivation(Key);
-		Weapon->RecordAuthorityShotCommitted();
-		const int32 Slot = Weapon->GetOpenFireActivationResultSlotForTest();
-		Weapon->SettleAuthorityFireActivation();
-		FinalResults.Add(Weapon->GetFireActivationResultForTest(Slot));
-	}
-	Weapon->SetPendingPredictedShotsForAutomationTest(8);
-	TestEqual(TEXT("eight unresolved ledgers retained"), Ability->GetUnresolvedActivationLedgerCountForTest(), 8);
-	const int32 RingKey = Weapon->GetFireActivationResultForTest(0).ActivationKey;
-	TestEqual(TEXT("first ring slot has been overwritten"), RingKey, 105);
-	Weapon->BindPredictionAbility(Ability);
-	for (const FShooterFireActivationResult& Result : FinalResults)
-	{
-		Ability->HandleAuthorityFireActivationResultForTest(Result.ActivationKey, Result.ActivationSerial, 1, true);
-		Ability->HandleAuthorityFireActivationResultForTest(Result.ActivationKey, Result.ActivationSerial, 1, true);
-	}
-	TestEqual(TEXT("all eight settle without another activation"), Weapon->GetPendingPredictedShots(), 0);
-	TestEqual(TEXT("no unresolved ledger"), Ability->GetUnresolvedActivationLedgerCountForTest(), 0);
 
-	Ability->RegisterActivationLedgerForTest(109, Weapon);
-	Ability->NoteOwnerPredictedShotsForTest(109, 2);
-	Weapon->SetPendingPredictedShotsForAutomationTest(2);
-	const uint32 OldGeneration = Weapon->GetAmmoPredictionGeneration();
-	// 同一 Actor 通过生产租用重绑定边界复用；旧弱引用依然有效。
-	Weapon->OnAcquiredFromWeaponPool();
-	TestTrue(TEXT("context generation changed"), Weapon->GetAmmoPredictionGeneration() != OldGeneration);
-	TestTrue(TEXT("old ledger invalidated"), Ability->IsActivationLedgerResolvedForTest(109));
-	Ability->RegisterActivationLedgerForTest(110, Weapon);
-	Ability->NoteOwnerPredictedShotsForTest(110, 1);
+	Weapon->ResetFireFeedbackCountersForAutomationTest();
+	Weapon->SetPendingPredictedShotsForAutomationTest(0);
+
+	const int32 AmmoBefore = Weapon->GetBulletCount();
+	const int32 ProjectilesBefore = CountProjectiles(World);
+	const float TimeOfLastShotBefore = Weapon->GetTimeOfLastShotForAutomationTest();
+	const bool bCadenceReadyBefore = Weapon->IsLocalFireCooldownReady();
+
+	// 未预测：本次 Activation 没有提前表现，也没有占用预算。
+	Ability->RegisterShotRecordForTest(/*PredictionKey*/ 201, Weapon, /*bBudgetConsumed*/ false, /*bFeedbackPlayed*/ false);
+	Ability->HandleAuthorityShotVerdictForTest(201, /*bCommitted*/ true);
+
+	TestEqual(TEXT("an unpredicted committed shot backfills owner feedback exactly once"),
+		Ability->GetConfirmedBackfillRequestCountForTest(), 1);
+	TestEqual(TEXT("the backfilled owner feedback is counted on the weapon"),
+		Weapon->GetConfirmedBackfillCountForAutomationTest(), 1);
+	TestEqual(TEXT("the backfilled owner montage/recoil channel is recorded"),
+		Character->GetOwnerLocalRecoilCountForAutomationTest(), 1);
+	TestEqual(TEXT("an unpredicted committed shot leaves the budget untouched"), Weapon->GetPendingPredictedShots(), 0);
+	TestEqual(TEXT("the backfill never consumes magazine ammo"), Weapon->GetBulletCount(), AmmoBefore);
+	TestEqual(TEXT("the backfill never spawns a projectile"), CountProjectiles(World), ProjectilesBefore);
+	TestEqual(TEXT("the backfill never advances the local fire cadence"),
+		Weapon->IsLocalFireCooldownReady(), bCadenceReadyBefore);
+	TestEqual(TEXT("the backfill never writes the authority shot time"),
+		Weapon->GetTimeOfLastShotForAutomationTest(), TimeOfLastShotBefore);
+
+	// 幂等：重复 Committed 不得补播第二次。
+	Ability->HandleAuthorityShotVerdictForTest(201, /*bCommitted*/ true);
+	TestEqual(TEXT("a duplicated committed verdict cannot backfill twice"),
+		Ability->GetConfirmedBackfillRequestCountForTest(), 1);
+	TestEqual(TEXT("a duplicated committed verdict cannot double count on the weapon"),
+		Weapon->GetConfirmedBackfillCountForAutomationTest(), 1);
+
+	// ---- 情形 6：预算被消费但表现通道当时不可用 → Committed 仍然结清预算并补播一次 ----
+	// 预算与表现是两个独立事实：表现提交失败不得让这一发的预算永远挂着。
+	Weapon->ResetFireFeedbackCountersForAutomationTest();
 	Weapon->SetPendingPredictedShotsForAutomationTest(1);
-	Ability->ResolveRejectedActivationForTest(109);
-	Ability->HandleAuthorityFireActivationResultForTest(109, 109, 2, true);
-	TestEqual(TEXT("late old reject/result cannot reduce new pending"), Weapon->GetPendingPredictedShots(), 1);
-	Ability->ResolveRejectedActivationForTest(110);
-	TestEqual(TEXT("new reject refunds its own pending"), Weapon->GetPendingPredictedShots(), 0);
+	Ability->RegisterShotRecordForTest(/*PredictionKey*/ 202, Weapon, /*bBudgetConsumed*/ true,
+		/*bFeedbackPlayed*/ false);
+	TestTrue(TEXT("the record remembers the consumed budget"), Ability->IsShotRecordBudgetConsumedForTest(202));
+	TestFalse(TEXT("the record remembers that no feedback was played"),
+		Ability->IsShotRecordFeedbackPlayedForTest(202));
+
+	Ability->HandleAuthorityShotVerdictForTest(202, /*bCommitted*/ true);
+	TestEqual(TEXT("a committed shot still settles a budget whose feedback failed"),
+		Weapon->GetPendingPredictedShots(), 0);
+	TestEqual(TEXT("a committed shot backfills the feedback that was never played"),
+		Ability->GetConfirmedBackfillRequestCountForTest(), 2);
+
+	// 同一事实的 Reject 面：预算必须被退还，且完全不补播。
+	Weapon->ResetFireFeedbackCountersForAutomationTest();
+	Weapon->SetPendingPredictedShotsForAutomationTest(1);
+	Ability->RegisterShotRecordForTest(/*PredictionKey*/ 203, Weapon, /*bBudgetConsumed*/ true,
+		/*bFeedbackPlayed*/ false);
+	const int32 BackfillBeforeReject = Ability->GetConfirmedBackfillRequestCountForTest();
+	Ability->HandleAuthorityShotVerdictForTest(203, /*bCommitted*/ false);
+	TestEqual(TEXT("a rejected shot refunds the budget even when its feedback never played"),
+		Weapon->GetPendingPredictedShots(), 0);
+	TestEqual(TEXT("a rejected shot never backfills the missing feedback"),
+		Ability->GetConfirmedBackfillRequestCountForTest(), BackfillBeforeReject);
+
 	DestroyPredictionTestWorld(World);
 	return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterFireConfirmedQueueTest,
-	"ShootGame.Ability.Fire.Prediction.ConfirmedQueueLifecycle",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterFirePredictionShotRecordLifetimeTest,
+	"ShootGame.Ability.Fire.Prediction.ShotRecordLifetime",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
-bool FShooterFireConfirmedQueueTest::RunTest(const FString& Parameters)
+bool FShooterFirePredictionShotRecordLifetimeTest::RunTest(const FString& Parameters)
 {
 	using namespace ShooterAbilityFirePredictionAutomationTests;
+
+	// 迟到的旧裁决不得修改新上下文的预算，也不得在新武器上补播表现。
 	UWorld* World = CreatePredictionTestWorld();
+	if (!TestNotNull(TEXT("prediction test world created"), World))
+	{
+		return false;
+	}
+
 	AShooterCharacter* Character = SpawnLocalPlayerCharacter(World);
 	AShooterWeapon* Weapon = AcquireFeedbackTestWeapon(World, Character, nullptr, nullptr, nullptr, 5.0f);
-	if (!TestNotNull(TEXT("queue weapon"), Weapon) || !TestNotNull(TEXT("queue character"), Character))
+	if (!TestNotNull(TEXT("local player character spawned"), Character) ||
+		!TestNotNull(TEXT("lifetime test weapon acquired"), Weapon))
 	{
 		DestroyPredictionTestWorld(World);
 		return false;
 	}
-	TestTrue(TEXT("queue weapon added"),
-		Character->GetInventoryComponent()->AddWeapon(Weapon) == EShooterInventoryAddResult::Added);
-	TestTrue(TEXT("queue weapon equipped"), Character->GetEquipmentComponent()->EquipWeapon(Weapon));
-	const int32 AmmoBefore = Weapon->GetBulletCount();
-	const int32 RecoilBefore = Character->GetOwnerLocalRecoilCountForAutomationTest();
-	for (int32 Shot = 0; Shot < 3; ++Shot)
+
+	UShooterGameplayAbility_Fire* Ability = NewObject<UShooterGameplayAbility_Fire>();
+	if (!TestNotNull(TEXT("fire ability created"), Ability))
 	{
-		TestTrue(TEXT("confirmed feedback accepted"), Weapon->PlayOwnerConfirmedShotFeedback());
+		DestroyPredictionTestWorld(World);
+		return false;
 	}
-	TestEqual(TEXT("only one feedback in current frame"), Weapon->GetConfirmedBackfillCountForAutomationTest(), 1);
-	// UE TimerManager 每个引擎帧只 Tick 一次；用真实 Automation 帧推进测试世界。
-	ADD_LATENT_AUTOMATION_COMMAND(FFunctionLatentCommand(
-		[this, World, Character, Weapon, AmmoBefore, RecoilBefore, Phase = 0]() mutable
-		{
-			World->Tick(LEVELTICK_All, 0.05f);
-			const double Time = World->GetTimeSeconds();
-			if (Phase == 0 && Time >= 0.25)
-			{
-				const int32 BeforeInterval = Weapon->GetConfirmedBackfillCountForAutomationTest();
-				TestEqual(TEXT("no feedback before interval"), BeforeInterval, 1);
-				Phase = 1;
-			}
-			if (Phase == 1 && Time >= 0.65)
-			{
-				const int32 AfterInterval = Weapon->GetConfirmedBackfillCountForAutomationTest();
-				TestEqual(TEXT("second feedback after interval"), AfterInterval, 2);
-				Weapon->DeactivateWeapon();
-				TestFalse(TEXT("deactivation cancels remaining feedback"), Weapon->HasPendingConfirmedFeedback());
-				TestFalse(TEXT("hidden weapon refuses late feedback"), Weapon->PlayOwnerConfirmedShotFeedback());
-				Phase = 2;
-			}
-			if (Time < 1.3)
-			{
-				return false;
-			}
-			const int32 AfterDeactivation = Weapon->GetConfirmedBackfillCountForAutomationTest();
-			TestEqual(TEXT("no old feedback after deactivation"), AfterDeactivation, 2);
-			TestEqual(TEXT("recoil corresponds to actual feedback"),
-				Character->GetOwnerLocalRecoilCountForAutomationTest() - RecoilBefore, 2);
-			TestEqual(TEXT("queue does not write authority ammo"), Weapon->GetBulletCount(), AmmoBefore);
-			DestroyPredictionTestWorld(World);
-			return true;
-		}));
+
+	// ---- 生命周期边界：Owner / 池边界作废该武器的记录 ----
+	Weapon->SetPendingPredictedShotsForAutomationTest(1);
+	Ability->RegisterShotRecordForTest(/*PredictionKey*/ 301, Weapon, /*bBudgetConsumed*/ true, /*bFeedbackPlayed*/ true);
+	TestEqual(TEXT("one unresolved shot record is retained"), Ability->GetUnresolvedShotRecordCountForTest(), 1);
+
+	Ability->InvalidateWeaponPredictionContext(Weapon);
+	TestEqual(TEXT("an invalidated context leaves no unresolved record"),
+		Ability->GetUnresolvedShotRecordCountForTest(), 0);
+
+	// 迟到的裁决在记录失效后不得退款、不得补播。
+	Weapon->SetPendingPredictedShotsForAutomationTest(1);
+	Ability->HandleAuthorityShotVerdictForTest(301, /*bCommitted*/ false);
+	TestEqual(TEXT("a late rejection after invalidation cannot refund"), Weapon->GetPendingPredictedShots(), 1);
+	Ability->HandleAuthorityShotVerdictForTest(301, /*bCommitted*/ true);
+	TestEqual(TEXT("a late committed verdict after invalidation cannot backfill"),
+		Ability->GetConfirmedBackfillRequestCountForTest(), 0);
+
+	// ---- 池归还 / 重新取用：代次变化后旧记录不再参与结清 ----
+	Weapon->SetPendingPredictedShotsForAutomationTest(1);
+	Ability->RegisterShotRecordForTest(/*PredictionKey*/ 302, Weapon, /*bBudgetConsumed*/ true, /*bFeedbackPlayed*/ true);
+	TestEqual(TEXT("a new record is registered for the new lease"), Ability->GetUnresolvedShotRecordCountForTest(), 1);
+
+	Weapon->OnAcquiredFromWeaponPool();
+	TestEqual(TEXT("re-acquiring the weapon invalidates the old generation's records"),
+		Ability->GetUnresolvedShotRecordCountForTest(), 0);
+
+	DestroyPredictionTestWorld(World);
 	return true;
 }
 

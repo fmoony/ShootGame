@@ -360,8 +360,8 @@ public:
 	/** Deactivates the passed weapon */
 	virtual void OnWeaponDeactivated(AShooterWeapon* Weapon) override;
 
-	/** Notifies the owner that the weapon cooldown has expired and it's ready to shoot again */
-	virtual void OnSemiWeaponRefire() override;
+	/** 玩家连发由 ASC 的 Held 重激活表达，权威节拍通知在这里不需要额外动作。 */
+	virtual void OnWeaponRefireReady() override;
 
 	//~End IShooterWeaponHolder interface
 

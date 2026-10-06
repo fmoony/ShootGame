@@ -293,13 +293,17 @@ void AShooterNPC::OnWeaponDeactivated(AShooterWeapon* InWeapon)
 	// unused
 }
 
-void AShooterNPC::OnSemiWeaponRefire()
+void AShooterNPC::OnWeaponRefireReady()
 {
-	// are we still shooting?
+	// 权威节拍到期的唯一后续动作：仍要射击就再提交一次开火意图。
+	// 一次 GA_Fire Activation 只提交一发，连发由这里按 RefireRate 反复驱动。
 	if (bIsShooting)
 	{
-		// fire the weapon
-		Weapon->StartFiring();
+		UShooterAbilitySystemComponent* ShooterAbilitySystemComponent = Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent());
+		if (ShooterAbilitySystemComponent)
+		{
+			ShooterAbilitySystemComponent->AbilityInputTagPressed(ShooterGameplayTags::Input_Fire);
+		}
 	}
 }
 
@@ -316,11 +320,9 @@ void AShooterNPC::Die()
 	{
 		AbilitySystemComponent->AddLooseGameplayTag(ShooterGameplayTags::State_Dead);
 	}
+	// 死亡同时作废"还想射击"的意图：迟到的权威节拍通知不得再提交新的开火请求。
+	bIsShooting = false;
 	CancelFireAbility();
-	if (Weapon)
-	{
-		Weapon->StopFiring();
-	}
 
 	// raise the dead flag
 	bIsDead = true;

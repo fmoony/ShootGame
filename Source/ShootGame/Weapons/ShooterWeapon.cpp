@@ -186,8 +186,6 @@ void AShooterWeapon::BeginPlay()
 	if (HasAuthority())
 	{
 		RestoreInitialAmmo();
-		// 结果环在服务器先固定大小，客户端按复制结果补齐。
-		FireActivationResults.SetNum(FireActivationResultRingSize);
 	}
 
 }
@@ -239,13 +237,11 @@ void AShooterWeapon::InitializeWeaponOwner()
 void AShooterWeapon::ClearWeaponOwner()
 {
 	ResetMagazinePresentation();
-	CancelOwnerConfirmedFeedback();
 	if (UShooterGameplayAbility_Fire* Ability = Cast<UShooterGameplayAbility_Fire>(BoundPredictionAbility.Get()))
 	{
 		Ability->InvalidateWeaponPredictionContext(this);
 	}
 	++AmmoPredictionGeneration;
-	NextConfirmedFeedbackTime = 0.0;
 
 	if (CachedWeaponOwnerActor)
 	{
@@ -259,16 +255,6 @@ void AShooterWeapon::ClearWeaponOwner()
 	// Owner 上下文已失效：旧预测上下文整体作废（Owner 变化 / 归还池 / teardown）。
 	ResetAmmoPrediction();
 	ClearPredictionAbility();
-
-	// 上一持有者的 Activation 结果不得污染下一轮；权威端清环形记录，客户端只清本地缓存。
-	if (HasAuthority())
-	{
-		ResetFireActivationResultState();
-	}
-	else
-	{
-		CachedFireActivationResults.Reset();
-	}
 }
 
 void AShooterWeapon::InitializeWeaponIdentity(FName InWeaponId)
@@ -336,9 +322,8 @@ UShooterWeaponRuntimeSubsystem* AShooterWeapon::GetWeaponRuntimeSubsystem() cons
 
 void AShooterWeapon::OnAcquiredFromWeaponPool()
 {
-	// 租用复位：开火节拍与开火标志不跨租用继承；WeaponId 与静态配置永久保留。
-	TimeOfLastShot = 0.0f;
-	bIsFiring = false;
+	// 租用复位：权威射速时钟与本地开火节拍不跨租用继承；WeaponId 与静态配置永久保留。
+	ResetAuthorityRefireClock();
 	ResetLocalFireCooldown();
 
 	// 池在调用本回调前已写入新 Owner，这里重新绑定 Owner/Instigator 缓存与销毁委托。
@@ -360,8 +345,8 @@ void AShooterWeapon::OnReleasedToWeaponPool()
 		DeactivateWeapon();
 	}
 
-	// 完整停止开火与换弹相关 Timer / Delegate。
-	StopFiring();
+	// 完整清理权威节拍通知 Timer；武器不再持有任何连续开火 Timer。
+	ResetAuthorityRefireClock();
 	if (UWorld* World = GetWorld())
 	{
 		World->GetTimerManager().ClearTimer(RefireTimer);
@@ -373,7 +358,6 @@ void AShooterWeapon::OnReleasedToWeaponPool()
 
 	// 恢复该武器的初始弹药：静态配置（WeaponId / MagazineSize / 行为实例）永久保留，不重复应用。
 	RestoreInitialAmmo();
-	OnOutOfAmmo.Clear();
 	SetLifecycleState(EShooterWeaponLifecycleState::InPool, TEXT("ReleasedToWeaponPool"));
 
 	UE_LOG(LogShootGame, Verbose, TEXT("WeaponActor released to weapon runtime pool: Weapon=%s WeaponId=%s"),
@@ -625,6 +609,8 @@ void AShooterWeapon::RestoreInitialAmmo()
 	// 入库/归还即回到该武器静态配置声明的初始弹药经济。
 	MagazineAmmo = MagazineSize;
 	ReserveAmmo = ResolveInitialReserveAmmo();
+	// 同一生命周期边界把权威射速时钟复位为"已就绪"，避免世界启动初期或复用租用时误判冷却。
+	ResetAuthorityRefireClock();
 	RefreshAuthorityAmmoDisplaySnapshot();
 	ForceNetUpdate();
 }
@@ -698,16 +684,13 @@ void AShooterWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	DOREPLIFETIME_CONDITION(AShooterWeapon, ReserveAmmo, COND_OwnerOnly);
 	// 武器种类身份是创建后不变的初始复制数据；客户端从启动快照恢复静态表现配置。
 	DOREPLIFETIME(AShooterWeapon, WeaponId);
-	// 最近数轮 GA_Fire 的服务器结果只服务拥有者客户端的表现收敛。
-	DOREPLIFETIME_CONDITION(AShooterWeapon, FireActivationResults, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(AShooterWeapon, AmmoDisplaySnapshot, COND_OwnerOnly);
 }
 
 void AShooterWeapon::OnRep_MagazineAmmo(int32 OldMagazineAmmo)
 {
-	// MagazineAmmo 只表示服务器当前真实弹药，不再用于推断确认了几发预测。
-	// PendingPredictedShots 的减少只由当前 GA_Fire Activation 的服务器结果账本负责；
-	// 生命周期边界仍由 ResetAmmoPrediction 强制清理。
+	// MagazineAmmo 只表示服务器当前真实弹药：它既不推断"确认了几发预测"，
+	// 也不承担 Shot 身份。预测预算的结清只由拥有端 Shot 记录按每发裁决完成。
 	PushAmmoToOwnerHud();
 }
 
@@ -815,12 +798,7 @@ void AShooterWeapon::ReducePendingPredictedAmmo(int32 Amount, const TCHAR* Marke
 
 void AShooterWeapon::ConfirmPredictedAmmo(int32 Amount)
 {
-	ReducePendingPredictedAmmo(Amount, TEXT("Confirmed"));
-}
-
-void AShooterWeapon::DiscardPhantomPredictedAmmo(int32 Amount)
-{
-	ReducePendingPredictedAmmo(Amount, TEXT("Phantom"));
+	ReducePendingPredictedAmmo(Amount, TEXT("Committed"));
 }
 
 void AShooterWeapon::BindPredictionAbility(UShooterGameplayAbility_Fire* Ability)
@@ -833,133 +811,101 @@ void AShooterWeapon::ClearPredictionAbility()
 	BoundPredictionAbility.Reset();
 }
 
-void AShooterWeapon::BeginAuthorityFireActivation(int32 ActivationKey)
+bool AShooterWeapon::CanCommitAuthorityShot() const
 {
-	if (!HasAuthority())
+	const UWorld* World = GetWorld();
+	if (!World)
 	{
-		return;
+		return false;
 	}
 
-	// 同一时刻只允许一轮打开；若上一轮未结清，先按当前计数结清，避免结果被覆盖。
-	if (OpenFireActivationResultSlot != INDEX_NONE)
-	{
-		SettleAuthorityFireActivation();
-	}
-
-	if (FireActivationResults.Num() != FireActivationResultRingSize)
-	{
-		FireActivationResults.SetNum(FireActivationResultRingSize);
-	}
-
-	const int32 Slot = NextFireActivationResultSlot % FireActivationResultRingSize;
-	NextFireActivationResultSlot = (Slot + 1) % FireActivationResultRingSize;
-
-	FShooterFireActivationResult& Result = FireActivationResults[Slot];
-	Result.ActivationKey = ActivationKey;
-	Result.ProcessedShots = 0;
-	Result.bSettled = false;
-	Result.ActivationSerial = NextFireActivationSerial++;
-
-	OpenFireActivationResultSlot = Slot;
-	ForceNetUpdate();
-	PublishAuthorityFireActivationResult(Result, /*bForceSettled*/ false);
+	// 未开火时 TimeOfLastShot 是远早于世界时间的哨兵值，因此判据本身不需要任何特例分支。
+	const float Elapsed = World->GetTimeSeconds() - TimeOfLastShot;
+	return Elapsed + AuthorityRefireTolerance >= FMath::Max(RefireRate, 0.0f);
 }
 
-void AShooterWeapon::RecordAuthorityShotCommitted()
+void AShooterWeapon::ResetAuthorityRefireClock()
 {
-	if (!HasAuthority() || OpenFireActivationResultSlot == INDEX_NONE)
-	{
-		return;
-	}
-
-	FShooterFireActivationResult& Result = FireActivationResults[OpenFireActivationResultSlot];
-	if (Result.bSettled)
-	{
-		return;
-	}
-
-	++Result.ProcessedShots;
-	ForceNetUpdate();
-	PublishAuthorityFireActivationResult(Result, /*bForceSettled*/ false);
+	TimeOfLastShot = NeverFiredShotTime;
 }
 
-void AShooterWeapon::SettleAuthorityFireActivation()
+bool AShooterWeapon::CommitSingleShot(int32 ActivationKey)
 {
-	if (!HasAuthority() || OpenFireActivationResultSlot == INDEX_NONE)
+	// 一次调用最多产生一发权威 Shot：本函数是本武器唯一的权威开火入口。
+	if (!HasAuthority() || !WeaponOwner || !CanCommitAuthorityShot())
 	{
-		return;
+		return false;
 	}
 
-	FShooterFireActivationResult& Result = FireActivationResults[OpenFireActivationResultSlot];
-	Result.bSettled = true;
-	OpenFireActivationResultSlot = INDEX_NONE;
-	ForceNetUpdate();
-	PublishAuthorityFireActivationResult(Result, /*bForceSettled*/ true);
-	// 一轮只发送一次最终结果。属性环可合并或覆盖，但最终账目不能据此丢失。
-	if (Result.ActivationKey > 0 && PawnOwner && PawnOwner->IsPlayerControlled() && !HasOwnerLocalPlayerView())
+	// Ammo 权威位于 WeaponActor.MagazineAmmo；扣弹失败即没有任何权威结果。
+	if (!ConsumeAmmo())
+	{
+		return false;
+	}
+
+	// 扣弹成功即代表这一发已被服务器正式提交；后续表现或弹丸失败都不回退。
+	const float ShotTime = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0f;
+	TimeOfLastShot = ShotTime;
+
+	ExecuteFireAtTarget(WeaponOwner->GetWeaponTargetLocation());
+
+#if WITH_DEV_AUTOMATION_TESTS
+	++AuthorityShotCount;
+	LogFireFeedbackMarker(TEXT("FIRE_AUTHORITY_COMMIT"), AuthorityShotCount, AuthorityShotCount);
+#endif
+
+	// 让 AI 感知系统听见这一发。
+	MakeNoise(ShotLoudness, PawnOwner, PawnOwner ? PawnOwner->GetActorLocation() : GetActorLocation(),
+		ShotNoiseRange, ShotNoiseTag);
+
+	// 权威节拍到期通知：只通知持有者"可以再提交一次开火意图"，不产生任何 Shot。
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().SetTimer(RefireTimer, this, &AShooterWeapon::HandleAuthorityRefireReady,
+			FMath::Max(RefireRate, 0.01f), false);
+	}
+
+	// 拥有端的这一发裁决：真实提交。本机权威视图（Listen Host / Standalone）同步知道结果，不需要通知。
+	if (ActivationKey > 0)
 	{
 		RefreshAuthorityAmmoDisplaySnapshot();
-		ClientFireActivationSettled(Result, AmmoDisplaySnapshot);
+		if (PawnOwner && PawnOwner->IsPlayerControlled() && !HasOwnerLocalPlayerView())
+		{
+			ClientShotCommitted(ActivationKey, AmmoDisplaySnapshot);
+		}
+	}
+
+	return true;
+}
+
+void AShooterWeapon::HandleAuthorityRefireReady()
+{
+	// 权威射速已就绪；持有者自行决定是否再次提交开火意图（NPC 连发由这条通知驱动）。
+	if (WeaponOwner)
+	{
+		WeaponOwner->OnWeaponRefireReady();
 	}
 }
 
-void AShooterWeapon::ClientFireActivationSettled_Implementation(const FShooterFireActivationResult& Result,
-	const FShooterAmmoDisplaySnapshot& Snapshot)
+void AShooterWeapon::ClientShotCommitted_Implementation(int32 ActivationKey, const FShooterAmmoDisplaySnapshot& Snapshot)
 {
 #if WITH_DEV_AUTOMATION_TESTS
-	++FinalResultReceivedCountForTest;
+	++ShotVerdictReceivedCountForTest;
 #endif
-	UE_LOG(LogShootGame, Display, TEXT("FIRE_ACTIVATION_FINAL_RECEIVED Weapon=%s Key=%d Serial=%d Processed=%d"),
-		*GetNameSafe(this), Result.ActivationKey, Result.ActivationSerial, Result.ProcessedShots);
-	PublishAuthorityFireActivationResult(Result, /*bForceSettled*/ true);
-	if (AmmoDisplayState.SettleActivation(Result.ActivationKey, Snapshot))
+	UE_LOG(LogShootGame, Display, TEXT("SHOT_VERDICT_COMMITTED Weapon=%s Key=%d"), *GetNameSafe(this), ActivationKey);
+
+	// 拥有端 Shot 记录按这一发的裁决结清预测预算与缺失表现。
+	UShooterGameplayAbility_Fire* PredictionAbility = Cast<UShooterGameplayAbility_Fire>(BoundPredictionAbility.Get());
+	if (PredictionAbility)
+	{
+		PredictionAbility->HandleAuthorityShotVerdict(this, ActivationKey, /*bCommitted*/ true);
+	}
+
+	// HUD 显示扣减与显示基线一起结清，不依赖弹药属性与裁决的到达顺序。
+	if (AmmoDisplayState.SettleActivation(ActivationKey, Snapshot))
 	{
 		PushAmmoToOwnerHud();
 	}
-}
-
-void AShooterWeapon::PublishAuthorityFireActivationResult(const FShooterFireActivationResult& Result, bool bForceSettled)
-{
-	// Listen Host / Standalone 的本地玩家同时是权威端，自身复制不会回流，必须直接转发。
-	if (!HasOwnerLocalPlayerView() || !BoundPredictionAbility.IsValid())
-	{
-		return;
-	}
-
-	if (UShooterGameplayAbility_Fire* PredictionAbility =
-		Cast<UShooterGameplayAbility_Fire>(BoundPredictionAbility.Get()))
-	{
-		PredictionAbility->HandleAuthorityFireActivationResult(this, Result.ActivationKey, Result.ActivationSerial,
-			Result.ProcessedShots, bForceSettled || Result.bSettled);
-	}
-}
-
-void AShooterWeapon::OnRep_FireActivationResults()
-{
-	const int32 Num = FireActivationResults.Num();
-	CachedFireActivationResults.SetNum(Num);
-	for (int32 Index = 0; Index < Num; ++Index)
-	{
-		const FShooterFireActivationResult& ServerResult = FireActivationResults[Index];
-		FShooterFireActivationResult& CachedResult = CachedFireActivationResults[Index];
-
-		// 槽位覆盖不能证明最终发数；旧轮等待可靠最终结果，不按缓存值伪造 Settled。
-
-		if (ServerResult.ActivationKey != 0)
-		{
-			PublishAuthorityFireActivationResult(ServerResult, /*bForceSettled*/ false);
-		}
-		CachedResult = ServerResult;
-	}
-}
-
-void AShooterWeapon::ResetFireActivationResultState()
-{
-	OpenFireActivationResultSlot = INDEX_NONE;
-	NextFireActivationResultSlot = 0;
-	FireActivationResults.Reset();
-	CachedFireActivationResults.Reset();
-	ClearPredictionAbility();
 }
 
 void AShooterWeapon::EndPlay(EEndPlayReason::Type EndPlayReason)
@@ -967,7 +913,7 @@ void AShooterWeapon::EndPlay(EEndPlayReason::Type EndPlayReason)
 	ResetMagazinePresentation();
 	Super::EndPlay(EndPlayReason);
 
-	// clear the refire timer
+	// 清掉权威节拍通知 Timer；本武器没有任何连续开火 Timer。
 	if (UWorld* World = GetWorld())
 	{
 		World->GetTimerManager().ClearTimer(RefireTimer);
@@ -978,8 +924,7 @@ void AShooterWeapon::EndPlay(EEndPlayReason::Type EndPlayReason)
 	// 注意这里不归还池：正在销毁的 Actor 只能被销毁，归还由 Inventory / 拥有者清理路径负责。
 	ClearWeaponOwner();
 
-	bIsFiring = false;
-	OnOutOfAmmo.Clear();
+	ResetAuthorityRefireClock();
 }
 
 void AShooterWeapon::OnOwnerDestroyed(AActor* DestroyedActor)
@@ -1030,7 +975,6 @@ void AShooterWeapon::ActivateWeapon()
 void AShooterWeapon::DeactivateWeapon()
 {
 	ResetMagazinePresentation();
-	CancelOwnerConfirmedFeedback();
 	if (UShooterGameplayAbility_Fire* Ability = Cast<UShooterGameplayAbility_Fire>(BoundPredictionAbility.Get()))
 	{
 		Ability->SuppressWeaponConfirmedFeedback(this);
@@ -1046,8 +990,11 @@ void AShooterWeapon::DeactivateWeapon()
 
 	SetLifecycleState(EShooterWeaponLifecycleState::Holstered, TEXT("DeactivateWeapon"));
 
-	// ensure we're no longer firing this weapon while deactivated
-	StopFiring();
+	// 收起武器即清掉尚未到期的权威节拍通知；本武器不保留任何"正在开火"状态。
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(RefireTimer);
+	}
 
 	// hide the weapon
 	SetActorHiddenInGame(true);
@@ -1114,77 +1061,10 @@ void AShooterWeapon::ResetMagazinePresentation()
 	ResetMagazineProxyForMesh(ThirdPersonMesh, ThirdPersonMagazineProxy, RootComponent);
 }
 
-void AShooterWeapon::StartFiring()
-{
-	// raise the firing flag
-	bIsFiring = true;
-
-	// check how much time has passed since we last shot
-	// this may be under the refire rate if the weapon shoots slow enough and the player is spamming the trigger
-	const float TimeSinceLastShot = GetWorld()->GetTimeSeconds() - TimeOfLastShot;
-
-	if (TimeSinceLastShot >= RefireRate)
-	{
-		// fire the weapon right away
-		Fire();
-
-	} else {
-
-		// if we're full auto, schedule the next shot
-		if (bFullAuto)
-		{
-			const float RemainingRefireTime = RefireRate - TimeSinceLastShot;
-			GetWorld()->GetTimerManager().SetTimer(RefireTimer, this, &AShooterWeapon::Fire, RemainingRefireTime,
-				false);
-		}
-
-	}
-}
-
-void AShooterWeapon::StopFiring()
-{
-	// lower the firing flag
-	bIsFiring = false;
-
-	// 半自动的 RefireTimer 持有 FireCooldownExpired，是"距上一次真实射击是否已满 RefireRate"
-	// 的权威冷却标记，不是连发调度器。松开扳机不得取消它，否则 CanStartSemiAutoShotNow()
-	// 会在每次释放后立刻恢复为 true，服务器就会接受冷却期内的重复激活
-	// （激活成功但 Fire 因 TimeSinceLastShot 不足而静默不发射）。
-	// 这种"接受但不开火"的激活会让客户端进入确认回退并补播表现，
-	// 形成与权威弹丸数量不符的高速连续枪口 / 声音 / 后坐力。
-	// 全自动的 RefireTimer 才是下一发调度器，必须在释放时清除以停止连发。
-	if (bFullAuto)
-	{
-		if (UWorld* World = GetWorld())
-		{
-			World->GetTimerManager().ClearTimer(RefireTimer);
-		}
-	}
-}
-
 bool AShooterWeapon::HasOwnerLocalPlayerView() const
 {
 	// 必须同时是玩家控制与本机控制：服务器上的 NPC 在 UE 5.6 的 IsLocallyControlled() 也为真。
 	return PawnOwner != nullptr && PawnOwner->IsPlayerControlled() && PawnOwner->IsLocallyControlled();
-}
-
-bool AShooterWeapon::CanStartSemiAutoShotNow() const
-{
-	// 全自动不参与该查询：冷却期允许激活，真实补射时机由权威 RefireTimer 决定。
-	if (bFullAuto)
-	{
-		return false;
-	}
-
-	const UWorld* World = GetWorld();
-	if (!World)
-	{
-		return false;
-	}
-
-	// 半自动开火后会把 RefireTimer 排成 FireCooldownExpired：Timer 活动即表示仍在冷却。
-	// 池取用与归还都会清除该 Timer，因此首次取用时为未激活，可直接开火。
-	return !World->GetTimerManager().IsTimerActive(RefireTimer);
 }
 
 bool AShooterWeapon::IsLocalFireCooldownReady() const
@@ -1195,12 +1075,10 @@ bool AShooterWeapon::IsLocalFireCooldownReady() const
 		return false;
 	}
 
-	// 全自动的本地节拍由 PredictedFeedbackTimer 驱动，Timer 到期与本地节拍之间存在浮点边界，
-	// 允许 5ms 容差避免恰好在 RefireRate 边界误挡下一拍。
-	// 半自动由离散输入驱动，没有 Timer 对齐问题：必须严格比较，
-	// 否则玩家可以在节拍结束前数毫秒提前开火并看到一次多余表现。
-	const float CooldownTolerance = bFullAuto ? 0.005f : 0.0f;
-	return LocalFireCooldownEndTime < 0.0f || World->GetTimeSeconds() + CooldownTolerance >= LocalFireCooldownEndTime;
+	// 本地节拍由离散输入与权威节拍通知驱动，没有 Timer 到期与帧边界的对齐问题。
+	// 半自动必须严格比较，否则玩家可以在节拍结束前数毫秒提前开火并看到一次多余表现；
+	// 全自动的请求节流同样按严格边界推进，真实射速仍由服务器独立判定。
+	return LocalFireCooldownEndTime < 0.0f || World->GetTimeSeconds() >= LocalFireCooldownEndTime;
 }
 
 float AShooterWeapon::GetLocalFireCooldownRemaining() const
@@ -1231,16 +1109,14 @@ bool AShooterWeapon::PlayOwnerPredictedShotFeedback()
 
 bool AShooterWeapon::PlayOwnerConfirmedShotFeedback()
 {
+	// 一次 Activation 最多补播一次：没有队列、没有调度 Timer，也不影响任何本地节拍。
+	// 表现节奏由"每发一次 Activation + 本地开火节拍"保证，不在这里再次限速。
 	if (!IsOwnerConfirmedFeedbackTargetValid() || (!FiringMontage && !MuzzleFlash && !FireSound && FMath::IsNearlyZero(FiringRecoil)))
 	{
 		return false;
 	}
-	++PendingConfirmedFeedback;
-	if (!GetWorld()->GetTimerManager().IsTimerActive(ConfirmedFeedbackTimer))
-	{
-		DrainOwnerConfirmedFeedback();
-	}
-	return true;
+
+	return PlayOwnerShotFeedbackInternal(/*bConfirmedBackfill*/ true);
 }
 
 bool AShooterWeapon::IsOwnerConfirmedFeedbackTargetValid() const
@@ -1248,46 +1124,6 @@ bool AShooterWeapon::IsOwnerConfirmedFeedbackTargetValid() const
 	const AShooterCharacter* Character = Cast<AShooterCharacter>(GetOwner());
 	return GetWorld() && !IsRunningDedicatedServer() && HasOwnerLocalPlayerView() && !IsHidden() &&
 		!IsActorBeingDestroyed() && Character && Character->GetCurrentWeaponActor() == this;
-}
-
-void AShooterWeapon::CancelOwnerConfirmedFeedback()
-{
-	if (UWorld* World = GetWorld())
-	{
-		World->GetTimerManager().ClearTimer(ConfirmedFeedbackTimer);
-	}
-	if (PendingConfirmedFeedback > 0)
-	{
-		UE_LOG(LogShootGame, Display, TEXT("FIRE_CONFIRMED_QUEUE_CANCEL Weapon=%s Amount=%d"),
-			*GetNameSafe(this), PendingConfirmedFeedback);
-	}
-	PendingConfirmedFeedback = 0;
-}
-
-void AShooterWeapon::DrainOwnerConfirmedFeedback()
-{
-	if (!IsOwnerConfirmedFeedbackTargetValid())
-	{
-		CancelOwnerConfirmedFeedback();
-		return;
-	}
-	UWorld* World = GetWorld();
-	const double Now = World->GetTimeSeconds();
-	if (PendingConfirmedFeedback > 0 && Now + UE_SMALL_NUMBER >= NextConfirmedFeedbackTime)
-	{
-		--PendingConfirmedFeedback;
-		if (!PlayOwnerShotFeedbackInternal(/*bConfirmedBackfill*/ true))
-		{
-			UE_LOG(LogShootGame, Display, TEXT("FIRE_CONFIRMED_FEEDBACK_SUPPRESSED Weapon=%s Reason=Unavailable"), *GetNameSafe(this));
-		}
-		NextConfirmedFeedbackTime = Now + FMath::Max(RefireRate, 0.01f);
-	}
-	if (PendingConfirmedFeedback > 0)
-	{
-		const float Delay = FMath::Max(static_cast<float>(NextConfirmedFeedbackTime - Now), 0.001f);
-		World->GetTimerManager().SetTimer(ConfirmedFeedbackTimer, this,
-			&AShooterWeapon::DrainOwnerConfirmedFeedback, Delay, false);
-	}
 }
 
 bool AShooterWeapon::PlayOwnerShotFeedbackInternal(bool bConfirmedBackfill)
@@ -1373,76 +1209,7 @@ bool AShooterWeapon::PlayOwnerShotFeedbackInternal(bool bConfirmedBackfill)
 	}
 #endif
 
-	if (bPlayedAny && GetWorld())
-	{
-		NextConfirmedFeedbackTime = GetWorld()->GetTimeSeconds() + FMath::Max(RefireRate, 0.01f);
-	}
 	return bPlayedAny;
-}
-
-void AShooterWeapon::Fire()
-{
-	// 纵深防御：即使客户端绕过开火 RPC 直接调用，弹丸也只在服务器生成
-	if (!HasAuthority())
-	{
-		return;
-	}
-
-	// ensure the player still wants to fire. They may have let go of the trigger
-	if (!bIsFiring)
-	{
-		return;
-	}
-
-	// Ammo 权威位于 WeaponActor.MagazineAmmo；玩家与 NPC 都读同一值，耗尽后停止开火，不自动换弹。
-	// 广播 OutOfAmmo 让 GA_Fire 幂等结束 Ability。
-	if (!CanConsumeAmmo() || !ConsumeAmmo())
-	{
-		StopFiring();
-		OnOutOfAmmo.Broadcast(this);
-		return;
-	}
-
-	// ConsumeAmmo 成功即代表这一发已被服务器正式提交；
-	// Activation 结果账本在这里 +1，后续任何表现/弹丸失败都不回退。
-	RecordAuthorityShotCommitted();
-
-	// 权威弹药消费成功后才执行开火行为与表现。
-	ExecuteFireAtTarget(WeaponOwner->GetWeaponTargetLocation());
-
-#if WITH_DEV_AUTOMATION_TESTS
-	++AuthorityShotCount;
-	LogFireFeedbackMarker(TEXT("FIRE_AUTHORITY_COMMIT"), AuthorityShotCount, AuthorityShotCount);
-#endif
-
-	// update the time of our last shot
-	TimeOfLastShot = GetWorld()->GetTimeSeconds();
-
-	// make noise so the AI perception system can hear us
-	MakeNoise(ShotLoudness, PawnOwner, PawnOwner->GetActorLocation(), ShotNoiseRange, ShotNoiseTag);
-
-	// are we full auto?
-	if (bFullAuto)
-	{
-		// schedule the next shot
-		GetWorld()->GetTimerManager().SetTimer(RefireTimer, this, &AShooterWeapon::Fire, RefireRate, false);
-	} else {
-
-		// for semi-auto weapons, schedule the cooldown notification
-		GetWorld()->GetTimerManager().SetTimer(RefireTimer, this, &AShooterWeapon::FireCooldownExpired, RefireRate,
-			false);
-
-	}
-}
-
-void AShooterWeapon::FireCooldownExpired()
-{
-	// 半自动冷却到期通知。该 Timer 现在可以跨过输入释放继续存活，
-	// 因此 Owner 已解除（提池、切枪、销毁）时必须静默，不得解引用空接口。
-	if (WeaponOwner)
-	{
-		WeaponOwner->OnSemiWeaponRefire();
-	}
 }
 
 void AShooterWeapon::ExecuteFireAtTarget(const FVector& TargetLocation)
@@ -1658,10 +1425,12 @@ FTransform AShooterWeapon::GetThirdPersonLeftHandGripWorldTransform() const
 void AShooterWeapon::ResetFireFeedbackCountersForAutomationTest()
 {
 	PredictedOwnerFeedbackCount = 0;
+	ConfirmedBackfillFeedbackCount = 0;
 	OwnerAuthorityConfirmationCount = 0;
 	AuthorityShotCount = 0;
 	RemoteConfirmedFeedbackCount = 0;
 	OwnerMuzzleFeedbackCount = 0;
+	ShotVerdictReceivedCountForTest = 0;
 	OwnerSoundFeedbackCount = 0;
 	RemoteMuzzleFeedbackCount = 0;
 	RemoteSoundFeedbackCount = 0;
@@ -1733,23 +1502,22 @@ void AShooterWeapon::SetPendingPredictedShotsForAutomationTest(int32 InPendingSh
 	PendingPredictedShots = FMath::Max(0, InPendingShots);
 }
 
-FShooterFireActivationResult AShooterWeapon::GetFireActivationResultForTest(int32 SlotIndex) const
-{
-	return FireActivationResults.IsValidIndex(SlotIndex)
-		? FireActivationResults[SlotIndex]
-		: FShooterFireActivationResult();
-}
-
-void AShooterWeapon::ResetFireActivationStateForAutomationTest()
-{
-	ResetFireActivationResultState();
-}
-
 void AShooterWeapon::SetLocalFireCooldownRemainingForAutomationTest(float RemainingSeconds)
 {
 	if (const UWorld* World = GetWorld())
 	{
 		LocalFireCooldownEndTime = World->GetTimeSeconds() + FMath::Max(0.0f, RemainingSeconds);
+	}
+}
+
+void AShooterWeapon::SetAuthorityRefireRemainingForAutomationTest(float RemainingSeconds)
+{
+	if (const UWorld* World = GetWorld())
+	{
+		// 剩余时间 <= 0 表示"已就绪"；否则把权威射速时钟设在过去，使剩余时间正好等于传入值。
+		TimeOfLastShot = RemainingSeconds <= 0.0f
+			? NeverFiredShotTime
+			: World->GetTimeSeconds() - (FMath::Max(RefireRate, 0.01f) - RemainingSeconds);
 	}
 }
 #endif

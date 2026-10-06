@@ -39,15 +39,17 @@ namespace ShooterAbilityFireBehaviorAutomationTests
 
 	bool TestWeaponExecutionBoundary(FAutomationTestBase& Test)
 	{
-		// 弹丸生成仍是 WeaponActor 的内部实现；Fire / FireProjectile 不能成为
+		// 弹丸生成仍是 WeaponActor 的内部实现；CommitSingleShot / FireProjectile 不能成为
 		// 客户端可远程调用的 UFUNCTION，否则会绕过 GA_Fire 唯一入口。
-		Test.TestNull(TEXT("Weapon Fire is not a remote-callable UFUNCTION"),
-			AShooterWeapon::StaticClass()->FindFunctionByName(TEXT("Fire")));
+		// 一次 GA_Fire Activation 只调用一次 CommitSingleShot，因此它也是"一次 Activation
+		// 至多一发权威 Shot"的实现边界。
+		Test.TestNull(TEXT("Weapon CommitSingleShot is not a remote-callable UFUNCTION"),
+			AShooterWeapon::StaticClass()->FindFunctionByName(TEXT("CommitSingleShot")));
 		Test.TestNull(TEXT("Weapon FireProjectile is not a remote-callable UFUNCTION"),
 			AShooterWeapon::StaticClass()->FindFunctionByName(TEXT("FireProjectile")));
-		Test.TestNull(TEXT("Weapon StartFiring is not a remote-callable UFUNCTION"),
-			AShooterWeapon::StaticClass()->FindFunctionByName(TEXT("StartFiring")));
-		Test.TestNull(TEXT("Weapon StopFiring is not a remote-callable UFUNCTION"),
+		Test.TestNull(TEXT("Weapon no longer exposes a continuous-fire entry"),
+			AShooterWeapon::StaticClass()->FindFunctionByName(TEXT("Fire")));
+		Test.TestNull(TEXT("Weapon no longer exposes a continuous-fire stop entry"),
 			AShooterWeapon::StaticClass()->FindFunctionByName(TEXT("StopFiring")));
 
 		const AShooterWeapon* WeaponDefaults = GetDefault<AShooterWeapon>();

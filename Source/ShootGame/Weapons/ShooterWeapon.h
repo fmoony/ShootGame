@@ -40,35 +40,6 @@ enum class EShooterWeaponLifecycleState : uint8
 	Equipped,
 };
 
-/**
- * 一轮 GA_Fire Activation 的服务器结果，OwnerOnly 复制。
- *
- * 只记录「服务器真实提交了几发」与「这一轮是否已经结束」；
- * 不做 per-shot id，也不承担预测账本，预测/补播账本在 GA_Fire 实例内。
- */
-USTRUCT()
-struct FShooterFireActivationResult
-{
-	GENERATED_BODY()
-
-	/** 该轮 Activation 的 PredictionKey.Current；0 表示空槽。 */
-	UPROPERTY()
-	int32 ActivationKey = 0;
-
-	/** 服务器为该轮真实提交的 Shot 数；只在 ConsumeAmmo 成功提交时递增。 */
-	UPROPERTY()
-	int32 ProcessedShots = 0;
-
-	/** 服务器不会再为该轮产生新 Shot（正常结束 / 松开 / Cancel / 打空 / 切换 / 死亡等）。 */
-	UPROPERTY()
-	bool bSettled = false;
-
-	/** 服务器单调轮次号，只用于日志和槽位覆盖诊断，不参与客户端配对。 */
-	UPROPERTY()
-	int32 ActivationSerial = 0;
-};
-
-DECLARE_MULTICAST_DELEGATE_OneParam(FShooterWeaponOutOfAmmoDelegate, AShooterWeapon*);
 class USkeletalMeshComponent;
 class UAnimMontage;
 class UAnimInstance;
@@ -160,34 +131,18 @@ protected:
 	UFUNCTION()
 	void OnRep_ReserveAmmo();
 
-	UFUNCTION()
-	void OnRep_FireActivationResults();
-
-	/** 每轮一次的最终结果；连接有效且武器上下文仍有效时不依赖四槽属性环送达。 */
-	UFUNCTION(Client, Reliable)
-	void ClientFireActivationSettled(const FShooterFireActivationResult& Result, const FShooterAmmoDisplaySnapshot& Snapshot);
-
 	/**
-	 * 最近数轮 GA_Fire 的服务器结果环形记录；只有拥有者客户端需要消费。
-	 * 保留最近 4 轮的进度；最终结清另由可靠 Client RPC 传递。
+	 * 服务器权威一发 Shot 的裁决通知（OwnerOnly、可靠）。
+	 *
+	 * 只在服务器真实提交这一发时发出：一次 GA_Fire Activation 至多对应一条通知。
+	 * 携带提交时点的显示快照，供拥有端 HUD 在不依赖属性到达顺序的前提下结清本次显示扣减。
+	 *
+	 * Reject 不需要本通道：引擎的 ClientActivateAbilityFailed（Client, Reliable）已经按
+	 * 同一个 PredictionKey 送达拒绝结果，拥有端直接绑定该 PredictionKey 的 Rejected 委托。
+	 * 两条通道都不使用 PredictionKey CaughtUp 代表任何裁决。
 	 */
-	UPROPERTY(ReplicatedUsing=OnRep_FireActivationResults)
-	TArray<FShooterFireActivationResult> FireActivationResults;
-
-	/** 服务器进度结果环大小；不承担每轮最终结果的送达保证。 */
-	static constexpr int32 FireActivationResultRingSize = 4;
-
-	/** 服务器环形槽位游标；只在权威端写入。 */
-	int32 NextFireActivationResultSlot = 0;
-
-	/** 服务器当前未结清的槽位；INDEX_NONE 表示没有打开的 Activation。 */
-	int32 OpenFireActivationResultSlot = INDEX_NONE;
-
-	/** 服务器单调轮次号；只服务日志与槽位覆盖诊断。 */
-	int32 NextFireActivationSerial = 1;
-
-	/** 客户端每槽最近一次观察值；槽位覆盖不作为最终结清证据。 */
-	TArray<FShooterFireActivationResult> CachedFireActivationResults;
+	UFUNCTION(Client, Reliable)
+	void ClientShotCommitted(int32 ActivationKey, const FShooterAmmoDisplaySnapshot& Snapshot);
 
 	/** 当前绑定到本武器的拥有端 Fire Ability；以 UObject 弱引用避免头文件循环依赖。 */
 	TWeakObjectPtr<UObject> BoundPredictionAbility;
@@ -195,18 +150,8 @@ protected:
 	/** 本地上下文代次；Owner 解绑时递增，不要求两端代次数值相同。 */
 	uint32 AmmoPredictionGeneration = 0;
 
-	/** 已确认待表现发数；与本地射击节拍和 Pending 弹药无关。 */
-	int32 PendingConfirmedFeedback = 0;
-
-	/** 确认表现调度器，只驱动 cosmetic。 */
-	FTimerHandle ConfirmedFeedbackTimer;
-
-	/** 下一次确认表现最早播放时间；避免合并快照在同帧叠加声音与后坐力。 */
-	double NextConfirmedFeedbackTime = 0.0;
-
-	/** 校验当前第一人称表现目标并逐发排队播放。 */
+	/** 拥有端确认补播的表现目标是否成立（世界 / 本机拥有者视图 / 当前装备 / 未隐藏）。 */
 	bool IsOwnerConfirmedFeedbackTargetValid() const;
-	void DrainOwnerConfirmedFeedback();
 
 	/**
 	 * 已本地预测消费、但尚未由 Activation 结果结算的弹药数量。
@@ -295,23 +240,45 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Timing", meta = (ClampMin = 0, Units = "s"))
 	float EquipDuration = 0.5f;
 
-	/** Game time of last shot fired, used to enforce refire rate on semi auto */
-	float TimeOfLastShot = 0.0f;
+	/**
+	 * 服务器权威最近一次真实提交 Shot 的游戏时间；未开火时为 NeverFiredShotTime。
+	 *
+	 * 只服务一个判据：本次提交是否已越过权威 RefireRate（CanCommitAuthorityShot）。
+	 * 它不再被当作"是否开过枪"的哨兵分支，也不驱动任何连发；取用、归还、恢复初始弹药
+	 * 都会把它复位为哨兵值，因此世界启动初期的第一枪不会被误判为仍在冷却。
+	 */
+	float TimeOfLastShot = NeverFiredShotTime;
 
-	/** If true, the weapon is currently firing */
-	bool bIsFiring = false;
+	/** "本租用尚未开火"的哨兵时间：远早于任何世界时间，使射速判据自然成立。 */
+	static constexpr float NeverFiredShotTime = -1000000.0f;
 
-	/** Timer to handle full auto refiring */
+	/**
+	 * 权威射速到期通知 Timer。
+	 *
+	 * 它只通知持有者"权威节拍已就绪"（NPC 用它决定是否再次提交开火意图），
+	 * 绝不回调任何产生 Gameplay Shot 的函数：本武器没有任何"连续开火 Timer"。
+	 */
 	FTimerHandle RefireTimer;
 
 	/**
 	 * 本武器下一次允许"本地有效开火"的本地时间。
 	 *
-	 * 本地开火节拍：半自动用它判断本次点击是否已满足距上一次本地有效开火 >= RefireRate。
-	 * 该值只由"本地 Shot Attempt 被接受"推进一次，不复制、不读权威 RefireTimer / TimeOfLastShot，
-	 * 与服务器权威射速是两套互不干涉的时钟。
+	 * 本地开火节拍同时承担两件事：半自动的"这次点击是否构成一次有效开火"，
+	 * 以及全自动按住时"何时才值得再提交一次 GA_Fire 请求"的节流。
+	 * 它只由"本地提交了一次 Shot Attempt"推进一次（无论这次是否提前表现），
+	 * 不复制、不读权威 RefireTimer / TimeOfLastShot，与服务器权威射速是两套互不干涉的时钟。
 	 */
 	float LocalFireCooldownEndTime = -1.0f;
+
+	/**
+	 * 权威射速比较容差。
+	 *
+	 * 客户端按自己的节拍提交请求，请求到达服务器的间隔会带上网络与帧量化抖动；
+	 * 没有容差时，节拍正确的连发请求会有一半落在 RefireRate 之前被拒绝，表现为掉发。
+	 * 容差只影响"这一发是否早了一点点"，不累积：每次提交都会把 TimeOfLastShot 置为当前时间，
+	 * 因此持续射速不可能超过 RefireRate。
+	 */
+	static constexpr float AuthorityRefireTolerance = 0.015f;
 
 	/** Cast pawn pointer to the owner for AI perception system interactions */
 	TObjectPtr<APawn> PawnOwner;
@@ -373,14 +340,14 @@ protected:
 	 */
 	bool PlayOwnerShotFeedbackInternal(bool bConfirmedBackfill);
 
-	/** PendingPredictedShots 的统一减少入口；Marker 用于区分 confirm / phantom / reject 诊断。 */
+	/** PendingPredictedShots 的统一减少入口；Marker 用于区分 Committed / Rejected 诊断。 */
 	void ReducePendingPredictedAmmo(int32 Amount, const TCHAR* Marker);
 
-	/** 把服务器结果在本地权威 / 拥有端直接发布；Listen Host 与 Standalone 不经过 OnRep。 */
-	void PublishAuthorityFireActivationResult(const FShooterFireActivationResult& Result, bool bForceSettled);
+	/** 权威射速到期：只通知持有者节拍已就绪，不产生任何 Shot。 */
+	void HandleAuthorityRefireReady();
 
-	/** 生命周期边界：清空环形记录与转发状态，避免上一持有者的结果污染下一轮。 */
-	void ResetFireActivationResultState();
+	/** 权威射速时钟复位为"已就绪"；生命周期边界与恢复初始弹药共用。 */
+	void ResetAuthorityRefireClock();
 
 	/**
 	 * 统一状态转换入口：状态未变化时是安全 no-op，真实变化时输出一条 Verbose 诊断。
@@ -426,16 +393,28 @@ public:
 	/** Deactivates this weapon（Equipped/Equipping -> Holstered，InPool 拒绝） */
 	void DeactivateWeapon();
 
-	/** Start firing this weapon */
-	void StartFiring();
+	/**
+	 * 服务器权威射速资格：距上一次真实提交是否已满 RefireRate。
+	 *
+	 * 半自动与全自动共用同一判据：一次 Activation 只提交一发，节拍由服务器独立判定，
+	 * 不接受任何客户端上报的射击时间。无副作用，只读权威时钟。
+	 */
+	bool CanCommitAuthorityShot() const;
 
-	/** Stop firing this weapon */
-	void StopFiring();
+	/**
+	 * 服务器权威单发提交：一次调用最多产生一发权威 Shot。
+	 *
+	 * 调用方（GA_Fire 的权威路径）必须已经通过 CanActivateAbility 的完整校验；
+	 * 本函数按顺序执行权威扣弹 → 开火行为（弹丸与表现）→ 记录权威射速时钟 → 排下一次节拍通知，
+	 * 并在真实提交后向拥有者客户端发送这一发的 Committed 裁决通知。
+	 * 扣弹失败时不产生任何权威结果并返回 false。
+	 */
+	bool CommitSingleShot(int32 ActivationKey);
 
 	/**
 	 * 拥有者本地开火表现入口：唯一的第一人称表现来源。
 	 * 内部先判定本地开火节拍，未越过时直接返回 false，绝不播放。
-	 * 不写 MagazineAmmo / ReserveAmmo / TimeOfLastShot / bIsFiring / RefireTimer /
+	 * 不写 MagazineAmmo / ReserveAmmo / TimeOfLastShot / RefireTimer /
 	 * Inventory / Projectile，也不建立任何 Timer。
 	 * 返回是否向表现通道提交了至少一项；返回值不表示当前机器一定具备音频或渲染设备。
 	 */
@@ -443,27 +422,28 @@ public:
 
 	/**
 	 * 服务器确认补播入口：只播放四路纯表现，绝不消费 Pending、推进节拍、发 RPC、
-	 * 生成 Projectile 或修改 Ammo；只由拥有端 Activation 账本按缺发数调用。
+	 * 生成 Projectile 或修改 Ammo；只在"这一发被服务器接受但拥有端此前没有预测表现"时调用一次。
 	 */
 	bool PlayOwnerConfirmedShotFeedback();
 
 	/**
-	 * 本地开火节拍是否已越过：距上一次本地有效开火是否已满 RefireRate。
+	 * 本地开火节拍是否已越过：距上一次本地提交是否已满 RefireRate。
 	 *
-	 * 客户端半自动只用它决定"这次输入是否构成一次有效 Local Shot Attempt"。
-	 * 该判定只读本地时钟，不读权威 RefireTimer / TimeOfLastShot，
-	 * 也不读 Ammo / Reloading / Equipping / Dead 等可能过期的复制状态。
+	 * 客户端两种模式都只用它决定"这次输入是否值得形成一次本地 Shot Attempt"：
+	 * 半自动是硬失败判据，全自动是请求节流。该判定只读本地时钟，
+	 * 不读权威 RefireTimer / TimeOfLastShot，也不读 Ammo / Reloading / Equipping / Dead 等复制状态。
 	 */
 	bool IsLocalFireCooldownReady() const;
 
-	/** 距本地开火节拍结束还剩多久；已就绪时返回 0。全自动首拍用它安排"剩余 cooldown"。 */
+	/** 距本地开火节拍结束还剩多久；已就绪时返回 0。 */
 	float GetLocalFireCooldownRemaining() const;
 
 	/**
 	 * 按本武器 RefireRate 推进本地开火节拍。
 	 *
-	 * 唯一调用点是"本地 Shot Attempt 被接受"处，与 Montage / Niagara / Sound
-	 * 是否成功播放无关：表现通道的成败不得决定射击节拍。
+	 * 唯一调用点是"本地提交了一次 Shot Attempt"处：无论这次是否提前表现（弹药预算不足时不表现），
+	 * 都必须推进，否则按住输入会变成每帧一次的请求洪水。
+	 * 与 Montage / Niagara / Sound 是否成功播放无关：表现通道的成败不得决定射击节拍。
 	 */
 	void AdvanceLocalFireCooldown();
 
@@ -471,20 +451,7 @@ public:
 	bool IsFullAuto() const { return bFullAuto; }
 	float GetRefireRate() const { return RefireRate; }
 
-	/**
-	 * 服务器只读射速资格查询，无副作用，仅供半自动使用。
-	 * 权威 RefireTimer 未激活时返回 true；全自动恒返回 false，不参与该查询。
-	 * 不使用 TimeOfLastShot == 0.0f 作为“从未开火”哨兵：池取用与归还都会把它复位为 0。
-	 */
-	bool CanStartSemiAutoShotNow() const;
-
 protected:
-
-	/** Fire the weapon */
-	virtual void Fire();
-
-	/** Called when the refire rate time has passed while shooting semi auto weapons */
-	void FireCooldownExpired();
 
 	/**
 	 * 服务器权威开火执行：生成弹丸，并把表现入口（Montage / Multicast FX / 后坐力）统一留在本 Actor。
@@ -667,42 +634,23 @@ public:
 	/** Reject 退还：只减少 PendingPredictedShots 并 clamp 到 >= 0。 */
 	void RefundPredictedAmmo(int32 Amount);
 
-	/** 服务器结果确认：减少对应数量的 PendingPredictedShots（只由 Activation 账本调用）。 */
+	/** 服务器提交确认：减少本次 Activation 的 PendingPredictedShots（只由拥有端 Shot 记录调用）。 */
 	void ConfirmPredictedAmmo(int32 Amount);
 
-	/** 本轮结束后清理服务器最终没有执行的预测发数（phantom），不补任何表现。 */
-	void DiscardPhantomPredictedAmmo(int32 Amount);
-
-	/** 拥有端 Fire Ability 在本地激活时绑定；用于接收服务器 Activation 结果复制。 */
+	/** 拥有端 Fire Ability 在本地激活时绑定；用于接收服务器每一发的裁决通知。 */
 	void BindPredictionAbility(UShooterGameplayAbility_Fire* Ability);
 
-	/** Owner / 池 / Destroy 边界解绑结果转发；不依赖 PredictionKey 大小。 */
+	/** Owner / 池 / Destroy 边界解绑裁决转发；不依赖 PredictionKey 大小。 */
 	void ClearPredictionAbility();
-
-	/** 只取消旧确认表现队列，不修改 Pending 或权威字段。 */
-	void CancelOwnerConfirmedFeedback();
 
 	/** 账本记录与校验本地上下文代次。 */
 	uint32 GetAmmoPredictionGeneration() const { return AmmoPredictionGeneration; }
-	bool HasPendingConfirmedFeedback() const { return PendingConfirmedFeedback > 0; }
-
-	/** 服务器：开始一轮 GA_Fire Activation 的结果记录；同一时刻只允许一轮打开。 */
-	void BeginAuthorityFireActivation(int32 ActivationKey);
-
-	/** 服务器：真实提交一发 Shot 时递增当前轮的 ProcessedShots。 */
-	void RecordAuthorityShotCommitted();
-
-	/** 服务器：GA_Fire 结束（任何路径）时标记当前轮 Settled。 */
-	void SettleAuthorityFireActivation();
 
 	/** 生命周期边界：旧预测上下文整体失效（Owner 变化 / 归还池 / teardown）。 */
 	void ResetAmmoPrediction();
 
-	/** 只读观测：当前待吸收的预测发数。 */
+	/** 只读观测：当前待结清的预测发数。 */
 	int32 GetPendingPredictedShots() const { return PendingPredictedShots; }
-
-	/** 弹药在 Fire 事务中耗尽时广播；GA_Fire 用它幂等结束 Ability。 */
-	FShooterWeaponOutOfAmmoDelegate OnOutOfAmmo;
 
 #if WITH_DEV_AUTOMATION_TESTS
 public:
@@ -729,35 +677,36 @@ public:
 	/** 拥有者确认补播的实际播放次数，由 PlayOwnerShotFeedbackInternal 递增。 */
 	int32 GetConfirmedBackfillCountForAutomationTest() const;
 
-	/** 测试专用：直接建立 PendingPredictedShots 起点；只用于验证 Activation 对账算术。 */
+	/** 测试专用：直接建立 PendingPredictedShots 起点；只用于验证预测预算算术。 */
 	void SetPendingPredictedShotsForAutomationTest(int32 InPendingShots);
 
-	/** 测试观察：指定槽位的服务器结果记录。 */
-	FShooterFireActivationResult GetFireActivationResultForTest(int32 SlotIndex) const;
-
-	/** 测试观察：当前未结清的服务器槽位；INDEX_NONE 表示没有打开的 Activation。 */
-	int32 GetOpenFireActivationResultSlotForTest() const { return OpenFireActivationResultSlot; }
-
-	/** 测试专用：服务器侧复位结果环，构造独立起点。 */
-	void ResetFireActivationStateForAutomationTest();
-
-	/** 测试专用：设置本地开火节拍剩余时间；用于构造"本地 cadence 落后于服务器"的夹具。 */
+	/** 测试专用：设置本地开火节拍剩余时间；用于构造"本地节拍尚未就绪"的夹具。 */
 	void SetLocalFireCooldownRemainingForAutomationTest(float RemainingSeconds);
+
+	/** 测试专用：写入权威射速时钟；RemainingSeconds > 0 表示仍在冷却。 */
+	void SetAuthorityRefireRemainingForAutomationTest(float RemainingSeconds);
+
+	/**
+	 * 测试专用：在两端写入同一个 RefireRate，构造指定 RPM 的射速场景。
+	 * 生产代码里该值只来自武器模板行；网络测试必须两端一致，否则客户端请求节拍与服务器权威射速会错位。
+	 */
+	void SetRefireRateForAutomationTest(float InRefireRate) { RefireRate = FMath::Max(InRefireRate, 0.001f); }
 
 	/** 拥有者本地预测反馈提交次数，由 PlayOwnerPredictedShotFeedback 递增。 */
 	int32 GetPredictedOwnerFeedbackCountForAutomationTest() const;
 
-	/** Multicast 到达拥有者并跳过可见 FX 的次数；P1-B 起由 MulticastPlayFiringFX 递增。 */
+	/** Multicast 到达拥有者并跳过可见 FX 的次数；由 MulticastPlayFiringFX 递增。 */
 	void RecordOwnerAuthorityConfirmationForAutomationTest();
 	int32 GetOwnerAuthorityConfirmationCountForAutomationTest() const;
 
-	/** 权威提交次数：Fire 成功扣弹并执行开火行为后递增。 */
+	/** 权威提交次数：CommitSingleShot 成功扣弹并执行开火行为后递增。 */
 	int32 GetAuthorityShotCountForAutomationTest() const;
 
-	/** 远端确认反馈次数；P1-B 起由 MulticastPlayFiringFX 在非拥有端递增。 */
+	/** 远端确认反馈次数；由 MulticastPlayFiringFX 在非拥有端递增。 */
 	int32 GetRemoteConfirmedFeedbackCountForAutomationTest() const;
 	int32 GetOwnerMuzzleFeedbackCountForAutomationTest() const { return OwnerMuzzleFeedbackCount; }
-	int32 GetFinalResultReceivedCountForTest() const { return FinalResultReceivedCountForTest; }
+	/** 拥有端单发裁决通知（Committed / Rejected）的接收次数。 */
+	int32 GetShotVerdictReceivedCountForTest() const { return ShotVerdictReceivedCountForTest; }
 	int32 GetOwnerSoundFeedbackCountForAutomationTest() const { return OwnerSoundFeedbackCount; }
 	int32 GetRemoteMuzzleFeedbackCountForAutomationTest() const { return RemoteMuzzleFeedbackCount; }
 	int32 GetRemoteSoundFeedbackCountForAutomationTest() const { return RemoteSoundFeedbackCount; }
@@ -766,11 +715,9 @@ public:
 	float GetMinimumOwnerFeedbackIntervalForAutomationTest() const { return MinimumOwnerFeedbackInterval; }
 	void ResetOwnerFeedbackTimingForAutomationTest();
 
-	/** 只读探针：当前开火标志。 */
-	bool IsFiringForAutomationTest() const { return bIsFiring; }
-	/** 只读探针：最近一次权威射击的游戏时间。 */
+	/** 只读探针：最近一次权威提交的游戏时间；小于 0 表示本租用尚未开火。 */
 	float GetTimeOfLastShotForAutomationTest() const { return TimeOfLastShot; }
-	/** 只读探针：权威 RefireTimer 是否活动。 */
+	/** 只读探针：权威射速到期通知 Timer 是否活动。 */
 	bool IsRefireTimerActiveForAutomationTest() const;
 
 	/** P1 统一预测日志标记（武器端）。只输出武器自身持有的字段，
@@ -784,7 +731,7 @@ private:
 	int32 AuthorityShotCount = 0;
 	int32 RemoteConfirmedFeedbackCount = 0;
 	int32 OwnerMuzzleFeedbackCount = 0;
-	int32 FinalResultReceivedCountForTest = 0;
+	int32 ShotVerdictReceivedCountForTest = 0;
 	int32 OwnerSoundFeedbackCount = 0;
 	int32 RemoteMuzzleFeedbackCount = 0;
 	int32 RemoteSoundFeedbackCount = 0;

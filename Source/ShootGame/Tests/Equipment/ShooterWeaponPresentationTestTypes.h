@@ -54,8 +54,6 @@ public:
 	}
 
 	bool HasWeaponOwnerForTest() const { return WeaponOwner != nullptr; }
-	void SetFiringForTest(bool bInFiring) { bIsFiring = bInFiring; }
-	bool IsFiringForTest() const { return bIsFiring; }
 };
 
 /** 表现测试副武器：配置与主武器不同的公共 AnimInstance，用于验证 AnimClass 切换。 */
@@ -97,7 +95,7 @@ public:
 	}
 };
 
-/** 生命周期测试武器：暴露 RefireTimer 与 WeaponOwner 供池化断言。 */
+/** 生命周期测试武器：暴露权威节拍通知 Timer 与 WeaponOwner 供池化断言。 */
 UCLASS(Transient, NotBlueprintable)
 class AShooterWeaponLifecycleTestWeapon : public AShooterWeapon
 {
@@ -115,10 +113,11 @@ public:
 		return World && World->GetTimerManager().IsTimerActive(RefireTimer);
 	}
 
+	/** 把权威节拍通知 Timer 排到一个远期时点，验证生命周期边界会清掉它。 */
 	void ArmRefireTimerForTest()
 	{
 		GetWorld()->GetTimerManager().SetTimer(RefireTimer, this,
-			&AShooterWeaponLifecycleTestWeapon::FireCooldownExpired, 60.0f, false);
+			&AShooterWeaponLifecycleTestWeapon::HandleAuthorityRefireReady, 60.0f, false);
 	}
 
 	bool HasWeaponOwnerCacheForTest() const { return WeaponOwner != nullptr; }

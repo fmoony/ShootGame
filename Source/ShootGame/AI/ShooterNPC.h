@@ -198,8 +198,8 @@ public:
 	/** Deactivates the passed weapon */
 	virtual void OnWeaponDeactivated(AShooterWeapon* Weapon) override;
 
-	/** Notifies the owner that the weapon cooldown has expired and it's ready to shoot again */
-	virtual void OnSemiWeaponRefire() override;
+	/** 权威射速就绪：仍处于射击状态时再次提交一次开火意图（一次一发）。 */
+	virtual void OnWeaponRefireReady() override;
 
 	//~End IShooterWeaponHolder interface
 

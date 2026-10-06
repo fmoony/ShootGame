@@ -61,11 +61,10 @@ bool UShooterEquipmentComponent::EquipWeapon(AShooterWeapon* TargetWeapon)
 
 	AShooterWeapon* PreviousWeapon = CurrentWeaponActor;
 	const bool bChangedCurrentWeapon = PreviousWeapon != TargetWeapon;
-	if (bChangedCurrentWeapon && IsValid(PreviousWeapon))
-	{
-		// Equipment 只负责在逻辑提交前停止旧武器；隐藏与表现回调由 Character 表现层统一执行一次。
-		PreviousWeapon->StopFiring();
-	}
+
+	// 旧武器不再需要在逻辑提交前"停火"：一次 GA_Fire 只提交一发并立即结束，
+	// 不存在跨枪存活的连续开火事务；旧武器的表现与权威节拍通知由 Character 表现层
+	// 的 DeactivateWeapon 统一收起。
 
 	// 生命周期状态机：装备事务 Holstered -> Equipping；表现完成（ActivateWeapon）后进入 Equipped。
 	// 同武器重复提交保持幂等，不重复进入事务。
@@ -110,12 +109,8 @@ bool UShooterEquipmentComponent::EquipWeapon(AShooterWeapon* TargetWeapon)
 void UShooterEquipmentComponent::ClearEquippedWeapon()
 {
 	AShooterWeapon* PreviousWeapon = CurrentWeaponActor;
-	if (IsValid(PreviousWeapon))
-	{
-		// 保证逻辑清空时旧武器立即停火；本机隐藏与表现回调由 EnsureWeaponPresentation 收敛。
-		PreviousWeapon->StopFiring();
-	}
 
+	// 清空只改逻辑权威：旧武器的表现收敛由 EnsureWeaponPresentation(nullptr) 执行。
 	CurrentWeaponActor = nullptr;
 
 	// E2：Unequip 也是真实逻辑转移；重复 Clear 不重复发布。

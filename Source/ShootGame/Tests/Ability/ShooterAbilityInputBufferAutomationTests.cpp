@@ -489,7 +489,6 @@ bool FShooterInputBufferWhileInputActiveRetriesWhileHeldTest::RunTest(const FStr
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterInputBufferOnInputTriggeredDoesNotRetryWhileHeldTest,
 	"ShootGame.Ability.InputBuffer.OnInputTriggeredDoesNotRetryWhileHeld",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
-
 bool FShooterInputBufferOnInputTriggeredDoesNotRetryWhileHeldTest::RunTest(const FString& Parameters)
 {
 	using namespace ShooterAbilityInputBufferAutomationTests;
@@ -910,6 +909,76 @@ bool FShooterActorInfoRefreshLifetimeTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("new avatar invalidates old buffered intent"), ASC->GetBufferedInputCountForTest(), 0);
 	ASC->ProcessAbilityInputForTest();
 	TestEqual(TEXT("old press is not replayed on the new avatar"), Ability->ActivationCountForTest, 1);
+	DestroyInputBufferTestWorld(World);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterInputBufferSingleShotCadenceReactivationTest,
+	"ShootGame.Ability.InputBuffer.SingleShotCadenceReactivation",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FShooterInputBufferSingleShotCadenceReactivationTest::RunTest(const FString& Parameters)
+{
+	using namespace ShooterAbilityInputBufferAutomationTests;
+
+	// 单发语义下的按住连发闭环：一次 Activation 只处理一次动作并立即结束，
+	// 之后每个输入处理时点都会重试，但只有 Ability 自己的本地节拍就绪时才形成新的动作边界。
+	// 这证明"连发"由输入层反复激活新的 GA_Fire 表达，而不是由一次 Activation 内部循环表达。
+	UWorld* World = CreateInputBufferTestWorld();
+	if (!TestNotNull(TEXT("input buffer test world created"), World))
+	{
+		return false;
+	}
+
+	AShooterPlayerState* PlayerState = nullptr;
+	UShooterAbilitySystemComponent* AbilitySystemComponent = CreateLocalInputContext(*this, World, PlayerState);
+	const TSubclassOf<UGameplayAbility> CadenceAbilityClass = UShooterInputBufferSingleShotCadenceTestAbility::StaticClass();
+	UShooterInputBufferTestAbility* Granted = GrantInputBufferTestAbility(*this, AbilitySystemComponent, CadenceAbilityClass);
+	UShooterInputBufferSingleShotCadenceTestAbility* Ability = Cast<UShooterInputBufferSingleShotCadenceTestAbility>(Granted);
+	if (!AbilitySystemComponent || !TestNotNull(TEXT("cadence test ability instance created"), Ability))
+	{
+		DestroyInputBufferTestWorld(World);
+		return false;
+	}
+
+	// 1. 按下沿：节拍就绪，形成一次动作边界；该次 Activation 立即结束并关掉本地节拍。
+	AbilitySystemComponent->AbilityInputTagPressed(ShooterGameplayTags::Input_Fire);
+	AbilitySystemComponent->ProcessAbilityInputForTest();
+	TestEqual(TEXT("the first held press forms one action boundary"), Ability->ActivationCountForTest, 1);
+	TestEqual(TEXT("a single-shot activation ends immediately"),
+		AbilitySystemComponent->GetActiveAbilityCountForClass(CadenceAbilityClass), 0);
+
+	// 2. 仍按住且节拍未就绪：输入层每个处理时点都会重试，但都不形成动作边界。
+	for (int32 Pass = 0; Pass < 3; ++Pass)
+	{
+		AbilitySystemComponent->ProcessAbilityInputForTest();
+	}
+	TestEqual(TEXT("held retries inside the cadence never form a second action boundary"),
+		Ability->ActivationCountForTest, 1);
+	TestTrue(TEXT("held retries inside the cadence really were attempted"),
+		Ability->CadenceRefusedAttemptCountForTest >= 3);
+	TestEqual(TEXT("a cadence-refused held retry never creates a buffered entry"),
+		AbilitySystemComponent->GetBufferedInputCountForTest(), 0);
+
+	// 3. 节拍就绪后，下一个处理时点形成全新的独立动作边界。
+	Ability->ForceCadenceReadyForTest();
+	AbilitySystemComponent->ProcessAbilityInputForTest();
+	TestEqual(TEXT("the next cadence ready pass forms a new independent action boundary"),
+		Ability->ActivationCountForTest, 2);
+	TestEqual(TEXT("the new activation also ends immediately"),
+		AbilitySystemComponent->GetActiveAbilityCountForClass(CadenceAbilityClass), 0);
+
+	// 4. 松开：不再产生任何新的动作边界，也不再有节拍拒绝记录。
+	Ability->ForceCadenceReadyForTest();
+	AbilitySystemComponent->AbilityInputTagReleased(ShooterGameplayTags::Input_Fire);
+	AbilitySystemComponent->ProcessAbilityInputForTest();
+	const int32 RefusalsAfterRelease = Ability->CadenceRefusedAttemptCountForTest;
+	AbilitySystemComponent->ProcessAbilityInputForTest();
+	TestEqual(TEXT("release stops the held re-activation loop"), Ability->ActivationCountForTest, 2);
+	TestEqual(TEXT("a released hold produces no further attempts"),
+		Ability->CadenceRefusedAttemptCountForTest, RefusalsAfterRelease);
+	TestEqual(TEXT("release leaves no held intent"), AbilitySystemComponent->GetHeldInputTagCountForTest(), 0);
+
 	DestroyInputBufferTestWorld(World);
 	return true;
 }

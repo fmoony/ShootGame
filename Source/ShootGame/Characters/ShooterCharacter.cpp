@@ -989,9 +989,10 @@ void AShooterCharacter::OnWeaponDeactivated(AShooterWeapon* Weapon)
 	// unused
 }
 
-void AShooterCharacter::OnSemiWeaponRefire()
+void AShooterCharacter::OnWeaponRefireReady()
 {
-	// unused
+	// 玩家的连发由 ASC 的 Held 重激活表达：GA_Fire 结束即等下一次输入处理时点，
+	// 因此这里不需要（也不允许）由武器反向驱动任何射击。
 }
 
 void AShooterCharacter::Die(AController* KillerController)
@@ -1010,11 +1011,8 @@ void AShooterCharacter::Die(AController* KillerController)
 	CancelReloadAbility();
 	CancelEquipAbility();
 
-	// Death Clear：停火 -> 销毁全部 WeaponActor -> Inventory Clear -> Equipment 收敛为无装备。
-	if (AShooterWeapon* DeathWeapon = GetCurrentWeaponActor())
-	{
-		DeathWeapon->StopFiring();
-	}
+	// Death Clear：销毁全部 WeaponActor -> Inventory Clear -> Equipment 收敛为无装备。
+	// 开火事务本身已经由 State.Dead 阻塞与 CancelFireAbility 收口：一次 GA_Fire 只提交一发并立即结束。
 	if (InventoryComponent)
 	{
 		InventoryComponent->ClearInventory();

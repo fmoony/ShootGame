@@ -141,3 +141,71 @@ protected:
 		return Spec != nullptr && Spec->InputPressed;
 	}
 };
+
+/**
+ * 单发语义下的按住持续测试 Ability：一次激活只形成一次动作边界并立即结束，
+ * 由自己的本地节拍决定何时允许下一次激活——与生产的全自动 GA_Fire 完全同构。
+ *
+ * 它证明的关键事实是：Ability 每发结束之后，输入解释层的 Held 分支会继续尝试，
+ * 但真正的动作边界频率由 Ability 自己的本地节拍决定，而不是输入帧率。
+ */
+UCLASS(Transient, NotBlueprintable)
+class UShooterInputBufferSingleShotCadenceTestAbility : public UShooterInputBufferTestAbility
+{
+	GENERATED_BODY()
+
+public:
+	/** 与生产的全自动 GA_Fire 一致：按住持续，由 ASC 的输入处理时点决定何时重试。 */
+	virtual EShooterAbilityActivationPolicy GetActivationPolicy(const FGameplayAbilityActorInfo* ActorInfo) const override
+	{
+		(void)ActorInfo;
+		return EShooterAbilityActivationPolicy::WhileInputActive;
+	}
+
+	/** 被本地节拍拒绝的尝试次数：证明"每帧都尝试过"，但都没有形成动作边界。 */
+	mutable int32 CadenceRefusedAttemptCountForTest = 0;
+
+	/** 测试专用：把节拍置为就绪 / 未就绪，避免依赖真实世界时间推进。 */
+	void ForceCadenceReadyForTest() { bCadenceReadyForTest = true; }
+	void CloseCadenceForTest() { bCadenceReadyForTest = false; }
+
+protected:
+	virtual bool IsLocalInputStateValid(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo) const override
+	{
+		const UAbilitySystemComponent* AbilitySystemComponent = ActorInfo
+			? ActorInfo->AbilitySystemComponent.Get()
+			: nullptr;
+		const FGameplayAbilitySpec* Spec = AbilitySystemComponent
+			? AbilitySystemComponent->FindAbilitySpecFromHandle(Handle)
+			: nullptr;
+		if (Spec == nullptr || !Spec->InputPressed)
+		{
+			return false;
+		}
+
+		// 与生产的全自动 GA_Fire 一致：按住 + 本地节拍就绪才构成一次动作边界。
+		if (!bCadenceReadyForTest)
+		{
+			++CadenceRefusedAttemptCountForTest;
+			return false;
+		}
+
+		return true;
+	}
+
+	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+		const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override
+	{
+		(void)TriggerEventData;
+		++ActivationCountForTest;
+
+		// 一次 Activation 只处理一次动作：关掉本地节拍并立即结束，
+		// 下一发必须由输入层在下一次节拍就绪后激活一次新的 GA_Fire。
+		bCadenceReadyForTest = false;
+		EndAbility(Handle, ActorInfo, ActivationInfo, /*bReplicateEndAbility*/ false, /*bWasCancelled*/ false);
+	}
+
+private:
+	/** 本地开火节拍；初始为就绪。 */
+	mutable bool bCadenceReadyForTest = true;
+};
