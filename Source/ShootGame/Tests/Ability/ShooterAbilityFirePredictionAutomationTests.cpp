@@ -429,6 +429,65 @@ bool FShooterFirePredictionLocalFireCadenceTest::RunTest(const FString& Paramete
 	TestEqual(TEXT("a local fire leaves TimeOfLastShot untouched"),
 		Weapon->GetTimeOfLastShotForAutomationTest(), TimeOfLastShotBefore);
 
+	// ---- 性质 4：节拍取证的语义 ----
+	// 期望时间必须是"推进之前"的本地节拍终点，实际时间是本次激活时间；
+	// 取证只记录事实，不改变 Gameplay 结果：节拍终点仍然等于实际激活时间 + RefireRate。
+	Weapon->ResetLocalFireCadenceTraceForAutomationTest();
+	Weapon->SetLocalFireCooldownRemainingForAutomationTest(0.0f);
+	const float ExpectedDeadline = World->GetTimeSeconds();
+	Weapon->AdvanceLocalFireCooldown(4242);
+
+	const TArray<AShooterWeapon::FShooterLocalFireCadenceSample>& Samples = Weapon->GetLocalFireCadenceSamplesForAutomationTest();
+	TestEqual(TEXT("every cadence advance appends exactly one trace sample"), Samples.Num(), 1);
+	if (Samples.Num() == 1)
+	{
+		TestEqual(TEXT("the trace sample carries this activation's key"), Samples[0].ActivationKey, 4242);
+		TestTrue(TEXT("the expected time is the pre-advance local cadence deadline"),
+			FMath::IsNearlyEqual(Samples[0].ExpectedDeadline, ExpectedDeadline, 0.001f));
+		TestTrue(TEXT("the lag is measured from that deadline to the actual activation"),
+			Samples[0].LagSeconds >= 0.0f && Samples[0].LagSeconds < 0.1f);
+		TestTrue(TEXT("the sample reports the current frame delta"), Samples[0].FrameDeltaSeconds >= 0.0f);
+	}
+
+	const AShooterWeapon::FShooterLocalFireCadenceStats TraceStats = Weapon->GetLocalFireCadenceStatsForAutomationTest();
+	TestEqual(TEXT("the trace statistics describe the traced window"), TraceStats.Samples, 1);
+	TestEqual(TEXT("a single sample yields no interval statistics"), TraceStats.IntervalSamples, 0);
+	TestTrue(TEXT("the cadence deadline still follows the actual activation time plus RefireRate"),
+		FMath::IsNearlyEqual(Weapon->GetLocalFireCooldownRemaining(), Weapon->GetRefireRate(), 0.01f));
+
+	// ---- 性质 5：全自动保持理论射速网格的相位，半自动锚定本次击发 ----
+	// 全自动：上一发只迟到了容差以内的 10ms 时，下一发目标时间就是理论网格点，
+	// 而不是"本次实际时间 + RefireRate"——后者会把这一发的迟到永久写进后续每一发。
+	Weapon->SetRefireRateForAutomationTest(0.1f);
+	Weapon->SetFullAutoForTest(true);
+	Weapon->SetLocalFireCooldownLagForAutomationTest(0.01f);
+	Weapon->AdvanceLocalFireCooldown(7);
+	TestTrue(TEXT("the full-auto cadence keeps the theoretical grid phase instead of the lateness"),
+		FMath::IsNearlyEqual(Weapon->GetLocalFireCooldownRemaining(), 0.09f, 0.005f));
+
+	// 迟到超过权威容差时，本地不得把下一发排到"本次实际时间 - 容差"之前：
+	// 那种请求必然被权威射速门控拒绝，只会浪费一次 Activation。
+	Weapon->SetLocalFireCooldownLagForAutomationTest(0.03f);
+	Weapon->AdvanceLocalFireCooldown(8);
+	TestTrue(TEXT("the full-auto cadence never schedules a request the authority would refuse"),
+		Weapon->GetLocalFireCooldownRemaining() >= 0.1f - 0.015f - 0.005f);
+	TestTrue(TEXT("the scheduled deadline is always strictly in the future, so no burst is possible"),
+		Weapon->GetLocalFireCooldownRemaining() > 0.0f);
+
+	// 长卡顿必须重新基线：落后达到一个完整节拍时不再保留相位债。
+	Weapon->SetLocalFireCooldownLagForAutomationTest(0.4f);
+	Weapon->AdvanceLocalFireCooldown(9);
+	TestTrue(TEXT("a stall rebaselines the full-auto cadence on the current time"),
+		FMath::IsNearlyEqual(Weapon->GetLocalFireCooldownRemaining(), 0.1f, 0.005f));
+
+	// 半自动：同一个迟到场景必须按本次实际击发重新起算，
+	// 否则本地会放行一次权威端必然拒绝的提前击发。
+	Weapon->SetFullAutoForTest(false);
+	Weapon->SetLocalFireCooldownLagForAutomationTest(0.03f);
+	Weapon->AdvanceLocalFireCooldown(10);
+	TestTrue(TEXT("the semi-auto cadence stays anchored on the actual shot"),
+		FMath::IsNearlyEqual(Weapon->GetLocalFireCooldownRemaining(), 0.1f, 0.005f));
+
 	DestroyPredictionTestWorld(World);
 	return true;
 }

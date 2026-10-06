@@ -316,6 +316,45 @@ struct FShooterAmmoPredictionObservation
 	/** 拥有端当前武器的 WeaponId；换枪后用它与夹具挑出的行比对，证明两端钉在同一把枪上。 */
 	UPROPERTY()
 	FName CurrentWeaponId;
+
+	/**
+	 * 拥有端本地开火节拍取证（本步骤窗口内）。
+	 *
+	 * 它回答"下一发为什么在此时发生"：ExpectedDeadline 是上一发写下的本地节拍终点，
+	 * 实际激活时间与它的差就是被帧边界推迟的量；CadencePhaseErrorMs 把
+	 * "每一发的迟到是否被永久写进后续节拍"压缩成一个数。
+	 * 无数据项一律保持 -1，不填 0。
+	 */
+	UPROPERTY()
+	int32 CadenceSamples = 0;
+	UPROPERTY()
+	int32 CadenceIntervalSamples = 0;
+	UPROPERTY()
+	float CadenceRefireRate = -1.0f;
+	UPROPERTY()
+	float CadenceMeanIntervalMs = -1.0f;
+	UPROPERTY()
+	float CadenceMinIntervalMs = -1.0f;
+	UPROPERTY()
+	float CadenceMaxIntervalMs = -1.0f;
+	UPROPERTY()
+	float CadenceMeanLagMs = -1.0f;
+	UPROPERTY()
+	float CadenceMaxLagMs = -1.0f;
+	UPROPERTY()
+	float CadenceMeanFrameDeltaMs = -1.0f;
+	UPROPERTY()
+	float CadenceMaxFrameDeltaMs = -1.0f;
+	UPROPERTY()
+	float CadenceMeanEndToActivationMs = -1.0f;
+	UPROPERTY()
+	float CadenceSpanMs = -1.0f;
+	UPROPERTY()
+	float CadencePhaseErrorMs = -1.0f;
+	/** 拥有端本步骤的帧率上限设置值（GEngine->GetMaxFPS()）；0 表示不限制。 */
+	UPROPERTY()
+	float ClientMaxFPS = 0.0f;
+
 	UPROPERTY()
 	bool bValid = false;
 };
@@ -395,6 +434,10 @@ private:
 	UFUNCTION(Client, Reliable)
 	void ClientSetAmmoPredictionRefireRate(int32 Step, float RefireRate);
 
+	/** 夹具专用：把被试客户端帧率钉在矩阵指定值上（0 = 解除限制），只影响本地帧循环。 */
+	UFUNCTION(Client, Reliable)
+	void ClientSetAmmoPredictionMaxFPS(int32 Step, float MaxFPS);
+
 	UFUNCTION(Client, Reliable)
 	void ClientSubmitAmmoPredictionFire(int32 Step);
 
@@ -424,6 +467,8 @@ private:
 	void RunAmmoPredictionReloadLifecycleStep();
 	/** 射速测量用例：Step 必须是两个射速步骤之一，达成射速按权威时钟测量。 */
 	void RunAmmoPredictionRateStep(int32 Step);
+	/** 帧率 × 射速矩阵用例：Step 必须是矩阵步骤之一；只断言结构性不变量，射速作为数据上报。 */
+	void RunAmmoPredictionCadenceMatrixStep(int32 Step);
 	void RunAmmoPredictionUnpredictedAcceptedStep();
 	void RunAmmoPredictionUnpredictedRejectedStep();
 	/** 半自动用例的换枪步骤：动态挑出正式半自动行 → 服务器装备 → 等拥有端观察到位。 */
@@ -536,7 +581,11 @@ private:
 	float AmmoPredictionRateLastActivationTime = -1.0f;
 	float AmmoPredictionRateMinInterval = -1.0f;
 	float AmmoPredictionRateMaxInterval = -1.0f;
+	float AmmoPredictionRateIntervalSum = 0.0f;
 	int32 AmmoPredictionRateIntervalSamples = 0;
+	/** 射速窗口内第一次与最后一次权威提交时间；累计相位误差由它们与间隔数算出。 */
+	float AmmoPredictionFirstAuthorityCommitTime = -1.0f;
+	float AmmoPredictionLastAuthorityCommitTime = -1.0f;
 	/** 服务器下发本步骤 Hold 指令的时间。 */
 	float AmmoPredictionHoldStartTime = -1.0f;
 	/** 网络计数窗口起点快照与起点时间；两端各自持有自己的一份。 */
@@ -557,6 +606,11 @@ private:
 	float AmmoPredictionLatestArrivalTime = 0.0f;
 	bool bAmmoPredictionSetup = false;
 	bool bAmmoPredictionFinished = false;
+	/**
+	 * 帧率 × 射速矩阵模式（-ShootGameFireCadenceMatrix）。
+	 * 复用 Ammo Prediction 夹具的全部驱动与观测，只把步骤表换成矩阵行并按结构性不变量判定。
+	 */
+	bool bFireCadenceMatrixMode = false;
 	bool bAmmoPredictionSettleStarted = false;
 	bool bAmmoPredictionStepCommandSent = false;
 	bool bAmmoPredictionHoldingFire = false;

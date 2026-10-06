@@ -282,6 +282,12 @@ public:
 	/** 测试观察接口：是否接受客户端发来的结束命令（必须为 false，权威保留在服务器）。 */
 	bool ServerRespectsRemoteAbilityCancellation() const;
 
+	/**
+	 * 权威端节拍取证：服务器处理这次 Activation 的时刻与本武器权威射速时钟状态。
+	 * 只读、不参与任何判定；接受路径与 Refire 拒绝路径共用同一格式，便于逐发对齐。
+	 */
+	void LogAuthorityCadenceForTest(const TCHAR* Marker, const AShooterWeapon* Weapon, int32 ActivationKey) const;
+
 private:
 	mutable int32 AuthorityRejectCountForTest = 0;
 	int32 LastResolvedShotKeyForTest = INDEX_NONE;

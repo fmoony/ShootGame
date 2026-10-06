@@ -219,7 +219,9 @@ AShooterNetworkTestCoordinator::AShooterNetworkTestCoordinator()
 	bAimRotationMode = bAimTurnCsvMode || FParse::Param(FCommandLine::Get(), TEXT("ShootGameAimRotationTest"));
 #if WITH_DEV_AUTOMATION_TESTS
 	bReloadIdentityMode = FParse::Param(FCommandLine::Get(), TEXT("ShootGameReloadIdentityTest"));
-	bAmmoPredictionMode = FParse::Param(FCommandLine::Get(), TEXT("ShootGameAmmoPredictionTest"));
+	// 帧率 × 射速矩阵复用 Ammo Prediction 夹具，因此只额外开一个模式位。
+	bFireCadenceMatrixMode = FParse::Param(FCommandLine::Get(), TEXT("ShootGameFireCadenceMatrix"));
+	bAmmoPredictionMode = FParse::Param(FCommandLine::Get(), TEXT("ShootGameAmmoPredictionTest")) || bFireCadenceMatrixMode;
 #endif
 }
 

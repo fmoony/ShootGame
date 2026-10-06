@@ -845,6 +845,9 @@ bool AShooterWeapon::CommitSingleShot(int32 ActivationKey)
 
 	// 扣弹成功即代表这一发已被服务器正式提交；后续表现或弹丸失败都不回退。
 	const float ShotTime = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0f;
+#if WITH_DEV_AUTOMATION_TESTS
+	const float PreviousShotTime = TimeOfLastShot;
+#endif
 	TimeOfLastShot = ShotTime;
 
 	ExecuteFireAtTarget(WeaponOwner->GetWeaponTargetLocation());
@@ -852,6 +855,8 @@ bool AShooterWeapon::CommitSingleShot(int32 ActivationKey)
 #if WITH_DEV_AUTOMATION_TESTS
 	++AuthorityShotCount;
 	LogFireFeedbackMarker(TEXT("FIRE_AUTHORITY_COMMIT"), AuthorityShotCount, AuthorityShotCount);
+	// 权威节拍取证：这一发的提交时刻与上一发之间的间隔，是"权威射速是否被真正达成"的直接证据。
+	LogAuthorityCommitCadenceForAutomationTest(ActivationKey, PreviousShotTime, ShotTime);
 #endif
 
 	// 让 AI 感知系统听见这一发。
@@ -1078,7 +1083,8 @@ bool AShooterWeapon::IsLocalFireCooldownReady() const
 	// 本地节拍由离散输入与权威节拍通知驱动，没有 Timer 到期与帧边界的对齐问题。
 	// 半自动必须严格比较，否则玩家可以在节拍结束前数毫秒提前开火并看到一次多余表现；
 	// 全自动的请求节流同样按严格边界推进，真实射速仍由服务器独立判定。
-	return LocalFireCooldownEndTime < 0.0f || World->GetTimeSeconds() >= LocalFireCooldownEndTime;
+	// 未建立节拍时哨兵时间远早于任何世界时间，因此这里不需要特例分支。
+	return World->GetTimeSeconds() >= LocalFireCooldownEndTime;
 }
 
 float AShooterWeapon::GetLocalFireCooldownRemaining() const
@@ -1087,19 +1093,60 @@ float AShooterWeapon::GetLocalFireCooldownRemaining() const
 	return World ? FMath::Max(0.0f, LocalFireCooldownEndTime - World->GetTimeSeconds()) : 0.0f;
 }
 
-void AShooterWeapon::AdvanceLocalFireCooldown()
+void AShooterWeapon::AdvanceLocalFireCooldown(int32 ActivationKey)
 {
 	// 只按本武器 RefireRate 推进本地时钟；不读也不写权威 TimeOfLastShot / RefireTimer，
 	// 因此服务器节拍与本地节拍各自独立，不会互相纠缠。
-	if (const UWorld* World = GetWorld())
+	UWorld* World = GetWorld();
+	if (!World)
 	{
-		LocalFireCooldownEndTime = World->GetTimeSeconds() + FMath::Max(RefireRate, 0.01f);
+		return;
 	}
+
+	const float Now = World->GetTimeSeconds();
+	const float Cadence = FMath::Max(RefireRate, 0.01f);
+
+#if WITH_DEV_AUTOMATION_TESTS
+	// 取证必须在覆写之前：样本里的 ExpectedDeadline 正是"本发原本被允许的最早时间"。
+	RecordLocalFireCadenceSampleForAutomationTest(ActivationKey, Now, World->GetDeltaSeconds());
+#endif
+
+	if (!bFullAuto)
+	{
+		// 半自动：本地节拍是"每次击发之后的冷却闸门"，它不承担持续射速目标，
+		// 必须严格锚定在这次真实击发上；否则本地会放行一次权威端必然拒绝的提前击发，
+		// 表现为玩家的点击被吞掉。
+		LocalFireCooldownEndTime = Now + Cadence;
+		return;
+	}
+
+	// 全自动：本地节拍是"理论射速网格"的追踪器，必须保留相位。
+	// 以 Now + RefireRate 重新起算会把每一发被帧边界推迟的量永久写进后续节拍，
+	// 即累计相位漂移：迟到一帧不是一次性代价，而是此后每一发都晚一帧。
+	//
+	// 相位保持只在"没有明显滞后"时成立。落后达到一个完整节拍时（掉帧、长卡顿、
+	// 或输入被阻塞了一整拍）重新基线到当前时间，绝不补发历史欠下的 Shot。
+	const bool bCadenceEstablished = LocalFireCooldownEndTime > NoLocalCadenceTime + 1.0f;
+	const float CadenceLag = bCadenceEstablished ? Now - LocalFireCooldownEndTime : 0.0f;
+	if (!bCadenceEstablished || CadenceLag >= Cadence)
+	{
+		LocalFireCooldownEndTime = Now + Cadence;
+		return;
+	}
+
+	// 相位保持：按理论网格推进，同时不允许把下一发排在"本发实际时间 - 权威容差"之前。
+	// 只保留网格还不够：一次帧量化超调之后，网格会把下一发拉回来，
+	// 形成只有一帧的"追赶"间隔——那种请求必然被权威射速门控拒绝，纯属浪费一次激活。
+	// 权威门控容忍的提前量就是 AuthorityRefireTolerance，本地以同一个量为下界，
+	// 既不发出注定被拒的请求，也不在容差内重新锚定（相位债不会因此累积）。
+	const float GridDeadline = LocalFireCooldownEndTime + Cadence;
+	const float EarliestAcceptedDeadline = Now + Cadence - AuthorityRefireTolerance;
+	LocalFireCooldownEndTime = FMath::Max(GridDeadline, EarliestAcceptedDeadline);
 }
 
 void AShooterWeapon::ResetLocalFireCooldown()
 {
-	LocalFireCooldownEndTime = -1.0f;
+	LocalFireCooldownEndTime = NoLocalCadenceTime;
 }
 
 bool AShooterWeapon::PlayOwnerPredictedShotFeedback()
@@ -1510,6 +1557,15 @@ void AShooterWeapon::SetLocalFireCooldownRemainingForAutomationTest(float Remain
 	}
 }
 
+void AShooterWeapon::SetLocalFireCooldownLagForAutomationTest(float LagSeconds)
+{
+	if (const UWorld* World = GetWorld())
+	{
+		// 构造"本地节拍已经迟到 LagSeconds"的场景：目标时间落在当前时间之前。
+		LocalFireCooldownEndTime = World->GetTimeSeconds() - FMath::Max(0.0f, LagSeconds);
+	}
+}
+
 void AShooterWeapon::SetAuthorityRefireRemainingForAutomationTest(float RemainingSeconds)
 {
 	if (const UWorld* World = GetWorld())
@@ -1519,5 +1575,124 @@ void AShooterWeapon::SetAuthorityRefireRemainingForAutomationTest(float Remainin
 			? NeverFiredShotTime
 			: World->GetTimeSeconds() - (FMath::Max(RefireRate, 0.01f) - RemainingSeconds);
 	}
+}
+
+void AShooterWeapon::ResetLocalFireCadenceTraceForAutomationTest()
+{
+	LocalFireCadenceSamples.Reset();
+	LocalFireCadenceOrdinal = 0;
+	LastLocalFireEndTime = -1.0f;
+}
+
+void AShooterWeapon::RecordLocalFireEndForAutomationTest()
+{
+	if (const UWorld* World = GetWorld())
+	{
+		LastLocalFireEndTime = World->GetTimeSeconds();
+	}
+}
+
+void AShooterWeapon::RecordLocalFireCadenceSampleForAutomationTest(int32 ActivationKey, float ActivationTime, float FrameDeltaSeconds)
+{
+	// 期望时间必须在这一发推进之前读取：它就是上一发写下的"下一次允许本地开火时间"。
+	const float ExpectedDeadline = LocalFireCooldownEndTime;
+	const FShooterLocalFireCadenceSample* Previous = LocalFireCadenceSamples.Num() > 0 ? &LocalFireCadenceSamples.Last() : nullptr;
+
+	++LocalFireCadenceOrdinal;
+	if (LocalFireCadenceSamples.Num() >= MaxLocalFireCadenceSamples)
+	{
+		// 只限制内存：序号继续递增，统计只看已采集窗口。
+		return;
+	}
+
+	FShooterLocalFireCadenceSample& Sample = LocalFireCadenceSamples.AddDefaulted_GetRef();
+	Sample.Ordinal = LocalFireCadenceOrdinal;
+	Sample.ActivationKey = ActivationKey;
+	Sample.ExpectedDeadline = ExpectedDeadline;
+	Sample.ActivationTime = ActivationTime;
+	Sample.LagSeconds = ExpectedDeadline >= 0.0f ? ActivationTime - ExpectedDeadline : -1.0f;
+	Sample.IntervalSeconds = Previous ? ActivationTime - Previous->ActivationTime : -1.0f;
+	Sample.FrameDeltaSeconds = FrameDeltaSeconds;
+	Sample.EndToActivationSeconds = LastLocalFireEndTime >= 0.0f ? ActivationTime - LastLocalFireEndTime : -1.0f;
+	Sample.RefireRate = RefireRate;
+
+	UE_LOG(LogShootGame, Display,
+		TEXT("FIRE_CADENCE_LOCAL Ordinal=%d Key=%d Expected=%.6f Actual=%.6f LagMs=%.3f IntervalMs=%.3f ")
+		TEXT("FrameDeltaMs=%.3f EndToActMs=%.3f RefireRate=%.6f"),
+		Sample.Ordinal,
+		Sample.ActivationKey,
+		Sample.ExpectedDeadline,
+		Sample.ActivationTime,
+		Sample.LagSeconds * 1000.0f,
+		Sample.IntervalSeconds * 1000.0f,
+		Sample.FrameDeltaSeconds * 1000.0f,
+		Sample.EndToActivationSeconds * 1000.0f,
+		Sample.RefireRate);
+}
+
+AShooterWeapon::FShooterLocalFireCadenceStats AShooterWeapon::GetLocalFireCadenceStatsForAutomationTest() const
+{
+	FShooterLocalFireCadenceStats Stats;
+	Stats.Samples = LocalFireCadenceSamples.Num();
+	Stats.RefireRate = RefireRate;
+	if (Stats.Samples <= 0)
+	{
+		return Stats;
+	}
+
+	double IntervalSum = 0.0;
+	double LagSum = 0.0;
+	double FrameDeltaSum = 0.0;
+	double EndToActivationSum = 0.0;
+	int32 EndToActivationSamples = 0;
+
+	for (const FShooterLocalFireCadenceSample& Sample : LocalFireCadenceSamples)
+	{
+		const float Lag = FMath::Max(0.0f, Sample.LagSeconds);
+		LagSum += Lag;
+		Stats.MaxLagSeconds = FMath::Max(Stats.MaxLagSeconds, Lag);
+		FrameDeltaSum += Sample.FrameDeltaSeconds;
+		Stats.MaxFrameDeltaSeconds = FMath::Max(Stats.MaxFrameDeltaSeconds, Sample.FrameDeltaSeconds);
+		if (Sample.IntervalSeconds >= 0.0f)
+		{
+			++Stats.IntervalSamples;
+			IntervalSum += Sample.IntervalSeconds;
+			Stats.MinIntervalSeconds = Stats.MinIntervalSeconds < 0.0f
+				? Sample.IntervalSeconds
+				: FMath::Min(Stats.MinIntervalSeconds, Sample.IntervalSeconds);
+			Stats.MaxIntervalSeconds = FMath::Max(Stats.MaxIntervalSeconds, Sample.IntervalSeconds);
+		}
+		if (Sample.EndToActivationSeconds >= 0.0f)
+		{
+			++EndToActivationSamples;
+			EndToActivationSum += Sample.EndToActivationSeconds;
+		}
+	}
+
+	Stats.MeanLagSeconds = static_cast<float>(LagSum / Stats.Samples);
+	Stats.MeanFrameDeltaSeconds = static_cast<float>(FrameDeltaSum / Stats.Samples);
+	if (Stats.IntervalSamples > 0)
+	{
+		Stats.MeanIntervalSeconds = static_cast<float>(IntervalSum / Stats.IntervalSamples);
+		Stats.SpanSeconds = LocalFireCadenceSamples.Last().ActivationTime - LocalFireCadenceSamples[0].ActivationTime;
+		// 相位误差用"实际跨度 - 应然跨度"表达：相位保持时在一个帧间隔内往返，相位累计时随发数增长。
+		Stats.CumulativePhaseErrorSeconds = Stats.SpanSeconds - static_cast<float>(Stats.IntervalSamples) * RefireRate;
+	}
+	if (EndToActivationSamples > 0)
+	{
+		Stats.MeanEndToActivationSeconds = static_cast<float>(EndToActivationSum / EndToActivationSamples);
+	}
+
+	return Stats;
+}
+
+void AShooterWeapon::LogAuthorityCommitCadenceForAutomationTest(int32 ActivationKey, float PreviousShotTime, float CommitTime) const
+{
+	// 只读取证：这一发与上一发之间的权威间隔是否真的越过了 RefireRate。
+	// 余量 = SincePrevMs - RefireRate，由报告侧从同一行数据算出，不重复记录。
+	const bool bHadPreviousShot = PreviousShotTime > NeverFiredShotTime + 1.0f;
+	const float SincePrevious = bHadPreviousShot ? CommitTime - PreviousShotTime : -1.0f;
+	UE_LOG(LogShootGame, Display, TEXT("FIRE_CADENCE_AUTHORITY_COMMIT Key=%d Commit=%.6f SincePrevMs=%.3f"),
+		ActivationKey, CommitTime, SincePrevious * 1000.0f);
 }
 #endif

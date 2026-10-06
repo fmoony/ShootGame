@@ -12,6 +12,7 @@
 #include "Characters/Equipment/ShooterEquipmentComponent.h"
 #include "Characters/ShooterCharacter.h"
 #include "Engine/NetDriver.h"
+#include "Engine/Engine.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "Misc/CommandLine.h"
@@ -114,6 +115,56 @@ namespace ShooterAmmoPredictionNetworkTests
 	constexpr int32 RateMagazineSlack = 2;
 
 	/**
+	 * 帧率 × 射速矩阵（-ShootGameFireCadenceMatrix）：把"射速是否达成"拆成
+	 * "本地请求节拍被帧边界推迟了多少"与"服务器是否额外拒绝了请求"两件事。
+	 *
+	 * 每个组合的窗口不得短于 10 秒：短窗口下每秒一次的启动延迟与每发数十毫秒的
+	 * 节拍量化误差会混在一起，无法区分相位漂移与噪声。
+	 * 该模式下夹具只断言结构性不变量（接受数 == 权威发数、Pending 归零、记录归零），
+	 * 达成射速只作为数据上报：本轮目标是定位根因，不是把数字调漂亮。
+	 */
+	constexpr float CadenceMatrixMeasurementSeconds = 10.0f;
+	constexpr int32 CadenceMatrixRowCount = 10;
+	constexpr int32 StepCadenceMatrixFirst = 100;
+	constexpr int32 StepCadenceMatrixLast = StepCadenceMatrixFirst + CadenceMatrixRowCount - 1;
+
+	/** 矩阵一行：客户端帧率上限与武器理论射速。 */
+	struct FShooterCadenceMatrixRow
+	{
+		float MaxFPS = 0.0f;
+		float RefireRate = 0.0f;
+		float ExpectedRps = 0.0f;
+	};
+
+	/** 矩阵第 Index 行；顺序固定为「每个帧率下先 600 RPM 后 900 RPM」。 */
+	FShooterCadenceMatrixRow GetCadenceMatrixRow(int32 Index)
+	{
+		const float FpsValues[5] = { 30.0f, 45.0f, 60.0f, 90.0f, 120.0f };
+		const bool bHighRpm = (Index % 2) != 0;
+		FShooterCadenceMatrixRow Row;
+		Row.MaxFPS = FpsValues[(Index / 2) % 5];
+		Row.ExpectedRps = bHighRpm ? Rate900RpmExpectedRps : Rate600RpmExpectedRps;
+		Row.RefireRate = 1.0f / Row.ExpectedRps;
+		return Row;
+	}
+
+	bool IsCadenceMatrixStep(int32 Step)
+	{
+		return Step >= StepCadenceMatrixFirst && Step <= StepCadenceMatrixLast;
+	}
+
+	int32 GetCadenceMatrixIndex(int32 Step)
+	{
+		return Step - StepCadenceMatrixFirst;
+	}
+
+	/** 秒值转毫秒；负值表示"该项无数据"，保持 -1 不被放大。 */
+	float SecondsToMillisecondsOrUnknown(float Seconds)
+	{
+		return Seconds < 0.0f ? -1.0f : Seconds * 1000.0f;
+	}
+
+	/**
 	 * 半自动用例：换枪到动态挑出的正式半自动行之后，验证 OnInputTriggered 策略。
 	 *
 	 * - 一次按下 + 松开必须只产生一发；
@@ -146,7 +197,13 @@ namespace ShooterAmmoPredictionNetworkTests
 
 	bool IsRateMeasurementStep(int32 Step)
 	{
-		return Step == StepRate600Rpm || Step == StepRate900Rpm;
+		return Step == StepRate600Rpm || Step == StepRate900Rpm || IsCadenceMatrixStep(Step);
+	}
+
+	/** 射速测量窗口：矩阵模式必须长到能形成稳定统计。 */
+	float GetRateMeasurementSeconds(int32 Step)
+	{
+		return IsCadenceMatrixStep(Step) ? CadenceMatrixMeasurementSeconds : RateMeasurementSeconds;
 	}
 
 	/**
@@ -178,13 +235,42 @@ namespace ShooterAmmoPredictionNetworkTests
 	/** 射速测量用例的配置达成射速（发/秒）。 */
 	float GetRateExpectedRps(int32 Step)
 	{
-		return Step == StepRate600Rpm ? Rate600RpmExpectedRps : Rate900RpmExpectedRps;
+		if (Step == StepRate600Rpm)
+		{
+			return Rate600RpmExpectedRps;
+		}
+		if (Step == StepRate900Rpm)
+		{
+			return Rate900RpmExpectedRps;
+		}
+		return IsCadenceMatrixStep(Step) ? GetCadenceMatrixRow(GetCadenceMatrixIndex(Step)).ExpectedRps : 0.0f;
 	}
 
 	/** 射速测量用例在两端必须一致的 RefireRate。 */
 	float GetRateRefireRate(int32 Step)
 	{
-		return Step == StepRate600Rpm ? Rate600RpmRefireRate : Rate900RpmRefireRate;
+		if (Step == StepRate600Rpm)
+		{
+			return Rate600RpmRefireRate;
+		}
+		if (Step == StepRate900Rpm)
+		{
+			return Rate900RpmRefireRate;
+		}
+		return IsCadenceMatrixStep(Step) ? GetCadenceMatrixRow(GetCadenceMatrixIndex(Step)).RefireRate : 0.0f;
+	}
+
+	/** 矩阵行的客户端帧率上限；非矩阵步骤返回 0（不限制帧率）。 */
+	float GetCadenceMatrixMaxFPS(int32 Step)
+	{
+		return IsCadenceMatrixStep(Step) ? GetCadenceMatrixRow(GetCadenceMatrixIndex(Step)).MaxFPS : 0.0f;
+	}
+
+	/** 矩阵用例名：帧率与射速都写进名字，报告行不依赖步骤号即可自解释。 */
+	FString GetCadenceMatrixCaseName(int32 Step)
+	{
+		const FShooterCadenceMatrixRow Row = GetCadenceMatrixRow(GetCadenceMatrixIndex(Step));
+		return FString::Printf(TEXT("Cadence%.0fFps_%.0fRpm"), Row.MaxFPS, Row.ExpectedRps * 60.0f);
 	}
 
 	/**
@@ -326,22 +412,30 @@ void AShooterNetworkTestCoordinator::HandleAmmoPredictionFireActivated(UGameplay
 		// 权威端记一次「被接受的 Activation」：它必须与一次 CommitSingleShot 严格一一对应。
 		++AmmoPredictionAuthorityActivations;
 		const float ActivationTime = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0f;
+		// 服务器真正写下权威射速时钟的时刻就是本帧：本回调由 UGameplayAbility::PreActivate
+		// 里的 NotifyAbilityActivated 广播（Engine/.../GameplayAbility.cpp），因此它**早于**
+		// ActivateAbility 里的 CommitSingleShot。此刻读 TimeOfLastShot 拿到的是上一发的时刻，
+		// 用它会凭空造出一个跨步骤的超长间隔；提交时刻与 ActivateAbility 同帧，直接用本帧时间。
+		const float CommitTime = ActivationTime;
 		if (AmmoPredictionFirstAuthorityActivationTime < 0.0f)
 		{
 			// 射速窗口的第一发时间：达成射速只在第一发到最后一发之间测量，不含启动延迟。
 			AmmoPredictionFirstAuthorityActivationTime = ActivationTime;
+			AmmoPredictionFirstAuthorityCommitTime = CommitTime;
 		}
 		if (AmmoPredictionRateLastActivationTime >= 0.0f)
 		{
 			// 逐间隔统计：节拍被帧率量化时最小值 / 最大值会明显张开，便于定位达成射速偏差。
-			const float Interval = ActivationTime - AmmoPredictionRateLastActivationTime;
+			const float Interval = CommitTime - AmmoPredictionRateLastActivationTime;
 			AmmoPredictionRateMinInterval = AmmoPredictionRateMinInterval < 0.0f
 				? Interval
 				: FMath::Min(AmmoPredictionRateMinInterval, Interval);
 			AmmoPredictionRateMaxInterval = FMath::Max(AmmoPredictionRateMaxInterval, Interval);
+			AmmoPredictionRateIntervalSum += Interval;
 			++AmmoPredictionRateIntervalSamples;
 		}
-		AmmoPredictionRateLastActivationTime = ActivationTime;
+		AmmoPredictionRateLastActivationTime = CommitTime;
+		AmmoPredictionLastAuthorityCommitTime = CommitTime;
 		if (Key > 0)
 		{
 			AmmoPredictionAuthorityActivationKeys.Add(Key);
@@ -349,11 +443,14 @@ void AShooterNetworkTestCoordinator::HandleAmmoPredictionFireActivated(UGameplay
 		UE_LOG(
 			LogShootGame,
 			Display,
-			TEXT("AMMO_PREDICTION_AUTHORITY_FIRE_ACTIVATED Step=%d Key=%d Count=%d DistinctKeys=%d"),
+			TEXT("AMMO_PREDICTION_AUTHORITY_FIRE_ACTIVATED Step=%d Key=%d Count=%d DistinctKeys=%d ")
+			TEXT("ServerTime=%.6f CommitTime=%.6f"),
 			AmmoPredictionServerStep,
 			Key,
 			AmmoPredictionAuthorityActivations,
-			AmmoPredictionAuthorityActivationKeys.Num());
+			AmmoPredictionAuthorityActivationKeys.Num(),
+			ActivationTime,
+			CommitTime);
 		return;
 	}
 
@@ -550,6 +647,28 @@ void AShooterNetworkTestCoordinator::SampleAmmoPredictionLocalState()
 			? AmmoPredictionActivationsAtRelease
 			: INDEX_NONE;
 		Sample.RefireRate = Weapon->GetRefireRate();
+		Sample.ClientMaxFPS = GEngine ? GEngine->GetMaxFPS() : 0.0f;
+
+		// 本地开火节拍取证：本步骤窗口内的逐发样本统计。无数据项保持 -1，不填 0。
+		const AShooterWeapon::FShooterLocalFireCadenceStats Cadence =
+			Weapon->GetLocalFireCadenceStatsForAutomationTest();
+		Sample.CadenceSamples = Cadence.Samples;
+		Sample.CadenceIntervalSamples = Cadence.IntervalSamples;
+		Sample.CadenceRefireRate = Cadence.Samples > 0 ? Cadence.RefireRate : -1.0f;
+		Sample.CadenceMeanIntervalMs = SecondsToMillisecondsOrUnknown(Cadence.MeanIntervalSeconds);
+		Sample.CadenceMinIntervalMs = SecondsToMillisecondsOrUnknown(Cadence.MinIntervalSeconds);
+		Sample.CadenceMaxIntervalMs = SecondsToMillisecondsOrUnknown(Cadence.MaxIntervalSeconds);
+		Sample.CadenceMeanLagMs = SecondsToMillisecondsOrUnknown(Cadence.MeanLagSeconds);
+		Sample.CadenceMaxLagMs = SecondsToMillisecondsOrUnknown(Cadence.MaxLagSeconds);
+		Sample.CadenceMeanFrameDeltaMs = SecondsToMillisecondsOrUnknown(Cadence.MeanFrameDeltaSeconds);
+		Sample.CadenceMaxFrameDeltaMs = SecondsToMillisecondsOrUnknown(Cadence.MaxFrameDeltaSeconds);
+		Sample.CadenceMeanEndToActivationMs = SecondsToMillisecondsOrUnknown(Cadence.MeanEndToActivationSeconds);
+		Sample.CadenceSpanMs = SecondsToMillisecondsOrUnknown(Cadence.SpanSeconds);
+		// 相位误差是有符号的（网格被保持时它围绕 0 在正负一个帧间隔内往返），
+		// 因此不能沿用"负数即无数据"的约定，这里用 -99999 显式表示无数据。
+		Sample.CadencePhaseErrorMs = Cadence.IntervalSamples > 0
+			? Cadence.CumulativePhaseErrorSeconds * 1000.0f
+			: -99999.0f;
 
 		// 网络证据窗口：本步骤起点 → 本次采样。
 		// 累计口径（*TotalBytes / *TotalPackets）用差值；速率口径用周期采样后的平均 / 峰值，
@@ -635,6 +754,8 @@ void AShooterNetworkTestCoordinator::ClientPrepareAmmoPredictionStep_Implementat
 		const int32 FixturePending = IsUnpredictedBudgetStep(Step) ? Weapon->GetMagazineSize() : 0;
 		Weapon->SetPendingPredictedShotsForAutomationTest(FixturePending);
 		Weapon->SetLocalFireCooldownRemainingForAutomationTest(0.0f);
+		// 节拍取证样本按步骤窗口采集：矩阵与射速用例的统计必须只覆盖本步骤。
+		Weapon->ResetLocalFireCadenceTraceForAutomationTest();
 	}
 
 	// 拥有端网络证据窗口起点：本步骤准备 → 结算。累计口径与速率口径都用同一条连接。
@@ -671,6 +792,26 @@ void AShooterNetworkTestCoordinator::ClientSetAmmoPredictionRefireRate_Implement
 	Weapon->SetLocalFireCooldownRemainingForAutomationTest(0.0f);
 	UE_LOG(LogShootGame, Display, TEXT("AMMO_PREDICTION_CLIENT_REFIRE Step=%d Rate=%.4f"), Step,
 		Weapon->GetRefireRate());
+}
+
+void AShooterNetworkTestCoordinator::ClientSetAmmoPredictionMaxFPS_Implementation(int32 Step, float MaxFPS)
+{
+	if (!bAmmoPredictionMode || Step != AmmoPredictionClientStep)
+	{
+		return;
+	}
+
+	// 夹具专用：把被试客户端的帧率钉在矩阵指定值上（0 = 解除限制）。
+	// 它只影响本机帧循环，不改动任何 Gameplay 结果；真正生效与否由上报的
+	// ClientMaxFPS 与逐发 FrameDeltaMs 共同证明，不做假设。
+	if (GEngine)
+	{
+		GEngine->SetMaxFPS(MaxFPS);
+	}
+
+	const float EffectiveMaxFPS = GEngine ? GEngine->GetMaxFPS() : 0.0f;
+	UE_LOG(LogShootGame, Display, TEXT("AMMO_PREDICTION_CLIENT_MAXFPS Step=%d Requested=%.1f Effective=%.1f"),
+		Step, MaxFPS, EffectiveMaxFPS);
 }
 
 void AShooterNetworkTestCoordinator::ClientSubmitAmmoPredictionFire_Implementation(int32 Step)
@@ -873,7 +1014,10 @@ void AShooterNetworkTestCoordinator::StartAmmoPredictionStep(int32 Step)
 	AmmoPredictionRateLastActivationTime = -1.0f;
 	AmmoPredictionRateMinInterval = -1.0f;
 	AmmoPredictionRateMaxInterval = -1.0f;
+	AmmoPredictionRateIntervalSum = 0.0f;
 	AmmoPredictionRateIntervalSamples = 0;
+	AmmoPredictionFirstAuthorityCommitTime = -1.0f;
+	AmmoPredictionLastAuthorityCommitTime = -1.0f;
 
 	// 本步骤两端必须一致的射速：射速用例使用配置射速，其余步骤恢复武器行配置的原始射速。
 	// 只有拥有端请求节拍与服务器权威门控使用同一个 RefireRate，"达成射速"才有意义。
@@ -888,8 +1032,9 @@ void AShooterNetworkTestCoordinator::StartAmmoPredictionStep(int32 Step)
 	// 每个步骤的权威弹药起点由夹具显式固定：满弹匣 + 足量备弹，
 	// 这样"服务器真的开火"与"换弹能补满"都能在同一份起点上被断言。
 	// 射速用例把弹匣抬到窗口所需发数，避免窗口末尾因打空弹匣而失真。
+	const float RateWindowSeconds = GetRateMeasurementSeconds(Step);
 	const int32 RateRounds = IsRateMeasurementStep(Step)
-		? FMath::CeilToInt(GetRateExpectedRps(Step) * RateMeasurementSeconds) + RateMagazineSlack
+		? FMath::CeilToInt(GetRateExpectedRps(Step) * RateWindowSeconds) + RateMagazineSlack
 		: 0;
 	// 弹药下限：弹匣至少 FixtureMinMagazine 发，弹药不足不得伪装成任何用例的结论。
 	const int32 MagazineStart = FMath::Max(FMath::Max(Weapon->GetMagazineSize(), RateRounds), FixtureMinMagazine);
@@ -921,6 +1066,9 @@ void AShooterNetworkTestCoordinator::StartAmmoPredictionStep(int32 Step)
 	ClientPrepareAmmoPredictionStep(AmmoPredictionSubjectPlayerId, Step);
 	// 射速必须在步骤准备之后下发：准备 RPC 先建立本步骤身份，射速 RPC 再据此生效。
 	ClientSetAmmoPredictionRefireRate(Step, AmmoPredictionStepRefireRate);
+	// 帧率同样在准备之后下发：矩阵行要求客户端在测量窗口内保持指定帧率；
+	// 非矩阵步骤下发 0，等于显式恢复"不限制帧率"的默认状态。
+	ClientSetAmmoPredictionMaxFPS(Step, GetCadenceMatrixMaxFPS(Step));
 	UE_LOG(
 		LogShootGame,
 		Display,
@@ -1476,9 +1624,9 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionRateStep(int32 Step)
 	const int32 BackfillReqDelta = Sample.ConfirmedBackfillRequestCount - Before.ConfirmedBackfillRequestCount;
 
 	// 达成射速只在权威时钟上测量：第一发到最后一发之间的间隔数除以其跨度，
-	// 因此不把"从下指令到第一发"的启动延迟算进射速。
-	const float FirstShotTime = AmmoPredictionFirstAuthorityActivationTime;
-	const float MeasuredSeconds = Weapon->GetTimeOfLastShotForAutomationTest() - FirstShotTime;
+	// 因此不把"从下指令到第一发"的启动延迟算进射速。跨度用两端的权威提交时刻，
+	// 与矩阵用例同一口径（Activate 回调时刻与提交时刻同栈，但提交时刻才是权威射速时钟）。
+	const float MeasuredSeconds = AmmoPredictionLastAuthorityCommitTime - AmmoPredictionFirstAuthorityCommitTime;
 	const int32 Intervals = ShotDelta - 1;
 	const float AchievedRps = MeasuredSeconds > 0.0f && Intervals >= 1
 		? static_cast<float>(Intervals) / MeasuredSeconds
@@ -1543,13 +1691,26 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionRateStep(int32 Step)
 		UE_LOG(LogShootGame, Display, TEXT("%s"), *NetGapLine);
 	}
 
-	// 三条硬断言：一次被接受的 Activation 恰好一发；达成射速在 ±15% 内；窗口结束预算收敛。
+	// 断言刻意分成两层，不把"客户端请求节拍"与"权威达成射速"混成一个数：
+	//
+	// 1. 客户端请求节拍是本仓库唯一能控制的量，必须等于配置射速（±15%）。
+	//    它正是上一版会漏掉的回归：低帧率下按"实际时间 + RefireRate"重锚点会让
+	//    请求节拍慢到 87ms / 111ms，而权威达成射速却因为"请求变慢、拒绝变少"看起来还行。
+	// 2. 权威侧的达成率由权威门控决定，只断言结构性恒等式与收敛性：
+	//    每一次客户端请求要么被接受并提交恰好一发，要么被明确拒绝，没有中间态；
+	//    Accepted == Shots、Pending 归零、Shot 记录归零。
+	//    权威达成射速本身作为数据上报（AMMO_PREDICTION_RATE_RESULT）。
+	const float ClientRequestRps = MeasuredSeconds > 0.0f ? static_cast<float>(ClientActivationDelta) / MeasuredSeconds : 0.0f;
+	const float ClientRequestErrorRatio = FMath::Abs(ClientRequestRps - ExpectedRps) / ExpectedRps;
+	const bool bRequestPaceOk = RateErrorRatio <= RateToleranceRatio && ClientRequestErrorRatio <= RateToleranceRatio;
+	const bool bNoSilentLoss = RejectDelta + AcceptedDelta == ClientActivationDelta;
 	const bool bConverged = ShotDelta == AcceptedDelta && MeasuredSeconds > 0.0f && Intervals >= 1 &&
-		RateErrorRatio <= RateToleranceRatio && Sample.PendingShots == 0 && Sample.UnresolvedShotRecordCount == 0;
+		bRequestPaceOk && bNoSilentLoss && Sample.PendingShots == 0 && Sample.UnresolvedShotRecordCount == 0;
 
 	const FString RateResult = FString::Printf(
 		TEXT("AMMO_PREDICTION_RATE_RESULT Case=%s ConfiguredRps=%.3f ConfiguredHoldSeconds=%.2f ")
-		TEXT("AchievedRps=%.3f RateErrorPct=%.2f Shots=%d Intervals=%d MeasuredSeconds=%.3f ")
+		TEXT("AchievedRps=%.3f RateErrorPct=%.2f ClientRequestRps=%.3f ClientRequestErrorPct=%.2f ")
+		TEXT("Shots=%d Intervals=%d MeasuredSeconds=%.3f ")
 		TEXT("ElapsedSinceHold=%.3f IntervalSamples=%d MinInterval=%.4f MaxInterval=%.4f ")
 		TEXT("ClientActivations=%d AcceptedActivations=%d AuthorityRejects=%d AuthorityRejectProbe=%d ")
 		TEXT("RefireRate=%.4f PredictedFeedback=%d BackfillFeedback=%d BackfillRequests=%d ")
@@ -1559,6 +1720,8 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionRateStep(int32 Step)
 		RateMeasurementSeconds,
 		AchievedRps,
 		RateErrorRatio * 100.0f,
+		ClientRequestRps,
+		ClientRequestErrorRatio * 100.0f,
 		ShotDelta,
 		Intervals,
 		MeasuredSeconds,
@@ -1636,12 +1799,16 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionRateStep(int32 Step)
 	UE_LOG(LogShootGame, Display, TEXT("%s"), *ClientNetLine);
 
 	const FString Detail = FString::Printf(
-		TEXT("Rps=%.3f/%.3f ErrPct=%.2f Shots=%d Accepted=%d ClientAct=%d Rejects=%d Predicted=%d ")
+		TEXT("Rps=%.3f/%.3f ErrPct=%.2f ClientReqRps=%.3f/%.3f ClientReqErrPct=%.2f ")
+		TEXT("Shots=%d Accepted=%d ClientAct=%d Rejects=%d Predicted=%d ")
 		TEXT("Backfill=%d Requests=%d Pending=%d PendingStart=%d Records=%d NetOutBps(S=%.0f/C=%.0f) ")
 		TEXT("RateSamples(S=%d/C=%d)"),
 		AchievedRps,
 		ExpectedRps,
 		RateErrorRatio * 100.0f,
+		ClientRequestRps,
+		ExpectedRps,
+		ClientRequestErrorRatio * 100.0f,
 		ShotDelta,
 		AcceptedDelta,
 		ClientActivationDelta,
@@ -1658,6 +1825,155 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionRateStep(int32 Step)
 		Sample.NetRateSamples);
 	ConcludeAmmoPredictionCase(CaseName, bConverged, Detail);
 	StartAmmoPredictionStep(Step == StepRate600Rpm ? StepRate900Rpm : StepUnpredictedAccepted);
+}
+
+void AShooterNetworkTestCoordinator::RunAmmoPredictionCadenceMatrixStep(int32 Step)
+{
+	using namespace ShooterAmmoPredictionNetworkTests;
+
+	AShooterWeapon* Weapon = AmmoPredictionWeapon.Get();
+	if (!Weapon)
+	{
+		return;
+	}
+
+	const FString CaseName = GetCadenceMatrixCaseName(Step);
+	const float ExpectedRps = GetRateExpectedRps(Step);
+	const float RequestedMaxFPS = GetCadenceMatrixMaxFPS(Step);
+	const float WindowSeconds = GetRateMeasurementSeconds(Step);
+	const FShooterAmmoPredictionObservation& Sample = AmmoPredictionLatest;
+
+	if (!bAmmoPredictionStepCommandSent)
+	{
+		if (!IsAmmoPredictionFixtureReady(Step, 0))
+		{
+			return;
+		}
+		bAmmoPredictionStepCommandSent = true;
+		AmmoPredictionHoldStartTime = GetWorld()->GetTimeSeconds();
+		ClientSubmitAmmoPredictionHoldFire(Step, WindowSeconds, 0.0f, -1.0f);
+		return;
+	}
+
+	const int32 ShotDelta = Weapon->GetAuthorityShotCountForAutomationTest() - AmmoPredictionAuthorityShotsBefore;
+	if (!bAmmoPredictionSettleStarted)
+	{
+		// 窗口结束的标志是拥有端松手并跨过一个完整本地节拍；之后仍要等一段结算，
+		// 让最后一发的裁决回到拥有端，Pending 才能收敛到 0。
+		if (ShotDelta < 2 || !Sample.bReleaseSettled)
+		{
+			return;
+		}
+		AmmoPredictionSettleStartTime = GetWorld()->GetTimeSeconds();
+		bAmmoPredictionSettleStarted = true;
+		return;
+	}
+
+	const float SettleElapsed = GetWorld()->GetTimeSeconds() - AmmoPredictionSettleStartTime;
+	if (!IsAmmoPredictionClientSampleFresh(Step) || SettleElapsed < SettleSeconds)
+	{
+		return;
+	}
+
+	const FShooterAmmoPredictionObservation& Before = AmmoPredictionBefore;
+	const int32 AcceptedDelta = AmmoPredictionAuthorityActivations - AmmoPredictionAuthorityActivationsBefore;
+	const int32 RejectDelta = AmmoPredictionAuthorityRejects - AmmoPredictionAuthorityRejectsBefore;
+	const int32 ClientActivationDelta = Sample.OwnerFireActivationCount - Before.OwnerFireActivationCount;
+	const int32 PredictedDelta = Sample.PredictedOwnerFeedbackCount - Before.PredictedOwnerFeedbackCount;
+	const int32 BackfillDelta = Sample.ConfirmedBackfillCount - Before.ConfirmedBackfillCount;
+	const int32 BackfillReqDelta = Sample.ConfirmedBackfillRequestCount - Before.ConfirmedBackfillRequestCount;
+
+	// 达成射速只在权威时钟上测量：第一发到最后一发之间的间隔数除以其跨度。
+	// 三条射速用同一个分母，因此"客户端请求射速"与"权威提交射速"的差就是这一层的损失。
+	const float MeasuredSeconds = AmmoPredictionLastAuthorityCommitTime - AmmoPredictionFirstAuthorityCommitTime;
+	const int32 Intervals = ShotDelta - 1;
+	const bool bRateMeasurable = MeasuredSeconds > 0.0f && Intervals >= 1;
+	const float CommitRps = bRateMeasurable ? static_cast<float>(Intervals) / MeasuredSeconds : -1.0f;
+	const float ClientActivationRps = bRateMeasurable
+		? static_cast<float>(ClientActivationDelta) / MeasuredSeconds
+		: -1.0f;
+	const float AcceptedRps = bRateMeasurable
+		? static_cast<float>(AcceptedDelta) / MeasuredSeconds
+		: -1.0f;
+	const float RateErrorPct = bRateMeasurable
+		? (CommitRps - ExpectedRps) / ExpectedRps * 100.0f
+		: -1.0f;
+
+	// 权威侧节拍统计：平均 / 最小 / 最大间隔与累计相位误差（同一口径，只是换成提交时刻）。
+	const float AuthMeanIntervalMs = AmmoPredictionRateIntervalSamples > 0
+		? AmmoPredictionRateIntervalSum / AmmoPredictionRateIntervalSamples * 1000.0f
+		: -1.0f;
+	const float AuthPhaseErrorMs = bRateMeasurable
+		? (MeasuredSeconds - static_cast<float>(Intervals) * GetRateRefireRate(Step)) * 1000.0f
+		: -1.0f;
+
+	const FString MatrixLine = FString::Printf(
+		TEXT("AMMO_PREDICTION_CADENCE_MATRIX Case=%s Step=%d RequestedFPS=%.0f ClientFPS=%.1f ")
+		TEXT("ClientFrameMeanMs=%.3f ClientFrameMaxMs=%.3f ConfiguredRps=%.3f ClientActRps=%.3f ")
+		TEXT("AcceptedRps=%.3f CommitRps=%.3f RateErrPct=%.2f Shots=%d ClientAct=%d Accepted=%d Rejects=%d ")
+		TEXT("LocalMeanMs=%.3f LocalMinMs=%.3f LocalMaxMs=%.3f LocalLagMeanMs=%.3f LocalLagMaxMs=%.3f ")
+		TEXT("LocalPhaseErrMs=%.3f LocalEndToActMeanMs=%.3f LocalSpanMs=%.1f ")
+		TEXT("AuthMeanMs=%.3f AuthMinMs=%.3f AuthMaxMs=%.3f AuthPhaseErrMs=%.3f ")
+		TEXT("Pending=%d PendingStart=%d Records=%d Predicted=%d Backfill=%d BackfillReq=%d"),
+		*CaseName,
+		Step,
+		RequestedMaxFPS,
+		Sample.ClientMaxFPS,
+		Sample.CadenceMeanFrameDeltaMs,
+		Sample.CadenceMaxFrameDeltaMs,
+		ExpectedRps,
+		ClientActivationRps,
+		AcceptedRps,
+		CommitRps,
+		RateErrorPct,
+		ShotDelta,
+		ClientActivationDelta,
+		AcceptedDelta,
+		RejectDelta,
+		Sample.CadenceMeanIntervalMs,
+		Sample.CadenceMinIntervalMs,
+		Sample.CadenceMaxIntervalMs,
+		Sample.CadenceMeanLagMs,
+		Sample.CadenceMaxLagMs,
+		Sample.CadencePhaseErrorMs,
+		Sample.CadenceMeanEndToActivationMs,
+		Sample.CadenceSpanMs,
+		AuthMeanIntervalMs,
+		AmmoPredictionRateMinInterval * 1000.0f,
+		AmmoPredictionRateMaxInterval * 1000.0f,
+		AuthPhaseErrorMs,
+		Sample.PendingShots,
+		Before.PendingShots,
+		Sample.UnresolvedShotRecordCount,
+		PredictedDelta,
+		BackfillDelta,
+		BackfillReqDelta);
+	UE_LOG(LogShootGame, Display, TEXT("%s"), *MatrixLine);
+
+	// 矩阵只断言结构性不变量，不断言射速：射速误差是本轮的观测对象，由报告行如实上报。
+	// 一次被接受的 Activation 必须恰好一发；窗口结束时预算与记录都必须收敛。
+	const bool bConverged = ShotDelta == AcceptedDelta && Intervals >= 1 && Sample.PendingShots == 0 &&
+		Sample.UnresolvedShotRecordCount == 0;
+	const FString Detail = FString::Printf(
+		TEXT("FPS=%.0f/%.1f Rps=%.3f/%.3f ClientActRps=%.3f ErrPct=%.2f Shots=%d ClientAct=%d ")
+		TEXT("Accepted=%d Rejects=%d PhaseErrMs=%.3f Pending=%d Records=%d"),
+		RequestedMaxFPS,
+		Sample.ClientMaxFPS,
+		CommitRps,
+		ExpectedRps,
+		ClientActivationRps,
+		RateErrorPct,
+		ShotDelta,
+		ClientActivationDelta,
+		AcceptedDelta,
+		RejectDelta,
+		Sample.CadencePhaseErrorMs,
+		Sample.PendingShots,
+		Sample.UnresolvedShotRecordCount);
+	ConcludeAmmoPredictionCase(*CaseName, bConverged, Detail);
+
+	// 最后一个矩阵行之后进入收口步骤：它负责解除客户端帧率限制并打出本模式的 DONE 标记。
+	StartAmmoPredictionStep(Step < StepCadenceMatrixLast ? Step + 1 : StepDone);
 }
 
 void AShooterNetworkTestCoordinator::RunAmmoPredictionUnpredictedAcceptedStep()
@@ -2058,6 +2374,14 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionServerPhase()
 		return;
 	}
 
+	// 本模式的用例总数：矩阵模式只跑矩阵行，且不跑"额外客户端也在观察"的整体契约。
+	const int32 ExpectedCaseCount = bFireCadenceMatrixMode ? CadenceMatrixRowCount : CaseCount;
+	const TCHAR* DoneMarker = bFireCadenceMatrixMode
+		? TEXT("AUTOMATION_TEST_FIRE_CADENCE_MATRIX_DONE")
+		: TEXT("AUTOMATION_TEST_AMMO_PREDICTION_DONE");
+	UE_LOG(LogShootGame, Verbose, TEXT("Ammo prediction mode ready: MatrixMode=%d ExpectedCases=%d DoneMarker=%s"),
+		bFireCadenceMatrixMode ? 1 : 0, ExpectedCaseCount, DoneMarker);
+
 	const int32 ExpectedLocal = GetNetMode() == NM_DedicatedServer ? 0 : 1;
 	if (!bAmmoPredictionSetup)
 	{
@@ -2147,8 +2471,9 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionServerPhase()
 
 		// 半自动用例的被试武器行：从正式武器表动态挑出，不硬编码行名。
 		// 没有半自动行时直接失败，不允许静默跳过半自动覆盖。
+		// 矩阵模式不跑半自动用例，因此不要求存在半自动行。
 		AmmoPredictionSemiAutoRowName = PickSemiAutoWeaponRowName();
-		if (AmmoPredictionSemiAutoRowName.IsNone())
+		if (AmmoPredictionSemiAutoRowName.IsNone() && !bFireCadenceMatrixMode)
 		{
 			FailTest(TEXT("Ammo prediction requires at least one production semi-auto weapon row"));
 			bAmmoPredictionFinished = true;
@@ -2212,6 +2537,13 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionServerPhase()
 		AccumulateNetRates(SamplingConnection, GetWorld()->GetTimeSeconds(), AmmoPredictionNetRateWindow);
 	}
 
+	// 矩阵模式在完成前置检查后直接进入矩阵步骤，不经过任何单发 / 半自动 / 换枪用例。
+	if (IsCadenceMatrixStep(AmmoPredictionServerStep))
+	{
+		RunAmmoPredictionCadenceMatrixStep(AmmoPredictionServerStep);
+		return;
+	}
+
 	switch (AmmoPredictionServerStep)
 	{
 	case StepSetup:
@@ -2221,7 +2553,7 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionServerPhase()
 			if (Ready.bValid && Ready.PendingShots == 0 && Ready.UnresolvedShotRecordCount == 0 &&
 				!Ready.bFireActive && !Ready.bReloadActive && !Ready.bReloading)
 			{
-				StartAmmoPredictionStep(StepSemiAutoSingleShot);
+				StartAmmoPredictionStep(bFireCadenceMatrixMode ? StepCadenceMatrixFirst : StepSemiAutoSingleShot);
 			}
 		}
 		return;
@@ -2266,29 +2598,37 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionServerPhase()
 		if (!bAmmoPredictionStepCommandSent)
 		{
 			bAmmoPredictionStepCommandSent = true;
-			for (TActorIterator<AShooterNetworkTestCoordinator> It(GetWorld()); It; ++It)
+			// 矩阵模式不跑"额外客户端也在观察"这条整体契约，直接收口并解除帧率限制。
+			if (!bFireCadenceMatrixMode)
 			{
-				if (It->GetOwner() != Driver)
+				for (TActorIterator<AShooterNetworkTestCoordinator> It(GetWorld()); It; ++It)
 				{
-					It->ClientVerifyAmmoPredictionObserver(AmmoPredictionSubjectPlayerId);
+					if (It->GetOwner() != Driver)
+					{
+						It->ClientVerifyAmmoPredictionObserver(AmmoPredictionSubjectPlayerId);
+					}
 				}
 			}
 			return;
 		}
-		for (TActorIterator<AShooterNetworkTestCoordinator> It(GetWorld()); It; ++It)
+		if (!bFireCadenceMatrixMode)
 		{
-			if (It->GetOwner() != Driver && !It->bAmmoPredictionObserverVerified)
+			for (TActorIterator<AShooterNetworkTestCoordinator> It(GetWorld()); It; ++It)
 			{
-				return;
+				if (It->GetOwner() != Driver && !It->bAmmoPredictionObserverVerified)
+				{
+					return;
+				}
 			}
 		}
 		ClearAmmoPredictionServerTag();
-		if (AmmoPredictionConvergedCount != CaseCount || AmmoPredictionMismatchCount != 0)
+		if (AmmoPredictionConvergedCount != ExpectedCaseCount || AmmoPredictionMismatchCount != 0)
 		{
 			FailTest(TEXT("Ammo prediction cases did not all converge; DONE is not a success marker"));
 		}
-		UE_LOG(LogShootGame, Display, TEXT("AUTOMATION_TEST_AMMO_PREDICTION_DONE Cases=%d Converged=%d Mismatches=%d"),
-			CaseCount, AmmoPredictionConvergedCount, AmmoPredictionMismatchCount);
+		// 两种模式各自打出唯一的成功标记：矩阵不是 Ammo Prediction 整体契约的成功标记。
+		UE_LOG(LogShootGame, Display, TEXT("%s Cases=%d Converged=%d Mismatches=%d"), DoneMarker,
+			ExpectedCaseCount, AmmoPredictionConvergedCount, AmmoPredictionMismatchCount);
 		for (TActorIterator<AShooterNetworkTestCoordinator> It(GetWorld()); It; ++It)
 		{
 			It->bAmmoPredictionFinished = true;
@@ -2355,6 +2695,10 @@ void AShooterNetworkTestCoordinator::ClientPrepareAmmoPredictionStep_Implementat
 }
 
 void AShooterNetworkTestCoordinator::ClientSetAmmoPredictionRefireRate_Implementation(int32 Step, float RefireRate)
+{
+}
+
+void AShooterNetworkTestCoordinator::ClientSetAmmoPredictionMaxFPS_Implementation(int32 Step, float MaxFPS)
 {
 }
 

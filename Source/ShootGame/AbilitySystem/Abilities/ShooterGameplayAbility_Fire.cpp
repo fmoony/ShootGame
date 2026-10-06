@@ -140,6 +140,10 @@ bool UShooterGameplayAbility_Fire::CanAuthorityStartFire(const FGameplayAbilityS
 	// 不会出现"接受 Ability 但最终没有开枪"的中间态。
 	if (!Weapon->CanCommitAuthorityShot())
 	{
+#if WITH_DEV_AUTOMATION_TESTS
+		// 取证：这一发被权威射速门控拒绝时，距离上一次权威提交差了多少。
+		LogAuthorityCadenceForTest(TEXT("FIRE_CADENCE_REFIRE_REJECT"), Weapon, 0);
+#endif
 		return RecordAuthorityRejectAndReturnFalse();
 	}
 
@@ -201,11 +205,17 @@ void UShooterGameplayAbility_Fire::ActivateAbility(
 
 		// 本地节拍推进与"是否预测表现"无关：请求已经发出，节流必须生效。
 		// 这也是"本地弹药预算为 0 时仍然每秒只请求 RefireRate 次"的唯一保证。
-		Weapon->AdvanceLocalFireCooldown();
+		// PredictionKey 只用于开发构建的节拍取证，把本地样本与这一发对齐。
+		Weapon->AdvanceLocalFireCooldown(EffectivePredictionKey);
 	}
 
 	if (bAuthoritySide)
 	{
+#if WITH_DEV_AUTOMATION_TESTS
+		// 取证：服务器真正处理这次 Activation 的时刻（与随后的提交在同一调用栈内）。
+		const int32 AcceptedKey = ActivationInfo.GetActivationPredictionKey().Current;
+		LogAuthorityCadenceForTest(TEXT("FIRE_CADENCE_SERVER_ACCEPT"), Weapon, AcceptedKey);
+#endif
 		// 权威路径只做一件事：提交且只提交这一发。
 		// CanActivateAbility 与 ActivateAbility 在同一次同步调用栈内完成，
 		// 中间不存在可以让上下文失效的窗口，因此校验只在 CanActivateAbility 做一次。
@@ -250,6 +260,15 @@ void UShooterGameplayAbility_Fire::EndAbility(
 	// 幂等清理：Reject、释放、切枪、换弹、死亡与断线都可能在同一次 Activation 上到达。
 	// Shot 记录刻意不在这里清理：它的职责是活过本地结束，等待这一发的裁决。
 	PruneShotRecords();
+
+#if WITH_DEV_AUTOMATION_TESTS
+	// 取证：本地实例的结束时刻。下一发样本用它算出"Ability End → 再激活"的间隔，
+	// 用来判定输入层在结束时是否额外损失了一帧。
+	if (ActorInfo && ActorInfo->IsLocallyControlledPlayer() && CachedWeapon.IsValid())
+	{
+		CachedWeapon->RecordLocalFireEndForAutomationTest();
+	}
+#endif
 
 	if (CachedWeapon.IsValid())
 	{
@@ -615,6 +634,22 @@ bool UShooterGameplayAbility_Fire::CanRetriggerInstancedAbility() const
 bool UShooterGameplayAbility_Fire::ServerRespectsRemoteAbilityCancellation() const
 {
 	return bServerRespectsRemoteAbilityCancellation;
+}
+
+void UShooterGameplayAbility_Fire::LogAuthorityCadenceForTest(const TCHAR* Marker, const AShooterWeapon* Weapon, int32 ActivationKey) const
+{
+	// 只读取证：服务器处理这次 Activation 的时刻，以及本武器权威射速时钟当时的状态。
+	// 接受路径与 Refire 拒绝路径共用同一格式，便于与拥有端本地样本逐发对齐。
+	const UWorld* World = GetWorld();
+	const float ServerTime = World ? World->GetTimeSeconds() : 0.0f;
+	const float LastShotTime = Weapon ? Weapon->GetTimeOfLastShotForAutomationTest() : 0.0f;
+	const float RefireRate = Weapon ? Weapon->GetRefireRate() : 0.0f;
+	const bool bHadPreviousShot = Weapon != nullptr && LastShotTime > 0.0f;
+	const float SinceLastShot = bHadPreviousShot ? ServerTime - LastShotTime : -1.0f;
+	const float Deficit = bHadPreviousShot ? FMath::Max(0.0f, RefireRate - SinceLastShot) : 0.0f;
+
+	UE_LOG(LogShootGame, Display, TEXT("%s Key=%d Server=%.6f SinceLastMs=%.3f DeficitMs=%.3f"),
+		Marker, ActivationKey, ServerTime, SinceLastShot * 1000.0f, Deficit * 1000.0f);
 }
 
 int32 UShooterGameplayAbility_Fire::GetUnresolvedShotRecordCountForTest() const

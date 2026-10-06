@@ -267,8 +267,14 @@ protected:
 	 * 以及全自动按住时"何时才值得再提交一次 GA_Fire 请求"的节流。
 	 * 它只由"本地提交了一次 Shot Attempt"推进一次（无论这次是否提前表现），
 	 * 不复制、不读权威 RefireTimer / TimeOfLastShot，与服务器权威射速是两套互不干涉的时钟。
+	 *
+	 * 推进方式按武器模式分裂，见 AdvanceLocalFireCooldown：
+	 * 半自动按本次实际击发重新锚定；全自动保持理论射速网格的相位，只在明显滞后时重新基线。
 	 */
-	float LocalFireCooldownEndTime = -1.0f;
+	float LocalFireCooldownEndTime = NoLocalCadenceTime;
+
+	/** "本租用尚未建立本地节拍"的哨兵时间：远早于任何世界时间，使就绪判据无需特例分支。 */
+	static constexpr float NoLocalCadenceTime = -1000000.0f;
 
 	/**
 	 * 权威射速比较容差。
@@ -444,8 +450,16 @@ public:
 	 * 唯一调用点是"本地提交了一次 Shot Attempt"处：无论这次是否提前表现（弹药预算不足时不表现），
 	 * 都必须推进，否则按住输入会变成每帧一次的请求洪水。
 	 * 与 Montage / Niagara / Sound 是否成功播放无关：表现通道的成败不得决定射击节拍。
+	 *
+	 * ActivationKey 只用于开发构建的节拍取证（把样本与这一发的 PredictionKey 对齐），
+	 * 不参与任何判定；监听主机与 Standalone 传 0。
+	 *
+	 * 推进语义按模式分裂：全自动是"理论射速网格"追踪器，按上一次目标时间 + RefireRate
+	 * 推进以保持相位，只在落后达到一个完整节拍时重新基线（防长卡顿后补发），
+	 * 且不会把下一发排到"本发实际时间 - 权威容差"之前；
+	 * 半自动是"单次击发后的冷却闸门"，始终以本次实际击发为锚点。
 	 */
-	void AdvanceLocalFireCooldown();
+	void AdvanceLocalFireCooldown(int32 ActivationKey = 0);
 
 	/** 本地预测节拍只读配置。 */
 	bool IsFullAuto() const { return bFullAuto; }
@@ -683,6 +697,9 @@ public:
 	/** 测试专用：设置本地开火节拍剩余时间；用于构造"本地节拍尚未就绪"的夹具。 */
 	void SetLocalFireCooldownRemainingForAutomationTest(float RemainingSeconds);
 
+	/** 测试专用：把本地节拍终点设成"当前时间 - LagSeconds"，用于构造节拍已经迟到的场景。 */
+	void SetLocalFireCooldownLagForAutomationTest(float LagSeconds);
+
 	/** 测试专用：写入权威射速时钟；RemainingSeconds > 0 表示仍在冷却。 */
 	void SetAuthorityRefireRemainingForAutomationTest(float RemainingSeconds);
 
@@ -715,6 +732,85 @@ public:
 	float GetMinimumOwnerFeedbackIntervalForAutomationTest() const { return MinimumOwnerFeedbackInterval; }
 	void ResetOwnerFeedbackTimingForAutomationTest();
 
+	// ---- 本地开火节拍取证：只在开发构建存在，只记录事实，不参与任何 Gameplay 判定 ----
+
+	/**
+	 * 一次本地 GA_Fire 激活的节拍取证样本。
+	 *
+	 * 它只回答一个问题——"这一发为什么发生在此时"：期望时间来自上一发推进出的本地节拍终点，
+	 * 实际时间是本帧真正进入 ActivateAbility 的时间，两者之差就是这一发被帧边界推迟的量。
+	 * 期望时间与上一发的实际时间之差（而不是与理论网格之差）正是"迟到是否被永久累计"的判据。
+	 */
+	struct FShooterLocalFireCadenceSample
+	{
+		/** 本租用内的本地激活序号，从 1 开始。 */
+		int32 Ordinal = 0;
+
+		/** 本次激活的 PredictionKey；监听主机与 Standalone 没有预测键时为 0。 */
+		int32 ActivationKey = 0;
+
+		/** 本次激活前的"下一次允许本地开火时间"；< 0 表示本租用尚未建立过本地节拍。 */
+		float ExpectedDeadline = -1.0f;
+
+		/** 本次激活真实发生的本地时间。 */
+		float ActivationTime = 0.0f;
+
+		/** ActivationTime - ExpectedDeadline：这一发被帧边界推迟的量；< 0 表示没有可比较的期望时间。 */
+		float LagSeconds = -1.0f;
+
+		/** 与上一次本地激活的时间差；< 0 表示本租用第一发。 */
+		float IntervalSeconds = -1.0f;
+
+		/** 本次激活所在帧的 DeltaSeconds。 */
+		float FrameDeltaSeconds = 0.0f;
+
+		/** 上一次本地 GA_Fire 结束 → 本次激活；< 0 表示本租用还没有结束过一发。 */
+		float EndToActivationSeconds = -1.0f;
+
+		/** 本次激活时本武器的 RefireRate。 */
+		float RefireRate = 0.0f;
+	};
+
+	/** 一段连续本地开火窗口的节拍统计；样本不足以计算某项时对应字段保持 -1。 */
+	struct FShooterLocalFireCadenceStats
+	{
+		int32 Samples = 0;
+		int32 IntervalSamples = 0;
+		float RefireRate = 0.0f;
+		float MeanIntervalSeconds = -1.0f;
+		float MinIntervalSeconds = -1.0f;
+		float MaxIntervalSeconds = -1.0f;
+		float MeanLagSeconds = -1.0f;
+		float MaxLagSeconds = -1.0f;
+		float MeanFrameDeltaSeconds = -1.0f;
+		float MaxFrameDeltaSeconds = -1.0f;
+		float MeanEndToActivationSeconds = -1.0f;
+		float SpanSeconds = -1.0f;
+
+		/**
+		 * 累计相位误差 = (最后一发 - 第一发) - 间隔样本数 * RefireRate。
+		 *
+		 * 它把"每一发的迟到是否被写进后续节拍"压缩成一个数：相位被保持时它在一个帧间隔内往返，
+		 * 相位被累计时它随发数单调增长。
+		 */
+		float CumulativePhaseErrorSeconds = -1.0f;
+	};
+
+	/** 清空本地节拍取证样本；夹具在每个测量步骤起点调用一次。 */
+	void ResetLocalFireCadenceTraceForAutomationTest();
+
+	/** 记录一次本地 GA_Fire 结束时间；由 GA_Fire 的本地结束路径调用，只服务 End → 再激活间隔。 */
+	void RecordLocalFireEndForAutomationTest();
+
+	/** 只读取证样本；超过上限后不再追加，Ordinal 仍然继续递增。 */
+	const TArray<FShooterLocalFireCadenceSample>& GetLocalFireCadenceSamplesForAutomationTest() const
+	{
+		return LocalFireCadenceSamples;
+	}
+
+	/** 只读取证统计。 */
+	FShooterLocalFireCadenceStats GetLocalFireCadenceStatsForAutomationTest() const;
+
 	/** 只读探针：最近一次权威提交的游戏时间；小于 0 表示本租用尚未开火。 */
 	float GetTimeOfLastShotForAutomationTest() const { return TimeOfLastShot; }
 	/** 只读探针：权威射速到期通知 Timer 是否活动。 */
@@ -724,7 +820,19 @@ public:
 	 *  不把 GA 的 PredictionKey 持久写进池化 Weapon。 */
 	void LogFireFeedbackMarker(const TCHAR* Marker, int32 ShotOrdinal, int32 Count) const;
 
+	/** 追加一条本地节拍取证样本；只由 AdvanceLocalFireCooldown 调用。 */
+	void RecordLocalFireCadenceSampleForAutomationTest(int32 ActivationKey, float ActivationTime, float FrameDeltaSeconds);
+
+	/** 权威提交节拍取证：提交时刻、与上一发的间隔、相对 RefireRate 的余量；只由 CommitSingleShot 调用。 */
+	void LogAuthorityCommitCadenceForAutomationTest(int32 ActivationKey, float PreviousShotTime, float CommitTime) const;
+
+	/** 取证样本上限：只限制内存占用，不改变任何行为。 */
+	static constexpr int32 MaxLocalFireCadenceSamples = 1024;
+
 private:
+	TArray<FShooterLocalFireCadenceSample> LocalFireCadenceSamples;
+	int32 LocalFireCadenceOrdinal = 0;
+	float LastLocalFireEndTime = -1.0f;
 	int32 PredictedOwnerFeedbackCount = 0;
 	int32 ConfirmedBackfillFeedbackCount = 0;
 	int32 OwnerAuthorityConfirmationCount = 0;
