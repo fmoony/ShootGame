@@ -310,8 +310,12 @@ struct FShooterAmmoPredictionObservation
 	bool bReloading = false;
 	UPROPERTY()
 	bool bLocalFireCooldownReady = false;
+	/** 拥有端当前武器是否全自动；半自动用例据此证明它没有跑在全自动武器上。 */
 	UPROPERTY()
-	bool bWeaponFullAuto = false;
+	bool bCurrentWeaponIsFullAuto = false;
+	/** 拥有端当前武器的 WeaponId；换枪后用它与夹具挑出的行比对，证明两端钉在同一把枪上。 */
+	UPROPERTY()
+	FName CurrentWeaponId;
 	UPROPERTY()
 	bool bValid = false;
 };
@@ -422,6 +426,10 @@ private:
 	void RunAmmoPredictionRateStep(int32 Step);
 	void RunAmmoPredictionUnpredictedAcceptedStep();
 	void RunAmmoPredictionUnpredictedRejectedStep();
+	/** 半自动用例的换枪步骤：动态挑出正式半自动行 → 服务器装备 → 等拥有端观察到位。 */
+	void RunAmmoPredictionSemiAutoSetupStep();
+	void RunAmmoPredictionSemiAutoWeaponSingleShotStep();
+	void RunAmmoPredictionSemiAutoHoldStep();
 	void ConcludeAmmoPredictionCase(const TCHAR* CaseName, bool bConverged, const FString& Detail);
 	bool IsAmmoPredictionClientSampleFresh(int32 Step) const;
 	bool IsAmmoPredictionFixtureReady(int32 Step, int32 ExpectedPending) const;
@@ -514,6 +522,10 @@ private:
 	int32 AmmoPredictionMaxPacedShots = 0;
 	/** Reload 用例的 Hold 时长，由武器自身 ReloadDuration 在 setup 时算出，保证松手早于换弹完成。 */
 	float AmmoPredictionReloadHoldSeconds = 0.0f;
+	/** 动态挑出的正式半自动武器行名；表里没有半自动行时夹具直接失败，不静默跳过用例。 */
+	FName AmmoPredictionSemiAutoRowName;
+	/** 半自动 Hold 用例的按住时长，换枪时按该武器 Row 的 RefireRate 算出。 */
+	float AmmoPredictionSemiAutoHoldSeconds = 0.0f;
 	/** 武器行配置的原始 RefireRate；每个步骤起点都会把两端恢复到这个值。 */
 	float AmmoPredictionOriginalRefireRate = 0.0f;
 	/** 本步骤两端必须一致的 RefireRate。 */

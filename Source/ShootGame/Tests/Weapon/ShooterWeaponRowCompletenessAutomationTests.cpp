@@ -14,6 +14,7 @@
 #include "Weapons/Data/ShooterWeaponConfigRow.h"
 #include "Weapons/Firing/ShooterWeaponFireBehavior.h"
 #include "Weapons/Data/ShooterWeaponTable.h"
+#include "ShootGame.h"
 
 namespace ShooterWeaponRowCompleteness
 {
@@ -142,6 +143,36 @@ bool FShooterWeaponRowCompletenessTest::RunTest(const FString& Parameters)
 	{
 		TestEqual(TEXT("Weapon table contains exactly the declared production rows"), WeaponTable->GetRowNames().Num(),
 			static_cast<int32>(UE_ARRAY_COUNT(ProductionRowNames)));
+
+		// 输入策略数据守卫：正式行里必须同时存在全自动与半自动武器。
+		// 半自动分支（OnInputTriggered + 一次按下沿只形成一次动作边界）只能由真实半自动武器取证，
+		// 网络夹具按本守卫的结论挑选被试武器；如果全部行都变成全自动，半自动 E2E 会失去验证对象。
+		int32 FullAutoRowCount = 0;
+		int32 SemiAutoRowCount = 0;
+		TArray<FString> SemiAutoRows;
+		for (const TCHAR* RowName : ProductionRowNames)
+		{
+			const FShooterWeaponConfigRow* Row = ShooterWeaponTable::FindWeaponRow(WeaponTable, FName(RowName));
+			if (!Row)
+			{
+				continue;
+			}
+			if (Row->bFullAuto)
+			{
+				++FullAutoRowCount;
+			}
+			else
+			{
+				++SemiAutoRowCount;
+				SemiAutoRows.Add(RowName);
+			}
+		}
+		TestTrue(TEXT("at least one production row is full auto"), FullAutoRowCount >= 1);
+		if (TestTrue(TEXT("at least one production row is semi auto"), SemiAutoRowCount >= 1))
+		{
+			UE_LOG(LogShootGame, Display, TEXT("WEAPON_SEMI_AUTO_ROWS Rows=%s FullAutoRows=%d SemiAutoRows=%d"),
+				*FString::Join(SemiAutoRows, TEXT(",")), FullAutoRowCount, SemiAutoRowCount);
+		}
 	}
 
 	return bSucceeded;

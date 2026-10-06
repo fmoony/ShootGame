@@ -22,6 +22,7 @@
 #include "GameFramework/PlayerController/ShooterPlayerController.h"
 #include "UI/ShooterBulletCounterUI.h"
 #include "Inventory/ShooterInventoryComponent.h"
+#include "Weapons/Data/ShooterWeaponTable.h"
 #include "Weapons/Subsystems/ShooterWeaponRuntimeSubsystem.h"
 #include "Weapons/ShooterWeapon.h"
 #include "ShootGame.h"
@@ -39,12 +40,14 @@
  * - State.Firing 与 Activation 同生命周期，因此夹具不再采样「客户端仍在开火」，
  *   改为断言「Hold 结束后没有活动 GA_Fire、没有未结清 Shot 记录、Pending 收敛到起点」。
  *
- * 10 个用例各自是一次独立的客户端 / 服务器往返，结论只由两侧可观测事实得出：
+ * 12 个用例各自是一次独立的客户端 / 服务器往返，结论只由两侧可观测事实得出：
  * 前 8 个覆盖单发 / 连发 / 接受 / 拒绝 / 松手 / 换弹 / 未预测接受 / 未预测拒绝，
- * 最后两个（Rate600Rpm / Rate900Rpm）让两端使用同一 RefireRate 测量达成射速与网络流量。
+ * 第 9-10 个（Rate600Rpm / Rate900Rpm）让两端使用同一 RefireRate 测量达成射速与网络流量，
+ * 最后两个（SemiAutoWeaponSingleShot / SemiAutoHold）把当前武器切到动态挑出的正式半自动行，
+ * 覆盖 OnInputTriggered 策略：一次按下沿一发，按住扳机绝不连发。
  *
- * 用例顺序说明：两个 Unpredicted 用例必须把拥有端预测预算人为抬到弹匣容量（预算 0），
- * 因此排在整组用例的最后，保证这份夹具注入不会进入后续用例的就绪门。
+ * 用例顺序说明：两个 Unpredicted 用例把拥有端预测预算人为抬到弹匣容量（预算 0），
+ * 之后的半自动用例会在步骤起点把预算复位，因此该夹具注入不会进入半自动用例的就绪门。
  */
 namespace ShooterAmmoPredictionNetworkTests
 {
@@ -64,10 +67,13 @@ namespace ShooterAmmoPredictionNetworkTests
 	constexpr int32 StepRate900Rpm = 8;
 	constexpr int32 StepUnpredictedAccepted = 9;
 	constexpr int32 StepUnpredictedRejected = 10;
-	constexpr int32 StepDone = 11;
+	constexpr int32 StepSemiAutoSetup = 11;
+	constexpr int32 StepSemiAutoWeaponSingleShot = 12;
+	constexpr int32 StepSemiAutoHold = 13;
+	constexpr int32 StepDone = 14;
 
 	/** DONE 行里的 Cases 值；与 ConcludeAmmoPredictionCase 的调用次数必须一致。 */
-	constexpr int32 CaseCount = 10;
+	constexpr int32 CaseCount = 12;
 
 	/** 全自动按住窗口：至少覆盖 FullAutoMinShots 个完整节拍，且不得打空弹匣。 */
 	constexpr float FullAutoHoldSeconds = 1.5f;
@@ -107,6 +113,18 @@ namespace ShooterAmmoPredictionNetworkTests
 	constexpr float RateToleranceRatio = 0.15f;
 	constexpr int32 RateMagazineSlack = 2;
 
+	/**
+	 * 半自动用例：换枪到动态挑出的正式半自动行之后，验证 OnInputTriggered 策略。
+	 *
+	 * - 一次按下 + 松开必须只产生一发；
+	 * - 按住扳机的时长至少覆盖 3 个完整节拍，且必须仍然只有一发。
+	 * 弹药起点被夹到至少 FixtureMinMagazine 发、备弹至少 1 发，
+	 * 使"弹药不足"不可能伪装成半自动结论。
+	 */
+	constexpr float SemiAutoHoldMinSeconds = 1.5f;
+	constexpr float SemiAutoHoldCadenceFactor = 3.0f;
+	constexpr int32 FixtureMinMagazine = 3;
+
 	/** 夹具把权威备弹固定为弹匣容量的该倍数，保证换弹一定能补满。 */
 	constexpr int32 FixtureReserveMultiplier = 2;
 
@@ -129,6 +147,32 @@ namespace ShooterAmmoPredictionNetworkTests
 	bool IsRateMeasurementStep(int32 Step)
 	{
 		return Step == StepRate600Rpm || Step == StepRate900Rpm;
+	}
+
+	/**
+	 * 从正式武器表动态挑一个半自动行：行名排序后取第一个 bFullAuto == false 的行。
+	 * 不硬编码任何行名，也不接受"没有半自动行"这种退化：返回 NAME_None 由调用方 FailTest。
+	 */
+	FName PickSemiAutoWeaponRowName()
+	{
+		const UDataTable* WeaponTable = ShooterWeaponTable::ResolveWeaponTable();
+		if (!WeaponTable)
+		{
+			return NAME_None;
+		}
+
+		TArray<FName> RowNames = WeaponTable->GetRowNames();
+		RowNames.Sort([](const FName& Left, const FName& Right) { return Left.LexicalLess(Right); });
+		for (const FName& RowName : RowNames)
+		{
+			const FShooterWeaponConfigRow* Row = ShooterWeaponTable::FindWeaponRow(WeaponTable, RowName);
+			if (Row && !Row->bFullAuto)
+			{
+				return RowName;
+			}
+		}
+
+		return NAME_None;
 	}
 
 	/** 射速测量用例的配置达成射速（发/秒）。 */
@@ -436,9 +480,12 @@ void AShooterNetworkTestCoordinator::SampleAmmoPredictionLocalState()
 		}
 	}
 
-	if (!AmmoPredictionWeapon.IsValid())
+	// 拥有端跟随生产 Equipment 的当前武器：换枪用例之后必须重新钉住新武器，
+	// 否则 HUD / 预算 / 表现观测都会停在旧武器上。
+	AShooterWeapon* CurrentWeapon = Subject->GetCurrentWeaponActor();
+	if (CurrentWeapon && CurrentWeapon->GetOwner() == Subject && CurrentWeapon != AmmoPredictionWeapon.Get())
 	{
-		AmmoPredictionWeapon = Subject->GetCurrentWeaponActor();
+		AmmoPredictionWeapon = CurrentWeapon;
 	}
 	AShooterWeapon* Weapon = AmmoPredictionWeapon.Get();
 	UShooterAbilitySystemComponent* ShooterAbilitySystemComponent = Cast<UShooterAbilitySystemComponent>(
@@ -467,7 +514,8 @@ void AShooterNetworkTestCoordinator::SampleAmmoPredictionLocalState()
 		Sample.ReserveAmmo = Weapon->GetReserveAmmo();
 		Sample.PendingShots = Weapon->GetPendingPredictedShots();
 		Sample.PredictedMagazineAmmo = Weapon->GetPredictedMagazineAmmo();
-		Sample.bWeaponFullAuto = Weapon->IsFullAuto();
+		Sample.bCurrentWeaponIsFullAuto = Weapon->IsFullAuto();
+		Sample.CurrentWeaponId = Weapon->GetWeaponId();
 		AShooterPlayerController* Controller = Cast<AShooterPlayerController>(Subject->GetController());
 		const UShooterBulletCounterUI* Widget = Controller ? Controller->GetBulletCounterUIForAutomationTest() : nullptr;
 		if (!Widget || Widget->GetOwningPlayerPawn() != Subject)
@@ -736,7 +784,7 @@ void AShooterNetworkTestCoordinator::ServerReportAmmoPredictionSample_Implementa
 		Observation.bFireActive ? 1 : 0,
 		Observation.bReloadActive ? 1 : 0,
 		Observation.bReloading ? 1 : 0,
-		Observation.bWeaponFullAuto ? 1 : 0,
+		Observation.bCurrentWeaponIsFullAuto ? 1 : 0,
 		Observation.bLocalFireCooldownReady ? 1 : 0);
 }
 
@@ -761,8 +809,10 @@ bool AShooterNetworkTestCoordinator::IsAmmoPredictionFixtureReady(int32 Step, in
 		!Sample.bReloading && Sample.bLocalFireCooldownReady;
 	// 拥有端必须已经用本步骤同一个 RefireRate 就位：射速用例据此排除"两端节拍不一致"的假收敛。
 	const bool bRateMatched = FMath::IsNearlyEqual(Sample.RefireRate, AmmoPredictionStepRefireRate, 0.0001f);
+	// 两端必须钉在同一把武器上：换枪步骤之后这条判据防止"服务器已换枪、拥有端还停在旧枪"。
+	const bool bWeaponMatched = Weapon && Sample.CurrentWeaponId == Weapon->GetWeaponId();
 	// 权威射速时钟也必须已就绪：接受 / 拒绝用例都要让被观察的那一次裁决只有一个原因。
-	return bClientReady && bRateMatched && Weapon && Weapon->CanCommitAuthorityShot();
+	return bClientReady && bRateMatched && bWeaponMatched && Weapon && Weapon->CanCommitAuthorityShot();
 }
 
 int32 AShooterNetworkTestCoordinator::GetAmmoPredictionAuthorityRejectProbe() const
@@ -841,7 +891,8 @@ void AShooterNetworkTestCoordinator::StartAmmoPredictionStep(int32 Step)
 	const int32 RateRounds = IsRateMeasurementStep(Step)
 		? FMath::CeilToInt(GetRateExpectedRps(Step) * RateMeasurementSeconds) + RateMagazineSlack
 		: 0;
-	const int32 MagazineStart = FMath::Max(Weapon->GetMagazineSize(), RateRounds);
+	// 弹药下限：弹匣至少 FixtureMinMagazine 发，弹药不足不得伪装成任何用例的结论。
+	const int32 MagazineStart = FMath::Max(FMath::Max(Weapon->GetMagazineSize(), RateRounds), FixtureMinMagazine);
 	const int32 ReserveStart = FMath::Max(MagazineStart, 1) * FixtureReserveMultiplier;
 	if (!SetReloadTestAmmo(Weapon, MagazineStart, ReserveStart))
 	{
@@ -980,7 +1031,7 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionSemiAutoSingleShotStep()
 	const FString Detail = FString::Printf(
 		TEXT("FullAuto=%d Shots=%d Accepted=%d ClientAct=%d Keys=%d Verdicts=%d Predicted=%d Backfill=%d ")
 		TEXT("Pending=%d MagDelta=%d Records=%d LastKey=%d Committed=%d RefireRate=%.3f"),
-		Sample.bWeaponFullAuto ? 1 : 0,
+		Sample.bCurrentWeaponIsFullAuto ? 1 : 0,
 		ShotDelta,
 		AcceptedDelta,
 		ClientActivationDelta,
@@ -994,15 +1045,11 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionSemiAutoSingleShotStep()
 		Sample.LastResolvedShotKey,
 		Sample.bLastResolvedShotCommitted ? 1 : 0,
 		Weapon->GetRefireRate());
-	// 声明缺口：本夹具固定使用被试角色的当前武器（正式 Rifle，全自动）。
-	// 因此本用例证明的是「一次按下沿 → 一次 Activation → 一发 Shot」，
-	// 不覆盖半自动 OnInputTriggered 策略分支；该分支由 Ability 层单元测试单独覆盖。
-	if (Sample.bWeaponFullAuto)
-	{
-		UE_LOG(LogShootGame, Display,
-			TEXT("AMMO_PREDICTION_EVIDENCE_GAP Case=SemiAutoSingleShot Reason=WeaponIsFullAuto ")
-			TEXT("SemiAutoActivationPolicyNotExercisedHere=1"));
-	}
+	// 前提说明：本用例跑在被试角色的起始武器（正式 Rifle，全自动）上，
+	// 只证明「一次按下沿 → 一次 Activation → 一发 Shot」这一形状；
+	// Detail 里的 FullAuto=1 就是这一前提的显式记录。
+	// 半自动 OnInputTriggered 策略证据由后面的 SemiAutoWeaponSingleShot / SemiAutoHold 承担：
+	// 那两个用例会把当前武器切到动态挑出的正式半自动行，并由拥有端自述武器身份。
 	ConcludeAmmoPredictionCase(TEXT("SemiAutoSingleShot"), bConverged, Detail);
 	StartAmmoPredictionStep(StepFullAutoHold);
 }
@@ -1726,6 +1773,248 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionUnpredictedRejectedStep()
 		Sample.LastResolvedShotKey,
 		Sample.bLastResolvedShotRejectedByEngine ? 1 : 0);
 	ConcludeAmmoPredictionCase(TEXT("UnpredictedRejected"), bConverged, Detail);
+	StartAmmoPredictionStep(StepSemiAutoSetup);
+}
+
+void AShooterNetworkTestCoordinator::RunAmmoPredictionSemiAutoSetupStep()
+{
+	using namespace ShooterAmmoPredictionNetworkTests;
+
+	AShooterCharacter* Subject = AmmoPredictionSubject.Get();
+	UShooterWeaponRuntimeSubsystem* Runtime = GetWorld()->GetSubsystem<UShooterWeaponRuntimeSubsystem>();
+	UShooterInventoryComponent* Inventory = Subject ? Subject->GetInventoryComponent() : nullptr;
+	UShooterEquipmentComponent* Equipment = Subject ? Subject->GetEquipmentComponent() : nullptr;
+	if (!Subject || !Runtime || !Inventory || !Equipment)
+	{
+		FailTest(TEXT("Ammo prediction semi-auto switch lost the subject or its equipment path"));
+		bAmmoPredictionFinished = true;
+		return;
+	}
+
+	if (!bAmmoPredictionStepCommandSent)
+	{
+		bAmmoPredictionStepCommandSent = true;
+
+		// 与 Rifle 夹具同一条生产路径：先在背包里找，找不到再租用并入背包，最后装备。
+		AShooterWeapon* SemiAutoWeapon = Inventory->FindWeaponByWeaponId(AmmoPredictionSemiAutoRowName);
+		if (!SemiAutoWeapon)
+		{
+			SemiAutoWeapon = Runtime->AcquireWeapon(AmmoPredictionSemiAutoRowName, Subject, Subject);
+			if (SemiAutoWeapon && Inventory->AddWeapon(SemiAutoWeapon) != EShooterInventoryAddResult::Added)
+			{
+				Runtime->ReleaseWeapon(SemiAutoWeapon);
+				SemiAutoWeapon = nullptr;
+			}
+		}
+		if (SemiAutoWeapon)
+		{
+			Equipment->EquipWeapon(SemiAutoWeapon);
+		}
+
+		if (!SemiAutoWeapon || Subject->GetCurrentWeaponActor() != SemiAutoWeapon ||
+			SemiAutoWeapon->GetOwner() != Subject || SemiAutoWeapon->IsFullAuto() ||
+			SemiAutoWeapon->GetWeaponId() != AmmoPredictionSemiAutoRowName)
+		{
+			FailTest(FString::Printf(
+				TEXT("Ammo prediction could not equip the semi-auto weapon: Row=%s Weapon=%s FullAuto=%d Id=%s"),
+				*AmmoPredictionSemiAutoRowName.ToString(),
+				*GetNameSafe(SemiAutoWeapon),
+				SemiAutoWeapon && SemiAutoWeapon->IsFullAuto() ? 1 : 0,
+				SemiAutoWeapon ? *SemiAutoWeapon->GetWeaponId().ToString() : TEXT("None")));
+			bAmmoPredictionFinished = true;
+			return;
+		}
+
+		// 引脚切到新武器，并让"原始射速"跟随新武器行配置：后续步骤起点都会恢复到它。
+		AmmoPredictionWeapon = SemiAutoWeapon;
+		AmmoPredictionOriginalRefireRate = SemiAutoWeapon->GetRefireRate();
+		AmmoPredictionStepRefireRate = AmmoPredictionOriginalRefireRate;
+		AmmoPredictionSemiAutoHoldSeconds = FMath::Max(SemiAutoHoldMinSeconds,
+			AmmoPredictionOriginalRefireRate * SemiAutoHoldCadenceFactor);
+
+		// 弹药起点显式抬高：弹匣至少 FixtureMinMagazine 发、备弹至少 1 发，
+		// 使"弹药不足"不可能伪装成半自动结论。
+		const int32 MagazineStart = FMath::Max(SemiAutoWeapon->GetMagazineSize(), FixtureMinMagazine);
+		const int32 ReserveStart = FMath::Max(MagazineStart, 1);
+		if (!SetReloadTestAmmo(SemiAutoWeapon, MagazineStart, ReserveStart))
+		{
+			FailTest(TEXT("Ammo prediction could not seed the semi-auto weapon ammo"));
+			bAmmoPredictionFinished = true;
+			return;
+		}
+
+		// 换枪会复制新武器的行配置；这里再下发一次，让"两端同一 RefireRate"在换枪后仍然成立。
+		ClientSetAmmoPredictionRefireRate(StepSemiAutoSetup, AmmoPredictionStepRefireRate);
+		const FString SwitchLine = FString::Printf(
+			TEXT("AMMO_PREDICTION_SEMI_AUTO_SWITCH Step=%d Row=%s Weapon=%s FullAuto=%d Size=%d RefireRate=%.3f ")
+			TEXT("Mag=%d Reserve=%d Hold=%.2f"),
+			StepSemiAutoSetup,
+			*AmmoPredictionSemiAutoRowName.ToString(),
+			*GetNameSafe(SemiAutoWeapon),
+			SemiAutoWeapon->IsFullAuto() ? 1 : 0,
+			SemiAutoWeapon->GetMagazineSize(),
+			AmmoPredictionOriginalRefireRate,
+			SemiAutoWeapon->GetBulletCount(),
+			SemiAutoWeapon->GetReserveAmmo(),
+			AmmoPredictionSemiAutoHoldSeconds);
+		UE_LOG(LogShootGame, Display, TEXT("%s"), *SwitchLine);
+		return;
+	}
+
+	// 等拥有端真的观察到「当前武器 == 挑出的行」并且它的配置是非全自动。
+	const FShooterAmmoPredictionObservation& Sample = AmmoPredictionLatest;
+	if (!IsAmmoPredictionClientSampleFresh(StepSemiAutoSetup) || !Sample.bValid ||
+		Sample.CurrentWeaponId != AmmoPredictionSemiAutoRowName || Sample.bCurrentWeaponIsFullAuto)
+	{
+		return;
+	}
+
+	const FString ReadyLine = FString::Printf(
+		TEXT("AMMO_PREDICTION_SEMI_AUTO_READY Row=%s OwnerWeapon=%s OwnerFullAuto=%d OwnerMag=%d OwnerReserve=%d"),
+		*Sample.CurrentWeaponId.ToString(),
+		*GetNameSafe(Sample.Weapon),
+		Sample.bCurrentWeaponIsFullAuto ? 1 : 0,
+		Sample.MagazineAmmo,
+		Sample.ReserveAmmo);
+	UE_LOG(LogShootGame, Display, TEXT("%s"), *ReadyLine);
+	StartAmmoPredictionStep(StepSemiAutoWeaponSingleShot);
+}
+
+void AShooterNetworkTestCoordinator::RunAmmoPredictionSemiAutoWeaponSingleShotStep()
+{
+	using namespace ShooterAmmoPredictionNetworkTests;
+
+	AShooterWeapon* Weapon = AmmoPredictionWeapon.Get();
+	if (!Weapon ||
+		!AdvanceAmmoPredictionSingleFireStep(StepSemiAutoWeaponSingleShot, /*bExpectAuthorityReject*/ false))
+	{
+		return;
+	}
+
+	const FShooterAmmoPredictionObservation& Sample = AmmoPredictionLatest;
+	const int32 ShotDelta = Weapon->GetAuthorityShotCountForAutomationTest() - AmmoPredictionAuthorityShotsBefore;
+	const int32 AcceptedDelta = AmmoPredictionAuthorityActivations - AmmoPredictionAuthorityActivationsBefore;
+	const int32 RejectDelta = AmmoPredictionAuthorityRejects - AmmoPredictionAuthorityRejectsBefore;
+	const int32 ClientActivationDelta = Sample.OwnerFireActivationCount - AmmoPredictionBefore.OwnerFireActivationCount;
+	const int32 PredictedDelta = Sample.PredictedOwnerFeedbackCount - AmmoPredictionBefore.PredictedOwnerFeedbackCount;
+	const int32 BackfillDelta = Sample.ConfirmedBackfillCount - AmmoPredictionBefore.ConfirmedBackfillCount;
+	const int32 PendingDelta = Sample.PendingShots - AmmoPredictionBefore.PendingShots;
+	const int32 VerdictDelta = Sample.ShotVerdictCount - AmmoPredictionBefore.ShotVerdictCount;
+	const int32 MagazineDelta = Weapon->GetBulletCount() - AmmoPredictionMagazineBefore;
+
+	// 拥有端自述的武器身份：证据必须显示它跑在挑出的半自动行上，不能被读成全自动结果。
+	const bool bOwnerFullAuto = Sample.bCurrentWeaponIsFullAuto;
+	const bool bSemiAutoObserved = !bOwnerFullAuto && Sample.CurrentWeaponId == AmmoPredictionSemiAutoRowName;
+	const bool bConverged = bSemiAutoObserved && ShotDelta == 1 && AcceptedDelta == 1 && RejectDelta == 0 &&
+		ClientActivationDelta == 1 && Sample.DistinctPredictionKeyCount == 1 && VerdictDelta == 1 &&
+		PredictedDelta == 1 && BackfillDelta == 0 && PendingDelta == 0 && MagazineDelta == -1 &&
+		Sample.UnresolvedShotRecordCount == 0 && !Sample.bFireActive && !Sample.bReloadActive &&
+		Sample.LastResolvedShotKey == Sample.FirstPredictionKey && Sample.bLastResolvedShotCommitted;
+	const FString Detail = FString::Printf(
+		TEXT("Row=%s OwnerFullAuto=%d Shots=%d Accepted=%d Rejects=%d ClientAct=%d Keys=%d Verdicts=%d ")
+		TEXT("Predicted=%d Backfill=%d Pending=%d MagDelta=%d Records=%d LastKey=%d Committed=%d"),
+		*Sample.CurrentWeaponId.ToString(),
+		bOwnerFullAuto ? 1 : 0,
+		ShotDelta,
+		AcceptedDelta,
+		RejectDelta,
+		ClientActivationDelta,
+		Sample.DistinctPredictionKeyCount,
+		VerdictDelta,
+		PredictedDelta,
+		BackfillDelta,
+		PendingDelta,
+		MagazineDelta,
+		Sample.UnresolvedShotRecordCount,
+		Sample.LastResolvedShotKey,
+		Sample.bLastResolvedShotCommitted ? 1 : 0);
+	ConcludeAmmoPredictionCase(TEXT("SemiAutoWeaponSingleShot"), bConverged, Detail);
+	StartAmmoPredictionStep(StepSemiAutoHold);
+}
+
+void AShooterNetworkTestCoordinator::RunAmmoPredictionSemiAutoHoldStep()
+{
+	using namespace ShooterAmmoPredictionNetworkTests;
+
+	AShooterWeapon* Weapon = AmmoPredictionWeapon.Get();
+	if (!Weapon)
+	{
+		return;
+	}
+
+	const FShooterAmmoPredictionObservation& Sample = AmmoPredictionLatest;
+	if (!bAmmoPredictionStepCommandSent)
+	{
+		if (!IsAmmoPredictionFixtureReady(StepSemiAutoHold, 0))
+		{
+			return;
+		}
+		bAmmoPredictionStepCommandSent = true;
+		// 半自动按住：OnInputTriggered 下"按住"不产生第二次动作边界，
+		// 因此整段窗口必须恰好一发，这就是半自动专属的不变量。
+		ClientSubmitAmmoPredictionHoldFire(StepSemiAutoHold, AmmoPredictionSemiAutoHoldSeconds, 0.0f, -1.0f);
+		return;
+	}
+
+	const int32 ShotDelta = Weapon->GetAuthorityShotCountForAutomationTest() - AmmoPredictionAuthorityShotsBefore;
+	if (!bAmmoPredictionSettleStarted)
+	{
+		// 必须先看到窗口真的结束（松手且跨过一个完整节拍），
+		// 否则"没有连发"只说明第二次还没轮到，而不是半自动语义成立。
+		if (ShotDelta < 1 || !Sample.bReleaseSettled)
+		{
+			return;
+		}
+		AmmoPredictionSettleStartTime = GetWorld()->GetTimeSeconds();
+		bAmmoPredictionSettleStarted = true;
+		return;
+	}
+	if (!IsAmmoPredictionClientSampleFresh(StepSemiAutoHold) ||
+		GetWorld()->GetTimeSeconds() - AmmoPredictionSettleStartTime < SettleSeconds)
+	{
+		return;
+	}
+
+	const int32 AcceptedDelta = AmmoPredictionAuthorityActivations - AmmoPredictionAuthorityActivationsBefore;
+	const int32 RejectDelta = AmmoPredictionAuthorityRejects - AmmoPredictionAuthorityRejectsBefore;
+	const int32 ClientActivationDelta = Sample.OwnerFireActivationCount - AmmoPredictionBefore.OwnerFireActivationCount;
+	const int32 PredictedDelta = Sample.PredictedOwnerFeedbackCount - AmmoPredictionBefore.PredictedOwnerFeedbackCount;
+	const int32 BackfillDelta = Sample.ConfirmedBackfillCount - AmmoPredictionBefore.ConfirmedBackfillCount;
+	const int32 PendingDelta = Sample.PendingShots - AmmoPredictionBefore.PendingShots;
+	const int32 VerdictDelta = Sample.ShotVerdictCount - AmmoPredictionBefore.ShotVerdictCount;
+	const int32 MagazineDelta = Weapon->GetBulletCount() - AmmoPredictionMagazineBefore;
+
+	// 半自动专属不变量：按住扳机绝不连发——整段窗口恰好一发、零拒绝、预算回到起点。
+	const bool bOwnerFullAuto = Sample.bCurrentWeaponIsFullAuto;
+	const bool bSemiAutoObserved = !bOwnerFullAuto && Sample.CurrentWeaponId == AmmoPredictionSemiAutoRowName;
+	const bool bConverged = bSemiAutoObserved && ShotDelta == 1 && AcceptedDelta == 1 && RejectDelta == 0 &&
+		ClientActivationDelta == 1 && Sample.DistinctPredictionKeyCount == 1 && VerdictDelta == 1 &&
+		PredictedDelta == 1 && BackfillDelta == 0 && PendingDelta == 0 && MagazineDelta == -1 &&
+		Sample.bReleaseSettled && Sample.UnresolvedShotRecordCount == 0 && !Sample.bFireActive &&
+		Sample.LastResolvedShotKey == Sample.FirstPredictionKey && Sample.bLastResolvedShotCommitted;
+	const FString Detail = FString::Printf(
+		TEXT("Row=%s OwnerFullAuto=%d HoldSeconds=%.2f RefireRate=%.3f Shots=%d Accepted=%d Rejects=%d ")
+		TEXT("ClientAct=%d Keys=%d Verdicts=%d Predicted=%d Backfill=%d Pending=%d MagDelta=%d Released=%d ")
+		TEXT("Records=%d LastKey=%d Committed=%d"),
+		*Sample.CurrentWeaponId.ToString(),
+		bOwnerFullAuto ? 1 : 0,
+		AmmoPredictionSemiAutoHoldSeconds,
+		Weapon->GetRefireRate(),
+		ShotDelta,
+		AcceptedDelta,
+		RejectDelta,
+		ClientActivationDelta,
+		Sample.DistinctPredictionKeyCount,
+		VerdictDelta,
+		PredictedDelta,
+		BackfillDelta,
+		PendingDelta,
+		MagazineDelta,
+		Sample.bReleaseSettled ? 1 : 0,
+		Sample.UnresolvedShotRecordCount,
+		Sample.LastResolvedShotKey,
+		Sample.bLastResolvedShotCommitted ? 1 : 0);
+	ConcludeAmmoPredictionCase(TEXT("SemiAutoHold"), bConverged, Detail);
 	StartAmmoPredictionStep(StepDone);
 }
 
@@ -1856,6 +2145,18 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionServerPhase()
 			ReloadHoldMinExtraSeconds, ReloadHoldMaxExtraSeconds);
 		const float ReloadHoldSeconds = ReloadTriggerSeconds + ReloadExtra;
 
+		// 半自动用例的被试武器行：从正式武器表动态挑出，不硬编码行名。
+		// 没有半自动行时直接失败，不允许静默跳过半自动覆盖。
+		AmmoPredictionSemiAutoRowName = PickSemiAutoWeaponRowName();
+		if (AmmoPredictionSemiAutoRowName.IsNone())
+		{
+			FailTest(TEXT("Ammo prediction requires at least one production semi-auto weapon row"));
+			bAmmoPredictionFinished = true;
+			return;
+		}
+		const FString SemiAutoRowName = AmmoPredictionSemiAutoRowName.ToString();
+		UE_LOG(LogShootGame, Display, TEXT("AMMO_PREDICTION_SEMI_AUTO_PICK Row=%s"), *SemiAutoRowName);
+
 		// 武器行配置的原始射速：射速用例结束后每个步骤起点都会把两端恢复到它。
 		AmmoPredictionOriginalRefireRate = Weapon->GetRefireRate();
 		AmmoPredictionSubject = Subject;
@@ -1951,6 +2252,15 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionServerPhase()
 		return;
 	case StepUnpredictedRejected:
 		RunAmmoPredictionUnpredictedRejectedStep();
+		return;
+	case StepSemiAutoSetup:
+		RunAmmoPredictionSemiAutoSetupStep();
+		return;
+	case StepSemiAutoWeaponSingleShot:
+		RunAmmoPredictionSemiAutoWeaponSingleShotStep();
+		return;
+	case StepSemiAutoHold:
+		RunAmmoPredictionSemiAutoHoldStep();
 		return;
 	case StepDone:
 		if (!bAmmoPredictionStepCommandSent)
