@@ -230,6 +230,19 @@ struct FShooterAmmoPredictionObservation
 	int32 ShotVerdictCount = INDEX_NONE;
 	UPROPERTY()
 	int32 OwnerFireActivationCount = 0;
+	/**
+	 * 拥有端本步骤窗口内自己的 Fire Activation 采样：计数与首末时间来自同一个来源。
+	 *
+	 * 请求射速必须只用这三个字段算：(数量 - 1) / (末 - 首)。
+	 * 计数量与时间跨度必须同域——用累计计数配服务器时间跨度会把 N 与 N-1
+	 * 以及两个时钟混在一条公式里。
+	 */
+	UPROPERTY()
+	int32 OwnerWindowActivationCount = 0;
+	UPROPERTY()
+	float FirstOwnerActivationTime = -1.0f;
+	UPROPERTY()
+	float LastOwnerActivationTime = -1.0f;
 	UPROPERTY()
 	int32 OwnerFireRejectCount = 0;
 	UPROPERTY()
@@ -546,6 +559,13 @@ private:
 	TSet<int32> AmmoPredictionAuthorityActivationKeys;
 	int32 AmmoPredictionFirstPredictionKey = 0;
 	int32 AmmoPredictionOwnerFireActivations = 0;
+	/**
+	 * 拥有端本步骤窗口自己的激活采样：计数与首末时间在同一次激活回调里更新。
+	 * 请求射速只由它们计算，不与服务器时间跨度或累计计数混用。
+	 */
+	int32 AmmoPredictionOwnerWindowActivations = 0;
+	float AmmoPredictionFirstOwnerActivationTime = -1.0f;
+	float AmmoPredictionLastOwnerActivationTime = -1.0f;
 	int32 AmmoPredictionOwnerFireRejects = 0;
 	int32 AmmoPredictionLastPredictionKey = 0;
 	int32 AmmoPredictionAuthorityActivations = 0;
@@ -583,6 +603,11 @@ private:
 	float AmmoPredictionRateMaxInterval = -1.0f;
 	float AmmoPredictionRateIntervalSum = 0.0f;
 	int32 AmmoPredictionRateIntervalSamples = 0;
+	/**
+	 * 本步骤窗口内的权威提交采样数：每一次被接受的 Activation 都对应一次真实提交，
+	 * 权威提交射速必须用它自己的计数与自己的时间跨度计算。
+	 */
+	int32 AmmoPredictionAuthorityCommitSamples = 0;
 	/** 射速窗口内第一次与最后一次权威提交时间；累计相位误差由它们与间隔数算出。 */
 	float AmmoPredictionFirstAuthorityCommitTime = -1.0f;
 	float AmmoPredictionLastAuthorityCommitTime = -1.0f;

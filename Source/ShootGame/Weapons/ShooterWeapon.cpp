@@ -1596,7 +1596,10 @@ void AShooterWeapon::RecordLocalFireCadenceSampleForAutomationTest(int32 Activat
 {
 	// 期望时间必须在这一发推进之前读取：它就是上一发写下的"下一次允许本地开火时间"。
 	const float ExpectedDeadline = LocalFireCooldownEndTime;
-	const FShooterLocalFireCadenceSample* Previous = LocalFireCadenceSamples.Num() > 0 ? &LocalFireCadenceSamples.Last() : nullptr;
+	// 上一条样本只能按值取：Add 可能触发 TArray 扩容，
+	// 任何跨 Add 保存的元素指针 / 引用都会在扩容后悬空（旧实现正是这样读取的）。
+	const bool bHasPreviousSample = LocalFireCadenceSamples.Num() > 0;
+	const float PreviousActivationTime = bHasPreviousSample ? LocalFireCadenceSamples.Last().ActivationTime : 0.0f;
 
 	++LocalFireCadenceOrdinal;
 	if (LocalFireCadenceSamples.Num() >= MaxLocalFireCadenceSamples)
@@ -1611,7 +1614,7 @@ void AShooterWeapon::RecordLocalFireCadenceSampleForAutomationTest(int32 Activat
 	Sample.ExpectedDeadline = ExpectedDeadline;
 	Sample.ActivationTime = ActivationTime;
 	Sample.LagSeconds = ExpectedDeadline >= 0.0f ? ActivationTime - ExpectedDeadline : -1.0f;
-	Sample.IntervalSeconds = Previous ? ActivationTime - Previous->ActivationTime : -1.0f;
+	Sample.IntervalSeconds = bHasPreviousSample ? ActivationTime - PreviousActivationTime : -1.0f;
 	Sample.FrameDeltaSeconds = FrameDeltaSeconds;
 	Sample.EndToActivationSeconds = LastLocalFireEndTime >= 0.0f ? ActivationTime - LastLocalFireEndTime : -1.0f;
 	Sample.RefireRate = RefireRate;

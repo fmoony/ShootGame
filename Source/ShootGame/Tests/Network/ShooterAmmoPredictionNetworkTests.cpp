@@ -165,6 +165,23 @@ namespace ShooterAmmoPredictionNetworkTests
 	}
 
 	/**
+	 * 事件射速的统一口径：N 次事件之间只有 N-1 个间隔，因此射速 = (N - 1) / (末 - 首)。
+	 *
+	 * 计数与时间跨度必须来自同一个域：把拥有端计数配服务器时间跨度，
+	 * 或直接用 N / 跨度，都会同时引入 N 与 N-1 的偏差和跨域误差。
+	 * 样本不足两次或时间跨度非正时返回 -1，并要求调用方显式声明"样本不足"，
+	 * 不构造任何看起来合理的假射速。
+	 */
+	float ComputeEventRps(int32 SampleCount, float FirstTime, float LastTime)
+	{
+		if (SampleCount < 2 || FirstTime < 0.0f || LastTime <= FirstTime)
+		{
+			return -1.0f;
+		}
+		return static_cast<float>(SampleCount - 1) / (LastTime - FirstTime);
+	}
+
+	/**
 	 * 半自动用例：换枪到动态挑出的正式半自动行之后，验证 OnInputTriggered 策略。
 	 *
 	 * - 一次按下 + 松开必须只产生一发；
@@ -411,6 +428,8 @@ void AShooterNetworkTestCoordinator::HandleAmmoPredictionFireActivated(UGameplay
 	{
 		// 权威端记一次「被接受的 Activation」：它必须与一次 CommitSingleShot 严格一一对应。
 		++AmmoPredictionAuthorityActivations;
+		// 权威提交采样：计数与首末提交时间同域，射速只由它们计算。
+		++AmmoPredictionAuthorityCommitSamples;
 		const float ActivationTime = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0f;
 		// 服务器真正写下权威射速时钟的时刻就是本帧：本回调由 UGameplayAbility::PreActivate
 		// 里的 NotifyAbilityActivated 广播（Engine/.../GameplayAbility.cpp），因此它**早于**
@@ -455,6 +474,15 @@ void AShooterNetworkTestCoordinator::HandleAmmoPredictionFireActivated(UGameplay
 	}
 
 	++AmmoPredictionOwnerFireActivations;
+	// 拥有端自己的激活采样：计数与首末时间在同一次回调里更新，
+	// 请求射速因此只依赖客户端自己的时钟，不与服务器时间跨度混用。
+	const float OwnerActivationTime = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0f;
+	++AmmoPredictionOwnerWindowActivations;
+	if (AmmoPredictionFirstOwnerActivationTime < 0.0f)
+	{
+		AmmoPredictionFirstOwnerActivationTime = OwnerActivationTime;
+	}
+	AmmoPredictionLastOwnerActivationTime = OwnerActivationTime;
 	AmmoPredictionLastPredictionKey = Key;
 	if (Key > 0)
 	{
@@ -630,6 +658,9 @@ void AShooterNetworkTestCoordinator::SampleAmmoPredictionLocalState()
 		Sample.ConfirmedBackfillCount = Weapon->GetConfirmedBackfillCountForAutomationTest();
 		Sample.ShotVerdictCount = Weapon->GetShotVerdictReceivedCountForTest();
 		Sample.OwnerFireActivationCount = AmmoPredictionOwnerFireActivations;
+		Sample.OwnerWindowActivationCount = AmmoPredictionOwnerWindowActivations;
+		Sample.FirstOwnerActivationTime = AmmoPredictionFirstOwnerActivationTime;
+		Sample.LastOwnerActivationTime = AmmoPredictionLastOwnerActivationTime;
 		Sample.OwnerFireRejectCount = AmmoPredictionOwnerFireRejects;
 		Sample.DistinctPredictionKeyCount = AmmoPredictionStepPredictionKeys.Num();
 		Sample.FirstPredictionKey = AmmoPredictionFirstPredictionKey;
@@ -742,6 +773,10 @@ void AShooterNetworkTestCoordinator::ClientPrepareAmmoPredictionStep_Implementat
 	AmmoPredictionStepPredictionKeys.Reset();
 	AmmoPredictionFirstPredictionKey = 0;
 	AmmoPredictionLastPredictionKey = 0;
+	// 拥有端请求射速只覆盖本步骤窗口：计数与首末时间一起复位。
+	AmmoPredictionOwnerWindowActivations = 0;
+	AmmoPredictionFirstOwnerActivationTime = -1.0f;
+	AmmoPredictionLastOwnerActivationTime = -1.0f;
 	AmmoPredictionPeakUnresolvedShotRecords = 0;
 	AmmoPredictionReleaseSettleTime = 0.0f;
 	bAmmoPredictionReleaseObserved = false;
@@ -1016,6 +1051,7 @@ void AShooterNetworkTestCoordinator::StartAmmoPredictionStep(int32 Step)
 	AmmoPredictionRateMaxInterval = -1.0f;
 	AmmoPredictionRateIntervalSum = 0.0f;
 	AmmoPredictionRateIntervalSamples = 0;
+	AmmoPredictionAuthorityCommitSamples = 0;
 	AmmoPredictionFirstAuthorityCommitTime = -1.0f;
 	AmmoPredictionLastAuthorityCommitTime = -1.0f;
 
@@ -1623,15 +1659,23 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionRateStep(int32 Step)
 	const int32 BackfillDelta = Sample.ConfirmedBackfillCount - Before.ConfirmedBackfillCount;
 	const int32 BackfillReqDelta = Sample.ConfirmedBackfillRequestCount - Before.ConfirmedBackfillRequestCount;
 
-	// 达成射速只在权威时钟上测量：第一发到最后一发之间的间隔数除以其跨度，
-	// 因此不把"从下指令到第一发"的启动延迟算进射速。跨度用两端的权威提交时刻，
-	// 与矩阵用例同一口径（Activate 回调时刻与提交时刻同栈，但提交时刻才是权威射速时钟）。
+	// 三条射速指标各用自己的域，与矩阵用例同一口径，不互相替代：
+	// 1. ClientRequestRps：拥有端自己的激活采样——(数量 - 1) / (末 - 首)，只用客户端时钟；
+	// 2. AuthorityCommitRps：服务器自己的提交采样——(数量 - 1) / (末 - 首)，只用服务器时钟；
+	// 3. AuthorityRejectCount：服务器拒绝了多少请求，是计数而不是速率。
+	// 样本不足两次时统一为 -1，并由报告行显式声明，不用另一个域的跨度凑数字。
+	const float ClientRequestRps = ComputeEventRps(Sample.OwnerWindowActivationCount,
+		Sample.FirstOwnerActivationTime, Sample.LastOwnerActivationTime);
 	const float MeasuredSeconds = AmmoPredictionLastAuthorityCommitTime - AmmoPredictionFirstAuthorityCommitTime;
-	const int32 Intervals = ShotDelta - 1;
-	const float AchievedRps = MeasuredSeconds > 0.0f && Intervals >= 1
-		? static_cast<float>(Intervals) / MeasuredSeconds
-		: 0.0f;
-	const float RateErrorRatio = FMath::Abs(AchievedRps - ExpectedRps) / ExpectedRps;
+	const float AuthorityCommitRps = ComputeEventRps(AmmoPredictionAuthorityCommitSamples,
+		AmmoPredictionFirstAuthorityCommitTime, AmmoPredictionLastAuthorityCommitTime);
+	const bool bAuthorityRateMeasurable = AuthorityCommitRps >= 0.0f;
+	const float AuthorityRateErrorRatio = bAuthorityRateMeasurable
+		? FMath::Abs(AuthorityCommitRps - ExpectedRps) / ExpectedRps
+		: -1.0f;
+	const float ClientRateErrorRatio = ClientRequestRps >= 0.0f
+		? FMath::Abs(ClientRequestRps - ExpectedRps) / ExpectedRps
+		: -1.0f;
 	const float HoldElapsed = AmmoPredictionHoldStartTime >= 0.0f
 		? GetWorld()->GetTimeSeconds() - AmmoPredictionHoldStartTime
 		: 0.0f;
@@ -1691,39 +1735,68 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionRateStep(int32 Step)
 		UE_LOG(LogShootGame, Display, TEXT("%s"), *NetGapLine);
 	}
 
-	// 断言刻意分成两层，不把"客户端请求节拍"与"权威达成射速"混成一个数：
+	// 参与 Pass / Fail 的判据（阈值统一为 RateToleranceRatio = ±15%）：
 	//
-	// 1. 客户端请求节拍是本仓库唯一能控制的量，必须等于配置射速（±15%）。
-	//    它正是上一版会漏掉的回归：低帧率下按"实际时间 + RefireRate"重锚点会让
-	//    请求节拍慢到 87ms / 111ms，而权威达成射速却因为"请求变慢、拒绝变少"看起来还行。
-	// 2. 权威侧的达成率由权威门控决定，只断言结构性恒等式与收敛性：
-	//    每一次客户端请求要么被接受并提交恰好一发，要么被明确拒绝，没有中间态；
-	//    Accepted == Shots、Pending 归零、Shot 记录归零。
-	//    权威达成射速本身作为数据上报（AMMO_PREDICTION_RATE_RESULT）。
-	const float ClientRequestRps = MeasuredSeconds > 0.0f ? static_cast<float>(ClientActivationDelta) / MeasuredSeconds : 0.0f;
-	const float ClientRequestErrorRatio = FMath::Abs(ClientRequestRps - ExpectedRps) / ExpectedRps;
-	const bool bRequestPaceOk = RateErrorRatio <= RateToleranceRatio && ClientRequestErrorRatio <= RateToleranceRatio;
+	// 1. ClientRequestRate：客户端请求射速相对配置射速的偏差。
+	//    这是本仓库唯一能控制的量，也是会漏掉"低帧率下按实际时间重锚点"这类回归的判据：
+	//    请求节拍会慢到 87ms / 111ms，而权威达成射速因为"请求变慢、拒绝变少"看起来还行。
+	// 2. AuthorityCommitRate：权威提交射速相对配置射速的偏差。
+	//    它由权威门控决定，本轮不修改门控，因此该判据会随权威拒绝数波动；
+	//    保留它而不是放宽它，是为了让权威侧的达成率变化必须显式出现在结果里
+	//    （实测拒绝机制是服务器帧时间量化导致，见开发记录）。
+	// 3. Accepted == Shots：一次被接受的 Activation 恰好一发。
+	// 4. Accepted + Rejects == ClientActivations：没有"被接受了却没有发"或被静默吞掉的请求。
+	// 5. Pending / Shot 记录在窗口结束时归零。
+	//
+	// 只是观测、不参与判定的量：逐间隔最小值 / 最大值、拒绝探针、网络字节与速率。
+	const bool bClientRequestRateMeasurable = ClientRequestRps >= 0.0f;
+	const bool bClientRequestRateOk = bClientRequestRateMeasurable && ClientRateErrorRatio <= RateToleranceRatio;
+	const bool bAuthorityCommitRateOk = bAuthorityRateMeasurable && AuthorityRateErrorRatio <= RateToleranceRatio;
 	const bool bNoSilentLoss = RejectDelta + AcceptedDelta == ClientActivationDelta;
-	const bool bConverged = ShotDelta == AcceptedDelta && MeasuredSeconds > 0.0f && Intervals >= 1 &&
-		bRequestPaceOk && bNoSilentLoss && Sample.PendingShots == 0 && Sample.UnresolvedShotRecordCount == 0;
+	const bool bConverged = ShotDelta == AcceptedDelta && bClientRequestRateOk && bAuthorityCommitRateOk &&
+		bNoSilentLoss && Sample.PendingShots == 0 && Sample.UnresolvedShotRecordCount == 0;
+
+	// 判定口径显式输出：哪几项参与 Pass / Fail、各自取值与阈值，避免与"仅上报"混淆。
+	const FString RateAssertLine = FString::Printf(
+		TEXT("AMMO_PREDICTION_RATE_ASSERT Case=%s Gated(ClientRequestRate=%d ClientRequestErrPct=%.2f ")
+		TEXT("AuthorityCommitRate=%d AuthorityCommitErrPct=%.2f AcceptedEqualsShots=%d NoSilentLoss=%d ")
+		TEXT("PendingZero=%d RecordsZero=%d) ThresholdPct=%.1f ObserveOnly(MinInterval=%.4f MaxInterval=%.4f ")
+		TEXT("AuthorityRejectCount=%d)"),
+		CaseName,
+		bClientRequestRateOk ? 1 : 0,
+		ClientRateErrorRatio * 100.0f,
+		bAuthorityCommitRateOk ? 1 : 0,
+		AuthorityRateErrorRatio * 100.0f,
+		ShotDelta == AcceptedDelta ? 1 : 0,
+		bNoSilentLoss ? 1 : 0,
+		Sample.PendingShots == 0 ? 1 : 0,
+		Sample.UnresolvedShotRecordCount == 0 ? 1 : 0,
+		RateToleranceRatio * 100.0f,
+		AmmoPredictionRateMinInterval,
+		AmmoPredictionRateMaxInterval,
+		RejectDelta);
+	UE_LOG(LogShootGame, Display, TEXT("%s"), *RateAssertLine);
 
 	const FString RateResult = FString::Printf(
 		TEXT("AMMO_PREDICTION_RATE_RESULT Case=%s ConfiguredRps=%.3f ConfiguredHoldSeconds=%.2f ")
-		TEXT("AchievedRps=%.3f RateErrorPct=%.2f ClientRequestRps=%.3f ClientRequestErrorPct=%.2f ")
-		TEXT("Shots=%d Intervals=%d MeasuredSeconds=%.3f ")
+		TEXT("ClientRequestRps=%.3f ClientRequestSamples=%d ClientRequestErrPct=%.2f ")
+		TEXT("AuthorityCommitRps=%.3f AuthorityCommitSamples=%d AuthorityCommitErrPct=%.2f ")
+		TEXT("AuthorityRejectCount=%d Shots=%d MeasuredSeconds=%.3f ")
 		TEXT("ElapsedSinceHold=%.3f IntervalSamples=%d MinInterval=%.4f MaxInterval=%.4f ")
-		TEXT("ClientActivations=%d AcceptedActivations=%d AuthorityRejects=%d AuthorityRejectProbe=%d ")
+		TEXT("ClientActivations=%d AcceptedActivations=%d AuthorityRejectProbe=%d ")
 		TEXT("RefireRate=%.4f PredictedFeedback=%d BackfillFeedback=%d BackfillRequests=%d ")
 		TEXT("Pending=%d PendingStart=%d UnresolvedRecords=%d"),
 		CaseName,
 		ExpectedRps,
 		RateMeasurementSeconds,
-		AchievedRps,
-		RateErrorRatio * 100.0f,
 		ClientRequestRps,
-		ClientRequestErrorRatio * 100.0f,
+		Sample.OwnerWindowActivationCount,
+		ClientRateErrorRatio * 100.0f,
+		AuthorityCommitRps,
+		AmmoPredictionAuthorityCommitSamples,
+		AuthorityRateErrorRatio * 100.0f,
+		RejectDelta,
 		ShotDelta,
-		Intervals,
 		MeasuredSeconds,
 		HoldElapsed,
 		AmmoPredictionRateIntervalSamples,
@@ -1731,7 +1804,6 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionRateStep(int32 Step)
 		AmmoPredictionRateMaxInterval,
 		ClientActivationDelta,
 		AcceptedDelta,
-		RejectDelta,
 		GetAmmoPredictionAuthorityRejectProbe() - AmmoPredictionAuthorityRejectProbeBefore,
 		Sample.RefireRate,
 		PredictedDelta,
@@ -1799,20 +1871,21 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionRateStep(int32 Step)
 	UE_LOG(LogShootGame, Display, TEXT("%s"), *ClientNetLine);
 
 	const FString Detail = FString::Printf(
-		TEXT("Rps=%.3f/%.3f ErrPct=%.2f ClientReqRps=%.3f/%.3f ClientReqErrPct=%.2f ")
-		TEXT("Shots=%d Accepted=%d ClientAct=%d Rejects=%d Predicted=%d ")
+		TEXT("ClientRequestRps=%.3f/%.3f ClientRequestErrPct=%.2f ")
+		TEXT("AuthorityCommitRps=%.3f/%.3f AuthorityCommitErrPct=%.2f AuthorityRejectCount=%d ")
+		TEXT("Shots=%d Accepted=%d ClientAct=%d Predicted=%d ")
 		TEXT("Backfill=%d Requests=%d Pending=%d PendingStart=%d Records=%d NetOutBps(S=%.0f/C=%.0f) ")
 		TEXT("RateSamples(S=%d/C=%d)"),
-		AchievedRps,
-		ExpectedRps,
-		RateErrorRatio * 100.0f,
 		ClientRequestRps,
 		ExpectedRps,
-		ClientRequestErrorRatio * 100.0f,
+		ClientRateErrorRatio * 100.0f,
+		AuthorityCommitRps,
+		ExpectedRps,
+		AuthorityRateErrorRatio * 100.0f,
+		RejectDelta,
 		ShotDelta,
 		AcceptedDelta,
 		ClientActivationDelta,
-		RejectDelta,
 		PredictedDelta,
 		BackfillDelta,
 		BackfillReqDelta,
@@ -1883,20 +1956,22 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionCadenceMatrixStep(int32 St
 	const int32 BackfillDelta = Sample.ConfirmedBackfillCount - Before.ConfirmedBackfillCount;
 	const int32 BackfillReqDelta = Sample.ConfirmedBackfillRequestCount - Before.ConfirmedBackfillRequestCount;
 
-	// 达成射速只在权威时钟上测量：第一发到最后一发之间的间隔数除以其跨度。
-	// 三条射速用同一个分母，因此"客户端请求射速"与"权威提交射速"的差就是这一层的损失。
+	// 三条射速指标各用自己的域，不互相替代：
+	// 1. ClientRequestRps：拥有端自己的激活采样——(数量 - 1) / (末 - 首)，只用客户端时钟；
+	// 2. AuthorityCommitRps：服务器自己的提交采样——(数量 - 1) / (末 - 首)，只用服务器时钟；
+	// 3. AuthorityRejectCount：服务器拒绝了多少请求，是计数而不是速率。
+	// 样本不足时一律返回 -1 并由报告行显式声明，不用另一个域的跨度去凑一个数字。
+	const float ClientRequestRps = ComputeEventRps(Sample.OwnerWindowActivationCount,
+		Sample.FirstOwnerActivationTime, Sample.LastOwnerActivationTime);
 	const float MeasuredSeconds = AmmoPredictionLastAuthorityCommitTime - AmmoPredictionFirstAuthorityCommitTime;
-	const int32 Intervals = ShotDelta - 1;
-	const bool bRateMeasurable = MeasuredSeconds > 0.0f && Intervals >= 1;
-	const float CommitRps = bRateMeasurable ? static_cast<float>(Intervals) / MeasuredSeconds : -1.0f;
-	const float ClientActivationRps = bRateMeasurable
-		? static_cast<float>(ClientActivationDelta) / MeasuredSeconds
+	const float AuthorityCommitRps = ComputeEventRps(AmmoPredictionAuthorityCommitSamples,
+		AmmoPredictionFirstAuthorityCommitTime, AmmoPredictionLastAuthorityCommitTime);
+	const bool bRateMeasurable = AuthorityCommitRps >= 0.0f;
+	const float ClientRateErrorPct = ClientRequestRps >= 0.0f
+		? (ClientRequestRps - ExpectedRps) / ExpectedRps * 100.0f
 		: -1.0f;
-	const float AcceptedRps = bRateMeasurable
-		? static_cast<float>(AcceptedDelta) / MeasuredSeconds
-		: -1.0f;
-	const float RateErrorPct = bRateMeasurable
-		? (CommitRps - ExpectedRps) / ExpectedRps * 100.0f
+	const float AuthorityRateErrorPct = bRateMeasurable
+		? (AuthorityCommitRps - ExpectedRps) / ExpectedRps * 100.0f
 		: -1.0f;
 
 	// 权威侧节拍统计：平均 / 最小 / 最大间隔与累计相位误差（同一口径，只是换成提交时刻）。
@@ -1904,13 +1979,16 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionCadenceMatrixStep(int32 St
 		? AmmoPredictionRateIntervalSum / AmmoPredictionRateIntervalSamples * 1000.0f
 		: -1.0f;
 	const float AuthPhaseErrorMs = bRateMeasurable
-		? (MeasuredSeconds - static_cast<float>(Intervals) * GetRateRefireRate(Step)) * 1000.0f
+		? (MeasuredSeconds - static_cast<float>(AmmoPredictionAuthorityCommitSamples - 1) * GetRateRefireRate(Step))
+			* 1000.0f
 		: -1.0f;
 
 	const FString MatrixLine = FString::Printf(
 		TEXT("AMMO_PREDICTION_CADENCE_MATRIX Case=%s Step=%d RequestedFPS=%.0f ClientFPS=%.1f ")
-		TEXT("ClientFrameMeanMs=%.3f ClientFrameMaxMs=%.3f ConfiguredRps=%.3f ClientActRps=%.3f ")
-		TEXT("AcceptedRps=%.3f CommitRps=%.3f RateErrPct=%.2f Shots=%d ClientAct=%d Accepted=%d Rejects=%d ")
+		TEXT("ClientFrameMeanMs=%.3f ClientFrameMaxMs=%.3f ConfiguredRps=%.3f ")
+		TEXT("ClientRequestRps=%.3f ClientRequestSamples=%d ClientRequestErrPct=%.2f ")
+		TEXT("AuthorityCommitRps=%.3f AuthorityCommitSamples=%d AuthorityCommitErrPct=%.2f ")
+		TEXT("AuthorityRejectCount=%d Shots=%d ClientAct=%d Accepted=%d ")
 		TEXT("LocalMeanMs=%.3f LocalMinMs=%.3f LocalMaxMs=%.3f LocalLagMeanMs=%.3f LocalLagMaxMs=%.3f ")
 		TEXT("LocalPhaseErrMs=%.3f LocalEndToActMeanMs=%.3f LocalSpanMs=%.1f ")
 		TEXT("AuthMeanMs=%.3f AuthMinMs=%.3f AuthMaxMs=%.3f AuthPhaseErrMs=%.3f ")
@@ -1922,14 +2000,16 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionCadenceMatrixStep(int32 St
 		Sample.CadenceMeanFrameDeltaMs,
 		Sample.CadenceMaxFrameDeltaMs,
 		ExpectedRps,
-		ClientActivationRps,
-		AcceptedRps,
-		CommitRps,
-		RateErrorPct,
+		ClientRequestRps,
+		Sample.OwnerWindowActivationCount,
+		ClientRateErrorPct,
+		AuthorityCommitRps,
+		AmmoPredictionAuthorityCommitSamples,
+		AuthorityRateErrorPct,
+		RejectDelta,
 		ShotDelta,
 		ClientActivationDelta,
 		AcceptedDelta,
-		RejectDelta,
 		Sample.CadenceMeanIntervalMs,
 		Sample.CadenceMinIntervalMs,
 		Sample.CadenceMaxIntervalMs,
@@ -1952,21 +2032,23 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionCadenceMatrixStep(int32 St
 
 	// 矩阵只断言结构性不变量，不断言射速：射速误差是本轮的观测对象，由报告行如实上报。
 	// 一次被接受的 Activation 必须恰好一发；窗口结束时预算与记录都必须收敛。
-	const bool bConverged = ShotDelta == AcceptedDelta && Intervals >= 1 && Sample.PendingShots == 0 &&
+	const bool bConverged = ShotDelta == AcceptedDelta && ShotDelta >= 2 && Sample.PendingShots == 0 &&
 		Sample.UnresolvedShotRecordCount == 0;
 	const FString Detail = FString::Printf(
-		TEXT("FPS=%.0f/%.1f Rps=%.3f/%.3f ClientActRps=%.3f ErrPct=%.2f Shots=%d ClientAct=%d ")
-		TEXT("Accepted=%d Rejects=%d PhaseErrMs=%.3f Pending=%d Records=%d"),
+		TEXT("FPS=%.0f/%.1f ClientRequestRps=%.3f/%.3f ClientRequestErrPct=%.2f ")
+		TEXT("AuthorityCommitRps=%.3f AuthorityCommitErrPct=%.2f AuthorityRejectCount=%d ")
+		TEXT("Shots=%d ClientAct=%d Accepted=%d PhaseErrMs=%.3f Pending=%d Records=%d"),
 		RequestedMaxFPS,
 		Sample.ClientMaxFPS,
-		CommitRps,
+		ClientRequestRps,
 		ExpectedRps,
-		ClientActivationRps,
-		RateErrorPct,
+		ClientRateErrorPct,
+		AuthorityCommitRps,
+		AuthorityRateErrorPct,
+		RejectDelta,
 		ShotDelta,
 		ClientActivationDelta,
 		AcceptedDelta,
-		RejectDelta,
 		Sample.CadencePhaseErrorMs,
 		Sample.PendingShots,
 		Sample.UnresolvedShotRecordCount);
