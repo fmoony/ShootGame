@@ -36,6 +36,16 @@ UAbilitySystemComponent* AShooterPlayerState::GetAbilitySystemComponent() const
 	return AbilitySystemComponent;
 }
 
+void AShooterPlayerState::OnRep_Owner()
+{
+	Super::OnRep_Owner();
+	if (AbilitySystemComponent && AbilitySystemComponent->GetOwnerActor() == this && IsValid(AbilitySystemComponent->GetAvatarActor()))
+	{
+		// ActorInfo 从 PlayerState 的 Owner 链解析 PlayerController，不能只等待 Pawn 通知。
+		AbilitySystemComponent->RefreshAbilityActorInfo();
+	}
+}
+
 void AShooterPlayerState::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();

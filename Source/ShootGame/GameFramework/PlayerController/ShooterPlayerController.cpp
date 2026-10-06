@@ -167,7 +167,8 @@ void AShooterPlayerController::BindToShooterCharacter(AShooterCharacter* Shooter
 	OnPawnDamaged(BoundShooterCharacter->GetHealthRatio());
 	if (const AShooterWeapon* Weapon = BoundShooterCharacter->GetCurrentWeapon())
 	{
-		OnBulletCountUpdated(Weapon->GetMagazineSize(), Weapon->GetBulletCount(), Weapon->GetReserveAmmo());
+		const int32 DisplayedReserve = Weapon->GetDisplayedReserveAmmo();
+		OnBulletCountUpdated(Weapon->GetMagazineSize(), Weapon->GetDisplayedMagazineAmmo(), DisplayedReserve);
 	}
 }
 

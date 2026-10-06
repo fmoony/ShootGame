@@ -313,6 +313,18 @@ void AShooterCharacter::OnRep_PlayerState()
 	InitializeAbilityActorInfo();
 }
 
+void AShooterCharacter::OnRep_Controller()
+{
+	Super::OnRep_Controller();
+	InitializeAbilityActorInfo();
+}
+
+void AShooterCharacter::PawnClientRestart()
+{
+	Super::PawnClientRestart();
+	InitializeAbilityActorInfo();
+}
+
 UAbilitySystemComponent* AShooterCharacter::GetAbilitySystemComponent() const
 {
 	const AShooterPlayerState* ShooterPlayerState = GetPlayerState<AShooterPlayerState>();
@@ -325,8 +337,15 @@ void AShooterCharacter::InitializeAbilityActorInfo()
 	UAbilitySystemComponent* AbilitySystemComponent = ShooterPlayerState
 		? ShooterPlayerState->GetAbilitySystemComponent()
 		: nullptr;
-	if (!ShooterPlayerState || !AbilitySystemComponent || AbilitySystemComponent->GetAvatarActor() == this)
+	if (!ShooterPlayerState || !AbilitySystemComponent)
 	{
+		return;
+	}
+
+	if (AbilitySystemComponent->GetOwnerActor() == ShooterPlayerState && AbilitySystemComponent->GetAvatarActor() == this)
+	{
+		// Owner 链或 Controller 可以晚于 Avatar 到达；刷新不清输入，也不重置 Health。
+		AbilitySystemComponent->RefreshAbilityActorInfo();
 		return;
 	}
 
@@ -793,7 +812,7 @@ void AShooterCharacter::OnWeaponActivated(AShooterWeapon* Weapon)
 {
 	// HUD 只在 Activate 时更新；AnimClass 应用与幂等修复共用同一私有入口。
 	// 注意接口参数顺序是 (CurrentAmmo, MagazineSize)，与两个 Getter 的阅读顺序相反。
-	UpdateWeaponHUD(Weapon->GetBulletCount(), Weapon->GetMagazineSize(), Weapon->GetReserveAmmo());
+	UpdateWeaponHUD(Weapon->GetDisplayedMagazineAmmo(), Weapon->GetMagazineSize(), Weapon->GetDisplayedReserveAmmo());
 	ApplyWeaponAnimClasses(Weapon);
 }
 
@@ -944,8 +963,8 @@ bool AShooterCharacter::EnsureWeaponPresentation(AShooterWeapon* ExpectedWeapon)
 			// 弹药字段晚到时由 OnRep 再推一次收敛。
 			if (!bMatchesLastApplied)
 			{
-				UpdateWeaponHUD(ExpectedWeapon->GetBulletCount(), ExpectedWeapon->GetMagazineSize(),
-					ExpectedWeapon->GetReserveAmmo());
+				UpdateWeaponHUD(ExpectedWeapon->GetDisplayedMagazineAmmo(), ExpectedWeapon->GetMagazineSize(),
+					ExpectedWeapon->GetDisplayedReserveAmmo());
 			}
 		}
 	}

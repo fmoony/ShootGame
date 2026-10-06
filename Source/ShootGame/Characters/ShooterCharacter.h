@@ -179,7 +179,13 @@ protected:
 	/** 客户端在 PlayerState 复制到达后建立 ASC ActorInfo（含重生后的新 Pawn）。 */
 	virtual void OnRep_PlayerState() override;
 
-	/** 幂等建立 PlayerState ASC 的 Owner/Avatar 关系。 */
+	/** Controller 复制后补齐已建立 ASC 的本地控制器缓存。 */
+	virtual void OnRep_Controller() override;
+
+	/** 客户端 Restart 也可能先于 Controller RepNotify 完成关联。 */
+	virtual void PawnClientRestart() override;
+
+	/** 新 Avatar 初始化；同一 Owner / Avatar 仅刷新 ActorInfo 引用。 */
 	void InitializeAbilityActorInfo();
 
 	/** Gameplay cleanup */

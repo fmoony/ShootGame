@@ -19,6 +19,19 @@ public:
 	/** HUD 弹药入口：把弹匣与备弹数据统一转发给蓝图子弹条表现。 */
 	void UpdateBulletCounter(int32 MagazineSize, int32 BulletCount, int32 ReserveAmmo);
 
+#if WITH_DEV_AUTOMATION_TESTS
+	int32 GetDisplayedMagazineForTest() const { return DisplayedMagazineForTest; }
+	int32 GetDisplayedReserveForTest() const { return DisplayedReserveForTest; }
+	int32 GetPredictedUpdateCountForTest() const { return PredictedUpdateCountForTest; }
+
+private:
+	int32 DisplayedMagazineForTest = INDEX_NONE;
+	int32 DisplayedReserveForTest = INDEX_NONE;
+	int32 PredictedUpdateCountForTest = 0;
+
+public:
+#endif
+
 	/** Allows Blueprint to update sub-widgets with the new bullet count */
 	UFUNCTION(BlueprintImplementableEvent, Category="Shooter", meta=(DisplayName = "UpdateBulletCounter"))
 	void BP_UpdateBulletCounter(int32 MagazineSize, int32 BulletCount, int32 ReserveAmmo);

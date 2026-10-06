@@ -159,6 +159,15 @@ private:
 		/** 只弱引用 WeaponActor：池化 / 切枪 / 销毁后不得被账本延长生命周期。 */
 		TWeakObjectPtr<AShooterWeapon> Weapon;
 
+		/** 本地武器上下文代次；同一 Actor 回池再租用后旧账本不可再减新 Pending。 */
+		uint32 WeaponPredictionGeneration = 0;
+
+		/** 目标失效或动作取消后不再播放旧确认反馈，仍允许结算预算。 */
+		bool bFeedbackSuppressed = false;
+
+		/** 无法提交到有效表现目标的确认发数，与已提交补播分开记录。 */
+		int32 SuppressedShots = 0;
+
 		/** 首次观察到服务器结果时固定的轮次号；用于忽略 key 复用或旧槽污染。 */
 		int32 ActivationSerial = 0;
 
@@ -168,7 +177,7 @@ private:
 		/** 从服务器结果观察到的最新已提交 Shot 数（单调不回退）。 */
 		int32 ProcessedSeen = 0;
 
-		/** 已通过 PlayOwnerConfirmedShotFeedback 补齐的表现数。 */
+		/** 已提交到确认表现队列的发数；实际播放次数由武器反馈计数观测。 */
 		int32 BackfilledShots = 0;
 
 		/** 已按服务器确认从 Pending 结清的预测发数。 */
@@ -277,7 +286,14 @@ public:
 	bool ServerRespectsRemoteAbilityCancellation() const;
 
 	/** 武器端在收到服务器 Activation 结果复制时转发到本地账本；由 ShooterWeapon 调用。 */
-	void HandleAuthorityFireActivationResult(int32 ActivationKey, int32 ActivationSerial, int32 ProcessedShots, bool bSettled);
+	void HandleAuthorityFireActivationResult(AShooterWeapon* SourceWeapon, int32 ActivationKey,
+		int32 ActivationSerial, int32 ProcessedShots, bool bSettled);
+
+	/** Owner / 租用边界作废该武器的旧账本；武器自身负责整体复位 Pending。 */
+	void InvalidateWeaponPredictionContext(AShooterWeapon* Weapon);
+
+	/** 切枪 / 动作取消只抑制旧反馈，不丢弃等待最终裁决的预算账目。 */
+	void SuppressWeaponConfirmedFeedback(AShooterWeapon* Weapon);
 
 #if WITH_DEV_AUTOMATION_TESTS
 	/** 测试观察接口：本地表现节拍是否活动。 */

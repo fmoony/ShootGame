@@ -283,6 +283,11 @@ void UShooterGameplayAbility_Fire::EndAbility(
 		{
 			CachedWeapon->SettleAuthorityFireActivation();
 		}
+		if (bWasCancelled && ActorInfo && ActorInfo->IsLocallyControlledPlayer())
+		{
+			SuppressWeaponConfirmedFeedback(CachedWeapon.Get());
+			CachedWeapon->CancelOwnerConfirmedFeedback();
+		}
 
 		// Reject 退还：迟到 Reject 由 PredictionKey 委托与本分支共同收口，账本保证只退一次。
 		// 只处理 Rejected：Cancelled（切枪 / 换弹 / 死亡取消）时服务器可能已经扣过部分弹药，
@@ -368,6 +373,11 @@ bool UShooterGameplayAbility_Fire::TryOwnerPredictedShot(AShooterWeapon& Weapon)
 
 	// 预测弹药预算：只有预测型 Owner 客户端会真正扣预算；
 	// 权威端（Listen Host / Standalone）与非拥有者视图由 Weapon 侧直接放行，它们不维护 Pending。
+	if (Weapon.HasPendingConfirmedFeedback())
+	{
+		// 已覆盖的旧发按确认队列完成，避免后续预测反馈挤在同一帧。
+		return false;
+	}
 	if (!Weapon.TryConsumePredictedAmmo())
 	{
 		// 预算不足：本次本地 Shot Attempt 不成立，既不播表现也不推进节拍。
@@ -615,6 +625,9 @@ void UShooterGameplayAbility_Fire::RegisterActivationLedger(int32 PredictionKey,
 	PruneActivationLedgers();
 	FPredictedFireActivationLedger& Ledger = PendingActivationLedgers.FindOrAdd(PredictionKey);
 	Ledger.Weapon = Weapon;
+	Ledger.WeaponPredictionGeneration = Weapon->GetAmmoPredictionGeneration();
+	Ledger.bFeedbackSuppressed = false;
+	Ledger.SuppressedShots = 0;
 	Ledger.ActivationSerial = 0;
 	Ledger.PredictedShots = 0;
 	Ledger.ProcessedSeen = 0;
@@ -624,6 +637,7 @@ void UShooterGameplayAbility_Fire::RegisterActivationLedger(int32 PredictionKey,
 	Ledger.NextLocalAttemptOrdinal = 1;
 	Ledger.bServerConfirmed = false;
 	Ledger.bResolved = false;
+	Weapon->BeginAmmoDisplayActivation(PredictionKey);
 }
 
 UShooterGameplayAbility_Fire::EShooterOwnerShotAttemptDecision UShooterGameplayAbility_Fire::DecideOwnerShotAttempt(int32 PredictionKey)
@@ -661,14 +675,23 @@ void UShooterGameplayAbility_Fire::NoteOwnerPredictedShot(int32 PredictionKey)
 	{
 		++Ledger->PredictedShots;
 		++Ledger->NextLocalAttemptOrdinal;
+		if (AShooterWeapon* Weapon = Ledger->Weapon.Get())
+		{
+			Weapon->RecordAmmoDisplayPredictedShot(PredictionKey);
+		}
 	}
 }
 
-void UShooterGameplayAbility_Fire::HandleAuthorityFireActivationResult(int32 ActivationKey, int32 ActivationSerial,
-	int32 ProcessedShots, bool bSettled)
+void UShooterGameplayAbility_Fire::HandleAuthorityFireActivationResult(AShooterWeapon* SourceWeapon,
+	int32 ActivationKey, int32 ActivationSerial, int32 ProcessedShots, bool bSettled)
 {
 	FPredictedFireActivationLedger* Ledger = PendingActivationLedgers.Find(ActivationKey);
 	if (!Ledger || Ledger->bResolved)
+	{
+		return;
+	}
+	if (!IsValid(SourceWeapon) || Ledger->Weapon.Get() != SourceWeapon ||
+		Ledger->WeaponPredictionGeneration != SourceWeapon->GetAmmoPredictionGeneration())
 	{
 		return;
 	}
@@ -698,25 +721,30 @@ void UShooterGameplayAbility_Fire::ApplyActivationResultToLedger(int32 Predictio
 	AShooterWeapon* Weapon = Ledger->Weapon.Get();
 
 	// 1) 服务器真实提交、但 Owner 没有提前表现的 Shot：按差值补播一次 confirmed feedback。
-	const int32 CoveredBefore = Ledger->PredictedShots + Ledger->BackfilledShots;
+	const int32 CoveredBefore = Ledger->PredictedShots + Ledger->BackfilledShots + Ledger->SuppressedShots;
 	const int32 RequiredBackfill = FMath::Max(0, Ledger->ProcessedSeen - CoveredBefore);
 	if (RequiredBackfill > 0)
 	{
-		if (Weapon)
+		for (int32 Index = 0; Index < RequiredBackfill; ++Index)
 		{
-			for (int32 Index = 0; Index < RequiredBackfill; ++Index)
+			if (Weapon && !Ledger->bFeedbackSuppressed && Weapon->PlayOwnerConfirmedShotFeedback())
 			{
-				Weapon->PlayOwnerConfirmedShotFeedback();
+				++Ledger->BackfilledShots;
+			}
+			else
+			{
+				++Ledger->SuppressedShots;
+				UE_LOG(LogShootGame, Display, TEXT("FIRE_CONFIRMED_FEEDBACK_SUPPRESSED Key=%d Reason=Context"), PredictionKey);
 			}
 		}
-		Ledger->BackfilledShots += RequiredBackfill;
 		Ledger->HighestBackfilledOrdinal = FMath::Max(Ledger->HighestBackfilledOrdinal, Ledger->ProcessedSeen);
 		UE_LOG(LogShootGame, Display, TEXT("FIRE_CONFIRMED_BACKFILL Key=%d Amount=%d Backfilled=%d Processed=%d"),
 			PredictionKey, RequiredBackfill, Ledger->BackfilledShots, Ledger->ProcessedSeen);
 	}
 
 	// 2) 已确认的预测发数从 Pending 结清：这些枪已经被 Owner 提前表现覆盖，不重复播放。
-	const int32 AcceptedPredicted = FMath::Max(0, Ledger->ProcessedSeen - Ledger->BackfilledShots);
+	const int32 UnpredictedCovered = Ledger->BackfilledShots + Ledger->SuppressedShots;
+	const int32 AcceptedPredicted = FMath::Max(0, Ledger->ProcessedSeen - UnpredictedCovered);
 	const int32 NewlyReconciled = FMath::Max(0, AcceptedPredicted - Ledger->ReconciledPredictedShots);
 	if (NewlyReconciled > 0)
 	{
@@ -730,21 +758,6 @@ void UShooterGameplayAbility_Fire::ApplyActivationResultToLedger(int32 Predictio
 	// 3) Settled：补齐最后的缺表现，并清掉服务器最终没有执行的预测（phantom）。
 	if (bSettled)
 	{
-		const int32 CoveredNow = Ledger->PredictedShots + Ledger->BackfilledShots;
-		const int32 RemainingBackfill = FMath::Max(0, Ledger->ProcessedSeen - CoveredNow);
-		if (RemainingBackfill > 0)
-		{
-			if (Weapon)
-			{
-				for (int32 Index = 0; Index < RemainingBackfill; ++Index)
-				{
-					Weapon->PlayOwnerConfirmedShotFeedback();
-				}
-			}
-			Ledger->BackfilledShots += RemainingBackfill;
-			Ledger->HighestBackfilledOrdinal = FMath::Max(Ledger->HighestBackfilledOrdinal, Ledger->ProcessedSeen);
-		}
-
 		const int32 RemainingPredicted = FMath::Max(0, Ledger->PredictedShots - Ledger->ReconciledPredictedShots);
 		if (RemainingPredicted > 0)
 		{
@@ -785,6 +798,30 @@ void UShooterGameplayAbility_Fire::HandleActivationConfirmed(UGameplayAbility* A
 	}
 }
 
+void UShooterGameplayAbility_Fire::InvalidateWeaponPredictionContext(AShooterWeapon* Weapon)
+{
+	for (TPair<int32, FPredictedFireActivationLedger>& Pair : PendingActivationLedgers)
+	{
+		if (Pair.Value.Weapon.Get() == Weapon)
+		{
+			Pair.Value.bResolved = true;
+			Pair.Value.bFeedbackSuppressed = true;
+			UE_LOG(LogShootGame, Display, TEXT("FIRE_ACTIVATION_CONTEXT_INVALIDATED Key=%d"), Pair.Key);
+		}
+	}
+}
+
+void UShooterGameplayAbility_Fire::SuppressWeaponConfirmedFeedback(AShooterWeapon* Weapon)
+{
+	for (TPair<int32, FPredictedFireActivationLedger>& Pair : PendingActivationLedgers)
+	{
+		if (Pair.Value.Weapon.Get() == Weapon)
+		{
+			Pair.Value.bFeedbackSuppressed = true;
+		}
+	}
+}
+
 void UShooterGameplayAbility_Fire::HandlePredictedActivationRejected(int32 PredictionKey)
 {
 	// 委托在 ClientActivateAbilityFailed 里先于实例匹配与 K2_EndAbility 广播；
@@ -799,6 +836,12 @@ void UShooterGameplayAbility_Fire::ResolveRejectedActivation(int32 PredictionKey
 		if (Ledger->bResolved)
 		{
 			// Reject 委托与 EndAbility 都可能到达，本轮只允许结清一次。
+			return;
+		}
+		AShooterWeapon* LedgerWeapon = Ledger->Weapon.Get();
+		if (!LedgerWeapon || Ledger->WeaponPredictionGeneration != LedgerWeapon->GetAmmoPredictionGeneration())
+		{
+			Ledger->bResolved = true;
 			return;
 		}
 
@@ -818,6 +861,7 @@ void UShooterGameplayAbility_Fire::ResolveRejectedActivation(int32 PredictionKey
 			Ledger->ReconciledPredictedShots += Remaining;
 		}
 		Ledger->bResolved = true;
+		LedgerWeapon->RejectAmmoDisplayActivation(PredictionKey);
 		UE_LOG(LogShootGame, Display, TEXT("FIRE_ACTIVATION_REJECT_REFUND Key=%d Refund=%d"), PredictionKey, Remaining);
 		return;
 	}
@@ -835,35 +879,14 @@ void UShooterGameplayAbility_Fire::PruneActivationLedgers()
 {
 	for (auto It = PendingActivationLedgers.CreateIterator(); It; ++It)
 	{
-		if (It->Value.bResolved)
+		const AShooterWeapon* Weapon = It->Value.Weapon.Get();
+		if (It->Value.bResolved || !Weapon || It->Value.WeaponPredictionGeneration != Weapon->GetAmmoPredictionGeneration())
 		{
 			It.RemoveCurrent();
 		}
 	}
 
-	// 异常通道（结果长期不达）下不要无限累积：超过 4 条未结清账本按"服务器信息丢失"清理，
-	// 只清 Pending、不补播；正常单 Activation 流程不会触发该上限。
-	constexpr int32 MaxUnresolvedLedgers = 4;
-	while (PendingActivationLedgers.Num() > MaxUnresolvedLedgers)
-	{
-		auto It = PendingActivationLedgers.CreateIterator();
-		if (!It)
-		{
-			break;
-		}
-		FPredictedFireActivationLedger& Ledger = It->Value;
-		const int32 Remaining = FMath::Max(0, Ledger.PredictedShots - Ledger.ReconciledPredictedShots);
-		if (Remaining > 0)
-		{
-			if (AShooterWeapon* Weapon = Ledger.Weapon.Get())
-			{
-				Weapon->DiscardPhantomPredictedAmmo(Remaining);
-			}
-			Ledger.ReconciledPredictedShots += Remaining;
-		}
-		UE_LOG(LogShootGame, Warning, TEXT("FIRE_ACTIVATION_LEDGER_DROPPED Key=%d Reason=Overflow"), It->Key);
-		It.RemoveCurrent();
-	}
+	// 有效未结清账本等待可靠最终结果或明确 Reject；不把拥挤当成服务器拒绝。
 }
 
 #if WITH_DEV_AUTOMATION_TESTS
@@ -950,7 +973,9 @@ void UShooterGameplayAbility_Fire::NoteOwnerPredictedShotsForTest(int32 Predicti
 void UShooterGameplayAbility_Fire::HandleAuthorityFireActivationResultForTest(int32 PredictionKey,
 	int32 ActivationSerial, int32 ProcessedShots, bool bSettled)
 {
-	HandleAuthorityFireActivationResult(PredictionKey, ActivationSerial, ProcessedShots, bSettled);
+	const FPredictedFireActivationLedger* Ledger = PendingActivationLedgers.Find(PredictionKey);
+	HandleAuthorityFireActivationResult(Ledger ? Ledger->Weapon.Get() : nullptr,
+		PredictionKey, ActivationSerial, ProcessedShots, bSettled);
 }
 
 void UShooterGameplayAbility_Fire::MarkActivationServerConfirmedForTest(int32 PredictionKey)

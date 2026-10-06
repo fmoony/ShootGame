@@ -26,6 +26,10 @@ class AShooterWeaponPresentationTestCharacter : public AShooterCharacter
 	GENERATED_BODY()
 
 public:
+	using AShooterCharacter::OnRep_PlayerState;
+	using AShooterCharacter::OnRep_Controller;
+	using AShooterCharacter::PawnClientRestart;
+
 	virtual void OnWeaponDeactivated(AShooterWeapon* Weapon) override
 	{
 		++WeaponDeactivatedCount;

@@ -37,6 +37,9 @@ public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	//~End IAbilitySystemInterface
 
+	/** PlayerController Owner 晚到时，刷新已建立的 ASC 上下文。 */
+	virtual void OnRep_Owner() override;
+
 	/** 以指定 Actor 为 Avatar 建立 AbilityActorInfo；Avatar 不变时幂等跳过。 */
 	void InitializeAbilityActorInfo(AActor* AvatarActor);
 

@@ -97,6 +97,14 @@ struct FShooterAmmoPredictionObservation
 	UPROPERTY()
 	int32 PredictedMagazineAmmo = INDEX_NONE;
 	UPROPERTY()
+	int32 HudMagazine = INDEX_NONE;
+	UPROPERTY()
+	int32 HudReserve = INDEX_NONE;
+	UPROPERTY()
+	int32 HudPredictedUpdates = INDEX_NONE;
+	UPROPERTY()
+	int32 HudUnsettledCount = INDEX_NONE;
+	UPROPERTY()
 	int32 OwnerFeedbackCount = INDEX_NONE;
 	UPROPERTY()
 	int32 OwnerConfirmationCount = INDEX_NONE;
@@ -105,7 +113,21 @@ struct FShooterAmmoPredictionObservation
 	UPROPERTY()
 	int32 ConfirmedBackfillCount = INDEX_NONE;
 	UPROPERTY()
+	int32 MontageCount = INDEX_NONE;
+	UPROPERTY()
+	int32 MuzzleCount = INDEX_NONE;
+	UPROPERTY()
+	int32 SoundCount = INDEX_NONE;
+	UPROPERTY()
+	int32 RecoilCount = INDEX_NONE;
+	UPROPERTY()
+	int32 FinalResultCount = INDEX_NONE;
+	UPROPERTY()
+	bool bConfirmedQueuePending = false;
+	UPROPERTY()
 	int32 UnresolvedLedgerCount = INDEX_NONE;
+	UPROPERTY()
+	int32 PeakUnresolvedLedgers = 0;
 	UPROPERTY()
 	int32 LedgerPredictedShots = INDEX_NONE;
 	UPROPERTY()
@@ -212,6 +234,15 @@ private:
 	UFUNCTION(Client, Reliable)
 	void ClientSubmitAmmoPredictionReload(int32 Step);
 
+	UFUNCTION(Client, Reliable)
+	void ClientSubmitAmmoPredictionStress(int32 Step);
+
+	UFUNCTION(Client, Reliable)
+	void ClientVerifyAmmoPredictionObserver(int32 SubjectPlayerId);
+
+	UFUNCTION(Server, Reliable)
+	void ServerReportAmmoPredictionObserver(bool bValid, int32 BackfillCount, int32 FinalResultCount);
+
 	UFUNCTION(Server, Reliable)
 	void ServerReportAmmoPredictionSample(const FShooterAmmoPredictionObservation& Observation);
 
@@ -289,6 +320,7 @@ private:
 	int32 AmmoPredictionOwnerFireActivations = 0;
 	int32 AmmoPredictionOwnerFireRejects = 0;
 	int32 AmmoPredictionLastPredictionKey = 0;
+	int32 AmmoPredictionHudRefreshKey = 0;
 	int32 AmmoPredictionAuthorityRejects = 0;
 	int32 AmmoPredictionAuthorityShotsBefore = 0;
 	int32 AmmoPredictionAuthorityRejectsBefore = 0;
@@ -297,6 +329,12 @@ private:
 	int32 AmmoPredictionProjectilesBefore = 0;
 	int32 AmmoPredictionMismatchCount = 0;
 	int32 AmmoPredictionConvergedCount = 0;
+	int32 AmmoPredictionStressRemaining = 0;
+	int32 AmmoPredictionPeakUnresolved = 0;
+	float AmmoPredictionStressNextTime = 0.0f;
+	bool bAmmoPredictionSawActiveFire = false;
+	bool bAmmoPredictionSawAuthorityTimer = false;
+	bool bAmmoPredictionObserverVerified = false;
 	float AmmoPredictionStepStartTime = 0.0f;
 	float AmmoPredictionSettleStartTime = 0.0f;
 	float AmmoPredictionNextReportTime = 0.0f;

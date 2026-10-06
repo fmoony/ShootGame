@@ -19,6 +19,7 @@
 #include "Sound/SoundWave.h"
 #include "Tests/Equipment/ShooterWeaponPresentationTestTypes.h"
 #include "Tests/Weapon/ShooterWeaponTestTableTypes.h"
+#include "TimerManager.h"
 #include "UObject/Package.h"
 #include "Weapons/Data/ShooterWeaponConfigRow.h"
 #include "Weapons/Projectile/ShooterProjectile.h"
@@ -669,6 +670,9 @@ bool FShooterFireActivationLedgerBackfillTest::RunTest(const FString& Parameters
 	}
 
 	Weapon->ResetFireActivationStateForAutomationTest();
+	TestTrue(TEXT("ledger weapon added"),
+		Character->GetInventoryComponent()->AddWeapon(Weapon) == EShooterInventoryAddResult::Added);
+	TestTrue(TEXT("ledger weapon equipped"), Character->GetEquipmentComponent()->EquipWeapon(Weapon));
 	Ability->RegisterActivationLedgerForTest(11, Weapon);
 	Ability->NoteOwnerPredictedShotsForTest(11, 2);
 	Weapon->SetPendingPredictedShotsForAutomationTest(2);
@@ -687,8 +691,9 @@ bool FShooterFireActivationLedgerBackfillTest::RunTest(const FString& Parameters
 	Ability->HandleAuthorityFireActivationResultForTest(11, 1, 4, true);
 	TestEqual(TEXT("processed jumped to 4"), Ability->GetActivationLedgerProcessedShotsForTest(11), 4);
 	TestEqual(TEXT("exactly two confirmed backfills"), Ability->GetActivationLedgerBackfilledShotsForTest(11), 2);
-	TestEqual(TEXT("weapon confirmed backfill counter matches"),
-		Weapon->GetConfirmedBackfillCountForAutomationTest(), 2);
+	TestEqual(TEXT("merged result plays only first feedback immediately"),
+		Weapon->GetConfirmedBackfillCountForAutomationTest(), 1);
+	TestTrue(TEXT("second confirmed feedback is queued"), Weapon->HasPendingConfirmedFeedback());
 	TestEqual(TEXT("all predicted shots reconciled"), Ability->GetActivationLedgerReconciledShotsForTest(11), 2);
 	TestEqual(TEXT("pending fully settled"), Weapon->GetPendingPredictedShots(), 0);
 	TestTrue(TEXT("ledger resolved after settle"), Ability->IsActivationLedgerResolvedForTest(11));
@@ -726,6 +731,9 @@ bool FShooterFireActivationLedgerCorrectionTest::RunTest(const FString& Paramete
 	}
 
 	// 反例 1：多预测。最终 Settled 必须清掉服务器没有执行的预测，且不补播。
+	TestTrue(TEXT("correction weapon added"),
+		Character->GetInventoryComponent()->AddWeapon(Weapon) == EShooterInventoryAddResult::Added);
+	TestTrue(TEXT("correction weapon equipped"), Character->GetEquipmentComponent()->EquipWeapon(Weapon));
 	Weapon->ResetFireActivationStateForAutomationTest();
 	Weapon->SetPendingPredictedShotsForAutomationTest(3);
 	Ability->RegisterActivationLedgerForTest(21, Weapon);
@@ -774,6 +782,127 @@ bool FShooterFireActivationLedgerCorrectionTest::RunTest(const FString& Paramete
 		static_cast<int32>(UShooterGameplayAbility_Fire::EShooterOwnerShotAttemptDecision::Predict));
 
 	DestroyPredictionTestWorld(World);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterFireLedgerLifetimeTest, "ShootGame.Ability.Fire.Prediction.LedgerLifetime",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FShooterFireLedgerLifetimeTest::RunTest(const FString& Parameters)
+{
+	using namespace ShooterAbilityFirePredictionAutomationTests;
+	UWorld* World = CreatePredictionTestWorld();
+	AShooterCharacter* Character = SpawnLocalPlayerCharacter(World);
+	AShooterWeapon* Weapon = AcquireFeedbackTestWeapon(World, Character, nullptr, nullptr, nullptr, 5.0f);
+	UShooterGameplayAbility_Fire* Ability = NewObject<UShooterGameplayAbility_Fire>();
+	if (!TestNotNull(TEXT("lifetime weapon"), Weapon) || !TestNotNull(TEXT("lifetime character"), Character))
+	{
+		DestroyPredictionTestWorld(World);
+		return false;
+	}
+	TArray<FShooterFireActivationResult> FinalResults;
+	// 八轮都等待裁决，不能为了容量提前退款或丢账。之后不再发起新激活。
+	for (int32 Key = 101; Key <= 108; ++Key)
+	{
+		Ability->RegisterActivationLedgerForTest(Key, Weapon);
+		Ability->NoteOwnerPredictedShotsForTest(Key, 1);
+		Weapon->BeginAuthorityFireActivation(Key);
+		Weapon->RecordAuthorityShotCommitted();
+		const int32 Slot = Weapon->GetOpenFireActivationResultSlotForTest();
+		Weapon->SettleAuthorityFireActivation();
+		FinalResults.Add(Weapon->GetFireActivationResultForTest(Slot));
+	}
+	Weapon->SetPendingPredictedShotsForAutomationTest(8);
+	TestEqual(TEXT("eight unresolved ledgers retained"), Ability->GetUnresolvedActivationLedgerCountForTest(), 8);
+	const int32 RingKey = Weapon->GetFireActivationResultForTest(0).ActivationKey;
+	TestEqual(TEXT("first ring slot has been overwritten"), RingKey, 105);
+	Weapon->BindPredictionAbility(Ability);
+	for (const FShooterFireActivationResult& Result : FinalResults)
+	{
+		Ability->HandleAuthorityFireActivationResultForTest(Result.ActivationKey, Result.ActivationSerial, 1, true);
+		Ability->HandleAuthorityFireActivationResultForTest(Result.ActivationKey, Result.ActivationSerial, 1, true);
+	}
+	TestEqual(TEXT("all eight settle without another activation"), Weapon->GetPendingPredictedShots(), 0);
+	TestEqual(TEXT("no unresolved ledger"), Ability->GetUnresolvedActivationLedgerCountForTest(), 0);
+
+	Ability->RegisterActivationLedgerForTest(109, Weapon);
+	Ability->NoteOwnerPredictedShotsForTest(109, 2);
+	Weapon->SetPendingPredictedShotsForAutomationTest(2);
+	const uint32 OldGeneration = Weapon->GetAmmoPredictionGeneration();
+	// 同一 Actor 通过生产租用重绑定边界复用；旧弱引用依然有效。
+	Weapon->OnAcquiredFromWeaponPool();
+	TestTrue(TEXT("context generation changed"), Weapon->GetAmmoPredictionGeneration() != OldGeneration);
+	TestTrue(TEXT("old ledger invalidated"), Ability->IsActivationLedgerResolvedForTest(109));
+	Ability->RegisterActivationLedgerForTest(110, Weapon);
+	Ability->NoteOwnerPredictedShotsForTest(110, 1);
+	Weapon->SetPendingPredictedShotsForAutomationTest(1);
+	Ability->ResolveRejectedActivationForTest(109);
+	Ability->HandleAuthorityFireActivationResultForTest(109, 109, 2, true);
+	TestEqual(TEXT("late old reject/result cannot reduce new pending"), Weapon->GetPendingPredictedShots(), 1);
+	Ability->ResolveRejectedActivationForTest(110);
+	TestEqual(TEXT("new reject refunds its own pending"), Weapon->GetPendingPredictedShots(), 0);
+	DestroyPredictionTestWorld(World);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterFireConfirmedQueueTest,
+	"ShootGame.Ability.Fire.Prediction.ConfirmedQueueLifecycle",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FShooterFireConfirmedQueueTest::RunTest(const FString& Parameters)
+{
+	using namespace ShooterAbilityFirePredictionAutomationTests;
+	UWorld* World = CreatePredictionTestWorld();
+	AShooterCharacter* Character = SpawnLocalPlayerCharacter(World);
+	AShooterWeapon* Weapon = AcquireFeedbackTestWeapon(World, Character, nullptr, nullptr, nullptr, 5.0f);
+	if (!TestNotNull(TEXT("queue weapon"), Weapon) || !TestNotNull(TEXT("queue character"), Character))
+	{
+		DestroyPredictionTestWorld(World);
+		return false;
+	}
+	TestTrue(TEXT("queue weapon added"),
+		Character->GetInventoryComponent()->AddWeapon(Weapon) == EShooterInventoryAddResult::Added);
+	TestTrue(TEXT("queue weapon equipped"), Character->GetEquipmentComponent()->EquipWeapon(Weapon));
+	const int32 AmmoBefore = Weapon->GetBulletCount();
+	const int32 RecoilBefore = Character->GetOwnerLocalRecoilCountForAutomationTest();
+	for (int32 Shot = 0; Shot < 3; ++Shot)
+	{
+		TestTrue(TEXT("confirmed feedback accepted"), Weapon->PlayOwnerConfirmedShotFeedback());
+	}
+	TestEqual(TEXT("only one feedback in current frame"), Weapon->GetConfirmedBackfillCountForAutomationTest(), 1);
+	// UE TimerManager 每个引擎帧只 Tick 一次；用真实 Automation 帧推进测试世界。
+	ADD_LATENT_AUTOMATION_COMMAND(FFunctionLatentCommand(
+		[this, World, Character, Weapon, AmmoBefore, RecoilBefore, Phase = 0]() mutable
+		{
+			World->Tick(LEVELTICK_All, 0.05f);
+			const double Time = World->GetTimeSeconds();
+			if (Phase == 0 && Time >= 0.25)
+			{
+				const int32 BeforeInterval = Weapon->GetConfirmedBackfillCountForAutomationTest();
+				TestEqual(TEXT("no feedback before interval"), BeforeInterval, 1);
+				Phase = 1;
+			}
+			if (Phase == 1 && Time >= 0.65)
+			{
+				const int32 AfterInterval = Weapon->GetConfirmedBackfillCountForAutomationTest();
+				TestEqual(TEXT("second feedback after interval"), AfterInterval, 2);
+				Weapon->DeactivateWeapon();
+				TestFalse(TEXT("deactivation cancels remaining feedback"), Weapon->HasPendingConfirmedFeedback());
+				TestFalse(TEXT("hidden weapon refuses late feedback"), Weapon->PlayOwnerConfirmedShotFeedback());
+				Phase = 2;
+			}
+			if (Time < 1.3)
+			{
+				return false;
+			}
+			const int32 AfterDeactivation = Weapon->GetConfirmedBackfillCountForAutomationTest();
+			TestEqual(TEXT("no old feedback after deactivation"), AfterDeactivation, 2);
+			TestEqual(TEXT("recoil corresponds to actual feedback"),
+				Character->GetOwnerLocalRecoilCountForAutomationTest() - RecoilBefore, 2);
+			TestEqual(TEXT("queue does not write authority ammo"), Weapon->GetBulletCount(), AmmoBefore);
+			DestroyPredictionTestWorld(World);
+			return true;
+		}));
 	return true;
 }
 

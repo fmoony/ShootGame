@@ -120,6 +120,23 @@ bool FShooterAmmoHudRefreshPickupReloadFireTest::RunTest(const FString& Paramete
 	TestEqual(TEXT("场景2b 换弹后弹匣回满"), Listener->LastBullets, 10);
 	TestEqual(TEXT("场景2b 换弹后备弹 29"), Listener->LastReserveAmmo, 29);
 
+	// 第二把武器装备后，即使旧武器的隐藏复制尚未收敛，也不能覆盖新 HUD。
+	AShooterWeapon* SecondWeapon = GrantTestWeapon(World, Inventory,
+		AShooterWeaponPresentationTestWeaponSecondary::StaticClass(), 7, 21);
+	if (!TestNotNull(TEXT("second HUD weapon granted"), SecondWeapon))
+	{
+		DestroyHudRefreshTestWorld(World);
+		return false;
+	}
+	SecondWeapon->DispatchBeginPlay();
+	TestTrue(TEXT("switch to second HUD weapon"), Equipment->EquipWeapon(SecondWeapon));
+	const int32 EventsAfterSwitch = Listener->EventCount;
+	TestEqual(TEXT("new weapon displays its own ammo"), Listener->LastBullets, 7);
+	GrantedWeapon->SetActorHiddenInGame(false);
+	GrantedWeapon->PushAmmoToOwnerHud();
+	TestEqual(TEXT("visible old weapon cannot overwrite current HUD"), Listener->EventCount, EventsAfterSwitch);
+	TestEqual(TEXT("old refresh keeps new displayed ammo"), Listener->LastBullets, 7);
+	GrantedWeapon->SetActorHiddenInGame(true);
 	DestroyHudRefreshTestWorld(World);
 	return true;
 }

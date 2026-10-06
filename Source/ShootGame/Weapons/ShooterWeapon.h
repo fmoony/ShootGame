@@ -8,6 +8,7 @@
 #include "Weapons/Interfaces/ShooterWeaponHolder.h"
 #include "Animation/AnimInstance.h"
 #include "Weapons/Data/ShooterWeaponConfigRow.h"
+#include "Weapons/ShooterAmmoDisplayState.h"
 #include "ShooterWeapon.generated.h"
 
 class IShooterWeaponHolder;
@@ -145,7 +146,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Ammo", meta = (ClampMin = -1, ClampMax = 999))
 	int32 InitialReserveAmmo = -1;
 
-	/** 当前弹匣弹药；服务器权威，OwnerOnly 复制，HUD 与本地表现只读该值。 */
+	/** 当前弹匣弹药；服务器权威，OwnerOnly 复制，Gameplay 与预算只读该值，HUD 使用独立显示入口。 */
 	UPROPERTY(ReplicatedUsing=OnRep_MagazineAmmo, VisibleAnywhere, BlueprintReadOnly, Category="Ammo")
 	int32 MagazineAmmo = 0;
 
@@ -162,14 +163,18 @@ protected:
 	UFUNCTION()
 	void OnRep_FireActivationResults();
 
+	/** 每轮一次的最终结果；连接有效且武器上下文仍有效时不依赖四槽属性环送达。 */
+	UFUNCTION(Client, Reliable)
+	void ClientFireActivationSettled(const FShooterFireActivationResult& Result, const FShooterAmmoDisplaySnapshot& Snapshot);
+
 	/**
 	 * 最近数轮 GA_Fire 的服务器结果环形记录；只有拥有者客户端需要消费。
-	 * 保留最近 4 轮，避免一次短 Activation 的最终结果被下一轮覆盖后无法补播。
+	 * 保留最近 4 轮的进度；最终结清另由可靠 Client RPC 传递。
 	 */
 	UPROPERTY(ReplicatedUsing=OnRep_FireActivationResults)
 	TArray<FShooterFireActivationResult> FireActivationResults;
 
-	/** 服务器结果环大小；最近数轮足够覆盖一次短 Activation 的最终结果。 */
+	/** 服务器进度结果环大小；不承担每轮最终结果的送达保证。 */
 	static constexpr int32 FireActivationResultRingSize = 4;
 
 	/** 服务器环形槽位游标；只在权威端写入。 */
@@ -181,19 +186,46 @@ protected:
 	/** 服务器单调轮次号；只服务日志与槽位覆盖诊断。 */
 	int32 NextFireActivationSerial = 1;
 
-	/** 客户端每槽最近一次观察值：槽位换轮时用于结清上一轮。 */
+	/** 客户端每槽最近一次观察值；槽位覆盖不作为最终结清证据。 */
 	TArray<FShooterFireActivationResult> CachedFireActivationResults;
 
 	/** 当前绑定到本武器的拥有端 Fire Ability；以 UObject 弱引用避免头文件循环依赖。 */
 	TWeakObjectPtr<UObject> BoundPredictionAbility;
 
+	/** 本地上下文代次；Owner 解绑时递增，不要求两端代次数值相同。 */
+	uint32 AmmoPredictionGeneration = 0;
+
+	/** 已确认待表现发数；与本地射击节拍和 Pending 弹药无关。 */
+	int32 PendingConfirmedFeedback = 0;
+
+	/** 确认表现调度器，只驱动 cosmetic。 */
+	FTimerHandle ConfirmedFeedbackTimer;
+
+	/** 下一次确认表现最早播放时间；避免合并快照在同帧叠加声音与后坐力。 */
+	double NextConfirmedFeedbackTime = 0.0;
+
+	/** 校验当前第一人称表现目标并逐发排队播放。 */
+	bool IsOwnerConfirmedFeedbackTargetValid() const;
+	void DrainOwnerConfirmedFeedback();
+
 	/**
-	 * 已本地预测消费、但尚未被新的服务器 Ammo 状态吸收的弹药数量。
+	 * 已本地预测消费、但尚未由 Activation 结果结算的弹药数量。
 	 *
 	 * 不复制，只存在于预测型 Owner 客户端（见 IsAmmoPredictionContext）：
-	 * MagazineAmmo / ReserveAmmo 始终只表示服务器确认状态，本地预测只增加这个待吸收计数。
+	 * MagazineAmmo / ReserveAmmo 始终只表示服务器确认状态，本地预测只增加这个待结算计数。
 	 */
 	int32 PendingPredictedShots = 0;
+
+	/** 显示真值与最终结果一起结清，不用预算 Pending 推断属性到达顺序。 */
+	UPROPERTY(ReplicatedUsing=OnRep_AmmoDisplaySnapshot)
+	FShooterAmmoDisplaySnapshot AmmoDisplaySnapshot;
+
+	FShooterAmmoDisplayState AmmoDisplayState;
+
+	UFUNCTION()
+	void OnRep_AmmoDisplaySnapshot();
+
+	void RefreshAuthorityAmmoDisplaySnapshot();
 
 	/** Animation montage to play when firing this weapon */
 	UPROPERTY(EditAnywhere, Category="Animation")
@@ -559,6 +591,15 @@ public:
 	/** Returns the current bullet count；弹药权威在本 Actor 的 MagazineAmmo。 */
 	int32 GetBulletCount() const;
 
+	/** HUD 唯一弹匣与备弹入口，真实 Ammo Getter 的语义保持不变。 */
+	int32 GetDisplayedMagazineAmmo() const;
+	int32 GetDisplayedReserveAmmo() const;
+
+	void BeginAmmoDisplayActivation(int32 PredictionKey);
+	void RecordAmmoDisplayPredictedShot(int32 PredictionKey);
+	void RejectAmmoDisplayActivation(int32 PredictionKey);
+	int32 GetUnsettledAmmoDisplayCount() const { return AmmoDisplayState.GetUnsettledCount(); }
+
 	/** 返回初始备弹声明值；-1 表示自动（MagazineSize × 3），>=0 为显式有限值。 */
 	int32 GetInitialReserveAmmo() const { return InitialReserveAmmo; }
 
@@ -605,7 +646,7 @@ public:
 	 *
 	 * Listen Host 与 Standalone 是权威端，弹药在本地直接写入 MagazineAmmo，
 	 * 自身复制不会触发 OnRep，因此它们不允许维护 PendingPredictedShots，
-	 * 否则这份待吸收计数永远没有下降复制来收敛。
+	 * 因此预算对账只用于非权威的拥有者客户端。
 	 */
 	bool IsAmmoPredictionContext() const;
 
@@ -638,6 +679,13 @@ public:
 	/** Owner / 池 / Destroy 边界解绑结果转发；不依赖 PredictionKey 大小。 */
 	void ClearPredictionAbility();
 
+	/** 只取消旧确认表现队列，不修改 Pending 或权威字段。 */
+	void CancelOwnerConfirmedFeedback();
+
+	/** 账本记录与校验本地上下文代次。 */
+	uint32 GetAmmoPredictionGeneration() const { return AmmoPredictionGeneration; }
+	bool HasPendingConfirmedFeedback() const { return PendingConfirmedFeedback > 0; }
+
 	/** 服务器：开始一轮 GA_Fire Activation 的结果记录；同一时刻只允许一轮打开。 */
 	void BeginAuthorityFireActivation(int32 ActivationKey);
 
@@ -663,6 +711,7 @@ public:
 	{
 		MagazineAmmo = InMagazineAmmo;
 		ReserveAmmo = InReserveAmmo;
+		RefreshAuthorityAmmoDisplaySnapshot();
 	}
 
 	/** 测试专用：写入两侧弹匣抓握姿态；生产代码不得调用。 */
@@ -677,7 +726,7 @@ public:
 	/** 清空本武器的开火表现计数；测试在场景起点调用一次。 */
 	void ResetFireFeedbackCountersForAutomationTest();
 
-	/** 拥有者服务器确认补播的提交次数，由 PlayOwnerConfirmedShotFeedback 递增。 */
+	/** 拥有者确认补播的实际播放次数，由 PlayOwnerShotFeedbackInternal 递增。 */
 	int32 GetConfirmedBackfillCountForAutomationTest() const;
 
 	/** 测试专用：直接建立 PendingPredictedShots 起点；只用于验证 Activation 对账算术。 */
@@ -708,6 +757,7 @@ public:
 	/** 远端确认反馈次数；P1-B 起由 MulticastPlayFiringFX 在非拥有端递增。 */
 	int32 GetRemoteConfirmedFeedbackCountForAutomationTest() const;
 	int32 GetOwnerMuzzleFeedbackCountForAutomationTest() const { return OwnerMuzzleFeedbackCount; }
+	int32 GetFinalResultReceivedCountForTest() const { return FinalResultReceivedCountForTest; }
 	int32 GetOwnerSoundFeedbackCountForAutomationTest() const { return OwnerSoundFeedbackCount; }
 	int32 GetRemoteMuzzleFeedbackCountForAutomationTest() const { return RemoteMuzzleFeedbackCount; }
 	int32 GetRemoteSoundFeedbackCountForAutomationTest() const { return RemoteSoundFeedbackCount; }
@@ -734,6 +784,7 @@ private:
 	int32 AuthorityShotCount = 0;
 	int32 RemoteConfirmedFeedbackCount = 0;
 	int32 OwnerMuzzleFeedbackCount = 0;
+	int32 FinalResultReceivedCountForTest = 0;
 	int32 OwnerSoundFeedbackCount = 0;
 	int32 RemoteMuzzleFeedbackCount = 0;
 	int32 RemoteSoundFeedbackCount = 0;

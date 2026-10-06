@@ -13,9 +13,13 @@
 #include "Characters/ShooterCharacter.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
+#include "Misc/CommandLine.h"
+#include "Misc/Parse.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/PlayerState.h"
 #include "GameFramework/PlayerState/ShooterPlayerState.h"
+#include "GameFramework/PlayerController/ShooterPlayerController.h"
+#include "UI/ShooterBulletCounterUI.h"
 #include "Inventory/ShooterInventoryComponent.h"
 #include "Weapons/Subsystems/ShooterWeaponRuntimeSubsystem.h"
 #include "Weapons/ShooterWeapon.h"
@@ -45,7 +49,9 @@ namespace ShooterAmmoPredictionNetworkTests
 	constexpr int32 StepPredictedAccepted = 3;
 	constexpr int32 StepLateReject = 4;
 	constexpr int32 StepReloadLifecycle = 5;
-	constexpr int32 StepDone = 6;
+	constexpr int32 StepStress = 6;
+	constexpr int32 StepDone = 7;
+	constexpr int32 StressActivations = 8;
 
 	constexpr int32 FixtureMagazine = 1;
 	constexpr int32 FixtureReserve = 5;
@@ -56,6 +62,11 @@ namespace ShooterAmmoPredictionNetworkTests
 	constexpr float BackfillLocalCooldownSeconds = 1.2f;
 	constexpr float ReloadHoldSeconds = 1.2f;
 	constexpr float HoldReloadAtSeconds = 0.25f;
+
+	bool IsActorInfoStartupProbe()
+	{
+		return FParse::Param(FCommandLine::Get(), TEXT("ShootGameActorInfoStartupTest"));
+	}
 
 	bool IsFireAbility(const UGameplayAbility* Ability)
 	{
@@ -185,6 +196,14 @@ void AShooterNetworkTestCoordinator::SampleAmmoPredictionLocalState()
 	}
 
 	const float Now = GetWorld()->GetTimeSeconds();
+	if (AmmoPredictionStressRemaining > 0 && Now >= AmmoPredictionStressNextTime &&
+		Subject->GetCurrentWeaponActor() && Subject->GetCurrentWeaponActor()->IsLocalFireCooldownReady())
+	{
+		--AmmoPredictionStressRemaining;
+		Subject->DoStartFiring();
+		Subject->DoStopFiring();
+		AmmoPredictionStressNextTime = Now + 0.3f;
+	}
 
 	// Hold 夹具：服务器 cadence 领先场景需要本地持续按住，并在指定时刻触发 Reload 取消。
 	if (bAmmoPredictionHoldingFire)
@@ -217,14 +236,48 @@ void AShooterNetworkTestCoordinator::SampleAmmoPredictionLocalState()
 	Sample.Step = AmmoPredictionClientStep;
 	Sample.Subject = Subject;
 	Sample.Weapon = Weapon;
-	Sample.bValid = IsValid(Weapon) && PlayerState && ShooterAbilitySystemComponent &&
-		Subject->GetCurrentWeaponActor() == Weapon && Weapon->GetOwner() == Subject && !Weapon->IsHidden();
+	const APlayerController* PawnController = Cast<APlayerController>(Subject->GetController());
+	const bool bPawnOwnedLocally = PawnController && PawnController->IsLocalController();
+	const bool bCachedContextReady = ShooterAbilitySystemComponent &&
+		ShooterAbilitySystemComponent->AbilityActorInfo.IsValid() &&
+		ShooterAbilitySystemComponent->AbilityActorInfo->IsLocallyControlledPlayer() &&
+		ShooterAbilitySystemComponent->GetAvatarActor() == Subject;
+	// 启动探针不等 ASC 缓存自愈；只等真实本地关联及 Spec，首枪入口另行断言缓存一致。
+	Sample.bValid = IsValid(Weapon) && PlayerState && ShooterAbilitySystemComponent && bPawnOwnedLocally &&
+		Subject->GetCurrentWeaponActor() == Weapon && Weapon->GetOwner() == Subject && !Weapon->IsHidden() &&
+		GetFireAbilityInstanceForTest(Subject) &&
+		(ShooterAmmoPredictionNetworkTests::IsActorInfoStartupProbe() || bCachedContextReady);
 	if (Sample.bValid)
 	{
 		Sample.MagazineAmmo = Weapon->GetBulletCount();
 		Sample.ReserveAmmo = Weapon->GetReserveAmmo();
 		Sample.PendingShots = Weapon->GetPendingPredictedShots();
 		Sample.PredictedMagazineAmmo = Weapon->GetPredictedMagazineAmmo();
+		AShooterPlayerController* Controller = Cast<AShooterPlayerController>(Subject->GetController());
+		const UShooterBulletCounterUI* Widget = Controller ? Controller->GetBulletCounterUIForAutomationTest() : nullptr;
+		if (!Widget || Widget->GetOwningPlayerPawn() != Subject)
+		{
+			Sample.bValid = false;
+		}
+		else
+		{
+			if (Sample.PendingShots > 0 && AmmoPredictionHudRefreshKey != AmmoPredictionLastPredictionKey)
+			{
+				const int32 BeforeRefresh = Widget->GetDisplayedMagazineForTest();
+				Controller->RefreshAmmoHUDForAutomationTest();
+				const bool bPreserved = Widget->GetDisplayedMagazineForTest() == BeforeRefresh;
+				if (!bPreserved)
+				{
+					FailTest(TEXT("HUD refresh replaced predicted ammo with authority mirror"));
+				}
+				AmmoPredictionHudRefreshKey = AmmoPredictionLastPredictionKey;
+				UE_LOG(LogShootGame, Display, TEXT("HUD_PREDICTION_REBIND Mag=%d Preserved=%d"), BeforeRefresh, bPreserved ? 1 : 0);
+			}
+			Sample.HudMagazine = Widget->GetDisplayedMagazineForTest();
+			Sample.HudReserve = Widget->GetDisplayedReserveForTest();
+			Sample.HudPredictedUpdates = Widget->GetPredictedUpdateCountForTest();
+			Sample.HudUnsettledCount = Weapon->GetUnsettledAmmoDisplayCount();
+		}
 		Sample.OwnerFeedbackCount = Weapon->GetPredictedOwnerFeedbackCountForAutomationTest();
 		Sample.OwnerConfirmationCount = Weapon->GetOwnerAuthorityConfirmationCountForAutomationTest();
 		Sample.OwnerFireActivationCount = AmmoPredictionOwnerFireActivations;
@@ -235,6 +288,12 @@ void AShooterNetworkTestCoordinator::SampleAmmoPredictionLocalState()
 		Sample.bReloading = ShooterAbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading);
 		Sample.bLocalFireCooldownReady = Weapon->IsLocalFireCooldownReady();
 		Sample.ConfirmedBackfillCount = Weapon->GetConfirmedBackfillCountForAutomationTest();
+		Sample.MontageCount = Subject->GetOwnerLocalMontageCountForAutomationTest();
+		Sample.MuzzleCount = Weapon->GetOwnerMuzzleFeedbackCountForAutomationTest();
+		Sample.SoundCount = Weapon->GetOwnerSoundFeedbackCountForAutomationTest();
+		Sample.RecoilCount = Subject->GetOwnerLocalRecoilCountForAutomationTest();
+		Sample.FinalResultCount = Weapon->GetFinalResultReceivedCountForTest();
+		Sample.bConfirmedQueuePending = Weapon->HasPendingConfirmedFeedback();
 
 		if (const UShooterGameplayAbility_Fire* FireAbility = GetFireAbilityInstanceForTest(Subject))
 		{
@@ -242,6 +301,8 @@ void AShooterNetworkTestCoordinator::SampleAmmoPredictionLocalState()
 				? AmmoPredictionStepActivationKey
 				: FireAbility->GetEffectivePredictionKeyForTest();
 			Sample.UnresolvedLedgerCount = FireAbility->GetUnresolvedActivationLedgerCountForTest();
+			AmmoPredictionPeakUnresolved = FMath::Max(AmmoPredictionPeakUnresolved, Sample.UnresolvedLedgerCount);
+			Sample.PeakUnresolvedLedgers = AmmoPredictionPeakUnresolved;
 			Sample.LedgerPredictedShots = FireAbility->GetActivationLedgerPredictedShotsForTest(LedgerKey);
 			Sample.LedgerProcessedShots = FireAbility->GetActivationLedgerProcessedShotsForTest(LedgerKey);
 			Sample.LedgerBackfilledShots = FireAbility->GetActivationLedgerBackfilledShotsForTest(LedgerKey);
@@ -261,7 +322,7 @@ void AShooterNetworkTestCoordinator::SampleAmmoPredictionLocalState()
 	}
 
 	// Hold 夹具：固定账本一旦 Settled，立即释放输入，避免 Held 重试洪水掩盖本轮结果。
-	if (bAmmoPredictionHoldingFire && Sample.bLedgerResolved && Sample.PendingShots == 0)
+	if (bAmmoPredictionHoldingFire && Sample.bLedgerResolved && Sample.PendingShots == 0 && !Sample.bConfirmedQueuePending)
 	{
 		bAmmoPredictionHoldingFire = false;
 		Subject->DoStopFiring();
@@ -287,6 +348,7 @@ void AShooterNetworkTestCoordinator::ClientPrepareAmmoPredictionStep_Implementat
 	AmmoPredictionSubjectPlayerId = SubjectPlayerId;
 	AmmoPredictionSubmittedStep = INDEX_NONE;
 	AmmoPredictionStepActivationKey = 0;
+	AmmoPredictionPeakUnresolved = 0;
 
 	// 每步从干净的本地节拍开始；Hold 夹具会在此之后显式设置落后的 cadence。
 	if (AShooterWeapon* Weapon = AmmoPredictionWeapon.Get())
@@ -314,6 +376,19 @@ void AShooterNetworkTestCoordinator::ClientSubmitAmmoPredictionFire_Implementati
 		return;
 	}
 
+	if (Step == ShooterAmmoPredictionNetworkTests::StepSameValueSnapshot && ShooterAmmoPredictionNetworkTests::IsActorInfoStartupProbe())
+	{
+		const UAbilitySystemComponent* ASC = Subject->GetAbilitySystemComponent();
+		const FGameplayAbilityActorInfo* Info = ASC ? ASC->AbilityActorInfo.Get() : nullptr;
+		const bool bReady = Info && Info->AvatarActor.Get() == Subject && Info->IsLocallyControlledPlayer();
+		const bool bControllerMatched = Info && Info->PlayerController.Get() == Subject->GetController();
+		if (!bReady || !bControllerMatched)
+		{
+			FailTest(TEXT("ActorInfo startup first input found stale local controller context"));
+			return;
+		}
+		UE_LOG(LogShootGame, Display, TEXT("ACTOR_INFO_STARTUP_FIRST_INPUT Ready=%d ControllerMatched=%d"), bReady, bControllerMatched);
+	}
 	AmmoPredictionSubmittedStep = Step;
 	// Press 与 Release 落在同一帧：这是本夹具要复现的拥有端释放时序，
 	// 不直接调用 Weapon.Fire，也不走服务器实现。
@@ -382,6 +457,13 @@ void AShooterNetworkTestCoordinator::ServerReportAmmoPredictionSample_Implementa
 		return;
 	}
 
+	// 高延迟可在一帧到达多个样本，不能只检查 Tick 时最后留下的非活动样本。
+	if (Observation.Step == ShooterAmmoPredictionNetworkTests::StepReloadLifecycle &&
+		Observation.Step == AmmoPredictionServerStep && bAmmoPredictionStepCommandSent &&
+		Observation.bValid && Observation.bFireActive)
+	{
+		bAmmoPredictionSawActiveFire = true;
+	}
 	AmmoPredictionLatest = Observation;
 	AmmoPredictionLatestArrivalTime = GetWorld()->GetTimeSeconds();
 	UE_LOG(LogShootGame, Display,
@@ -423,6 +505,24 @@ bool AShooterNetworkTestCoordinator::IsAmmoPredictionClientSampleFresh(int32 Ste
 
 void AShooterNetworkTestCoordinator::ConcludeAmmoPredictionCase(const TCHAR* CaseName, bool bConverged, const FString& Detail)
 {
+	const AShooterWeapon* Weapon = AmmoPredictionWeapon.Get();
+	const FShooterAmmoPredictionObservation& Sample = AmmoPredictionLatest;
+	const bool bHudMatches = Weapon && Sample.bValid && Sample.HudUnsettledCount == 0 &&
+		Sample.HudMagazine == Weapon->GetBulletCount() && Sample.HudReserve == Weapon->GetReserveAmmo();
+	const int32 PredictedUpdates = Sample.HudPredictedUpdates - AmmoPredictionBefore.HudPredictedUpdates;
+	const bool bNeedsPrediction = FCString::Strcmp(CaseName, TEXT("SameValueSnapshot")) == 0 ||
+		FCString::Strcmp(CaseName, TEXT("PredictedAccepted")) == 0 || FCString::Strcmp(CaseName, TEXT("LateReject")) == 0;
+	bConverged = bConverged && bHudMatches && (!bNeedsPrediction || PredictedUpdates > 0);
+	UE_LOG(
+		LogShootGame,
+		Display,
+		TEXT("HUD_PREDICTION_RESULT Case=%s Match=%d Mag=%d Reserve=%d PredictedUpdates=%d Unsettled=%d"),
+		CaseName,
+		bHudMatches ? 1 : 0,
+		Sample.HudMagazine,
+		Sample.HudReserve,
+		PredictedUpdates,
+		Sample.HudUnsettledCount);
 	if (bConverged)
 	{
 		++AmmoPredictionConvergedCount;
@@ -517,10 +617,26 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionSameValueStep()
 	}
 
 	const FShooterAmmoPredictionObservation& Sample = AmmoPredictionLatest;
+	if (Sample.HudUnsettledCount != 0)
+	{
+		return;
+	}
+	// 等待客户端真正观察到最终结果；固定一秒不能代替网络裁决。
+	if (Sample.HudUnsettledCount != 0 || !Sample.bValid || !Sample.bLedgerResolved || Sample.PendingShots != 0 ||
+		Sample.OwnerFireActivationCount <= AmmoPredictionBefore.OwnerFireActivationCount ||
+		Sample.FinalResultCount <= AmmoPredictionBefore.FinalResultCount)
+	{
+		return;
+	}
 	const bool bConverged = Sample.bValid && Sample.MagazineAmmo == AmmoPredictionMagazineBefore &&
 		Sample.PendingShots == 0 && Sample.PredictedMagazineAmmo == AmmoPredictionMagazineBefore &&
 		Sample.LedgerPredictedShots == 1 && Sample.LedgerProcessedShots == 1 &&
-		Sample.LedgerBackfilledShots == 0 && Sample.bLedgerResolved && Sample.UnresolvedLedgerCount == 0;
+		Sample.LedgerBackfilledShots == 0 && Sample.bLedgerResolved && Sample.UnresolvedLedgerCount == 0 &&
+		Sample.OwnerFireActivationCount - AmmoPredictionBefore.OwnerFireActivationCount == 1 &&
+		Sample.MontageCount - AmmoPredictionBefore.MontageCount == 1 &&
+		Sample.MuzzleCount - AmmoPredictionBefore.MuzzleCount == 1 &&
+		Sample.SoundCount - AmmoPredictionBefore.SoundCount == 1 &&
+		Sample.RecoilCount - AmmoPredictionBefore.RecoilCount == 1;
 	const FString Detail = FString::Printf(
 		TEXT("ServerMag=%d ServerReserve=%d Shots=%d Projectiles=%d OwnerMag=%d Pending=%d Predicted=%d ")
 		TEXT("Feedback=%d Confirm=%d Ledger(P=%d S=%d B=%d Resolved=%d Unresolved=%d)"),
@@ -600,7 +716,10 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionBackfillStep()
 	}
 
 	const FShooterAmmoPredictionObservation& Sample = AmmoPredictionLatest;
-	if (Sample.bFireActive || Sample.bReloadActive)
+	if (Sample.HudUnsettledCount != 0 || !Sample.bValid || !Sample.bLedgerResolved || Sample.PendingShots != 0 ||
+		Sample.bConfirmedQueuePending || Sample.bFireActive || Sample.bReloadActive ||
+		Sample.OwnerFireActivationCount <= AmmoPredictionBefore.OwnerFireActivationCount ||
+		Sample.FinalResultCount <= AmmoPredictionBefore.FinalResultCount)
 	{
 		return;
 	}
@@ -609,8 +728,12 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionBackfillStep()
 	const int32 BackfillDelta = Sample.ConfirmedBackfillCount - AmmoPredictionBefore.ConfirmedBackfillCount;
 	// 目标语义：每个 Server Accepted Shot 恰好一次 Owner 表现。
 	// 允许本地 cadence 先抢到少量预测，但 预测数 + 补播数 必须等于服务器真实发数，且不得有 phantom 残留。
-	const bool bConverged = ShotDelta == BackfillMagazine &&
+	const bool bConverged = Sample.bValid && ShotDelta == BackfillMagazine &&
 		FeedbackDelta + BackfillDelta == ShotDelta && Sample.PendingShots == 0 &&
+		Sample.MontageCount - AmmoPredictionBefore.MontageCount == ShotDelta &&
+		Sample.MuzzleCount - AmmoPredictionBefore.MuzzleCount == ShotDelta &&
+		Sample.SoundCount - AmmoPredictionBefore.SoundCount == ShotDelta &&
+		Sample.RecoilCount - AmmoPredictionBefore.RecoilCount == ShotDelta && !Sample.bConfirmedQueuePending &&
 		Sample.LedgerProcessedShots == ShotDelta &&
 		Sample.LedgerPredictedShots + Sample.LedgerBackfilledShots == ShotDelta &&
 		Sample.bLedgerResolved && Sample.UnresolvedLedgerCount == 0;
@@ -627,6 +750,14 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionBackfillStep()
 		Sample.LedgerBackfilledShots,
 		Sample.bLedgerResolved ? 1 : 0,
 		Sample.UnresolvedLedgerCount);
+	UE_LOG(
+		LogShootGame,
+		Display,
+		TEXT("AMMO_PREDICTION_FEEDBACK_CHANNELS Montage=%d Muzzle=%d Sound=%d Recoil=%d"),
+		Sample.MontageCount - AmmoPredictionBefore.MontageCount,
+		Sample.MuzzleCount - AmmoPredictionBefore.MuzzleCount,
+		Sample.SoundCount - AmmoPredictionBefore.SoundCount,
+		Sample.RecoilCount - AmmoPredictionBefore.RecoilCount);
 	ConcludeAmmoPredictionCase(TEXT("ConfirmedBackfill"), bConverged, Detail);
 	StartAmmoPredictionStep(StepPredictedAccepted);
 }
@@ -687,7 +818,13 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionPredictedAcceptedStep()
 	const FShooterAmmoPredictionObservation& Sample = AmmoPredictionLatest;
 	const int32 FeedbackDelta = Sample.OwnerFeedbackCount - AmmoPredictionBefore.OwnerFeedbackCount;
 	const int32 BackfillDelta = Sample.ConfirmedBackfillCount - AmmoPredictionBefore.ConfirmedBackfillCount;
-	const bool bConverged = ShotDelta == 1 && FeedbackDelta == 1 && BackfillDelta == 0 &&
+	if (Sample.HudUnsettledCount != 0 || !Sample.bValid || !Sample.bLedgerResolved || Sample.PendingShots != 0 ||
+		Sample.OwnerFireActivationCount <= AmmoPredictionBefore.OwnerFireActivationCount ||
+		Sample.FinalResultCount <= AmmoPredictionBefore.FinalResultCount)
+	{
+		return;
+	}
+	const bool bConverged = Sample.bValid && ShotDelta == 1 && FeedbackDelta == 1 && BackfillDelta == 0 &&
 		Sample.PendingShots == 0 && Sample.LedgerPredictedShots == 1 && Sample.LedgerProcessedShots == 1 &&
 		Sample.LedgerBackfilledShots == 0 && Sample.bLedgerResolved && Sample.UnresolvedLedgerCount == 0;
 	const FString Detail = FString::Printf(
@@ -774,6 +911,11 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionLateRejectStep()
 	}
 
 	const FShooterAmmoPredictionObservation& Sample = AmmoPredictionLatest;
+	if (Sample.HudUnsettledCount != 0 || !Sample.bValid || !Sample.bLedgerResolved || Sample.PendingShots != 0 ||
+		Sample.OwnerFireActivationCount <= AmmoPredictionBefore.OwnerFireActivationCount)
+	{
+		return;
+	}
 	const int32 ActivationDelta = Sample.OwnerFireActivationCount - AmmoPredictionBefore.OwnerFireActivationCount;
 	const int32 FeedbackDelta = Sample.OwnerFeedbackCount - AmmoPredictionBefore.OwnerFeedbackCount;
 	if (ActivationDelta < 1 || FeedbackDelta < 1)
@@ -852,11 +994,13 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionReloadLifecycleStep()
 		return;
 	}
 
+	bAmmoPredictionSawAuthorityTimer |= Weapon->IsRefireTimerActiveForAutomationTest();
 	if (!IsAmmoPredictionClientSampleFresh(StepReloadLifecycle))
 	{
 		return;
 	}
 	const FShooterAmmoPredictionObservation& Sample = AmmoPredictionLatest;
+	bAmmoPredictionSawActiveFire |= Sample.bValid && Sample.bFireActive;
 	if (!bAmmoPredictionSettleStarted)
 	{
 		const bool bReloadFinished = !Sample.bFireActive && !Sample.bReloadActive && !Sample.bReloading &&
@@ -870,15 +1014,21 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionReloadLifecycleStep()
 		return;
 	}
 
-	if (GetWorld()->GetTimeSeconds() - AmmoPredictionSettleStartTime < SettleSeconds)
+	if (Sample.HudUnsettledCount != 0)
+	{
+		return;
+	}
+	if (GetWorld()->GetTimeSeconds() - AmmoPredictionSettleStartTime < SettleSeconds ||
+		!Sample.bLedgerResolved || Sample.PendingShots != 0 || Sample.UnresolvedLedgerCount != 0)
 	{
 		return;
 	}
 
 	const int32 ShotDelta = Weapon->GetAuthorityShotCountForAutomationTest() - AmmoPredictionAuthorityShotsBefore;
-	const bool bConverged = !Sample.bFireActive && !Sample.bReloadActive && !Sample.bReloading &&
+	const bool bConverged = Sample.bValid && !Sample.bFireActive && !Sample.bReloadActive && !Sample.bReloading &&
 		Sample.MagazineAmmo == Weapon->GetMagazineSize() && Sample.PendingShots == 0 &&
-		Sample.UnresolvedLedgerCount == 0 && Sample.bLedgerResolved && ShotDelta >= 0;
+		Sample.UnresolvedLedgerCount == 0 && Sample.bLedgerResolved && ShotDelta > 0 &&
+		bAmmoPredictionSawActiveFire && bAmmoPredictionSawAuthorityTimer;
 	const FString Detail = FString::Printf(
 		TEXT("ServerShots=%d Mag=%d/%d Pending=%d FireActive=%d ReloadActive=%d Reloading=%d ")
 		TEXT("LedgerResolved=%d Unresolved=%d"),
@@ -891,8 +1041,10 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionReloadLifecycleStep()
 		Sample.bReloading ? 1 : 0,
 		Sample.bLedgerResolved ? 1 : 0,
 		Sample.UnresolvedLedgerCount);
+	UE_LOG(LogShootGame, Display, TEXT("AMMO_PREDICTION_CANCEL_EVIDENCE ActiveFire=%d AuthorityTimer=%d"),
+		bAmmoPredictionSawActiveFire, bAmmoPredictionSawAuthorityTimer);
 	ConcludeAmmoPredictionCase(TEXT("ReloadLifecycle"), bConverged, Detail);
-	StartAmmoPredictionStep(StepDone);
+	StartAmmoPredictionStep(StepStress);
 }
 
 void AShooterNetworkTestCoordinator::RunAmmoPredictionServerPhase()
@@ -935,6 +1087,7 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionServerPhase()
 		return;
 	}
 
+	const int32 ExpectedLocal = GetNetMode() == NM_DedicatedServer ? 0 : 1;
 	if (!bAmmoPredictionSetup)
 	{
 		if (GetWorld()->GetTimeSeconds() - TestStartTime > StepTimeoutSeconds)
@@ -943,7 +1096,7 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionServerPhase()
 			bAmmoPredictionFinished = true;
 			return;
 		}
-		if (PlayerCount != 2 || LocalCount != 1 || !GetShooterCharacter())
+		if (PlayerCount < 2 || LocalCount != ExpectedLocal || !GetShooterCharacter())
 		{
 			return;
 		}
@@ -1050,18 +1203,59 @@ void AShooterNetworkTestCoordinator::RunAmmoPredictionServerPhase()
 	case StepReloadLifecycle:
 		RunAmmoPredictionReloadLifecycleStep();
 		return;
+	case StepStress:
+		if (!bAmmoPredictionStepCommandSent)
+		{
+			bAmmoPredictionStepCommandSent = true;
+			ClientSubmitAmmoPredictionStress(StepStress);
+			return;
+		}
+		if (IsAmmoPredictionClientSampleFresh(StepStress) && AmmoPredictionLatest.bValid &&
+			AmmoPredictionLatest.OwnerFireActivationCount - AmmoPredictionBefore.OwnerFireActivationCount >= StressActivations &&
+			AmmoPredictionLatest.FinalResultCount - AmmoPredictionBefore.FinalResultCount >= StressActivations &&
+			AmmoPredictionLatest.PendingShots == 0 && AmmoPredictionLatest.UnresolvedLedgerCount == 0)
+		{
+			const int32 Shots = Weapon->GetAuthorityShotCountForAutomationTest() - AmmoPredictionAuthorityShotsBefore;
+			const int32 Finals = AmmoPredictionLatest.FinalResultCount - AmmoPredictionBefore.FinalResultCount;
+			const int32 Pending = AmmoPredictionLatest.PendingShots;
+			const int32 Unresolved = AmmoPredictionLatest.UnresolvedLedgerCount;
+			const FString Detail = FString::Printf(TEXT("Shots=%d Finals=%d Pending=%d Unresolved=%d Peak=%d"),
+				Shots, Finals, Pending, Unresolved, AmmoPredictionLatest.PeakUnresolvedLedgers);
+			const bool bConverged = Shots == StressActivations && Finals == StressActivations;
+			ConcludeAmmoPredictionCase(TEXT("MultiActivationFinal"), bConverged, Detail);
+			StartAmmoPredictionStep(StepDone);
+		}
+		return;
 	case StepDone:
 		if (!bAmmoPredictionStepCommandSent)
 		{
 			bAmmoPredictionStepCommandSent = true;
-			ClearAmmoPredictionServerTag();
-			UE_LOG(
-				LogShootGame,
-				Display,
-				TEXT("AUTOMATION_TEST_AMMO_PREDICTION_DONE Cases=5 Converged=%d Mismatches=%d"),
-				AmmoPredictionConvergedCount,
-				AmmoPredictionMismatchCount);
-			bAmmoPredictionFinished = true;
+			for (TActorIterator<AShooterNetworkTestCoordinator> It(GetWorld()); It; ++It)
+			{
+				if (It->GetOwner() != Driver)
+				{
+					It->ClientVerifyAmmoPredictionObserver(AmmoPredictionSubjectPlayerId);
+				}
+			}
+			return;
+		}
+		for (TActorIterator<AShooterNetworkTestCoordinator> It(GetWorld()); It; ++It)
+		{
+			if (It->GetOwner() != Driver && !It->bAmmoPredictionObserverVerified)
+			{
+				return;
+			}
+		}
+		ClearAmmoPredictionServerTag();
+		if (AmmoPredictionConvergedCount != 6 || AmmoPredictionMismatchCount != 0)
+		{
+			FailTest(TEXT("Ammo prediction cases did not all converge; DONE is not a success marker"));
+		}
+		UE_LOG(LogShootGame, Display, TEXT("AUTOMATION_TEST_AMMO_PREDICTION_DONE Cases=6 Converged=%d Mismatches=%d"),
+			AmmoPredictionConvergedCount, AmmoPredictionMismatchCount);
+		for (TActorIterator<AShooterNetworkTestCoordinator> It(GetWorld()); It; ++It)
+		{
+			It->bAmmoPredictionFinished = true;
 		}
 		return;
 	default:
@@ -1084,7 +1278,59 @@ void AShooterNetworkTestCoordinator::CleanupAmmoPredictionTest()
 	AmmoPredictionObservedASC.Reset();
 }
 
+void AShooterNetworkTestCoordinator::ClientSubmitAmmoPredictionStress_Implementation(int32 Step)
+{
+	if (AmmoPredictionClientStep == Step && AmmoPredictionSubject.IsValid())
+	{
+		AmmoPredictionStressRemaining = ShooterAmmoPredictionNetworkTests::StressActivations;
+		AmmoPredictionStressNextTime = GetWorld()->GetTimeSeconds();
+	}
+}
+
+void AShooterNetworkTestCoordinator::ClientVerifyAmmoPredictionObserver_Implementation(int32 SubjectPlayerId)
+{
+	AShooterWeapon* ObservedWeapon = nullptr;
+	for (TActorIterator<AShooterCharacter> It(GetWorld()); It; ++It)
+	{
+		if (It->GetPlayerState() && It->GetPlayerState()->GetPlayerId() == SubjectPlayerId)
+		{
+			ObservedWeapon = It->GetCurrentWeaponActor();
+			break;
+		}
+	}
+	const APawn* ObservedPawn = ObservedWeapon ? Cast<APawn>(ObservedWeapon->GetOwner()) : nullptr;
+	const bool bValid = IsValid(ObservedWeapon) && ObservedPawn && !ObservedPawn->IsLocallyControlled();
+	ServerReportAmmoPredictionObserver(bValid,
+		ObservedWeapon ? ObservedWeapon->GetConfirmedBackfillCountForAutomationTest() : INDEX_NONE,
+		ObservedWeapon ? ObservedWeapon->GetFinalResultReceivedCountForTest() : INDEX_NONE);
+}
+
+void AShooterNetworkTestCoordinator::ServerReportAmmoPredictionObserver_Implementation(bool bValid,
+	int32 BackfillCount, int32 FinalResultCount)
+{
+	if (!bValid || BackfillCount != 0 || FinalResultCount != 0)
+	{
+		FailTest(TEXT("Ammo prediction observer received owner-only feedback or final result"));
+		return;
+	}
+	UE_LOG(LogShootGame, Display, TEXT("AMMO_PREDICTION_OBSERVER_SUCCESS Backfill=0 Finals=0"));
+	bAmmoPredictionObserverVerified = true;
+}
+
 #else
+
+void AShooterNetworkTestCoordinator::ClientSubmitAmmoPredictionStress_Implementation(int32 Step)
+{
+}
+
+void AShooterNetworkTestCoordinator::ClientVerifyAmmoPredictionObserver_Implementation(int32 SubjectPlayerId)
+{
+}
+
+void AShooterNetworkTestCoordinator::ServerReportAmmoPredictionObserver_Implementation(bool bValid,
+	int32 BackfillCount, int32 FinalResultCount)
+{
+}
 
 void AShooterNetworkTestCoordinator::ClientPrepareAmmoPredictionStep_Implementation(int32 SubjectPlayerId, int32 Step)
 {

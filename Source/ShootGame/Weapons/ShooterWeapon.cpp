@@ -239,6 +239,13 @@ void AShooterWeapon::InitializeWeaponOwner()
 void AShooterWeapon::ClearWeaponOwner()
 {
 	ResetMagazinePresentation();
+	CancelOwnerConfirmedFeedback();
+	if (UShooterGameplayAbility_Fire* Ability = Cast<UShooterGameplayAbility_Fire>(BoundPredictionAbility.Get()))
+	{
+		Ability->InvalidateWeaponPredictionContext(this);
+	}
+	++AmmoPredictionGeneration;
+	NextConfirmedFeedbackTime = 0.0;
 
 	if (CachedWeaponOwnerActor)
 	{
@@ -529,6 +536,62 @@ int32 AShooterWeapon::GetBulletCount() const
 	return MagazineAmmo;
 }
 
+void AShooterWeapon::RefreshAuthorityAmmoDisplaySnapshot()
+{
+	if (HasAuthority() && (AmmoDisplaySnapshot.Revision == 0 || AmmoDisplaySnapshot.Magazine != MagazineAmmo ||
+		AmmoDisplaySnapshot.Reserve != ReserveAmmo))
+	{
+		++AmmoDisplaySnapshot.Revision;
+		AmmoDisplaySnapshot.Magazine = MagazineAmmo;
+		AmmoDisplaySnapshot.Reserve = ReserveAmmo;
+	}
+}
+
+void AShooterWeapon::OnRep_AmmoDisplaySnapshot()
+{
+	AmmoDisplayState.ReceiveSnapshot(AmmoDisplaySnapshot);
+	PushAmmoToOwnerHud();
+}
+
+int32 AShooterWeapon::GetDisplayedMagazineAmmo() const
+{
+	return IsAmmoPredictionContext() ? AmmoDisplayState.GetMagazine(MagazineAmmo) : MagazineAmmo;
+}
+
+int32 AShooterWeapon::GetDisplayedReserveAmmo() const
+{
+	return IsAmmoPredictionContext() ? AmmoDisplayState.GetReserve(ReserveAmmo) : ReserveAmmo;
+}
+
+void AShooterWeapon::BeginAmmoDisplayActivation(int32 PredictionKey)
+{
+	if (IsAmmoPredictionContext())
+	{
+		FShooterAmmoDisplaySnapshot Initial = AmmoDisplaySnapshot;
+		if (Initial.Revision == 0)
+		{
+			Initial.Magazine = MagazineAmmo;
+			Initial.Reserve = ReserveAmmo;
+		}
+		AmmoDisplayState.BeginActivation(PredictionKey, Initial);
+	}
+}
+
+void AShooterWeapon::RecordAmmoDisplayPredictedShot(int32 PredictionKey)
+{
+	if (IsAmmoPredictionContext())
+	{
+		AmmoDisplayState.PredictShot(PredictionKey);
+		PushAmmoToOwnerHud();
+	}
+}
+
+void AShooterWeapon::RejectAmmoDisplayActivation(int32 PredictionKey)
+{
+	AmmoDisplayState.RejectActivation(PredictionKey);
+	PushAmmoToOwnerHud();
+}
+
 int32 AShooterWeapon::GetReserveAmmo() const
 {
 	return ReserveAmmo;
@@ -562,6 +625,7 @@ void AShooterWeapon::RestoreInitialAmmo()
 	// 入库/归还即回到该武器静态配置声明的初始弹药经济。
 	MagazineAmmo = MagazineSize;
 	ReserveAmmo = ResolveInitialReserveAmmo();
+	RefreshAuthorityAmmoDisplaySnapshot();
 	ForceNetUpdate();
 }
 
@@ -601,6 +665,7 @@ bool AShooterWeapon::ReloadFromReserve(int32& OutTransferredAmmo)
 
 void AShooterWeapon::PushAmmoToOwnerHud()
 {
+	RefreshAuthorityAmmoDisplaySnapshot();
 	// 弹药字段是 COND_OwnerOnly：OnRep 只在拥有端触发，服务器推送只发生在权威端，
 	// 因此无需再判 IsLocallyControlled（无控制器的测试角色同样需要 HUD 事件）。
 	// 未装备（隐藏）的武器不推 HUD：拾取入库阶段保持静默，装备表现收敛时统一推送。
@@ -609,7 +674,19 @@ void AShooterWeapon::PushAmmoToOwnerHud()
 		return;
 	}
 
-	WeaponOwner->UpdateWeaponHUD(MagazineAmmo, MagazineSize, ReserveAmmo);
+	if (const AShooterCharacter* Character = Cast<AShooterCharacter>(GetOwner()))
+	{
+		// 迟到旧武器裁决仍可结账，但不能覆盖当前装备的 HUD。
+		if (Character->GetCurrentWeaponActor() != this)
+		{
+			return;
+		}
+	}
+	if (!HasAuthority() && !HasOwnerLocalPlayerView())
+	{
+		return;
+	}
+	WeaponOwner->UpdateWeaponHUD(GetDisplayedMagazineAmmo(), MagazineSize, GetDisplayedReserveAmmo());
 }
 
 void AShooterWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -623,6 +700,7 @@ void AShooterWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	DOREPLIFETIME(AShooterWeapon, WeaponId);
 	// 最近数轮 GA_Fire 的服务器结果只服务拥有者客户端的表现收敛。
 	DOREPLIFETIME_CONDITION(AShooterWeapon, FireActivationResults, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(AShooterWeapon, AmmoDisplaySnapshot, COND_OwnerOnly);
 }
 
 void AShooterWeapon::OnRep_MagazineAmmo(int32 OldMagazineAmmo)
@@ -709,6 +787,7 @@ void AShooterWeapon::RefundPredictedAmmo(int32 Amount)
 
 void AShooterWeapon::ResetAmmoPrediction()
 {
+	AmmoDisplayState.Reset();
 	if (PendingPredictedShots == 0)
 	{
 		return;
@@ -816,6 +895,27 @@ void AShooterWeapon::SettleAuthorityFireActivation()
 	OpenFireActivationResultSlot = INDEX_NONE;
 	ForceNetUpdate();
 	PublishAuthorityFireActivationResult(Result, /*bForceSettled*/ true);
+	// 一轮只发送一次最终结果。属性环可合并或覆盖，但最终账目不能据此丢失。
+	if (Result.ActivationKey > 0 && PawnOwner && PawnOwner->IsPlayerControlled() && !HasOwnerLocalPlayerView())
+	{
+		RefreshAuthorityAmmoDisplaySnapshot();
+		ClientFireActivationSettled(Result, AmmoDisplaySnapshot);
+	}
+}
+
+void AShooterWeapon::ClientFireActivationSettled_Implementation(const FShooterFireActivationResult& Result,
+	const FShooterAmmoDisplaySnapshot& Snapshot)
+{
+#if WITH_DEV_AUTOMATION_TESTS
+	++FinalResultReceivedCountForTest;
+#endif
+	UE_LOG(LogShootGame, Display, TEXT("FIRE_ACTIVATION_FINAL_RECEIVED Weapon=%s Key=%d Serial=%d Processed=%d"),
+		*GetNameSafe(this), Result.ActivationKey, Result.ActivationSerial, Result.ProcessedShots);
+	PublishAuthorityFireActivationResult(Result, /*bForceSettled*/ true);
+	if (AmmoDisplayState.SettleActivation(Result.ActivationKey, Snapshot))
+	{
+		PushAmmoToOwnerHud();
+	}
 }
 
 void AShooterWeapon::PublishAuthorityFireActivationResult(const FShooterFireActivationResult& Result, bool bForceSettled)
@@ -829,7 +929,7 @@ void AShooterWeapon::PublishAuthorityFireActivationResult(const FShooterFireActi
 	if (UShooterGameplayAbility_Fire* PredictionAbility =
 		Cast<UShooterGameplayAbility_Fire>(BoundPredictionAbility.Get()))
 	{
-		PredictionAbility->HandleAuthorityFireActivationResult(Result.ActivationKey, Result.ActivationSerial,
+		PredictionAbility->HandleAuthorityFireActivationResult(this, Result.ActivationKey, Result.ActivationSerial,
 			Result.ProcessedShots, bForceSettled || Result.bSettled);
 	}
 }
@@ -843,14 +943,7 @@ void AShooterWeapon::OnRep_FireActivationResults()
 		const FShooterFireActivationResult& ServerResult = FireActivationResults[Index];
 		FShooterFireActivationResult& CachedResult = CachedFireActivationResults[Index];
 
-		// 槽位换轮：服务器同一时刻只有一轮 Fire，旧轮必然已结束；先把旧轮按已观察值结清。
-		const bool bSlotReused = CachedResult.ActivationKey != 0 &&
-			(CachedResult.ActivationKey != ServerResult.ActivationKey || CachedResult.ActivationSerial != ServerResult.ActivationSerial);
-		if (bSlotReused)
-		{
-			FShooterFireActivationResult Finalized = CachedResult;
-			PublishAuthorityFireActivationResult(Finalized, /*bForceSettled*/ true);
-		}
+		// 槽位覆盖不能证明最终发数；旧轮等待可靠最终结果，不按缓存值伪造 Settled。
 
 		if (ServerResult.ActivationKey != 0)
 		{
@@ -937,6 +1030,11 @@ void AShooterWeapon::ActivateWeapon()
 void AShooterWeapon::DeactivateWeapon()
 {
 	ResetMagazinePresentation();
+	CancelOwnerConfirmedFeedback();
+	if (UShooterGameplayAbility_Fire* Ability = Cast<UShooterGameplayAbility_Fire>(BoundPredictionAbility.Get()))
+	{
+		Ability->SuppressWeaponConfirmedFeedback(this);
+	}
 
 	// 权威端重复卸下幂等：池内或已收起时不重复触发表现回调。
 	// 客户端不做该提前返回，保持与池化前的本地隐藏时机一致。
@@ -1133,7 +1231,63 @@ bool AShooterWeapon::PlayOwnerPredictedShotFeedback()
 
 bool AShooterWeapon::PlayOwnerConfirmedShotFeedback()
 {
-	return PlayOwnerShotFeedbackInternal(/*bConfirmedBackfill*/ true);
+	if (!IsOwnerConfirmedFeedbackTargetValid() || (!FiringMontage && !MuzzleFlash && !FireSound && FMath::IsNearlyZero(FiringRecoil)))
+	{
+		return false;
+	}
+	++PendingConfirmedFeedback;
+	if (!GetWorld()->GetTimerManager().IsTimerActive(ConfirmedFeedbackTimer))
+	{
+		DrainOwnerConfirmedFeedback();
+	}
+	return true;
+}
+
+bool AShooterWeapon::IsOwnerConfirmedFeedbackTargetValid() const
+{
+	const AShooterCharacter* Character = Cast<AShooterCharacter>(GetOwner());
+	return GetWorld() && !IsRunningDedicatedServer() && HasOwnerLocalPlayerView() && !IsHidden() &&
+		!IsActorBeingDestroyed() && Character && Character->GetCurrentWeaponActor() == this;
+}
+
+void AShooterWeapon::CancelOwnerConfirmedFeedback()
+{
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(ConfirmedFeedbackTimer);
+	}
+	if (PendingConfirmedFeedback > 0)
+	{
+		UE_LOG(LogShootGame, Display, TEXT("FIRE_CONFIRMED_QUEUE_CANCEL Weapon=%s Amount=%d"),
+			*GetNameSafe(this), PendingConfirmedFeedback);
+	}
+	PendingConfirmedFeedback = 0;
+}
+
+void AShooterWeapon::DrainOwnerConfirmedFeedback()
+{
+	if (!IsOwnerConfirmedFeedbackTargetValid())
+	{
+		CancelOwnerConfirmedFeedback();
+		return;
+	}
+	UWorld* World = GetWorld();
+	const double Now = World->GetTimeSeconds();
+	if (PendingConfirmedFeedback > 0 && Now + UE_SMALL_NUMBER >= NextConfirmedFeedbackTime)
+	{
+		--PendingConfirmedFeedback;
+		if (!PlayOwnerShotFeedbackInternal(/*bConfirmedBackfill*/ true))
+		{
+			UE_LOG(LogShootGame, Display, TEXT("FIRE_CONFIRMED_FEEDBACK_SUPPRESSED Weapon=%s Reason=Unavailable"), *GetNameSafe(this));
+		}
+		NextConfirmedFeedbackTime = Now + FMath::Max(RefireRate, 0.01f);
+	}
+	if (PendingConfirmedFeedback > 0)
+	{
+		const float Delay = FMath::Max(static_cast<float>(NextConfirmedFeedbackTime - Now), 0.001f);
+		World->GetTimerManager().SetTimer(ConfirmedFeedbackTimer, this,
+			&AShooterWeapon::DrainOwnerConfirmedFeedback, Delay, false);
+	}
 }
 
 bool AShooterWeapon::PlayOwnerShotFeedbackInternal(bool bConfirmedBackfill)
@@ -1219,6 +1373,10 @@ bool AShooterWeapon::PlayOwnerShotFeedbackInternal(bool bConfirmedBackfill)
 	}
 #endif
 
+	if (bPlayedAny && GetWorld())
+	{
+		NextConfirmedFeedbackTime = GetWorld()->GetTimeSeconds() + FMath::Max(RefireRate, 0.01f);
+	}
 	return bPlayedAny;
 }
 

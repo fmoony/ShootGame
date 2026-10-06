@@ -6,6 +6,7 @@
 
 #include "AbilitySystem/ShooterAbilitySystemComponent.h"
 #include "AbilitySystem/ShooterGameplayTags.h"
+#include "AbilitySystem/ShooterAttributeSet.h"
 #include "Characters/ShooterCharacter.h"
 #include "Engine/Engine.h"
 #include "Engine/World.h"
@@ -58,7 +59,8 @@ namespace ShooterAbilityInputBufferAutomationTests
 	 * 建立「本机拥有者视图 + ShooterPlayerState ASC」最小上下文。
 	 * 只有同时满足 IsPlayerControlled 与本地控制器，ASC 才会进入输入处理路径。
 	 */
-	UShooterAbilitySystemComponent* CreateLocalInputContext(FAutomationTestBase& Test, UWorld* World, AShooterPlayerState*& OutPlayerState)
+	UShooterAbilitySystemComponent* CreateLocalInputContext(FAutomationTestBase& Test, UWorld* World,
+		AShooterPlayerState*& OutPlayerState, bool bLateOwner = false)
 	{
 		OutPlayerState = nullptr;
 		if (!World)
@@ -79,7 +81,7 @@ namespace ShooterAbilityInputBufferAutomationTests
 		// ASC 的 FGameplayAbilityActorInfo 从 OwnerActor 的所有者链解析 PlayerController，
 		// 因此 PlayerState 必须由 PlayerController 拥有，才能构成本机拥有者视图。
 		FActorSpawnParameters PlayerStateSpawnParameters;
-		PlayerStateSpawnParameters.Owner = PlayerController;
+		PlayerStateSpawnParameters.Owner = bLateOwner ? nullptr : PlayerController;
 		PlayerStateSpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 		AShooterPlayerState* PlayerState = World->SpawnActor<AShooterPlayerState>(
 			AShooterPlayerState::StaticClass(), PlayerStateSpawnParameters);
@@ -102,9 +104,12 @@ namespace ShooterAbilityInputBufferAutomationTests
 			return nullptr;
 		}
 
-		Test.TestTrue(TEXT("input buffer ASC has a locally controlled player view"),
-			AbilitySystemComponent->AbilityActorInfo.IsValid() &&
-			AbilitySystemComponent->AbilityActorInfo->IsLocallyControlledPlayer());
+		if (!bLateOwner)
+		{
+			Test.TestTrue(TEXT("input buffer ASC has a locally controlled player view"),
+				AbilitySystemComponent->AbilityActorInfo.IsValid() &&
+				AbilitySystemComponent->AbilityActorInfo->IsLocallyControlledPlayer());
+		}
 		OutPlayerState = PlayerState;
 		return AbilitySystemComponent;
 	}
@@ -784,6 +789,127 @@ bool FShooterInputBufferLifecycleResetsHeldInputPressedTest::RunTest(const FStri
 	TestEqual(TEXT("invalidated held intent does not activate again"),
 		Ability->ActivationCountForTest, ActivationCountBeforeInvalidate);
 
+	DestroyInputBufferTestWorld(World);
+	return true;
+}
+
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterActorInfoLateOwnerTest, "ShootGame.GAS.ActorInfo.LateOwnerRefresh",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FShooterActorInfoLateOwnerTest::RunTest(const FString& Parameters)
+{
+	using namespace ShooterAbilityInputBufferAutomationTests;
+	// 不篡改 ActorInfo 缓存：真实初始化时 Owner 链尚未关联，随后补齐并投递生命周期通知。
+	for (int32 Hook = 0; Hook < 3; ++Hook)
+	{
+		UWorld* World = CreateInputBufferTestWorld();
+		AShooterPlayerState* PlayerState = nullptr;
+		UShooterAbilitySystemComponent* ASC = CreateLocalInputContext(*this, World, PlayerState, true);
+		if (!ASC)
+		{
+			DestroyInputBufferTestWorld(World);
+			return false;
+		}
+		AShooterWeaponPresentationTestCharacter* Character = Cast<AShooterWeaponPresentationTestCharacter>(ASC->GetAvatarActor());
+		APlayerController* Controller = Character ? Cast<APlayerController>(Character->GetController()) : nullptr;
+		if (!TestNotNull(TEXT("late owner controller exists"), Controller))
+		{
+			DestroyInputBufferTestWorld(World);
+			return false;
+		}
+		TestFalse(TEXT("initial cached controller is absent"), ASC->AbilityActorInfo->PlayerController.IsValid());
+		TestFalse(TEXT("initial context is not a local player"), ASC->AbilityActorInfo->IsLocallyControlledPlayer());
+		PlayerState->SetOwner(Controller);
+		switch (Hook)
+		{
+		case 0:
+			// 临时世界未 InitializeActorsForPlay，绕过 AActor 的世界初始化门控，仍调用原生 RepNotify 分发。
+			PlayerState->UObject::ProcessEvent(PlayerState->FindFunctionChecked(TEXT("OnRep_Owner")), nullptr);
+			break;
+		case 1:
+			Character->OnRep_Controller();
+			break;
+		case 2:
+			Character->PawnClientRestart();
+			break;
+		}
+		const FString Label = FString::Printf(TEXT("late owner hook %d refreshes local context"), Hook);
+		if (!TestTrue(Label, ASC->AbilityActorInfo->IsLocallyControlledPlayer()))
+		{
+			DestroyInputBufferTestWorld(World);
+			continue;
+		}
+		APlayerController* CachedController = ASC->AbilityActorInfo->PlayerController.Get();
+		TestEqual(TEXT("cached controller matches actual possession"), CachedController, Controller);
+		UShooterInputBufferTestAbility* Ability = GrantInputBufferTestAbility(*this, ASC, UShooterInputBufferTestAbility::StaticClass());
+		if (Ability)
+		{
+			ASC->AbilityInputTagPressed(ShooterGameplayTags::Input_Fire);
+			ASC->AbilityInputTagReleased(ShooterGameplayTags::Input_Fire);
+			ASC->ProcessAbilityInputForTest();
+			TestEqual(TEXT("first short press activates exactly once"), Ability->ActivationCountForTest, 1);
+			ASC->ProcessAbilityInputForTest();
+			TestEqual(TEXT("no replay on the next frame"), Ability->ActivationCountForTest, 1);
+			TestEqual(TEXT("released input leaves no held intent"), ASC->GetHeldInputTagCountForTest(), 0);
+		}
+		DestroyInputBufferTestWorld(World);
+	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterActorInfoRefreshLifetimeTest, "ShootGame.GAS.ActorInfo.RefreshLifetime",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FShooterActorInfoRefreshLifetimeTest::RunTest(const FString& Parameters)
+{
+	using namespace ShooterAbilityInputBufferAutomationTests;
+	UWorld* World = CreateInputBufferTestWorld();
+	AShooterPlayerState* PlayerState = nullptr;
+	UShooterAbilitySystemComponent* ASC = CreateLocalInputContext(*this, World, PlayerState);
+	UShooterInputBufferTestAbility* Ability = GrantInputBufferTestAbility(*this, ASC, UShooterInputBufferTestAbility::StaticClass());
+	if (!ASC || !Ability)
+	{
+		DestroyInputBufferTestWorld(World);
+		return false;
+	}
+	AShooterWeaponPresentationTestCharacter* Character = Cast<AShooterWeaponPresentationTestCharacter>(ASC->GetAvatarActor());
+	ASC->AddAttributeSetSubobject(PlayerState->GetAttributeSet());
+	ASC->SetNumericAttributeBase(UShooterAttributeSet::GetMaxHealthAttribute(), 100.0f);
+	ASC->SetNumericAttributeBase(UShooterAttributeSet::GetHealthAttribute(), 37.0f);
+	const int32 SpecsBefore = ASC->GetActivatableAbilities().Num();
+	ASC->AddLooseGameplayTag(ShooterGameplayTags::State_Reloading);
+	ASC->AbilityInputTagPressed(ShooterGameplayTags::Input_Fire);
+	ASC->ProcessAbilityInputForTest();
+	TestEqual(TEXT("blocked press starts one buffer"), ASC->GetBufferedInputCountForTest(), 1);
+	Character->OnRep_PlayerState();
+	Character->OnRep_Controller();
+	Character->PawnClientRestart();
+	PlayerState->UObject::ProcessEvent(PlayerState->FindFunctionChecked(TEXT("OnRep_Owner")), nullptr);
+	TestEqual(TEXT("same avatar refresh keeps held intent"), ASC->GetHeldInputTagCountForTest(), 1);
+	TestEqual(TEXT("same avatar refresh keeps buffered intent"), ASC->GetBufferedInputCountForTest(), 1);
+	const float Health = ASC->GetNumericAttribute(UShooterAttributeSet::GetHealthAttribute());
+	TestEqual(TEXT("same avatar refresh does not reset damaged health"), Health, 37.0f);
+	TestEqual(TEXT("refresh does not grant duplicate specs"), ASC->GetActivatableAbilities().Num(), SpecsBefore);
+	ASC->RemoveLooseGameplayTag(ShooterGameplayTags::State_Reloading);
+	ASC->ProcessAbilityInputForTest();
+	TestEqual(TEXT("preserved intent is consumed once"), Ability->ActivationCountForTest, 1);
+	ASC->AbilityInputTagReleased(ShooterGameplayTags::Input_Fire);
+	ASC->ProcessAbilityInputForTest();
+	ASC->AbilityInputTagPressed(ShooterGameplayTags::Input_Fire);
+	AShooterWeaponPresentationTestCharacter* NewCharacter =
+		World->SpawnActor<AShooterWeaponPresentationTestCharacter>(FVector::ZeroVector, FRotator::ZeroRotator);
+	if (!TestNotNull(TEXT("new avatar spawned"), NewCharacter))
+	{
+		DestroyInputBufferTestWorld(World);
+		return false;
+	}
+	NewCharacter->SetPlayerState(PlayerState);
+	NewCharacter->OnRep_PlayerState();
+	TestEqual(TEXT("new avatar invalidates old held intent"), ASC->GetHeldInputTagCountForTest(), 0);
+	TestEqual(TEXT("new avatar invalidates old buffered intent"), ASC->GetBufferedInputCountForTest(), 0);
+	ASC->ProcessAbilityInputForTest();
+	TestEqual(TEXT("old press is not replayed on the new avatar"), Ability->ActivationCountForTest, 1);
 	DestroyInputBufferTestWorld(World);
 	return true;
 }
