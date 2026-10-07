@@ -4,6 +4,8 @@
 
 #if WITH_DEV_AUTOMATION_TESTS
 
+#include "Tests/Network/ShooterNetworkObservationTypes.h"
+
 #include "AbilitySystemComponent.h"
 #include "Abilities/GameplayAbility.h"
 #include "Animation/AnimInstance.h"
