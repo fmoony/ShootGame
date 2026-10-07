@@ -223,6 +223,29 @@ Owner FP Presentation 与 Remote TP Presentation 是两条不同契约：
 当前契约只要求表现来源经过服务器确认；若确认通道使用 Unreliable RPC，
 不额外承诺丢包环境下每一份纯表现都最终送达。
 
+**远端确认的验证口径（批次身份）**：
+
+远端 Exact 只在「同一个明确冻结的 Authority Shot 批次」与
+「Observer 对同一批次的表现计数」之间成立，
+不能用"双方碰巧观察了差不多同样长的时间"代替：
+
+- Authority 边界由 Target 的 FullAuto Action Stage 决定：
+  起点在该阶段开始时冻结，终点在该阶段真正结束（释放 + 静默期内不再有新结果）时冻结，
+  `ExpectedDelta = End - Start`，此后不再改变；
+- Target 批次的第一发必须晚于 Observer 的四条基线；
+  基线就绪由 TEST-ONLY 就绪 ack 保证，不依赖"正常情况下 RPC 足够快"；
+  基线锚定在"被观测批次的起点"，不锚定在观测端自己的起点
+  （后者可能早于上一阶段表现的到达）；
+- Owner 的观测窗口在 Target 的射击动作结束时收口，
+  该边界由服务器在收到拥有者释放上报时发出；
+  权威终点仍在静默期验证之后冻结，两者由残留检查保证相等；
+  stable 只作为"该批次表现是否已经到达"的余量取证，不承担边界判定；
+- 批次收口之后，下一阶段（SwitchCancel / Reload / 其它 Fire）产生的新 Shot
+  允许正常发生、正常复制并正常被观察端看到，但不得进入上一批次的比较。
+
+Exact 是受控测试环境下的强诊断不变量（无 PktLag / PktLoss），
+不是生产网络对 Unreliable 纯表现的投递承诺；存在丢包模拟时不沿用同一 Exact 语义。
+
 **反例（出现即 FAIL）**：
 
 - Remote 端表现由 Owner 本地预测路径触发；

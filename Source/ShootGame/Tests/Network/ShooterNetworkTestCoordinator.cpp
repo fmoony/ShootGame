@@ -48,6 +48,19 @@ namespace ShooterNetworkTest
 {
 	constexpr float PollIntervalSeconds = 0.1f;
 	constexpr float TimeoutSeconds = 60.0f;
+	/**
+	 * 远端批次开始边界的诊断上限：只把"观察端基线永远不到"变成明确的失败原因。
+	 * 它不是批次语义的一部分，也不允许用来"多等一会儿"掩盖开始边界 race。
+	 */
+	constexpr float RemoteBatchStartGateDiagnosticSeconds = 10.0f;
+	/**
+	 * 生产本地节拍的允许提前量镜像：AShooterWeapon::AuthorityRefireTolerance（protected，测试不可引用）。
+	 * 全自动本地节拍允许最多提前该量提交（既不发出注定被拒的请求，也不重新锚定相位），
+	 * 因此"明显滞后的起手之后紧接的那一发"其间隔合法下限是 RefireRate - 该量，而不是 RefireRate。
+	 *
+	 * 该镜像保持现状，不新增 getter、不改生产可见性；统一为 Server Rate Gate 专项处理时一并收敛。
+	 */
+	constexpr float AuthorityRefireToleranceSeconds = 0.015f;
 	const TCHAR* RifleClassPath = TEXT("/Game/Shooter/Blueprints/Weapons/BP_ShooterWeapon_Rifle.BP_ShooterWeapon_Rifle_C");
 	const TCHAR* PistolClassPath = TEXT("/Game/Shooter/Blueprints/Weapons/BP_ShooterWeapon_Pistol.BP_ShooterWeapon_Pistol_C");
 	// A4 起授予数据源是 DT_WeaponData 的正式武器模板行；
@@ -207,7 +220,9 @@ AShooterNetworkTestCoordinator::AShooterNetworkTestCoordinator()
 
 	// P1-D 远端第三人称确认表现：MulticastPlayFiringFX 是 Unreliable RPC，
 	// Emulated（PktLag / PktLoss）允许丢包，只要求"不重复且至少收到一次"；
-	// Dedicated / Listen 没有丢包，要求远端确认增量与该武器在同一窗口内的权威射击增量相等。
+	// Dedicated / Listen 没有丢包，要求观察端四路增量逐路等于"同一冻结批次"的权威 Shot 数。
+	// 比较前必须先把批次的两个边界冻结：起点 = Target 的 FullAuto Action Stage 开始，
+	// 终点 = 该 Action Stage 真正结束（不再有属于本批次的 Shot）。没有批次身份的 exact 没有意义。
 	float RemoteConfirmedPktLagMs = 0.0f;
 	int32 RemoteConfirmedPktLossPercent = 0;
 	const bool bNoPktLag = !FParse::Value(FCommandLine::Get(), TEXT("PktLag="), RemoteConfirmedPktLagMs);
@@ -1241,6 +1256,13 @@ void AShooterNetworkTestCoordinator::GetLifetimeReplicatedProps(TArray<FLifetime
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyToFire);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyForFullAuto);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyForSemiAutoRapidClick);
+	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerOwnBatchStartAllowed);
+	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerObservedBatchArmed);
+	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerObservedBatchFireEnded);
+	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerObservedBatchFrozen);
+	DOREPLIFETIME(AShooterNetworkTestCoordinator, ServerObservedBatchAuthorityStart);
+	DOREPLIFETIME(AShooterNetworkTestCoordinator, ServerObservedBatchAuthorityEnd);
+	DOREPLIFETIME(AShooterNetworkTestCoordinator, ServerObservedBatchExpectedDelta);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyForSwitchCancel);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, ReloadFirePhase);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, ReloadFireRequestId);
@@ -1944,18 +1966,90 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			bFullAutoPhaseTriggered = true;
 			BulletCountBeforeFullAuto = CurrentBulletCount;
 			ProjectileCountBeforeFullAuto = ProjectileSpawnCount;
-			// P1-D：同一窗口内分别快照我方与对手武器的权威射击计数，
-			// 供远端第三人称确认表现证据做同窗口增量比较。
 			AuthorityShotsBeforeFullAuto = ServerInventoryFirstWeapon.IsValid()
 				? ServerInventoryFirstWeapon->GetAuthorityShotCountForAutomationTest()
 				: INDEX_NONE;
+			// 批次身份与起点：本批次只统计这把武器，起点在此冻结，之后不再由任何现场读取改写。
+			OwnRemoteBatchWeapon = ServerInventoryFirstWeapon;
+			OwnRemoteFullAutoBatch.Arm(AuthorityShotsBeforeFullAuto);
+			// 观察端（对手）在本玩家批次期间观测的武器引用，只用于核对双方看的是同一把武器。
 			RemoteObservedWeaponAtBurstStart = GetCurrentWeapon(GetOpponentCharacter());
-			RemoteAuthorityShotsBeforeFullAuto = RemoteObservedWeaponAtBurstStart.IsValid()
-				? RemoteObservedWeaponAtBurstStart->GetAuthorityShotCountForAutomationTest()
-				: INDEX_NONE;
+			RemoteBatchArmServerTime = GetWorld()->GetTimeSeconds();
 			bServerReadyForFullAuto = true;
+			// 开始边界：先把"本批次已经 Arm"送到观察端，让它在该批次第一发之前建立四路基线；
+			// 观察端的就绪 ack 回来之前，本玩家不得开火。
+			bObservedBatchArmedNotified = false;
+			if (AShooterNetworkTestCoordinator* ObserverCoordinator = FindOpponentCoordinator())
+			{
+				ObserverCoordinator->NotifyObservedBatchArmed();
+				bObservedBatchArmedNotified = true;
+			}
+			RefreshRemoteBatchStartGate();
+			UE_LOG(LogShootGame, Display, TEXT(
+					"REMOTE_BATCH_AUTH_START TargetPlayerId=%d ObserverPlayerId=%d Weapon=%s Stage=FullAuto "
+					"AuthorityStart=%d ObserverHasPath=%s ObserverNotified=%s ObserverBaselineReady=%s "
+					"StartAllowed=%s ArmTime=%.3f"),
+				GetTestPlayerIdForTest(),
+				GetOpponentPlayerIdForTest(),
+				*GetNameSafe(OwnRemoteBatchWeapon.Get()),
+				AuthorityShotsBeforeFullAuto,
+				OwnRemoteBatchStartGate.bObserverHasObservationPath ? TEXT("true") : TEXT("false"),
+				bObservedBatchArmedNotified ? TEXT("true") : TEXT("false"),
+				OwnRemoteBatchStartGate.bObserverBaselineReady ? TEXT("true") : TEXT("false"),
+				bServerOwnBatchStartAllowed ? TEXT("true") : TEXT("false"),
+				RemoteBatchArmServerTime);
 			ForceNetUpdate();
 			return;
+		}
+	}
+
+	// 批次开始边界推进：起点已经冻结，观察端四路基线还没就绪时，客户端不得开火。
+	// 这里只推进 TEST-ONLY 就绪握手，不放宽任何生产输入语义，也不用固定等待解决批次问题。
+	if (bServerReadyForFullAuto)
+	{
+		if (!bServerOwnBatchStartAllowed)
+		{
+			RefreshRemoteBatchStartGate();
+		}
+
+		// 顺序证据：本批次第一发权威 Shot 必须晚于"观察端基线就绪"的服务器时刻。
+		if (!bOwnBatchFirstAuthorityShotSeen && ServerInventoryFirstWeapon.IsValid() &&
+			AuthorityShotsBeforeFullAuto != INDEX_NONE &&
+			ServerInventoryFirstWeapon->GetAuthorityShotCountForAutomationTest() > AuthorityShotsBeforeFullAuto)
+		{
+			bOwnBatchFirstAuthorityShotSeen = true;
+			OwnBatchFirstAuthorityShotServerTime = GetWorld()->GetTimeSeconds();
+		}
+
+		// 上限只用于把"观察端基线永远不到"变成明确失败原因：它不参与批次边界判定。
+		if (!bServerOwnBatchStartAllowed && !bRemoteBatchStartGateFailureReported &&
+			RemoteBatchArmServerTime > 0.0f &&
+			GetWorld()->GetTimeSeconds() - RemoteBatchArmServerTime >= ShooterNetworkTest::RemoteBatchStartGateDiagnosticSeconds)
+		{
+			bRemoteBatchStartGateFailureReported = true;
+			FailTest(FString::Printf(
+				TEXT("Remote batch start gate never opened; TargetPlayerId=%d ObserverPlayerId=%d HasPath=%s ")
+				TEXT("ObserverBaselineReady=%s Elapsed=%.3f"),
+				GetTestPlayerIdForTest(),
+				GetOpponentPlayerIdForTest(),
+				OwnRemoteBatchStartGate.bObserverHasObservationPath ? TEXT("true") : TEXT("false"),
+				OwnRemoteBatchStartGate.bObserverBaselineReady ? TEXT("true") : TEXT("false"),
+				GetWorld()->GetTimeSeconds() - RemoteBatchArmServerTime));
+			return;
+		}
+	}
+
+	// 观察端边界镜像：本玩家正在观测的对手批次一旦被权威冻结，就记录该边界并尝试完成比较。
+	// 正常路径由对手 Coordinator 在冻结的同一拍直接通知（见 NotifyObservedBatchFrozen），
+	// 这里只是同一事实的轮询兜底，保证通知丢失时不会漏掉比较。
+	if (bServerReadyForFullAuto)
+	{
+		AShooterNetworkTestCoordinator* ObservedTargetCoordinator = FindOpponentCoordinator();
+		if (ObservedTargetCoordinator && ObservedTargetCoordinator->OwnRemoteFullAutoBatch.IsFrozen())
+		{
+			NotifyObservedBatchFrozen(ObservedTargetCoordinator->OwnRemoteFullAutoBatch.AuthorityStart,
+				ObservedTargetCoordinator->OwnRemoteFullAutoBatch.AuthorityEnd,
+				ObservedTargetCoordinator->GetOwnRemoteBatchAuthorityDeltaForTest());
 		}
 	}
 
@@ -1991,6 +2085,53 @@ void AShooterNetworkTestCoordinator::PollServerState()
 					ProjectileCountAfterRelease, ProjectileSpawnCount, AmmoAfterRelease, RifleAmmoNow));
 				return;
 			}
+
+			// 批次结束边界：Action Stage 真正结束（释放 + 静默期内没有新弹丸、弹药不再变化）时
+			// 才冻结权威终点。之后 SwitchCancel / Reload / 其它 Fire 阶段再打多少发都不会改写它，
+			// Observer 上报晚到多久也不会污染这个已冻结批次。
+			const int32 AuthorityEndCount = ServerInventoryFirstWeapon.IsValid()
+				? ServerInventoryFirstWeapon->GetAuthorityShotCountForAutomationTest()
+				: INDEX_NONE;
+			const int32 ExpectedDelta = OwnRemoteFullAutoBatch.FreezeEnd(AuthorityEndCount);
+			OwnRemoteBatchFrozenServerTime = GetWorld()->GetTimeSeconds();
+			// 同一个 tick 内直接通知观察端：下一阶段（SwitchCancel）的开火许可也在这一拍放行，
+			// 观察端窗口必须在此之前关闭，否则下一发的表现会被算进已冻结批次。
+			if (AShooterNetworkTestCoordinator* ObserverCoordinator = FindOpponentCoordinator())
+			{
+				ObserverCoordinator->NotifyObservedBatchFrozen(OwnRemoteFullAutoBatch.AuthorityStart,
+					OwnRemoteFullAutoBatch.AuthorityEnd, ExpectedDelta);
+			}
+			const bool bBaselineBeforeFirstShot = bOwnBatchObserverBaselineReadySeen &&
+				OwnBatchFirstAuthorityShotServerTime >= OwnBatchObserverBaselineReadyServerTime;
+			const bool bFirstShotAfterBaseline = !OwnRemoteBatchStartGate.bObserverHasObservationPath || bBaselineBeforeFirstShot;
+			const TCHAR* FirstShotOrder = bFirstShotAfterBaseline ? TEXT("true") : TEXT("false");
+			// 冻结值必须与"收口许可发出时"的权威 Shot 数相等：静默期残留检查已经保证
+			// 释放之后没有新的权威提交，因此观察端在收口许可时刻的快照覆盖的正是本批次全集。
+			const TCHAR* EndMatchesReleaseSignal = OwnBatchReleaseSignalCount == OwnRemoteFullAutoBatch.AuthorityEnd
+				? TEXT("true")
+				: TEXT("false");
+			UE_LOG(LogShootGame, Display, TEXT(
+					"REMOTE_BATCH_AUTH_END TargetPlayerId=%d ObserverPlayerId=%d Weapon=%s Stage=FullAuto "
+					"AuthorityStart=%d AuthorityEnd=%d ExpectedDelta=%d Frozen=%s ReleaseSignalCount=%d "
+					"EndMatchesReleaseSignal=%s ArmTime=%.3f BaselineReadyTime=%.3f FirstShotTime=%.3f "
+					"ReleaseSignalTime=%.3f FirstShotAfterBaseline=%s"),
+				GetTestPlayerIdForTest(),
+				GetOpponentPlayerIdForTest(),
+				*GetNameSafe(OwnRemoteBatchWeapon.Get()),
+				OwnRemoteFullAutoBatch.AuthorityStart,
+				OwnRemoteFullAutoBatch.AuthorityEnd,
+				ExpectedDelta,
+				OwnRemoteFullAutoBatch.IsFrozen() ? TEXT("true") : TEXT("false"),
+				OwnBatchReleaseSignalCount,
+				EndMatchesReleaseSignal,
+				RemoteBatchArmServerTime,
+				OwnBatchObserverBaselineReadyServerTime,
+				OwnBatchFirstAuthorityShotServerTime,
+				OwnBatchReleaseSignalServerTime,
+				bFirstShotAfterBaseline ? TEXT("true") : TEXT("false"));
+
+			// 权威边界刚刚就绪：如果观察端的批次快照已经先到，就在这里完成一次性比较。
+			EvaluateRemoteConfirmedBatch();
 		}
 	}
 
@@ -2022,6 +2163,40 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			: INDEX_NONE;
 		bSwitchCancelActiveObserved = ShooterAbilitySystemComponent &&
 			AuthorityShotsNow > AuthorityShotsBeforeSwitchCancel;
+		if (bSwitchCancelActiveObserved)
+		{
+			PostBatchFirstAuthorityShotServerTime = GetWorld()->GetTimeSeconds();
+		}
+	}
+
+	// 批次隔离证据：下一阶段的新 Shot 允许正常发生、正常提交，但绝不能进入上一个已冻结批次：
+	// 这一发只抬高"现场累计量"，不改变 OwnRemoteFullAutoBatch 的终点与 ExpectedDelta。
+	if (bSwitchCancelActiveObserved && !bPostBatchFirstAuthorityShotLogged)
+	{
+		bPostBatchFirstAuthorityShotLogged = true;
+		const int32 AuthorityShotsNow = ServerInventoryFirstWeapon.IsValid()
+			? ServerInventoryFirstWeapon->GetAuthorityShotCountForAutomationTest()
+			: INDEX_NONE;
+		const int32 FrozenDelta = OwnRemoteFullAutoBatch.GetExpectedDelta();
+		const int32 LiveDelta = AuthorityShotsNow != INDEX_NONE && OwnRemoteFullAutoBatch.AuthorityStart != INDEX_NONE
+			? AuthorityShotsNow - OwnRemoteFullAutoBatch.AuthorityStart
+			: INDEX_NONE;
+		UE_LOG(LogShootGame, Display, TEXT(
+				"REMOTE_BATCH_POST_END_SHOT TargetPlayerId=%d ObserverPlayerId=%d Weapon=%s Stage=SwitchCancel "
+				"AuthorityStart=%d AuthorityEnd=%d ExpectedDelta=%d LiveAuthorityCount=%d LiveDelta=%d "
+				"OutsideBatch=%s BatchEndTime=%.3f PostEndShotTime=%.3f"),
+			GetTestPlayerIdForTest(),
+			GetOpponentPlayerIdForTest(),
+			*GetNameSafe(OwnRemoteBatchWeapon.Get()),
+			OwnRemoteFullAutoBatch.AuthorityStart,
+			OwnRemoteFullAutoBatch.AuthorityEnd,
+			FrozenDelta,
+			AuthorityShotsNow,
+			LiveDelta,
+			(LiveDelta != INDEX_NONE && FrozenDelta != INDEX_NONE && LiveDelta > FrozenDelta &&
+				AuthorityShotsNow != OwnRemoteFullAutoBatch.AuthorityEnd) ? TEXT("true") : TEXT("false"),
+			OwnRemoteBatchFrozenServerTime,
+			PostBatchFirstAuthorityShotServerTime);
 	}
 
 	if (bClientReportedSwitchCancel && !bSwitchCancelQuiescentConfirmed)
@@ -4133,29 +4308,70 @@ void AShooterNetworkTestCoordinator::PollClientState()
 	}
 
 	// ---- 4B FullAutoRelease：保持按下直到全自动计时器再打出至少两发，然后松开 ----
-	if (bServerReadyForFullAuto && !bClientTriggeredFullAuto && bClientReportedProjectile)
+	// ---- 批次开始边界：先建立观察端四条基线并向服务器声明就绪，再等开火许可 ----
+	// 基线锚定在「被观测批次的 Arm」（bServerObservedBatchArmed），不是本机自己的 Arm：
+	// 本机的 Arm 可能早于对手上一阶段（单发）表现的到达，那样会把上一发算进本批次。
+	// 该 Arm 由服务器在对手单发证据落地之后才发出，因此基线一定晚于上一发表现的组播送达，
+	// 又一定早于对手批次第一发（那一发要等本 ack 回来才放行）。
+	if (bServerObservedBatchArmed && !bClientCapturedRemoteBaseline)
+	{
+		AShooterWeapon* RemoteWeapon = FindRemoteObservedWeapon(Character);
+		AShooterCharacter* RemoteCharacter = RemoteWeapon
+			? Cast<AShooterCharacter>(RemoteWeapon->GetOwner())
+			: nullptr;
+		if (RemoteWeapon && RemoteCharacter)
+		{
+			ClientObservedRemoteWeapon = RemoteWeapon;
+			ClientObservedRemoteCharacter = RemoteCharacter;
+			ClientRemoteConfirmedBefore = RemoteWeapon->GetRemoteConfirmedFeedbackCountForAutomationTest();
+			ClientRemoteMontageBefore = RemoteCharacter->GetRemoteConfirmedMontageCountForAutomationTest();
+			ClientRemoteMuzzleBefore = RemoteWeapon->GetRemoteMuzzleFeedbackCountForAutomationTest();
+			ClientRemoteSoundBefore = RemoteWeapon->GetRemoteSoundFeedbackCountForAutomationTest();
+			bClientCapturedRemoteBaseline = true;
+			ClientRemoteBaselineTime = GetWorld()->GetTimeSeconds();
+			// 跨端身份只用 PlayerId：观测端的对手 PlayerId 取自被观测角色的 PlayerState。
+			ClientObservedRemotePlayerId = RemoteCharacter->GetPlayerState()
+				? static_cast<int32>(RemoteCharacter->GetPlayerState()->GetPlayerId())
+				: INDEX_NONE;
+			UE_LOG(LogShootGame, Display, TEXT(
+					"REMOTE_PRESENTATION_BASELINE ObserverPlayerId=%d TargetPlayerId=%d Weapon=%s Stage=FullAuto "
+					"ConfirmedBaseline=%d MontageBaseline=%d MuzzleBaseline=%d SoundBaseline=%d "
+					"Anchor=ObservedBatchArm ElapsedSinceTestStart=%.3f"),
+				GetTestPlayerIdForTest(),
+				ClientObservedRemotePlayerId,
+				*GetNameSafe(RemoteWeapon),
+				ClientRemoteConfirmedBefore,
+				ClientRemoteMontageBefore,
+				ClientRemoteMuzzleBefore,
+				ClientRemoteSoundBefore,
+				GetWorld()->GetTimeSeconds() - TestStartTime);
+			ServerReportRemoteBaselineReady(ClientObservedRemotePlayerId);
+		}
+		else if (!bClientLoggedRemoteBaselinePending)
+		{
+			// 观测源（对手的模拟代理武器）还没复制到本机：不得带着 INDEX_NONE 基线去申请开火许可。
+			bClientLoggedRemoteBaselinePending = true;
+			UE_LOG(LogShootGame, Display, TEXT("REMOTE_PRESENTATION_BASELINE_PENDING ObserverPlayerId=%d "
+					"TargetPlayerId=%d Stage=FullAuto Weapon=%s ElapsedSinceTestStart=%.3f "
+					"PendingConfirmedBaseline=%d PendingMontageBaseline=%d PendingMuzzleBaseline=%d "
+					"PendingSoundBaseline=%d Reason=RemoteObservationSourceNotReplicated"),
+				GetTestPlayerIdForTest(),
+				INDEX_NONE,
+				*GetNameSafe(RemoteWeapon),
+				GetWorld()->GetTimeSeconds() - TestStartTime,
+				ClientRemoteConfirmedBefore,
+				ClientRemoteMontageBefore,
+				ClientRemoteMuzzleBefore,
+				ClientRemoteSoundBefore);
+		}
+	}
+
+	if (bServerOwnBatchStartAllowed && bServerReadyForFullAuto && !bClientTriggeredFullAuto && bClientReportedProjectile)
 	{
 		BulletCountBeforeFullAuto = Weapon->GetBulletCount();
 		ClientFullAutoTargetWeapon = Weapon;
 		ClientFullAutoOwnerFeedbackBefore = Weapon->GetPredictedOwnerFeedbackCountForAutomationTest();
 		Weapon->ResetOwnerFeedbackTimingForAutomationTest();
-		// P1-D 远端第三人称确认表现：与权威窗口同起点，快照另一名玩家武器的确认表现计数。
-		ClientObservedRemoteWeapon = FindRemoteObservedWeapon(Character);
-		ClientObservedRemoteCharacter = ClientObservedRemoteWeapon.IsValid()
-			? Cast<AShooterCharacter>(ClientObservedRemoteWeapon->GetOwner())
-			: nullptr;
-		ClientRemoteConfirmedBefore = ClientObservedRemoteWeapon.IsValid()
-			? ClientObservedRemoteWeapon->GetRemoteConfirmedFeedbackCountForAutomationTest()
-			: INDEX_NONE;
-		ClientRemoteMontageBefore = ClientObservedRemoteCharacter.IsValid()
-			? ClientObservedRemoteCharacter->GetRemoteConfirmedMontageCountForAutomationTest()
-			: INDEX_NONE;
-		ClientRemoteMuzzleBefore = ClientObservedRemoteWeapon.IsValid()
-			? ClientObservedRemoteWeapon->GetRemoteMuzzleFeedbackCountForAutomationTest()
-			: INDEX_NONE;
-		ClientRemoteSoundBefore = ClientObservedRemoteWeapon.IsValid()
-			? ClientObservedRemoteWeapon->GetRemoteSoundFeedbackCountForAutomationTest()
-			: INDEX_NONE;
 		bClientTriggeredFullAuto = true;
 		Character->DoStartFiring();
 	}
@@ -4294,60 +4510,125 @@ void AShooterNetworkTestCoordinator::PollClientState()
 		}
 	}
 
-	// P1-D 远端第三人称确认表现：本机与对手的全自动窗口不一定重叠（Listen 主机会先跑完自己的阶段），
-	// 因此观测窗口从本机起手一直保持到"观测到确认表现后 0.4 秒无增长"或硬超时；
-	// 服务器在收到上报时读取对手武器的权威射击增量，两端窗口因此按同一段真实时间对齐。
-	if (bClientReportedFullAuto && !bClientReportedRemoteConfirmed)
+	// P1-D 远端第三人称确认表现：批次边界快照。
+	// 被比较的四路增量取「被观测批次射击动作结束信号第一次被本机看到的那个 tick」的快照：
+	//   - 该信号由服务器在收到拥有者释放上报时发出，比批次最后一发的权威提交至少晚一个
+	//     "释放等待"（0.4 秒），因此本批次的表现一定已经到达本机；
+	//   - 下一阶段（SwitchCancel）的第一发要等静默期验证之后才放行，比该信号至少再晚 0.5 秒，
+	//     因此它的表现不会进入本批次。
+	// 两端都靠结构性顺序成立，不用固定等待，也不把"看起来稳定了"当成权威 action 已结束的证据：
+	// Authority 边界始终由 Target/Server 的 Action Stage 决定，stable 只作为到达余量取证。
+	// 观测窗口完全由「被观测批次」的生命周期驱动：起点是它的 Arm（基线），终点是它的射击动作结束。
+	// 不能用本机自己的阶段（例如本机的释放上报）当门：本机释放可能晚于对手的收口时刻，
+	// 那样窗口就会在对手下一阶段（SwitchCancel）已经开火之后才打开，从而把下一发算进本批次。
+	if (bClientCapturedRemoteBaseline && !bClientReportedRemoteConfirmed)
 	{
 		const bool bTargetStable = ClientObservedRemoteWeapon.IsValid() &&
 			ClientObservedRemoteCharacter.IsValid() &&
 			ClientObservedRemoteWeapon.Get() == FindRemoteObservedWeapon(Character) &&
 			ClientObservedRemoteWeapon->GetOwner() == ClientObservedRemoteCharacter.Get();
-		const int32 RemoteConfirmedTotal = ClientObservedRemoteWeapon.IsValid()
-			? ClientObservedRemoteWeapon->GetRemoteConfirmedFeedbackCountForAutomationTest()
-			: INDEX_NONE;
-		const bool bDeltaMeasurable = RemoteConfirmedTotal != INDEX_NONE && ClientRemoteConfirmedBefore != INDEX_NONE;
-		const int32 RemoteConfirmedNow = bDeltaMeasurable
-			? RemoteConfirmedTotal - ClientRemoteConfirmedBefore
-			: INDEX_NONE;
+		const FShooterRemotePresentationDeltasForTest ObservedDeltas = CaptureRemotePresentationDeltas(Character);
+		const float Now = GetWorld()->GetTimeSeconds();
+		const float ElapsedSinceBaseline = ClientRemoteBaselineTime > 0.0f
+			? Now - ClientRemoteBaselineTime
+			: 0.0f;
 
-		const float WindowElapsed = GetWorld()->GetTimeSeconds() - FullAutoReleaseWaitStartTime;
-		if (RemoteConfirmedNow != ClientRemoteConfirmedLastValue)
+		// 四路任意一路变化都重新起算：只用于记录"边界之前是否已经稳定"，不用于决定边界。
+		if (ObservedDeltas != ClientRemoteDeltasLast)
 		{
-			ClientRemoteConfirmedLastValue = RemoteConfirmedNow;
-			ClientRemoteConfirmedStableTime = GetWorld()->GetTimeSeconds();
+			ClientRemoteDeltasLast = ObservedDeltas;
+			ClientRemotePresentationStableTime = Now;
 		}
-		const float StableElapsed = GetWorld()->GetTimeSeconds() - ClientRemoteConfirmedStableTime;
 
-		const bool bObservedSomething = RemoteConfirmedNow >= 1;
-		const bool bObservationSettled = bObservedSomething && StableElapsed >= 0.4f;
-		// 超时上限：远端确认表现通常在本机释放后 1 秒内到达；
-		// 上限只用于兜底，避免观测窗口拖后成功标记并逼近会话超时。
-		const bool bObservationExpired = WindowElapsed >= 4.0f;
-		if (bObservationSettled || bObservationExpired)
+		if (!bServerObservedBatchFireEnded)
+		{
+			// 被观测批次还没打完：窗口保持打开，不做任何"看起来稳定了"的收口判断。
+			if (!bClientLoggedRemoteBatchAwait)
+			{
+				bClientLoggedRemoteBatchAwait = true;
+				UE_LOG(LogShootGame, Display, TEXT(
+						"REMOTE_PRESENTATION_WINDOW_WAITING ObserverPlayerId=%d TargetPlayerId=%d Weapon=%s "
+						"Stage=FullAuto ConfirmedDelta=%d MontageDelta=%d MuzzleDelta=%d SoundDelta=%d "
+						"ElapsedSinceBaseline=%.2f Reason=ObservedBatchStillFiring"),
+					GetTestPlayerIdForTest(),
+					ClientObservedRemotePlayerId,
+					*GetNameSafe(ClientObservedRemoteWeapon.Get()),
+					ObservedDeltas.Confirmed,
+					ObservedDeltas.Montage,
+					ObservedDeltas.Muzzle,
+					ObservedDeltas.Sound,
+					ElapsedSinceBaseline);
+			}
+			// 上限只用于把"被观测批次永远不结束"变成明确失败原因，不参与批次语义判定。
+			if (ElapsedSinceBaseline >= ShooterNetworkTest::RemoteBatchStartGateDiagnosticSeconds)
+			{
+				FailTest(FString::Printf(
+					TEXT("Remote presentation window never closed; ObserverPlayerId=%d TargetPlayerId=%d ")
+					TEXT("Weapon=%s ElapsedSinceBaseline=%.3f ConfirmedDelta=%d Reason=ObservedBatchStillFiring"),
+					GetTestPlayerIdForTest(),
+					ClientObservedRemotePlayerId,
+					*GetNameSafe(ClientObservedRemoteWeapon.Get()),
+					ElapsedSinceBaseline,
+					ObservedDeltas.Confirmed));
+			}
+		}
+		else
 		{
 			bClientReportedRemoteConfirmed = true;
-			const int32 MontageDelta = bTargetStable && ClientRemoteMontageBefore != INDEX_NONE
-				? ClientObservedRemoteCharacter->GetRemoteConfirmedMontageCountForAutomationTest() - ClientRemoteMontageBefore
-				: INDEX_NONE;
-			const int32 MuzzleDelta = bTargetStable && ClientRemoteMuzzleBefore != INDEX_NONE
-				? ClientObservedRemoteWeapon->GetRemoteMuzzleFeedbackCountForAutomationTest() - ClientRemoteMuzzleBefore
-				: INDEX_NONE;
-			const int32 SoundDelta = bTargetStable && ClientRemoteSoundBefore != INDEX_NONE
-				? ClientObservedRemoteWeapon->GetRemoteSoundFeedbackCountForAutomationTest() - ClientRemoteSoundBefore
-				: INDEX_NONE;
+			ClientRemoteDeltasAtSnapshot = ObservedDeltas;
+			const float StableFor = ClientRemotePresentationStableTime > 0.0f
+				? Now - ClientRemotePresentationStableTime
+				: 0.0f;
+			const bool bSettleRisk = StableFor < ShooterNetworkTest::PollIntervalSeconds;
 			UE_LOG(LogShootGame, Display, TEXT(
-					"Remote-confirmed observation window closed: Confirmed=%d Montage=%d Muzzle=%d Sound=%d "
-					"Elapsed=%.2f Settled=%s Stable=%s"),
-				RemoteConfirmedNow,
-				MontageDelta,
-				MuzzleDelta,
-				SoundDelta,
-				WindowElapsed,
-				bObservationSettled ? TEXT("true") : TEXT("false"),
+					"REMOTE_PRESENTATION_FREEZE ObserverPlayerId=%d TargetPlayerId=%d Weapon=%s Stage=FullAuto "
+					"FrozenAuthorityStart=%d FrozenAuthorityEnd=%d FrozenExpectedDelta=%d ConfirmedDelta=%d "
+					"MontageDelta=%d MuzzleDelta=%d SoundDelta=%d StableFor=%.3f SettleRisk=%s "
+					"ElapsedSinceBaseline=%.2f Stable=%s"),
+				GetTestPlayerIdForTest(),
+				ClientObservedRemotePlayerId,
+				*GetNameSafe(ClientObservedRemoteWeapon.Get()),
+				ServerObservedBatchAuthorityStart,
+				ServerObservedBatchAuthorityEnd,
+				ServerObservedBatchExpectedDelta,
+				ObservedDeltas.Confirmed,
+				ObservedDeltas.Montage,
+				ObservedDeltas.Muzzle,
+				ObservedDeltas.Sound,
+				StableFor,
+				bSettleRisk ? TEXT("true") : TEXT("false"),
+				ElapsedSinceBaseline,
 				bTargetStable ? TEXT("true") : TEXT("false"));
-			ServerReportRemoteConfirmedFeedback(RemoteConfirmedNow, MontageDelta, MuzzleDelta, SoundDelta, bTargetStable);
+			ServerReportRemoteConfirmedFeedback(ClientObservedRemotePlayerId, ObservedDeltas.Confirmed,
+				ObservedDeltas.Montage, ObservedDeltas.Muzzle, ObservedDeltas.Sound, bTargetStable);
 		}
+	}
+
+	// 事后核对（只取证，不参与判定）：权威边界到达本机时，四路增量必须仍等于上报快照。
+	// 相等即证明"上报的那一批次"在本机一侧就是完整的一批；若在此期间又增长，
+	// 说明增长属于下一阶段（SwitchCancel / Reload）的表现，而不是本批次漏算。
+	if (bClientReportedRemoteConfirmed && bServerObservedBatchFrozen && !bClientLoggedRemoteBatchFrozenCorroboration)
+	{
+		bClientLoggedRemoteBatchFrozenCorroboration = true;
+		const FShooterRemotePresentationDeltasForTest DeltasAtFrozenBoundary = CaptureRemotePresentationDeltas(Character);
+		UE_LOG(LogShootGame, Display, TEXT(
+				"REMOTE_PRESENTATION_BATCH_FROZEN ObserverPlayerId=%d TargetPlayerId=%d Weapon=%s Stage=FullAuto "
+				"FrozenAuthorityStart=%d FrozenAuthorityEnd=%d FrozenExpectedDelta=%d SnapshotConfirmedDelta=%d "
+				"ConfirmedDeltaAtFrozenBoundary=%d GrowthAfterSnapshot=%d SnapshotStillExact=%s"),
+			GetTestPlayerIdForTest(),
+			ClientObservedRemotePlayerId,
+			*GetNameSafe(ClientObservedRemoteWeapon.Get()),
+			ServerObservedBatchAuthorityStart,
+			ServerObservedBatchAuthorityEnd,
+			ServerObservedBatchExpectedDelta,
+			ClientRemoteDeltasAtSnapshot.Confirmed,
+			DeltasAtFrozenBoundary.Confirmed,
+			DeltasAtFrozenBoundary.Confirmed != INDEX_NONE && ClientRemoteDeltasAtSnapshot.Confirmed != INDEX_NONE
+				? DeltasAtFrozenBoundary.Confirmed - ClientRemoteDeltasAtSnapshot.Confirmed
+				: INDEX_NONE,
+			ClientRemoteDeltasAtSnapshot.EqualsAuthorityDelta(ServerObservedBatchExpectedDelta)
+				? TEXT("true")
+				: TEXT("false"));
 	}
 
 	// ---- 4C Cancel.SwitchWeapon：保持步枪开火，等到再打出一发后直接切枪 ----
@@ -4382,6 +4663,28 @@ void AShooterNetworkTestCoordinator::PollClientState()
 	if (bClientSwitchCancelRequested && !bClientReportedSwitchCancel && Weapon != ClientWeaponBeforeSwitchCancel.Get())
 	{
 		bClientReportedSwitchCancel = true;
+		// 批次隔离证据（观测端）：上一批次上报之后继续观测到的表现增量属于下一阶段，
+		// 它可以正常到达，但绝不会进入已冻结批次（那里保留的是 REMOTE_PRESENTATION_FREEZE 的快照）。
+		if (!bClientLoggedRemotePostFreeze && ClientObservedRemoteWeapon.IsValid())
+		{
+			bClientLoggedRemotePostFreeze = true;
+			const FShooterRemotePresentationDeltasForTest PostFreezeDeltas = CaptureRemotePresentationDeltas(Character);
+			UE_LOG(LogShootGame, Display, TEXT(
+					"REMOTE_PRESENTATION_POST_FREEZE ObserverPlayerId=%d TargetPlayerId=%d Weapon=%s "
+					"Stage=SwitchCancel FrozenExpectedDelta=%d ConfirmedDeltaNow=%d MontageDeltaNow=%d "
+					"MuzzleDeltaNow=%d SoundDeltaNow=%d NextStageShotVisible=%s"),
+				GetTestPlayerIdForTest(),
+				ClientObservedRemotePlayerId,
+				*GetNameSafe(ClientObservedRemoteWeapon.Get()),
+				ServerObservedBatchExpectedDelta,
+				PostFreezeDeltas.Confirmed,
+				PostFreezeDeltas.Montage,
+				PostFreezeDeltas.Muzzle,
+				PostFreezeDeltas.Sound,
+				(ServerObservedBatchExpectedDelta != INDEX_NONE && PostFreezeDeltas.Confirmed != INDEX_NONE &&
+					PostFreezeDeltas.Confirmed > ServerObservedBatchExpectedDelta) ? TEXT("true") : TEXT("false"));
+		}
+
 		UE_LOG(
 			LogShootGame,
 			Display,
@@ -4845,6 +5148,18 @@ void AShooterNetworkTestCoordinator::ServerReportFullAutoReleased_Implementation
 	bClientReportedFullAutoRelease = true;
 	ClientBulletCountAfterRelease = BulletCountAfterRelease;
 
+	// 批次收口许可：拥有者的释放上报就是"本次 FullAuto 射击动作已经结束"的权威可见证据。
+	// 在此刻发出边界信号，观察端能在下一阶段（SwitchCancel）第一发的表现到达之前完成快照；
+	// 权威终点仍要等静默期验证（残留检查）之后才冻结，两者由残留检查保证相等。
+	OwnBatchReleaseSignalCount = ServerInventoryFirstWeapon.IsValid()
+		? ServerInventoryFirstWeapon->GetAuthorityShotCountForAutomationTest()
+		: INDEX_NONE;
+	OwnBatchReleaseSignalServerTime = GetWorld()->GetTimeSeconds();
+	if (AShooterNetworkTestCoordinator* ObserverCoordinator = FindOpponentCoordinator())
+	{
+		ObserverCoordinator->NotifyObservedBatchFireEnded();
+	}
+
 	AShooterCharacter* Character = GetShooterCharacter();
 	UShooterInventoryComponent* InventoryComponent = Character
 		? Character->GetInventoryComponent()
@@ -4869,8 +5184,13 @@ void AShooterNetworkTestCoordinator::ServerReportFullAutoReleased_Implementation
 	// 本地侧只要求：确实连续播过（>=2）、节拍不低于 RefireRate、释放后本地预测反馈已经收口
 	// （无未结清 Shot 记录、无待结清预算、无活动 GA_Fire）。
 	// 权威侧的一一对应由 bFullAutoAuthorityExactlyOnceVerified 单独证明。
+	// 本地节拍下界：生产实现允许本地网格最多提前 AuthorityRefireTolerance 提交，
+	// 因此"起手被推迟到网格之后"的那一发之后，下一发间隔的合法下限是 RefireRate 减该容差。
+	// 批次开始边界现在要求等观察端基线 ack（可能把起手推迟约一个轮询拍），正是这种情况；
+	// 下界直接对齐生产容差，不用更紧的任意阈值。
+	const float LocalCadenceLowerBound = RefireRate - ShooterNetworkTest::AuthorityRefireToleranceSeconds;
 	bFullAutoLocalCadenceVerified = bTargetStable && bLocalFeedbackSettled && OwnerFeedbackDelta >= 2 &&
-		MinimumFeedbackInterval >= RefireRate - 0.01f;
+		MinimumFeedbackInterval >= LocalCadenceLowerBound;
 	bFullAutoAuthorityExactlyOnceVerified = AuthorityShotDelta >= 2 && ProjectileDelta == AuthorityShotDelta &&
 		AmmoConsumed == AuthorityShotDelta;
 
@@ -4882,8 +5202,8 @@ void AShooterNetworkTestCoordinator::ServerReportFullAutoReleased_Implementation
 
 	UE_LOG(LogShootGame, Display, TEXT(
 			"Full-auto invariant report: %s Stage=%s Weapon=%s ClientAmmo=%d ServerAmmo=%d OwnerFeedback=%d "
-			"Authority=%d Projectiles=%d AmmoConsumed=%d MinInterval=%.3f RefireRate=%.3f Settled=%s Stable=%s "
-			"Valid=%s"),
+			"Authority=%d Projectiles=%d AmmoConsumed=%d MinInterval=%.3f RefireRate=%.3f MinIntervalBound=%.3f "
+			"Cadence=%s Settled=%s Stable=%s Valid=%s"),
 		*DescribeTestIdentityForTest(),
 		DescribeTestStageForTest(),
 		*GetNameSafe(Weapon),
@@ -4895,6 +5215,8 @@ void AShooterNetworkTestCoordinator::ServerReportFullAutoReleased_Implementation
 		AmmoConsumed,
 		MinimumFeedbackInterval,
 		RefireRate,
+		LocalCadenceLowerBound,
+		bFullAutoLocalCadenceVerified ? TEXT("true") : TEXT("false"),
 		bLocalFeedbackSettled ? TEXT("true") : TEXT("false"),
 		bTargetStable ? TEXT("true") : TEXT("false"),
 		bFullAutoReleaseVerified ? TEXT("true") : TEXT("false"));
@@ -5061,56 +5383,142 @@ void AShooterNetworkTestCoordinator::ServerReportSemiAutoRapidClickChannels_Impl
 	}
 }
 
-void AShooterNetworkTestCoordinator::ServerReportRemoteConfirmedFeedback_Implementation(
-	int32 Count, int32 MontageCount, int32 MuzzleCount, int32 SoundCount, bool bTargetStable)
+void AShooterNetworkTestCoordinator::ServerReportRemoteBaselineReady_Implementation(int32 TargetPlayerId)
 {
+	// 观察端就绪 ack：本客户端已经为「对手当前武器的确认表现」建立四条基线，并且这些基线早于
+	// 对手批次第一发。四路基线的具体数值由观察端自己在 REMOTE_PRESENTATION_BASELINE 里记录
+	// （这些成员只存在于客户端副本上），服务器这里只记录身份与到达时刻。
+	const bool bIdentityOk = TargetPlayerId == GetOpponentPlayerIdForTest();
+	bRemoteObserverBaselineReady = bIdentityOk;
+	RemoteObserverBaselineReadyServerTime = GetWorld()->GetTimeSeconds();
+	UE_LOG(LogShootGame, Display, TEXT("REMOTE_PRESENTATION_BASELINE_ACK ObserverPlayerId=%d TargetPlayerId=%d "
+			"ReportedTargetPlayerId=%d Stage=FullAuto Identity=%s ReadyTime=%.3f"),
+		GetTestPlayerIdForTest(),
+		GetOpponentPlayerIdForTest(),
+		TargetPlayerId,
+		bIdentityOk ? TEXT("true") : TEXT("false"),
+		RemoteObserverBaselineReadyServerTime);
+}
+
+void AShooterNetworkTestCoordinator::ServerReportRemoteConfirmedFeedback_Implementation(
+	int32 TargetPlayerId, int32 Count, int32 MontageCount, int32 MuzzleCount, int32 SoundCount, bool bTargetStable)
+{
+	// 上报只是"观察端对某一批次的四路快照"，不携带任何权威读数。
+	// 权威边界此刻可能还没冻结（观察端在 Target 打完的瞬间就收口，而终点要等静默期验证），
+	// 因此这里只登记快照，比较交给 EvaluateRemoteConfirmedBatch 在边界就绪后执行一次。
 	RemoteConfirmedDeltaObserved = Count;
 	RemoteMontageDeltaObserved = MontageCount;
 	RemoteMuzzleDeltaObserved = MuzzleCount;
 	RemoteSoundDeltaObserved = SoundCount;
 	bClientObservedRemoteMontage = MontageCount >= 1;
+	bRemoteConfirmedReportReceived = true;
+	bRemoteConfirmedReportTargetStable = bTargetStable;
+	RemoteConfirmedReportedTargetPlayerId = TargetPlayerId;
+	EvaluateRemoteConfirmedBatch();
+}
 
-	// 对标量必须是"另一名玩家武器"在同一窗口内的权威射击增量：
-	// 弹药是 COND_OwnerOnly，远端只能以第三人称确认表现计数为证，不能读真实弹量。
-	AShooterWeapon* RemoteWeapon = RemoteObservedWeaponAtBurstStart.Get();
-	const bool bHasRemoteBaseline = RemoteWeapon != nullptr && RemoteAuthorityShotsBeforeFullAuto != INDEX_NONE;
-	RemoteAuthorityShotsForBurst = bHasRemoteBaseline
-		? RemoteWeapon->GetAuthorityShotCountForAutomationTest() - RemoteAuthorityShotsBeforeFullAuto
-		: INDEX_NONE;
+void AShooterNetworkTestCoordinator::EvaluateRemoteConfirmedBatch()
+{
+	if (bRemoteConfirmedEvaluated || !bRemoteConfirmedReportReceived)
+	{
+		return;
+	}
 
-	const bool bHasAllChannels = Count >= 1 && MontageCount >= 1 && MuzzleCount >= 1 && SoundCount >= 1;
-	const bool bNeverExceedsAuthority = RemoteAuthorityShotsForBurst >= 1 && bHasAllChannels &&
-		Count <= RemoteAuthorityShotsForBurst && MontageCount <= RemoteAuthorityShotsForBurst &&
-		MuzzleCount <= RemoteAuthorityShotsForBurst && SoundCount <= RemoteAuthorityShotsForBurst;
-	const bool bExactMatch = !bRequireExactRemoteConfirmed ||
-		(Count == RemoteAuthorityShotsForBurst && MontageCount == RemoteAuthorityShotsForBurst &&
-		MuzzleCount == RemoteAuthorityShotsForBurst && SoundCount == RemoteAuthorityShotsForBurst);
-	bRemoteConfirmedVerified = bTargetStable && bNeverExceedsAuthority && bExactMatch;
+	const FShooterRemotePresentationDeltasForTest ObservedDeltas = FShooterRemotePresentationDeltasForTest{
+		RemoteConfirmedDeltaObserved, RemoteMontageDeltaObserved, RemoteMuzzleDeltaObserved,
+		RemoteSoundDeltaObserved};
+
+	// 被比较的权威 Shot 数只能来自「该 Target 自己已经冻结的 FullAuto 批次」：
+	// 弹药是 COND_OwnerOnly，远端只能以第三人称确认表现计数为证，不能读真实弹量；
+	// 也绝不能在收到上报的这一刻现场读取权威射击计数——那会把 Target 后续阶段（例如 SwitchCancel）
+	// 的新 Shot 算进上一批次，得到 Confirmed=1 / Auth=2 这种跨批次假失败。
+	AShooterNetworkTestCoordinator* TargetCoordinator = FindOpponentCoordinator();
+	const bool bBatchFrozen = TargetCoordinator != nullptr && TargetCoordinator->OwnRemoteFullAutoBatch.IsFrozen();
+	if (!bBatchFrozen)
+	{
+		// 边界还没冻结：保持等待，等冻结事件再次调用本函数。这里不做任何部分比较。
+		return;
+	}
+
+	const int32 ObservedTargetPlayerId = TargetCoordinator->GetTestPlayerIdForTest();
+	const int32 ExpectedDelta = TargetCoordinator->GetOwnRemoteBatchAuthorityDeltaForTest();
+	const bool bTargetIdentityOk = ObservedTargetPlayerId == RemoteConfirmedReportedTargetPlayerId;
+	const bool bWeaponIdentityOk = RemoteObservedWeaponAtBurstStart.IsValid() &&
+		TargetCoordinator->OwnRemoteBatchWeapon.Get() == RemoteObservedWeaponAtBurstStart.Get();
+	RemoteAuthorityShotsForBurst = ExpectedDelta;
+
+	const bool bWithinAuthority = ObservedDeltas.WithinAuthority(ExpectedDelta);
+	// Exact 是受控测试环境（无 PktLag / PktLoss）下的强诊断：四路必须逐路等于同一批次的权威 Shot 数。
+	const bool bExactMatch = !bRequireExactRemoteConfirmed || ObservedDeltas.EqualsAuthorityDelta(ExpectedDelta);
+	bRemoteConfirmedVerified = bRemoteConfirmedReportTargetStable && bTargetIdentityOk && bWeaponIdentityOk &&
+		bWithinAuthority && bExactMatch;
+	bRemoteConfirmedEvaluated = true;
+	++RemoteBatchEvaluateCountForTest;
+
+	const TCHAR* Cause = TEXT("Verified");
+	if (!bRemoteConfirmedReportTargetStable)
+	{
+		Cause = TEXT("UnstableObservationSource");
+	}
+	else if (!bTargetIdentityOk)
+	{
+		Cause = TEXT("TargetIdentityMismatch");
+	}
+	else if (!bWeaponIdentityOk)
+	{
+		Cause = TEXT("WeaponIdentityMismatch");
+	}
+	else if (!bWithinAuthority)
+	{
+		Cause = TEXT("ExceedsAuthority");
+	}
+	else if (!bExactMatch)
+	{
+		Cause = TEXT("CountMismatch");
+	}
 
 	UE_LOG(LogShootGame, Display, TEXT(
-			"Remote-confirmed invariant report: %s Stage=%s Weapon=%s Confirmed=%d Montage=%d Muzzle=%d Sound=%d "
-			"Authority=%d "
-			"ExactRequired=%s Within=%s Stable=%s Required=%s Valid=%s"),
-		*DescribeTestIdentityForTest(),
-		DescribeTestStageForTest(),
-		*GetNameSafe(RemoteWeapon),
-		Count,
-		MontageCount,
-		MuzzleCount,
-		SoundCount,
-		RemoteAuthorityShotsForBurst,
+			"REMOTE_BATCH_COMPARE TargetPlayerId=%d ObserverPlayerId=%d ReportedTargetPlayerId=%d Weapon=%s "
+			"Stage=FullAuto AuthorityStart=%d AuthorityEnd=%d ExpectedDelta=%d ConfirmedDelta=%d MontageDelta=%d "
+			"MuzzleDelta=%d SoundDelta=%d ExactRequired=%s Within=%s Exact=%s Stable=%s Identity=%s "
+			"WeaponIdentity=%s FrozenTime=%.3f BaselineReadyTime=%.3f FirstShotTime=%.3f "
+			"NextStageShotTime=%.3f Cause=%s Valid=%s"),
+		ObservedTargetPlayerId,
+		GetTestPlayerIdForTest(),
+		RemoteConfirmedReportedTargetPlayerId,
+		*GetNameSafe(RemoteObservedWeaponAtBurstStart.Get()),
+		TargetCoordinator->OwnRemoteFullAutoBatch.AuthorityStart,
+		TargetCoordinator->OwnRemoteFullAutoBatch.AuthorityEnd,
+		ExpectedDelta,
+		ObservedDeltas.Confirmed,
+		ObservedDeltas.Montage,
+		ObservedDeltas.Muzzle,
+		ObservedDeltas.Sound,
 		bRequireExactRemoteConfirmed ? TEXT("true") : TEXT("false"),
-		bNeverExceedsAuthority ? TEXT("true") : TEXT("false"),
-		bTargetStable ? TEXT("true") : TEXT("false"),
-		bRequireRemoteMontage ? TEXT("true") : TEXT("false"),
+		bWithinAuthority ? TEXT("true") : TEXT("false"),
+		bExactMatch ? TEXT("true") : TEXT("false"),
+		bRemoteConfirmedReportTargetStable ? TEXT("true") : TEXT("false"),
+		bTargetIdentityOk ? TEXT("true") : TEXT("false"),
+		bWeaponIdentityOk ? TEXT("true") : TEXT("false"),
+		TargetCoordinator->OwnRemoteBatchFrozenServerTime,
+		TargetCoordinator->OwnBatchObserverBaselineReadyServerTime,
+		TargetCoordinator->OwnBatchFirstAuthorityShotServerTime,
+		TargetCoordinator->PostBatchFirstAuthorityShotServerTime,
+		Cause,
 		bRemoteConfirmedVerified ? TEXT("true") : TEXT("false"));
 
 	if (bRequireRemoteMontage && !bRemoteConfirmedVerified)
 	{
 		FailTest(FString::Printf(
-			TEXT("Remote invariant invalid: Confirmed=%d Montage=%d Muzzle=%d Sound=%d Auth=%d Exact=%s Stable=%s"),
-			Count, MontageCount, MuzzleCount, SoundCount, RemoteAuthorityShotsForBurst,
-			bExactMatch ? TEXT("true") : TEXT("false"), bTargetStable ? TEXT("true") : TEXT("false")));
+			TEXT("Remote batch invariant invalid: TargetPlayerId=%d ObserverPlayerId=%d Auth=%d ")
+			TEXT("Confirmed=%d Montage=%d Muzzle=%d Sound=%d Exact=%s Stable=%s Identity=%s WeaponIdentity=%s ")
+			TEXT("Cause=%s"),
+			ObservedTargetPlayerId, GetTestPlayerIdForTest(), ExpectedDelta,
+			ObservedDeltas.Confirmed, ObservedDeltas.Montage, ObservedDeltas.Muzzle, ObservedDeltas.Sound,
+			bExactMatch ? TEXT("true") : TEXT("false"),
+			bRemoteConfirmedReportTargetStable ? TEXT("true") : TEXT("false"),
+			bTargetIdentityOk ? TEXT("true") : TEXT("false"),
+			bWeaponIdentityOk ? TEXT("true") : TEXT("false"), Cause));
 	}
 }
 
@@ -5380,6 +5788,12 @@ int32 AShooterNetworkTestCoordinator::GetTestPlayerIdForTest() const
 	return PlayerState ? PlayerState->GetPlayerId() : INDEX_NONE;
 }
 
+int32 AShooterNetworkTestCoordinator::GetOpponentPlayerIdForTest() const
+{
+	const APlayerState* PlayerState = GetOpponentCharacter() ? GetOpponentCharacter()->GetPlayerState() : nullptr;
+	return PlayerState ? static_cast<int32>(PlayerState->GetPlayerId()) : INDEX_NONE;
+}
+
 int32 AShooterNetworkTestCoordinator::GetTestClientIndexForTest() const
 {
 	// 连接顺序索引：GameState.PlayerArray 的稳定次序，用来把客户端与服务器两侧的日志对上。
@@ -5505,6 +5919,11 @@ const TCHAR* AShooterNetworkTestCoordinator::DescribeTestStageOnClientForTest() 
 	{
 		return TEXT("ClientProjectile");
 	}
+	if (bServerReadyForFullAuto && !bServerOwnBatchStartAllowed)
+	{
+		// 批次起点已冻结，但观察端四路基线尚未就绪：这是开始边界本身的状态，不是"在等一会儿"。
+		return TEXT("RemoteBatchStartGate");
+	}
 	if (bServerReadyForFullAuto && !bClientReportedFullAuto)
 	{
 		return TEXT("FullAutoRelease");
@@ -5562,6 +5981,10 @@ const TCHAR* AShooterNetworkTestCoordinator::DescribeTestStageOnServerForTest() 
 	if (!bOwnerAcceptedShotEvidenceVerified)
 	{
 		return TEXT("ServerOwnerSingleShot");
+	}
+	if (bServerReadyForFullAuto && !bServerOwnBatchStartAllowed)
+	{
+		return TEXT("ServerRemoteBatchStartGate");
 	}
 	if (!bFullAutoQuiescentConfirmed)
 	{
@@ -5803,6 +6226,182 @@ AShooterCharacter* AShooterNetworkTestCoordinator::GetOpponentCharacter() const
 	}
 
 	return nullptr;
+}
+
+AShooterNetworkTestCoordinator* AShooterNetworkTestCoordinator::FindOpponentCoordinator() const
+{
+	// 只在服务器侧有意义：两名玩家的 Coordinator 都在这台服务器上；
+	// 客户端侧 bOnlyRelevantToOwner 只会复制自己那一份，因此不用于身份关联。
+	const AController* OpponentController = GetOpponentController();
+	if (!OpponentController)
+	{
+		return nullptr;
+	}
+
+	for (TActorIterator<AShooterNetworkTestCoordinator> It(GetWorld()); It; ++It)
+	{
+		AShooterNetworkTestCoordinator* Candidate = *It;
+		if (Candidate && Candidate != this && Candidate->GetOwner() == OpponentController)
+		{
+			return Candidate;
+		}
+	}
+
+	return nullptr;
+}
+
+bool AShooterNetworkTestCoordinator::OpponentHasRemoteObservationPath() const
+{
+	// "有观察端"指对手由一条真实的远端连接拥有：只有客户端才会运行 PollClientState 里的
+	// 远端确认观测分支。Listen 主机自己不被任何人观测，因此它不会为本玩家建立任何基线；
+	// 连接已经断开时也按"没有观察端"处理，避免开始边界因为对端消失而永久阻塞。
+	const AShooterNetworkTestCoordinator* OpponentCoordinator = FindOpponentCoordinator();
+	const AActor* OpponentOwner = OpponentCoordinator ? OpponentCoordinator->GetOwner() : nullptr;
+	const APlayerController* OpponentController = Cast<APlayerController>(OpponentOwner);
+	return OpponentController != nullptr && !OpponentController->IsLocalController() && OpponentController->GetNetConnection() != nullptr;
+}
+
+void AShooterNetworkTestCoordinator::RefreshRemoteBatchStartGate()
+{
+	if (!HasAuthority() || bServerOwnBatchStartAllowed)
+	{
+		return;
+	}
+
+	AShooterNetworkTestCoordinator* OpponentCoordinator = FindOpponentCoordinator();
+	// 开始边界只关心两个事实：对手是否存在观察路径，以及它的基线就绪 ack 是否已经到达。
+	OwnRemoteBatchStartGate.bObserverHasObservationPath = OpponentHasRemoteObservationPath();
+	OwnRemoteBatchStartGate.bObserverBaselineReady = OpponentCoordinator != nullptr && OpponentCoordinator->bRemoteObserverBaselineReady;
+	if (OwnRemoteBatchStartGate.bObserverBaselineReady && !bOwnBatchObserverBaselineReadySeen)
+	{
+		// 只记录"观察端基线就绪"这一个事实的到达时刻，用于证明批次第一发晚于基线。
+		bOwnBatchObserverBaselineReadySeen = true;
+		OwnBatchObserverBaselineReadyServerTime = OpponentCoordinator->RemoteObserverBaselineReadyServerTime;
+	}
+
+	if (!OwnRemoteBatchStartGate.IsStartAllowed())
+	{
+		return;
+	}
+
+	bServerOwnBatchStartAllowed = true;
+	RemoteBatchStartAllowedServerTime = GetWorld()->GetTimeSeconds();
+	UE_LOG(LogShootGame, Display, TEXT(
+			"REMOTE_BATCH_START_ALLOWED TargetPlayerId=%d ObserverPlayerId=%d Weapon=%s Stage=FullAuto "
+			"AuthorityStart=%d ArmTime=%.3f BaselineReadyTime=%.3f FullAutoStartAllowedTime=%.3f HasPath=%s"),
+		GetTestPlayerIdForTest(),
+		GetOpponentPlayerIdForTest(),
+		*GetNameSafe(OwnRemoteBatchWeapon.Get()),
+		OwnRemoteFullAutoBatch.AuthorityStart,
+		RemoteBatchArmServerTime,
+		OwnBatchObserverBaselineReadyServerTime,
+		RemoteBatchStartAllowedServerTime,
+		OwnRemoteBatchStartGate.bObserverHasObservationPath ? TEXT("true") : TEXT("false"));
+	ForceNetUpdate();
+}
+
+FShooterRemotePresentationDeltasForTest AShooterNetworkTestCoordinator::CaptureRemotePresentationDeltas(
+	AShooterCharacter* LocalCharacter) const
+{
+	// 四条通道各自保持真实含义，任何一路都不允许被改写成 Authority 计数；
+	// 生产计数器不可用时保留 INDEX_NONE，不折算成 0。
+	FShooterRemotePresentationDeltasForTest Deltas;
+	if (LocalCharacter && ClientObservedRemoteWeapon.IsValid() && ClientObservedRemoteCharacter.IsValid() &&
+		ClientObservedRemoteWeapon.Get() == FindRemoteObservedWeapon(LocalCharacter) &&
+		ClientObservedRemoteWeapon->GetOwner() == ClientObservedRemoteCharacter.Get())
+	{
+		const int32 ConfirmedTotal = ClientObservedRemoteWeapon->GetRemoteConfirmedFeedbackCountForAutomationTest();
+		const int32 MontageTotal = ClientObservedRemoteCharacter->GetRemoteConfirmedMontageCountForAutomationTest();
+		const int32 MuzzleTotal = ClientObservedRemoteWeapon->GetRemoteMuzzleFeedbackCountForAutomationTest();
+		const int32 SoundTotal = ClientObservedRemoteWeapon->GetRemoteSoundFeedbackCountForAutomationTest();
+		Deltas.Confirmed = ConfirmedTotal != INDEX_NONE && ClientRemoteConfirmedBefore != INDEX_NONE
+			? ConfirmedTotal - ClientRemoteConfirmedBefore
+			: INDEX_NONE;
+		Deltas.Montage = MontageTotal != INDEX_NONE && ClientRemoteMontageBefore != INDEX_NONE
+			? MontageTotal - ClientRemoteMontageBefore
+			: INDEX_NONE;
+		Deltas.Muzzle = MuzzleTotal != INDEX_NONE && ClientRemoteMuzzleBefore != INDEX_NONE
+			? MuzzleTotal - ClientRemoteMuzzleBefore
+			: INDEX_NONE;
+		Deltas.Sound = SoundTotal != INDEX_NONE && ClientRemoteSoundBefore != INDEX_NONE
+			? SoundTotal - ClientRemoteSoundBefore
+			: INDEX_NONE;
+	}
+
+	return Deltas;
+}
+
+void AShooterNetworkTestCoordinator::NotifyObservedBatchArmed()
+{
+	if (!HasAuthority() || bServerObservedBatchArmed)
+	{
+		return;
+	}
+
+	// 观察端基线的起点信号：只声明"你正在观测的那一批次已经 Arm"，不含任何等待语义。
+	bServerObservedBatchArmed = true;
+	ForceNetUpdate();
+}
+
+void AShooterNetworkTestCoordinator::NotifyObservedBatchFireEnded()
+{
+	if (!HasAuthority() || bServerObservedBatchFireEnded)
+	{
+		return;
+	}
+
+	// 观察端收口许可：只声明"你正在观测的那一批次已经打完"，不含等待语义，也不改写四路计数。
+	bServerObservedBatchFireEnded = true;
+	ForceNetUpdate();
+}
+
+void AShooterNetworkTestCoordinator::NotifyObservedBatchFrozen(int32 AuthorityStart, int32 AuthorityEnd, int32 ExpectedDelta)
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	if (!bServerObservedBatchFrozen)
+	{
+		// 观察端收口边界：只做一件事——把"被观测批次的权威边界已经冻结"送到观察端客户端。
+		// 它不带任何等待语义，也不改变四路计数的含义。
+		bServerObservedBatchFrozen = true;
+		ServerObservedBatchAuthorityStart = AuthorityStart;
+		ServerObservedBatchAuthorityEnd = AuthorityEnd;
+		ServerObservedBatchExpectedDelta = ExpectedDelta;
+		ForceNetUpdate();
+	}
+
+	// 边界此刻才就绪：观察端的批次快照很可能早已到达（它在 Target 打完时就收口上报），
+	// 因此必须在这里补做一次性比较——报告到达与边界冻结是两个独立事件。
+	EvaluateRemoteConfirmedBatch();
+}
+
+bool AShooterNetworkTestCoordinator::ArmOwnRemoteBatchForTest(int32 AuthorityStart, AShooterWeapon* Weapon)
+{
+	OwnRemoteBatchWeapon = Weapon;
+	return OwnRemoteFullAutoBatch.Arm(AuthorityStart);
+}
+
+int32 AShooterNetworkTestCoordinator::FreezeOwnRemoteBatchAndNotifyForTest(int32 AuthorityEnd)
+{
+	const int32 ExpectedDelta = OwnRemoteFullAutoBatch.FreezeEnd(AuthorityEnd);
+	OwnRemoteBatchFrozenServerTime = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0f;
+	// 与生产结束路径同一顺序：先冻结终点，再在同一个 tick 通知观察端边界。
+	if (AShooterNetworkTestCoordinator* ObserverCoordinator = FindOpponentCoordinator())
+	{
+		ObserverCoordinator->NotifyObservedBatchFrozen(OwnRemoteFullAutoBatch.AuthorityStart,
+			OwnRemoteFullAutoBatch.AuthorityEnd, ExpectedDelta);
+	}
+
+	return ExpectedDelta;
+}
+
+void AShooterNetworkTestCoordinator::SubmitRemoteConfirmedReportForTest(int32 TargetPlayerId, int32 Count,
+	int32 MontageCount, int32 MuzzleCount, int32 SoundCount, bool bTargetStable)
+{
+	ServerReportRemoteConfirmedFeedback_Implementation(TargetPlayerId, Count, MontageCount, MuzzleCount, SoundCount, bTargetStable);
 }
 
 AShooterWeapon* AShooterNetworkTestCoordinator::FindRemoteObservedWeapon(AShooterCharacter* LocalCharacter) const
