@@ -4,9 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "Net/Serialization/FastArraySerializer.h"
-#include "Weapons/ShooterWeapon.h"
 #include "ShooterInventoryTypes.generated.h"
 
+/**
+ * 只前置声明 AShooterWeapon：本头文件仅持有 TObjectPtr 引用与槽位数据，
+ * 任何需要武器完整类型的实现都在 Inventory/ShooterInventoryTypes.cpp 中。
+ */
 class AShooterWeapon;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FShooterInventoryWeaponRemovedDelegate, AShooterWeapon*);
@@ -32,16 +35,13 @@ struct FShooterInventoryWeaponEntry : public FFastArraySerializerItem
 	UPROPERTY()
 	int32 SlotIndex = INDEX_NONE;
 
+	/** Owner Client Remove 回调：需要武器完整类型，实现位于 ShooterInventoryTypes.cpp。 */
 	void PreReplicatedRemove(const FShooterWeaponInventoryList& InArraySerializer);
 	void PostReplicatedAdd(const FShooterWeaponInventoryList& InArraySerializer);
 	void PostReplicatedChange(const FShooterWeaponInventoryList& InArraySerializer);
 
 	/** 调试字符串，供 LogNetFastTArray 使用。 */
-	FString GetDebugString() const
-	{
-		return FString::Printf(TEXT("Weapon=%s WeaponId=%s Slot=%d"), *GetNameSafe(Weapon),
-			Weapon ? *Weapon->GetWeaponId().ToString() : TEXT("None"), SlotIndex);
-	}
+	FString GetDebugString() const;
 };
 
 /**
@@ -73,42 +73,10 @@ struct FShooterWeaponInventoryList : public FFastArraySerializer
 	}
 
 	/** 服务器写入入口：校验武器有效、Actor 唯一、Slot 唯一后加入。 */
-	bool AddItem(AShooterWeapon* Weapon, int32 SlotIndex)
-	{
-		if (!Weapon || SlotIndex < 0)
-		{
-			return false;
-		}
+	bool AddItem(AShooterWeapon* Weapon, int32 SlotIndex);
 
-		for (const FShooterInventoryWeaponEntry& Entry : Items)
-		{
-			if (Entry.Weapon == Weapon || Entry.SlotIndex == SlotIndex)
-			{
-				return false;
-			}
-		}
-
-		FShooterInventoryWeaponEntry& NewEntry = Items.AddDefaulted_GetRef();
-		NewEntry.Weapon = Weapon;
-		NewEntry.SlotIndex = SlotIndex;
-		MarkItemDirty(NewEntry);
-		return true;
-	}
-
-	bool RemoveItem(AShooterWeapon* Weapon)
-	{
-		for (int32 Index = 0; Index < Items.Num(); ++Index)
-		{
-			if (Items[Index].Weapon == Weapon)
-			{
-				Items.RemoveAt(Index);
-				MarkArrayDirty();
-				return true;
-			}
-		}
-
-		return false;
-	}
+	/** 服务器移除入口：按 Actor 身份删除条目并标记数组脏。 */
+	bool RemoveItem(AShooterWeapon* Weapon);
 
 	void ClearItems()
 	{
@@ -120,23 +88,7 @@ struct FShooterWeaponInventoryList : public FFastArraySerializer
 	}
 
 	/** 按武器种类身份查找；不存在时返回 nullptr。重复 WeaponId 判定使用本入口。 */
-	const FShooterInventoryWeaponEntry* FindItemByWeaponId(FName WeaponId) const
-	{
-		if (WeaponId.IsNone())
-		{
-			return nullptr;
-		}
-
-		for (const FShooterInventoryWeaponEntry& Entry : Items)
-		{
-			if (Entry.Weapon && Entry.Weapon->GetWeaponId() == WeaponId)
-			{
-				return &Entry;
-			}
-		}
-
-		return nullptr;
-	}
+	const FShooterInventoryWeaponEntry* FindItemByWeaponId(FName WeaponId) const;
 
 	const FShooterInventoryWeaponEntry* FindItemBySlot(int32 SlotIndex) const
 	{
@@ -151,73 +103,12 @@ struct FShooterWeaponInventoryList : public FFastArraySerializer
 		return nullptr;
 	}
 
-	const FShooterInventoryWeaponEntry* FindItem(const AShooterWeapon* Weapon) const
-	{
-		for (const FShooterInventoryWeaponEntry& Entry : Items)
-		{
-			if (Entry.Weapon == Weapon)
-			{
-				return &Entry;
-			}
-		}
-
-		return nullptr;
-	}
+	/** 按 Actor 身份查找条目；该 Actor 不在背包时返回 nullptr。 */
+	const FShooterInventoryWeaponEntry* FindItem(const AShooterWeapon* Weapon) const;
 
 	/** 按 Slot 顺序和 Direction（+1 升序、-1 降序）返回相邻武器，并在边界回绕。 */
-	AShooterWeapon* FindAdjacentWeapon(const AShooterWeapon* CurrentWeapon, int32 Direction) const
-	{
-		if (Items.Num() < 2 || !CurrentWeapon || Direction == 0)
-		{
-			return nullptr;
-		}
-
-		const FShooterInventoryWeaponEntry* Current = FindItem(CurrentWeapon);
-		if (!Current)
-		{
-			return nullptr;
-		}
-
-		const bool bForward = Direction > 0;
-		const FShooterInventoryWeaponEntry* WrapCandidate = nullptr;
-		const FShooterInventoryWeaponEntry* AdjacentCandidate = nullptr;
-		for (const FShooterInventoryWeaponEntry& Candidate : Items)
-		{
-			if (!Candidate.Weapon)
-			{
-				continue;
-			}
-
-			if (!WrapCandidate || (bForward && Candidate.SlotIndex < WrapCandidate->SlotIndex) ||
-				(!bForward && Candidate.SlotIndex > WrapCandidate->SlotIndex))
-			{
-				WrapCandidate = &Candidate;
-			}
-
-			const bool bIsInDirection = bForward
-				? Candidate.SlotIndex > Current->SlotIndex
-				: Candidate.SlotIndex < Current->SlotIndex;
-			const bool bIsCloser = !AdjacentCandidate || (bForward && Candidate.SlotIndex < AdjacentCandidate->SlotIndex) ||
-				(!bForward && Candidate.SlotIndex > AdjacentCandidate->SlotIndex);
-			if (bIsInDirection && bIsCloser)
-			{
-				AdjacentCandidate = &Candidate;
-			}
-		}
-
-		const FShooterInventoryWeaponEntry* Target = AdjacentCandidate ? AdjacentCandidate : WrapCandidate;
-		return Target ? Target->Weapon.Get() : nullptr;
-	}
+	AShooterWeapon* FindAdjacentWeapon(const AShooterWeapon* CurrentWeapon, int32 Direction) const;
 };
-
-FORCEINLINE void FShooterInventoryWeaponEntry::PreReplicatedRemove(const FShooterWeaponInventoryList& InArraySerializer)
-{
-	// Owner Client Remove 回调：InventoryComponent 统一处理解绑与表现收敛。
-	if (Weapon)
-	{
-		InArraySerializer.NotifyWeaponEntryRemoved(Weapon);
-	}
-}
 
 FORCEINLINE void FShooterInventoryWeaponEntry::PostReplicatedAdd(const FShooterWeaponInventoryList& InArraySerializer)
 {
