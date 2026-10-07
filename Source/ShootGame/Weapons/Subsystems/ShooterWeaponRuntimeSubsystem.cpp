@@ -155,6 +155,8 @@ bool UShooterWeaponRuntimeSubsystem::InitializeWeaponRuntime()
 	return bRuntimeInitialized;
 }
 
+// 测试注入与测试重建入口：随开发/自动化配置收口，声明与定义处于同一编译条件（见头文件）。
+#if WITH_DEV_AUTOMATION_TESTS
 void UShooterWeaponRuntimeSubsystem::SetWeaponTableOverride(UDataTable* InWeaponTable)
 {
 	WeaponTableOverride = InWeaponTable;
@@ -195,6 +197,7 @@ void UShooterWeaponRuntimeSubsystem::InitializeWeaponRuntimeForTest()
 		}
 	}
 }
+#endif
 
 AShooterWeapon* UShooterWeaponRuntimeSubsystem::SpawnPoolWeaponActor(FShooterWeaponRuntimeBucket& Bucket)
 {

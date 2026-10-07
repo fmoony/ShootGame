@@ -18,7 +18,10 @@
 #include "Weapons/Subsystems/ShooterWeaponRuntimeSubsystem.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
+#if WITH_DEV_AUTOMATION_TESTS
+// 测试 Coordinator 只存在于开发/自动化配置；类型依赖与 PostLogin 内的启动代码保持同一编译边界。
 #include "Tests/Network/ShooterNetworkTestCoordinator.h"
+#endif
 #include "TimerManager.h"
 
 AShooterGameMode::AShooterGameMode()

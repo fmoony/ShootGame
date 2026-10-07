@@ -66,13 +66,15 @@ public:
 	 */
 	bool InitializeWeaponRuntime();
 
+#if WITH_DEV_AUTOMATION_TESTS
 	/**
 	 * 测试注入瞬态武器表；必须在 World BeginPlay 之前调用才能影响启动导入。
 	 * 传 nullptr 恢复使用固定 DT_WeaponData。
+	 * 只在开发/自动化配置编译，不作为 Runtime 公共能力对外暴露。
 	 */
 	void SetWeaponTableOverride(UDataTable* InWeaponTable);
 
-	/** 返回测试注入的武器表；未注入时返回 nullptr。 */
+	/** 返回测试注入的武器表；未注入时返回 nullptr（仅开发/自动化配置）。 */
 	UDataTable* GetWeaponTableOverride() const { return WeaponTableOverride; }
 
 	/**
@@ -80,6 +82,7 @@ public:
 	 * 生产路径运行时禁止重读表；本入口只服务自动化测试在追加行后重建快照。
 	 */
 	void InitializeWeaponRuntimeForTest();
+#endif
 
 	/**
 	 * 从指定 WeaponId 池取出一个已配置好的 WeaponActor 并绑定租用归属。
@@ -136,7 +139,11 @@ private:
 	UPROPERTY()
 	TMap<FName, FShooterWeaponRuntimeBucket> Buckets;
 
-	/** 测试注入的瞬态武器表；保持强引用防止 GC 回收。 */
+	/**
+	 * 测试注入的瞬态武器表；保持强引用防止 GC 回收。
+	 * 声明不随 WITH_DEV_AUTOMATION_TESTS 收口：UPROPERTY 不能放在反射工具不识别的预处理块内；
+	 * 写入入口只在开发/自动化配置编译，非测试配置下该指针恒为 nullptr。
+	 */
 	UPROPERTY(Transient)
 	TObjectPtr<UDataTable> WeaponTableOverride;
 
