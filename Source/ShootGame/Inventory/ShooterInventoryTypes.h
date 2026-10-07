@@ -78,30 +78,12 @@ struct FShooterWeaponInventoryList : public FFastArraySerializer
 	/** 服务器移除入口：按 Actor 身份删除条目并标记数组脏。 */
 	bool RemoveItem(AShooterWeapon* Weapon);
 
-	void ClearItems()
-	{
-		if (Items.Num() > 0)
-		{
-			Items.Empty();
-			MarkArrayDirty();
-		}
-	}
+	void ClearItems();
 
 	/** 按武器种类身份查找；不存在时返回 nullptr。重复 WeaponId 判定使用本入口。 */
 	const FShooterInventoryWeaponEntry* FindItemByWeaponId(FName WeaponId) const;
 
-	const FShooterInventoryWeaponEntry* FindItemBySlot(int32 SlotIndex) const
-	{
-		for (const FShooterInventoryWeaponEntry& Entry : Items)
-		{
-			if (Entry.SlotIndex == SlotIndex)
-			{
-				return &Entry;
-			}
-		}
-
-		return nullptr;
-	}
+	const FShooterInventoryWeaponEntry* FindItemBySlot(int32 SlotIndex) const;
 
 	/** 按 Actor 身份查找条目；该 Actor 不在背包时返回 nullptr。 */
 	const FShooterInventoryWeaponEntry* FindItem(const AShooterWeapon* Weapon) const;

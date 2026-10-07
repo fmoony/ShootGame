@@ -61,6 +61,15 @@ bool FShooterWeaponInventoryList::RemoveItem(AShooterWeapon* Weapon)
 	return false;
 }
 
+void FShooterWeaponInventoryList::ClearItems()
+{
+	if (Items.Num() > 0)
+	{
+		Items.Empty();
+		MarkArrayDirty();
+	}
+}
+
 const FShooterInventoryWeaponEntry* FShooterWeaponInventoryList::FindItemByWeaponId(FName WeaponId) const
 {
 	if (WeaponId.IsNone())
@@ -71,6 +80,19 @@ const FShooterInventoryWeaponEntry* FShooterWeaponInventoryList::FindItemByWeapo
 	for (const FShooterInventoryWeaponEntry& Entry : Items)
 	{
 		if (Entry.Weapon && Entry.Weapon->GetWeaponId() == WeaponId)
+		{
+			return &Entry;
+		}
+	}
+
+	return nullptr;
+}
+
+const FShooterInventoryWeaponEntry* FShooterWeaponInventoryList::FindItemBySlot(int32 SlotIndex) const
+{
+	for (const FShooterInventoryWeaponEntry& Entry : Items)
+	{
+		if (Entry.SlotIndex == SlotIndex)
 		{
 			return &Entry;
 		}
