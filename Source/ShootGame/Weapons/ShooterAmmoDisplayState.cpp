@@ -48,7 +48,7 @@ void FShooterAmmoDisplayState::PredictShot(int32 Key)
 	}
 }
 
-void FShooterAmmoDisplayState::RejectActivation(int32 Key)
+void FShooterAmmoDisplayState::RetireActivation(int32 Key)
 {
 	PredictedByActivation.Remove(Key);
 	if (PredictedByActivation.IsEmpty())

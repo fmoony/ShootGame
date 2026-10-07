@@ -35,7 +35,13 @@ struct SHOOTGAME_API FShooterAmmoDisplayState
 	void ReceiveSnapshot(const FShooterAmmoDisplaySnapshot& Snapshot);
 	void BeginActivation(int32 Key, const FShooterAmmoDisplaySnapshot& InitialSnapshot);
 	void PredictShot(int32 Key);
-	void RejectActivation(int32 Key);
+	/**
+	 * 撤销该 Key 的本地显示预测。
+	 *
+	 * 中性语义：服务器拒绝与本地生命周期退休在显示层的动作完全相同，
+	 * 因此这里不区分二者，也不代表"服务器拒绝"。
+	 */
+	void RetireActivation(int32 Key);
 	bool SettleActivation(int32 Key, const FShooterAmmoDisplaySnapshot& Snapshot);
 	void Reset();
 

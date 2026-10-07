@@ -570,9 +570,11 @@ void AShooterWeapon::RecordAmmoDisplayPredictedShot(int32 PredictionKey)
 	}
 }
 
-void AShooterWeapon::RejectAmmoDisplayActivation(int32 PredictionKey)
+void AShooterWeapon::RetireAmmoDisplayActivation(int32 PredictionKey)
 {
-	AmmoDisplayState.RejectActivation(PredictionKey);
+	// 中性底层实现：撤销该 PredictionKey 的本地显示预测。
+	// 服务器拒绝与本地生命周期退休在这里没有区别，任何 Reject 语义都由调用方按自己的终结原因登记。
+	AmmoDisplayState.RetireActivation(PredictionKey);
 	PushAmmoToOwnerHud();
 }
 
@@ -804,6 +806,24 @@ void AShooterWeapon::ConfirmPredictedAmmo(int32 Amount)
 void AShooterWeapon::BindPredictionAbility(UShooterGameplayAbility_Fire* Ability)
 {
 	BoundPredictionAbility = Ability;
+}
+
+void AShooterWeapon::UnbindPredictionAbilityIfBoundTo(const UShooterGameplayAbility_Fire* Ability)
+{
+	if (Ability && BoundPredictionAbility.Get() == Ability)
+	{
+#if WITH_DEV_AUTOMATION_TESTS
+		++SpecRemovalUnbindCountForTest;
+#endif
+		ClearPredictionAbility();
+	}
+}
+
+void AShooterWeapon::RecordSpecRemovalCleanupForTest()
+{
+#if WITH_DEV_AUTOMATION_TESTS
+	++SpecRemovalCleanupCountForTest;
+#endif
 }
 
 void AShooterWeapon::ClearPredictionAbility()
@@ -1151,29 +1171,10 @@ void AShooterWeapon::ResetLocalFireCooldown()
 
 bool AShooterWeapon::PlayOwnerPredictedShotFeedback()
 {
-	return PlayOwnerShotFeedbackInternal(/*bConfirmedBackfill*/ false);
+	return PlayOwnerShotFeedbackInternal();
 }
 
-bool AShooterWeapon::PlayOwnerConfirmedShotFeedback()
-{
-	// 一次 Activation 最多补播一次：没有队列、没有调度 Timer，也不影响任何本地节拍。
-	// 表现节奏由"每发一次 Activation + 本地开火节拍"保证，不在这里再次限速。
-	if (!IsOwnerConfirmedFeedbackTargetValid() || (!FiringMontage && !MuzzleFlash && !FireSound && FMath::IsNearlyZero(FiringRecoil)))
-	{
-		return false;
-	}
-
-	return PlayOwnerShotFeedbackInternal(/*bConfirmedBackfill*/ true);
-}
-
-bool AShooterWeapon::IsOwnerConfirmedFeedbackTargetValid() const
-{
-	const AShooterCharacter* Character = Cast<AShooterCharacter>(GetOwner());
-	return GetWorld() && !IsRunningDedicatedServer() && HasOwnerLocalPlayerView() && !IsHidden() &&
-		!IsActorBeingDestroyed() && Character && Character->GetCurrentWeaponActor() == this;
-}
-
-bool AShooterWeapon::PlayOwnerShotFeedbackInternal(bool bConfirmedBackfill)
+bool AShooterWeapon::PlayOwnerShotFeedbackInternal()
 {
 	// Dedicated Server 没有拥有者本地视图；非本地玩家视图也不是本入口的职责。
 	if (IsRunningDedicatedServer() || !HasOwnerLocalPlayerView())
@@ -1231,27 +1232,17 @@ bool AShooterWeapon::PlayOwnerShotFeedbackInternal(bool bConfirmedBackfill)
 #if WITH_DEV_AUTOMATION_TESTS
 	if (bPlayedAny)
 	{
-		if (bConfirmedBackfill)
+		++PredictedOwnerFeedbackCount;
+		++FireFeedbackEventSequence;
+		LastOwnerFeedbackSequence = FireFeedbackEventSequence;
+		if (const UWorld* World = GetWorld())
 		{
-			// 确认补播与本地预测分开计数：它晚于 Confirmation，绝不能参与"预测早于确认"的断言。
-			++ConfirmedBackfillFeedbackCount;
-			LogFireFeedbackMarker(TEXT("FIRE_CONFIRMED_BACKFILL_OWNER"), ConfirmedBackfillFeedbackCount,
-				ConfirmedBackfillFeedbackCount);
-		}
-		else
-		{
-			++PredictedOwnerFeedbackCount;
-			++FireFeedbackEventSequence;
-			LastOwnerFeedbackSequence = FireFeedbackEventSequence;
-			if (const UWorld* World = GetWorld())
+			const float Now = World->GetTimeSeconds();
+			if (LastOwnerFeedbackTime >= 0.0f)
 			{
-				const float Now = World->GetTimeSeconds();
-				if (LastOwnerFeedbackTime >= 0.0f)
-				{
-					MinimumOwnerFeedbackInterval = FMath::Min(MinimumOwnerFeedbackInterval, Now - LastOwnerFeedbackTime);
-				}
-				LastOwnerFeedbackTime = Now;
+				MinimumOwnerFeedbackInterval = FMath::Min(MinimumOwnerFeedbackInterval, Now - LastOwnerFeedbackTime);
 			}
+			LastOwnerFeedbackTime = Now;
 		}
 	}
 #endif
@@ -1472,7 +1463,7 @@ FTransform AShooterWeapon::GetThirdPersonLeftHandGripWorldTransform() const
 void AShooterWeapon::ResetFireFeedbackCountersForAutomationTest()
 {
 	PredictedOwnerFeedbackCount = 0;
-	ConfirmedBackfillFeedbackCount = 0;
+	OwnerConfirmedReplayFeedbackCount = 0;
 	OwnerAuthorityConfirmationCount = 0;
 	AuthorityShotCount = 0;
 	RemoteConfirmedFeedbackCount = 0;
@@ -1539,14 +1530,26 @@ void AShooterWeapon::LogFireFeedbackMarker(const TCHAR* Marker, int32 ShotOrdina
 		Marker, PlayerId, *GetNameSafe(this), ShotOrdinal, Count, LocalTime, static_cast<int32>(GetNetMode()));
 }
 
-int32 AShooterWeapon::GetConfirmedBackfillCountForAutomationTest() const
+int32 AShooterWeapon::GetOwnerConfirmedReplayCountForAutomationTest() const
 {
-	return ConfirmedBackfillFeedbackCount;
+	return OwnerConfirmedReplayFeedbackCount;
 }
 
 void AShooterWeapon::SetPendingPredictedShotsForAutomationTest(int32 InPendingShots)
 {
 	PendingPredictedShots = FMath::Max(0, InPendingShots);
+}
+
+void AShooterWeapon::SeedAmmoDisplayActivationForAutomationTest(int32 PredictionKey)
+{
+	// 只建立显示激活本身：与 BeginAmmoDisplayActivation 的差异仅在跳过"拥有端预测上下文"门控。
+	FShooterAmmoDisplaySnapshot Initial = AmmoDisplaySnapshot;
+	if (Initial.Revision == 0)
+	{
+		Initial.Magazine = MagazineAmmo;
+		Initial.Reserve = ReserveAmmo;
+	}
+	AmmoDisplayState.BeginActivation(PredictionKey, Initial);
 }
 
 void AShooterWeapon::SetLocalFireCooldownRemainingForAutomationTest(float RemainingSeconds)

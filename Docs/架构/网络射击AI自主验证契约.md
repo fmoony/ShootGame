@@ -1,7 +1,7 @@
 # 网络射击 AI 自主验证契约
 
 - 生效日期：2026-09-16
-- 最近修订：2026-09-17（不变量以标题含义为准；同步当前预测与换弹语义）
+- 最近修订：2026-10-07（正式收敛 Owner Fire Presentation 与 Authority Result 语义）
 - 适用范围：玩家网络射击、预测表现、本地动作边界、服务器裁决、远端确认与相关测试
 - 维护责任：执行网络射击开发与验证的 Agent
 
@@ -30,6 +30,43 @@
   确认流程见第 3 节，输出结构见第 7 节。
 - 含义的扩展或收缩属于 Gameplay 语义变化，按第 5 节交由用户确认。
 
+### 1.2 Fire 的三层事实
+
+网络射击必须分别记录以下三件事；它们相关，但不是同一个事实：
+
+```text
+Shot Intent        = 玩家尝试开枪，并向服务器提交该意图
+Owner Presentation = 本地拥有者是否在输入发生时立即表现这一枪
+Authority Result   = 服务器是否认定这一枪在 Gameplay 中成立
+
+Intent != Presentation != Authority Result
+```
+
+- `Shot Intent` 是请求事实，不因客户端暂时没有足够预测依据而被吞掉；
+- `Owner Presentation` 是本地时间敏感反馈，当前项目包括 FP Fire Montage、Recoil、Owner Muzzle FX
+  与 Owner Fire Sound；
+- `Authority Result` 只由服务器裁决，决定 Ammo、Fire cadence、Weapon identity、Projectile / Trace、
+  Hit、Damage、Death 以及其它 Gameplay 结果。
+
+相关术语的职责边界如下：
+
+- `Client Prediction`：客户端先建立本地动作边界与可选的 Owner Presentation，
+  不建立权威 Gameplay 结果；
+- `Ammo Prediction`：拥有端的本地预算或显示扣减，只能由本地预测路径消费，
+  并在 Accept / Reject 后结清，
+  不能写服务器 Ammo；
+- `PredictionKey`：把预测消费、Reject Refund 与最终结清归因到具体 Ability Activation 的标识，
+  不能单独证明 Owner 已表现，也不能替代服务器 Authority Result；
+- `Remote Presentation`：服务器 Commit 后驱动远端第三人称表现，不复用 Owner 的本地预测入口。
+
+Owner 瞬时 Fire Feedback 的目标是在本地 Fire Action 发生时尽可能以 0 RTT 反馈输入。
+服务器确认不是这些反馈的播放时机。若本地 Shot Attempt 当时没有足够依据进行预测表现，之后服务器接受
+也不要求延迟补播过去的 Owner 瞬时反馈。
+
+“有足够预测依据”只决定客户端此刻是否敢先表现、是否消费本地预测 Ammo budget；它不能被解释为客户端
+是否有资格向服务器发送 `Shot Intent`。过期的客户端复制状态可以抑制本地表现或本地预算消费，但不能
+直接吞掉一个应由服务器裁决的 `Shot Intent`。
+
 ## 2. 顶层验收不变量
 
 每条不变量由三部分组成：
@@ -42,12 +79,17 @@
 
 ### Invariant 1：Owner Immediate Feedback
 
-**含义**：拥有者的本地动作在服务器确认返回前就已经成立，并且该动作对应的可见表现来自本地预测。
+**含义**：Owner 的瞬时 Fire Feedback 属于本地时间敏感表现。具备足够本地预测依据时，
+本地 Shot Attempt 应在服务器确认返回前立即尝试表现；该表现来自本地路径，而不是服务器确认回放。
+本不变量不要求每一个 Server Accepted Shot 最终都补齐一次 Owner 瞬时表现。
 
-- 玩家输入必须在本地形成可用的动作边界（例如本地 Shot Attempt、本地换弹窗口），不等一次 RTT；
-- 该边界对应的可见表现必须由本地预测启动；
-- 允许本地与服务器存在相位差，但不允许单向缺口：
-  服务器已经产生结果，而 Owner 本地从头到尾没有对应的动作边界与表现。
+- 玩家输入必须在本地形成可用的 `Shot Intent`，不等一次 RTT；
+- 有足够本地预测依据时，Owner 的 FP Fire Montage、Recoil、Muzzle FX、Fire Sound
+  立即尝试播放；
+- 本地依据不足时，可以不播放 Owner 瞬时反馈，也不消费本地预测 Ammo budget，
+  但仍必须提交 `Shot Intent`；
+- 允许本地表现与服务器结果存在相位差；`Accepted` 但当时未预测表现不再构成单向缺口；
+- Owner 瞬时表现至多发生一次，并且只由本地 Shot Attempt 在正确时间窗口决定。
 
 **当前阶段的实例（非穷尽）**：
 
@@ -64,8 +106,9 @@ Projectile 仍只能由服务器权威生成，不属于本不变量的实例。
 **反例（出现即 FAIL）**：
 
 - Owner 表现要等服务器确认到达后才出现；
-- 服务器已提交真实 Shot 或换弹事务，Owner 本地没有对应的动作边界或表现；
-- Owner 的第一人称表现由服务器确认路径重复补播。
+- 本地已有足够预测依据，却因等待 Server confirmation 而延迟表现；
+- 同一个本地 Shot Attempt 由预测路径与确认路径各播放一次 Owner 瞬时表现；
+- RTT 后为过去的输入补播 Recoil、Muzzle FX、Fire Sound 或 FP Fire Montage。
 
 ### Invariant 2：Local Prediction Obeys Weapon Rules
 
@@ -79,8 +122,8 @@ Projectile 仍只能由服务器权威生成，不属于本不变量的实例。
    - 本机已知的动作互斥状态必须通过 GAS Tag 门控生效，不得为了保住输入而在本地绕过门控。
 2. **不越权**：不得用未知或可能过期的真值替代服务器裁决。
    - 不得预测 Ammo、Projectile、Hit、Damage、Death、Score；
-   - 不得用可能过期的复制状态（Ammo、Tag）二次否决一个已经成立的本地有效表现：
-     服务器已经接受并产生结果的那一次动作，Owner 不能因为过期复制状态而没有表现；
+   - 不得用可能过期的复制状态（Ammo、Tag）吞掉应提交给服务器的 `Shot Intent`；
+     这些状态可以决定本地是否先播放 Owner 瞬时表现、是否消费预测 Ammo budget，不能替代服务器裁决；
    - 客户端以为有弹而服务器实际无弹时，允许一次纯 Cosmetic 误预测，由服务器 Reject 收敛。
 3. **收敛**：误预测必须有边界且可收敛。
    - 误预测不得修改 Ammo、生成 Projectile、结算 Hit / Damage / Death / Score；
@@ -96,12 +139,13 @@ Projectile 仍只能由服务器权威生成，不属于本不变量的实例。
 - `State.Dead` 是硬阻塞，不得缓存后重试；
 - 本机已知 `State.Reloading` / `State.Equipping` 阻塞激活时，玩家输入不得静默丢失，
   也不得在阻塞结束后重复消费；实现方式（例如本地输入缓冲）不属于契约内容；
-- 本地表现不由服务器确认补播第二次；Reject 不回滚已经播出的瞬时表现，也不补播。
+- 本地 Owner 瞬时表现不由服务器确认补播；Reject 不回滚已经播出的瞬时表现，
+  也不为未播放的历史事件补播。
 
 **反例（出现即 FAIL）**：
 
 - 本地表现快于 `RefireRate`，或由表现入口自行推进节拍；
-- 服务器已经接受并生成 Projectile，Owner 本地却没有表现；
+- 本地 Shot Attempt 因等待确认而延迟表现，或确认路径为过去的 Owner 事件补播；
 - 本地预测修改 Ammo、生成 Projectile 或结算伤害；
 - 被阻塞的输入永久丢失，或在阻塞结束后补出额外的一次射击。
 
@@ -120,6 +164,18 @@ Projectile 仍只能由服务器权威生成，不属于本不变量的实例。
 - Death；
 - Score。
 
+Server Accept 还负责：
+
+- 确认 Shot authority；
+- 校验 Weapon identity、Ammo、Fire cadence 与其它权威前置条件；
+- 产生 Projectile / Trace、Hit、Damage、Death 等 Gameplay 结果；
+- 结清 Prediction record 与 AmmoDisplay / HUD 的最终状态；
+- 驱动 Remote TP presentation。
+
+Server Accept 不负责“确保 Owner 最终一定看到一次瞬时 Fire cosmetic”。
+`Accepted Activation == exactly one Authority Shot` 仍然是权威契约，但不再推出
+`Accepted Shot == one Owner Presentation`。
+
 服务器接受时，结果必须来自权威路径。服务器拒绝时：
 
 - 不产生任何权威 Gameplay 结果；
@@ -130,12 +186,32 @@ Projectile 仍只能由服务器权威生成，不属于本不变量的实例。
 
 客户端本地预测可以建立本地动作边界与表现，但不得提交任何权威事务，也不得改写权威真值。
 
+Server Reject 负责：
+
+- 不产生权威 Shot；
+- 退还必要的本地预测 Ammo budget；
+- 撤销可撤销的预测状态；
+- 结清 Prediction record 与 HUD overlay。
+
+Server Reject 不负责：
+
+- 倒放 Recoil；
+- 撤回已经播放的 Fire Sound 或 Muzzle FX；
+- 回滚已经播放的 FP Fire Montage。
+
 仅证明“没有继续生成 Projectile”不能代替 Cleanup 证据；必须观察应被清除的预测状态本身。
 
 ### Invariant 4：Remote Is Confirmed Only
 
 **含义**：Remote 客户端的表现只能来源于服务器确认，不得依赖 Owner 的本地预测入口，
 也不得因为 Owner 的本地预测而在远端产生额外表现或额外权威结果。
+
+Owner FP Presentation 与 Remote TP Presentation 是两条不同契约：
+
+- Owner FP Presentation：本地 Shot Attempt 驱动，追求 0 RTT；
+- Remote TP Presentation：`Server Commit → TP Montage → Remote Muzzle / Sound`，由权威结果驱动。
+
+取消 Owner confirmed cosmetic backfill 不代表取消服务器确认后的 Remote Presentation。
 
 **当前阶段的实例（非穷尽）**：
 
@@ -154,8 +230,8 @@ Projectile 仍只能由服务器权威生成，不属于本不变量的实例。
 
 ### Invariant 5：Exactly One Authority Result
 
-**含义**：一次被服务器认可的 Gameplay 动作只产生一份权威结果；同一次动作在 Owner 本地也只产生
-一次本地动作边界与一次表现。
+**含义**：一次被服务器认可的 Gameplay 动作只产生一份权威结果；Owner 瞬时表现至多发生一次，
+并且只由本地 Shot Attempt 在正确时间窗口决定。Owner 可能没有该次瞬时表现，不能因此补造历史事件。
 
 不得因为 LocalPredicted、Listen Host 双角色、Multicast、输入缓冲重试、预测重试或重复调用路径产生：
 
@@ -168,6 +244,41 @@ Projectile 仍只能由服务器权威生成，不属于本不变量的实例。
 
 被服务器拒绝但已经播放的一次纯本地表现不属于权威结果；它仍必须满足 Invariant 2 与 3 的
 限速与收敛要求。
+
+### 2.1 Owner Fire Presentation 的四种最终路径
+
+| 路径 | Owner 本地 | Server | Client settlement |
+| --- | --- | --- | --- |
+| Predicted + Accepted | 立即表现 | 接受 | 结清预算与 Record，不重复表现 |
+| Predicted + Rejected | 已经表现 | 拒绝 | Refund / 状态收敛，不回滚瞬时表现 |
+| Unpredicted + Accepted | 当时没有表现 | 接受并产生权威 Shot | 结清状态/HUD/Record；Owner 不补播 |
+| Unpredicted + Rejected | 没有表现 | 拒绝 | 只清理状态，不表现 |
+
+`Backfill=1` 不再是 Server Accepted 或 Owner 成功的必要条件。测试必须分别记录
+`Owner immediate feedback`、`Confirmed replay` 与 `Authority Shot`，不能用总表现数等同三层事实。
+
+FullAuto / PktLag 场景禁止旧 Shot 在后续时间发生 delayed Owner replay。
+Host / Standalone Owner 仍在本地 Ability Activation 路径中立即尝试 Owner Feedback，
+不依赖 Server Accepted 后的 confirmed cosmetic backfill。
+
+### 2.2 结算原则与未来上下文
+
+Reconciliation primarily corrects state, not historical instantaneous presentation。
+
+网络结算首先纠正状态，而不是重新演出已经过去的瞬时第一视角事件。可以纠正：
+
+- Ammo；
+- Pending prediction；
+- HUD；
+- Shot Record；
+- Gameplay result。
+
+不应在 RTT 后重演 Recoil、Muzzle FX、Fire Sound 或 FP Fire Montage。
+
+未来 `Shot Intent` 可以携带 `ClientFireTime`、input sequence、aim / view timestamp 或其它
+prediction context，供服务器理解客户端何时发起了什么并进行历史验证或 lag compensation。
+服务器仍始终自行裁决 Ammo、Refire、Weapon legality、Hit 与 Damage：可以相信 Client 提供的
+Intent context，但不能信任 Client 对 Gameplay result 的最终判断。
 
 ## 3. Agent 自主验证工作流
 
@@ -223,7 +334,9 @@ Agent 根据受影响不变量自行组合验证链，并按第 6 节固定格�
 - 证明 Reject Cleanup 时必须先证明客户端确实发起了目标预测尝试，且服务器确实拒绝；
 - 证明 Full-auto Timer Cleanup 时必须使用真实 Full-auto 配置并证明 Timer 曾经活动；
 - 证明 Remote Confirmed 时必须建立 Authority Commit 与 Remote 表现之间的因果或顺序关系；
-- 证明 Owner Immediate 时必须在同一客户端时钟域比较本地输入、本地表现和服务器确认到达；
+- 证明 Owner Immediate 时必须在同一客户端时钟域比较本地 Shot Attempt、本地表现和服务器确认到达；
+  本地依据不足时，还必须证明 `Shot Intent` 仍然提交，且 `Unpredicted + Accepted` 不触发
+  Owner 延迟补播；
 - 证明 Exactly One 时使用场景增量，不能依赖池化 Actor 的历史累计值为零；
 - Montage、Muzzle FX、Sound、Recoil 必须有各自可归因的入口证据，不能用单一笼统计数替代全部四项；
 - `IsAnyMontagePlaying()`、任意非 Owner 武器弹药为 0 等间接现象不能单独证明目标机制；
@@ -232,7 +345,12 @@ Agent 根据受影响不变量自行组合验证链，并按第 6 节固定格�
 - 证明换弹预测时必须分别证明 Owner 本地窗口、服务器事务、Reject 收敛三者独立成立，
   且服务器弹药转移恰好一次；
 - 证明“本地表现未被过期复制状态否决”时必须构造复制状态与本地有效动作不一致的场景，
-  并观察表现仍然成立；
+  并同时观察：Shot Intent 仍到达服务器，客户端可不播放瞬时 Owner 反馈且不消费预测预算，
+  服务器仍独立裁决最终结果；
+- Owner 瞬时表现验证必须分别记录 Predicted / Unpredicted、Accepted / Rejected、
+  `Owner immediate feedback`、`Confirmed replay` 与 `Authority Shot`；
+- `Backfill=1` 不再是 Accepted 的成功条件；对 Owner 发生确认补播本身应作为违反当前契约的信号，
+  而不是缺发补偿证据；
 - 测试整体绿色不等于五条不变量全部通过，未取证的项目必须列为缺失证据。
 
 主观的枪声听感、Recoil 手感和画面自然度不由无头自动化宣告通过。自动化负责证明调用、来源、时序、
@@ -264,7 +382,11 @@ Agent 根据受影响不变量自行组合验证链，并按第 6 节固定格�
 Invariant 1 Owner Immediate Feedback
 
 - PASS / FAIL
-- 含义覆盖：本地动作边界 / 表现来源 / 无单向缺口
+- 含义覆盖：Shot Intent / Owner Presentation / Authority Result 三者分离
+- Predicted / Unpredicted：
+- Owner immediate feedback：
+- Confirmed replay：必须为 0
+- Server Accepted 但未本地表现：允许，需记录原因与状态收敛
 - 证据：
 - 使用的测试：
 
@@ -276,7 +398,7 @@ Invariant 2 Local Prediction Obeys Weapon Rules
 - Full-auto：
 - 本地已知限制（Weapon 有效 / Reloading / Equipping / Dead）：
 - 不越权（不得预测 Ammo / Projectile / Hit / Damage；不得用过期复制状态否决有效动作）：
-- 收敛（节拍未 Ready 不补枪 / Reject 后状态清理 / 不补播第二次）：
+- 收敛（节拍未 Ready 不补枪 / Reject 后状态清理 / 不延迟补播历史 Owner 事件）：
 - 使用的测试：
 
 Invariant 3 Server Is Final Authority
@@ -286,6 +408,8 @@ Invariant 3 Server Is Final Authority
 - Accept：
 - Reject：
 - Cleanup：
+- `Accepted Activation == exactly one Authority Shot`：
+- Owner confirmed cosmetic backfill：不属于 Accept 职责，必须为 0
 - 使用的测试：
 
 Invariant 4 Remote Is Confirmed Only
@@ -298,13 +422,25 @@ Invariant 4 Remote Is Confirmed Only
 Invariant 5 Exactly One Authority Result
 
 - PASS / FAIL
-- 含义覆盖：一份权威结果 / 一次本地动作边界与表现
+- 含义覆盖：一份权威结果 / Owner 表现至多一次且只由本地时间窗口决定
 - Authority Commit 数：
 - Ammo 消耗：
 - 换弹事务提交次数：
 - Projectile 数：
 - 是否存在重复：
 - 使用的测试：
+
+Owner Fire Presentation 四路径：
+
+```text
+PredictedAccepted:   Owner immediate feedback = 1, Confirmed replay = 0
+PredictedRejected:   Owner immediate feedback = 1, Rollback cosmetic = 0, Authority Shot = 0
+UnpredictedAccepted: Owner immediate feedback = 0, Confirmed replay = 0,
+                     Authority Shot = 1, 状态收敛
+UnpredictedRejected: Owner feedback = 0, Authority Shot = 0, 状态收敛
+```
+
+FullAuto / PktLag：不得在后续时间发生 delayed Owner replay。
 
 - Build / Automation / Dedicated / Listen / Emulated 结果
 - 当前缺失的自动化证据

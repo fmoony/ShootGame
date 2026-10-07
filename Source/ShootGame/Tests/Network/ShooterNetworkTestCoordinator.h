@@ -20,6 +20,7 @@ class UShooterGameplayAbility_Fire;
 class UShooterGameplayAbility_Reload;
 class UGameplayAbility;
 struct FOnAttributeChangeData;
+struct FGameplayAbilitySpec;
 struct FGameplayTagContainer;
 
 /** Reload identity 定向会话的逐端快照；无效目标保留为无效证据，不折算为零。 */
@@ -186,8 +187,8 @@ struct FShooterAmmoPredictionNetRateWindow
  *
  * 字段口径与「一次 GA_Fire Activation = 恰好一发 Shot」对齐：
  * - PendingShots 只由这一发的裁决结清（Committed / Rejected），Ammo 复制不参与结清；
- * - PredictedOwnerFeedbackCount 与 ConfirmedBackfillCount 分别是提前表现与确认补播的实际播放次数，
- *   ConfirmedBackfillRequestCount 是 GA 侧发出的补播请求次数；
+ * - PredictedOwnerFeedbackCount 与 OwnerConfirmedReplayCount 分别是本地预测表现与禁止的
+ *   Owner historical replay 实际播放次数；OwnerConfirmedReplayRequestCount 是 GA 侧的禁止路径请求次数；
  * - ShotVerdictCount 是拥有端武器收到的单发裁决通知（ClientShotCommitted）次数；
  * - UnresolvedShotRecordCount 是拥有端 GA_Fire 上尚未结清的 Shot 记录数；
  * - bReleaseSettled / ActivationsAtRelease 只在松手后置位，用于断言松手不再产生新激活；
@@ -223,9 +224,9 @@ struct FShooterAmmoPredictionObservation
 	UPROPERTY()
 	int32 PredictedOwnerFeedbackCount = INDEX_NONE;
 	UPROPERTY()
-	int32 ConfirmedBackfillCount = INDEX_NONE;
+	int32 OwnerConfirmedReplayCount = INDEX_NONE;
 	UPROPERTY()
-	int32 ConfirmedBackfillRequestCount = INDEX_NONE;
+	int32 OwnerConfirmedReplayRequestCount = INDEX_NONE;
 	UPROPERTY()
 	int32 ShotVerdictCount = INDEX_NONE;
 	UPROPERTY()
@@ -331,6 +332,59 @@ struct FShooterAmmoPredictionObservation
 	FName CurrentWeaponId;
 
 	/**
+	 * 拥有端本步骤窗口内逐次 Fire Activation 的武器上下文。
+	 *
+	 * 两个数组等长且同序：ActivationContextKeys[i] 这一次激活用的是 ActivationContextWeaponIds[i]。
+	 * 它回答"客户端这一次请求用的是哪把武器"，是判定"服务器是否把这次请求重新解释成另一把武器的
+	 * Shot"所必需的另一半；服务器侧同窗口的权威样本按 PredictionKey 与它对齐。
+	 */
+	UPROPERTY()
+	TArray<int32> ActivationContextKeys;
+	UPROPERTY()
+	TArray<FName> ActivationContextWeaponIds;
+
+	/** 拥有端本步骤起点被钉住的请求上下文武器（A）；换枪后它**不**跟随当前武器。 */
+	UPROPERTY()
+	FName ContextWeaponId;
+	UPROPERTY()
+	int32 ContextWeaponPendingShots = INDEX_NONE;
+	UPROPERTY()
+	int32 ContextWeaponMagazineAmmo = INDEX_NONE;
+	UPROPERTY()
+	int32 ContextWeaponUnsettledDisplayCount = INDEX_NONE;
+	UPROPERTY()
+	int32 ContextWeaponUnresolvedRecords = INDEX_NONE;
+
+	/** 上下文武器上"旧 Spec 生命周期结束导致的解绑"次数；证明 Spec Removal 清理确实发生过。 */
+	UPROPERTY()
+	int32 ContextWeaponSpecRemovalUnbindCount = INDEX_NONE;
+
+	/** 上下文武器上"Spec Removal 清算执行过"的次数（无论当时是否还有未结记录）。 */
+	UPROPERTY()
+	int32 ContextWeaponSpecRemovalCleanupCount = INDEX_NONE;
+
+	/** 拥有端收到的"发送方不是记录所属武器"的裁决次数；0 表示没有任何跨武器裁决。 */
+	UPROPERTY()
+	int32 WeaponContextMismatchVerdictCount = INDEX_NONE;
+
+	/** 最近一次带武器来源的裁决发送方 WeaponId；引擎 Reject 通道不带武器时保持 NAME_None。 */
+	UPROPERTY()
+	FName LastVerdictSourceWeaponId;
+
+	/**
+	 * 拥有端可见的 Fire 授予结构：每把持有的武器一份 Spec，SourceObject 指向该武器。
+	 *
+	 * FireSpecCount 必须等于持有武器数；UnresolvedSourceSpecCount 必须为 0
+	 * （复制未解析或孤儿 Spec 既不能参与输入也不能被撤销）。
+	 */
+	UPROPERTY()
+	int32 FireSpecCount = INDEX_NONE;
+	UPROPERTY()
+	int32 FireInstanceCount = INDEX_NONE;
+	UPROPERTY()
+	int32 UnresolvedSourceSpecCount = INDEX_NONE;
+
+	/**
 	 * 拥有端本地开火节拍取证（本步骤窗口内）。
 	 *
 	 * 它回答"下一发为什么在此时发生"：ExpectedDeadline 是上一发写下的本地节拍终点，
@@ -407,6 +461,20 @@ class SHOOTGAME_API AShooterNetworkTestCoordinator : public AActor
 public:
 	AShooterNetworkTestCoordinator();
 
+	/**
+	 * OwnerSingleShot 的正向就绪判定：当前武器必须在本地已拥有可解析的 Fire Spec。
+	 *
+	 * per-Weapon GA_Fire Spec 架构下，"武器 Actor 已复制"与"这把武器能在本端被解释成动作"是两件事：
+	 * Spec 晚于武器到达时，同一帧的 Press edge 会在帧末失效，这一枪必丢（普通 Dedicated 全零报告根因）。
+	 *
+	 * 判定直接复用生产解析入口 AShooterPlayerState::FindFireAbilitySpecForWeapon
+	 * （按 AbilityClass + SourceObject 判定武器身份），不在这里重新实现类搜索 / SourceObject 比较 / Tag 比较。
+	 *
+	 * 放在 public：自动化测试要直接验证 fixture 的这个就绪判定本身（只读，不改任何 Stage）。
+	 */
+	static const FGameplayAbilitySpec* ResolveOwnerFireSpecForSingleShot(const AShooterPlayerState* ShooterPlayerState,
+		const AShooterWeapon* CurrentWeapon);
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
@@ -421,6 +489,13 @@ private:
 	/** Ammo Prediction 复现专用模式；-ShootGameAmmoPredictionTest 开启。只加测试夹具，不改生产语义。 */
 	UPROPERTY(Replicated)
 	bool bAmmoPredictionMode = false;
+
+	/**
+	 * Weapon Context 定向模式（-ShootGameWeaponContextTest）。
+	 * 复用 Ammo Prediction 夹具的驱动与观测，只把步骤表换成"按住开火期间换枪"的定向用例。
+	 */
+	UPROPERTY(Replicated)
+	bool bWeaponContextMode = false;
 
 	UFUNCTION(Client, Reliable)
 	void ClientPrepareReloadIdentityStep(int32 SubjectPlayerId, int32 Step);
@@ -461,8 +536,18 @@ private:
 	UFUNCTION(Client, Reliable)
 	void ClientVerifyAmmoPredictionObserver(int32 SubjectPlayerId);
 
+	/**
+	 * 夹具专用：让拥有端按**生产输入路径**请求切到下一个武器槽位。
+	 *
+	 * 走 Character 的输入入口 → ASC 输入采集 → GA_Equip（ServerOnly）请求上行，
+	 * 不新增任何生产 RPC，也不直接改写 Equipment。拥有端的 CurrentWeaponActor
+	 * 只会因 CurrentWeaponActor 的复制而改变，因此请求在途期间它仍然停留在旧武器上。
+	 */
+	UFUNCTION(Client, Reliable)
+	void ClientRequestAmmoPredictionWeaponSwitch(int32 Step);
+
 	UFUNCTION(Server, Reliable)
-	void ServerReportAmmoPredictionObserver(bool bValid, int32 PredictedCount, int32 BackfillCount, int32 VerdictCount);
+	void ServerReportAmmoPredictionObserver(bool bValid, int32 PredictedCount, int32 ConfirmedReplayCount, int32 VerdictCount);
 
 	UFUNCTION(Server, Reliable)
 	void ServerReportAmmoPredictionSample(const FShooterAmmoPredictionObservation& Observation);
@@ -482,6 +567,18 @@ private:
 	void RunAmmoPredictionRateStep(int32 Step);
 	/** 帧率 × 射速矩阵用例：Step 必须是矩阵步骤之一；只断言结构性不变量，射速作为数据上报。 */
 	void RunAmmoPredictionCadenceMatrixStep(int32 Step);
+	/** Weapon Context 定向用例：按住开火期间换枪，Step 必须是本模式的定向步骤之一。 */
+	void RunAmmoPredictionWeaponContextStep(int32 Step);
+
+	/** Spec Removal 定向用例：在途请求 + 真实 Inventory Remove（Spec 撤销）的确定性窗口。 */
+	void RunAmmoPredictionSpecRemovalStep();
+
+	/** Pool Reuse 定向用例：同一 Owner 立刻复用同一个 pooled 武器，验证新旧 Spec 生命周期互不干扰。 */
+	void RunAmmoPredictionPoolReuseStep();
+
+	/** 装备权威变化（服务器）：记录本步骤的精确换枪提交时刻与目标武器。 */
+	UFUNCTION()
+	void HandleAmmoPredictionEquippedWeaponChanged(AShooterWeapon* PreviousWeapon, AShooterWeapon* CurrentWeapon);
 	void RunAmmoPredictionUnpredictedAcceptedStep();
 	void RunAmmoPredictionUnpredictedRejectedStep();
 	/** 半自动用例的换枪步骤：动态挑出正式半自动行 → 服务器装备 → 等拥有端观察到位。 */
@@ -589,6 +686,9 @@ private:
 	float AmmoPredictionReloadHoldSeconds = 0.0f;
 	/** 动态挑出的正式半自动武器行名；表里没有半自动行时夹具直接失败，不静默跳过用例。 */
 	FName AmmoPredictionSemiAutoRowName;
+
+	/** 半自动用例切换到的 WeaponActor；用于断言"每把武器各有一份 Fire Spec"的身份映射。 */
+	TWeakObjectPtr<AShooterWeapon> AmmoPredictionSemiAutoWeapon;
 	/** 半自动 Hold 用例的按住时长，换枪时按该武器 Row 的 RefireRate 算出。 */
 	float AmmoPredictionSemiAutoHoldSeconds = 0.0f;
 	/** 武器行配置的原始 RefireRate；每个步骤起点都会把两端恢复到这个值。 */
@@ -650,10 +750,159 @@ private:
 	/** 服务器仅本地持有的阻塞 Tag 是否已挂载。 */
 	bool bAmmoPredictionServerTagApplied = false;
 
+	// ---- Weapon Context 定向用例：按住开火期间换枪（只服务 -ShootGameWeaponContextTest） ----
+
+	/** 本步骤起点服务器侧被钉住的请求上下文武器（A）；换枪后**不**跟随当前武器。 */
+	TWeakObjectPtr<AShooterWeapon> AmmoPredictionContextWeaponServer;
+
+	/** 本步骤起点拥有端被钉住的请求上下文武器（A）；换枪后**不**跟随当前武器。 */
+	TWeakObjectPtr<AShooterWeapon> AmmoPredictionContextWeaponClient;
+
+	/** 服务器下发切枪请求的时刻；负值表示本步骤还没请求过。 */
+	float AmmoPredictionSwitchRequestTime = -1.0f;
+
+	/** 服务器观察到 CurrentWeaponActor 真正换人的时刻；负值表示本步骤还没换过。 */
+	float AmmoPredictionSwitchCommitTime = -1.0f;
+
+	/**
+	 * 装备事务真实提交时刻（Equipment.OnEquippedWeaponChanged 广播时）。
+	 *
+	 * 它比按 poll 轮询检测到的 AmmoPredictionSwitchCommitTime 精确：轮询间隔 0.1s，
+	 * 后者最多晚一个 poll，会让"窗口内被接受的 Activation"被少算。
+	 */
+	float AmmoPredictionEquipCommitTime = -1.0f;
+
+	/** 装备变化委托是否已绑定；动态委托没有句柄，收口时按绑定标志解绑。 */
+	bool bAmmoPredictionEquipDelegateBound = false;
+
+	/** 换枪后服务器的当前武器（B）。 */
+	TWeakObjectPtr<AShooterWeapon> AmmoPredictionSwitchTargetWeapon;
+
+	/** 本步骤是否已经下发过切枪请求（只请求一次）。 */
+	bool bAmmoPredictionSwitchRequested = false;
+
+	/**
+	 * 拥有端是否已经执行过本步骤的切枪输入（只执行一次）。
+	 *
+	 * 它刻意不复用 AmmoPredictionSubmittedStep：按住指令与切枪指令属于同一个步骤，
+	 * 用同一个"已提交"标记会让后到的切枪指令被当成重复指令丢弃。
+	 */
+	bool bAmmoPredictionSwitchSubmitted = false;
+
+	/** 服务器是否已经观察到"当前武器换人"。 */
+	bool bAmmoPredictionSwitchObserved = false;
+
+	/** 服务器第一次从拥有端样本里看到"拥有端已知道换枪"的时刻（= 该样本到达服务器的时刻）。 */
+	float AmmoPredictionClientLearnedSwitchTime = -1.0f;
+
+	/** 是否已经观察到拥有端学会了新的当前武器。 */
+	bool bAmmoPredictionSwitchLearnedObserved = false;
+
+	/**
+	 * 错位窗口内被服务器接受的 Activation 数 = [换枪提交时刻, 拥有端学会换枪时刻] 之间的权威提交数。
+	 *
+	 * 这是"本用例是否真的验证过目标不变量"的判据：窗口内一次接受都没有时，
+	 * 断言"Mismatch == 0"只是没有证据，不能当成通过。
+	 */
+	int32 AmmoPredictionWindowAcceptedCount = 0;
+
+	/**
+	 * 换枪提交之后服务器拒绝掉的权威 Activation 数。
+	 *
+	 * 服务器拒绝回调不携带 PredictionKey，因此它只作为"错位窗口内确实有请求到达"的旁证：
+	 * 换枪提交之后仍然到达的请求只可能来自"拥有端还以为自己在用旧武器"的那段时间。
+	 * 它与 WindowAccepted 一起决定本用例是"验证过"还是"没有证据"。
+	 */
+	int32 AmmoPredictionRejectsAfterSwitchCommit = 0;
+
+	/** 按 PredictionKey 对齐后两端武器上下文不一致的键数；这是本用例的核心失败条件。 */
+	int32 AmmoPredictionContextMismatchKeyCount = 0;
+
+	/** 按 PredictionKey 成功对齐的键数；夹具前提要求它 > 0，否则是证据缺口而不是通过。 */
+	int32 AmmoPredictionContextMatchedKeyCount = 0;
+
+	/** 只在拥有端出现 / 只在权威端出现的键数，用于区分"没对齐"与"真的不一致"。 */
+	int32 AmmoPredictionContextClientOnlyKeyCount = 0;
+	int32 AmmoPredictionContextAuthorityOnlyKeyCount = 0;
+
+	// ---- Spec Removal / Pool Reuse 定向用例（StepSpecRemovalInFlight / StepPoolReuseRebind） ----
+
+	/** 被移除的武器与它被撤销的 Fire Spec Handle（H1）。 */
+	TWeakObjectPtr<AShooterWeapon> AmmoPredictionRemovedWeapon;
+	FGameplayAbilitySpecHandle AmmoPredictionRemovedSpecHandle;
+	int32 AmmoPredictionRemovedAuthorityShotsBefore = INDEX_NONE;
+	int32 AmmoPredictionRemovedAmmoBefore = INDEX_NONE;
+
+	/** 移除是否已经下发、预定时刻、以及"移除后 Spec 确实不存在"的判据。 */
+	bool AmmoPredictionRemovalIssued = false;
+	float AmmoPredictionRemovalTime = -1.0f;
+	bool AmmoPredictionRemovalSucceeded = false;
+
+	/** 窗口内拥有端最大的本地 Pending：证明移除发生时请求仍在途、债务确实存在。 */
+	int32 AmmoPredictionMaxClientPendingDuringWindow = 0;
+
+	/** 复用到的武器（期望就是同一个 pooled Actor）与它的新 Spec Handle（H2）。 */
+	TWeakObjectPtr<AShooterWeapon> AmmoPredictionReusedWeapon;
+	FGameplayAbilitySpecHandle AmmoPredictionReusedSpecHandle;
+	bool AmmoPredictionReusedSameActor = false;
+	int32 AmmoPredictionReusedAuthorityShotsBefore = INDEX_NONE;
+	int32 AmmoPredictionReusedAmmoBefore = INDEX_NONE;
+	bool AmmoPredictionReuseShotSubmitted = false;
+	float AmmoPredictionReuseSettleStartTime = 0.0f;
+
 	void PollServerState();
 	void PollClientState();
 	void HandleActorSpawned(AActor* SpawnedActor);
 	void FailTest(const FString& Reason);
+
+	// ---- 普通 Dedicated 回归失败来源取证：只增加身份与只读旁路观测，不改变任何 Stage 时序 ----
+
+	/** 本 Coordinator 的测试身份：Coordinator / Owner / PlayerState / PlayerId / Client 索引 / Pawn。 */
+	FString DescribeTestIdentityForTest() const;
+
+	/** 当前 Stage 名；按既有门控只读推导，不新增状态机、不改变推进条件。 */
+	const TCHAR* DescribeTestStageForTest() const;
+	const TCHAR* DescribeTestStageOnClientForTest() const;
+	const TCHAR* DescribeTestStageOnServerForTest() const;
+
+	AShooterPlayerState* GetTestPlayerStateForTest() const;
+	int32 GetTestPlayerIdForTest() const;
+	int32 GetTestClientIndexForTest() const;
+
+	/** 拥有端一次开火的只读上下文快照：Spec 解析 / 输入采集 / 本地阻塞 / 预测预算。 */
+	void LogOwnerFireAttemptForTest(const TCHAR* Marker, AShooterCharacter* Character, AShooterWeapon* Weapon, int32 AttemptIndex);
+
+	/** 就绪等待只记一次，避免同一 Stage 内重复打印。 */
+	bool bClientLoggedOwnerSingleShotNotReady = false;
+
+	/**
+	 * Fire 激活 / 失败旁路观测：复用 GAS 既有委托，只记录事实。
+	 * 服务器端用它把「服务器是否收到请求 / 是否 Reject / FailureTags」与客户端尝试对齐。
+	 */
+	void BindTestFireObservers(UAbilitySystemComponent* AbilitySystemComponent);
+	void HandleTestFireActivated(UGameplayAbility* Ability);
+	void HandleTestFireFailed(const UGameplayAbility* Ability, const FGameplayTagContainer& FailureTags);
+
+	TWeakObjectPtr<UAbilitySystemComponent> TestFireObservedASC;
+	FDelegateHandle TestFireActivatedHandle;
+	FDelegateHandle TestFireFailedHandle;
+	int32 TestFireActivatedCount = 0;
+	int32 TestFireFailedCount = 0;
+	int32 TestFireLastActivatedKey = 0;
+	int32 TestFireSuppressedFailureCount = 0;
+	float TestFireLastFailureTime = -1.0f;
+	FString TestFireLastFailureTags;
+
+	/** 拥有端开火尝试序号与单次尝试基线：把 Client 尝试与 Server 观测按序号对齐。 */
+	int32 OwnerFireAttemptIndex = 0;
+	int32 OwnerFireAttemptActivatedBase = 0;
+	int32 OwnerFireAttemptFailedBase = 0;
+	float OwnerFireAttemptStartTime = -1.0f;
+	bool bOwnerFireAttemptResultLogged = false;
+
+	/** Stage 起点：客户端进入 OwnerSingleShot 的时刻；服务器布置单发基线的时刻。 */
+	float ClientOwnerSingleShotStageStartTime = -1.0f;
+	float ServerOwnerSingleShotArmTime = -1.0f;
 
 	UFUNCTION(Server, Reliable)
 	void ServerReportClientObservedWeapon();
@@ -689,7 +938,7 @@ private:
 	void ServerReportClientObservedGasLifecycle();
 
 	UFUNCTION(Server, Reliable)
-	void ServerReportClientObservedFireAbilityGrant(int32 OwnerFireSpecCount, bool bRemoteFireSpecsHidden);
+	void ServerReportClientObservedFireAbilityGrant(int32 OwnerFireSpecCount, int32 OwnerHeldWeaponCount, bool bRemoteFireSpecsHidden);
 
 	UFUNCTION(Server, Reliable)
 	void ServerReportClientObservedReloadEquipAbilityGrant(int32 OwnerReloadSpecCount, bool bRemoteReloadSpecsHidden,
@@ -813,6 +1062,65 @@ private:
 
 	/** 5B 测试辅助：返回当前 PlayerState 是否有一个活动 GA_Fire。 */
 	bool HasActiveFireAbility(AShooterCharacter* Character) const;
+
+	/**
+	 * 一把武器对应的 Fire Ability 授予快照（DEV 观察）。
+	 * 它把"武器 → Spec → 主实例"显式暴露出来，供测试断言 SourceObject / Handle / 实例隔离。
+	 */
+	struct FShooterFireSpecGrantForTest
+	{
+		/** Spec.SourceObject 指向的 WeaponActor；不是武器时为空。 */
+		TWeakObjectPtr<const AShooterWeapon> Weapon;
+
+		/** 该武器那份 Fire Spec 的 Handle；同一 ASC 内不同武器必须不同。 */
+		FGameplayAbilitySpecHandle Handle;
+
+		/** InstancedPerActor 主实例；未激活过时为空（此时按 Spec->Ability CDO 回落）。 */
+		const UShooterGameplayAbility_Fire* PrimaryInstance = nullptr;
+	};
+
+	/** 收集该 ASC 上所有 GA_Fire Spec 的授予快照；ASC 为空时返回 false。 */
+	bool CollectFireSpecGrantsForTest(const UAbilitySystemComponent* AbilitySystemComponent,
+		TArray<FShooterFireSpecGrantForTest>& OutGrants) const;
+
+	/**
+	 * 一次 Fire Activation 的武器上下文（跨 Fire 实例聚合后的扁平形式）。
+	 * 实例现在是"每把武器一份"，因此"全局唯一"的观测必须先按实例收集再求和 / 对齐。
+	 */
+	struct FShooterFireActivationContextForTest
+	{
+		int32 PredictionKey = 0;
+		TWeakObjectPtr<const AShooterWeapon> Weapon;
+		FName WeaponId;
+		float LocalTime = -1.0f;
+		bool bAuthority = false;
+	};
+
+	/** 一个角色全部 Fire 实例上的 DEV 观测聚合。 */
+	struct FShooterFireContextAggregateForTest
+	{
+		/** Fire Spec 总数（含 SourceObject 未解析的）。 */
+		int32 SpecCount = 0;
+
+		/** SourceObject 为空或不是 WeaponActor 的 Spec 数：复制未解析或孤儿 Spec，必须为 0。 */
+		int32 UnresolvedSourceSpecCount = 0;
+
+		int32 InstanceCount = 0;
+		int32 UnresolvedRecordCount = INDEX_NONE;
+		int32 OwnerConfirmedReplayRequestCount = INDEX_NONE;
+		int32 WeaponContextMismatchVerdictCount = INDEX_NONE;
+		int32 AuthorityRejectCount = INDEX_NONE;
+		TArray<FShooterFireActivationContextForTest> ActivationContexts;
+	};
+
+	/** 聚合该角色全部 Fire 实例的 DEV 观测；没有任何 Fire Spec 时返回 false。 */
+	bool AggregateFireContextForTest(AShooterCharacter* Character, FShooterFireContextAggregateForTest& OutAggregate) const;
+
+	/** 指定武器对应的 Fire Ability 主实例；没有对应 Spec 时返回 nullptr。 */
+	const UShooterGameplayAbility_Fire* GetFireAbilityInstanceForWeaponForTest(
+		const AShooterPlayerState* ShooterPlayerState, const AShooterWeapon* Weapon) const;
+
+	/** 当前武器对应的 Fire Ability 主实例（每把武器各有一份 Spec，因此必须按武器解析）。 */
 	const UShooterGameplayAbility_Fire* GetFireAbilityInstanceForTest(AShooterCharacter* Character) const;
 
 	/**
@@ -1213,6 +1521,9 @@ private:
 	int32 RifleAmmoBeforeSwitchCancel = INDEX_NONE;
 	int32 ProjectileCountAfterSwitchCancel = INDEX_NONE;
 	int32 RifleAmmoAfterSwitchCancel = INDEX_NONE;
+
+	/** 切枪取消阶段起点：旧武器的权威 Shot 计数；用它证明"切枪前确实开过火"。 */
+	int32 AuthorityShotsBeforeSwitchCancel = INDEX_NONE;
 	float SwitchCancelCheckTime = 0.0f;
 
 	bool bNpcFireActivated = false;

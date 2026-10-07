@@ -2,6 +2,10 @@
 
 - 日期：2026-10-05；基线：`023d76d`；引擎：本机 UE 5.6.1。
 - 用户已授权收敛审计发现的问题；本轮不进入 Phase B 或 Phase D。
+- 2026-10-07 契约同步：本文保留 B-light 的账本、PredictionKey 结清、Refund、HUD 与生命周期
+  证据，但其中“Owner 确认补播”不再是现行 Owner Fire Presentation 契约。当前契约见
+  [网络射击 AI 自主验证契约](../架构/网络射击AI自主验证契约.md)；
+  `Backfill=1` 不再是 Accepted 的成功条件。
 
 ## 实现依据与范围
 
@@ -27,10 +31,12 @@
 
 ### Invariant 1 Owner Immediate Feedback
 
-- 触及：迟到确认表现的目标与来源、批量补播的播放时序。
-- 不改变：本地预测反馈入口与预算边界，已播表现不回滚。
-- 新增证据：有效目标逐路反馈；旧武器无迟到反馈；确认队列间隔。
-- 排除：B-light 未预测发仍等待确认，原契约即时性缺口保留；主观体验需人工验收。
+- 触及：历史确认补播账本及其 Owner 播放入口的契约解释。
+- 不改变：本地预测反馈入口、预算边界、PredictionKey 结清与已播表现不回滚。
+- 新增证据：预测与未预测路径分开记录；Owner confirmed replay 不再作为 Accepted 的补偿
+  条件。
+- 排除：本文历史网络日志中的 `Backfill` 计数仍表示当时实现事实，
+  不代表当前契约要求；主观体验需人工验收。
 
 ### Invariant 2 Local Prediction Obeys Weapon Rules
 

@@ -72,7 +72,6 @@ void AShooterNPC::BeginPlay()
 			// 出生生命沿用 NPC 的 CurrentHP 配置值（模板默认 100）。
 			UShooterGameplayEffectStatics::ApplyInitHealthEffect(AbilitySystemComponent, CurrentHP);
 		}
-		GrantFireAbility();
 	}
 
 	// 武器来源（S4）：NPC 与玩家共用 WeaponRuntimeSubsystem 的 WeaponId 池。
@@ -81,7 +80,6 @@ void AShooterNPC::BeginPlay()
 	{
 		return;
 	}
-
 	UShooterWeaponRuntimeSubsystem* WeaponRuntime = GetWorld()
 		? GetWorld()->GetSubsystem<UShooterWeaponRuntimeSubsystem>()
 		: nullptr;
@@ -98,25 +96,31 @@ void AShooterNPC::BeginPlay()
 	if (Weapon)
 	{
 		Weapon->ActivateWeapon();
+		// Fire Ability 的授予键是武器本身：与玩家一致，Spec.SourceObject 指向这把 WeaponActor，
+		// 因此 NPC 与玩家共用同一条"武器身份 = Spec SourceObject"的语义。
+		GrantFireAbilityForWeapon(Weapon);
 	}
 }
 
-void AShooterNPC::GrantFireAbility()
+void AShooterNPC::GrantFireAbilityForWeapon(AShooterWeapon* InWeapon)
 {
-	if (!HasAuthority() || !AbilitySystemComponent || !FireAbilityClass)
+	if (!HasAuthority() || !AbilitySystemComponent || !FireAbilityClass || !IsValid(InWeapon))
 	{
 		return;
 	}
 
-	// 幂等授予：每个 NPC ASC 只保留一个 Fire Ability Spec。
-	if (AbilitySystemComponent->FindAbilitySpecFromClass(FireAbilityClass))
+	// 幂等授予：同一个 NPC 只为同一把 WeaponActor 保留一份 Fire Ability Spec。
+	for (const FGameplayAbilitySpec& ExistingSpec : AbilitySystemComponent->GetActivatableAbilities())
 	{
-		return;
+		if (ExistingSpec.Ability && ExistingSpec.Ability->IsA(FireAbilityClass) && ExistingSpec.SourceObject.Get() == InWeapon)
+		{
+			return;
+		}
 	}
 
 	const FGameplayAbilitySpec FireAbilitySpec(FireAbilityClass,
 		/*AbilityLevel*/1,
-		INDEX_NONE, this);
+		INDEX_NONE, InWeapon);
 	AbilitySystemComponent->GiveAbility(FireAbilitySpec);
 }
 

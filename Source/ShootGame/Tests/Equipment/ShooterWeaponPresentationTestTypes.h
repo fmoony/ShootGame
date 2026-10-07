@@ -30,6 +30,28 @@ public:
 	using AShooterCharacter::OnRep_Controller;
 	using AShooterCharacter::PawnClientRestart;
 
+	/**
+	 * 测试专用：把生产的 Enhanced Input 绑定注册到指定 InputComponent。
+	 * SetupPlayerInputComponent 在 Character 上是 protected，自动化测试不接管真实 LocalPlayer，
+	 * 因此通过本入口取得"真实注册了哪些 Action / TriggerEvent"的绑定清单。
+	 */
+	void SetupPlayerInputComponentForTest(UInputComponent* InInputComponent)
+	{
+		SetupPlayerInputComponent(InInputComponent);
+	}
+
+	/**
+	 * 测试专用：写入 Ability 输入 Action 引用。
+	 * 生产里这些引用来自 BP_ShooterCharacter，本测试类型是纯 C++ 类，因此由测试显式注入同一批资产。
+	 */
+	void SetAbilityInputActionsForTest(UInputAction* InabilityFireAction, UInputAction* InabilityReloadAction,
+		UInputAction* InabilitySwitchWeaponAction)
+	{
+		FireAction = InabilityFireAction;
+		ReloadAction = InabilityReloadAction;
+		SwitchWeaponAction = InabilitySwitchWeaponAction;
+	}
+
 	virtual void OnWeaponDeactivated(AShooterWeapon* Weapon) override
 	{
 		++WeaponDeactivatedCount;

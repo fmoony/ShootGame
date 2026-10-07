@@ -51,7 +51,8 @@ void AShooterPlayerState::PostInitializeComponents()
 	Super::PostInitializeComponents();
 
 	BindHealthAttributeDelegate();
-	GrantFireAbility();
+	// Fire Ability 不再在这里授予：它的授予键是"玩家持有的武器"，
+	// 由 Inventory 的持有关系变化（AddWeapon / RemoveWeapon / ClearInventory）驱动。
 	GrantReloadAbility();
 	GrantEquipAbility();
 }
@@ -93,24 +94,23 @@ void AShooterPlayerState::InitializeAbilityActorInfo(AActor* AvatarActor)
 	AbilitySystemComponent->InitAbilityActorInfo(this, AvatarActor);
 }
 
-void AShooterPlayerState::GrantFireAbility()
+const FGameplayAbilitySpec* AShooterPlayerState::FindFireAbilitySpecForWeapon(const AShooterWeapon* Weapon) const
 {
-	if (!HasAuthority() || !AbilitySystemComponent || !FireAbilityClass)
+	if (!AbilitySystemComponent || !FireAbilityClass || !IsValid(Weapon))
 	{
-		return;
+		return nullptr;
 	}
 
-	// 幂等授予：同一个 PlayerState 只允许存在一个 Fire Ability Spec。
-	// 重生不会重新调用这里，只会通过 InitializeAbilityActorInfo 更新 Avatar。
-	if (AbilitySystemComponent->FindAbilitySpecFromClass(FireAbilityClass))
+	for (const FGameplayAbilitySpec& Spec : AbilitySystemComponent->GetActivatableAbilities())
 	{
-		return;
+		// 同一个 FireAbilityClass 现在合法存在多份 Spec：武器身份只由 SourceObject 决定。
+		if (Spec.Ability && Spec.Ability->IsA(FireAbilityClass) && Spec.SourceObject.Get() == Weapon)
+		{
+			return &Spec;
+		}
 	}
 
-	const FGameplayAbilitySpec FireAbilitySpec(FireAbilityClass,
-		/*AbilityLevel*/1,
-		INDEX_NONE, this);
-	AbilitySystemComponent->GiveAbility(FireAbilitySpec);
+	return nullptr;
 }
 
 int32 AShooterPlayerState::GetFireAbilitySpecCount() const
@@ -121,6 +121,52 @@ int32 AShooterPlayerState::GetFireAbilitySpecCount() const
 	}
 
 	return AbilitySystemComponent->GetAbilitySpecCountForClass(FireAbilityClass);
+}
+
+void AShooterPlayerState::GrantFireAbilityForWeapon(AShooterWeapon* Weapon)
+{
+	if (!HasAuthority() || !AbilitySystemComponent || !FireAbilityClass || !IsValid(Weapon))
+	{
+		return;
+	}
+
+	// 幂等键是 AbilityClass + SourceObject：不能用 FindAbilitySpecFromClass 判断
+	// "已经授予过"，因为同一个类现在合法存在多份 Spec。
+	if (FindFireAbilitySpecForWeapon(Weapon))
+	{
+		return;
+	}
+
+	FGameplayAbilitySpec FireAbilitySpec(FireAbilityClass,
+		/*AbilityLevel*/1,
+		INDEX_NONE, Weapon);
+	const FGameplayAbilitySpecHandle GrantedHandle = AbilitySystemComponent->GiveAbility(FireAbilitySpec);
+
+	UE_LOG(LogShootGame, Display, TEXT("FIRE_SPEC_GRANT Weapon=%s Handle=%s Count=%d"),
+		*GetNameSafe(Weapon), *GrantedHandle.ToString(), GetFireAbilitySpecCount());
+}
+
+void AShooterPlayerState::RemoveFireAbilityForWeapon(AShooterWeapon* Weapon)
+{
+	if (!HasAuthority() || !AbilitySystemComponent || !IsValid(Weapon))
+	{
+		return;
+	}
+
+	const FGameplayAbilitySpec* Spec = FindFireAbilitySpecForWeapon(Weapon);
+	if (!Spec)
+	{
+		return;
+	}
+
+	const FGameplayAbilitySpecHandle Handle = Spec->Handle;
+	// 撤销顺序：先结束可能仍在活动的实例，再移除 Spec，避免留下悬挂 Ability 实例。
+	// 未活动的实例上 Cancel 是幂等的 no-op。
+	AbilitySystemComponent->CancelAbilityHandle(Handle);
+	AbilitySystemComponent->ClearAbility(Handle);
+
+	UE_LOG(LogShootGame, Display, TEXT("FIRE_SPEC_REVOKE Weapon=%s Handle=%s Count=%d"),
+		*GetNameSafe(Weapon), *Handle.ToString(), GetFireAbilitySpecCount());
 }
 
 void AShooterPlayerState::GrantReloadAbility()

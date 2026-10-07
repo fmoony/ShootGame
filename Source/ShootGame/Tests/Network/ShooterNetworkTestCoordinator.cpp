@@ -221,7 +221,10 @@ AShooterNetworkTestCoordinator::AShooterNetworkTestCoordinator()
 	bReloadIdentityMode = FParse::Param(FCommandLine::Get(), TEXT("ShootGameReloadIdentityTest"));
 	// 帧率 × 射速矩阵复用 Ammo Prediction 夹具，因此只额外开一个模式位。
 	bFireCadenceMatrixMode = FParse::Param(FCommandLine::Get(), TEXT("ShootGameFireCadenceMatrix"));
-	bAmmoPredictionMode = FParse::Param(FCommandLine::Get(), TEXT("ShootGameAmmoPredictionTest")) || bFireCadenceMatrixMode;
+	// Weapon Context 定向模式同样复用 Ammo Prediction 夹具，只额外开一个模式位。
+	bWeaponContextMode = FParse::Param(FCommandLine::Get(), TEXT("ShootGameWeaponContextTest"));
+	bAmmoPredictionMode = FParse::Param(FCommandLine::Get(), TEXT("ShootGameAmmoPredictionTest")) ||
+		bFireCadenceMatrixMode || bWeaponContextMode;
 #endif
 }
 
@@ -262,20 +265,102 @@ bool AShooterNetworkTestCoordinator::HasActiveFireAbility(AShooterCharacter* Cha
 			ShooterPlayerState->GetFireAbilityClass()) == 1;
 }
 
-const UShooterGameplayAbility_Fire* AShooterNetworkTestCoordinator::GetFireAbilityInstanceForTest(AShooterCharacter* Character) const
+bool AShooterNetworkTestCoordinator::CollectFireSpecGrantsForTest(const UAbilitySystemComponent* AbilitySystemComponent,
+	TArray<FShooterFireSpecGrantForTest>& OutGrants) const
 {
+	OutGrants.Reset();
+	if (!AbilitySystemComponent)
+	{
+		return false;
+	}
+
+	for (const FGameplayAbilitySpec& Spec : AbilitySystemComponent->GetActivatableAbilities())
+	{
+		if (!Spec.Ability || !Spec.Ability->IsA<UShooterGameplayAbility_Fire>())
+		{
+			continue;
+		}
+
+		FShooterFireSpecGrantForTest& Grant = OutGrants.AddDefaulted_GetRef();
+		Grant.Weapon = Cast<AShooterWeapon>(Spec.SourceObject.Get());
+		Grant.Handle = Spec.Handle;
+		Grant.PrimaryInstance = Cast<UShooterGameplayAbility_Fire>(Spec.GetPrimaryInstance());
+	}
+
+	return true;
+}
+
+bool AShooterNetworkTestCoordinator::AggregateFireContextForTest(AShooterCharacter* Character,
+	FShooterFireContextAggregateForTest& OutAggregate) const
+{
+	OutAggregate = FShooterFireContextAggregateForTest();
 	const AShooterPlayerState* ShooterPlayerState = Character
 		? Character->GetPlayerState<AShooterPlayerState>()
 		: nullptr;
-	UAbilitySystemComponent* AbilitySystemComponent = Character
+	const UAbilitySystemComponent* AbilitySystemComponent = Character
 		? Character->GetAbilitySystemComponent()
 		: nullptr;
 	if (!ShooterPlayerState || !AbilitySystemComponent)
 	{
-		return nullptr;
+		return false;
 	}
 
-	const FGameplayAbilitySpec* FireSpec = AbilitySystemComponent->FindAbilitySpecFromClass(ShooterPlayerState->GetFireAbilityClass());
+	// 每把持有的武器各有一份 GA_Fire Spec 与独立实例：曾经的"全局唯一量"必须跨实例求和，
+	// 逐键武器上下文样本则跨实例收集后由调用方按 PredictionKey 对齐。
+	OutAggregate.UnresolvedRecordCount = 0;
+	OutAggregate.OwnerConfirmedReplayRequestCount = 0;
+	OutAggregate.WeaponContextMismatchVerdictCount = 0;
+	OutAggregate.AuthorityRejectCount = 0;
+	for (const FGameplayAbilitySpec& Spec : AbilitySystemComponent->GetActivatableAbilities())
+	{
+		if (!Spec.Ability || !Spec.Ability->IsA<UShooterGameplayAbility_Fire>())
+		{
+			continue;
+		}
+
+		++OutAggregate.SpecCount;
+		if (!Cast<AShooterWeapon>(Spec.SourceObject.Get()))
+		{
+			// SourceObject 为空 / 不是武器：复制未解析或孤儿 Spec。
+			// 它既不能参与输入（上下文不匹配），也不能被撤销，必须显式暴露出来。
+			++OutAggregate.UnresolvedSourceSpecCount;
+			continue;
+		}
+
+		const UGameplayAbility* Instance = Spec.GetPrimaryInstance();
+		const UShooterGameplayAbility_Fire* FireAbility = Cast<UShooterGameplayAbility_Fire>(Instance ? Instance : Spec.Ability.Get());
+		if (!FireAbility)
+		{
+			continue;
+		}
+
+		++OutAggregate.InstanceCount;
+		OutAggregate.UnresolvedRecordCount += FireAbility->GetUnresolvedShotRecordCountForTest();
+		OutAggregate.OwnerConfirmedReplayRequestCount += FireAbility->GetOwnerConfirmedReplayRequestCountForTest();
+		OutAggregate.WeaponContextMismatchVerdictCount += FireAbility->GetWeaponContextMismatchVerdictCountForTest();
+		OutAggregate.AuthorityRejectCount += FireAbility->GetAuthorityRejectCountForTest();
+
+		for (const UShooterGameplayAbility_Fire::FWeaponContextSampleForTest& Context :
+			FireAbility->GetWeaponContextSamplesForTest())
+		{
+			FShooterFireActivationContextForTest& Flattened = OutAggregate.ActivationContexts.AddDefaulted_GetRef();
+			Flattened.PredictionKey = Context.PredictionKey;
+			Flattened.Weapon = Context.Weapon.Get();
+			Flattened.WeaponId = Context.WeaponId;
+			Flattened.LocalTime = Context.LocalTime;
+			Flattened.bAuthority = Context.bAuthority;
+		}
+	}
+
+	return OutAggregate.InstanceCount > 0;
+}
+
+const UShooterGameplayAbility_Fire* AShooterNetworkTestCoordinator::GetFireAbilityInstanceForWeaponForTest(
+	const AShooterPlayerState* ShooterPlayerState, const AShooterWeapon* Weapon) const
+{
+	const FGameplayAbilitySpec* FireSpec = ShooterPlayerState
+		? ShooterPlayerState->FindFireAbilitySpecForWeapon(Weapon)
+		: nullptr;
 	if (!FireSpec)
 	{
 		return nullptr;
@@ -285,28 +370,52 @@ const UShooterGameplayAbility_Fire* AShooterNetworkTestCoordinator::GetFireAbili
 	return Cast<UShooterGameplayAbility_Fire>(FireInstance ? FireInstance : FireSpec->Ability.Get());
 }
 
+const UShooterGameplayAbility_Fire* AShooterNetworkTestCoordinator::GetFireAbilityInstanceForTest(AShooterCharacter* Character) const
+{
+	const AShooterPlayerState* ShooterPlayerState = Character
+		? Character->GetPlayerState<AShooterPlayerState>()
+		: nullptr;
+	if (!ShooterPlayerState)
+	{
+		return nullptr;
+	}
+
+	// 每把持有的武器各有一份 GA_Fire Spec：默认取"当前武器"的那一份。
+	return GetFireAbilityInstanceForWeaponForTest(ShooterPlayerState, Character->GetCurrentWeaponActor());
+}
+
 bool AShooterNetworkTestCoordinator::CanServerActivateFireAbility(UAbilitySystemComponent* AbilitySystemComponent) const
 {
-	if (!AbilitySystemComponent || !ServerFireAbilityHandle.IsValid())
+	if (!AbilitySystemComponent)
 	{
 		return false;
 	}
 
-	FGameplayAbilitySpec* FireSpec = AbilitySystemComponent->FindAbilitySpecFromHandle(ServerFireAbilityHandle);
+	// 每把持有的武器各有一份 GA_Fire Spec：探针按"当前武器的那一份"实时解析，
+	// 不缓存单一 Handle（缓存 Handle 会在换枪后指向另一把武器的 Spec）。
+	AShooterCharacter* Character = Cast<AShooterCharacter>(AbilitySystemComponent->GetAvatarActor());
+	AShooterPlayerState* ShooterPlayerState = Character
+		? Character->GetPlayerState<AShooterPlayerState>()
+		: nullptr;
+	const AShooterWeapon* CurrentWeapon = Character ? Character->GetCurrentWeaponActor() : nullptr;
+	const FGameplayAbilitySpec* FireSpec = ShooterPlayerState
+		? ShooterPlayerState->FindFireAbilitySpecForWeapon(CurrentWeapon)
+		: nullptr;
 	if (!FireSpec)
 	{
 		return false;
 	}
 
 	// 服务器实例优先；未实例化时回落到 Ability CDO。
-	UGameplayAbility* PrimaryInstance = FireSpec->GetPrimaryInstance();
-	const UGameplayAbility* FireAbility = PrimaryInstance ? PrimaryInstance : FireSpec->Ability.Get();
+	const UGameplayAbility* FireAbility = FireSpec->GetPrimaryInstance()
+		? FireSpec->GetPrimaryInstance()
+		: FireSpec->Ability.Get();
 	if (!FireAbility)
 	{
 		return false;
 	}
 
-	return FireAbility->CanActivateAbility(ServerFireAbilityHandle, AbilitySystemComponent->AbilityActorInfo.Get(),
+	return FireAbility->CanActivateAbility(FireSpec->Handle, AbilitySystemComponent->AbilityActorInfo.Get(),
 		nullptr, nullptr, nullptr);
 }
 
@@ -1127,6 +1236,7 @@ void AShooterNetworkTestCoordinator::GetLifetimeReplicatedProps(TArray<FLifetime
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bReloadIdentityMode);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bAmmoPredictionMode);
+	DOREPLIFETIME(AShooterNetworkTestCoordinator, bWeaponContextMode);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyToSwitch);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyToFire);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyForFullAuto);
@@ -1192,6 +1302,10 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		}
 		return;
 	}
+
+	// 取证：把本 Coordinator 自己玩家的 Fire 激活 / 失败旁路记录下来，
+	// 使「客户端这一次尝试」与「服务器是否收到请求 / 是否拒绝」能按 PlayerId 对齐。
+	BindTestFireObservers(Character->GetAbilitySystemComponent());
 
 	// ---- Inventory 2B：服务器通过正式授予路径创建 WeaponInstance + WeaponActor ----
 	if (!bServerInventoryPrepared)
@@ -1418,46 +1532,72 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		}
 
 		// ---- 4A Fire Ability 授予生命周期（服务器视角）----
+		// 每把玩家持有的武器各拥有一份 GA_Fire Spec，SourceObject 指向该 WeaponActor：
+		// 正确关系是「Fire Spec 数 == 当前持有的可开火武器数」，而不是"全场只有一份"。
 		if (!bServerFireGrantChecked)
 		{
 			bServerFireGrantChecked = true;
 
 			UShooterAbilitySystemComponent* ShooterAbilitySystemComponent = Cast<UShooterAbilitySystemComponent>(AbilitySystemComponent);
 			const TSubclassOf<UShooterGameplayAbility_Fire> FireAbilityClass = ShooterPlayerState->GetFireAbilityClass();
-			const FGameplayAbilitySpec* FireAbilitySpec = AbilitySystemComponent
-					? AbilitySystemComponent->FindAbilitySpecFromClass(FireAbilityClass)
-					: nullptr;
-			ServerFireAbilityCount = ShooterPlayerState->GetFireAbilitySpecCount();
-			ServerFireAbilityHandle = FireAbilitySpec
-				? FireAbilitySpec->Handle
-				: FGameplayAbilitySpecHandle();
+			TArray<FShooterFireSpecGrantForTest> FireGrants;
+			CollectFireSpecGrantsForTest(AbilitySystemComponent, FireGrants);
 
-			// 幂等授予：重复调用不得新增第二个 Spec。
-			ShooterPlayerState->GrantFireAbility();
-			ShooterPlayerState->GrantFireAbility();
+			const UShooterInventoryComponent* GrantInventory = Character->GetInventoryComponent();
+			const int32 HeldWeaponCount = GrantInventory ? GrantInventory->GetWeaponCount() : INDEX_NONE;
+			ServerFireAbilityCount = ShooterPlayerState->GetFireAbilitySpecCount();
+
+			// 每份 Spec 的 SourceObject 必须是 Inventory 真实持有的武器；Handle 必须互不相同。
+			TSet<FGameplayAbilitySpecHandle> DistinctFireHandles;
+			bool bGrantsMatchInventory = HeldWeaponCount > 0 && FireGrants.Num() == HeldWeaponCount;
+			for (const FShooterFireSpecGrantForTest& Grant : FireGrants)
+			{
+				const AShooterWeapon* GrantWeapon = Grant.Weapon.Get();
+				const bool bWeaponHeld = GrantWeapon && GrantInventory && GrantInventory->ContainsWeapon(GrantWeapon);
+				bGrantsMatchInventory &= bWeaponHeld && Grant.Handle.IsValid() && !DistinctFireHandles.Contains(Grant.Handle);
+				DistinctFireHandles.Add(Grant.Handle);
+			}
+			bGrantsMatchInventory &= DistinctFireHandles.Num() == FireGrants.Num();
+
+			// 幂等授予：对每把已持有武器重复授予不得新增 Spec（幂等键是 AbilityClass + SourceObject）。
+			for (const FShooterFireSpecGrantForTest& Grant : FireGrants)
+			{
+				if (AShooterWeapon* GrantWeapon = const_cast<AShooterWeapon*>(Grant.Weapon.Get()))
+				{
+					ShooterPlayerState->GrantFireAbilityForWeapon(GrantWeapon);
+					ShooterPlayerState->GrantFireAbilityForWeapon(GrantWeapon);
+				}
+			}
 			const int32 FireAbilityCountAfterGrant = ShooterPlayerState->GetFireAbilitySpecCount();
+
+			// 当前武器的 Spec 供后续"服务器当前是否允许开火"探针与重生断言使用。
+			const FGameplayAbilitySpec* CurrentFireSpec = ShooterPlayerState->FindFireAbilitySpecForWeapon(
+				Character->GetCurrentWeaponActor());
+			ServerFireAbilityHandle = CurrentFireSpec ? CurrentFireSpec->Handle : FGameplayAbilitySpecHandle();
 
 			bServerFireGrantOk = ShooterAbilitySystemComponent &&
 				FireAbilityClass == UShooterGameplayAbility_Fire::StaticClass() &&
-				ServerFireAbilityCount == 1 &&
-				FireAbilityCountAfterGrant == 1 &&
-				FireAbilitySpec &&
-				FireAbilitySpec->Ability &&
-				FireAbilitySpec->Ability->GetClass() == FireAbilityClass &&
+				bGrantsMatchInventory &&
+				FireAbilityCountAfterGrant == ServerFireAbilityCount &&
+				CurrentFireSpec &&
+				CurrentFireSpec->Ability &&
+				CurrentFireSpec->Ability->GetClass() == FireAbilityClass &&
 				ServerFireAbilityHandle.IsValid();
 			if (!bServerFireGrantOk)
 			{
 				FailTest(FString::Printf(
-					TEXT(
-						"Server Fire Ability grant invalid; ASC=%s Class=%s Count=%d CountAfterGrant=%d "
-						"Handle=%s SpecAbility=%s"),
+					TEXT("Server Fire Ability grant invalid; ASC=%s Class=%s FireSpecs=%d HeldWeapons=%d ")
+					TEXT("GrantsMatchInventory=%s CountAfterGrant=%d CurrentWeapon=%s Handle=%s SpecAbility=%s"),
 					*GetNameSafe(ShooterAbilitySystemComponent),
 					*GetNameSafe(FireAbilityClass),
 					ServerFireAbilityCount,
+					HeldWeaponCount,
+					bGrantsMatchInventory ? TEXT("true") : TEXT("false"),
 					FireAbilityCountAfterGrant,
+					*GetNameSafe(Character->GetCurrentWeaponActor()),
 					*ServerFireAbilityHandle.ToString(),
-					FireAbilitySpec && FireAbilitySpec->Ability
-						? *GetNameSafe(FireAbilitySpec->Ability->GetClass())
+					CurrentFireSpec && CurrentFireSpec->Ability
+						? *GetNameSafe(CurrentFireSpec->Ability->GetClass())
 						: TEXT("null")));
 				return;
 			}
@@ -1632,13 +1772,21 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		{
 			NpcFireTestNpc = TestNpc;
 			const int32 NpcProjectilesBefore = CountProjectilesForInstigator(TestNpc);
+			AShooterWeapon* NpcWeapon = TestNpc->GetCurrentWeapon();
+			const int32 NpcAuthorityShotsBefore = NpcWeapon
+				? NpcWeapon->GetAuthorityShotCountForAutomationTest()
+				: INDEX_NONE;
 			TestNpc->StartShooting(Character);
 
 			UShooterAbilitySystemComponent* NpcShooterAbilitySystemComponent =
 				Cast<UShooterAbilitySystemComponent>(NpcAbilitySystemComponent);
-			bNpcFireActivated = NpcShooterAbilitySystemComponent &&
-				NpcShooterAbilitySystemComponent->GetActiveAbilityCountForClass(
-					TestNpc->GetFireAbilityClass()) == 1 &&
+			// 一次 GA_Fire Activation = 一发 Shot：Ability 在同一调用栈内提交并结束，
+			// 因此"NPC 是否真的开火"的证据是权威 Shot 与弹丸，而不是"Ability 仍处于活动状态"。
+			const int32 NpcAuthorityShotsAfter = NpcWeapon
+				? NpcWeapon->GetAuthorityShotCountForAutomationTest()
+				: INDEX_NONE;
+			bNpcFireActivated = NpcShooterAbilitySystemComponent && NpcWeapon &&
+				NpcAuthorityShotsAfter > NpcAuthorityShotsBefore &&
 				CountProjectilesForInstigator(TestNpc) > NpcProjectilesBefore;
 
 			TestNpc->StopShooting();
@@ -1745,6 +1893,19 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		{
 			AimVarianceProperty->SetPropertyValue_InContainer(Weapon, 0.0f);
 		}
+		// 取证：服务器为这一次 Owner 单发建立了基线，并从此刻开始等待该玩家的开火请求。
+		ServerOwnerSingleShotArmTime = GetWorld()->GetTimeSeconds();
+		UE_LOG(LogShootGame, Display, TEXT(
+				"SERVER_OWNER_SINGLE_SHOT_ARM %s Stage=%s Weapon=%s AuthorityShotsBefore=%d MagBefore=%d "
+				"ProjectilesBefore=%d ClientObservedSwitch=%s ClientObservedWeapon=%s"),
+			*DescribeTestIdentityForTest(),
+			DescribeTestStageForTest(),
+			*GetNameSafe(Weapon),
+			AuthorityShotsBeforeSingleFire,
+			InitialBulletCount,
+			ProjectileCountBeforeSingleFire,
+			bClientObservedSwitch ? TEXT("true") : TEXT("false"),
+			bClientObservedWeapon ? TEXT("true") : TEXT("false"));
 		bServerReadyToFire = true;
 		ForceNetUpdate();
 		return;
@@ -1798,15 +1959,18 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		}
 	}
 
-	// 全自动保持期间：服务器必须观察到有且只有一个活动 GA_Fire。
+	// 全自动保持期间：服务器必须在处理这次按住（一次 Activation = 一发，Ability 在同一调用栈内结束）。
+	// 证据是权威 Shot 增量，而不是"Ability 仍处于活动状态"。
 	if (bFullAutoPhaseTriggered && !bClientReportedFullAutoRelease && !bFullAutoActiveObserved)
 	{
 		if (AShooterPlayerState* ShooterPlayerState = Character->GetPlayerState<AShooterPlayerState>())
 		{
 			UShooterAbilitySystemComponent* ShooterAbilitySystemComponent =
 				Cast<UShooterAbilitySystemComponent>(Character->GetAbilitySystemComponent());
-			bFullAutoActiveObserved = ShooterAbilitySystemComponent &&
-				ShooterAbilitySystemComponent->GetActiveAbilityCountForClass(ShooterPlayerState->GetFireAbilityClass()) == 1;
+			const int32 AuthorityShotsNow = ServerInventoryFirstWeapon.IsValid()
+				? ServerInventoryFirstWeapon->GetAuthorityShotCountForAutomationTest()
+				: INDEX_NONE;
+			bFullAutoActiveObserved = ShooterAbilitySystemComponent && AuthorityShotsNow > AuthorityShotsBeforeFullAuto;
 		}
 	}
 
@@ -1835,6 +1999,9 @@ void AShooterNetworkTestCoordinator::PollServerState()
 	{
 		bSwitchCancelPhaseTriggered = true;
 		ProjectileCountBeforeSwitchCancel = ProjectileSpawnCount;
+		AuthorityShotsBeforeSwitchCancel = ServerInventoryFirstWeapon.IsValid()
+			? ServerInventoryFirstWeapon->GetAuthorityShotCountForAutomationTest()
+			: INDEX_NONE;
 		UShooterInventoryComponent* SwitchCancelInventory = Character->GetInventoryComponent();
 		RifleAmmoBeforeSwitchCancel = ServerInventoryFirstWeapon.IsValid()
 			? ServerInventoryFirstWeapon->GetBulletCount()
@@ -1844,13 +2011,17 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		return;
 	}
 
+	// 切枪取消阶段：证据同样是"旧武器在切枪前确实提交过权威 Shot"，
+	// 而不是"Ability 仍处于活动状态"（一次 Activation = 一发，同一调用栈内结束）。
 	if (bSwitchCancelPhaseTriggered && !bClientReportedSwitchCancel && !bSwitchCancelActiveObserved)
 	{
-		AShooterPlayerState* ShooterPlayerState = Character->GetPlayerState<AShooterPlayerState>();
 		UShooterAbilitySystemComponent* ShooterAbilitySystemComponent =
 			Cast<UShooterAbilitySystemComponent>(Character->GetAbilitySystemComponent());
+		const int32 AuthorityShotsNow = ServerInventoryFirstWeapon.IsValid()
+			? ServerInventoryFirstWeapon->GetAuthorityShotCountForAutomationTest()
+			: INDEX_NONE;
 		bSwitchCancelActiveObserved = ShooterAbilitySystemComponent &&
-			ShooterAbilitySystemComponent->GetActiveAbilityCountForClass(ShooterPlayerState->GetFireAbilityClass()) == 1;
+			AuthorityShotsNow > AuthorityShotsBeforeSwitchCancel;
 	}
 
 	if (bClientReportedSwitchCancel && !bSwitchCancelQuiescentConfirmed)
@@ -2729,16 +2900,37 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			RespawnMaxHealth > 0.0f &&
 			FMath::IsNearlyEqual(RespawnHealth, RespawnMaxHealth, 0.01f);
 
-		// ---- 4A 重生不重复授予：同一个 PlayerState ASC / Spec Handle 在新 Avatar 上继续存在 ----
-		const FGameplayAbilitySpec* RespawnFireAbilitySpec = AbilitySystemComponent
-				? AbilitySystemComponent->FindAbilitySpecFromClass(ShooterPlayerState->GetFireAbilityClass())
-				: nullptr;
-		bServerFireRespawnGrantOk = RespawnFireAbilitySpec &&
-			RespawnFireAbilitySpec->Handle == ServerFireAbilityHandle &&
-			RespawnFireAbilitySpec->Ability &&
-			RespawnFireAbilitySpec->Ability->GetClass() ==
-				ShooterPlayerState->GetFireAbilityClass() &&
-			ShooterPlayerState->GetFireAbilitySpecCount() == 1;
+		// ---- 4A 重生后的 Fire 授予关系：Spec 集合必须严格等于"当前持有的武器"集合 ----
+		// 死亡会清空 Inventory（武器离开持有 → 对应 Spec 撤销），因此重生后不应残留任何
+		// 指向已归还武器的 Fire Spec；有武器时才应各有一份，且不得为同一把武器重复授予。
+		{
+			TArray<FShooterFireSpecGrantForTest> RespawnFireGrants;
+			CollectFireSpecGrantsForTest(AbilitySystemComponent, RespawnFireGrants);
+			const UShooterInventoryComponent* RespawnInventory = Character->GetInventoryComponent();
+			const int32 RespawnHeldWeaponCount = RespawnInventory ? RespawnInventory->GetWeaponCount() : INDEX_NONE;
+
+			TSet<FGameplayAbilitySpecHandle> RespawnDistinctHandles;
+			bool bRespawnGrantsMatchInventory = RespawnFireGrants.Num() == RespawnHeldWeaponCount;
+			for (const FShooterFireSpecGrantForTest& Grant : RespawnFireGrants)
+			{
+				const AShooterWeapon* GrantWeapon = Grant.Weapon.Get();
+				// 死亡清理后 Spec 不得指向已失效武器（SourceObject 是弱引用）。
+				bRespawnGrantsMatchInventory &= GrantWeapon != nullptr && RespawnInventory &&
+					RespawnInventory->ContainsWeapon(GrantWeapon) &&
+					Grant.Handle.IsValid() && !RespawnDistinctHandles.Contains(Grant.Handle);
+				RespawnDistinctHandles.Add(Grant.Handle);
+			}
+			bRespawnGrantsMatchInventory &= RespawnDistinctHandles.Num() == RespawnFireGrants.Num();
+			bServerFireRespawnGrantOk = ShooterPlayerState->GetFireAbilitySpecCount() == RespawnFireGrants.Num() &&
+				bRespawnGrantsMatchInventory;
+			UE_LOG(
+				LogShootGame,
+				Display,
+				TEXT("FIRE_GRANT_RESPAWN FireSpecs=%d HeldWeapons=%d Match=%d"),
+				ShooterPlayerState->GetFireAbilitySpecCount(),
+				RespawnHeldWeaponCount,
+				bRespawnGrantsMatchInventory ? 1 : 0);
+		}
 
 		// ---- 5A Reload / Equip 重生不重复授予：原 Spec Handle 在新 Avatar 上继续存在 ----
 		const FGameplayAbilitySpec* RespawnReloadAbilitySpec = AbilitySystemComponent
@@ -2836,14 +3028,12 @@ void AShooterNetworkTestCoordinator::PollServerState()
 
 			if (!bServerFireRespawnGrantOk)
 			{
+				const int32 RespawnHeldWeapons = Character->GetInventoryComponent()
+					? Character->GetInventoryComponent()->GetWeaponCount()
+					: INDEX_NONE;
 				FailTest(FString::Printf(
-					TEXT("Server respawn Fire Ability grant invalid; Count=%d Handle=%s Expected=%s Ability=%s"),
-					ShooterPlayerState->GetFireAbilitySpecCount(),
-					RespawnFireAbilitySpec ? *RespawnFireAbilitySpec->Handle.ToString() : TEXT("null"),
-					*ServerFireAbilityHandle.ToString(),
-					RespawnFireAbilitySpec && RespawnFireAbilitySpec->Ability
-						? *GetNameSafe(RespawnFireAbilitySpec->Ability->GetClass())
-						: TEXT("null")));
+					TEXT("Server respawn Fire Ability grant invalid; FireSpecs=%d HeldWeapons=%d"),
+					ShooterPlayerState->GetFireAbilitySpecCount(), RespawnHeldWeapons));
 				return;
 			}
 
@@ -3182,6 +3372,9 @@ void AShooterNetworkTestCoordinator::PollClientState()
 
 	AShooterWeapon* Weapon = GetCurrentWeapon(Character);
 
+	// 取证：拥有端的本地 Fire 激活 / 失败旁路（服务器端那一条在 PollServerState）。
+	BindTestFireObservers(Character->GetAbilitySystemComponent());
+
 	// ---- 5B Reload 客户端输入驱动：每个 RequestId 只允许一次 DoReload ----
 	// 生产修复后，客户端 CanActivateAbility 不再读取可能过期的 State.Reloading；
 	// 因此测试端也不得通过重试掩盖问题，单次输入必须直达服务器。
@@ -3324,7 +3517,10 @@ void AShooterNetworkTestCoordinator::PollClientState()
 				const TSubclassOf<UGameplayAbility> ClientFireAbilityClass = ClientPlayerState->GetFireAbilityClass();
 				ClientActiveFireCount = ClientAbilitySystemComponent->GetActiveAbilityCountForClass(ClientFireAbilityClass);
 				bClientFiringTag = ClientAbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Firing);
-				if (FGameplayAbilitySpec* ClientFireSpec = ClientAbilitySystemComponent->FindAbilitySpecFromClass(ClientFireAbilityClass))
+				// 每把持有的武器各有一份 GA_Fire Spec：这里要看的是"当前武器那一份"的记录状态。
+				const FGameplayAbilitySpec* ClientFireSpec = ClientPlayerState->FindFireAbilitySpecForWeapon(
+					Character->GetCurrentWeaponActor());
+				if (ClientFireSpec)
 				{
 					UGameplayAbility* ClientFireInstance = ClientFireSpec->GetPrimaryInstance();
 					const UShooterGameplayAbility_Fire* ClientFireAbility = Cast<UShooterGameplayAbility_Fire>(
@@ -3457,11 +3653,13 @@ void AShooterNetworkTestCoordinator::PollClientState()
 		}
 	}
 
-	// ---- 4A Fire Ability 授予复制（拥有者客户端视角）：Owner 恰好一个，远端不收到完整 Spec ----
+	// ---- 4A Fire Ability 授予复制（拥有者客户端视角）：Owner 的 Fire Spec 数与持有武器数一致 ----
 	if (!bClientReportedFireGrant)
 	{
 		AShooterPlayerState* ShooterPlayerState = PlayerController->GetPlayerState<AShooterPlayerState>();
-		if (ShooterPlayerState && ShooterPlayerState->GetFireAbilitySpecCount() == 1)
+		UShooterInventoryComponent* ClientGrantInventory = Character ? Character->GetInventoryComponent() : nullptr;
+		const int32 ClientHeldWeaponCount = ClientGrantInventory ? ClientGrantInventory->GetWeaponCount() : INDEX_NONE;
+		if (ShooterPlayerState && ClientHeldWeaponCount > 0 && ShooterPlayerState->GetFireAbilitySpecCount() == ClientHeldWeaponCount)
 		{
 			bool bRemoteFireSpecsHidden = false;
 			const AGameStateBase* ClientGameState = GetWorld()->GetGameState();
@@ -3490,7 +3688,9 @@ void AShooterNetworkTestCoordinator::PollClientState()
 			if (bRemoteFireSpecsHidden)
 			{
 				bClientReportedFireGrant = true;
-				ServerReportClientObservedFireAbilityGrant(1, true);
+				// 上报拥有端实际看到的 Fire Spec 数与持有武器数：正确关系是两者相等。
+				ServerReportClientObservedFireAbilityGrant(ShooterPlayerState->GetFireAbilitySpecCount(),
+					ClientHeldWeaponCount, true);
 			}
 		}
 	}
@@ -3677,6 +3877,12 @@ void AShooterNetworkTestCoordinator::PollClientState()
 		return;
 	}
 
+	if (ClientOwnerSingleShotStageStartTime <= 0.0f)
+	{
+		// 取证：客户端第一次被允许开火的时刻（Stage 起点），只记录，不参与门控。
+		ClientOwnerSingleShotStageStartTime = GetWorld()->GetTimeSeconds();
+	}
+
 	if (!bClientTriggeredFire)
 	{
 		// 新语义：本地已知的动作互斥（换弹 / 装备 / 死亡）会真实拦住开火输入，
@@ -3712,6 +3918,27 @@ void AShooterNetworkTestCoordinator::PollClientState()
 			return;
 		}
 
+		// per-Weapon GA_Fire Spec 架构下，"武器已就位"不等于"这把武器已经能在本端被解释成动作"：
+		// Spec 晚于武器 Actor 复制时，同一帧的 Press edge 会在帧末失效，这一枪必丢
+		// （普通 Dedicated 全零报告的真实根因：TagSpecs=0 时按下 + 松开落在同一帧）。
+		// 因此正向用例只在「当前武器已拥有可解析且上下文匹配的 Fire Spec」之后才按下：
+		// 只增加就绪条件，不新增固定等待、不重试、不伪造 Press、不延长 timeout。
+		const AShooterPlayerState* ClientPlayerState = Character->GetPlayerState<AShooterPlayerState>();
+		const FGameplayAbilitySpec* FireSpecForCurrentWeapon = ResolveOwnerFireSpecForSingleShot(ClientPlayerState, Weapon);
+		if (!FireSpecForCurrentWeapon)
+		{
+			if (!bClientLoggedOwnerSingleShotNotReady)
+			{
+				bClientLoggedOwnerSingleShotNotReady = true;
+				LogOwnerFireAttemptForTest(TEXT("OWNER_SINGLE_SHOT_NOT_READY"), Character, Weapon, OwnerFireAttemptIndex + 1);
+			}
+			return;
+		}
+
+		// 就绪确认：以下 READY 行必须同时出现 SpecFound=true 与 SpecSource==CurrentWeapon，
+		// 否则"武器到了但 Fire Spec 还没到"就会再次被当成正向 single-shot 用例执行。
+		LogOwnerFireAttemptForTest(TEXT("OWNER_SINGLE_SHOT_READY"), Character, Weapon, OwnerFireAttemptIndex + 1);
+
 		InitialClientBulletCount = Weapon->GetBulletCount();
 		ClientOwnerAcceptedShotWeapon = Weapon;
 		ClientOwnerFeedbackBefore = Weapon->GetPredictedOwnerFeedbackCountForAutomationTest();
@@ -3721,15 +3948,56 @@ void AShooterNetworkTestCoordinator::PollClientState()
 		ClientOwnerRecoilBefore = Character->GetOwnerLocalRecoilCountForAutomationTest();
 		ClientOwnerConfirmationBefore = Weapon->GetOwnerAuthorityConfirmationCountForAutomationTest();
 		ClientOwnerAcceptedShotStartTime = GetWorld()->GetTimeSeconds();
+		++OwnerFireAttemptIndex;
+		OwnerFireAttemptActivatedBase = TestFireActivatedCount;
+		OwnerFireAttemptFailedBase = TestFireFailedCount;
+		OwnerFireAttemptStartTime = ClientOwnerAcceptedShotStartTime;
+		bOwnerFireAttemptResultLogged = false;
+		// 取证 §2：明确"到底哪个玩家被要求发这一枪"，以及此刻两端的就绪与阻塞状态。
+		UE_LOG(LogShootGame, Display, TEXT(
+				"OWNER_SINGLE_SHOT_START Attempt=%d %s Stage=%s CurrentWeapon=%s StageStart=%.3f "
+				"ServerReady=%s ClientSwitchReported=%s ClientFeedbackBefore=%d ClientConfirmationBefore=%d"),
+			OwnerFireAttemptIndex,
+			*DescribeTestIdentityForTest(),
+			DescribeTestStageForTest(),
+			*GetNameSafe(Weapon),
+			ClientOwnerSingleShotStageStartTime,
+			bServerReadyToFire ? TEXT("true") : TEXT("false"),
+			bClientReportedSwitch ? TEXT("true") : TEXT("false"),
+			ClientOwnerFeedbackBefore,
+			ClientOwnerConfirmationBefore);
+		LogOwnerFireAttemptForTest(TEXT("OWNER_SINGLE_SHOT_CONTEXT"), Character, Weapon, OwnerFireAttemptIndex);
 		bClientTriggeredFire = true;
 		ServerReportClientObservedWeapon();
 		Character->DoStartFiring();
 		Character->DoStopFiring();
+		UE_LOG(
+			LogShootGame,
+			Display,
+			TEXT("CLIENT_FIRE_INPUT_CALLED Attempt=%d %s Stage=%s Weapon=%s StartFiring=true StopFiring=true"),
+			OwnerFireAttemptIndex,
+			*DescribeTestIdentityForTest(),
+			DescribeTestStageForTest(),
+			*GetNameSafe(Weapon));
 
 		if (ClientOwnerAcceptedShotLocalWaitStart > 0.0f)
 		{
 			UE_LOG(LogShootGame, Display, TEXT("Owner single-fire proceeded after %.3fs wait: PlayerId=%d"),
 				GetWorld()->GetTimeSeconds() - ClientOwnerAcceptedShotLocalWaitStart, LocalPlayerId);
+		}
+	}
+
+	if (bClientTriggeredFire && !bOwnerFireAttemptResultLogged)
+	{
+		// 输入解释发生在 PlayerController::PostProcessInput（晚于本函数），
+		// 因此"这次按下到底形成了什么"必须在随后的轮询里观测：这不是等待门，只是观测点。
+		const bool bAttemptSettled = TestFireActivatedCount > OwnerFireAttemptActivatedBase ||
+			TestFireFailedCount > OwnerFireAttemptFailedBase;
+		const bool bAttemptWaited = OwnerFireAttemptStartTime > 0.0f && GetWorld()->GetTimeSeconds() - OwnerFireAttemptStartTime >= 0.3f;
+		if (bAttemptSettled || bAttemptWaited)
+		{
+			bOwnerFireAttemptResultLogged = true;
+			LogOwnerFireAttemptForTest(TEXT("CLIENT_FIRE_ATTEMPT_RESULT"), Character, Weapon, OwnerFireAttemptIndex);
 		}
 	}
 
@@ -3763,6 +4031,83 @@ void AShooterNetworkTestCoordinator::PollClientState()
 				AcceptedShotWeapon->GetLastOwnerFeedbackSequenceForAutomationTest() > 0 &&
 				AcceptedShotWeapon->GetLastOwnerFeedbackSequenceForAutomationTest() <
 					AcceptedShotWeapon->GetLastOwnerConfirmationSequenceForAutomationTest();
+			const int32 AttemptActivations = TestFireActivatedCount - OwnerFireAttemptActivatedBase;
+			const int32 AttemptFailures = TestFireFailedCount - OwnerFireAttemptFailedBase;
+			const UShooterGameplayAbility_Fire* AttemptFireAbility = GetFireAbilityInstanceForWeaponForTest(
+				Character->GetPlayerState<AShooterPlayerState>(), Weapon);
+			const int32 LastResolvedKey = AttemptFireAbility
+				? AttemptFireAbility->GetLastResolvedShotKeyForTest()
+				: INDEX_NONE;
+			const bool bLastResolvedRejected = AttemptFireAbility && AttemptFireAbility->WasLastResolvedShotRejectedByEngineForTest();
+			const TCHAR* LastResolvedOutcome = !AttemptFireAbility
+				? TEXT("NoInstance")
+				: (AttemptFireAbility->WasLastResolvedShotCommittedForTest()
+					? TEXT("Committed")
+					: (bLastResolvedRejected ? TEXT("Rejected") : TEXT("None")));
+			// §5 分类：全零报告必须能区分 A~E，不再折叠成"全零 + Valid=false"。
+			FString AttemptCause = TEXT("A_NoFireIntentResolved");
+			if (AttemptActivations > 0 && bLastResolvedRejected)
+			{
+				AttemptCause = TEXT("C_ServerRejected");
+			}
+			else if (AttemptActivations > 0 && ConfirmationDelta >= 1 && OwnerFeedbackDelta >= 1)
+			{
+				AttemptCause = TEXT("Verified_LocalFeedbackAndConfirmation");
+			}
+			else if (AttemptActivations > 0 && ConfirmationDelta >= 1)
+			{
+				AttemptCause = TEXT("D_ActivatedButFeedbackMissing");
+			}
+			else if (AttemptActivations > 0)
+			{
+				AttemptCause = bTimedOut ? TEXT("E_WaitTimeout") : TEXT("D_EvidenceMissing");
+			}
+			else if (AttemptFailures > 0)
+			{
+				AttemptCause = TEXT("B_TryActivateFailed");
+			}
+			const FString AttemptFailureTags = TestFireLastFailureTags.IsEmpty()
+				? TEXT("None")
+				: TestFireLastFailureTags;
+			const UAbilitySystemComponent* LocalAbilitySystemComponent = Character->GetAbilitySystemComponent();
+			const bool bClientEquipping = LocalAbilitySystemComponent &&
+				LocalAbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Equipping);
+			const bool bClientReloading = LocalAbilitySystemComponent &&
+				LocalAbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading);
+			const bool bClientDeadTag = LocalAbilitySystemComponent &&
+				LocalAbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Dead);
+			UE_LOG(LogShootGame, Display, TEXT(
+					"OWNER_SINGLE_SHOT_%s Attempt=%d %s Stage=%s TargetWeapon=%s CurrentWeapon=%s "
+					"HadLocalActivation=%s LastPredictionKey=%d LocalFeedbackCount=%d LocalFeedbackDelta=%d "
+					"LocalConfirmationDelta=%d MirrorAuthorityShots=%d MirrorAmmo=%d ClientEquipping=%s "
+					"ClientReloading=%s ClientDead=%s AttemptActivated=%d AttemptFailed=%d FailureTags=%s "
+					"LastResolvedKey=%d LastResolvedOutcome=%s ReportStartTime=%.3f ReportEndTime=%.3f "
+					"TimedOut=%s Cause=%s"),
+				bTimedOut ? TEXT("TIMEOUT") : TEXT("REPORT"),
+				OwnerFireAttemptIndex,
+				*DescribeTestIdentityForTest(),
+				DescribeTestStageForTest(),
+				*GetNameSafe(AcceptedShotWeapon),
+				*GetNameSafe(Weapon),
+				AttemptActivations > 0 ? TEXT("true") : TEXT("false"),
+				TestFireLastActivatedKey,
+				bTargetStable ? AcceptedShotWeapon->GetPredictedOwnerFeedbackCountForAutomationTest() : INDEX_NONE,
+				OwnerFeedbackDelta,
+				ConfirmationDelta,
+				bTargetStable ? AcceptedShotWeapon->GetAuthorityShotCountForAutomationTest() : INDEX_NONE,
+				bTargetStable ? AcceptedShotWeapon->GetBulletCount() : INDEX_NONE,
+				bClientEquipping ? TEXT("true") : TEXT("false"),
+				bClientReloading ? TEXT("true") : TEXT("false"),
+				bClientDeadTag ? TEXT("true") : TEXT("false"),
+				AttemptActivations,
+				AttemptFailures,
+				*AttemptFailureTags,
+				LastResolvedKey,
+				LastResolvedOutcome,
+				ClientOwnerAcceptedShotStartTime,
+				GetWorld()->GetTimeSeconds(),
+				bTimedOut ? TEXT("true") : TEXT("false"),
+				*AttemptCause);
 			ServerReportOwnerAcceptedShotEvidence(OwnerFeedbackDelta, MontageDelta, MuzzleDelta, SoundDelta,
 				RecoilDelta, ConfirmationDelta, bFeedbackBeforeConfirmation, bTargetStable);
 		}
@@ -3846,6 +4191,18 @@ void AShooterNetworkTestCoordinator::PollClientState()
 		const bool bPendingSettled = !FullAutoWeapon || FullAutoWeapon->GetPendingPredictedShots() == 0;
 		const bool bLocalFeedbackSettled = bRecordsSettled && bPendingSettled && !HasActiveFireAbility(Character);
 		bClientReportedFullAuto = true;
+		UE_LOG(LogShootGame, Display, TEXT(
+				"FULL_AUTO_CLIENT_REPORT %s Stage=%s Weapon=%s ClientAmmo=%d OwnerFeedbackDelta=%d "
+				"LocalSettled=%s Stable=%s ReportStartTime=%.3f ReportEndTime=%.3f"),
+			*DescribeTestIdentityForTest(),
+			DescribeTestStageForTest(),
+			*GetNameSafe(FullAutoWeapon),
+			ClientBulletCountAfterRelease,
+			OwnerFeedbackDelta,
+			bLocalFeedbackSettled ? TEXT("true") : TEXT("false"),
+			bTargetStable ? TEXT("true") : TEXT("false"),
+			FullAutoReleaseWaitStartTime,
+			GetWorld()->GetTimeSeconds());
 		ServerReportFullAutoReleased(ClientBulletCountAfterRelease, OwnerFeedbackDelta,
 			MinimumFeedbackInterval, bLocalFeedbackSettled, bTargetStable);
 	}
@@ -3999,6 +4356,16 @@ void AShooterNetworkTestCoordinator::PollClientState()
 		BulletCountBeforeClientSwitchCancel = Weapon->GetBulletCount();
 		ClientWeaponBeforeSwitchCancel = Weapon;
 		bClientTriggeredSwitchCancel = true;
+		// 取证：切枪取消窗口的起点必须能归属到具体玩家与武器。
+		UE_LOG(
+			LogShootGame,
+			Display,
+			TEXT("SWITCH_CANCEL_CLIENT_START %s Stage=%s Weapon=%s MagBefore=%d PendingBefore=%d"),
+			*DescribeTestIdentityForTest(),
+			DescribeTestStageForTest(),
+			*GetNameSafe(Weapon),
+			BulletCountBeforeClientSwitchCancel,
+			Weapon->GetPendingPredictedShots());
 		Character->DoStartFiring();
 	}
 
@@ -4007,12 +4374,23 @@ void AShooterNetworkTestCoordinator::PollClientState()
 		Weapon->GetBulletCount() < BulletCountBeforeClientSwitchCancel)
 	{
 		bClientSwitchCancelRequested = true;
+		UE_LOG(LogShootGame, Display, TEXT("SWITCH_CANCEL_SWITCH_REQUESTED %s Stage=%s Weapon=%s MagNow=%d"),
+			*DescribeTestIdentityForTest(), DescribeTestStageForTest(), *GetNameSafe(Weapon), Weapon->GetBulletCount());
 		Character->DoSwitchWeapon();
 	}
 
 	if (bClientSwitchCancelRequested && !bClientReportedSwitchCancel && Weapon != ClientWeaponBeforeSwitchCancel.Get())
 	{
 		bClientReportedSwitchCancel = true;
+		UE_LOG(
+			LogShootGame,
+			Display,
+			TEXT("SWITCH_CANCEL_CLIENT_REPORT %s Stage=%s PreviousWeapon=%s CurrentWeapon=%s MagAfter=%d"),
+			*DescribeTestIdentityForTest(),
+			DescribeTestStageForTest(),
+			*GetNameSafe(ClientWeaponBeforeSwitchCancel.Get()),
+			*GetNameSafe(Weapon),
+			Weapon->GetBulletCount());
 		ServerReportClientObservedCancelSwitch(Weapon);
 	}
 	} // if (Weapon)
@@ -4145,6 +4523,9 @@ void AShooterNetworkTestCoordinator::ServerReportClientObservedWeapon_Implementa
 
 void AShooterNetworkTestCoordinator::ServerReportClientObservedProjectile_Implementation()
 {
+	// 取证：Owner 观测到弹丸的报告也必须能归属到具体玩家与 Stage。
+	UE_LOG(LogShootGame, Display, TEXT("ClientProjectile report: %s Stage=%s ServerProjectiles=%d"),
+		*DescribeTestIdentityForTest(), DescribeTestStageForTest(), ProjectileSpawnCount);
 	bClientObservedProjectile = true;
 }
 
@@ -4158,9 +4539,12 @@ void AShooterNetworkTestCoordinator::ServerReportClientObservedSwitch_Implementa
 	UE_LOG(
 		LogShootGame,
 		Display,
-		TEXT("Switch client report: Active=%s Current=%s RemoteVisible=%s Valid=%s"),
+		TEXT("Switch client report: %s Stage=%s Active=%s Current=%s Expected=%s RemoteVisible=%s Valid=%s"),
+		*DescribeTestIdentityForTest(),
+		DescribeTestStageForTest(),
 		*GetNameSafe(ActiveWeapon),
 		*GetNameSafe(CurrentWeapon),
+		*GetNameSafe(ServerInventoryFirstWeapon.Get()),
 		bRemoteCurrentWeaponVisible ? TEXT("true") : TEXT("false"),
 		bClientObservedSwitch ? TEXT("true") : TEXT("false"));
 
@@ -4178,11 +4562,23 @@ void AShooterNetworkTestCoordinator::ServerReportClientObservedSwitch_Implementa
 
 void AShooterNetworkTestCoordinator::ServerReportOwnerAmmoReplicated_Implementation()
 {
+	// 取证：拥有端弹药复制证据同样需要 PlayerId / Stage 归属。
+	UE_LOG(
+		LogShootGame,
+		Display,
+		TEXT("OwnerAmmoReplicated report: %s Stage=%s Weapon=%s Ammo=%d"),
+		*DescribeTestIdentityForTest(),
+		DescribeTestStageForTest(),
+		*GetNameSafe(ServerInventoryFirstWeapon.Get()),
+		ServerInventoryFirstWeapon.IsValid() ? ServerInventoryFirstWeapon->GetBulletCount() : INDEX_NONE);
 	bClientObservedOwnerAmmo = true;
 }
 
 void AShooterNetworkTestCoordinator::ServerReportNonOwnerAmmoHidden_Implementation()
 {
+	// 取证：非拥有端弹药不可见的证据同样需要 PlayerId / Stage 归属。
+	UE_LOG(LogShootGame, Display, TEXT("NonOwnerAmmoHidden report: %s Stage=%s"),
+		*DescribeTestIdentityForTest(), DescribeTestStageForTest());
 	bClientObservedNonOwnerAmmoHidden = true;
 }
 
@@ -4256,6 +4652,70 @@ void AShooterNetworkTestCoordinator::ServerReportOwnerAcceptedShotEvidence_Imple
 		OwnerFeedbackDelta == 1 && MontageDelta == 1 && MuzzleDelta == 1 && SoundDelta == 1 &&
 		RecoilDelta == 1 && ConfirmationDelta == 1 && AuthorityDelta == 1 && ProjectileDelta == 1 && AmmoDelta == 1;
 
+	// 取证：把这份 Owner 报告与「哪个 Coordinator / 哪个玩家 / 哪个 Stage / 哪一把武器」绑定，
+	// 并用服务器侧的 Fire 旁路观测把"全零报告"分类，而不是只留下 Valid=false。
+	AShooterCharacter* ReportCharacter = GetShooterCharacter();
+	const UAbilitySystemComponent* ServerAbilitySystemComponent = ReportCharacter
+		? ReportCharacter->GetAbilitySystemComponent()
+		: nullptr;
+	FString ReportCause = TEXT("Verified");
+	if (!bOwnerAcceptedShotEvidenceVerified)
+	{
+		if (TestFireFailedCount > 0)
+		{
+			ReportCause = TEXT("C_ServerRejected");
+		}
+		else if (TestFireActivatedCount == 0)
+		{
+			ReportCause = TEXT("A_or_B_NoActivationRequestedOnServer");
+		}
+		else
+		{
+			ReportCause = TEXT("D_ServerAcceptedButEvidenceMissing");
+		}
+	}
+	const FString ServerFailureTags = TestFireLastFailureTags.IsEmpty()
+		? TEXT("None")
+		: TestFireLastFailureTags;
+	const bool bServerEquipping = ServerAbilitySystemComponent &&
+		ServerAbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Equipping);
+	const bool bServerReloading = ServerAbilitySystemComponent &&
+		ServerAbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading);
+	const bool bServerDeadTag = ServerAbilitySystemComponent &&
+		ServerAbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Dead);
+	UE_LOG(LogShootGame, Display, TEXT(
+			"OWNER_ACCEPTED_SHOT_RESULT %s Stage=%s TargetWeapon=%s CurrentWeapon=%s "
+			"ClientFeedback=%d ClientMontage=%d ClientMuzzle=%d ClientSound=%d ClientRecoil=%d "
+			"ClientConfirmation=%d AuthorityDelta=%d ProjectileDelta=%d AmmoDelta=%d ServerActivatedCount=%d "
+			"ServerFailedCount=%d ServerLastKey=%d ServerFailureTags=%s ServerEquipping=%s ServerReloading=%s "
+			"ServerDead=%s ReportStartTime=%.3f ReportEndTime=%.3f Ordered=%s Stable=%s Cause=%s Valid=%s"),
+		*DescribeTestIdentityForTest(),
+		DescribeTestStageForTest(),
+		*GetNameSafe(Weapon),
+		*GetNameSafe(ReportCharacter ? ReportCharacter->GetCurrentWeapon() : nullptr),
+		OwnerFeedbackDelta,
+		MontageDelta,
+		MuzzleDelta,
+		SoundDelta,
+		RecoilDelta,
+		ConfirmationDelta,
+		AuthorityDelta,
+		ProjectileDelta,
+		AmmoDelta,
+		TestFireActivatedCount,
+		TestFireFailedCount,
+		TestFireLastActivatedKey,
+		*ServerFailureTags,
+		bServerEquipping ? TEXT("true") : TEXT("false"),
+		bServerReloading ? TEXT("true") : TEXT("false"),
+		bServerDeadTag ? TEXT("true") : TEXT("false"),
+		ServerOwnerSingleShotArmTime,
+		GetWorld()->GetTimeSeconds(),
+		bFeedbackBeforeConfirmation ? TEXT("true") : TEXT("false"),
+		bTargetStable ? TEXT("true") : TEXT("false"),
+		*ReportCause,
+		bOwnerAcceptedShotEvidenceVerified ? TEXT("true") : TEXT("false"));
+
 	UE_LOG(LogShootGame, Display, TEXT(
 			"Owner accepted-shot evidence: Feedback=%d Montage=%d Muzzle=%d Sound=%d Recoil=%d Confirmation=%d "
 			"Authority=%d Projectile=%d Ammo=%d Ordered=%s Stable=%s Valid=%s"),
@@ -4328,9 +4788,13 @@ void AShooterNetworkTestCoordinator::ServerReportReloadFireResult_Implementation
 		bAmmoNotReducedByRejectedFire && bNoServerResidue && bPredictionBoundaryOk && bClientConverged;
 
 	UE_LOG(LogShootGame, Display,
-		TEXT("Reload-fire server report: Case=%d PredictedDelta=%d AmmoBefore=%d AmmoNow=%d Shots=%d->%d ")
+		TEXT("Reload-fire server report: %s Stage=%s Weapon=%s Case=%d PredictedDelta=%d AmmoBefore=%d AmmoNow=%d ")
+		TEXT("Shots=%d->%d ")
 		TEXT("Projectiles=%d->%d Rejects=%d->%d Known=%s ServerRejected=%s LocalRefused=%s Stable=%s ")
 		TEXT("ClientConverged=%s Valid=%s"),
+		*DescribeTestIdentityForTest(),
+		DescribeTestStageForTest(),
+		*GetNameSafe(Weapon),
 		FireCase, PredictedDelta, ReloadFireAmmoBefore, AmmoNow, ReloadFireAuthorityShotsBefore, AuthorityShotsNow,
 		ReloadFireProjectilesBefore, ProjectileSpawnCount, ReloadFireAuthorityRejectsBefore, AuthorityRejectsNow,
 		bKnownBlockerObserved ? TEXT("true") : TEXT("false"), bServerRejected ? TEXT("true") : TEXT("false"),
@@ -4417,8 +4881,12 @@ void AShooterNetworkTestCoordinator::ServerReportFullAutoReleased_Implementation
 	FullAutoReleaseCheckTime = GetWorld()->GetTimeSeconds();
 
 	UE_LOG(LogShootGame, Display, TEXT(
-			"Full-auto invariant report: ClientAmmo=%d ServerAmmo=%d OwnerFeedback=%d Authority=%d "
-			"Projectiles=%d AmmoConsumed=%d MinInterval=%.3f RefireRate=%.3f Settled=%s Stable=%s Valid=%s"),
+			"Full-auto invariant report: %s Stage=%s Weapon=%s ClientAmmo=%d ServerAmmo=%d OwnerFeedback=%d "
+			"Authority=%d Projectiles=%d AmmoConsumed=%d MinInterval=%.3f RefireRate=%.3f Settled=%s Stable=%s "
+			"Valid=%s"),
+		*DescribeTestIdentityForTest(),
+		DescribeTestStageForTest(),
+		*GetNameSafe(Weapon),
 		BulletCountAfterRelease,
 		AmmoAfterRelease,
 		OwnerFeedbackDelta,
@@ -4513,9 +4981,13 @@ void AShooterNetworkTestCoordinator::ServerReportSemiAutoRapidClick_Implementati
 	bSemiAutoRapidClickVerified = bSemiAutoRapidInputVerified && bSemiAutoLocalCadenceVerified && bSemiAutoAuthorityExactlyOnceVerified;
 
 	UE_LOG(LogShootGame, Display, TEXT(
-			"Semi-auto rapid-click invariant report: Clicks=%d Requests=%d MaxRequests=%d Feedback=%d "
+			"Semi-auto rapid-click invariant report: %s Stage=%s Weapon=%s Clicks=%d Requests=%d MaxRequests=%d "
+			"Feedback=%d "
 			"Authority=%d Projectiles=%d AmmoConsumed=%d Rejects=%d MinInterval=%.3f RefireRate=%.3f "
 			"Stable=%s SemiAuto=%s Valid=%s"),
+		*DescribeTestIdentityForTest(),
+		DescribeTestStageForTest(),
+		*GetNameSafe(Weapon),
 		ClicksAttempted,
 		ServerObservedRequests,
 		MaxGatedRequests,
@@ -4570,7 +5042,10 @@ void AShooterNetworkTestCoordinator::ServerReportSemiAutoRapidClickChannels_Impl
 	UE_LOG(
 		LogShootGame,
 		Display,
-		TEXT("Semi-auto rapid-click channel report: Montage=%d Muzzle=%d Sound=%d Recoil=%d Stable=%s Valid=%s"),
+		TEXT("Semi-auto rapid-click channel report: %s Stage=%s Montage=%d Muzzle=%d Sound=%d Recoil=%d "
+			"Stable=%s Valid=%s"),
+		*DescribeTestIdentityForTest(),
+		DescribeTestStageForTest(),
 		MontageDelta,
 		MuzzleDelta,
 		SoundDelta,
@@ -4613,8 +5088,12 @@ void AShooterNetworkTestCoordinator::ServerReportRemoteConfirmedFeedback_Impleme
 	bRemoteConfirmedVerified = bTargetStable && bNeverExceedsAuthority && bExactMatch;
 
 	UE_LOG(LogShootGame, Display, TEXT(
-			"Remote-confirmed invariant report: Confirmed=%d Montage=%d Muzzle=%d Sound=%d Authority=%d "
+			"Remote-confirmed invariant report: %s Stage=%s Weapon=%s Confirmed=%d Montage=%d Muzzle=%d Sound=%d "
+			"Authority=%d "
 			"ExactRequired=%s Within=%s Stable=%s Required=%s Valid=%s"),
+		*DescribeTestIdentityForTest(),
+		DescribeTestStageForTest(),
+		*GetNameSafe(RemoteWeapon),
 		Count,
 		MontageCount,
 		MuzzleCount,
@@ -4657,7 +5136,10 @@ void AShooterNetworkTestCoordinator::ServerReportClientObservedCancelSwitch_Impl
 	UE_LOG(
 		LogShootGame,
 		Display,
-		TEXT("Switch-cancel client report: Current=%s Expected=%s Projectiles=%d->%d RifleAmmo=%d->%d Valid=%s"),
+		TEXT("Switch-cancel client report: %s Stage=%s Current=%s Expected=%s Projectiles=%d->%d "
+			"RifleAmmo=%d->%d Valid=%s"),
+		*DescribeTestIdentityForTest(),
+		DescribeTestStageForTest(),
 		*GetNameSafe(CurrentWeapon),
 		*GetNameSafe(ServerInventorySecondWeapon.Get()),
 		ProjectileCountBeforeSwitchCancel,
@@ -4676,22 +5158,24 @@ void AShooterNetworkTestCoordinator::ServerReportClientObservedCancelSwitch_Impl
 }
 
 void AShooterNetworkTestCoordinator::ServerReportClientObservedFireAbilityGrant_Implementation(int32 OwnerFireSpecCount,
-	bool bRemoteFireSpecsHidden)
+	int32 OwnerHeldWeaponCount, bool bRemoteFireSpecsHidden)
 {
-	bClientObservedFireGrant = OwnerFireSpecCount == 1 && bRemoteFireSpecsHidden;
+	// 拥有端的 Fire Spec 数必须等于它自己看到的持有武器数；远端仍然不得看到 OwnerOnly 的 Spec。
+	bClientObservedFireGrant = OwnerFireSpecCount == OwnerHeldWeaponCount && OwnerHeldWeaponCount > 0 && bRemoteFireSpecsHidden;
 	UE_LOG(
 		LogShootGame,
 		Display,
-		TEXT("GAS client report: FireAbilityGrant OwnerSpecs=%d RemoteHidden=%s Valid=%s"),
+		TEXT("GAS client report: FireAbilityGrant OwnerSpecs=%d HeldWeapons=%d RemoteHidden=%s Valid=%s"),
 		OwnerFireSpecCount,
+		OwnerHeldWeaponCount,
 		bRemoteFireSpecsHidden ? TEXT("true") : TEXT("false"),
 		bClientObservedFireGrant ? TEXT("true") : TEXT("false"));
 
 	if (!bClientObservedFireGrant)
 	{
 		FailTest(FString::Printf(
-			TEXT("Client Fire Ability grant observation invalid; OwnerSpecs=%d RemoteHidden=%s"),
-			OwnerFireSpecCount, bRemoteFireSpecsHidden ? TEXT("true") : TEXT("false")));
+			TEXT("Client Fire Ability grant observation invalid; OwnerSpecs=%d HeldWeapons=%d RemoteHidden=%s"),
+			OwnerFireSpecCount, OwnerHeldWeaponCount, bRemoteFireSpecsHidden ? TEXT("true") : TEXT("false")));
 	}
 }
 
@@ -4763,7 +5247,10 @@ void AShooterNetworkTestCoordinator::ServerReportClientStoppedFireAfterReload_Im
 	UE_LOG(
 		LogShootGame,
 		Display,
-		TEXT("Fire-after-reload stop: FeedbackDelta=%d ConfirmationDelta=%d Valid=%s"),
+		TEXT("Fire-after-reload stop: %s Stage=%s Weapon=%s FeedbackDelta=%d ConfirmationDelta=%d Valid=%s"),
+		*DescribeTestIdentityForTest(),
+		DescribeTestStageForTest(),
+		*GetNameSafe(ServerInventoryFirstWeapon.Get()),
 		OwnerFeedbackDelta,
 		OwnerConfirmationDelta,
 		bFireAfterReloadOwnerFeedbackVerified ? TEXT("true") : TEXT("false"));
@@ -4875,6 +5362,403 @@ AShooterWeapon* AShooterNetworkTestCoordinator::GetCurrentWeapon(AShooterCharact
 {
 	// R4：Character.CurrentWeapon 已迁移到 Equipment.CurrentWeaponActor；测试读取稳定 Getter。
 	return Character ? Character->GetCurrentWeaponActor() : nullptr;
+}
+
+// ============================ 普通 Dedicated 取证：身份与只读旁路 ============================
+// 本轮只回答「哪一个玩家 / 哪一个 Coordinator / 哪一个 Stage / 哪一次 Fire 尝试 / 哪一个 Key
+// 在哪一步失败」；全部实现都是只读观测，不改变任何 Stage 门控、超时与 Valid 判定。
+
+AShooterPlayerState* AShooterNetworkTestCoordinator::GetTestPlayerStateForTest() const
+{
+	const APlayerController* PlayerController = Cast<APlayerController>(GetOwner());
+	return PlayerController ? PlayerController->GetPlayerState<AShooterPlayerState>() : nullptr;
+}
+
+int32 AShooterNetworkTestCoordinator::GetTestPlayerIdForTest() const
+{
+	const APlayerState* PlayerState = GetTestPlayerStateForTest();
+	return PlayerState ? PlayerState->GetPlayerId() : INDEX_NONE;
+}
+
+int32 AShooterNetworkTestCoordinator::GetTestClientIndexForTest() const
+{
+	// 连接顺序索引：GameState.PlayerArray 的稳定次序，用来把客户端与服务器两侧的日志对上。
+	const AGameStateBase* GameState = GetWorld() ? GetWorld()->GetGameState() : nullptr;
+	const APlayerState* PlayerState = GetTestPlayerStateForTest();
+	if (!GameState || !PlayerState)
+	{
+		return INDEX_NONE;
+	}
+
+	int32 Index = 0;
+	for (const APlayerState* OtherPlayerState : GameState->PlayerArray)
+	{
+		if (OtherPlayerState == PlayerState)
+		{
+			return Index;
+		}
+
+		++Index;
+	}
+
+	return INDEX_NONE;
+}
+
+FString AShooterNetworkTestCoordinator::DescribeTestIdentityForTest() const
+{
+	const APlayerController* PlayerController = Cast<APlayerController>(GetOwner());
+	// ClientIdx 只在服务器视角下才是跨端可比的连接序号：客户端世界里的 PlayerArray 只有本机与远端
+	// 两份，Actor 名字同样是本机命名（两个客户端的自己都叫 _C_0），因此跨端归属只能看 PlayerId。
+	return FString::Printf(
+		TEXT("Coordinator=%s Perspective=%s Owner=%s PlayerState=%s PlayerId=%d ClientIdx=%d Pawn=%s NetMode=%d"),
+		*GetNameSafe(this),
+		HasAuthority() ? TEXT("Server") : TEXT("Client"),
+		*GetNameSafe(PlayerController),
+		*GetNameSafe(GetTestPlayerStateForTest()),
+		GetTestPlayerIdForTest(),
+		GetTestClientIndexForTest(),
+		*GetNameSafe(GetShooterCharacter()),
+		GetWorld() ? static_cast<int32>(GetWorld()->GetNetMode()) : -1);
+}
+
+const TCHAR* AShooterNetworkTestCoordinator::DescribeTestStageForTest() const
+{
+	return HasAuthority() ? DescribeTestStageOnServerForTest() : DescribeTestStageOnClientForTest();
+}
+
+const TCHAR* AShooterNetworkTestCoordinator::DescribeTestStageOnClientForTest() const
+{
+	// 顺序与 PollClientState 的分支顺序一致；只是把既有门控读成名字，不参与推进。
+	if (ReloadInputRequestId > LastObservedReloadInputRequestId)
+	{
+		return TEXT("Reload.Input");
+	}
+	if (bServerReadyForFireAfterReload && !bClientTriggeredFireAfterReload)
+	{
+		return TEXT("FireAfterReload");
+	}
+	if (bServerReadyForStopFireAfterReload && !bClientStoppedFireAfterReload)
+	{
+		return TEXT("StopFireAfterReload");
+	}
+	if (ReloadFirePhase != 0 && !bClientReportedReloadFire)
+	{
+		return TEXT("ReloadFire");
+	}
+	if (bServerReadyForEquipSingleReject && !bClientTriggeredEquipSingleReject)
+	{
+		return TEXT("EquipSingleReject");
+	}
+	if (bServerReadyForReloadSwitch && !bClientTriggeredReloadSwitch)
+	{
+		return TEXT("ReloadSwitch");
+	}
+	if (bServerReadyForReloadSwitchBack && !bClientTriggeredReloadSwitchBack)
+	{
+		return TEXT("ReloadSwitchBack");
+	}
+	if (!bClientReportedInventory)
+	{
+		return TEXT("Inventory.Owner");
+	}
+	if (!bClientReportedPickupAuthority)
+	{
+		return TEXT("Inventory.PickupAuthority");
+	}
+	if (!bClientReportedGasLifecycle)
+	{
+		return TEXT("GasLifecycle");
+	}
+	if (!bClientReportedFireGrant)
+	{
+		return TEXT("FireAbilityGrant");
+	}
+	if (!bClientReportedReloadEquipGrant)
+	{
+		return TEXT("ReloadEquipAbilityGrant");
+	}
+	if (!bClientReportedGasHealthInit)
+	{
+		return TEXT("GasHealthInit");
+	}
+	if (!bClientReportedRemoteAim)
+	{
+		return TEXT("RemoteAim");
+	}
+	if (bServerReadyToSwitch && !bClientReportedSwitch)
+	{
+		return TEXT("Switch");
+	}
+	if (!bClientReportedNonOwnerAmmoHidden)
+	{
+		return TEXT("NonOwnerAmmoHidden");
+	}
+	if (bServerReadyToFire && bClientReportedSwitch && !bClientReportedOwnerAcceptedShot)
+	{
+		return TEXT("OwnerSingleShot");
+	}
+	if (!bClientReportedOwnerAmmo)
+	{
+		return TEXT("OwnerAmmoReplicated");
+	}
+	if (!bClientReportedProjectile)
+	{
+		return TEXT("ClientProjectile");
+	}
+	if (bServerReadyForFullAuto && !bClientReportedFullAuto)
+	{
+		return TEXT("FullAutoRelease");
+	}
+	if (bServerReadyForSemiAutoRapidClick && !bClientSemiAutoBurstReported)
+	{
+		return TEXT("SemiAutoRapidClick");
+	}
+	if (bClientReportedFullAuto && !bClientReportedRemoteConfirmed)
+	{
+		return TEXT("RemoteConfirmed");
+	}
+	if (bServerReadyForSwitchCancel && !bClientReportedSwitchCancel)
+	{
+		return TEXT("SwitchCancel");
+	}
+	if (!bClientReportedDamage)
+	{
+		return TEXT("Damage");
+	}
+	if (!bClientReportedDeath)
+	{
+		return TEXT("Death");
+	}
+	if (!bClientReportedRespawn)
+	{
+		return TEXT("Respawn");
+	}
+	if (!bClientReportedMatchState)
+	{
+		return TEXT("MatchState");
+	}
+
+	return TEXT("ClientDone");
+}
+
+const TCHAR* AShooterNetworkTestCoordinator::DescribeTestStageOnServerForTest() const
+{
+	if (!bServerInventoryPrepared)
+	{
+		return TEXT("ServerInventoryPrepare");
+	}
+	if (!bServerReadyToSwitch)
+	{
+		return TEXT("ServerSwitchGate");
+	}
+	if (!bClientObservedSwitch)
+	{
+		return TEXT("ServerAwaitClientSwitch");
+	}
+	if (InitialBulletCount == INDEX_NONE)
+	{
+		return TEXT("ServerArmOwnerSingleShot");
+	}
+	if (!bOwnerAcceptedShotEvidenceVerified)
+	{
+		return TEXT("ServerOwnerSingleShot");
+	}
+	if (!bFullAutoQuiescentConfirmed)
+	{
+		return TEXT("ServerFullAuto");
+	}
+	if (!bSwitchCancelVerified)
+	{
+		return TEXT("ServerSwitchCancel");
+	}
+	if (!bSemiAutoRapidClickVerified)
+	{
+		return TEXT("ServerSemiAutoRapidClick");
+	}
+	if (!bFireAfterReloadOwnerFeedbackVerified)
+	{
+		return TEXT("ServerFireAfterReload");
+	}
+	if (!bReloadSwitchBackVerified)
+	{
+		return TEXT("ServerReloadSwitch");
+	}
+	if (!bEquipSingleRejectVerified)
+	{
+		return TEXT("ServerEquipSingleReject");
+	}
+
+	return TEXT("ServerDone");
+}
+
+const FGameplayAbilitySpec* AShooterNetworkTestCoordinator::ResolveOwnerFireSpecForSingleShot(
+	const AShooterPlayerState* ShooterPlayerState, const AShooterWeapon* CurrentWeapon)
+{
+	if (!ShooterPlayerState || !IsValid(CurrentWeapon))
+	{
+		return nullptr;
+	}
+
+	// 生产解析入口：武器身份只由 AbilityClass + SourceObject 判定。
+	// 该判定与 GA_Fire::DoesSpecMatchInputContext 的"SourceObject 就是当前武器"完全一致，
+	// 因此它同时证明了"可解析"与"上下文匹配"这两件事。
+	return ShooterPlayerState->FindFireAbilitySpecForWeapon(CurrentWeapon);
+}
+
+void AShooterNetworkTestCoordinator::BindTestFireObservers(UAbilitySystemComponent* AbilitySystemComponent)
+{
+	if (!AbilitySystemComponent || TestFireObservedASC.Get() == AbilitySystemComponent)
+	{
+		return;
+	}
+
+	// 只订阅 GAS 既有委托：旁路记录「激活 / 失败」事实，不参与任何判定。
+	TestFireObservedASC = AbilitySystemComponent;
+	TestFireActivatedHandle = AbilitySystemComponent->AbilityActivatedCallbacks.AddUObject(
+		this, &AShooterNetworkTestCoordinator::HandleTestFireActivated);
+	TestFireFailedHandle = AbilitySystemComponent->AbilityFailedCallbacks.AddUObject(
+		this, &AShooterNetworkTestCoordinator::HandleTestFireFailed);
+
+	UE_LOG(LogShootGame, Display, TEXT("TEST_FIRE_OBSERVER_BOUND Observed=%s %s Stage=%s"),
+		HasAuthority() ? TEXT("Server") : TEXT("Client"), *DescribeTestIdentityForTest(), DescribeTestStageForTest());
+}
+
+void AShooterNetworkTestCoordinator::HandleTestFireActivated(UGameplayAbility* Ability)
+{
+	if (!Ability || !Ability->IsA<UShooterGameplayAbility_Fire>())
+	{
+		return;
+	}
+
+	++TestFireActivatedCount;
+	TestFireLastActivatedKey = Ability->GetCurrentActivationInfo().GetActivationPredictionKey().Current;
+	UE_LOG(
+		LogShootGame,
+		Display,
+		TEXT("TEST_FIRE_ACTIVATION Observed=%s Outcome=Activated Key=%d Weapon=%s %s Stage=%s"),
+		HasAuthority() ? TEXT("Server") : TEXT("Client"),
+		TestFireLastActivatedKey,
+		*GetNameSafe(Ability->GetCurrentSourceObject()),
+		*DescribeTestIdentityForTest(),
+		DescribeTestStageForTest());
+}
+
+void AShooterNetworkTestCoordinator::HandleTestFireFailed(const UGameplayAbility* Ability, const FGameplayTagContainer& FailureTags)
+{
+	if (!Ability || !Ability->IsA<UShooterGameplayAbility_Fire>())
+	{
+		return;
+	}
+
+	++TestFireFailedCount;
+	TestFireLastFailureTags = FailureTags.ToStringSimple();
+
+	// 全自动按住期间本地射速门控会逐帧拒绝：逐条打印会淹没日志，
+	// 因此按 20Hz 采样，被折叠的条数在下一行显式给出。
+	const float Now = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0f;
+	if (TestFireLastFailureTime >= 0.0f && Now - TestFireLastFailureTime < 0.05f)
+	{
+		++TestFireSuppressedFailureCount;
+		return;
+	}
+
+	TestFireLastFailureTime = Now;
+	const int32 Suppressed = TestFireSuppressedFailureCount;
+	TestFireSuppressedFailureCount = 0;
+	UE_LOG(
+		LogShootGame,
+		Display,
+		TEXT("TEST_FIRE_ACTIVATION Observed=%s Outcome=Failed FailureTags=%s Suppressed=%d %s Stage=%s"),
+		HasAuthority() ? TEXT("Server") : TEXT("Client"),
+		*TestFireLastFailureTags,
+		Suppressed,
+		*DescribeTestIdentityForTest(),
+		DescribeTestStageForTest());
+}
+
+void AShooterNetworkTestCoordinator::LogOwnerFireAttemptForTest(const TCHAR* Marker, AShooterCharacter* Character,
+	AShooterWeapon* Weapon, int32 AttemptIndex)
+{
+	UAbilitySystemComponent* AbilitySystemComponent = Character ? Character->GetAbilitySystemComponent() : nullptr;
+	UShooterAbilitySystemComponent* ShooterAbilitySystemComponent = Cast<UShooterAbilitySystemComponent>(AbilitySystemComponent);
+
+	// Spec 解析复用生产同一个入口（FindAbilitySpecFromInputTag）：这里给出的就是
+	// 「这次按下会被解释成哪个动作」的确切答案；TagSpecs / ContextRejected 用于区分
+	// 「一份 Spec 都没有」与「有同 Tag 的 Spec 但上下文不匹配」。
+	FGameplayAbilitySpec* MatchingSpec = ShooterAbilitySystemComponent
+		? ShooterAbilitySystemComponent->FindAbilitySpecFromInputTag(ShooterGameplayTags::Input_Fire)
+		: nullptr;
+	int32 TagSpecCount = 0;
+	int32 ContextRejectedCount = 0;
+	if (ShooterAbilitySystemComponent)
+	{
+		const FGameplayAbilityActorInfo* ActorInfo = ShooterAbilitySystemComponent->AbilityActorInfo.Get();
+		for (const FGameplayAbilitySpec& Spec : ShooterAbilitySystemComponent->GetActivatableAbilities())
+		{
+			if (!Spec.Ability || !Spec.Ability->IsA<UShooterGameplayAbility_Fire>())
+			{
+				continue;
+			}
+
+			if (!Spec.Ability->GetAssetTags().HasTagExact(ShooterGameplayTags::Input_Fire) &&
+				!Spec.GetDynamicSpecSourceTags().HasTagExact(ShooterGameplayTags::Input_Fire))
+			{
+				continue;
+			}
+
+			++TagSpecCount;
+			const UShooterGameplayAbility* ShooterAbility = Cast<UShooterGameplayAbility>(Spec.Ability.Get());
+			if (ShooterAbility && !ShooterAbility->DoesSpecMatchInputContext(Spec, ActorInfo))
+			{
+				++ContextRejectedCount;
+			}
+		}
+	}
+
+	const bool bEquipping = AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Equipping);
+	const bool bReloading = AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading);
+	const bool bDead = AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(ShooterGameplayTags::State_Dead);
+	const bool bLocalInputCollection = ShooterAbilitySystemComponent && ShooterAbilitySystemComponent->HasLocalInputCollection();
+	const bool bInputHeld = ShooterAbilitySystemComponent && ShooterAbilitySystemComponent->IsInputTagHeld(ShooterGameplayTags::Input_Fire);
+	const bool bInputPressedThisFrame = ShooterAbilitySystemComponent &&
+		ShooterAbilitySystemComponent->IsInputTagPressedThisFrame(ShooterGameplayTags::Input_Fire);
+	const UShooterGameplayAbility_Fire* FireAbility = GetFireAbilityInstanceForWeaponForTest(
+		Character ? Character->GetPlayerState<AShooterPlayerState>() : nullptr, Weapon);
+	const FString MatchingHandleText = MatchingSpec ? MatchingSpec->Handle.ToString() : TEXT("None");
+	const FString FailureTagsText = TestFireLastFailureTags.IsEmpty() ? TEXT("None") : TestFireLastFailureTags;
+	const float Elapsed = OwnerFireAttemptStartTime > 0.0f && GetWorld()
+		? GetWorld()->GetTimeSeconds() - OwnerFireAttemptStartTime
+		: 0.0f;
+
+	UE_LOG(LogShootGame, Display,
+		TEXT("%s Attempt=%d %s Stage=%s Weapon=%s SpecFound=%s SpecHandle=%s SpecSource=%s TagSpecs=%d ")
+		TEXT("ContextRejected=%d LocalInputCollection=%s InputHeld=%s InputPressed=%s Equipping=%s Reloading=%s ")
+		TEXT("Dead=%s Mag=%d Pending=%d UnresolvedRecords=%d LastKey=%d AttemptActivated=%d AttemptFailed=%d ")
+		TEXT("FailureTags=%s Elapsed=%.3f"),
+		Marker,
+		AttemptIndex,
+		*DescribeTestIdentityForTest(),
+		DescribeTestStageForTest(),
+		*GetNameSafe(Weapon),
+		MatchingSpec ? TEXT("true") : TEXT("false"),
+		*MatchingHandleText,
+		*GetNameSafe(MatchingSpec ? MatchingSpec->SourceObject.Get() : nullptr),
+		TagSpecCount,
+		ContextRejectedCount,
+		bLocalInputCollection ? TEXT("true") : TEXT("false"),
+		bInputHeld ? TEXT("true") : TEXT("false"),
+		bInputPressedThisFrame ? TEXT("true") : TEXT("false"),
+		bEquipping ? TEXT("true") : TEXT("false"),
+		bReloading ? TEXT("true") : TEXT("false"),
+		bDead ? TEXT("true") : TEXT("false"),
+		Weapon ? Weapon->GetBulletCount() : INDEX_NONE,
+		Weapon ? Weapon->GetPendingPredictedShots() : INDEX_NONE,
+		FireAbility ? FireAbility->GetUnresolvedShotRecordCountForTest() : INDEX_NONE,
+		FireAbility ? FireAbility->GetEffectivePredictionKeyForTest() : 0,
+		TestFireActivatedCount - OwnerFireAttemptActivatedBase,
+		TestFireFailedCount - OwnerFireAttemptFailedBase,
+		*FailureTagsText,
+		Elapsed);
 }
 
 int32 AShooterNetworkTestCoordinator::CountProjectilesForInstigator(APawn* ProjectileInstigator) const

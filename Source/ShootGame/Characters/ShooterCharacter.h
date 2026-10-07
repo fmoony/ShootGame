@@ -308,6 +308,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Input")
 	void DoReload();
 
+	/**
+	 * 处理换弹输入的生命周期终点：IA_Reload 是隐式 Down（按下期间持续 actuated），
+	 * 松开（Completed）或输入被取消（Canceled）都必须回收输入意图，否则 ASC 会一直认为玩家按着 Reload。
+	 * 只回收输入采集与引擎镜像，不参与换弹事务本身。
+	 */
+	UFUNCTION(BlueprintCallable, Category="Input")
+	void DoStopReload();
+
 	/** 广播开火动画到所有客户端（不可靠，允许丢失） */
 	UFUNCTION(NetMulticast, Unreliable)
 	void MulticastPlayFiringMontage(UAnimMontage* Montage);

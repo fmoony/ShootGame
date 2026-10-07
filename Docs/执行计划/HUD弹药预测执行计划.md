@@ -42,7 +42,8 @@ UMG 优化文档建议由事件刷新；本轮沿用项目已有 Character → C
 - 触及：拥有端真实预测 Shot 同帧更新弹药 HUD，不等待确认。
 - 保持：四路射击反馈来源与现有预算门控，HUD 不触发反馈或 Gameplay。
 - 新证据：真实 Widget 输入与同一客户端预测、确认日志时序，HUD 先扣减。
-- 排除：B-light 未预测发仍确认补播，原射击即时性缺口不因此解决。
+- 排除：B-light 的 Owner 确认补播属于历史实现；按现行契约，未预测但被接受的 Shot 不补播 Owner
+  瞬时反馈，本计划只验证 HUD / Ammo 状态结清，不把 Owner cosmetic backfill 作为成功条件。
 
 ### Invariant 2 Local Prediction Obeys Weapon Rules
 
@@ -93,7 +94,8 @@ UMG 优化文档建议由事件刷新；本轮沿用项目已有 Character → C
 - 修复已知旧裁决误清复用 key 新显示记录；先失败的回归日志保留。
   版本防御只拒绝比已知基线旧的裁决，不替代完整 PredictionKey 回绕协议。
 - S-H1 的开火 HUD 显示闭环完成；权威 Ammo、预算资格与换弹转移未扩大。
-  Phase B 相位补偿、换弹补满预测、Magazine 时间跳转、B-light 即时性仍有遗留边界。
+  Phase B 相位补偿、换弹补满预测、Magazine 时间跳转仍有遗留边界；
+  B-light 的 Owner 确认补播属于历史实现，不再是当前 Owner Fire Presentation 契约要求。
 - 五不变量逐项结论、失败经过与最终证据见
   [本轮开发记录](../开发记录/2026-10-06-1047-HUD弹药预测与显示结清.md)。
   当前未提交；保留前两轮未提交改动与记录，不自动创建提交。

@@ -7,6 +7,9 @@
   是否引入 Activation / Shot acknowledgement、是否扩大预测边界，留待复现结果后由用户确认。
 - 2026-10-05 更新：H-A2 修复与 B-light（按 Activation 对账 + 确认补播）已实施，
   边界与不变量覆盖见下文对应小节；原始复现计划文本保持原样。
+- 2026-10-07 契约同步：本文保留 B-light 的历史实现与取证结果，但不再把 Owner 确认补播视为
+  当前契约要求，也不再把 `Backfill=1` 视为 Accepted 的成功条件。现行 Owner Fire Presentation
+  定义以[网络射击 AI 自主验证契约](../架构/网络射击AI自主验证契约.md)为准。
 
 ## 1. 目标与边界
 
@@ -196,7 +199,8 @@ H-A1 与 H-A3 保持复现夹具证据，另行决策。
 ## B-light 实现的不变量覆盖确认
 
 用户于 2026-10-05 确认实施 B-light：按 `GA_Fire` Activation 对账 Owner 预测与服务器结果，
-服务器结果领先时补播一次「已确认」表现；不扩大预测内容。
+服务器结果领先时按当时实现补播一次「已确认」表现；不扩大预测内容。
+该段记录的是历史实现方案，不改变现行契约：Unpredicted + Accepted 不得延迟补播 Owner 瞬时反馈。
 
 ### 实现范围
 
@@ -209,19 +213,21 @@ H-A1 与 H-A3 保持复现夹具证据，另行决策。
   `PendingPredictedShots` 不再由 `OnRep_MagazineAmmo` 吸收或重订。
 - 结清只由账本完成：
   - `Processed <= Predicted`：确认对应预测发数并清空剩余 Pending，不补播；
-  - `Processed > Predicted`：先确认全部已预测发数，再按缺口调用
-    `PlayOwnerConfirmedShotFeedback()` 补播恰好一次；
+  - `Processed > Predicted`：历史 B-light 实现曾按缺口调用
+    `PlayOwnerConfirmedShotFeedback()` 补播恰好一次；该历史计数不再是当前 Owner 契约的成功条件；
   - 本地已预测、服务器最终未提交的发数在结清时按 phantom 清理，不补表现。
 - 服务器是否认可本次 Activation 以 `OnConfirmDelegate` / Rejected 为准，
   CaughtUp 不再充当接受证明。
 - 不新增 per-shot RPC / ShotId、不预测空弹、不推测换弹转移、不增加表现猜测，
   不改 HUD / Phase B / Projectile / Damage / Manager / Subsystem。
 
-### Invariant 1 Owner Immediate Feedback
+### Invariant 1 Owner Immediate Feedback（历史 B-light 证据，不改变现行定义）
 
-- 触及：H-A3 的服务器领先窗口改由「确认补播」补齐；H-A1 同值快照不再依赖数值吸收。
+- 触及：H-A3 的服务器领先窗口曾由「确认补播」补齐；H-A1 同值快照不再依赖数值吸收。
 - 不改变：本地动作边界的产生来源；Reject 不回滚也不补播已播出的预测表现。
-- 新增证据：ConfirmedBackfill 场景 3 发权威射击对应 0 发预测反馈与 3 发确认补播，合计 3 发。
+- 新增证据：历史 `ConfirmedBackfill` 场景记录过 3 发权威射击、0 发预测反馈与 3 发确认补播；
+  当前契约要求该路径改按 `Unpredicted + Accepted` 验收为 Owner immediate feedback = 0、
+  Confirmed replay = 0、Authority Shot = 3。
 - 不在范围：画面、声音与后坐力的主观质量。
 
 ### Invariant 2 Local Prediction Obeys Weapon Rules
@@ -251,7 +257,8 @@ H-A1 与 H-A3 保持复现夹具证据，另行决策。
 
 - 触及：一次 Activation 的每发服务器 Shot 只能对应一次预测或一次补播。
 - 不改变：一次认可动作只产生一份权威结果。
-- 新增证据：PredictedAccepted 无补播；ConfirmedBackfill 补播数等于缺口数；
+- 历史证据：PredictedAccepted 无补播；ConfirmedBackfill 补播数等于缺口数。
+  按现行契约，Accepted 不要求补齐 Owner 表现，后续测试应使用四种 Owner outcome 口径；
   LateReject 恰好一次退还且账本结清；ReloadLifecycle 无未结清账本。
 - 不在范围：权威事务计数不变。
 
@@ -259,9 +266,10 @@ H-A1 与 H-A3 保持复现夹具证据，另行决策。
 
 - OwnerOnly 结果记录只承担服务器提交计数与结束标记，不承担预测账本；
   预测账本只存在于拥有端 `GA_Fire` 实例内。
-- 补播只调用 `PlayOwnerConfirmedShotFeedback()`：
-  不消费 Pending、不推进本地节拍、不发 RPC、不生成 Projectile、不写 Ammo。
-- 同一次 Activation 的补播游标单调向前；
+- 历史补播只调用 `PlayOwnerConfirmedShotFeedback()`：
+  不消费 Pending、不推进本地节拍、不发 RPC、不生成 Projectile、不写 Ammo；该入口的历史存在
+  不构成当前契约下的 Owner 播放义务。
+- 历史同一次 Activation 的补播游标单调向前；
   本地节拍追上已被服务器确认补播的序号时跳过该次本地尝试，不重复播放。
 - 账本在新激活时清理已结清及失效条目；有效未结清账本等待可靠最终通知。
   2026-10-05 收敛修正：不再以未结清上限 4 提前清除 Pending；

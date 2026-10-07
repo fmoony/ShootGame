@@ -12,7 +12,9 @@ class UShooterAttributeSet;
 class UShooterGameplayAbility_Fire;
 class UShooterGameplayAbility_Equip;
 class UShooterGameplayAbility_Reload;
+class AShooterWeapon;
 class UGameplayAbility;
+struct FGameplayAbilitySpec;
 struct FOnAttributeChangeData;
 struct FGameplayTag;
 
@@ -49,11 +51,27 @@ public:
 	/** 返回服务器配置的开火 Ability 类。 */
 	TSubclassOf<UShooterGameplayAbility_Fire> GetFireAbilityClass() const { return FireAbilityClass; }
 
-	/** 返回当前 PlayerState ASC 中 Fire Ability Spec 的数量（含尚未完成复制的本地视图）。 */
+	/**
+	 * 返回指定武器对应的 Fire Ability Spec；该武器没有对应授予时返回 nullptr。
+	 *
+	 * 同一个 FireAbilityClass 现在合法存在多份 Spec（每把玩家持有的武器一份），
+	 * 因此"武器身份"只能由 SourceObject 判定，不能再用 FindAbilitySpecFromClass。
+	 */
+	const FGameplayAbilitySpec* FindFireAbilitySpecForWeapon(const AShooterWeapon* Weapon) const;
+
+	/** 返回当前 PlayerState ASC 中 Fire Ability Spec 总数（= 玩家当前持有的可开火武器数）。 */
 	int32 GetFireAbilitySpecCount() const;
 
-	/** 服务器幂等授予 Fire Ability；同一 PlayerState 只允许存在一个 Spec，重生只更新 Avatar。 */
-	void GrantFireAbility();
+	/**
+	 * 服务器幂等授予"某把武器"的 Fire Ability。
+	 *
+	 * 幂等键是 AbilityClass + SourceObject：武器进入玩家持有（Inventory.AddWeapon）时调用，
+	 * 同一把武器重复调用不新增 Spec；不同武器各自拥有一份 Spec 与 SourceObject。
+	 */
+	void GrantFireAbilityForWeapon(AShooterWeapon* Weapon);
+
+	/** 服务器撤销某把武器的 Fire Ability；武器真正离开玩家持有时调用。 */
+	void RemoveFireAbilityForWeapon(AShooterWeapon* Weapon);
 
 	/** 返回服务器配置的换弹 Ability 类。 */
 	TSubclassOf<UShooterGameplayAbility_Reload> GetReloadAbilityClass() const { return ReloadAbilityClass; }

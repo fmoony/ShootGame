@@ -248,8 +248,13 @@ void AShooterNetworkTestCoordinator::SampleReloadIdentityLocalState()
 		Subject->GetCurrentWeaponActor() == Weapon && Weapon->GetOwner() == Subject && !Weapon->IsHidden();
 	if (Sample.bOwner)
 	{
-		Sample.bValid &= ASC && ASC->GetAvatarActor() == Subject && PS && ASC->FindAbilitySpecFromClass(PS->GetReloadAbilityClass()) &&
-			ASC->FindAbilitySpecFromClass(PS->GetFireAbilityClass());
+		// Fire Spec 现在每把持有的武器各一份：这里只要求"当前武器的那一份存在"，
+		// 不再假设全场只有一份 Fire Spec。
+		const FGameplayAbilitySpec* CurrentFireSpec = PS
+			? PS->FindFireAbilitySpecForWeapon(Weapon)
+			: nullptr;
+		Sample.bValid &= ASC && ASC->GetAvatarActor() == Subject && PS &&
+			ASC->FindAbilitySpecFromClass(PS->GetReloadAbilityClass()) && CurrentFireSpec != nullptr;
 	}
 	if (Sample.bValid)
 	{

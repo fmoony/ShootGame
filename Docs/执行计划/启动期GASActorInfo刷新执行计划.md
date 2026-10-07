@@ -36,7 +36,8 @@ PlayerState 早到而它的 Owner 晚到时，已有 Avatar 不代表本地上�
 - 触及：本地上下文已关联但 ASC 缓存未更新时，首个输入无法启动本地动作。
 - 保持：本地预测仍是即时表现来源，服务器确认不得代替预测入口。
 - 新证据：晚到 Owner / Controller 后，首次单帧输入只激活一次。
-- 排除：B-light 未预测发仍是确认补播，原即时性缺口不由初始化修复消除。
+- 排除：B-light 的 Owner 确认补播属于历史实现；本计划不改变 Owner Presentation 契约，
+  未预测但被接受的 Shot 不补播 Owner 瞬时反馈。
 
 ### Invariant 2 Local Prediction Obeys Weapon Rules
 
@@ -89,5 +90,6 @@ PlayerState 早到而它的 Owner 晚到时，已有 Avatar 不代表本地上�
   Dedicated 日志明确显示预测早于服务器确认；重复刷新和输入保留由 Automation 覆盖。
 - Owner 的初版测试被临时世界分发门控挡住，不能计为该入口的修复前独立证据。
   失败报告、测试修正与完整结论见本轮开发记录。
-- 启动期上下文闭环完成；B-light 原即时表现缺口及启动前输入恢复不在本轮解决范围。
+- 启动期上下文闭环完成；B-light 的 Owner 确认补播属于历史实现，
+  不再作为当前 Owner Fire Presentation 的即时性缺口或 Accepted 成功条件。
 - 记录：`Docs/开发记录/2026-10-06-1010-启动期GAS本地上下文刷新.md`。

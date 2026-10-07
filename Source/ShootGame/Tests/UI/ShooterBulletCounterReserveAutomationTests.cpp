@@ -170,9 +170,10 @@ bool FShooterAmmoDisplayLifetimeTest::RunTest(const FString& Parameters)
 	State.BeginActivation(31, Initial);
 	State.PredictShot(31);
 	TestEqual(TEXT("last predicted bullet displays zero"), State.GetMagazine(1), 0);
-	State.RejectActivation(31);
+	// 被拒绝的那一发由显示层按 Key 退休：中性入口同时服务服务器拒绝与本地生命周期退休。
+	State.RetireActivation(31);
 	TestEqual(TEXT("reject restores displayed bullet"), State.GetMagazine(1), 1);
-	State.RejectActivation(31);
+	State.RetireActivation(31);
 	TestEqual(TEXT("duplicate reject does not add another bullet"), State.GetMagazine(1), 1);
 	State.BeginActivation(32, Initial);
 	State.PredictShot(32);

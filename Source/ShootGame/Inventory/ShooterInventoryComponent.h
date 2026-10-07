@@ -9,6 +9,7 @@
 
 class AShooterWeapon;
 class AShooterCharacter;
+class AShooterPlayerState;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FShooterInventoryWeaponRemovedDelegate, AShooterWeapon*);
 DECLARE_MULTICAST_DELEGATE(FShooterInventoryClearedDelegate);
@@ -98,6 +99,12 @@ public:
 
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	/**
+	 * Fire Ability 宿主：本组件只通过"武器持有关系"驱动每把武器的 Fire Spec 授予 / 撤销，
+	 * 不自己保存 Ability 状态。无法解析宿主（NPC / 无 PlayerState）时返回 nullptr。
+	 */
+	AShooterPlayerState* ResolveAbilityHostPlayerState() const;
 
 	/** 归还 WeaponActor 到 WeaponRuntimeSubsystem；非运行时池管理的武器回落销毁。 */
 	void ReleaseWeaponActor(AShooterWeapon* Weapon);

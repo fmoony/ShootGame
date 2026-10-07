@@ -28,51 +28,84 @@ UShooterAbilitySystemComponent::UShooterAbilitySystemComponent()
 
 void UShooterAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& InputTag)
 {
-	FGameplayAbilitySpec* Spec = FindAbilitySpecFromInputTag(InputTag);
-	if (!Spec)
+	if (!InputTag.IsValid())
 	{
-		UE_LOG(LogShootGame, Verbose, TEXT("AbilityInputTagPressed: no ability spec for InputTag=%s Owner=%s"),
-			*InputTag.ToString(), *GetNameSafe(GetOwnerActor()));
 		return;
 	}
 
-	// 非本机拥有者视图（服务器上的 NPC）没有每帧输入解释入口，保持既有的「按下即尝试一次」直通语义。
-	// 采集集合只属于本机拥有者视图，这里不写，避免产生无人清理的残留。
+	// 非本机拥有者视图（服务器上的 NPC / 远端玩家）没有每帧输入解释入口，保持既有的
+	// "按下即尝试一次"直通语义；采集集合只属于本机拥有者视图，这里不写，避免产生无人清理的残留。
 	if (!ShouldProcessLocalAbilityInput())
 	{
-		AbilitySpecInputPressed(*Spec);
-		if (!Spec->IsActive())
+		if (FGameplayAbilitySpec* Spec = FindAbilitySpecFromInputTag(InputTag))
 		{
-			TryActivateAbility(Spec->Handle, true);
+			AbilitySpecInputPressed(*Spec);
+			if (!Spec->IsActive())
+			{
+				TryActivateAbility(Spec->Handle, true);
+			}
 		}
 		return;
 	}
 
-	// 采集层：只记录本帧按下沿与持续按住，不尝试激活、不写 Spec.InputPressed、不建立输入缓冲。
+	// 采集层先于 Spec 解析：玩家按下了就是按下了。
+	// 此刻可能一份匹配上下文的 Spec 都没有（切枪窗口、Spec 尚未复制到本端），
+	// 那只能表示"本帧没有动作可以响应"，绝不表示这个物理输入不存在。
+	// 只记录事实：不尝试激活、不写 Spec.InputPressed、不建立输入缓冲。
 	PressedInputTags.AddUnique(InputTag);
 	HeldInputTags.AddUnique(InputTag);
 }
 
 void UShooterAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& InputTag)
 {
-	FGameplayAbilitySpec* Spec = FindAbilitySpecFromInputTag(InputTag);
-	if (!Spec)
+	if (!InputTag.IsValid())
 	{
-		UE_LOG(LogShootGame, Verbose, TEXT("AbilityInputTagReleased: no ability spec for InputTag=%s Owner=%s"),
-			*InputTag.ToString(), *GetNameSafe(GetOwnerActor()));
 		return;
 	}
 
 	// 非本机拥有者视图同样直通：没有每帧输入解释入口，立即执行标准释放。
 	if (!ShouldProcessLocalAbilityInput())
 	{
-		ReleaseInputTag(*Spec);
+		if (FGameplayAbilitySpec* Spec = FindAbilitySpecFromInputTag(InputTag))
+		{
+			ReleaseInputTag(*Spec);
+		}
 		return;
 	}
 
-	// 采集层：只记录本帧松开并退出持续按住；释放业务在 ProcessAbilityInput 里统一执行。
+	// 采集层同样先于 Spec 解析：物理松开是全局事实，而且必须与"当前能否解析出 Spec"无关。
+	// 否则切枪 / Spec 缺失时的松开会既留不住 Release edge，也无法终止 Held —— Fire 意图会永久残留。
+	// 释放业务（可靠 RPC + 引擎释放）在 ProcessAbilityInput 里统一执行。
 	ReleasedInputTags.AddUnique(InputTag);
 	HeldInputTags.RemoveSingleSwap(InputTag);
+}
+
+void UShooterAbilitySystemComponent::AbilityInputTagEdge(const FGameplayTag& InputTag)
+{
+	if (!InputTag.IsValid())
+	{
+		return;
+	}
+
+	// 非本机拥有者视图（服务器上的 NPC / 远端玩家）没有每帧输入解释入口：
+	// 与 Pressed 相同的"按下即尝试一次"直通语义，不写只属于本机视图的采集集合。
+	if (!ShouldProcessLocalAbilityInput())
+	{
+		if (FGameplayAbilitySpec* Spec = FindAbilitySpecFromInputTag(InputTag))
+		{
+			AbilitySpecInputPressed(*Spec);
+			if (!Spec->IsActive())
+			{
+				TryActivateAbility(Spec->Handle, true);
+			}
+		}
+		return;
+	}
+
+	// 瞬时输入只有按下沿这一个事实：语义上等价于"按下与松开落在同一帧"，
+	// 因此不进入 Held —— 它没有需要等待的 Release 边界，也不存在"仍然按着"的状态。
+	// 采集同样先于 Spec 解析：没有可响应的 Spec 只表示本帧没有动作可以响应。
+	PressedInputTags.AddUnique(InputTag);
 }
 
 void UShooterAbilitySystemComponent::ProcessAbilityInput()
@@ -205,10 +238,15 @@ void UShooterAbilitySystemComponent::ProcessAbilityInput()
 	// 本帧松开：真实松开仍然走可靠 ServerSetInputReleased + AbilitySpecInputReleased。
 	for (const FGameplayTag& InputTag : ReleasedInputTags)
 	{
-		if (FGameplayAbilitySpec* Spec = FindAbilitySpecFromInputTag(InputTag))
+		FGameplayAbilitySpec* ReleasedSpec = FindAbilitySpecFromInputTag(InputTag);
+		if (ReleasedSpec)
 		{
-			ReleaseInputTag(*Spec);
+			ReleaseInputTag(*ReleasedSpec);
 		}
+
+		// 松开是全局事实：同一个 Input Tag 可能对应多份 Spec（每把武器一份 GA_Fire），
+		// 这次解析不到的那一份同样不得留下"仍然按着"的镜像残留。
+		ClearStaleInputMirrors(InputTag, ReleasedSpec);
 	}
 
 	// 只清帧级采集；Held 集合由 Press / Release 回调与 InvalidateInputIntents 改变。
@@ -223,22 +261,82 @@ FGameplayAbilitySpec* UShooterAbilitySystemComponent::FindAbilitySpecFromInputTa
 		return nullptr;
 	}
 
+	// 同一个输入 Tag 现在可能对应多份同类 Spec（每把玩家持有的武器一份 GA_Fire）：
+	// 只有"上下文匹配"的那一份参与激活，绝不退化到任意一份同 Tag 的 Spec。
+	const FGameplayAbilityActorInfo* ActorInfo = AbilityActorInfo.Get();
+	FGameplayAbilitySpec* UntypedFallbackSpec = nullptr;
+	bool bTagMatchedButContextRejected = false;
 	for (FGameplayAbilitySpec& Spec : GetActivatableAbilities())
 	{
-		if (!Spec.Ability)
+		if (!DoesSpecCarryInputTag(Spec, InputTag))
 		{
 			continue;
 		}
 
-		// AssetTags 来自 Ability CDO，表示 Ability 类型自身的固定标签；
-		// DynamicSpecSourceTags 属于具体 AbilitySpec，可在 GiveAbility 时为本次授予追加标签。
-		if (Spec.Ability->GetAssetTags().HasTagExact(InputTag) || Spec.GetDynamicSpecSourceTags().HasTagExact(InputTag))
+		const UShooterGameplayAbility* ShooterAbility = GetShooterAbilityForSpec(Spec);
+		if (!ShooterAbility)
+		{
+			// 非项目 Ability 没有上下文概念：保持既有的"第一个匹配 Tag"语义。
+			if (!UntypedFallbackSpec)
+			{
+				UntypedFallbackSpec = &Spec;
+			}
+			continue;
+		}
+
+		if (ShooterAbility->DoesSpecMatchInputContext(Spec, ActorInfo))
 		{
 			return &Spec;
 		}
+
+		bTagMatchedButContextRejected = true;
 	}
 
-	return nullptr;
+	if (bTagMatchedButContextRejected)
+	{
+#if WITH_DEV_AUTOMATION_TESTS
+		// 明确记录"有 Spec 匹配 Tag 但没有一份匹配上下文"：这不是可回退状态，
+		// 用错武器的 Spec 开火比不开火更糟，因此这里保持返回 nullptr。
+		UE_LOG(
+			LogShootGame,
+			Warning,
+			TEXT("AbilityInputTag has specs but none matches the input context: InputTag=%s Owner=%s Avatar=%s"),
+			*InputTag.ToString(),
+			*GetNameSafe(GetOwnerActor()),
+			*GetNameSafe(GetAvatarActor()));
+#endif
+		return nullptr;
+	}
+
+	return UntypedFallbackSpec;
+}
+
+bool UShooterAbilitySystemComponent::DoesSpecCarryInputTag(const FGameplayAbilitySpec& Spec, const FGameplayTag& InputTag)
+{
+	if (!Spec.Ability)
+	{
+		return false;
+	}
+
+	// AssetTags 来自 Ability CDO，表示 Ability 类型自身的固定标签；
+	// DynamicSpecSourceTags 属于具体 AbilitySpec，可在 GiveAbility 时为本次授予追加标签。
+	return Spec.Ability->GetAssetTags().HasTagExact(InputTag) || Spec.GetDynamicSpecSourceTags().HasTagExact(InputTag);
+}
+
+bool UShooterAbilitySystemComponent::HasLocalInputCollection() const
+{
+	return ShouldProcessLocalAbilityInput();
+}
+
+bool UShooterAbilitySystemComponent::IsInputTagHeld(const FGameplayTag& InputTag) const
+{
+	// 采集层真值：只有本机拥有者视图会维护它；其余视图必须由调用方回落到引擎镜像。
+	return InputTag.IsValid() && HeldInputTags.Contains(InputTag);
+}
+
+bool UShooterAbilitySystemComponent::IsInputTagPressedThisFrame(const FGameplayTag& InputTag) const
+{
+	return InputTag.IsValid() && PressedInputTags.Contains(InputTag);
 }
 
 int32 UShooterAbilitySystemComponent::GetAbilitySpecCountForClass(TSubclassOf<UGameplayAbility> AbilityClass) const
@@ -301,7 +399,8 @@ EShooterAbilityActivationPolicy UShooterAbilitySystemComponent::GetInputActivati
 
 	// 显式传本 ASC 当前的 ActorInfo：未激活（或重生后尚未再次激活）的 Ability 实例上没有
 	// CurrentActorInfo，策略查询不得读实例缓存，因此由这里提供权威的运行时上下文。
-	return ShooterAbility->GetActivationPolicy(AbilityActorInfo.Get());
+	// 传入 Spec：同一个输入 Tag 存在多份同类 Spec 时，策略必须来自本 Spec 的 Gameplay Context。
+	return ShooterAbility->GetActivationPolicyForSpec(Spec, AbilityActorInfo.Get());
 }
 
 void UShooterAbilitySystemComponent::InvalidateInputIntents()
@@ -457,6 +556,25 @@ bool UShooterAbilitySystemComponent::IsBufferedInputContextStillValid(const FSho
 
 	// 上下文变化（例如换枪提交、武器归还池）后不得在新上下文上消费旧输入。
 	return Entry.Context.Get() == CurrentContext;
+}
+
+void UShooterAbilitySystemComponent::ClearStaleInputMirrors(const FGameplayTag& InputTag, const FGameplayAbilitySpec* ReleasedSpec)
+{
+	// 只清"仍然认为按着"的同类 Spec：它们已经不可能再收到真实 Release，
+	// 而残留的 InputPressed=true 会让"当前武器之外的旧武器"在切回时被误判成仍被按住。
+	//
+	// 这里统一走引擎入口 AbilitySpecInputReleased：它同时复位镜像并把松开事件交给活动实例，
+	// 不直接写 FGameplayAbilitySpec::InputPressed，也不为旧的 Spec 补发任何 Release RPC
+	// （权威端的镜像只对"该 Spec 是否仍是上下文"起作用，而每次 Fire 请求都会重新校验上下文）。
+	for (FGameplayAbilitySpec& Spec : GetActivatableAbilities())
+	{
+		if (&Spec == ReleasedSpec || !Spec.InputPressed || !DoesSpecCarryInputTag(Spec, InputTag))
+		{
+			continue;
+		}
+
+		AbilitySpecInputReleased(Spec);
+	}
 }
 
 void UShooterAbilitySystemComponent::ReleaseInputTag(FGameplayAbilitySpec& Spec)

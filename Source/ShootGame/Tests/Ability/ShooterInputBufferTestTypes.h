@@ -113,7 +113,7 @@ public:
  * 按住持续（WhileInputActive）测试 Ability：只有仍处于按住状态才允许启动。
  *
  * 与生产的全自动 GA_Fire 一致：输入语义由 Ability 自己的 ActivationPolicy 声明，
- * 持续意图只由 Spec.InputPressed 表达，不需要任何由外部同步的派生状态。
+ * 持续意图只由 ASC 的输入采集层（Held Input Tag）表达，不需要任何由外部同步的派生状态。
  */
 UCLASS(Transient, NotBlueprintable)
 class UShooterInputBufferSustainedTestAbility : public UShooterInputBufferTestAbility
@@ -132,13 +132,8 @@ protected:
 	/** 与生产的全自动 GA_Fire 一致：已经松开的按下沿不得补出一次启动。 */
 	virtual bool IsLocalInputStateValid(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo) const override
 	{
-		const UAbilitySystemComponent* AbilitySystemComponent = ActorInfo
-			? ActorInfo->AbilitySystemComponent.Get()
-			: nullptr;
-		const FGameplayAbilitySpec* Spec = AbilitySystemComponent
-			? AbilitySystemComponent->FindAbilitySpecFromHandle(Handle)
-			: nullptr;
-		return Spec != nullptr && Spec->InputPressed;
+		// 与生产的 GA_Fire 同一条判定：按住真值来自输入采集层，不读某一份 Spec 的镜像。
+		return IsInputTagHeld(Handle, ActorInfo, ShooterGameplayTags::Input_Fire);
 	}
 };
 
@@ -172,13 +167,7 @@ public:
 protected:
 	virtual bool IsLocalInputStateValid(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo) const override
 	{
-		const UAbilitySystemComponent* AbilitySystemComponent = ActorInfo
-			? ActorInfo->AbilitySystemComponent.Get()
-			: nullptr;
-		const FGameplayAbilitySpec* Spec = AbilitySystemComponent
-			? AbilitySystemComponent->FindAbilitySpecFromHandle(Handle)
-			: nullptr;
-		if (Spec == nullptr || !Spec->InputPressed)
+		if (!IsInputTagHeld(Handle, ActorInfo, ShooterGameplayTags::Input_Fire))
 		{
 			return false;
 		}

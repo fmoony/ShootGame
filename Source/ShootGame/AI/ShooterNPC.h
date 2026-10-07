@@ -49,8 +49,8 @@ public:
 	/** 是否已进入死亡流程。 */
 	bool IsDead() const { return bIsDead; }
 
-	/** 服务器幂等授予 Fire Ability。 */
-	void GrantFireAbility();
+	/** 服务器幂等授予指定武器的 Fire Ability；SourceObject 指向该 WeaponActor。 */
+	void GrantFireAbilityForWeapon(AShooterWeapon* InWeapon);
 
 	/** 幂等取消 GA_Fire；死亡与销毁清理共用。 */
 	void CancelFireAbility();

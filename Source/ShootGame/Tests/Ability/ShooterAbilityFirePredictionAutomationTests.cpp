@@ -757,16 +757,16 @@ bool FShooterFirePredictionShotVerdictBudgetTest::RunTest(const FString& Paramet
 	Ability->HandleAuthorityShotVerdictForTest(101, /*bCommitted*/ true);
 	TestEqual(TEXT("a committed prediction settles the local budget"), Weapon->GetPendingPredictedShots(), 0);
 	TestTrue(TEXT("the committed shot record is resolved"), Ability->IsShotRecordResolvedForTest(101));
-	TestEqual(TEXT("no backfill is played for an already predicted shot"),
-		Ability->GetConfirmedBackfillRequestCountForTest(), 0);
-	TestEqual(TEXT("no confirmed owner feedback is played for an already predicted shot"),
-		Weapon->GetConfirmedBackfillCountForAutomationTest(), 0);
+	TestEqual(TEXT("no confirmed owner replay is requested for an already predicted shot"),
+		Ability->GetOwnerConfirmedReplayRequestCountForTest(), 0);
+	TestEqual(TEXT("no confirmed owner replay is played for an already predicted shot"),
+		Weapon->GetOwnerConfirmedReplayCountForAutomationTest(), 0);
 
 	// 幂等：重复裁决不得二次结清或二次补播。
 	Ability->HandleAuthorityShotVerdictForTest(101, /*bCommitted*/ true);
 	TestEqual(TEXT("a duplicated verdict cannot settle the budget twice"), Weapon->GetPendingPredictedShots(), 0);
-	TestEqual(TEXT("a duplicated verdict cannot backfill twice"),
-		Ability->GetConfirmedBackfillRequestCountForTest(), 0);
+	TestEqual(TEXT("a duplicated verdict cannot request owner replay"),
+		Ability->GetOwnerConfirmedReplayRequestCountForTest(), 0);
 
 	// ---- 情形 2：预测 + Rejected → 只退款一次，不补播 ----
 	Weapon->SetPendingPredictedShotsForAutomationTest(1);
@@ -774,8 +774,8 @@ bool FShooterFirePredictionShotVerdictBudgetTest::RunTest(const FString& Paramet
 	Ability->HandleAuthorityShotVerdictForTest(102, /*bCommitted*/ false);
 	TestEqual(TEXT("a rejected prediction refunds the local budget"), Weapon->GetPendingPredictedShots(), 0);
 	TestTrue(TEXT("the rejected shot record is resolved"), Ability->IsShotRecordResolvedForTest(102));
-	TestEqual(TEXT("a rejected shot never backfills owner feedback"),
-		Ability->GetConfirmedBackfillRequestCountForTest(), 0);
+	TestEqual(TEXT("a rejected shot never requests owner replay"),
+		Ability->GetOwnerConfirmedReplayRequestCountForTest(), 0);
 
 	Ability->HandleAuthorityShotVerdictForTest(102, /*bCommitted*/ false);
 	TestEqual(TEXT("a duplicated rejection refunds only once"), Weapon->GetPendingPredictedShots(), 0);
@@ -785,28 +785,29 @@ bool FShooterFirePredictionShotVerdictBudgetTest::RunTest(const FString& Paramet
 	Ability->RegisterShotRecordForTest(/*PredictionKey*/ 103, Weapon, /*bBudgetConsumed*/ false, /*bFeedbackPlayed*/ false);
 	Ability->HandleAuthorityShotVerdictForTest(103, /*bCommitted*/ false);
 	TestEqual(TEXT("an unpredicted rejection leaves the budget untouched"), Weapon->GetPendingPredictedShots(), 0);
-	TestEqual(TEXT("an unpredicted rejection plays nothing"), Ability->GetConfirmedBackfillRequestCountForTest(), 0);
+	TestEqual(TEXT("an unpredicted rejection plays nothing"), Ability->GetOwnerConfirmedReplayRequestCountForTest(), 0);
 
 	// ---- 情形 4：记录不存在时的裁决必须完全无副作用 ----
 	Ability->HandleAuthorityShotVerdictForTest(/*PredictionKey*/ 999, /*bCommitted*/ false);
 	Ability->HandleAuthorityShotVerdictForTest(/*PredictionKey*/ 999, /*bCommitted*/ true);
 	TestEqual(TEXT("an unknown key cannot change the budget"), Weapon->GetPendingPredictedShots(), 0);
-	TestEqual(TEXT("an unknown key cannot backfill"), Ability->GetConfirmedBackfillRequestCountForTest(), 0);
+	TestEqual(TEXT("an unknown key cannot request owner replay"),
+		Ability->GetOwnerConfirmedReplayRequestCountForTest(), 0);
 
 	DestroyPredictionTestWorld(World);
 	return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterFirePredictionUnpredictedCommittedBackfillTest,
-	"ShootGame.Ability.Fire.Prediction.UnpredictedCommittedBackfill",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterFirePredictionUnpredictedCommittedNoReplayTest,
+	"ShootGame.Ability.Fire.Prediction.UnpredictedCommittedNoReplay",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
-bool FShooterFirePredictionUnpredictedCommittedBackfillTest::RunTest(const FString& Parameters)
+bool FShooterFirePredictionUnpredictedCommittedNoReplayTest::RunTest(const FString& Parameters)
 {
 	using namespace ShooterAbilityFirePredictionAutomationTests;
 
 	// 情形 5：拥有端因为本地弹药预算为 0 而没有提前表现，但请求仍然到达服务器并被接受。
-	// 这一发必须由 Committed 裁决补播恰好一次表现，且不修改任何权威字段。
+	// 这一发只结清权威与本地状态，不得在 verdict 到达后补播历史 Owner cosmetic。
 	UWorld* World = CreatePredictionTestWorld();
 	if (!TestNotNull(TEXT("prediction test world created"), World))
 	{
@@ -816,7 +817,7 @@ bool FShooterFirePredictionUnpredictedCommittedBackfillTest::RunTest(const FStri
 	AShooterCharacter* Character = SpawnLocalPlayerCharacter(World);
 	AShooterWeapon* Weapon = AcquireFeedbackTestWeapon(World, Character, nullptr, nullptr, nullptr, 5.0f);
 	if (!TestNotNull(TEXT("local player character spawned"), Character) ||
-		!TestNotNull(TEXT("backfill test weapon acquired"), Weapon))
+		!TestNotNull(TEXT("unpredicted acceptance test weapon acquired"), Weapon))
 	{
 		DestroyPredictionTestWorld(World);
 		return false;
@@ -845,30 +846,48 @@ bool FShooterFirePredictionUnpredictedCommittedBackfillTest::RunTest(const FStri
 
 	// 未预测：本次 Activation 没有提前表现，也没有占用预算。
 	Ability->RegisterShotRecordForTest(/*PredictionKey*/ 201, Weapon, /*bBudgetConsumed*/ false, /*bFeedbackPlayed*/ false);
+	// 模拟 K+1 / K+2 已经进入当前第一视角时间线：后续本地预测反馈可以正常发生。
+	TestTrue(TEXT("the later shot K+1 can use the local predicted feedback path"),
+		Weapon->PlayOwnerPredictedShotFeedback());
+	TestTrue(TEXT("the later shot K+2 can use the local predicted feedback path"),
+		Weapon->PlayOwnerPredictedShotFeedback());
+	const int32 PredictedFeedbackBeforeVerdict = Weapon->GetPredictedOwnerFeedbackCountForAutomationTest();
+	const int32 MontageBeforeVerdict = Character->GetOwnerLocalMontageCountForAutomationTest();
+	const int32 RecoilBeforeVerdict = Character->GetOwnerLocalRecoilCountForAutomationTest();
+	const int32 MuzzleBeforeVerdict = Weapon->GetOwnerMuzzleFeedbackCountForAutomationTest();
+	const int32 SoundBeforeVerdict = Weapon->GetOwnerSoundFeedbackCountForAutomationTest();
 	Ability->HandleAuthorityShotVerdictForTest(201, /*bCommitted*/ true);
 
-	TestEqual(TEXT("an unpredicted committed shot backfills owner feedback exactly once"),
-		Ability->GetConfirmedBackfillRequestCountForTest(), 1);
-	TestEqual(TEXT("the backfilled owner feedback is counted on the weapon"),
-		Weapon->GetConfirmedBackfillCountForAutomationTest(), 1);
-	TestEqual(TEXT("the backfilled owner montage/recoil channel is recorded"),
-		Character->GetOwnerLocalRecoilCountForAutomationTest(), 1);
+	TestEqual(TEXT("an unpredicted committed shot requests no owner replay"),
+		Ability->GetOwnerConfirmedReplayRequestCountForTest(), 0);
+	TestEqual(TEXT("the confirmed owner replay count remains zero"),
+		Weapon->GetOwnerConfirmedReplayCountForAutomationTest(), 0);
+	TestEqual(TEXT("the old verdict does not add a predicted owner feedback event"),
+		Weapon->GetPredictedOwnerFeedbackCountForAutomationTest(), PredictedFeedbackBeforeVerdict);
+	TestEqual(TEXT("the old verdict does not insert a montage after K+1/K+2"),
+		Character->GetOwnerLocalMontageCountForAutomationTest(), MontageBeforeVerdict);
+	TestEqual(TEXT("the old verdict does not insert recoil after K+1/K+2"),
+		Character->GetOwnerLocalRecoilCountForAutomationTest(), RecoilBeforeVerdict);
+	TestEqual(TEXT("the old verdict does not insert muzzle after K+1/K+2"),
+		Weapon->GetOwnerMuzzleFeedbackCountForAutomationTest(), MuzzleBeforeVerdict);
+	TestEqual(TEXT("the old verdict does not insert sound after K+1/K+2"),
+		Weapon->GetOwnerSoundFeedbackCountForAutomationTest(), SoundBeforeVerdict);
 	TestEqual(TEXT("an unpredicted committed shot leaves the budget untouched"), Weapon->GetPendingPredictedShots(), 0);
-	TestEqual(TEXT("the backfill never consumes magazine ammo"), Weapon->GetBulletCount(), AmmoBefore);
-	TestEqual(TEXT("the backfill never spawns a projectile"), CountProjectiles(World), ProjectilesBefore);
-	TestEqual(TEXT("the backfill never advances the local fire cadence"),
+	TestEqual(TEXT("owner replay settlement never consumes magazine ammo"), Weapon->GetBulletCount(), AmmoBefore);
+	TestEqual(TEXT("owner replay settlement never spawns a projectile"), CountProjectiles(World), ProjectilesBefore);
+	TestEqual(TEXT("owner replay settlement never advances the local fire cadence"),
 		Weapon->IsLocalFireCooldownReady(), bCadenceReadyBefore);
-	TestEqual(TEXT("the backfill never writes the authority shot time"),
+	TestEqual(TEXT("owner replay settlement never writes the authority shot time"),
 		Weapon->GetTimeOfLastShotForAutomationTest(), TimeOfLastShotBefore);
 
 	// 幂等：重复 Committed 不得补播第二次。
 	Ability->HandleAuthorityShotVerdictForTest(201, /*bCommitted*/ true);
-	TestEqual(TEXT("a duplicated committed verdict cannot backfill twice"),
-		Ability->GetConfirmedBackfillRequestCountForTest(), 1);
-	TestEqual(TEXT("a duplicated committed verdict cannot double count on the weapon"),
-		Weapon->GetConfirmedBackfillCountForAutomationTest(), 1);
+	TestEqual(TEXT("a duplicated committed verdict cannot request owner replay"),
+		Ability->GetOwnerConfirmedReplayRequestCountForTest(), 0);
+	TestEqual(TEXT("a duplicated committed verdict cannot add owner replay"),
+		Weapon->GetOwnerConfirmedReplayCountForAutomationTest(), 0);
 
-	// ---- 情形 6：预算被消费但表现通道当时不可用 → Committed 仍然结清预算并补播一次 ----
+	// ---- 情形 6：预算被消费但表现通道当时不可用 → Committed 仍然只结清预算 ----
 	// 预算与表现是两个独立事实：表现提交失败不得让这一发的预算永远挂着。
 	Weapon->ResetFireFeedbackCountersForAutomationTest();
 	Weapon->SetPendingPredictedShotsForAutomationTest(1);
@@ -881,20 +900,20 @@ bool FShooterFirePredictionUnpredictedCommittedBackfillTest::RunTest(const FStri
 	Ability->HandleAuthorityShotVerdictForTest(202, /*bCommitted*/ true);
 	TestEqual(TEXT("a committed shot still settles a budget whose feedback failed"),
 		Weapon->GetPendingPredictedShots(), 0);
-	TestEqual(TEXT("a committed shot backfills the feedback that was never played"),
-		Ability->GetConfirmedBackfillRequestCountForTest(), 2);
+	TestEqual(TEXT("a committed shot does not replay feedback that was never played"),
+		Ability->GetOwnerConfirmedReplayRequestCountForTest(), 0);
 
 	// 同一事实的 Reject 面：预算必须被退还，且完全不补播。
 	Weapon->ResetFireFeedbackCountersForAutomationTest();
 	Weapon->SetPendingPredictedShotsForAutomationTest(1);
 	Ability->RegisterShotRecordForTest(/*PredictionKey*/ 203, Weapon, /*bBudgetConsumed*/ true,
 		/*bFeedbackPlayed*/ false);
-	const int32 BackfillBeforeReject = Ability->GetConfirmedBackfillRequestCountForTest();
+	const int32 ReplayBeforeReject = Ability->GetOwnerConfirmedReplayRequestCountForTest();
 	Ability->HandleAuthorityShotVerdictForTest(203, /*bCommitted*/ false);
 	TestEqual(TEXT("a rejected shot refunds the budget even when its feedback never played"),
 		Weapon->GetPendingPredictedShots(), 0);
-	TestEqual(TEXT("a rejected shot never backfills the missing feedback"),
-		Ability->GetConfirmedBackfillRequestCountForTest(), BackfillBeforeReject);
+	TestEqual(TEXT("a rejected shot never replays the missing feedback"),
+		Ability->GetOwnerConfirmedReplayRequestCountForTest(), ReplayBeforeReject);
 
 	DestroyPredictionTestWorld(World);
 	return true;
@@ -945,8 +964,8 @@ bool FShooterFirePredictionShotRecordLifetimeTest::RunTest(const FString& Parame
 	Ability->HandleAuthorityShotVerdictForTest(301, /*bCommitted*/ false);
 	TestEqual(TEXT("a late rejection after invalidation cannot refund"), Weapon->GetPendingPredictedShots(), 1);
 	Ability->HandleAuthorityShotVerdictForTest(301, /*bCommitted*/ true);
-	TestEqual(TEXT("a late committed verdict after invalidation cannot backfill"),
-		Ability->GetConfirmedBackfillRequestCountForTest(), 0);
+	TestEqual(TEXT("a late committed verdict after invalidation cannot replay owner feedback"),
+		Ability->GetOwnerConfirmedReplayRequestCountForTest(), 0);
 
 	// ---- 池归还 / 重新取用：代次变化后旧记录不再参与结清 ----
 	Weapon->SetPendingPredictedShotsForAutomationTest(1);
@@ -956,6 +975,227 @@ bool FShooterFirePredictionShotRecordLifetimeTest::RunTest(const FString& Parame
 	Weapon->OnAcquiredFromWeaponPool();
 	TestEqual(TEXT("re-acquiring the weapon invalidates the old generation's records"),
 		Ability->GetUnresolvedShotRecordCountForTest(), 0);
+
+	DestroyPredictionTestWorld(World);
+	return true;
+}
+
+/**
+ * 每把玩家持有的武器各拥有一份 GA_Fire Spec（SourceObject = 该 WeaponActor）。
+ *
+ * 这条生命周期是 Weapon Action Identity 的基础：AbilitySpecHandle 随激活请求一起过网络，
+ * 服务器因此不需要任何新增字段就能知道"这次 Fire Action 属于哪把枪"。
+ * 覆盖：Add → 授予、重复 Add 不重复授予、Remove → 撤销、Clear → 全部撤销、重新 Add → 重新授予。
+ */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterFireSpecPerWeaponLifecycleTest,
+	"ShootGame.Ability.Fire.Grant.PerWeaponSpecLifecycle",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FShooterFireSpecPerWeaponLifecycleTest::RunTest(const FString& Parameters)
+{
+	using namespace ShooterAbilityFirePredictionAutomationTests;
+
+	UWorld* World = CreatePredictionTestWorld();
+	if (!TestNotNull(TEXT("per-weapon spec test world created"), World))
+	{
+		return false;
+	}
+
+	AShooterCharacter* Character = SpawnLocalPlayerCharacter(World);
+	UShooterInventoryComponent* Inventory = Character ? Character->GetInventoryComponent() : nullptr;
+	AShooterPlayerState* ShooterPlayerState = Character ? Character->GetPlayerState<AShooterPlayerState>() : nullptr;
+	if (!TestNotNull(TEXT("per-weapon spec character spawned"), Character) ||
+		!TestNotNull(TEXT("inventory component exists"), Inventory) ||
+		!TestNotNull(TEXT("shooter PlayerState exists"), ShooterPlayerState))
+	{
+		DestroyPredictionTestWorld(World);
+		return false;
+	}
+
+	TestEqual(TEXT("a fresh player holds no Fire spec"), ShooterPlayerState->GetFireAbilitySpecCount(), 0);
+
+	// ---- Add → 每把武器各授予一份，SourceObject 就是该武器 ----
+	AShooterWeapon* FirstWeapon = GrantTestWeapon(World, Inventory, AShooterWeaponPresentationTestWeaponPrimary::StaticClass());
+	AShooterWeapon* SecondWeapon = GrantTestWeapon(World, Inventory, AShooterWeaponPresentationTestWeaponSecondary::StaticClass());
+	if (!TestNotNull(TEXT("first weapon granted"), FirstWeapon) || !TestNotNull(TEXT("second weapon granted"), SecondWeapon))
+	{
+		DestroyPredictionTestWorld(World);
+		return false;
+	}
+
+	const FGameplayAbilitySpec* FirstSpec = ShooterPlayerState->FindFireAbilitySpecForWeapon(FirstWeapon);
+	const FGameplayAbilitySpec* SecondSpec = ShooterPlayerState->FindFireAbilitySpecForWeapon(SecondWeapon);
+	TestEqual(TEXT("two held weapons own two Fire specs"), ShooterPlayerState->GetFireAbilitySpecCount(), 2);
+	TestNotNull(TEXT("first weapon has its own Fire spec"), FirstSpec);
+	TestNotNull(TEXT("second weapon has its own Fire spec"), SecondSpec);
+	if (FirstSpec && SecondSpec)
+	{
+		TestTrue(TEXT("first spec SourceObject is the first weapon"), FirstSpec->SourceObject.Get() == FirstWeapon);
+		TestTrue(TEXT("second spec SourceObject is the second weapon"), SecondSpec->SourceObject.Get() == SecondWeapon);
+		TestTrue(TEXT("different weapons own different spec handles"), FirstSpec->Handle != SecondSpec->Handle);
+		const bool bFirstIsFire = FirstSpec->Ability && FirstSpec->Ability->IsA<UShooterGameplayAbility_Fire>();
+		const bool bSecondIsFire = SecondSpec->Ability && SecondSpec->Ability->IsA<UShooterGameplayAbility_Fire>();
+		TestTrue(TEXT("both specs run the production GA_Fire class"), bFirstIsFire && bSecondIsFire);
+	}
+
+	// 幂等：同一把武器重复授予不得新增 Spec（幂等键是 AbilityClass + SourceObject）。
+	ShooterPlayerState->GrantFireAbilityForWeapon(FirstWeapon);
+	ShooterPlayerState->GrantFireAbilityForWeapon(FirstWeapon);
+	TestEqual(TEXT("re-granting the same weapon stays idempotent"), ShooterPlayerState->GetFireAbilitySpecCount(), 2);
+
+	// ---- Remove → 只撤销该武器的那一份 ----
+	TestTrue(TEXT("first weapon removed from inventory"), Inventory->RemoveWeapon(FirstWeapon));
+	TestEqual(TEXT("removing a weapon revokes its Fire spec"), ShooterPlayerState->GetFireAbilitySpecCount(), 1);
+	const FGameplayAbilitySpec* RemovedWeaponSpec = ShooterPlayerState->FindFireAbilitySpecForWeapon(FirstWeapon);
+	TestNull(TEXT("the removed weapon has no Fire spec"), RemovedWeaponSpec);
+	TestNotNull(TEXT("the remaining weapon keeps its Fire spec"),
+		ShooterPlayerState->FindFireAbilitySpecForWeapon(SecondWeapon));
+
+	// ---- Clear → 全部撤销，且 Spec 不再指向已失效武器 ----
+	Inventory->ClearInventory();
+	TestEqual(TEXT("clearing the inventory revokes every Fire spec"), ShooterPlayerState->GetFireAbilitySpecCount(), 0);
+	const FGameplayAbilitySpec* ClearedWeaponSpec = ShooterPlayerState->FindFireAbilitySpecForWeapon(SecondWeapon);
+	TestNull(TEXT("no Fire spec survives the cleared inventory"), ClearedWeaponSpec);
+
+	// ---- 重新 Add → 重新授予一份（旧 Spec 撤干净后不得残留 / 不得重复） ----
+	AShooterWeapon* RegrantedWeapon = GrantTestWeapon(World, Inventory, AShooterWeaponPresentationTestWeaponPrimary::StaticClass());
+	if (TestNotNull(TEXT("weapon granted again after clear"), RegrantedWeapon))
+	{
+		TestEqual(TEXT("re-adding a weapon grants exactly one new Fire spec"),
+			ShooterPlayerState->GetFireAbilitySpecCount(), 1);
+		TestNotNull(TEXT("the re-added weapon owns a Fire spec"),
+			ShooterPlayerState->FindFireAbilitySpecForWeapon(RegrantedWeapon));
+	}
+
+	DestroyPredictionTestWorld(World);
+	return true;
+}
+
+/**
+ * Spec 生命周期结束时的预测债务清算：退款恰好一次、HUD 预测结清、记录清零，并且可重入。
+ *
+ * 这里直接驱动生产 override（UGameplayAbility::OnRemoveAbility），证明的是"清理本身的幂等性与范围"；
+ * 网络侧的真实 Spec Removal（Inventory Remove → Spec 撤销 → GAS 复制删除）由
+ * -ShootGameWeaponContextTest 的 SpecRemovalInFlight / PoolReuseRebind 用例覆盖。
+ *
+ * 两个用例把"真实退款"与"代次跳过"分开，防止再次出现"报告退过款、实际一次都没退"：
+ *   Case A（同代次）：记录占过预算、显示激活存在 → Retired=1、Refunded=1、Pending 与 HUD 都被结清；
+ *   Case B（旧代次）：记录属于上一轮租用 → Retired=1 但 Refunded=0、GenerationSkipped=1，
+ *                     当前 Pending 与当前 HUD 显示激活一律不动。
+ */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterFireSpecRemovalPredictionRetirementTest,
+	"ShootGame.Ability.Fire.Prediction.SpecRemovalRetiresPredictionDebt",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FShooterFireSpecRemovalPredictionRetirementTest::RunTest(const FString& Parameters)
+{
+	using namespace ShooterAbilityFirePredictionAutomationTests;
+
+	UWorld* World = CreatePredictionTestWorld();
+	if (!TestNotNull(TEXT("spec removal test world created"), World))
+	{
+		return false;
+	}
+
+	AShooterCharacter* Character = SpawnLocalPlayerCharacter(World);
+	UShooterInventoryComponent* Inventory = Character ? Character->GetInventoryComponent() : nullptr;
+	AShooterPlayerState* ShooterPlayerState = Character ? Character->GetPlayerState<AShooterPlayerState>() : nullptr;
+	if (!TestNotNull(TEXT("spec removal character spawned"), Character) ||
+		!TestNotNull(TEXT("inventory exists"), Inventory) ||
+		!TestNotNull(TEXT("PlayerState exists"), ShooterPlayerState))
+	{
+		DestroyPredictionTestWorld(World);
+		return false;
+	}
+
+	const TSubclassOf<AShooterWeapon> WeaponClass = AShooterWeaponPresentationTestWeaponPrimary::StaticClass();
+	AShooterWeapon* Weapon = GrantTestWeapon(World, Inventory, WeaponClass);
+	if (!TestNotNull(TEXT("weapon granted"), Weapon))
+	{
+		DestroyPredictionTestWorld(World);
+		return false;
+	}
+
+	const FGameplayAbilitySpec* Spec = ShooterPlayerState->FindFireAbilitySpecForWeapon(Weapon);
+	if (!TestNotNull(TEXT("weapon owns a Fire spec"), Spec))
+	{
+		DestroyPredictionTestWorld(World);
+		return false;
+	}
+
+	UShooterGameplayAbility_Fire* Ability = NewObject<UShooterGameplayAbility_Fire>(Character);
+
+	// ---- Case A：同代次的未结记录，预算与显示激活都真实存在 ----
+	// 本测试世界是权威端，没有拥有者预测视图，因此预算与显示激活用测试入口建立起点：
+	// 它们构造的正是"拥有端已经提前占过预算并显示扣减"这一状态。
+	const int32 CaseAKey = 401;
+	Ability->RegisterShotRecordForTest(CaseAKey, Weapon, /*bBudgetConsumed*/ true, /*bFeedbackPlayed*/ true);
+	Weapon->SetPendingPredictedShotsForAutomationTest(1);
+	Weapon->SeedAmmoDisplayActivationForAutomationTest(CaseAKey);
+
+	TestEqual(TEXT("case A keeps one unresolved record"), Ability->GetUnresolvedShotRecordCountForTest(), 1);
+	TestEqual(TEXT("case A fixture really holds one predicted shot"), Weapon->GetPendingPredictedShots(), 1);
+	TestEqual(TEXT("case A fixture really holds one display activation"), Weapon->GetUnsettledAmmoDisplayCount(), 1);
+
+	const int32 RetiredBeforeCaseA = Ability->GetSpecRemovalRetiredRecordCountForTest();
+	const int32 RefundedBeforeCaseA = Ability->GetSpecRemovalRefundedCountForTest();
+	const int32 AuthorityRejectsBeforeCaseA = Ability->GetAuthorityRejectCountForTest();
+
+	// 生产生命周期入口：引擎在实例 MarkAsGarbage 之前调用 OnRemoveAbility。
+	Ability->HandleSpecRemovalForTest(*Spec);
+
+	TestEqual(TEXT("case A retires the owned record"), Ability->GetUnresolvedShotRecordCountForTest(), 0);
+	TestFalse(TEXT("case A drops the record from the instance"), Ability->HasShotRecordForTest(CaseAKey));
+	TestEqual(TEXT("case A retires exactly one record"),
+		Ability->GetSpecRemovalRetiredRecordCountForTest() - RetiredBeforeCaseA, 1);
+	TestEqual(TEXT("case A really refunds the consumed budget once"),
+		Ability->GetSpecRemovalRefundedCountForTest() - RefundedBeforeCaseA, 1);
+	TestEqual(TEXT("case A reports no generation skip"), Ability->GetSpecRemovalGenerationSkippedCountForTest(), 0);
+	TestEqual(TEXT("case A settles the predicted budget"), Weapon->GetPendingPredictedShots(), 0);
+	TestEqual(TEXT("case A settles the display activation"), Weapon->GetUnsettledAmmoDisplayCount(), 0);
+	// 生命周期退休不是服务器拒绝：任何 Reject 统计都不得因此增长。
+	TestEqual(TEXT("case A does not count as a server reject"),
+		Ability->GetAuthorityRejectCountForTest(), AuthorityRejectsBeforeCaseA);
+
+	// 幂等：再次进入（例如 EndAbility 之后又走一次移除路径）不得二次退款 / 二次结清。
+	Ability->HandleSpecRemovalForTest(*Spec);
+	TestEqual(TEXT("a second removal stays idempotent"),
+		Ability->GetSpecRemovalRetiredRecordCountForTest() - RetiredBeforeCaseA, 1);
+	TestEqual(TEXT("a second removal refunds nothing"),
+		Ability->GetSpecRemovalRefundedCountForTest() - RefundedBeforeCaseA, 1);
+	TestEqual(TEXT("a second removal leaves the budget settled"), Weapon->GetPendingPredictedShots(), 0);
+
+	// ---- Case B：旧代次记录（上一轮租用留下的债务） ----
+	// 真实生命周期边界：归还武器池 = ClearWeaponOwner，代次 +1，旧预算与旧显示激活整体作废。
+	const int32 CaseBKey = 402;
+	Ability->RegisterShotRecordForTest(CaseBKey, Weapon, /*bBudgetConsumed*/ true, /*bFeedbackPlayed*/ true);
+	Weapon->OnReleasedToWeaponPool();
+
+	// 归还之后建立"当前生命周期"的状态：一笔未结预算与一次显示激活，用于验证它们不被旧记录牵动。
+	const int32 CurrentLifecycleDisplayKey = 900;
+	Weapon->SetPendingPredictedShotsForAutomationTest(1);
+	Weapon->SeedAmmoDisplayActivationForAutomationTest(CurrentLifecycleDisplayKey);
+
+	const int32 RetiredBeforeCaseB = Ability->GetSpecRemovalRetiredRecordCountForTest();
+	const int32 RefundedBeforeCaseB = Ability->GetSpecRemovalRefundedCountForTest();
+	const int32 AuthorityRejectsBeforeCaseB = Ability->GetAuthorityRejectCountForTest();
+
+	Ability->HandleSpecRemovalForTest(*Spec);
+
+	TestFalse(TEXT("case B drops the stale record from the instance"), Ability->HasShotRecordForTest(CaseBKey));
+	TestEqual(TEXT("case B leaves the instance with no unresolved records"),
+		Ability->GetUnresolvedShotRecordCountForTest(), 0);
+	TestEqual(TEXT("case B retires exactly one stale record"),
+		Ability->GetSpecRemovalRetiredRecordCountForTest() - RetiredBeforeCaseB, 1);
+	TestEqual(TEXT("case B really refunds nothing"),
+		Ability->GetSpecRemovalRefundedCountForTest() - RefundedBeforeCaseB, 0);
+	TestEqual(TEXT("case B reports exactly one generation skip"),
+		Ability->GetSpecRemovalGenerationSkippedCountForTest(), 1);
+	TestEqual(TEXT("case B leaves the current predicted budget untouched"), Weapon->GetPendingPredictedShots(), 1);
+	TestEqual(TEXT("case B leaves the current display activation untouched"),
+		Weapon->GetUnsettledAmmoDisplayCount(), 1);
+	TestEqual(TEXT("case B does not count as a server reject"),
+		Ability->GetAuthorityRejectCountForTest(), AuthorityRejectsBeforeCaseB);
 
 	DestroyPredictionTestWorld(World);
 	return true;

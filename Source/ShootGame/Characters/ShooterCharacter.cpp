@@ -468,9 +468,18 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this, &AShooterCharacter::DoStopFiring);
 
 		// Reload：IA_Reload 只提交 Input.Reload，不直接改弹药。
+		// 它是隐式 Down 语义（按下期间持续 actuated），因此按压生命周期必须完整闭环：
+		// Started 提交按下沿；Completed（真实松开）与 Canceled（输入被取消，例如映射上下文移除）
+		// 都回收输入意图。缺少终点会让 ASC 永久把 Reload 当成"仍按住"。
 		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &AShooterCharacter::DoReload);
+		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Completed, this,
+			&AShooterCharacter::DoStopReload);
+		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Canceled, this,
+			&AShooterCharacter::DoStopReload);
 
-		// 切枪使用 Axis1D：正值切下一把，负值切上一把；Started 保证按钮长按只触发一次。
+		// 切枪使用 Axis1D：正值切下一把，负值切上一把。
+		// IA_SwapWeapon 配置了显式 InputTriggerPressed（单帧脉冲），物理上不存在"持续按住"语义，
+		// 因此按"只产生按下沿"的采集语义提交；Started 保证按钮长按只触发一次。
 		EnhancedInputComponent->BindAction(SwitchWeaponAction, ETriggerEvent::Started, this, &AShooterCharacter::DoSwitchWeaponInput);
 	}
 	else
@@ -643,6 +652,19 @@ void AShooterCharacter::DoReload()
 	UE_LOG(LogShootGame, Warning, TEXT("DoReload ignored: ShooterASC unavailable for %s"), *GetName());
 }
 
+void AShooterCharacter::DoStopReload()
+{
+	// 与 DoStopFiring 对称：松开（Completed）与取消（Canceled）都走真实的 Release 语义，
+	// 让 ASC 的 Held 采集、引擎镜像与可靠释放与物理输入保持一致。
+	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent = Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
+	{
+		ShooterAbilitySystemComponent->AbilityInputTagReleased(ShooterGameplayTags::Input_Reload);
+		return;
+	}
+
+	UE_LOG(LogShootGame, Warning, TEXT("DoStopReload ignored: ShooterASC unavailable for %s"), *GetName());
+}
+
 void AShooterCharacter::MulticastPlayFiringMontage_Implementation(UAnimMontage* Montage)
 {
 	if (!Montage)
@@ -684,12 +706,14 @@ void AShooterCharacter::DoSwitchWeaponInDirection(int32 Direction)
 {
 	// 输入只提交给 ASC：两个动态标签 Spec 共用 GA_Equip，
 	// GAS 自动把选中的 Spec 激活请求可靠转发到服务器。
+	// 采集语义是"瞬时按下沿"：IA_SwapWeapon 是显式 Pressed Trigger 的单帧脉冲输入，
+	// 没有"持续按住"这一事实，因此不得进入 Held 采集。
 	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent = Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
 	{
 		const FGameplayTag& InputTag = Direction > 0
 			? ShooterGameplayTags::Input_Equip_Next
 			: ShooterGameplayTags::Input_Equip_Previous;
-		ShooterAbilitySystemComponent->AbilityInputTagPressed(InputTag);
+		ShooterAbilitySystemComponent->AbilityInputTagEdge(InputTag);
 		return;
 	}
 

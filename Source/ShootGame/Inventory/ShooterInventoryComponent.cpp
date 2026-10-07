@@ -6,6 +6,7 @@
 #include "Characters/ShooterCharacter.h"
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
+#include "GameFramework/PlayerState/ShooterPlayerState.h"
 #include "Net/UnrealNetwork.h"
 #include "ShootGame.h"
 #include "Weapons/ShooterWeapon.h"
@@ -61,6 +62,13 @@ EShooterInventoryAddResult UShooterInventoryComponent::AddWeapon(AShooterWeapon*
 		return EShooterInventoryAddResult::SlotOccupied;
 	}
 
+	// Fire Ability 的授予键就是"玩家持有这把武器"：每个 WeaponActor 各拥有一份
+	// GA_Fire Spec，SourceObject 指向该武器，AbilitySpecHandle 因此成为网络上的武器动作身份。
+	if (AShooterPlayerState* AbilityHost = ResolveAbilityHostPlayerState())
+	{
+		AbilityHost->GrantFireAbilityForWeapon(Weapon);
+	}
+
 	UE_LOG(
 		LogShootGame,
 		Display,
@@ -85,6 +93,14 @@ bool UShooterInventoryComponent::RemoveWeapon(AShooterWeapon* Weapon)
 	{
 		// E1 顺序：先广播移除，让 Equipment 在 WeaponActor 归还池之前清理当前装备。
 		OnWeaponRemovedFromInventory.Broadcast(Weapon);
+
+		// Fire Ability 撤销必须早于归还池：Spec.SourceObject 是弱引用，
+		// 武器被销毁后再撤销会留下"SourceObject 已失效"的孤儿 Spec。
+		if (AShooterPlayerState* AbilityHost = ResolveAbilityHostPlayerState())
+		{
+			AbilityHost->RemoveFireAbilityForWeapon(Weapon);
+		}
+
 		ReleaseWeaponActor(Weapon);
 
 		UE_LOG(LogShootGame, Display, TEXT("Inventory RemoveWeapon committed: Actor=%s WeaponId=%s Weapon=%s Count=%d"),
@@ -119,6 +135,16 @@ void UShooterInventoryComponent::ClearInventory()
 
 	ReplicatedInventory.ClearItems();
 	OnInventoryCleared.Broadcast();
+
+	// Fire Ability 与武器持有关系同生命周期：先撤销全部 Spec，再归还 / 销毁 WeaponActor，
+	// 顺序理由与 RemoveWeapon 相同（Spec.SourceObject 是弱引用）。
+	if (AShooterPlayerState* AbilityHost = ResolveAbilityHostPlayerState())
+	{
+		for (AShooterWeapon* Weapon : WeaponsToRelease)
+		{
+			AbilityHost->RemoveFireAbilityForWeapon(Weapon);
+		}
+	}
 
 	for (AShooterWeapon* Weapon : WeaponsToRelease)
 	{
@@ -183,6 +209,13 @@ void UShooterInventoryComponent::HandleWeaponEntryRemoved(AShooterWeapon* Weapon
 	{
 		Equipment->ClearEquippedWeapon();
 	}
+}
+
+/** 取本组件的 Ability 宿主：玩家角色的 PlayerState；NPC / 无 PlayerState 时返回 nullptr。 */
+AShooterPlayerState* UShooterInventoryComponent::ResolveAbilityHostPlayerState() const
+{
+	const AShooterCharacter* Character = Cast<AShooterCharacter>(GetOwner());
+	return Character ? Character->GetPlayerState<AShooterPlayerState>() : nullptr;
 }
 
 void UShooterInventoryComponent::ReleaseWeaponActor(AShooterWeapon* Weapon)

@@ -150,9 +150,6 @@ protected:
 	/** 本地上下文代次；Owner 解绑时递增，不要求两端代次数值相同。 */
 	uint32 AmmoPredictionGeneration = 0;
 
-	/** 拥有端确认补播的表现目标是否成立（世界 / 本机拥有者视图 / 当前装备 / 未隐藏）。 */
-	bool IsOwnerConfirmedFeedbackTargetValid() const;
-
 	/**
 	 * 已本地预测消费、但尚未由 Activation 结果结算的弹药数量。
 	 *
@@ -340,11 +337,8 @@ protected:
 	/** Owner / 池租用边界复位本地开火节拍，防止跨持有者继承。 */
 	void ResetLocalFireCooldown();
 
-	/**
-	 * 拥有者纯表现的唯一实现；只由本地开火 / 服务器确认补播入口调用。
-	 * bConfirmedBackfill=false 为本地预测来源，true 为服务器确认后的补播来源。
-	 */
-	bool PlayOwnerShotFeedbackInternal(bool bConfirmedBackfill);
+	/** 拥有者纯表现的唯一实现；只由本地预测开火入口调用。 */
+	bool PlayOwnerShotFeedbackInternal();
 
 	/** PendingPredictedShots 的统一减少入口；Marker 用于区分 Committed / Rejected 诊断。 */
 	void ReducePendingPredictedAmmo(int32 Amount, const TCHAR* Marker);
@@ -425,12 +419,6 @@ public:
 	 * 返回是否向表现通道提交了至少一项；返回值不表示当前机器一定具备音频或渲染设备。
 	 */
 	bool PlayOwnerPredictedShotFeedback();
-
-	/**
-	 * 服务器确认补播入口：只播放四路纯表现，绝不消费 Pending、推进节拍、发 RPC、
-	 * 生成 Projectile 或修改 Ammo；只在"这一发被服务器接受但拥有端此前没有预测表现"时调用一次。
-	 */
-	bool PlayOwnerConfirmedShotFeedback();
 
 	/**
 	 * 本地开火节拍是否已越过：距上一次本地提交是否已满 RefireRate。
@@ -578,7 +566,16 @@ public:
 
 	void BeginAmmoDisplayActivation(int32 PredictionKey);
 	void RecordAmmoDisplayPredictedShot(int32 PredictionKey);
-	void RejectAmmoDisplayActivation(int32 PredictionKey);
+
+	/**
+	 * 撤销该 PredictionKey 的本地显示预测（中性语义）。
+	 * 服务器拒绝与 Spec 生命周期退休共用这一条实现：显示层做的动作完全相同，
+	 * 区别只在调用方的日志与统计，因此这里不携带任何 Reject 语义。
+	 */
+	void RetireAmmoDisplayActivation(int32 PredictionKey);
+
+	/** 服务器拒绝语义入口：只转发到中性实现，行为完全相同。 */
+	void RejectAmmoDisplayActivation(int32 PredictionKey) { RetireAmmoDisplayActivation(PredictionKey); }
 	int32 GetUnsettledAmmoDisplayCount() const { return AmmoDisplayState.GetUnsettledCount(); }
 
 	/** 返回初始备弹声明值；-1 表示自动（MagazineSize × 3），>=0 为显式有限值。 */
@@ -654,6 +651,14 @@ public:
 	/** 拥有端 Fire Ability 在本地激活时绑定；用于接收服务器每一发的裁决通知。 */
 	void BindPredictionAbility(UShooterGameplayAbility_Fire* Ability);
 
+	/**
+	 * 条件解绑：仅当当前绑定对象就是调用者时才清空。
+	 *
+	 * pooled WeaponActor 会被同一 Owner 复用：旧 Spec H1 的迟到移除（OnRemoveAbility）
+	 * 绝不能把新 Spec H2 已经建立的绑定清掉，因此解绑必须是"谁的绑定谁解"。
+	 */
+	void UnbindPredictionAbilityIfBoundTo(const UShooterGameplayAbility_Fire* Ability);
+
 	/** Owner / 池 / Destroy 边界解绑裁决转发；不依赖 PredictionKey 大小。 */
 	void ClearPredictionAbility();
 
@@ -688,11 +693,19 @@ public:
 	/** 清空本武器的开火表现计数；测试在场景起点调用一次。 */
 	void ResetFireFeedbackCountersForAutomationTest();
 
-	/** 拥有者确认补播的实际播放次数，由 PlayOwnerShotFeedbackInternal 递增。 */
-	int32 GetConfirmedBackfillCountForAutomationTest() const;
+	/** 测试诊断哨兵：Owner historical cosmetic replay 已无生产入口，当前值必须恒为 0。 */
+	int32 GetOwnerConfirmedReplayCountForAutomationTest() const;
 
 	/** 测试专用：直接建立 PendingPredictedShots 起点；只用于验证预测预算算术。 */
 	void SetPendingPredictedShotsForAutomationTest(int32 InPendingShots);
+
+	/**
+	 * 测试专用：无条件建立一次显示预测激活。
+	 *
+	 * 生产入口 BeginAmmoDisplayActivation 只在拥有端预测上下文生效，而单机测试世界没有预测视图；
+	 * 本入口只写本地显示覆盖层，不碰弹药、预算或复制字段。
+	 */
+	void SeedAmmoDisplayActivationForAutomationTest(int32 PredictionKey);
 
 	/** 测试专用：设置本地开火节拍剩余时间；用于构造"本地节拍尚未就绪"的夹具。 */
 	void SetLocalFireCooldownRemainingForAutomationTest(float RemainingSeconds);
@@ -724,6 +737,26 @@ public:
 	int32 GetOwnerMuzzleFeedbackCountForAutomationTest() const { return OwnerMuzzleFeedbackCount; }
 	/** 拥有端单发裁决通知（Committed / Rejected）的接收次数。 */
 	int32 GetShotVerdictReceivedCountForTest() const { return ShotVerdictReceivedCountForTest; }
+
+	/**
+	 * 本武器上"旧 Spec 生命周期结束导致的解绑"次数。
+	 *
+	 * Fire Spec 被移除时它的实例会条件解绑（仅当绑定对象就是它自己）；
+	 * 该计数是"Spec Removal 清理确实发生过、且没有误清新 Spec 绑定"的直接证据。
+	 */
+	int32 GetSpecRemovalUnbindCountForTest() const { return SpecRemovalUnbindCountForTest; }
+
+	/**
+	 * 本武器上"旧 Spec 生命周期结束触发预测清算"的次数。
+	 *
+	 * 无论当时是否还有未结记录都会计数：它证明 Spec Removal 的收口确实执行过
+	 * （清理可能因为武器侧生命周期已经先一步结清而无可清理）。
+	 */
+	int32 GetSpecRemovalCleanupCountForTest() const { return SpecRemovalCleanupCountForTest; }
+
+	/** 只在 Spec Removal 清算路径内调用；开发构建登记次数。 */
+	void RecordSpecRemovalCleanupForTest();
+
 	int32 GetOwnerSoundFeedbackCountForAutomationTest() const { return OwnerSoundFeedbackCount; }
 	int32 GetRemoteMuzzleFeedbackCountForAutomationTest() const { return RemoteMuzzleFeedbackCount; }
 	int32 GetRemoteSoundFeedbackCountForAutomationTest() const { return RemoteSoundFeedbackCount; }
@@ -834,12 +867,14 @@ private:
 	int32 LocalFireCadenceOrdinal = 0;
 	float LastLocalFireEndTime = -1.0f;
 	int32 PredictedOwnerFeedbackCount = 0;
-	int32 ConfirmedBackfillFeedbackCount = 0;
+	int32 OwnerConfirmedReplayFeedbackCount = 0;
 	int32 OwnerAuthorityConfirmationCount = 0;
 	int32 AuthorityShotCount = 0;
 	int32 RemoteConfirmedFeedbackCount = 0;
 	int32 OwnerMuzzleFeedbackCount = 0;
 	int32 ShotVerdictReceivedCountForTest = 0;
+	int32 SpecRemovalUnbindCountForTest = 0;
+	int32 SpecRemovalCleanupCountForTest = 0;
 	int32 OwnerSoundFeedbackCount = 0;
 	int32 RemoteMuzzleFeedbackCount = 0;
 	int32 RemoteSoundFeedbackCount = 0;

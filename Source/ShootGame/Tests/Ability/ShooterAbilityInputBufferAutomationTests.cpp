@@ -27,7 +27,8 @@
  *
  * 两种输入策略各有一组用例：
  * - OnInputTriggered（Semi）：pending intent 由短期 Buffered Press Edge 表达；
- * - WhileInputActive（FullAuto）：pending intent 只由 Held 集合与 Spec.InputPressed 表达，Release 即终止。
+ * - WhileInputActive（FullAuto）：pending intent 由 Held 采集集合表达，Release 即终止；
+ *   按住真值属于输入层，不再读某一份 Spec 的 InputPressed 镜像。
  */
 namespace ShooterAbilityInputBufferAutomationTests
 {

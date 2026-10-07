@@ -21,6 +21,20 @@ class UGameplayAbility;
  * - HeldInputTags：持续按住（Level 状态）。
  * 回调不解释 Gameplay：不尝试激活、不写 FGameplayAbilitySpec::InputPressed、不建立输入缓冲。
  *
+ * 采集入口按物理输入形态分两类，二者都由输入绑定决定，与"当前有没有匹配 Spec"无关：
+ * - AbilityInputTagPressed / AbilityInputTagReleased：按压生命周期完整的输入（有真实 Release）；
+ * - AbilityInputTagEdge：物理上只有一次触发、不存在持续按住的输入（滚轮、单次 Trigger），
+ *   只产生 Press edge，永不进入 Held。
+ * 因此 HeldInputTags 的含义严格是"该输入当前仍处于按下状态"，而不是"历史上按下过"。
+ *
+ * 采集与 Spec 解析解耦：物理输入事实先于"当前有没有 Ability 能响应"被记录。
+ * 同一个 Input Tag 此时可能一份匹配上下文的 Spec 都没有（切枪窗口、Spec 尚未复制、
+ * SourceObject 尚未解析），那只能表示"本帧没有动作可以响应"，绝不表示"玩家没有按下 / 没有松开"。
+ *
+ * 输入真值归属：本机拥有者视图（远端客户端与监听主机）以 HeldInputTags 为按住真值，
+ * FGameplayAbilitySpec::InputPressed 只是引擎自己的镜像；没有采集层的一端（Dedicated Server
+ * 上的远端玩家与 NPC）才以该镜像为唯一真值。
+ *
  * 解释层（ProcessAbilityInput，唯一入口）：本机拥有者每帧一次，从上到下按序处理
  * 1. Buffered Press：Semi 单次按下沿被「短暂动作阻塞」拒绝后保留的固定窗口，
  *    窗口内每帧最多尝试一次；本地失败不删除也不续期，成功 / 过期 / 上下文变化才删除；
@@ -56,6 +70,17 @@ public:
 	void AbilityInputTagReleased(const FGameplayTag& InputTag);
 
 	/**
+	 * 采集一次"只有按下沿、没有持续按住"的瞬时输入。
+	 *
+	 * 适用于物理上不存在按压生命周期的输入：鼠标滚轮、配置为单次 Pressed / Pulse Trigger 的 Action。
+	 * 这类输入永远不会产生真实的 Release，若按 Press + Held 采集，Held 会退化成
+	 * "历史上曾经按下过一次"并永久残留。
+	 *
+	 * 采集同样先于 Spec 解析：只记本帧 Press edge，绝不写入 Held 采集。
+	 */
+	void AbilityInputTagEdge(const FGameplayTag& InputTag);
+
+	/**
 	 * 唯一的 Gameplay 输入解释入口：由本机 PlayerController 的 PostProcessInput 驱动，
 	 * 即本帧全部输入回调完成之后立即执行一次。
 	 */
@@ -63,6 +88,25 @@ public:
 
 	/** 返回匹配输入 Tag 的第一个 Ability Spec；没有匹配时返回 nullptr。 */
 	FGameplayAbilitySpec* FindAbilitySpecFromInputTag(const FGameplayTag& InputTag);
+
+	/**
+	 * 本 ASC 是否持有本机玩家输入采集（只有本机拥有者视图有）。
+	 *
+	 * 有采集时，Pressed / Held / Released 的真值在采集集合里；没有采集的一端只能读引擎
+	 * 在 Spec 上维护的镜像，Ability 据此选择按住语义的判定来源。
+	 */
+	bool HasLocalInputCollection() const;
+
+	/** 采集层真值：本机玩家当前是否按住该 InputTag；没有采集时恒为 false。 */
+	bool IsInputTagHeld(const FGameplayTag& InputTag) const;
+
+	/**
+	 * 采集层真值：本帧是否存在该 InputTag 的 Press edge（帧末随采集一起清空）。
+	 *
+	 * 它与 Held 是两个不同的事实：按下与松开落在同一帧的"点击"在解释时点已经不在 Held 集合里，
+	 * 但那次 Press edge 仍然必须形成一次动作边界。
+	 */
+	bool IsInputTagPressedThisFrame(const FGameplayTag& InputTag) const;
 
 	/** 返回指定 Ability 类的 Spec 数量；宿主用它验证授予幂等性。 */
 	int32 GetAbilitySpecCountForClass(TSubclassOf<UGameplayAbility> AbilityClass) const;
@@ -118,6 +162,16 @@ private:
 	/** 是否为本机玩家自己的 ASC；只有它参与输入解释。 */
 	bool ShouldProcessLocalAbilityInput() const;
 
+	/** 该 Spec 是否由这个输入 Tag 驱动（Ability 资产标签或 Spec 动态来源标签）。 */
+	static bool DoesSpecCarryInputTag(const FGameplayAbilitySpec& Spec, const FGameplayTag& InputTag);
+
+	/**
+	 * 物理松开后的镜像清理：同一个 Input Tag 可能对应多份同类 Spec（每把武器一份 GA_Fire），
+	 * 松开是一次全局事实，任何曾经收到过 Press 的 Spec 都不得留下 InputPressed=true 的残留。
+	 * ReleasedSpec 已经由标准释放路径处理过，这里跳过它。
+	 */
+	void ClearStaleInputMirrors(const FGameplayTag& InputTag, const FGameplayAbilitySpec* ReleasedSpec);
+
 	/** 条目上下文是否仍然成立。 */
 	bool IsBufferedInputContextStillValid(const FShooterBufferedInput& Entry, const FGameplayAbilitySpec& Spec) const;
 
@@ -164,6 +218,12 @@ public:
 
 	/** 测试观察接口：当前持续按住的采集数量。 */
 	int32 GetHeldInputTagCountForTest() const { return HeldInputTags.Num(); }
+
+	/** 测试观察接口：本帧是否存在该 InputTag 的 Release edge（帧末随采集一起清空）。 */
+	bool IsInputTagReleasedThisFrameForTest(const FGameplayTag& InputTag) const
+	{
+		return InputTag.IsValid() && ReleasedInputTags.Contains(InputTag);
+	}
 
 	/** 测试观察接口：立即执行一次输入处理（ProcessAbilityInput）。 */
 	void ProcessAbilityInputForTest();
