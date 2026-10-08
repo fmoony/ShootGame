@@ -1,0 +1,112 @@
+[
+  {
+    "surface": "Metal",
+    "index": 0,
+    "original": "footsteps/metal/0.ogg",
+    "source": "SourceAssets\\Audio\\Footsteps\\MetalDirt\\footstep_metal_000.wav",
+    "asset": "/Game/Shooter/Audio/Footsteps/SW_Footstep_Metal_000",
+    "duration": 0.3006041666666667,
+    "rate": 48000,
+    "channels": 1,
+    "sha256": "b93bc3bc4d2979d89eeb2bd44e7c373bb55acb2a52255cb1dc9f3a7547848746"
+  },
+  {
+    "surface": "Metal",
+    "index": 1,
+    "original": "footsteps/metal/2.ogg",
+    "source": "SourceAssets\\Audio\\Footsteps\\MetalDirt\\footstep_metal_001.wav",
+    "asset": "/Game/Shooter/Audio/Footsteps/SW_Footstep_Metal_001",
+    "duration": 0.32564583333333336,
+    "rate": 48000,
+    "channels": 1,
+    "sha256": "98212932328f9737a5eed7f97a54d585b8b3ec4eb8aa32ece1aefe2bb8554cd1"
+  },
+  {
+    "surface": "Metal",
+    "index": 2,
+    "original": "footsteps/metal/3.ogg",
+    "source": "SourceAssets\\Audio\\Footsteps\\MetalDirt\\footstep_metal_002.wav",
+    "asset": "/Game/Shooter/Audio/Footsteps/SW_Footstep_Metal_002",
+    "duration": 0.185375,
+    "rate": 48000,
+    "channels": 1,
+    "sha256": "3738649153a779369d09a240ab1acdaf48356dbdc56489e456de194fd822703a"
+  },
+  {
+    "surface": "Metal",
+    "index": 3,
+    "original": "footsteps/metal/5.ogg",
+    "source": "SourceAssets\\Audio\\Footsteps\\MetalDirt\\footstep_metal_003.wav",
+    "asset": "/Game/Shooter/Audio/Footsteps/SW_Footstep_Metal_003",
+    "duration": 0.28558333333333336,
+    "rate": 48000,
+    "channels": 1,
+    "sha256": "f74893027d0c3c6ce017caa2931b0d5f881752d3586db4b491c2eb390bbcfcd5"
+  },
+  {
+    "surface": "Metal",
+    "index": 4,
+    "original": "footsteps/metal/6.ogg",
+    "source": "SourceAssets\\Audio\\Footsteps\\MetalDirt\\footstep_metal_004.wav",
+    "asset": "/Game/Shooter/Audio/Footsteps/SW_Footstep_Metal_004",
+    "duration": 0.2505,
+    "rate": 48000,
+    "channels": 1,
+    "sha256": "3703c13a9e8f1c658c591295960854485535c1914397e36c0ae00c8d6818b562"
+  },
+  {
+    "surface": "Dirt",
+    "index": 0,
+    "original": "footsteps/grass/0.ogg",
+    "source": "SourceAssets\\Audio\\Footsteps\\MetalDirt\\footstep_dirt_000.wav",
+    "asset": "/Game/Shooter/Audio/Footsteps/SW_Footstep_Dirt_000",
+    "duration": 0.24625850340136055,
+    "rate": 44100,
+    "channels": 1,
+    "sha256": "234981ee4f6f15a4bc38b598c18d4325a9e4f47732f103c17c64b058fc191b4b"
+  },
+  {
+    "surface": "Dirt",
+    "index": 1,
+    "original": "footsteps/grass/1.ogg",
+    "source": "SourceAssets\\Audio\\Footsteps\\MetalDirt\\footstep_dirt_001.wav",
+    "asset": "/Game/Shooter/Audio/Footsteps/SW_Footstep_Dirt_001",
+    "duration": 0.24625850340136055,
+    "rate": 44100,
+    "channels": 1,
+    "sha256": "65e8d086d3178b88eea073a2dda409f92433b9620deec367bc8a5202c6928d26"
+  },
+  {
+    "surface": "Dirt",
+    "index": 2,
+    "original": "footsteps/grass/2.ogg",
+    "source": "SourceAssets\\Audio\\Footsteps\\MetalDirt\\footstep_dirt_002.wav",
+    "asset": "/Game/Shooter/Audio/Footsteps/SW_Footstep_Dirt_002",
+    "duration": 0.24625850340136055,
+    "rate": 44100,
+    "channels": 1,
+    "sha256": "2a6e0b9a42685fdd17bddb90bb5ed9460955848350cdea6c466a2eb69539c400"
+  },
+  {
+    "surface": "Dirt",
+    "index": 3,
+    "original": "footsteps/grass/3.ogg",
+    "source": "SourceAssets\\Audio\\Footsteps\\MetalDirt\\footstep_dirt_003.wav",
+    "asset": "/Game/Shooter/Audio/Footsteps/SW_Footstep_Dirt_003",
+    "duration": 0.24625850340136055,
+    "rate": 44100,
+    "channels": 1,
+    "sha256": "cc3374387bb775716a4f149a99ed697c75ec49578908ee1bd2dd2e4fb9e98ede"
+  },
+  {
+    "surface": "Dirt",
+    "index": 4,
+    "original": "footsteps/grass/4.ogg",
+    "source": "SourceAssets\\Audio\\Footsteps\\MetalDirt\\footstep_dirt_004.wav",
+    "asset": "/Game/Shooter/Audio/Footsteps/SW_Footstep_Dirt_004",
+    "duration": 0.24628117913832198,
+    "rate": 44100,
+    "channels": 1,
+    "sha256": "1247c8dc8b55c850ae48ebdaa671ef75c06c5b3ce71cadf9f8d1db611d49fe0f"
+  }
+]

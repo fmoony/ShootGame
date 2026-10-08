@@ -18,6 +18,7 @@ class UCameraComponent;
 class UShooterInventoryComponent;
 class UShooterEquipmentComponent;
 class UShooterAimPresentationComponent;
+class UShooterFootstepSoundSet;
 struct FInputActionValue;
 struct FOnAttributeChangeData;
 
@@ -49,6 +50,10 @@ class SHOOTGAME_API AShooterCharacter : public ACharacter, public IShooterWeapon
 	UPawnNoiseEmitterComponent* PawnNoiseEmitter;
 
 protected:
+
+	/** 共享脚步音源硬引用；Character 只提供配置，不检测地面或播放声音。 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Footsteps")
+	TObjectPtr<UShooterFootstepSoundSet> FootstepSoundSet;
 
 	/** Jump Input Action */
 	UPROPERTY(EditAnywhere, Category ="Input")
@@ -149,6 +154,9 @@ public:
 
 	/** Returns the first person mesh */
 	USkeletalMeshComponent* GetFirstPersonMesh() const { return FirstPersonMesh; }
+
+	/** 返回共享脚步配置；选音和播放仍由 TP Notify 执行。 */
+	const UShooterFootstepSoundSet* GetFootstepSoundSet() const { return FootstepSoundSet.Get(); }
 
 	/** Returns first person camera component */
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }

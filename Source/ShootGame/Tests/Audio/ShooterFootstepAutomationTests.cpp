@@ -1,6 +1,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "Misc/AutomationTest.h"
+#include "Animation/AnimSequence.h"
 #include "Components/ActorComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Engine/Engine.h"
@@ -8,8 +9,10 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Sound/SoundAttenuation.h"
 #include "Sound/SoundWave.h"
+#include "UObject/UnrealType.h"
 
 #include "Characters/Animation/ShooterAnimNotify_Footstep.h"
+#include "Characters/Audio/ShooterFootstepSoundSet.h"
 #include "Characters/ShooterCharacter.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterFootstepAssetsTest, "ShootGame.Audio.Footsteps.ProductionConfiguration",
@@ -33,9 +36,13 @@ bool FShooterFootstepAssetsTest::RunTest(const FString& Parameters)
 	}
 	TestNull(TEXT("Removed distance component class is not registered"),
 		FindObject<UClass>(nullptr, TEXT("/Script/ShootGame.ShooterFootstepComponent")));
-	const UShooterAnimNotify_Footstep* Notify = GetDefault<UShooterAnimNotify_Footstep>();
-	TestEqual(TEXT("Notify references the same five production sound variants"), Notify->Sounds.Num(), 5);
-	for (const USoundBase* Sound : Notify->Sounds)
+	const UShooterFootstepSoundSet* SoundSet = Character->GetFootstepSoundSet();
+	if (!TestNotNull(TEXT("Character 配置共享脚步 DataAsset"), SoundSet))
+	{
+		return false;
+	}
+	TestEqual(TEXT("共享配置保存五个 Concrete 音源"), SoundSet->ConcreteSounds.Num(), 5);
+	for (const USoundBase* Sound : SoundSet->ConcreteSounds)
 	{
 		const USoundWave* Wave = Cast<USoundWave>(Sound);
 		if (TestNotNull(TEXT("Footstep variant is a SoundWave"), Wave))
@@ -45,13 +52,43 @@ bool FShooterFootstepAssetsTest::RunTest(const FString& Parameters)
 			TestFalse(TEXT("Footstep is not looping"), Wave->bLooping);
 		}
 	}
-	if (TestNotNull(TEXT("Notify spatial attenuation resolves"), Notify->Attenuation.Get()))
+	const UAnimSequence* Sequence = LoadObject<UAnimSequence>(nullptr,
+		TEXT("/Game/Characters/Mannequins/Anims/Unarmed/Walk/MF_Unarmed_Walk_Fwd"));
+	const UShooterAnimNotify_Footstep* Notify = nullptr;
+	if (Sequence)
 	{
-		const FSoundAttenuationSettings& Settings = Notify->Attenuation->Attenuation;
-		TestTrue(TEXT("Distance attenuation enabled"), Settings.bAttenuate != 0);
-		TestTrue(TEXT("Spatialization enabled"), Settings.bSpatialize != 0);
-		TestEqual(TEXT("Inner radius is 150cm"), Settings.AttenuationShapeExtents.X, 150.0);
-		TestEqual(TEXT("Falloff distance is 1800cm"), Settings.FalloffDistance, 1800.0f);
+		for (const FAnimNotifyEvent& Event : Sequence->Notifies)
+		{
+			Notify = Cast<UShooterAnimNotify_Footstep>(Event.Notify);
+			if (Notify)
+			{
+				break;
+			}
+		}
+	}
+	if (!TestNotNull(TEXT("现有移动序列保留脚步 Notify"), Notify))
+	{
+		return false;
+	}
+	TestNull(TEXT("Notify 不再保存旧音源数组"),
+		FindFProperty<FArrayProperty>(UShooterAnimNotify_Footstep::StaticClass(), TEXT("Sounds")));
+	TestNull(TEXT("Notify 不再保存衰减字段"),
+		FindFProperty<FObjectPropertyBase>(UShooterAnimNotify_Footstep::StaticClass(), TEXT("Attenuation")));
+	TestTrue(TEXT("三种地面使用独立衰减资产"),
+		SoundSet->ConcreteAttenuation != SoundSet->MetalAttenuation &&
+		SoundSet->ConcreteAttenuation != SoundSet->DirtAttenuation &&
+		SoundSet->MetalAttenuation != SoundSet->DirtAttenuation);
+	for (const USoundAttenuation* Attenuation :
+		{ SoundSet->ConcreteAttenuation.Get(), SoundSet->MetalAttenuation.Get(), SoundSet->DirtAttenuation.Get() })
+	{
+		if (TestNotNull(TEXT("DataAsset 地面衰减有效"), Attenuation))
+		{
+			const FSoundAttenuationSettings& Settings = Attenuation->Attenuation;
+			TestTrue(TEXT("Distance attenuation enabled"), Settings.bAttenuate != 0);
+			TestTrue(TEXT("Spatialization enabled"), Settings.bSpatialize != 0);
+			TestEqual(TEXT("Inner radius is 150cm"), Settings.AttenuationShapeExtents.X, 150.0);
+			TestEqual(TEXT("Falloff distance is 1800cm"), Settings.FalloffDistance, 1800.0f);
+		}
 	}
 	return true;
 }
@@ -90,6 +127,34 @@ bool FShooterFootstepNotifyGuardsTest::RunTest(const FString& Parameters)
 		Movement->Velocity = FVector::ZeroVector;
 		Notify->Notify(Character->GetMesh(), nullptr, FAnimNotifyEventReference());
 		TestEqual(TEXT("Residual Notify after stopping is silent"), Requests, 1);
+		// 只替换测试角色的瞬态配置，不改共享资产；覆盖空项、配置缺失和全部无效。
+		const UShooterFootstepSoundSet* ProductionSet = Character->GetFootstepSoundSet();
+		FObjectPropertyBase* ConfigProperty = FindFProperty<FObjectPropertyBase>(Class, TEXT("FootstepSoundSet"));
+		USoundBase* ValidSound = ProductionSet && !ProductionSet->ConcreteSounds.IsEmpty()
+			? ProductionSet->ConcreteSounds[0].Get() : nullptr;
+		if (TestNotNull(TEXT("生产音源有效"), ValidSound) && TestNotNull(TEXT("共享配置字段可读"), ConfigProperty))
+		{
+			UShooterFootstepSoundSet* FixtureSet = NewObject<UShooterFootstepSoundSet>();
+			FixtureSet->ConcreteSounds = { nullptr, ValidSound, nullptr };
+			FixtureSet->ConcreteAttenuation = ProductionSet->ConcreteAttenuation;
+			ConfigProperty->SetObjectPropertyValue_InContainer(Character, FixtureSet);
+			Movement->Velocity = FVector(600.0f, 0.0f, 0.0f);
+			for (int32 Index = 0; Index < 8; ++Index)
+			{
+				Notify->Notify(Character->GetMesh(), nullptr, FAnimNotifyEventReference());
+			}
+			TestEqual(TEXT("Concrete 中的空项不会随机造成静音"), Requests, 9);
+			FixtureSet->ConcreteAttenuation = nullptr;
+			Notify->Notify(Character->GetMesh(), nullptr, FAnimNotifyEventReference());
+			TestEqual(TEXT("衰减缺失时安全静音，不播放无衰减声音"), Requests, 9);
+			FixtureSet->ConcreteAttenuation = ProductionSet->ConcreteAttenuation;
+			FixtureSet->ConcreteSounds = { nullptr };
+			Notify->Notify(Character->GetMesh(), nullptr, FAnimNotifyEventReference());
+			TestEqual(TEXT("Concrete 全部无效时安全静音，无旧音源兜底"), Requests, 9);
+			ConfigProperty->SetObjectPropertyValue_InContainer(Character, nullptr);
+			Notify->Notify(Character->GetMesh(), nullptr, FAnimNotifyEventReference());
+			TestEqual(TEXT("缺少 DataAsset 时安全静音，无旧音源兜底"), Requests, 9);
+		}
 		UShooterAnimNotify_Footstep::PlaybackObserved.Remove(Handle);
 	}
 	else

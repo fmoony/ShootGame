@@ -4,9 +4,6 @@
 #include "Animation/AnimNotifies/AnimNotify.h"
 #include "ShooterAnimNotify_Footstep.generated.h"
 
-class USoundAttenuation;
-class USoundBase;
-
 /** TP 移动动画的左右脚落地声音；仅本机表现，不发送 RPC 或 AI 听觉事件。 */
 UCLASS(meta = (DisplayName = "Shooter Footstep"))
 class SHOOTGAME_API UShooterAnimNotify_Footstep : public UAnimNotify
@@ -14,19 +11,9 @@ class SHOOTGAME_API UShooterAnimNotify_Footstep : public UAnimNotify
 	GENERATED_BODY()
 
 public:
-	UShooterAnimNotify_Footstep();
-
 	/** 发声位置对应的脚骨骼；左右脚事件分别填写 foot_l、foot_r。 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Footsteps")
 	FName FootBone = TEXT("foot_l");
-
-	/** 沿用基础方案的五个混凝土声音变体。 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Footsteps")
-	TArray<TObjectPtr<USoundBase>> Sounds;
-
-	/** 空间化及距离衰减。 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Footsteps")
-	TObjectPtr<USoundAttenuation> Attenuation;
 
 	/** 每次落脚的音量；音高轻微随机变化。 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Footsteps", meta = (ClampMin = "0"))
