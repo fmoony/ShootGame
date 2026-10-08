@@ -54,7 +54,8 @@ void UShooterAnimNotify_Footstep::Notify(USkeletalMeshComponent* MeshComp, UAnim
 		return;
 	}
 	const UCharacterMovementComponent* Movement = Character->GetCharacterMovement();
-	if (!Movement || !Movement->IsMovingOnGround() || Movement->Velocity.SizeSquared2D() < FMath::Square(10.0f))
+	if (!Movement || !Movement->IsMovingOnGround() ||
+		(EventType != EShooterFootstepEvent::Landing && Movement->Velocity.SizeSquared2D() < FMath::Square(10.0f)))
 	{
 		return;
 	}
@@ -120,9 +121,10 @@ void UShooterAnimNotify_Footstep::Notify(USkeletalMeshComponent* MeshComp, UAnim
 	if (CVarFootstepSurfaceDebug.GetValueOnGameThread() != 0)
 	{
 		UE_LOG(LogShootGame, Log,
-			TEXT("FootstepSurface Character=%s Local=%s Foot=%s Actor=%s Component=%s PM=%s "
+			TEXT("FootstepSurface Event=%s Character=%s Local=%s Foot=%s Actor=%s Component=%s PM=%s "
 				"Surface=%s(%d) Hit=%s SurfaceFallback=%s AudioFallback=%s Audio=%s "
 				"Source=%s Sound=%s SoundSet=%s Attenuation=%s"),
+			EventType == EShooterFootstepEvent::Landing ? TEXT("Landing") : TEXT("Step"),
 			*GetNameSafe(Character),
 			Character->IsLocallyControlled() ? TEXT("true") : TEXT("false"),
 			*FootBone.ToString(),
@@ -155,7 +157,8 @@ void UShooterAnimNotify_Footstep::Notify(USkeletalMeshComponent* MeshComp, UAnim
 
 FString UShooterAnimNotify_Footstep::GetNotifyName_Implementation() const
 {
-	return FString::Printf(TEXT("Footstep:%s"), *FootBone.ToString());
+	return FString::Printf(TEXT("%s:%s"),
+		EventType == EShooterFootstepEvent::Landing ? TEXT("Landing") : TEXT("Footstep"), *FootBone.ToString());
 }
 
 #if WITH_EDITOR

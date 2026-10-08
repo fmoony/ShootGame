@@ -70,6 +70,7 @@ bool FShooterFootstepAssetsTest::RunTest(const FString& Parameters)
 	{
 		return false;
 	}
+	TestTrue(TEXT("旧移动 Notify 默认仍为 Step"), Notify->EventType == EShooterFootstepEvent::Step);
 	TestNull(TEXT("Notify 不再保存旧音源数组"),
 		FindFProperty<FArrayProperty>(UShooterAnimNotify_Footstep::StaticClass(), TEXT("Sounds")));
 	TestNull(TEXT("Notify 不再保存衰减字段"),
@@ -134,6 +135,7 @@ bool FShooterFootstepNotifyGuardsTest::RunTest(const FString& Parameters)
 			? ProductionSet->ConcreteSounds[0].Get() : nullptr;
 		if (TestNotNull(TEXT("生产音源有效"), ValidSound) && TestNotNull(TEXT("共享配置字段可读"), ConfigProperty))
 		{
+			UObject* ProductionConfig = ConfigProperty->GetObjectPropertyValue_InContainer(Character);
 			UShooterFootstepSoundSet* FixtureSet = NewObject<UShooterFootstepSoundSet>();
 			FixtureSet->ConcreteSounds = { nullptr, ValidSound, nullptr };
 			FixtureSet->ConcreteAttenuation = ProductionSet->ConcreteAttenuation;
@@ -154,6 +156,21 @@ bool FShooterFootstepNotifyGuardsTest::RunTest(const FString& Parameters)
 			ConfigProperty->SetObjectPropertyValue_InContainer(Character, nullptr);
 			Notify->Notify(Character->GetMesh(), nullptr, FAnimNotifyEventReference());
 			TestEqual(TEXT("缺少 DataAsset 时安全静音，无旧音源兜底"), Requests, 9);
+			// 同一播放路径：Landing 允许静止，但仍拒绝 FP 与空中事件。
+			ConfigProperty->SetObjectPropertyValue_InContainer(Character, ProductionConfig);
+			Notify->EventType = EShooterFootstepEvent::Landing;
+			Movement->Velocity = FVector::ZeroVector;
+			Notify->Notify(Character->GetMesh(), nullptr, FAnimNotifyEventReference());
+			TestEqual(TEXT("原地 Landing 产生一次播放请求"), Requests, 10);
+			Notify->Notify(Character->GetFirstPersonMesh(), nullptr, FAnimNotifyEventReference());
+			TestEqual(TEXT("Landing 不从 FP 重复播放"), Requests, 10);
+			Movement->SetMovementMode(MOVE_Falling);
+			Notify->Notify(Character->GetMesh(), nullptr, FAnimNotifyEventReference());
+			TestEqual(TEXT("空中 Landing 保持静音"), Requests, 10);
+			Movement->SetMovementMode(MOVE_Walking);
+			Movement->Velocity = FVector(600.0f, 0.0f, 0.0f);
+			Notify->Notify(Character->GetMesh(), nullptr, FAnimNotifyEventReference());
+			TestEqual(TEXT("移动 Landing 产生一次播放请求"), Requests, 11);
 		}
 		UShooterAnimNotify_Footstep::PlaybackObserved.Remove(Handle);
 	}
