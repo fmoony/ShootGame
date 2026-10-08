@@ -28,6 +28,7 @@ Source/ShootGame/
 │   ├── Equipment/              # ShooterEquipmentComponent：CurrentWeaponActor 装备权威
 │   └── Animation/              # 第三人称动画数据源与程序化瞄准 IK 节点
 │       ├── ShooterThirdPersonAnimInstance.h/.cpp
+│       ├── ShooterAnimNotify_Footstep.h/.cpp # TP 左右脚移动音效
 │       └── AnimNodes/          # ShooterAimIKMath、AnimNode_ShooterAimIK
 ├── Inventory/                  # ShooterInventoryComponent / ShooterInventoryTypes
 ├── AbilitySystem/              # GAS：ShooterAttributeSet、GameplayEffect 工具
@@ -49,43 +50,39 @@ Source/ShootGame/
 │   └── Subsystems/             # ShooterWeaponRuntimeSubsystem
 ├── UI/                         # ShooterUI、ShooterBulletCounterUI
 └── Tests/                      # 自动化测试，按功能域归类
-    ├── Ability/、Aim/、Animation/
+    ├── Ability/、Aim/、Animation/、Audio/
     ├── Architecture/、Equipment/、Inventory/
     └── Network/、Pickup/、UI/、Weapon/
 ```
 
 ## 文档入口
 
-- [MCP 外部 Agent 使用契约与能力边界](Plugins/McpAutomationBridge/EXTERNAL_AGENT_GUIDE.md)：工具调用前必读；包含接口全表、读写与保存边界、动画复制限制、失败重试规则及验证范围。
-- [全量回归 AnimClassMapping 失败分析](Docs/全量回归AnimClassMapping失败分析.md)：2026-09-09 只读调查，区分已提交的 Rifle FP 配置与冻结测试基线，未实施修复。
-- [Inventory 与武器数据架构](Docs/架构/Inventory与武器数据架构.md)：当前 WeaponId / WeaponActor / SlotIndex / CurrentWeaponActor 的运行时数据与网络边界。
+这里只列当前架构、规范、工具契约、专题说明和仍有未完成项的执行计划。
+已完成或已归档计划不得在 AGENTS.md 中添加或保留导航，归档后应移除对应入口。
+历史审计与验收报告也不作为当前入口；历史材料通过文档索引按需查阅。
+
+- [文档索引](Docs/README.md)：当前进度、仍在推进的计划与专题说明入口。
+- [TP 脚步 Notify 与基础音效][doc-link-1]：当前左右脚移动声音方案与验证边界。
+- [枪械可拆卸弹匣资产约定][doc-link-2]：当前四枪资产结构与弹匣表现约定。
+- [MCP 外部 Agent 契约](Plugins/McpAutomationBridge/EXTERNAL_AGENT_GUIDE.md)：
+  工具调用前必读；说明接口、读写保存边界、失败重试与验证范围。
+- [Inventory 与武器数据架构](Docs/架构/Inventory与武器数据架构.md)：
+  当前 WeaponId、WeaponActor、SlotIndex、装备与预测的数据边界。
 - [网络射击 AI 自主验证契约](Docs/架构/网络射击AI自主验证契约.md)：
-  网络射击改动的五条顶层不变量、含义覆盖确认、证据质量、测试分层与固定交付格式；
-  不变量以标题含义为准，正文清单只是当前阶段的实例；相关工作开始前必须读取。
-- [武器启动预配置与实体池简化重构方案](Docs/已完成计划/武器启动预配置与实体池简化重构方案.md)：
-  已完成（2026-09-12）；当前武器与 Inventory 架构的权威重构记录。
-- [Shooter 模板蓝图分析](Docs/Shooter模板蓝图分析.md)：说明 Shooter 模板中的第一/第三人称动画蓝图、Control Rig、武器蓝图及其网络职责边界。
-- [FirstPerson 清理与架构审计](Docs/FirstPerson清理与架构审计.md)：记录旧模板资产依赖闭包、根目录 C++ 类去留和分步清理顺序。
-- [Shooter 完整 Demo 最终路线规划](Docs/执行计划/Shooter完整Demo最终路线规划.md)：记录最终 Demo 目标、系统边界、推荐实施顺序与当前阶段。
-- [动画分层与射击表现扩展规划](Docs/执行计划/动画分层与射击表现扩展规划.md)：当前表现路线的上层规划，覆盖动画分层、瞄准同步、Reload / Equip 动画、角度散布与射击手感。
-- [Rifle 第三人称换弹动画实施计划](Docs/已完成计划/Rifle第三人称换弹动画实施计划.md)：
-  已形成可用基线；以 `State.Reloading` 驱动 WeaponAction 状态机，通过曲线平滑释放/恢复 IK，
-  并用分级 Blend Mask 保留实时俯仰、过滤资源头部表演。
-- [武器贴墙稳定与瞄准表现收尾实施计划](Docs/执行计划/武器贴墙稳定与瞄准表现收尾实施计划.md)：
-  暂缓收尾；阶段 0～4 已形成可回退表现基线并通过人工视觉验收，原暂缓理由已完成，
-  仅剩阶段 5 清理与回归；大范围快速甩枪同步已转出为独立课题。
-- [输入缓冲与 Reload 本地预测执行计划](Docs/已完成计划/输入缓冲与Reload本地预测执行计划.md)：
-  已完成（2026-09-17～09-19）；ASC 输入控制流按「采集 / 解释」分层，GA_Reload `LocalPredicted`，
-  服务器继续独占 Ammo 与换弹事务；输入行为标签已由 `ActivationPolicy`（Semi / FullAuto）取代。
-- [P1 基础射击反馈执行计划](Docs/已完成计划/P1_LocalPredicted基础射击反馈执行计划.md)
-  已完成（2026-09-17）；P1 Local Predicted 拥有者本地开火表现与本地开火节拍的实现记录。
-- [Shooter 核心玩法架构解耦重构执行计划](Docs/已完成计划/Shooter核心玩法架构解耦重构执行计划.md)：已完成（2026-08-26）；R0～R8 已实施、提交并回归通过。
-- [第三人称 IK Binding 状态机实施计划](Docs/已完成计划/第三人称IKBinding状态机实施计划.md)：已完成（2026-08-27）；Aim / LeftHand IK 开关判定已迁移到统一五状态机，无 `.uasset` 改动；阶段 4 人工 PIE 视觉回归待验收。
-- [代码规范](Docs/代码规范.md)：C++ 命名、文件结构、注释、日志和网络代码约定。
-- [自动化测试](Docs/自动化测试.md)：说明编译、Automation 测试及服务器双客户端联机会话脚本的使用方式。
-- [Visual Studio 项目同步](Docs/VisualStudio项目同步.md)：规定源码结构变化后的项目文件刷新入口、自动推进范围和必须暂停的人工重载边界。
-- [Agent 自动化验证操作手册](Docs/Agent自动化验证操作手册.md)：Agent 执行、判定、排错和扩展自动化测试时必须遵循的标准流程。
-- [开发记录规范](Docs/开发记录/README.md)：规定每个新提交在提交前必须完成的改动、验证、问题与遗留项记录。
+  网络射击五条顶层不变量、含义覆盖、证据质量与固定交付格式；相关工作开始前必读。
+  不变量以标题含义为准，正文清单只是当前阶段的实例。
+- [Shooter 模板蓝图分析](Docs/Shooter模板蓝图分析.md)：
+  第一 / 第三人称动画、Control Rig、武器蓝图及其网络职责。
+- [Shooter 完整 Demo 最终路线规划][doc-link-3]：长期目标与当前进度。
+  近期继续表现完善，暂缓 Lobby。
+- [动画分层与射击表现扩展规划][doc-link-4]：当前表现目标与待验收边界。
+- [武器贴墙与瞄准收尾](Docs/执行计划/武器贴墙稳定与瞄准表现收尾实施计划.md)：
+  阶段 5 清理与回归仍未完成；大范围快速甩枪同步已转出为独立课题。
+- [代码规范](Docs/代码规范.md)：命名、文件结构、注释、日志、网络与文本版式。
+- [自动化测试](Docs/自动化测试.md)：编译、Automation 与联机会话脚本。
+- [Visual Studio 项目同步](Docs/VisualStudio项目同步.md)：源码结构变化后的工程刷新边界。
+- [Agent 自动化验证操作手册](Docs/Agent自动化验证操作手册.md)：验证、判定与排错流程。
+- [开发记录规范](Docs/开发记录/README.md)：新提交对应记录的必填内容与门禁。
 
 ## 协作约定
 
@@ -103,6 +100,17 @@ Source/ShootGame/
 - 项目内部跨目录头文件必须使用相对 `Source/ShootGame` 的模块根路径；涉及模块源码时，
   提交前运行 `Scripts/Development/CheckSourceIncludePaths.ps1`。
 - 已有历史提交不因本规范补写、修改或重写；本规范只约束其生效后的新提交。
+
+### 历史提交与历史文档保护
+
+- 不补写或重写已有 Git 提交，不通过 amend、rebase 等操作改写提交历史。
+- 历史开发记录、已完成或已归档计划、历史审计与验收报告均保留原貌。
+  禁止修改或补写其正文、状态、结论、链接和版式；机械性路径修正、换行调整也不例外。
+- 发现历史文档过时、错误或链接失效时，在当前现状文档或新的开发记录中说明。
+  不把最新进度、契约和验收结果回填到历史文件。
+- 归档、迁移或合并文档不构成改写历史内容的授权；只更新当前导航与现状说明。
+  文档自身约定可追加备注，也不自动豁免本节的历史文档保护要求。
+- AGENTS.md 只维护当前有效入口，已完成或已归档计划必须退出导航。
 
 ### Unreal Editor 会话管理
 
@@ -185,3 +193,8 @@ codegraph.cmd explore "要查找的符号或问题"
 ## Notes
 
 <!-- 后续快速补充的临时记录 -->
+
+[doc-link-1]: Docs/TP脚步Notify与基础音效.md
+[doc-link-2]: Docs/枪械可拆卸弹匣资产约定.md
+[doc-link-3]: Docs/执行计划/Shooter完整Demo最终路线规划.md
+[doc-link-4]: Docs/执行计划/动画分层与射击表现扩展规划.md

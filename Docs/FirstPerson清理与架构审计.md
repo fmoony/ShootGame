@@ -29,7 +29,10 @@ Asset Registry 共识别到 73 个 FirstPerson 包：
 | `/Game/FirstPerson/Blueprints/BP_FirstPersonCharacter` | `ABP_FP_Weapon` 与 `ABP_FP_Pistol` 使用 | `/Game/Variant_Shooter/Blueprints/AnimationSupport` |
 | `/Game/FirstPerson/MI_FirstPersonColorway` | Shooter 投射物、场景 External Actor 和 LevelPrototyping 资产使用 | `/Game/Shared/Materials` |
 
-上述 4 个资产已于 2026-08-14 迁移完成，资产名称保持不变。Asset Registry 复查确认 4 个旧路径的 FirstPerson 目录外引用者总数为 0。`MI_FirstPersonColorway` 的旧路径暂时保留 Redirector，只供下一步将被删除的 FirstPerson 地图包使用。
+上述 4 个资产已于 2026-08-14 迁移完成，资产名称保持不变。
+Asset Registry 复查确认 4 个旧路径的 FirstPerson 目录外引用者总数为 0。
+`MI_FirstPersonColorway` 的旧路径 Redirector 当时只供尚未删除的 FirstPerson 地图包使用；
+该旧地图包随后一并删除，Redirector 不再存在。
 
 其余 FirstPerson 内容主要是旧示例地图、GameMode、PlayerController 和对应 External Actor/Object，已于 2026-08-14 删除。`/Game/FirstPerson`、`/Game/__ExternalActors__/FirstPerson` 和 `/Game/__ExternalObjects__/FirstPerson` 当前均不存在。
 

@@ -43,6 +43,6 @@
 这是测试进程专用覆盖，不修改项目默认的后台静音策略。
 录音完成后测试进程正常退出；无声音设备的测试只验证请求。
 
-当前使用 TP 左右脚 Notify，距离组件已删除，见 `Docs/架构/TP落脚Notify测试.md`。
+当前使用 TP 左右脚 Notify，距离组件已删除，见 `Docs/TP脚步Notify与基础音效.md`。
 本机无渲染录音可能没有采样；脚步试听使用 `Lvl_Test` 加 `-RenderOffscreen`。
 最终录音位于 `Saved/FootstepsNotify/TPNotifyFootsteps.wav`，检查无 NPC 射击提交。

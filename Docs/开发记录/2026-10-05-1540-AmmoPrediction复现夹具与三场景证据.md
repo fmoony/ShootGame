@@ -18,7 +18,7 @@
   `SameValueSnapshot`、`BudgetVeto`、`LateReject` 三个场景与逐端观测。
 - `ShooterNetworkTestCoordinator.h/.cpp` 增加该模式的 flag、测试 RPC、观测字段与
   `HandleActorSpawned` 的同值恢复分支；非该模式路径保持原行为。
-- 新增 `Docs/执行计划/AmmoPrediction归因与收敛PhaseC执行计划.md`：范围、复现设计、
+- 新增 `Docs/已完成计划/AmmoPrediction归因与收敛PhaseC执行计划.md`：范围、复现设计、
   最小充分验证链与五条不变量覆盖确认。
 
 ## 验证结果

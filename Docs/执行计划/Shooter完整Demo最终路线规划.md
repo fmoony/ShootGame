@@ -622,83 +622,68 @@ Preflight
 
 ---
 
-## 15. 当前下一阶段
+## 15. 当前进度与近期方向
 
-已完成：
+- 更新日期：2026-10-08；代码基线：`2d04667`。
+- 用户确认的近期方向：继续表现完善，暂缓 Lobby / LAN Session。
+- 第 14 节保留长期路线顺序，不代表已批准启动下一个系统。
 
-```text
-GAS 基础生命闭环
-Weapon / Inventory 第二阶段基础闭环
-GA_Fire ServerOnly
-GA_Reload / GA_Equip ServerOnly
-武器装备表现事件收束与动画切换解耦
-单表武器配置纠偏（DT_WeaponData + WeaponRowName，撤销 WeaponDefinition 层）
-武器启动快照与 WeaponId 预热池（S1）
-WeaponActor 成为运行时实例（S2）
-Inventory 与 Equipment 去 InstanceId（S3）
-Pickup 接入 WeaponId 与旧路径删除（S4）
-P1 Local Predicted 基础射击反馈（P1-A ~ P1-D，2026-09-17）
-Ability 输入缓冲与 Reload 本地预测（2026-09-17）
-```
+### 已落地的功能基线
 
-当前状态：
+- GAS 基础生命、服务器权威伤害、死亡、重生与基础计分。
+- WeaponActor 运行时实例、启动配置快照、WeaponId 预热池与 OwnerOnly Inventory。
+- Equipment 当前装备复制、双向切枪、Pickup 与死亡 / 断线清理。
+- P1 本地开火表现、ASC 输入采集 / 解释分层、Reload 本地预测窗口。
+- Rifle 第三人称换弹分层与四枪弹匣代理；四枪弹匣表现已有用户视觉验收。
+- 开火弹药预算、迟到 Reject 退还、可靠结果结清与拥有者 HUD 显示预测。
+- 启动期 GAS ActorInfo 刷新，涵盖 Controller / PlayerState 晚到关联。
+- 一次 GA_Fire Activation 对应一发 Shot；FullAuto 由持续输入按本地节拍逐发激活。
+- 每把持有武器分别授予 Fire Spec，以 SourceObject 确认请求武器身份。
+- Owner 确认只结清预算、记录与 HUD，不补播历史瞬时表现。
+- Remote 四路表现验证按冻结批次比较，避免下一阶段射击污染上批次统计。
+- 测试能力编译边界、Inventory 类型依赖与 Coordinator 纯观测类型已收口。
+- TP 左右脚 Notify 基础音效已验收；16 个移动序列共 86 个事件，旧距离组件已删除。
 
-```text
-启动预配置与实体池简化重构 S1～S5 已完成并通过七阶段正式验收
-→ Saved/Automation/Runs/20260912_130521/Summary.json
-P1 已完成并归档（757545f）
-Ability 输入缓冲与 Reload 本地预测已完成（bc33437 计划 → 8b61dde 输入缓冲 → 25e274e 换弹预测）
-→ 当前：Build / Automation（128 项）全过；Dedicated / Listen / Emulated / DisconnectCleanup
-   各自通过（详见该阶段开发记录与阶段日志）
-→ 遗留：GA_Equip 仍未本地预测（迟到的 State.Equipping 可能吞掉一次点击）；
-   既有不稳定阶段 Remote invariant invalid 与 Timed out waiting for network state
-→ 下一阶段：按最终路线规划进入 Lobby + LAN Session 或按收益实验高级预测
-```
+相关领域说明见[Inventory 与武器数据架构](../架构/Inventory与武器数据架构.md)、
+[网络射击验证契约](../架构/网络射击AI自主验证契约.md)、
+[弹匣资产与接入记录](../枪械可拆卸弹匣资产约定.md)、
+[TP 脚步音效](../TP脚步Notify与基础音效.md)。
+已完成计划的分类入口见[文档索引](../README.md)。
 
-武器与 Inventory 当前的事实边界（生产路径）：
+### 最新验证状态与历史证据
 
-```text
-武器模板：/Game/Shooter/Data/DT_WeaponData（仅 World 启动导入）
-武器身份：FName WeaponId（创建后不变）
-具体武器：AShooterWeapon*（池化 Actor 本身）
-世界实体：UShooterWeaponRuntimeSubsystem Acquire / Release
-Inventory：WeaponActor + SlotIndex（OwnerOnly）
-Equipment：CurrentWeaponActor（所有观察者）
-生命周期：InPool → Holstered → Equipping → Equipped → Holstered → InPool
-```
+2026-10-06 HUD 交付时，RunAll 七阶段全部通过。
+证据：`Saved/Automation/Runs/20261006_105829/Summary.json`。
+这是该次二进制的历史结果，不表示后续提交仍保持完整回归通过。
 
-详细职责见 [Inventory 与武器数据架构](../架构/Inventory与武器数据架构.md)。
+2026-10-07 远端批次修正后，普通 Dedicated 三轮共 6/6 方向批次比较有效。
+AmmoPrediction、WeaponContext 与节拍矩阵另有专项证据及运行版本限制。
+完整套件后段仍超时；详见[批次修正记录][doc-link-1]。
 
-默认后续候选：
+2026-10-08 删除距离脚步组件后的最新完整入口结果如下。
 
-> Ability 输入缓冲与 Reload 本地预测（P1 已完成，前置已满足）。
+- Build 与 Standalone 通过；Automation 172 项成功，0 失败。
+- DedicatedNetwork 射击协调器后段超时。
+  damage / death / respawn / matchState 未收敛，尚未完成独立归因。
+- ListenNetwork、EmulatedNetwork、DisconnectCleanup 因入口中止而未执行。
+- 独立脚步 Dedicated / Listen 均通过；停步静音、同帧重复 0，实际混音录音非空。
+- 汇总：`Saved/Automation/Runs/20261008_115357/Summary.json`。
+- 验证边界见[脚步提交记录](../开发记录/2026-10-08-1152-TP脚步Notify方案收敛.md)。
 
-已完成的 Reload / Equip 计划与验收证据见：
+功能已接入、专项通过、完整回归通过和人工验收是不同结论，应分别读取对应证据。
 
-[GA_Reload 与 GA_Equip ServerOnly 执行计划](../已完成计划/GA_Reload与GA_Equip_ServerOnly执行计划.md)
+### 仍保留的边界
 
-P1 Local Predicted 基础射击反馈的归档计划见：
+- 表现继续完善；贴墙计划仅剩阶段 5 清理与回归，大范围快速甩枪同步已转为独立课题。
+- IK Binding 阶段 4 人工 PIE 回归仍登记为待验收，不由后续其他视觉验收自动覆盖。
+- 角度散布、动态扩散和整体射击手感仍按表现规划的各项目标独立验收。
+- Reload 服务器时间相位补偿、换弹补满 / 备弹转移预测、Magazine 时间跳转未完成。
+- GA_Equip 仍为 ServerOnly；完整 PredictionKey 回绕与全生命周期网络 HUD 矩阵未覆盖。
+- Rate600Rpm 在滞后条件下曾出现偏差，后续某轮通过不代表持续稳定性已解决。
+- 脚步多地表、NPC、落地、遮挡与打包验证未覆盖；Notify 时刻沿用素材作者标记。
+- 完整射击回归后段超时需独立排查，不能因脚步专项通过而关闭该遗留项。
 
-[P1 基础射击反馈执行计划](../已完成计划/P1_LocalPredicted基础射击反馈执行计划.md)、
-[P1 详细实施方案](../已完成计划/P1_LocalPredicted基础射击反馈详细实施方案.md)。
+近期实施只在表现范围内按具体任务推进，尚未指定下一项实现。
+Lobby / LAN Session、回合流程和其他长期系统继续保留在总路线中。
 
-下一阶段的执行计划见：
-
-[输入缓冲与 Reload 本地预测执行计划](../已完成计划/输入缓冲与Reload本地预测执行计划.md)
-（已完成并归档）。
-
-武器装备表现事件收束与动画切换解耦的验收证据见：
-
-[武器装备表现事件收束计划](../已完成计划/武器装备表现事件收束与动画切换解耦执行计划.md)
-
-武器与 Inventory 正式架构的当前阶段证据见：
-
-[武器启动预配置与实体池简化重构方案](../已完成计划/武器启动预配置与实体池简化重构方案.md)、
-[Inventory 与武器数据架构](../架构/Inventory与武器数据架构.md)。
-
-历史基线（大阶段 A / B、单表纠偏）的验收证据保留在：
-[武器与 Inventory 正式架构实施计划](../已完成计划/武器与Inventory正式架构实施计划.md)、
-[单表武器配置纠偏小计划](../已完成计划/单表武器配置纠偏小计划.md)。
-
-新模型正式验收已通过（2026-09-12）；P1 已于 2026-09-17 完成并归档，
-下一阶段为 Ability 输入缓冲与 Reload 本地预测，待用户批准后开始实施。
+[doc-link-1]: ../开发记录/2026-10-07-1930-远端批次身份与Coordinator覆盖.md

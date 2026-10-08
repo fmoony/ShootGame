@@ -14,13 +14,16 @@ Gameplay Ability、第一/第三人称表现、AI 与多人生命周期。当前
 
 ## 当前能力
 
-- 基于 GAS 的 Fire、Reload、Equip 能力与状态互斥。
+- 基于 GAS 的 Fire、Reload、Equip 能力与状态互斥；Fire / Reload 为 LocalPredicted。
+- 一次 Fire Activation 对应一发 Shot；按武器持有关系授予 Fire Spec，隔离切枪与回池。
 - Owner 本地立即播放纯表现，服务器独占 Ammo、Projectile、Hit、Damage 与 Score。
-- Semi-auto 与 Full-auto 本地表现遵守武器 `RefireRate`。
+- Semi-auto 与 Full-auto 本地表现遵守武器 `RefireRate`，全自动由输入持续意图驱动逐发激活。
+- 拥有者开火弹药预算与 HUD 显示预测、拒绝恢复和权威结清。
 - Remote Client 只消费服务器确认后的第三人称表现。
 - 武器启动配置快照、按类型预热的实体池，以及池耗尽后的按需 Spawn。
 - Owner-only Inventory 数据、当前装备复制、双向切枪、死亡与断线清理。
 - 第一/第三人称动画、瞄准同步、程序化 IK、Reload 与 Equip 表现。
+- 四枪可拆卸弹匣表现，以及已验收的 TP 左右脚 Notify 基础脚步音效。
 - StateTree NPC、权威伤害、死亡、重生和基础计分流程。
 - Build、Automation、Standalone、Dedicated、Listen、网络模拟与断线清理验证。
 
@@ -38,9 +41,17 @@ flowchart LR
     Authority -->|Reject| Cleanup[Client Prediction Cleanup]
 ```
 
-当前不预测真实 Projectile。客户端预测只承担 Montage、Muzzle FX、Sound 与 Recoil，
-所有 Gameplay 结果仍由服务器产生。详细不变量见
+当前不预测真实 Projectile；客户端承担即时表现、开火弹药预算与 HUD 显示预测。
+Server Accept / Reject 结清状态，Owner 确认不补播过去的瞬时开火表现。
+真实 Ammo、Projectile、Hit、Damage 与 Score 仍由服务器产生。
+换弹补满与备弹转移预测尚未接入。详细不变量见
 [网络射击 AI 自主验证契约](Docs/架构/网络射击AI自主验证契约.md)。
+
+近期继续完善表现，暂缓 Lobby / LAN Session。
+截至 2026-10-08，最新完整回归的 Build、172 项 Automation 与 Standalone 通过，
+Dedicated 射击协调器在后段超时，其后的阶段未执行。
+独立脚步 Dedicated / Listen 专项通过，不能替代完整射击回归。
+阶段证据与遗留项见[当前进度](Docs/执行计划/Shooter完整Demo最终路线规划.md#15-当前进度与近期方向)。
 
 ## 环境要求
 
@@ -122,6 +133,10 @@ Source/ShootGame/
 `Plugins/McpAutomationBridge` 是 Editor-only 自动化桥接插件，不参与运行时 Gameplay。
 
 ## 设计与开发文档
+
+- [文档索引](Docs/README.md)
+- [TP 脚步 Notify 与基础音效](Docs/TP脚步Notify与基础音效.md)
+- [枪械可拆卸弹匣资产约定](Docs/枪械可拆卸弹匣资产约定.md)
 
 - [Inventory 与武器数据架构](Docs/架构/Inventory与武器数据架构.md)
 - [网络射击 AI 自主验证契约](Docs/架构/网络射击AI自主验证契约.md)

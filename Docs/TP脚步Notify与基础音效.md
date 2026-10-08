@@ -1,18 +1,29 @@
-# TP 落脚 Notify
+# TP 脚步 Notify 与基础音效
 
-## 当前行为
+- 日期：2026-10-08。
+- 状态：当前 Notify 方案已接入并通过用户验收；距离脚步组件方案已删除。
+- 范围：玩家 Character 的 TP Mesh 移动脚步声音；纯表现，不含玩法权威。
+- 来源：合并原 `Docs/架构/基础脚步音效.md` 与 `Docs/架构/TP落脚Notify测试.md`。
+- 提交级记录见 `Docs/开发记录/2026-10-08-1152-TP脚步Notify方案收敛.md`。
 
-声音由 `UShooterAnimNotify_Footstep` 发出；距离脚步组件及其 Character 引用已经删除。
+## 1. 当前方案
+
+玩家脚步由 TP 移动动画中的 `UShooterAnimNotify_Footstep` 播放；
+距离脚步组件及其 Character 创建、成员、距离计时和专属测试已经删除。
+
 四种武器的 TP 移动状态都使用 Unarmed 的 `BS_Idle_Walk_Run`。
 该 BlendSpace 引用 8 个 Walk、8 个 Jog 和一个 Idle 序列，共有 27 个采样点。
 只给 16 个移动序列添加 `ShooterFootsteps` 轨道，不修改 Idle、FP AnimBP 或同步标记。
-Notify 时间沿用资源作者的 `L` / `R` 标记，分别填写 `foot_l` / `foot_r`。
-用户已通过当前 Notify 表现；时刻沿用作者标记，没有按脚高最低点重新计算。
+16 个移动序列共有 86 个左右脚 Notify，时间直接沿用作者的 `L` / `R` 同步标记，
+分别填写 `foot_l` / `foot_r`。
+同步标记不是经过算法重新检测的脚掌接触帧；本轮用户已验收当前 Notify 表现，
+时刻沿用作者标记，没有按脚高最低点重新计算。
 
-继续使用五个 Kenney 混凝土 SoundWave 和 `SA_Footsteps`，音量 0.65。
-每次随机选择声音，音高范围 0.96～1.04，在对应脚骨骼的世界位置播放。
 Notify 对象由资产共享，不保存某个角色的计时器或上次播放状态。
+每次随机选择声音，音高范围 0.96～1.04，在对应脚骨骼的世界位置播放；
 当前随机声音变体允许相邻重复。
+
+## 2. 触发与过滤守卫
 
 只有玩家 Character 的 TP Mesh 可以发声，共享序列被 FP Mesh 使用时直接忽略。
 Dedicated、死亡、离地、水平速度不足 10cm/s、脚骨骼或声音缺失时直接忽略。
@@ -24,7 +35,16 @@ BlendSpace 保持已有的 `HighestWeightedAnimation` 模式，以免多个混�
 Owner 读取本地 TP 动画，Remote 读取复制移动驱动的 TP 动画。
 Listen 主机只使用自己世界中的 TP Mesh；本轮不增加 NPC、多地表或落地专用声音。
 
-## 外部依据与本地核对
+## 3. 音频资产
+
+- 正式根目录：`/Game/Shooter/Audio/Footsteps`。
+- 声音：五个 `SW_Footstep_Concrete_000` 至 `004`，单声道短促脚步。
+- 衰减：`SA_Footsteps`，空间化开启，内圈 150cm，衰减距离 1800cm。
+- 默认音量 0.65，音高随机 0.96～1.04；当前允许相邻声音变体重复。
+- 来源：[Kenney Impact Sounds](https://kenney.nl/assets/impact-sounds)，CC0。
+- 原始导入 WAV、授权和重建说明：`SourceAssets/Audio/Footsteps`。
+
+## 4. 外部依据与本地核对
 
 - [Epic UE5.6 Animation Notifies](https://dev.epicgames.com/documentation/en-us/unreal-engine/animation-notifies-in-unreal-engine?application_version=5.6)：脚步事件、权重阈值与 Dedicated 过滤。
 - [Epic UE5.6 Blend Spaces](https://dev.epicgames.com/documentation/en-us/unreal-engine/blend-spaces-in-unreal-engine?application_version=5.6)：最高权重样本的 Notify 模式。
@@ -37,7 +57,7 @@ Listen 主机只使用自己世界中的 TP Mesh；本轮不增加 NPC、多地�
 `UAnimNotify` 提供携带 `FAnimNotifyEventReference` 的三参数接口，本次使用此签名。
 官方机制与本地版本一致；作者标记的具体落脚精度属于项目素材，文档不能替代视觉验收。
 
-## 五项不变量的范围确认
+## 5. 五项不变量的范围确认
 
 - Owner Immediate Feedback：只调整本地移动音效的触发时机。
   Shot Intent、Owner Fire 表现和确认路径未改动；脚步请求和实际混音分别取证。
@@ -51,19 +71,27 @@ Listen 主机只使用自己世界中的 TP Mesh；本轮不增加 NPC、多地�
   用 FP 守卫、最高权重配置、同帧计数和旧组件不存在的配置检查取证。
   脚步不创建权威事务；完整射击结果计数仍以独立回归为准。
 
-## 复现与验证边界
+## 6. 复现与验证入口
 
 通过 UE Python 执行 `Scripts/Development/ConfigureTPFootstepNotifies.py`。
 `-FootstepNotifyMode=preview` 只读取资源、事件、标记和左右脚姿态。
 `apply` 备份目标资产到 `Saved/FootstepsNotify/Before_*`，再仅重建专用轨道。
 `verify` 在新进程中检查保存后的事件数量、左右脚、时间、声音及 Dedicated 设置。
 
-`ShootGame.Audio.Footsteps` 包含声音配置、旧组件缺席检查和 Notify 守卫两项测试。
+`Scripts/Tests/RunAutomation.ps1 -TestFilter ShootGame.Audio.Footsteps`
+包含声音配置、旧组件缺席检查和 Notify 守卫两项测试。
+生产配置测试同时确认 Character 不再包含旧组件、旧组件类未注册。
 `ShootGame.Footsteps.Probe` 用正常移动输入观察生产 Notify，不手动调用播放。
 探针检查拥有者左右脚、远端请求、停步静音及同帧重复。
 Dedicated 请求观测持续到整个测试会话结束，准备标记不提前终止声音错误检测。
 `-ShootGameFootstepRecord` 记录真实 Master 混音；此时不要使用 `-NoSound`。
+真实录音与无设备请求观测分别取证。
 请求计数不能证明声音可听，混音录音也不能替代人工声画同步验收。
 本机 `Lvl_Test` 的 NullRHI 运行曾得到空混音；实际试听使用 `-RenderOffscreen`。
 射击地图的 NPC 枪声会污染录音，最终试听使用没有射击提交的 `Lvl_Test` 实跑。
 执行结果和完整射击回归的限制见本轮开发记录。
+
+## 7. 未覆盖范围
+
+NPC、多地表、落地声音、蹲行专用素材、遮挡和打包验证不在本次范围。
+Notify 时间仍是作者标记，不声称已自动检测或逐帧确认所有方向的接触瞬间。

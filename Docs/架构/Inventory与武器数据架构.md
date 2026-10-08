@@ -6,7 +6,7 @@
 
 - **已落地事实**：当前代码中真实存在并已通过 Build / Automation / 多客户端网络验证的行为。
 - **历史实现**：曾存在、已被重构方案替代的模型，只保留为决策记录。
-- **后续尚未实现**：属于后续阶段（预测、Dormancy、Pool 容量等）的工作，当前不存在对应代码路径。
+- **后续尚未实现**：如 Equip 预测、Dormancy 与 Pool 容量策略，须另有实际需求再评估。
 
 本文档以
 [武器启动预配置与实体池简化重构方案](../已完成计划/武器启动预配置与实体池简化重构方案.md)
@@ -123,7 +123,9 @@ Timer / Delegate / bIsFiring
 
 ### 2.7 GAS
 
-- `GA_Fire` → `CurrentWeaponActor->StartFiring / TryFire`，弹药与节拍都在 WeaponActor；
+- Fire Spec 按武器持有关系授予 / 撤销，`Spec.SourceObject` 标识请求的 WeaponActor。
+- `GA_Fire` 每次 Activation 仅提交一发；FullAuto 由 ASC 持续输入驱动后续激活。
+  服务器独占真实弹药与 Shot，Owner 按本地节拍和预测预算决定即时表现。
 - `GA_Reload` → 校验当前装备仍在 Inventory 且 Owner 正确后 `WeaponActor->ReloadFromReserve`；
 - `GA_Equip` → `Inventory->FindNextWeapon(CurrentActor)` → `Equipment->EquipWeapon(TargetActor)`；
 - 提交前统一校验：Actor 仍在 Inventory、`Actor->GetOwner() == Character`、
@@ -138,7 +140,7 @@ Timer / Delegate / bIsFiring
 | Inventory Entries（Weapon + Slot） | OwnerOnly | 完整背包只对拥有者可见 |
 | Equipment.CurrentWeaponActor | 所有观察者 | 第三人称当前持枪表现 |
 | WeaponActor.WeaponId | 初始复制 / 所有观察者 | 客户端从启动快照恢复静态表现 |
-| WeaponActor.MagazineAmmo / ReserveAmmo | OwnerOnly | HUD 与本地表现 |
+| WeaponActor.MagazineAmmo / ReserveAmmo | OwnerOnly | 真实弹药；HUD 另有显示预测入口 |
 | WeaponActor.Owner | UE Actor Owner 复制 | 租用归属 |
 
 - Actor 引用与 WeaponId 的 RepNotify 到达顺序不作假设；所有表现入口必须幂等，
@@ -235,17 +237,27 @@ NPC 直接 Spawn + WeaponClass / WeaponRowName 兼容路径
 
 ---
 
-## 10. GA 与装备事务已落地
+## 10. 当前 GA、预测与装备事务（2026-10-08）
 
-- `GA_Fire / GA_Reload / GA_Equip` 都是 `InstancedPerActor + ServerOnly`；
+- 三项能力均为 `InstancedPerActor`；Fire / Reload 为 `LocalPredicted`，Equip 为 `ServerOnly`。
+- Fire 的 Owner 预测表现与服务器裁决分别执行；预算不足不阻止服务器独立裁决。
+  Accept 结清记录、预算与 HUD，Reject 退还并纠正显示，Owner 确认不补播历史表现。
+- Inventory Add / Remove / Clear 驱动每武器 Fire Spec 生命周期，撤销早于归还池。
+  Spec Removal 按 Retired 作废本地预测债务，不计作服务器 Reject。
 - Fire 校验 Avatar、死亡 Tag、当前 WeaponActor 归属、可见与可消耗弹药；
-- Reload 缓存当前 WeaponActor，等待 `ReloadDuration` 后二次校验并执行唯一一次原子转移；
+- Reload 缓存当前 WeaponActor，Owner 只维持本地表现窗口。
+  服务器等待 `ReloadDuration` 后二次校验并执行唯一一次弹药转移。
 - Equip 按 Slot 顺序解析下一个合法 Actor，等待 `EquipDuration` 后二次校验并提交
   `Equipment->EquipWeapon`。
 
 ---
 
-## 正式验收基线
+真实弹药、开火资格预算与 HUD 显示是不同数据层，不以显示预测修改权威 Ammo。
+开火 HUD 采用活动记录与权威快照结清；换弹补满、备弹转移预测尚未接入。
+完整 PredictionKey 回绕与全生命周期网络 HUD 矩阵仍有验证边界。
+当前 Owner / Remote 规则见[网络射击验证契约](网络射击AI自主验证契约.md)。
+
+## 启动预配置重构的历史验收基线
 
 2026-09-12 七阶段完整回归通过：
 
@@ -261,6 +273,10 @@ Disconnect：DirtyPooled=0、Orphans=0
 
 ---
 
+上面的七阶段通过只对应 2026-09-12 的重构基线，不代表最新代码完整回归通过。
+2026-10-08 最新回归 Build / Automation / Standalone 通过，Dedicated 后段超时。
+后续阶段未执行；当前证据见[总路线当前进度][doc-link-1]。
+
 ## 相关文档与基线
 
 - [武器启动预配置与实体池简化重构方案](../已完成计划/武器启动预配置与实体池简化重构方案.md)
@@ -272,3 +288,5 @@ Disconnect：DirtyPooled=0、Orphans=0
 - [输入缓冲与 Reload 本地预测执行计划](../已完成计划/输入缓冲与Reload本地预测执行计划.md)
   （已完成）
 - [Agent 自动化验证操作手册](../Agent自动化验证操作手册.md)
+
+[doc-link-1]: ../执行计划/Shooter完整Demo最终路线规划.md#15-当前进度与近期方向
