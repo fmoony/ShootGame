@@ -119,15 +119,6 @@ FVector UShooterThirdPersonAnimInstance::ComputeAimDirectionWorldForState(
 	return FVector::ZeroVector;
 }
 
-FTransform UShooterThirdPersonAnimInstance::GetHandWorldTransform(const AShooterCharacter* InCharacter, FName InHandSocketName)
-{
-	if (!InCharacter || !InCharacter->GetMesh() || !InCharacter->GetMesh()->DoesSocketExist(InHandSocketName))
-	{
-		return FTransform::Identity;
-	}
-	return InCharacter->GetMesh()->GetSocketTransform(InHandSocketName, RTS_World);
-}
-
 bool UShooterThirdPersonAnimInstance::IsMathematicallyValidBindingFrame(const FTransform& T)
 {
 	// FTransform::IsValid() 已覆盖 NaN/Inf 与 Rotation 归一化；Scale 各分量必须大于 0。

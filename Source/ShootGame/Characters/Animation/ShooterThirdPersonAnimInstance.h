@@ -194,10 +194,6 @@ public:
 		float MinimumTargetDistanceFromView = 150.0f,
 		float MinimumTargetDistanceFromMuzzle = FShooterAimIKMath::DefaultMinimumTargetDistanceFromMuzzle);
 
-	/** 读取角色 Mesh 指定 socket 的世界变换；无角色 / 无 socket 时回退 Identity。 */
-	UFUNCTION(BlueprintPure, Category = "Shooter Aim")
-	static FTransform GetHandWorldTransform(const AShooterCharacter* InCharacter, FName InHandSocketName);
-
 	/** 计算左手握把相对右手 HandSocket 的刚性 Transform（纯几何计算）。 */
 	UFUNCTION(BlueprintPure, Category = "Shooter Left Hand IK")
 	static FTransform ComputeLeftHandGripInRightHandSpace(const FTransform& InRightHandWorld, const FTransform& InLeftHandGripWorld);
