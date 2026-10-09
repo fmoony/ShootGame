@@ -3,7 +3,6 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "Misc/AutomationTest.h"
-#include "Animation/AnimInstance.h"
 #include "Characters/Equipment/ShooterEquipmentComponent.h"
 #include "Characters/ShooterCharacter.h"
 #include "Components/SkeletalMeshComponent.h"
@@ -14,7 +13,6 @@
 #include "UObject/UnrealType.h"
 #include "Tests/Weapon/ShooterWeaponTestTableTypes.h"
 #include "Weapons/ShooterWeapon.h"
-#include "Weapons/Data/ShooterWeaponTable.h"
 #include "Tests/Equipment/ShooterWeaponPresentationTestTypes.h"
 
 namespace ShooterWeaponPresentationBaselineAutomationTests
@@ -42,64 +40,19 @@ namespace ShooterWeaponPresentationBaselineAutomationTests
 		GEngine->DestroyWorldContext(World);
 		World->DestroyWorld(false);
 	}
-
-	struct FExpectedWeaponAnimClasses
-	{
-		const TCHAR* WeaponRowName;
-		const TCHAR* WeaponName;
-		const TCHAR* ExpectedFirstPersonAnimClassPath;
-	};
 }
 
 /**
- * E0 资产订阅审计结论的机器可验证部分：
- * Rifle / Pistol 的第一人称 AnimClass 行配置冻结为基线快照。
- * 玩家第三人称动画类固定在角色上（PlayerThirdPersonAnimInstanceClass），
- * 不再来自武器行，因此这里不再冻结 TP AnimClass 映射。
+ * 订阅审计的反射面：装备组件的武器变化委托仍是 BlueprintAssignable 动态委托。
+ * 武器行不再承载任何 AnimClass（第一/第三人称动画类都固定在角色上），
+ * 因此本测试只保留与动画类无关的订阅面契约。
  */
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterWeaponPresentationAnimClassMappingTest,
-	"ShootGame.Equipment.Presentation.AnimClassMapping",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterEquipmentSubscriptionSurfaceTest,
+	"ShootGame.Equipment.Presentation.EquipmentSubscriptionSurface",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
-bool FShooterWeaponPresentationAnimClassMappingTest::RunTest(const FString& Parameters)
+bool FShooterEquipmentSubscriptionSurfaceTest::RunTest(const FString& Parameters)
 {
-	using namespace ShooterWeaponPresentationBaselineAutomationTests;
-
-	const FExpectedWeaponAnimClasses Expected[] = {
-		{
-			TEXT("Rifle"),
-			TEXT("Rifle"),
-			TEXT("/Game/Shooter/Animation/FirstPerson/ABP_FP_Rifle.ABP_FP_Rifle_C"),
-		},
-		{
-			TEXT("Pistol"),
-			TEXT("Pistol"),
-			TEXT("/Game/Shooter/Animation/FirstPerson/ABP_FP_Pistol.ABP_FP_Pistol_C"),
-		},
-	};
-
-	for (const FExpectedWeaponAnimClasses& Snapshot : Expected)
-	{
-		// 单表纠偏后 AnimClass 基线保存在武器模板行，不再读取 WeaponActor 蓝图默认值。
-		const FShooterWeaponConfigRow* Row = ShooterWeaponTable::FindWeaponRow(ShooterWeaponTable::ResolveWeaponTable(),
-			FName(Snapshot.WeaponRowName));
-		if (!TestNotNull(FString::Printf(TEXT("%s weapon row resolves"), Snapshot.WeaponName), Row))
-		{
-			continue;
-		}
-
-		const UClass* ExpectedFirstPersonClass = LoadClass<UAnimInstance>(nullptr,
-			Snapshot.ExpectedFirstPersonAnimClassPath);
-		if (!TestNotNull(FString::Printf(TEXT("%s expected FP AnimClass loads"), Snapshot.WeaponName),
-			ExpectedFirstPersonClass))
-		{
-			continue;
-		}
-
-		TestTrue(FString::Printf(TEXT("%s FP AnimClass matches baseline"), Snapshot.WeaponName),
-			Row->FirstPersonAnimInstanceClass == ExpectedFirstPersonClass);
-	}
-
 	// 订阅审计的反射面：OnEquippedWeaponChanged 仍是 BlueprintAssignable 动态委托。
 	const FProperty* EquippedChangedProperty = FindFProperty<FProperty>(UShooterEquipmentComponent::StaticClass(),
 		TEXT("OnEquippedWeaponChanged"));
@@ -194,12 +147,12 @@ bool FShooterWeaponPresentationBaselineTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("Primary TP mesh is attached to third-person mesh socket"),
 		PrimaryWeapon->GetThirdPersonMesh()->GetAttachParent() == Character->GetMesh() &&
 		PrimaryWeapon->GetThirdPersonMesh()->GetAttachSocketName() == FName(TEXT("HandGrip_R")));
-	TestTrue(TEXT("Primary FP AnimClass is applied"), Character->GetFirstPersonMesh()->GetAnimClass() ==
-			PrimaryWeapon->GetFirstPersonAnimInstanceClass().Get());
+	TestTrue(TEXT("Primary FP AnimClass is the stable character class"),
+		Character->GetFirstPersonMesh()->GetAnimClass() == UShooterFirstPersonAnimInstance::StaticClass());
 	TestTrue(TEXT("Primary TP AnimClass is the stable character class"), Character->GetMesh()->GetAnimClass() ==
 			UShooterThirdPersonAnimInstance::StaticClass());
 
-	// 切枪：旧武器隐藏，新武器可见，AnimClass 同步切换。
+	// 切枪：旧武器隐藏，新武器可见；两侧动画类都固定在角色上，不随武器切换。
 	EShooterInventoryAddResult SecondaryAddResult = EShooterInventoryAddResult::NotAuthoritative;
 	AShooterWeapon* SecondaryWeapon = GrantTestWeapon(World, Inventory,
 		AShooterWeaponPresentationTestWeaponSecondary::StaticClass(),
@@ -226,8 +179,8 @@ bool FShooterWeaponPresentationBaselineTest::RunTest(const FString& Parameters)
 
 	TestTrue(TEXT("Previous weapon is hidden after switch"), PrimaryWeapon->IsHidden());
 	TestFalse(TEXT("New weapon is visible after switch"), SecondaryWeapon->IsHidden());
-	TestTrue(TEXT("FP AnimClass switches to secondary weapon config"),
-		Character->GetFirstPersonMesh()->GetAnimClass() == SecondaryWeapon->GetFirstPersonAnimInstanceClass().Get());
+	TestTrue(TEXT("FP AnimClass stays the stable character class"),
+		Character->GetFirstPersonMesh()->GetAnimClass() == UShooterFirstPersonAnimInstance::StaticClass());
 	TestTrue(TEXT("TP AnimClass remains the stable character class"),
 		Character->GetMesh()->GetAnimClass() == UShooterThirdPersonAnimInstance::StaticClass());
 

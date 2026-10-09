@@ -391,7 +391,6 @@ void AShooterWeapon::ApplyWeaponRow(const FShooterWeaponConfigRow& Row)
 	ReloadMagazineOutSound = Row.ReloadMagazineOutSound;
 	ReloadMagazineInSound = Row.ReloadMagazineInSound;
 	ReloadCockingSound = Row.ReloadCockingSound;
-	FirstPersonAnimInstanceClass = Row.FirstPersonAnimInstanceClass;
 	ThirdPersonHoldSequence = Row.ThirdPersonHoldSequence;
 	ThirdPersonAimOffset = Row.ThirdPersonAimOffset;
 	ThirdPersonReloadSequence = Row.ThirdPersonReloadSequence;
@@ -446,7 +445,6 @@ FShooterWeaponConfigRow AShooterWeapon::CaptureWeaponConfigRow() const
 	Row.LeftHandGripSocketName = ThirdPersonLeftHandGripSocketName;
 	Row.FirstPersonMagazineGripTransform = FirstPersonMagazineGripTransform;
 	Row.ThirdPersonMagazineGripTransform = ThirdPersonMagazineGripTransform;
-	Row.FirstPersonAnimInstanceClass = FirstPersonAnimInstanceClass;
 	Row.ThirdPersonHoldSequence = ThirdPersonHoldSequence;
 	Row.ThirdPersonAimOffset = ThirdPersonAimOffset;
 	Row.ThirdPersonReloadSequence = ThirdPersonReloadSequence;
@@ -1419,11 +1417,6 @@ void AShooterWeapon::PlayReloadSoundStage(EShooterReloadSoundStage Stage)
 	// 本地与远端共用同一路径，距离衰减由音频系统处理。
 	UGameplayStatics::SpawnSoundAttached(StageSound, ThirdPersonMesh, MuzzleSocketName,
 		FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::SnapToTargetIncludingScale, true);
-}
-
-const TSubclassOf<UAnimInstance>& AShooterWeapon::GetFirstPersonAnimInstanceClass() const
-{
-	return FirstPersonAnimInstanceClass;
 }
 
 FTransform AShooterWeapon::GetThirdPersonMuzzleWorldTransform() const

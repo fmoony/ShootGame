@@ -42,7 +42,6 @@ enum class EShooterWeaponLifecycleState : uint8
 
 class USkeletalMeshComponent;
 class UAnimMontage;
-class UAnimInstance;
 class UNiagaraSystem;
 class USoundBase;
 
@@ -192,10 +191,6 @@ protected:
 	/** 换弹表现音效：拉枪机上膛阶段。 */
 	UPROPERTY(EditAnywhere, Category="Sound")
 	TObjectPtr<USoundBase> ReloadCockingSound;
-
-	/** AnimInstance class to set for the first person character mesh when this weapon is active */
-	UPROPERTY(EditAnywhere, Category="Animation")
-	TSubclassOf<UAnimInstance> FirstPersonAnimInstanceClass;
 
 	/** 从启动快照应用的 TP 持姿资源，不逐帧查询 DataTable。 */
 	UPROPERTY(EditAnywhere, Category="Animation")
@@ -559,9 +554,6 @@ public:
 
 	/** 返回服务器权威切枪事务等待时长。 */
 	float GetEquipDuration() const { return EquipDuration; }
-
-	/** Returns the first person anim instance class */
-	const TSubclassOf<UAnimInstance>& GetFirstPersonAnimInstanceClass() const;
 
 	/** 只读动画配置出口；资源与 WeaponActor 的永久配置共同存活。 */
 	UAnimSequence* GetThirdPersonHoldSequence() const { return ThirdPersonHoldSequence; }

@@ -871,7 +871,9 @@ bool AShooterCharacter::HasCompleteWeaponPresentation(const AShooterWeapon* Weap
 		return false;
 	}
 
-	if (FirstPersonMesh->GetAnimClass() != Weapon->GetFirstPersonAnimInstanceClass().Get())
+	// 首次装备后 FP 使用固定主类；未配置主类时不把 FP 类纳入完成条件。
+	const UClass* ExpectedFirstPersonClass = PlayerFirstPersonAnimInstanceClass.Get();
+	if (ExpectedFirstPersonClass && FirstPersonMesh->GetAnimClass() != ExpectedFirstPersonClass)
 	{
 		return false;
 	}
@@ -899,9 +901,12 @@ void AShooterCharacter::ApplyWeaponAnimClasses(AShooterWeapon* Weapon)
 		return;
 	}
 
-	if (FirstPersonMesh)
+	// FP：出生保持 Mesh 默认类（初始主图）；首次有效装备时切到固定主类，
+	// 之后武器之间切换不再重建 FP 实例。未配置主类时保持现状，不写入空类。
+	const UClass* ExpectedFirstPersonClass = PlayerFirstPersonAnimInstanceClass.Get();
+	if (FirstPersonMesh && ExpectedFirstPersonClass && FirstPersonMesh->GetAnimClass() != ExpectedFirstPersonClass)
 	{
-		FirstPersonMesh->SetAnimInstanceClass(Weapon->GetFirstPersonAnimInstanceClass());
+		FirstPersonMesh->SetAnimInstanceClass(PlayerFirstPersonAnimInstanceClass);
 	}
 	if (GetMesh())
 	{

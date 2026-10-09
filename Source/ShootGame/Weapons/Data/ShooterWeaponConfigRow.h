@@ -8,7 +8,6 @@
 
 class AShooterProjectile;
 class AShooterWeapon;
-class UAnimInstance;
 class UAnimMontage;
 class UAnimSequence;
 class UAimOffsetBlendSpace;
@@ -27,8 +26,9 @@ class UStaticMesh;
  * - 不保存 MagazineAmmo、ReserveAmmo、装备状态、计时器或 Actor 指针等实例可变数据；
  * - 行名（Rifle / Pistol / AWP / GrenadeLauncher）就是配置键，不再另设 WeaponId；
  * - 只为已经存在消费者的字段建列，不为表格观感预留空字段；
- * - 玩家第三人称动画类固定在角色（PlayerThirdPersonAnimInstanceClass），不为每行配置
- *   TP AnimClass；NPC 使用自身 Mesh 的默认动画类，也不依赖本表；
+ * - 玩家第一/第三人称动画类都固定在角色（PlayerFirstPersonAnimInstanceClass /
+ *   PlayerThirdPersonAnimInstanceClass），本表不配置任何 AnimClass；
+ *   NPC 使用自身 Mesh 的默认动画类，也不依赖本表；
  * - 资源引用沿用当前同步加载边界：网格为软引用并同步加载，其余表现资产与类为硬引用。
  *
  * 数据流（启动预配置重构后）：RowName 仅在 World 开始时转换为 WeaponId →
@@ -154,10 +154,6 @@ struct SHOOTGAME_API FShooterWeaponConfigRow : public FTableRowBase
 	/** Pickup 预览网格；由 Pickup 在 OnConstruction 同步加载。 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Mesh")
 	TSoftObjectPtr<UStaticMesh> PickupMesh;
-
-	/** 激活本武器时第一人称角色网格使用的 AnimInstance 类。 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Animation")
-	TSubclassOf<UAnimInstance> FirstPersonAnimInstanceClass;
 
 	/** 稳定玩家主图的持枪 / ADS 基础姿态；硬引用随启动快照保留并参与 Cook。 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Animation")

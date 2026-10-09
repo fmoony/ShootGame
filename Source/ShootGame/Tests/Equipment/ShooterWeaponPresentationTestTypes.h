@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Characters/Animation/ShooterAnimInstanceBase.h"
 #include "Characters/Animation/ShooterFirstPersonAnimInstance.h"
 #include "Characters/Animation/ShooterThirdPersonAnimInstance.h"
 #include "Characters/Equipment/ShooterEquipmentComponent.h"
@@ -29,6 +28,7 @@ public:
 	AShooterWeaponPresentationTestCharacter()
 	{
 		PlayerThirdPersonAnimInstanceClass = UShooterThirdPersonAnimInstance::StaticClass();
+		PlayerFirstPersonAnimInstanceClass = UShooterFirstPersonAnimInstance::StaticClass();
 	}
 
 	using AShooterCharacter::OnRep_PlayerState;
@@ -66,7 +66,7 @@ public:
 	int32 WeaponDeactivatedCount = 0;
 };
 
-/** 表现测试主武器：配置第一人称专用 AnimInstance。 */
+/** 表现测试主武器：不配置 AnimClass，FP/TP 动画类都由角色固定。 */
 UCLASS(Transient, NotBlueprintable)
 class AShooterWeaponPresentationTestWeaponPrimary : public AShooterWeapon
 {
@@ -76,13 +76,12 @@ public:
 	AShooterWeaponPresentationTestWeaponPrimary()
 	{
 		MagazineSize = 10;
-		FirstPersonAnimInstanceClass = UShooterFirstPersonAnimInstance::StaticClass();
 	}
 
 	bool HasWeaponOwnerForTest() const { return WeaponOwner != nullptr; }
 };
 
-/** 表现测试副武器：配置与主武器不同的第一人称 AnimInstance，用于验证 AnimClass 切换。 */
+/** 表现测试副武器：与主武器只有弹药等实例差异，动画类同样由角色固定。 */
 UCLASS(Transient, NotBlueprintable)
 class AShooterWeaponPresentationTestWeaponSecondary : public AShooterWeapon
 {
@@ -92,7 +91,6 @@ public:
 	AShooterWeaponPresentationTestWeaponSecondary()
 	{
 		MagazineSize = 10;
-		FirstPersonAnimInstanceClass = UShooterAnimInstanceBase::StaticClass();
 	}
 };
 

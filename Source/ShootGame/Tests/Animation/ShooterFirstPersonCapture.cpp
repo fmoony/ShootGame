@@ -42,6 +42,23 @@ namespace ShooterFirstPersonCapture
 		bool bPistolReview = false;
 		bool bFireSent = false;
 		bool bStopSent = false;
+
+		/** 无武器采样：不授予也不装备任何武器，只观察初始 FP 姿态。 */
+		bool bUnarmed = false;
+
+		/** 运行时 FP AnimClass 覆写（只改本独立测试世界的 Mesh 实例，不改资产）。 */
+		FString FPClassOverride;
+
+		/** 方案 E 证据：FP AnimInstance 变化的累计次数与最近一次实例。 */
+		int32 FPInstanceChanges = 0;
+		TWeakObjectPtr<UAnimInstance> LastFPInstance;
+
+		/**
+		 * 交替变体：非空时每采样帧交替使用 FPClassOverride / FPClassAlt，
+		 * 让同一相机机位下的两种姿态各稳定数帧后再截图，供像素级 A/B 对照。
+		 */
+		FString FPClassAlt;
+		int32 Variant = 0;
 	};
 
 	// 仅显式测试启动参数允许此命令：会替换独立测试角色的背包、控制视角并触发换弹。
@@ -58,6 +75,10 @@ namespace ShooterFirstPersonCapture
 			State->World = World;
 			State->bExercise = Args.Num() > 1 && Args[1] == TEXT("exercise");
 			State->bPistolReview = Args.Num() > 1 && Args[1] == TEXT("pistolreview");
+			// 显式取证开关：无武器采样，以及把 FP Mesh 的 AnimClass 在运行时换成指定资产。
+			State->bUnarmed = FParse::Param(FCommandLine::Get(), TEXT("ShootGameCaptureUnarmed"));
+			FParse::Value(FCommandLine::Get(), TEXT("ShootGameCaptureFPClass="), State->FPClassOverride);
+			FParse::Value(FCommandLine::Get(), TEXT("ShootGameCaptureFPClassAlt="), State->FPClassAlt);
 			State->Folder = FPaths::ProjectSavedDir() / TEXT("Automation/FirstPersonCapture") /
 				(Args.IsEmpty() ? TEXT("Current") : FPaths::MakeValidFileName(Args[0]));
 			FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([State](float DeltaTime)
@@ -116,20 +137,29 @@ namespace ShooterFirstPersonCapture
 					const TCHAR* WeaponRowName = Weapons[State->bExercise ? State->Case : State->Case / PitchCount];
 					UShooterInventoryComponent* CaptureInventory = Character->GetInventoryComponent();
 					CaptureInventory->ClearInventory();
-					// S3 授予链：直接从运行时池按正式 WeaponId（DT_WeaponData 行名）Acquire，
-					// 与生产路径读取完全相同的配置（含网格、AnimClass 与构图下沉量）。
-					UShooterWeaponRuntimeSubsystem* CaptureRuntime = TestWorld->GetSubsystem<UShooterWeaponRuntimeSubsystem>();
-					AShooterWeapon* GrantedWeapon = CaptureRuntime
-						? CaptureRuntime->AcquireWeapon(FName(WeaponRowName), Character, Character)
-						: nullptr;
-					if (!GrantedWeapon || CaptureInventory->AddWeapon(GrantedWeapon) != EShooterInventoryAddResult::Added)
+					if (State->bUnarmed)
 					{
-						UE_LOG(LogShootGame, Warning, TEXT("FIRST_PERSON_CAPTURE_GRANT_REJECTED Row=%s"), WeaponRowName);
+						// 无武器采样：只清空背包，不租用也不装备任何武器。
+						UE_LOG(LogShootGame, Display, TEXT("FIRST_PERSON_REVIEW Unarmed FPClass=%s"),
+							*GetNameSafe(Character->GetFirstPersonMesh()->GetAnimClass()));
 					}
 					else
 					{
-						Character->GetEquipmentComponent()->EquipWeapon(GrantedWeapon);
-						GrantedWeapon->ConsumeAmmo(1);
+						// S3 授予链：直接从运行时池按正式 WeaponId（DT_WeaponData 行名）Acquire，
+						// 与生产路径读取完全相同的配置（含网格、AnimClass 与构图下沉量）。
+						UShooterWeaponRuntimeSubsystem* CaptureRuntime = TestWorld->GetSubsystem<UShooterWeaponRuntimeSubsystem>();
+						AShooterWeapon* GrantedWeapon = CaptureRuntime
+							? CaptureRuntime->AcquireWeapon(FName(WeaponRowName), Character, Character)
+							: nullptr;
+						if (!GrantedWeapon || CaptureInventory->AddWeapon(GrantedWeapon) != EShooterInventoryAddResult::Added)
+						{
+							UE_LOG(LogShootGame, Warning, TEXT("FIRST_PERSON_CAPTURE_GRANT_REJECTED Row=%s"), WeaponRowName);
+						}
+						else
+						{
+							Character->GetEquipmentComponent()->EquipWeapon(GrantedWeapon);
+							GrantedWeapon->ConsumeAmmo(1);
+						}
 					}
 					AShooterWeapon* EquippedWeapon = Character->GetCurrentWeapon();
 					float DropOverride = -1.0f;
@@ -146,9 +176,36 @@ namespace ShooterFirstPersonCapture
 						UE_LOG(LogShootGame, Display, TEXT("FIRST_PERSON_REVIEW Weapon=%s Drop=%.2f HasSupportGrip=%d"),
 							*EquippedWeapon->GetClass()->GetName(), EquippedWeapon->GetFirstPersonCompositionDrop(), EquippedWeapon->HasThirdPersonLeftHandGripSocket());
 					}
+					// 方案 E 证据：首次装备应只切换一次 FP 类，之后武器切换保持同一实例。
+					UAnimInstance* FPInstance = Character->GetFirstPersonMesh()->GetAnimInstance();
+					if (State->LastFPInstance.Get() != FPInstance)
+					{
+						++State->FPInstanceChanges;
+						State->LastFPInstance = FPInstance;
+					}
+					UE_LOG(LogShootGame, Display, TEXT("FIRST_PERSON_REVIEW FPClass=%s FPInstanceChanges=%d"),
+						*GetNameSafe(Character->GetFirstPersonMesh()->GetAnimClass()), State->FPInstanceChanges);
+				}
+				if (!State->FPClassOverride.IsEmpty() && Character->GetFirstPersonMesh())
+				{
+					// 运行时覆写只作用于本独立测试世界的 FP Mesh 实例，不修改任何资产或 CDO。
+					const FString& Desired = (State->Variant == 1 && !State->FPClassAlt.IsEmpty())
+						? State->FPClassAlt : State->FPClassOverride;
+					if (UClass* ForcedClass = LoadClass<UAnimInstance>(nullptr, *Desired))
+					{
+						if (Character->GetFirstPersonMesh()->GetAnimClass() != ForcedClass)
+						{
+							Character->GetFirstPersonMesh()->SetAnimInstanceClass(ForcedClass);
+						}
+					}
 				}
 				const int32 WeaponIndex = State->bExercise ? State->Case : State->Case / PitchCount;
 				const int32 PitchIndex = State->bExercise ? 0 : State->Case % PitchCount;
+				FString CaseLabel = State->bUnarmed ? FString(TEXT("Unarmed")) : FString(Weapons[WeaponIndex]);
+				if (!State->FPClassAlt.IsEmpty())
+				{
+					CaseLabel += FString::Printf(TEXT("_v%d"), State->Variant);
+				}
 				const float ViewPitch = State->bExercise
 					? FMath::Clamp(80.0f * FMath::Sin(State->Time * PI), -70.0f, 80.0f) : Pitches[PitchIndex];
 				PC->SetControlRotation(FRotator(ViewPitch, 0.0f, 0.0f));
@@ -189,7 +246,7 @@ namespace ShooterFirstPersonCapture
 					AShooterWeapon* Weapon = Character->GetCurrentWeapon();
 					const UShooterAnimInstanceBase* Anim = Cast<UShooterAnimInstanceBase>(Mesh->GetAnimInstance());
 					State->CSV += FString::Printf(TEXT("%s,%.0f,%.3f,%d,%.2f,%.3f,%.3f,%.3f,%.3f,%d,%.5f,%.5f,%.5f,%.5f\n"),
-						Weapons[WeaponIndex], Pitches[PitchIndex], State->Time,
+						*CaseLabel, Pitches[PitchIndex], State->Time,
 						Anim && Anim->bIsReloading, View.GetFinalPerspectiveNearClipPlane(),
 						Depth(Mesh->GetSocketLocation(TEXT("hand_l"))), Depth(Mesh->GetSocketLocation(TEXT("hand_r"))),
 						Weapon ? Depth(Weapon->GetFirstPersonMesh()->GetSocketLocation(Weapon->GetMuzzleSocketName())) : 0.0,
@@ -199,8 +256,14 @@ namespace ShooterFirstPersonCapture
 						BoneLengthRatio(TEXT("lowerarm_l"), TEXT("hand_l")),
 						BoneLengthRatio(TEXT("lowerarm_r"), TEXT("hand_r")));
 					const FString Filename = FString::Printf(TEXT("%s_%02d_%02d.png"),
-						Weapons[WeaponIndex], PitchIndex, State->Frame++);
+						*CaseLabel, PitchIndex, State->Frame++);
 					FScreenshotRequest::RequestScreenshot(State->Folder / Filename, false, false);
+					// 先截图再切换变体：本次截图对应的姿态已经稳定整个采样间隔。
+					// 每个变体连续保留两次采样，便于用“同变体 0.2s”作为时间对齐的漂移对照。
+					if (!State->FPClassAlt.IsEmpty() && (State->Frame % 2) == 0)
+					{
+						State->Variant = 1 - State->Variant;
+					}
 				}
 				return true;
 			}));

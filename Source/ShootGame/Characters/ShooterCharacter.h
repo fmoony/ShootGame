@@ -55,6 +55,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Animation")
 	TSubclassOf<UAnimInstance> PlayerThirdPersonAnimInstanceClass;
 
+	/**
+	 * 首次装备有效武器后玩家第一人称使用的主类；武器之间切换不再改类。
+	 * 出生到首次装备之间保持 Mesh 默认类（初始 FP 类，保留其 Warp 表现），
+	 * 因此这里不覆盖初始类，只承载"装备后"的固定类。
+	 */
+	UPROPERTY(EditDefaultsOnly, Category = "Animation")
+	TSubclassOf<UAnimInstance> PlayerFirstPersonAnimInstanceClass;
+
 	/** 共享脚步音源硬引用；Character 只提供配置，不检测地面或播放声音。 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Footsteps")
 	TObjectPtr<UShooterFootstepSoundSet> FootstepSoundSet;

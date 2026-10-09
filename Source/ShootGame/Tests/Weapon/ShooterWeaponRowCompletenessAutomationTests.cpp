@@ -4,7 +4,6 @@
 
 #include "Misc/AutomationTest.h"
 
-#include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
 #include "Engine/DataTable.h"
 #include "Engine/SkeletalMesh.h"
@@ -75,10 +74,6 @@ namespace ShooterWeaponRowCompleteness
 		bValid &= Test.TestTrue(
 			FString::Printf(TEXT("Row %s ProjectileClass derives from AShooterProjectile"), RowName),
 			Row->ProjectileClass && Row->ProjectileClass->IsChildOf<AShooterProjectile>());
-		bValid &= Test.TestTrue(
-			FString::Printf(TEXT("Row %s FirstPersonAnimInstanceClass derives from UAnimInstance"), RowName),
-			Row->FirstPersonAnimInstanceClass && Row->FirstPersonAnimInstanceClass->IsChildOf<UAnimInstance>());
-
 		bValid &= Test.TestNotNull(FString::Printf(TEXT("Row %s first-person mesh resolves"), RowName),
 			Row->FirstPersonMesh.LoadSynchronous());
 		bValid &= Test.TestNotNull(FString::Printf(TEXT("Row %s third-person mesh resolves"), RowName),

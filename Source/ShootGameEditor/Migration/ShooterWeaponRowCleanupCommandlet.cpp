@@ -18,8 +18,11 @@ namespace ShooterWeaponRowCleanup
 {
 	const TCHAR* const TableObjectPath = TEXT("/Game/Shooter/Data/DT_WeaponData.DT_WeaponData");
 
-	/** 本轮唯一被移除的列；对照时只有它允许从基线中消失。 */
-	const TCHAR* const RemovedPropertyName = TEXT("ThirdPersonAnimInstanceClass");
+	/**
+	 * 默认允许从基线中消失的列（历史调用未传 -Removed 时的行为保持不变）。
+	 * 需要移除别的列时用 -Removed=<逗号列表> 显式声明，对照只放行列表内的列。
+	 */
+	const TCHAR* const DefaultRemovedPropertyName = TEXT("ThirdPersonAnimInstanceClass");
 
 	/** 迁移后不该再出现在 DT_WeaponData 里的资源前缀。 */
 	const TCHAR* const ForbiddenFragments[] = {TEXT("ABP_TP_")};
@@ -130,8 +133,9 @@ namespace ShooterWeaponRowCleanup
 		return Out.Properties.Num() > 0 && Out.Values.Num() > 0;
 	}
 
-	/** 逐行逐列对照；只有 RemovedPropertyName 允许消失，其他任何差异都算错误。 */
-	bool CompareDumps(const FParsedDump& Baseline, const FParsedDump& Current, int32& OutErrors)
+	/** 逐行逐列对照；只有 ExpectedRemoved 内的列允许消失，其他任何差异都算错误。 */
+	bool CompareDumps(const FParsedDump& Baseline, const FParsedDump& Current,
+		const TSet<FString>& ExpectedRemoved, int32& OutErrors)
 	{
 		int32 Errors = 0;
 
@@ -146,7 +150,7 @@ namespace ShooterWeaponRowCleanup
 		{
 			if (!Current.Properties.Contains(PropertyName))
 			{
-				const bool bExpected = PropertyName == RemovedPropertyName;
+				const bool bExpected = ExpectedRemoved.Contains(PropertyName);
 				UE_LOG(LogShooterWeaponRowCleanup, Display, TEXT("CLEANUP_PROPERTY_ABSENT %s Expected=%d"),
 					*PropertyName, bExpected ? 1 : 0);
 				if (!bExpected)
@@ -213,7 +217,7 @@ namespace ShooterWeaponRowCleanup
 			FString RowName;
 			FString PropertyName;
 			Pair.Key.Split(TEXT("\t"), &RowName, &PropertyName);
-			if (PropertyName != RemovedPropertyName)
+			if (!ExpectedRemoved.Contains(PropertyName))
 			{
 				UE_LOG(LogShooterWeaponRowCleanup, Error, TEXT("CLEANUP_VALUE_LOST %s = %s"),
 					*Pair.Key.Replace(TEXT("\t"), TEXT(".")), *Pair.Value);
@@ -292,7 +296,6 @@ namespace ShooterWeaponRowCleanup
 	void LogKeyColumns(const FParsedDump& Dump)
 	{
 		const TCHAR* KeyProperties[] = {
-			TEXT("FirstPersonAnimInstanceClass"),
 			TEXT("ThirdPersonHoldSequence"),
 			TEXT("ThirdPersonAimOffset"),
 			TEXT("ThirdPersonReloadSequence"),
@@ -402,8 +405,28 @@ int32 UShooterWeaponRowCleanupCommandlet::Main(const FString& Params)
 		return 1;
 	}
 
+	// -Removed=<逗号列表> 显式声明本轮允许从基线消失的列；缺省保持历史单列行为。
+	FString RemovedList;
+	FParse::Value(*Params, TEXT("Removed="), RemovedList);
+	TSet<FString> ExpectedRemoved;
+	if (RemovedList.IsEmpty())
+	{
+		ExpectedRemoved.Add(DefaultRemovedPropertyName);
+	}
+	else
+	{
+		TArray<FString> RemovedNames;
+		RemovedList.ParseIntoArray(RemovedNames, TEXT(","), true);
+		for (const FString& RemovedName : RemovedNames)
+		{
+			ExpectedRemoved.Add(RemovedName);
+		}
+	}
+	UE_LOG(LogShooterWeaponRowCleanup, Display, TEXT("CLEANUP_EXPECTED_REMOVED %s"),
+		*FString::Join(ExpectedRemoved.Array(), TEXT(",")));
+
 	int32 Errors = 0;
-	if (!CompareDumps(Baseline, Current, Errors))
+	if (!CompareDumps(Baseline, Current, ExpectedRemoved, Errors))
 	{
 		UE_LOG(LogShooterWeaponRowCleanup, Error, TEXT("对照失败，不保存任何资产。Errors=%d"), Errors);
 		return 1;
