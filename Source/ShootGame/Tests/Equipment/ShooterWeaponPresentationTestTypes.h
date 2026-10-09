@@ -66,7 +66,7 @@ public:
 	int32 WeaponDeactivatedCount = 0;
 };
 
-/** 表现测试主武器：配置第一/第三人称专用 AnimInstance。 */
+/** 表现测试主武器：配置第一人称专用 AnimInstance。 */
 UCLASS(Transient, NotBlueprintable)
 class AShooterWeaponPresentationTestWeaponPrimary : public AShooterWeapon
 {
@@ -77,13 +77,12 @@ public:
 	{
 		MagazineSize = 10;
 		FirstPersonAnimInstanceClass = UShooterFirstPersonAnimInstance::StaticClass();
-		ThirdPersonAnimInstanceClass = UShooterThirdPersonAnimInstance::StaticClass();
 	}
 
 	bool HasWeaponOwnerForTest() const { return WeaponOwner != nullptr; }
 };
 
-/** 表现测试副武器：配置与主武器不同的公共 AnimInstance，用于验证 AnimClass 切换。 */
+/** 表现测试副武器：配置与主武器不同的第一人称 AnimInstance，用于验证 AnimClass 切换。 */
 UCLASS(Transient, NotBlueprintable)
 class AShooterWeaponPresentationTestWeaponSecondary : public AShooterWeapon
 {
@@ -94,7 +93,6 @@ public:
 	{
 		MagazineSize = 10;
 		FirstPersonAnimInstanceClass = UShooterAnimInstanceBase::StaticClass();
-		ThirdPersonAnimInstanceClass = UShooterAnimInstanceBase::StaticClass();
 	}
 };
 

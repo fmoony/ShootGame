@@ -48,13 +48,14 @@ namespace ShooterWeaponPresentationBaselineAutomationTests
 		const TCHAR* WeaponRowName;
 		const TCHAR* WeaponName;
 		const TCHAR* ExpectedFirstPersonAnimClassPath;
-		const TCHAR* ExpectedThirdPersonAnimClassPath;
 	};
 }
 
 /**
  * E0 资产订阅审计结论的机器可验证部分：
- * Rifle / Pistol 的 FP / TP AnimClass 配置与 AnimBP 父类分布冻结为基线快照。
+ * Rifle / Pistol 的第一人称 AnimClass 行配置冻结为基线快照。
+ * 玩家第三人称动画类固定在角色上（PlayerThirdPersonAnimInstanceClass），
+ * 不再来自武器行，因此这里不再冻结 TP AnimClass 映射。
  */
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterWeaponPresentationAnimClassMappingTest,
 	"ShootGame.Equipment.Presentation.AnimClassMapping",
@@ -69,13 +70,11 @@ bool FShooterWeaponPresentationAnimClassMappingTest::RunTest(const FString& Para
 			TEXT("Rifle"),
 			TEXT("Rifle"),
 			TEXT("/Game/Shooter/Animation/FirstPerson/ABP_FP_Rifle.ABP_FP_Rifle_C"),
-			TEXT("/Game/Shooter/Animation/ThirdPerson/ABP_TP_Rifle.ABP_TP_Rifle_C"),
 		},
 		{
 			TEXT("Pistol"),
 			TEXT("Pistol"),
 			TEXT("/Game/Shooter/Animation/FirstPerson/ABP_FP_Pistol.ABP_FP_Pistol_C"),
-			TEXT("/Game/Shooter/Animation/ThirdPerson/ABP_TP_Pistol.ABP_TP_Pistol_C"),
 		},
 	};
 
@@ -91,19 +90,14 @@ bool FShooterWeaponPresentationAnimClassMappingTest::RunTest(const FString& Para
 
 		const UClass* ExpectedFirstPersonClass = LoadClass<UAnimInstance>(nullptr,
 			Snapshot.ExpectedFirstPersonAnimClassPath);
-		const UClass* ExpectedThirdPersonClass = LoadClass<UAnimInstance>(nullptr,
-			Snapshot.ExpectedThirdPersonAnimClassPath);
 		if (!TestNotNull(FString::Printf(TEXT("%s expected FP AnimClass loads"), Snapshot.WeaponName),
-			ExpectedFirstPersonClass) || !TestNotNull(
-				FString::Printf(TEXT("%s expected TP AnimClass loads"), Snapshot.WeaponName), ExpectedThirdPersonClass))
+			ExpectedFirstPersonClass))
 		{
 			continue;
 		}
 
 		TestTrue(FString::Printf(TEXT("%s FP AnimClass matches baseline"), Snapshot.WeaponName),
 			Row->FirstPersonAnimInstanceClass == ExpectedFirstPersonClass);
-		TestTrue(FString::Printf(TEXT("%s TP AnimClass matches baseline"), Snapshot.WeaponName),
-			Row->ThirdPersonAnimInstanceClass == ExpectedThirdPersonClass);
 	}
 
 	// 订阅审计的反射面：OnEquippedWeaponChanged 仍是 BlueprintAssignable 动态委托。
@@ -202,8 +196,8 @@ bool FShooterWeaponPresentationBaselineTest::RunTest(const FString& Parameters)
 		PrimaryWeapon->GetThirdPersonMesh()->GetAttachSocketName() == FName(TEXT("HandGrip_R")));
 	TestTrue(TEXT("Primary FP AnimClass is applied"), Character->GetFirstPersonMesh()->GetAnimClass() ==
 			PrimaryWeapon->GetFirstPersonAnimInstanceClass().Get());
-	TestTrue(TEXT("Primary TP AnimClass is applied"), Character->GetMesh()->GetAnimClass() ==
-			PrimaryWeapon->GetThirdPersonAnimInstanceClass().Get());
+	TestTrue(TEXT("Primary TP AnimClass is the stable character class"), Character->GetMesh()->GetAnimClass() ==
+			UShooterThirdPersonAnimInstance::StaticClass());
 
 	// 切枪：旧武器隐藏，新武器可见，AnimClass 同步切换。
 	EShooterInventoryAddResult SecondaryAddResult = EShooterInventoryAddResult::NotAuthoritative;

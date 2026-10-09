@@ -78,9 +78,6 @@ namespace ShooterWeaponRowCompleteness
 		bValid &= Test.TestTrue(
 			FString::Printf(TEXT("Row %s FirstPersonAnimInstanceClass derives from UAnimInstance"), RowName),
 			Row->FirstPersonAnimInstanceClass && Row->FirstPersonAnimInstanceClass->IsChildOf<UAnimInstance>());
-		bValid &= Test.TestTrue(
-			FString::Printf(TEXT("Row %s ThirdPersonAnimInstanceClass derives from UAnimInstance"), RowName),
-			Row->ThirdPersonAnimInstanceClass && Row->ThirdPersonAnimInstanceClass->IsChildOf<UAnimInstance>());
 
 		bValid &= Test.TestNotNull(FString::Printf(TEXT("Row %s first-person mesh resolves"), RowName),
 			Row->FirstPersonMesh.LoadSynchronous());

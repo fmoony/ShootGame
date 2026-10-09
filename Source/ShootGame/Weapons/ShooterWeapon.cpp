@@ -392,7 +392,6 @@ void AShooterWeapon::ApplyWeaponRow(const FShooterWeaponConfigRow& Row)
 	ReloadMagazineInSound = Row.ReloadMagazineInSound;
 	ReloadCockingSound = Row.ReloadCockingSound;
 	FirstPersonAnimInstanceClass = Row.FirstPersonAnimInstanceClass;
-	ThirdPersonAnimInstanceClass = Row.ThirdPersonAnimInstanceClass;
 	ThirdPersonHoldSequence = Row.ThirdPersonHoldSequence;
 	ThirdPersonAimOffset = Row.ThirdPersonAimOffset;
 	ThirdPersonReloadSequence = Row.ThirdPersonReloadSequence;
@@ -448,7 +447,6 @@ FShooterWeaponConfigRow AShooterWeapon::CaptureWeaponConfigRow() const
 	Row.FirstPersonMagazineGripTransform = FirstPersonMagazineGripTransform;
 	Row.ThirdPersonMagazineGripTransform = ThirdPersonMagazineGripTransform;
 	Row.FirstPersonAnimInstanceClass = FirstPersonAnimInstanceClass;
-	Row.ThirdPersonAnimInstanceClass = ThirdPersonAnimInstanceClass;
 	Row.ThirdPersonHoldSequence = ThirdPersonHoldSequence;
 	Row.ThirdPersonAimOffset = ThirdPersonAimOffset;
 	Row.ThirdPersonReloadSequence = ThirdPersonReloadSequence;
@@ -1426,11 +1424,6 @@ void AShooterWeapon::PlayReloadSoundStage(EShooterReloadSoundStage Stage)
 const TSubclassOf<UAnimInstance>& AShooterWeapon::GetFirstPersonAnimInstanceClass() const
 {
 	return FirstPersonAnimInstanceClass;
-}
-
-const TSubclassOf<UAnimInstance>& AShooterWeapon::GetThirdPersonAnimInstanceClass() const
-{
-	return ThirdPersonAnimInstanceClass;
 }
 
 FTransform AShooterWeapon::GetThirdPersonMuzzleWorldTransform() const

@@ -197,10 +197,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Animation")
 	TSubclassOf<UAnimInstance> FirstPersonAnimInstanceClass;
 
-	/** AnimInstance class to set for the third person character mesh when this weapon is active */
-	UPROPERTY(EditAnywhere, Category="Animation")
-	TSubclassOf<UAnimInstance> ThirdPersonAnimInstanceClass;
-
 	/** 从启动快照应用的 TP 持姿资源，不逐帧查询 DataTable。 */
 	UPROPERTY(EditAnywhere, Category="Animation")
 	TObjectPtr<UAnimSequence> ThirdPersonHoldSequence;
@@ -566,9 +562,6 @@ public:
 
 	/** Returns the first person anim instance class */
 	const TSubclassOf<UAnimInstance>& GetFirstPersonAnimInstanceClass() const;
-
-	/** Returns the third person anim instance class */
-	const TSubclassOf<UAnimInstance>& GetThirdPersonAnimInstanceClass() const;
 
 	/** 只读动画配置出口；资源与 WeaponActor 的永久配置共同存活。 */
 	UAnimSequence* GetThirdPersonHoldSequence() const { return ThirdPersonHoldSequence; }
