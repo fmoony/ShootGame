@@ -26,6 +26,11 @@ class AShooterWeaponPresentationTestCharacter : public AShooterCharacter
 	GENERATED_BODY()
 
 public:
+	AShooterWeaponPresentationTestCharacter()
+	{
+		PlayerThirdPersonAnimInstanceClass = UShooterThirdPersonAnimInstance::StaticClass();
+	}
+
 	using AShooterCharacter::OnRep_PlayerState;
 	using AShooterCharacter::OnRep_Controller;
 	using AShooterCharacter::PawnClientRestart;

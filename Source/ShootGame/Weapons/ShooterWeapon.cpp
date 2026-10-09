@@ -393,6 +393,10 @@ void AShooterWeapon::ApplyWeaponRow(const FShooterWeaponConfigRow& Row)
 	ReloadCockingSound = Row.ReloadCockingSound;
 	FirstPersonAnimInstanceClass = Row.FirstPersonAnimInstanceClass;
 	ThirdPersonAnimInstanceClass = Row.ThirdPersonAnimInstanceClass;
+	ThirdPersonHoldSequence = Row.ThirdPersonHoldSequence;
+	ThirdPersonAimOffset = Row.ThirdPersonAimOffset;
+	ThirdPersonReloadSequence = Row.ThirdPersonReloadSequence;
+	ThirdPersonMinimumAimTargetDistanceFromMuzzle = Row.ThirdPersonMinimumAimTargetDistanceFromMuzzle;
 
 	// 弹丸类镜像：唯一弹丸生成路径（FireProjectile）直接读本 Actor 字段，运行时不再查表。
 	ProjectileClass = Row.ProjectileClass;
@@ -445,6 +449,10 @@ FShooterWeaponConfigRow AShooterWeapon::CaptureWeaponConfigRow() const
 	Row.ThirdPersonMagazineGripTransform = ThirdPersonMagazineGripTransform;
 	Row.FirstPersonAnimInstanceClass = FirstPersonAnimInstanceClass;
 	Row.ThirdPersonAnimInstanceClass = ThirdPersonAnimInstanceClass;
+	Row.ThirdPersonHoldSequence = ThirdPersonHoldSequence;
+	Row.ThirdPersonAimOffset = ThirdPersonAimOffset;
+	Row.ThirdPersonReloadSequence = ThirdPersonReloadSequence;
+	Row.ThirdPersonMinimumAimTargetDistanceFromMuzzle = ThirdPersonMinimumAimTargetDistanceFromMuzzle;
 	Row.FiringMontage = FiringMontage;
 	Row.MuzzleFlash = MuzzleFlash;
 	Row.FireSound = FireSound;

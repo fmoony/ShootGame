@@ -234,8 +234,8 @@ bool FShooterWeaponPresentationBaselineTest::RunTest(const FString& Parameters)
 	TestFalse(TEXT("New weapon is visible after switch"), SecondaryWeapon->IsHidden());
 	TestTrue(TEXT("FP AnimClass switches to secondary weapon config"),
 		Character->GetFirstPersonMesh()->GetAnimClass() == SecondaryWeapon->GetFirstPersonAnimInstanceClass().Get());
-	TestTrue(TEXT("TP AnimClass switches to secondary weapon config"), Character->GetMesh()->GetAnimClass() ==
-			SecondaryWeapon->GetThirdPersonAnimInstanceClass().Get());
+	TestTrue(TEXT("TP AnimClass remains the stable character class"),
+		Character->GetMesh()->GetAnimClass() == UShooterThirdPersonAnimInstance::StaticClass());
 
 	const UClass* SecondaryFPAnimClass = Character->GetFirstPersonMesh()->GetAnimClass();
 	const UClass* SecondaryTPAnimClass = Character->GetMesh()->GetAnimClass();

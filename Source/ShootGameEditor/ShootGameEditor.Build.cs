@@ -16,8 +16,7 @@ public class ShootGameEditor : ModuleRules
 			"Core", "CoreUObject", "Engine", "ShootGame", "AnimGraph", "AnimGraphRuntime", "BlueprintGraph"
 		});
 
-		PrivateDependencyModuleNames.AddRange(new string[] {
-			"UnrealEd", "BlueprintEditorLibrary", "Kismet", "Slate", "SlateCore"
-		});
+			PrivateDependencyModuleNames.AddRange(new string[] { "UnrealEd", "BlueprintEditorLibrary", "Kismet",
+				"Slate", "SlateCore", "AssetTools" });
 	}
 }

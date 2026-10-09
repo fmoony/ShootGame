@@ -10,6 +10,8 @@
 class AShooterCharacter;
 class AShooterWeapon;
 class USkeletalMeshComponent;
+class UAnimSequence;
+class UAimOffsetBlendSpace;
 
 /**
  * 第三人称 AnimBP 数据源。
@@ -27,6 +29,28 @@ class SHOOTGAME_API UShooterThirdPersonAnimInstance : public UShooterAnimInstanc
 	GENERATED_BODY()
 
 public:
+	/** 幂等应用已加载的武器动画配置；不初始化图、状态机或播放器。 */
+	void ApplyWeaponAnimationResources(const AShooterWeapon* Weapon);
+
+	/** Character 表现后置条件；在发布完成事件之前确认资源已经收敛。 */
+	bool HasWeaponAnimationResources(const AShooterWeapon* Weapon) const;
+
+	/** 主图 Sequence Player 的持姿资源输入。 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Shooter|Weapon Animation")
+	TObjectPtr<UAnimSequence> ThirdPersonHoldSequence;
+
+	/** 主图 AimOffset 节点的资源输入。 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Shooter|Weapon Animation")
+	TObjectPtr<UAimOffsetBlendSpace> ThirdPersonAimOffset;
+
+	/** 主图 Reload Sequence Player 的资源输入。 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Shooter|Weapon Animation")
+	TObjectPtr<UAnimSequence> ThirdPersonReloadSequence;
+
+	/** 无武器时关闭上半身覆盖，Locomotion BasePose 始终继续更新。 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Shooter|Weapon Animation")
+	float WeaponUpperBodyWeight = 0.0f;
+
 	/** TEMP：用更新前后的局部 Tag 快照记录变化，不保存额外成员状态。 */
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 

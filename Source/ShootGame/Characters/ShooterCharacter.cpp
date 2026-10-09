@@ -2,6 +2,7 @@
 
 
 #include "ShooterCharacter.h"
+#include "Characters/Animation/ShooterThirdPersonAnimInstance.h"
 #include "Characters/Aim/ShooterAimPresentationComponent.h"
 #include "Characters/Equipment/ShooterEquipmentComponent.h"
 #include "Weapons/ShooterWeapon.h"
@@ -875,9 +876,17 @@ bool AShooterCharacter::HasCompleteWeaponPresentation(const AShooterWeapon* Weap
 		return false;
 	}
 
-	if (GetMesh()->GetAnimClass() != Weapon->GetThirdPersonAnimInstanceClass().Get())
+	if (GetMesh()->GetAnimClass() != PlayerThirdPersonAnimInstanceClass.Get())
 	{
 		return false;
+	}
+	if (PlayerThirdPersonAnimInstanceClass && GetMesh()->GetSkeletalMeshAsset())
+	{
+		const UShooterThirdPersonAnimInstance* AnimInstance = Cast<UShooterThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
+		if (!AnimInstance || !AnimInstance->HasWeaponAnimationResources(Weapon))
+		{
+			return false;
+		}
 	}
 
 	return true;
@@ -896,7 +905,15 @@ void AShooterCharacter::ApplyWeaponAnimClasses(AShooterWeapon* Weapon)
 	}
 	if (GetMesh())
 	{
-		GetMesh()->SetAnimInstanceClass(Weapon->GetThirdPersonAnimInstanceClass());
+		// 只修复外部破坏或初始化遗漏；正常换枪时固定主类相同，不重建 TP 实例。
+		if (GetMesh()->GetAnimClass() != PlayerThirdPersonAnimInstanceClass.Get())
+		{
+			GetMesh()->SetAnimInstanceClass(PlayerThirdPersonAnimInstanceClass);
+		}
+		if (UShooterThirdPersonAnimInstance* AnimInstance = Cast<UShooterThirdPersonAnimInstance>(GetMesh()->GetAnimInstance()))
+		{
+			AnimInstance->ApplyWeaponAnimationResources(Weapon);
+		}
 	}
 }
 

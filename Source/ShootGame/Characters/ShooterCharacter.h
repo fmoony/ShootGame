@@ -9,6 +9,7 @@
 #include "ShooterCharacter.generated.h"
 
 class AShooterWeapon;
+class UAnimInstance;
 class UAbilitySystemComponent;
 class UInputAction;
 class UInputComponent;
@@ -50,6 +51,9 @@ class SHOOTGAME_API AShooterCharacter : public ACharacter, public IShooterWeapon
 	UPawnNoiseEmitterComponent* PawnNoiseEmitter;
 
 protected:
+	/** 玩家 TP 主类由角色配置，武器切换只更新其资源；不读取武器 TP 类选择。 */
+	UPROPERTY(EditDefaultsOnly, Category = "Animation")
+	TSubclassOf<UAnimInstance> PlayerThirdPersonAnimInstanceClass;
 
 	/** 共享脚步音源硬引用；Character 只提供配置，不检测地面或播放声音。 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Footsteps")
@@ -417,10 +421,10 @@ private:
 	int32 RemoteConfirmedMontageCount = 0;
 #endif
 
-	/** 非空表现后置条件是否已全部满足（含附着 Socket、可见性与 FP/TP AnimClass）。 */
+	/** 非空表现后置条件是否已满足，含固定 TP 主类及当前武器动画资源。 */
 	bool HasCompleteWeaponPresentation(const AShooterWeapon* Weapon) const;
 
-	/** 仅应用 FP/TP Mesh AnimClass；不更新 HUD、不广播表现事件。 */
+	/** 保留 FP 类应用，幂等修复固定 TP 主类及资源；不更新 HUD、不广播表现事件。 */
 	void ApplyWeaponAnimClasses(AShooterWeapon* Weapon);
 
 };

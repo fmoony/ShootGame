@@ -10,6 +10,8 @@ class AShooterProjectile;
 class AShooterWeapon;
 class UAnimInstance;
 class UAnimMontage;
+class UAnimSequence;
+class UAimOffsetBlendSpace;
 class UNiagaraSystem;
 class UShooterWeaponFireBehavior;
 class USkeletalMesh;
@@ -158,6 +160,22 @@ struct SHOOTGAME_API FShooterWeaponConfigRow : public FTableRowBase
 	/** 激活本武器时第三人称角色网格使用的 AnimInstance 类。 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Animation")
 	TSubclassOf<UAnimInstance> ThirdPersonAnimInstanceClass;
+
+	/** 稳定玩家主图的持枪 / ADS 基础姿态；硬引用随启动快照保留并参与 Cook。 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Animation")
+	TObjectPtr<UAnimSequence> ThirdPersonHoldSequence;
+
+	/** 稳定玩家主图使用的 Mesh Space AimOffset。 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Animation")
+	TObjectPtr<UAimOffsetBlendSpace> ThirdPersonAimOffset;
+
+	/** WeaponAction.Reload 使用的 Sequence，保留资源自身的 Notify 与曲线。 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Animation")
+	TObjectPtr<UAnimSequence> ThirdPersonReloadSequence;
+
+	/** 观察端安全姿势目标至少位于第三人称枪口前方的距离，沿用原 Aim IK 的 cm 单位。 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Animation", meta=(ClampMin="0.0", Units="cm"))
+	float ThirdPersonMinimumAimTargetDistanceFromMuzzle = 100.0f;
 
 	/** 开火 Montage。 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Animation")

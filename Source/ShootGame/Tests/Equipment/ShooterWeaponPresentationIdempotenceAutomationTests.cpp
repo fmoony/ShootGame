@@ -291,8 +291,8 @@ bool FShooterWeaponPresentationAnimClassRepairAndPrivacyTest::RunTest(const FStr
 	// 破坏 TP AnimClass：只补 AnimClass，不重复 HUD / Activate。
 	Character->GetMesh()->SetAnimInstanceClass(nullptr);
 	TestTrue(TEXT("Ensure repairs broken AnimClass"), Character->EnsureWeaponPresentation(PrimaryWeapon));
-	TestTrue(TEXT("TP AnimClass restored to weapon config"),
-		Character->GetMesh()->GetAnimClass() == PrimaryWeapon->GetThirdPersonAnimInstanceClass().Get());
+	TestTrue(TEXT("TP AnimClass restored to stable character class"),
+		Character->GetMesh()->GetAnimClass() == UShooterThirdPersonAnimInstance::StaticClass());
 	TestEqual(TEXT("AnimClass repair publishes incomplete->complete event"), PresentationListener->EventCount, 2);
 	TestEqual(TEXT("AnimClass repair does not repeat HUD"), HudListener->EventCount, 1);
 

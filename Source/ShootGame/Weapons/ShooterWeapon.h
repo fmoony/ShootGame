@@ -201,6 +201,22 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Animation")
 	TSubclassOf<UAnimInstance> ThirdPersonAnimInstanceClass;
 
+	/** 从启动快照应用的 TP 持姿资源，不逐帧查询 DataTable。 */
+	UPROPERTY(EditAnywhere, Category="Animation")
+	TObjectPtr<UAnimSequence> ThirdPersonHoldSequence;
+
+	/** 从启动快照应用的 TP AimOffset。 */
+	UPROPERTY(EditAnywhere, Category="Animation")
+	TObjectPtr<UAimOffsetBlendSpace> ThirdPersonAimOffset;
+
+	/** 从启动快照应用的 TP Reload Sequence。 */
+	UPROPERTY(EditAnywhere, Category="Animation")
+	TObjectPtr<UAnimSequence> ThirdPersonReloadSequence;
+
+	/** 原 TP Aim IK 枪口安全距离参数。 */
+	UPROPERTY(EditAnywhere, Category="Animation", meta=(ClampMin="0.0", Units="cm"))
+	float ThirdPersonMinimumAimTargetDistanceFromMuzzle = 100.0f;
+
 	/** Cone half-angle for variance while aiming */
 	UPROPERTY(EditAnywhere, Category="Aim", meta = (ClampMin = 0, ClampMax = 90, Units = "Degrees"))
 	float AimVariance = 0.0f;
@@ -553,6 +569,15 @@ public:
 
 	/** Returns the third person anim instance class */
 	const TSubclassOf<UAnimInstance>& GetThirdPersonAnimInstanceClass() const;
+
+	/** 只读动画配置出口；资源与 WeaponActor 的永久配置共同存活。 */
+	UAnimSequence* GetThirdPersonHoldSequence() const { return ThirdPersonHoldSequence; }
+	UAimOffsetBlendSpace* GetThirdPersonAimOffset() const { return ThirdPersonAimOffset; }
+	UAnimSequence* GetThirdPersonReloadSequence() const { return ThirdPersonReloadSequence; }
+	float GetThirdPersonMinimumAimTargetDistanceFromMuzzle() const
+	{
+		return ThirdPersonMinimumAimTargetDistanceFromMuzzle;
+	}
 
 	/** Returns the magazine size；应用武器模板行后即为该行的弹匣容量。 */
 	int32 GetMagazineSize() const { return MagazineSize; };

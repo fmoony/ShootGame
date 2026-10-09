@@ -11,6 +11,8 @@
 #include "KismetAnimationLibrary.h"
 #include "Animation/AnimInstanceProxy.h"
 #include "Animation/AnimNode_StateMachine.h"
+#include "Animation/AnimSequence.h"
+#include "Animation/AimOffsetBlendSpace.h"
 #include "GameFramework/PlayerState/ShooterPlayerState.h"
 #include "ShootGame.h"
 
@@ -282,6 +284,27 @@ void UShooterThirdPersonAnimInstance::LogReloadPresentation(const TCHAR* Event) 
 		bReloadPresentationRecovering);
 }
 
+void UShooterThirdPersonAnimInstance::ApplyWeaponAnimationResources(const AShooterWeapon* Weapon)
+{
+	if (!IsValid(Weapon) || HasWeaponAnimationResources(Weapon))
+	{
+		return;
+	}
+	ThirdPersonHoldSequence = Weapon->GetThirdPersonHoldSequence();
+	ThirdPersonAimOffset = Weapon->GetThirdPersonAimOffset();
+	ThirdPersonReloadSequence = Weapon->GetThirdPersonReloadSequence();
+	MinimumRemoteAimTargetDistanceFromMuzzle = Weapon->GetThirdPersonMinimumAimTargetDistanceFromMuzzle();
+}
+
+bool UShooterThirdPersonAnimInstance::HasWeaponAnimationResources(const AShooterWeapon* Weapon) const
+{
+	return IsValid(Weapon) && IsValid(ThirdPersonHoldSequence) && IsValid(ThirdPersonAimOffset) &&
+		IsValid(ThirdPersonReloadSequence) && ThirdPersonHoldSequence == Weapon->GetThirdPersonHoldSequence() &&
+		ThirdPersonAimOffset == Weapon->GetThirdPersonAimOffset() &&
+		ThirdPersonReloadSequence == Weapon->GetThirdPersonReloadSequence() &&
+		MinimumRemoteAimTargetDistanceFromMuzzle == Weapon->GetThirdPersonMinimumAimTargetDistanceFromMuzzle();
+}
+
 void UShooterThirdPersonAnimInstance::HandleWeaponPresentationChanged(AShooterWeapon* PreviousWeapon, AShooterWeapon* CurrentWeapon)
 {
 	// 表现事件已由 Character 验证完成后才发布；这里只消费 (Previous, Current) 上下文。
@@ -309,6 +332,7 @@ void UShooterThirdPersonAnimInstance::ReplayWeaponPresentationState(AShooterChar
 	if (IsValid(LogicalWeapon) && LogicalWeapon->GetOwner() == Character)
 	{
 		CachedPresentationWeapon = LogicalWeapon;
+		ApplyWeaponAnimationResources(LogicalWeapon);
 		RebuildWeaponStaticBindings(LogicalWeapon);
 	}
 	else
@@ -429,6 +453,13 @@ void UShooterThirdPersonAnimInstance::RebuildWeaponStaticBindings(AShooterWeapon
 
 void UShooterThirdPersonAnimInstance::ClearWeaponStaticBindings()
 {
+	// 无武器时保留可求值的默认资源，实际上半身权重为零；不改变 Locomotion 生命周期。
+	const UShooterThirdPersonAnimInstance* Defaults = GetClass()->GetDefaultObject<UShooterThirdPersonAnimInstance>();
+	ThirdPersonHoldSequence = Defaults->ThirdPersonHoldSequence;
+	ThirdPersonAimOffset = Defaults->ThirdPersonAimOffset;
+	ThirdPersonReloadSequence = Defaults->ThirdPersonReloadSequence;
+	MinimumRemoteAimTargetDistanceFromMuzzle = Defaults->MinimumRemoteAimTargetDistanceFromMuzzle;
+	WeaponUpperBodyWeight = 0.0f;
 	CachedPresentationWeapon.Reset();
 	bStaticBindingRebuildPending = false;
 	bAimIKBindingValid = false;
@@ -524,6 +555,7 @@ void UShooterThirdPersonAnimInstance::UpdateShooterAnimationData(float DeltaSeco
 	}
 
 	// 动态移动 / Aim 输入保持每帧采集。
+	WeaponUpperBodyWeight = bHasEquippedWeapon ? 1.0f : 0.0f;
 	bShouldMove = LocomotionGroundSpeed > 0.01f;
 	MoveDirection = UKismetAnimationLibrary::CalculateDirection(Velocity, Character->GetActorRotation());
 	// AimPitchN 与最终世界输入都从 AimPresentationComponent 的统一口径获取。
