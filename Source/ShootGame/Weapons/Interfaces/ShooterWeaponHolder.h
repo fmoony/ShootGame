@@ -36,7 +36,7 @@ public:
 	virtual void AddWeaponRecoil(float Recoil) = 0;
 
 	/**
-	 * 拥有者本地第一人称开火表现入口：只播第一人称 Montage 与本地 Recoil。
+	 * 拥有者本地开火表现入口：只播本机第三人称 Fire Montage 与本地 Recoil。
 	 * 与 PlayFiringMontage / AddWeaponRecoil 的区别是本入口绝不触发网络 RPC，也不修改任何 Gameplay 状态。
 	 * 返回是否向表现通道提交了至少一项；返回值不表示当前机器一定具备音频或渲染设备。
 	 */

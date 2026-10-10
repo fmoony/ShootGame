@@ -673,9 +673,22 @@ void AShooterCharacter::MulticastPlayFiringMontage_Implementation(UAnimMontage* 
 		return;
 	}
 
-	// 第三人称 mesh 在所有客户端播放（含拥有者），维持同场景第三人称表现一致性。
-	// 拥有者的第一人称 Montage 只由 PlayOwnerLocalFiringFeedback 在本地预测路径播放，
-	// 因此本 Multicast 不再提供第一人称分支。
+	// 第三人称 mesh 在所有非拥有者视图播放：服务器与任意观察端都走这一路。
+	//
+	// 本地拥有者是唯一例外。拥有者的开火表现由 PlayOwnerLocalFiringFeedback 在本机预测
+	// 路径播进同一套第三人称 mesh 的 AnimInstance，第一人称手臂再经 CopyPose 继承该姿态。
+	// 若本机同时播服务器确认的第三人称 Fire Montage，同一发会在这套 mesh 上叠加两次，
+	// 并把本地开火表现推迟到服务器确认之后。
+	//
+	// 跳过它不改变拥有者能看到的画面：本机第三人称 mesh 对拥有者自身不可见（bOwnerNoSee），
+	// 它承担的开火姿态已由预测路径提供。服务器（Dedicated / Listen）与其它客户端的
+	// 第三人称表现完全不变。NPC 在 UE 5.6 的 IsLocallyControlled() 也可能为真，
+	// 所以必须同时要求玩家控制。
+	if (IsPlayerControlled() && IsLocallyControlled())
+	{
+		return;
+	}
+
 	if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
 	{
 		if (AnimInstance->Montage_Play(Montage) > 0.0f)
@@ -756,14 +769,15 @@ bool AShooterCharacter::PlayOwnerLocalFiringFeedback(UAnimMontage* Montage, floa
 
 	bool bPlayedAny = false;
 
-	// 第一人称 Montage 作用于拥有者可见的第一人称手臂；网格或 AnimInstance 未就绪时跳过本项。
+	// Montage 播进本机第三人称 mesh：拥有者可见的第一人称手臂经 CopyPose 继承该姿态；
+	// 网格或 AnimInstance 未就绪时跳过本项。
 	if (Montage)
 	{
-		if (USkeletalMeshComponent* OwnerFirstPersonMesh = GetFirstPersonMesh())
+		if (USkeletalMeshComponent* OwnerMesh = GetMesh())
 		{
-			if (UAnimInstance* FirstPersonAnimInstance = OwnerFirstPersonMesh->GetAnimInstance())
+			if (UAnimInstance* OwnerAnimInstance = OwnerMesh->GetAnimInstance())
 			{
-				if (FirstPersonAnimInstance->Montage_Play(Montage) > 0.0f)
+				if (OwnerAnimInstance->Montage_Play(Montage) > 0.0f)
 				{
 					bPlayedAny = true;
 #if WITH_DEV_AUTOMATION_TESTS
@@ -774,7 +788,7 @@ bool AShooterCharacter::PlayOwnerLocalFiringFeedback(UAnimMontage* Montage, floa
 		}
 	}
 
-	// 本地 Recoil 走拥有者自己的控制器，不依赖第一人称网格是否就绪。
+	// 本地 Recoil 走拥有者自己的控制器，不依赖网格是否就绪。
 	if (!FMath::IsNearlyZero(Recoil))
 	{
 		AddControllerPitchInput(Recoil);

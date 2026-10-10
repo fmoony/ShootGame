@@ -365,7 +365,7 @@ public:
 	/** Applies weapon recoil to the owner */
 	virtual void AddWeaponRecoil(float Recoil) override;
 
-	/** 拥有者本地第一人称开火表现：只服务本地玩家视图，不触发网络、不修改 Gameplay 状态。 */
+	/** 拥有者本地开火表现：只服务本地玩家视图，不触发网络、不修改 Gameplay 状态。 */
 	virtual bool PlayOwnerLocalFiringFeedback(UAnimMontage* Montage, float Recoil) override;
 
 #if WITH_DEV_AUTOMATION_TESTS

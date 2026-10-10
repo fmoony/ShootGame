@@ -5,6 +5,9 @@
 /Package/
 /Saved/
 
+# Workspace scratch documents, deleted before each commit
+/_工作区文档/
+
 # Generated plugin directories
 /Plugins/**/Binaries/
 /Plugins/**/Intermediate/
