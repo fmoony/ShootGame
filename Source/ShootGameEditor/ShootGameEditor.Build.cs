@@ -16,7 +16,9 @@ public class ShootGameEditor : ModuleRules
 			"Core", "CoreUObject", "Engine", "ShootGame", "AnimGraph", "AnimGraphRuntime", "BlueprintGraph"
 		});
 
+			// AnimationDataController：UAnimSequenceBase::GetController 内部按模块名取控制器实现，
+			// Rifle 动画派生的原生裁切与逐骨骼轨道写入依赖它已加载。
 			PrivateDependencyModuleNames.AddRange(new string[] { "UnrealEd", "BlueprintEditorLibrary", "Kismet",
-				"Slate", "SlateCore", "AssetTools" });
+				"Slate", "SlateCore", "AssetTools", "AnimationDataController" });
 	}
 }
