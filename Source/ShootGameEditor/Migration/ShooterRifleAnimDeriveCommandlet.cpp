@@ -58,7 +58,7 @@ namespace ShooterRifleAnimDerive
 
 	FString PackageToFilename(const FString& PackageName)
 	{
-		const TCHAR* const Extension = FPackageName::GetAssetPackageExtension();
+		const FString Extension = FPackageName::GetAssetPackageExtension();
 		FString Filename;
 		if (!FPackageName::TryConvertLongPackageNameToFilename(PackageName, Filename, Extension))
 		{
