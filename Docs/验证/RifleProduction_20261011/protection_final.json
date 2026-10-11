@@ -1,0 +1,26 @@
+{
+  "changed": [
+    "Content/Experiments/RifleTransition/Blender_20261011/ABP_RifleBlender_GripCorrected_Test.uasset",
+    "Content/Experiments/RifleTransition/Segmented50_20261011/ABP_RifleSegmented_LowToReady.uasset",
+    "Content/Shooter/Animation/ThirdPerson/ABP_TP_Player.uasset",
+    "Content/Shooter/Blueprints/Characters/BP_ShooterCharacter.uasset",
+    "Source/ShootGame/Characters/Animation/ShooterThirdPersonAnimInstance.cpp",
+    "Source/ShootGame/Characters/Animation/ShooterThirdPersonAnimInstance.h",
+    "Source/ShootGameEditor/Tests/ShooterTPPlayerPIETests.cpp",
+    "Source/ShootGameEditor/Tests/BlenderRifle/ShooterRifleSegmentedCommandlet.cpp",
+    "Source/ShootGameEditor/Tests/BlenderRifle/ShooterRifleSegmentedCommandlet.h",
+    "Source/ShootGameEditor/Tests/RifleTransition/ShooterRifleTransitionFixture.cpp",
+    "Scripts/Animation/RifleTools/analyze_segmented.py",
+    "Scripts/Animation/RifleTools/Run.ps1",
+    "Scripts/Animation/RifleTools/Examples/sample.json",
+    "Docs/Blender动画编辑工具链.md",
+    "Docs/README.md",
+    "Docs/验证/README.md"
+  ],
+  "deleted": [
+    "Content/Experiments/RifleTransition/Blender_20261011/CorrectedGrip/MM_Rifle_AimToLowReady.uasset",
+    "Content/Experiments/RifleTransition/DownPitch_20261011/Down30/MM_Rifle_AimToLowReady.uasset",
+    "Content/Experiments/RifleTransition/DownPitch_20261011/Down60/MM_Rifle_AimToLowReady.uasset"
+  ],
+  "baseline_files": 1039
+}

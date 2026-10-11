@@ -1,0 +1,11 @@
+Begin Object Class=/Script/Engine.BlendProfile Name="RifleLowReadyNaturalPitch" ExportPath="/Script/Engine.BlendProfile'/Game/Experiments/RifleTransition/SK_RiflePitchMask_Test.SK_RiflePitchMask_Test:RifleLowReadyNaturalPitch'"
+   OwningSkeleton="/Script/Engine.Skeleton'SK_RiflePitchMask_Test'"
+   ProfileEntries(0)=(BoneReference=(BoneName="spine_02"),BlendScale=0.050000)
+   ProfileEntries(1)=(BoneReference=(BoneName="spine_03"),BlendScale=0.100000)
+   ProfileEntries(2)=(BoneReference=(BoneName="spine_04"),BlendScale=0.150000)
+   ProfileEntries(3)=(BoneReference=(BoneName="spine_05"),BlendScale=0.200000)
+   ProfileEntries(4)=(BoneReference=(BoneName="neck_01"),BlendScale=0.450000)
+   ProfileEntries(5)=(BoneReference=(BoneName="neck_02"),BlendScale=0.650000)
+   ProfileEntries(6)=(BoneReference=(BoneName="head"),BlendScale=0.800000)
+   Mode=BlendMask
+End Object

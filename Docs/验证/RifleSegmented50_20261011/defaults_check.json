@@ -1,0 +1,20 @@
+[
+  {
+    "asset": "/Game/Experiments/RifleTransition/Segmented_20261011/ABP_RifleSegmented_LowToReady",
+    "down60_threshold": -60.0,
+    "clips": {
+      "original_sequence": "/Game/Experiments/RifleTransition/Blender_20261011/CorrectedGrip/MM_Rifle_AimToLowReady.MM_Rifle_AimToLowReady",
+      "down30_sequence": "/Game/Experiments/RifleTransition/DownPitch_20261011/Down30/MM_Rifle_AimToLowReady.MM_Rifle_AimToLowReady",
+      "down60_sequence": "/Game/Experiments/RifleTransition/DownPitch_20261011/Down60/MM_Rifle_AimToLowReady.MM_Rifle_AimToLowReady"
+    }
+  },
+  {
+    "asset": "/Game/Experiments/RifleTransition/Segmented50_20261011/ABP_RifleSegmented_LowToReady",
+    "down60_threshold": -50.0,
+    "clips": {
+      "original_sequence": "/Game/Experiments/RifleTransition/Blender_20261011/CorrectedGrip/MM_Rifle_AimToLowReady.MM_Rifle_AimToLowReady",
+      "down30_sequence": "/Game/Experiments/RifleTransition/DownPitch_20261011/Down30/MM_Rifle_AimToLowReady.MM_Rifle_AimToLowReady",
+      "down60_sequence": "/Game/Experiments/RifleTransition/DownPitch_20261011/Down60/MM_Rifle_AimToLowReady.MM_Rifle_AimToLowReady"
+    }
+  }
+]

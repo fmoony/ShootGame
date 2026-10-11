@@ -1,0 +1,45 @@
+{
+  "status": "Passed",
+  "assets": [
+    {
+      "path": "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_AimToLowReady_CorrectedGrip.MM_Rifle_AimToLowReady_CorrectedGrip",
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin",
+      "length": 0.8333333134651184,
+      "keys": 26,
+      "references": [
+        "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player",
+        "/Game/Experiments/RifleTransition/Blender_20261011/ABP_RifleBlender_GripCorrected_Test",
+        "/Game/Experiments/RifleTransition/Segmented50_20261011/ABP_RifleSegmented_LowToReady"
+      ]
+    },
+    {
+      "path": "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_AimToLowReady_Down30.MM_Rifle_AimToLowReady_Down30",
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin",
+      "length": 0.8333333134651184,
+      "keys": 26,
+      "references": [
+        "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player",
+        "/Game/Experiments/RifleTransition/Segmented50_20261011/ABP_RifleSegmented_LowToReady"
+      ]
+    },
+    {
+      "path": "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_AimToLowReady_Down60.MM_Rifle_AimToLowReady_Down60",
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin",
+      "length": 0.8333333134651184,
+      "keys": 26,
+      "references": [
+        "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player",
+        "/Game/Experiments/RifleTransition/Segmented50_20261011/ABP_RifleSegmented_LowToReady"
+      ]
+    }
+  ],
+  "remaining_experiment_assets": [
+    "/Game/Experiments/RifleTransition/SK_RiflePitchMask_Test",
+    "/Game/Experiments/RifleTransition/Blender_20261011/ABP_RifleBlender_GripCorrected_Test",
+    "/Game/Experiments/RifleTransition/Segmented50_20261011/L_RifleSegmented_LowToReady",
+    "/Game/Experiments/RifleTransition/Segmented50_20261011/ABP_RifleSegmented_LowToReady"
+  ],
+  "map": "/Game/Experiments/RifleTransition/Segmented50_20261011/L_RifleSegmented_LowToReady",
+  "redirectors": 0,
+  "production_experiment_dependencies": 0
+}

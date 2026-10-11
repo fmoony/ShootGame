@@ -29,6 +29,49 @@ class SHOOTGAME_API UShooterThirdPersonAnimInstance : public UShooterAnimInstanc
 	GENERATED_BODY()
 
 public:
+	/** 临时蓝图按键入口：仅切换本地 Rifle 动画目标，不发送 RPC 或修改 Gameplay。 */
+	UFUNCTION(BlueprintCallable, Category = "Shooter|Rifle Preview")
+	static void ToggleDebugRifleLowReady(APawn* Pawn);
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Shooter|Rifle Preview")
+	TObjectPtr<UAnimSequence> RifleTransitionCorrected;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Shooter|Rifle Preview")
+	TObjectPtr<UAnimSequence> RifleTransitionDown30;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Shooter|Rifle Preview")
+	TObjectPtr<UAnimSequence> RifleTransitionDown60;
+
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Shooter|Rifle Preview")
+	TObjectPtr<UAnimSequence> RifleTransitionSequence;
+
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Shooter|Rifle Preview")
+	float RifleTransitionPlayRate = 1.0f;
+
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Shooter|Rifle Preview")
+	float RifleTransitionStartPosition = 0.0f;
+
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Shooter|Rifle Preview")
+	bool bDebugRifleLowReady = false;
+
+	UFUNCTION(BlueprintPure, Category = "Shooter|Rifle Preview", meta = (BlueprintThreadSafe))
+	bool GetRifleLowerRequested() const;
+
+	UFUNCTION(BlueprintPure, Category = "Shooter|Rifle Preview", meta = (BlueprintThreadSafe))
+	bool GetRifleRaiseRequested() const;
+
+	UFUNCTION(BlueprintPure, Category = "Shooter|Rifle Preview", meta = (BlueprintThreadSafe))
+	bool GetRifleAtLowEndpoint() const;
+
+	UFUNCTION(BlueprintPure, Category = "Shooter|Rifle Preview", meta = (BlueprintThreadSafe))
+	bool GetRifleAtAimEndpoint() const;
+
+	UFUNCTION(BlueprintPure, Category = "Shooter|Rifle Preview", meta = (BlueprintThreadSafe))
+	bool GetRifleReadyAbortRequested() const;
+
+	const struct FAnimNode_SequencePlayer* GetRifleTransitionPlayer() const;
+	float GetRifleAimCorrectionWeight() const;
+
 	/** 幂等应用已加载的武器动画配置；不初始化图、状态机或播放器。 */
 	void ApplyWeaponAnimationResources(const AShooterWeapon* Weapon);
 
@@ -206,6 +249,11 @@ public:
 	static bool IsMathematicallyValidBindingFrame(const FTransform& T);
 
 protected:
+	/** 游戏线程选片快照；活动过渡只更新方向，不换片、不重置累计时间。 */
+	void UpdateRifleReadyAnimation();
+	bool bDebugRifleReadyAvailable = false;
+	bool bDebugRifleActionMontageActive = false;
+
 	/** 初始化：订阅 Character 表现完成事件并回放 Equipment 当前状态。 */
 	virtual void NativeInitializeAnimation() override;
 

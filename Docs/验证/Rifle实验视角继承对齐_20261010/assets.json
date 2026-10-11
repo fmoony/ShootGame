@@ -1,0 +1,20 @@
+{
+  "character": "/Game/Experiments/RifleTransition/BP_RifleTransition_ShooterCharacter_Test.BP_RifleTransition_ShooterCharacter_Test",
+  "game_mode": "/Game/Experiments/RifleTransition/BP_RifleTransition_ShooterGameMode_Test.BP_RifleTransition_ShooterGameMode_Test_C",
+  "controller": "<Object '/Game/Shooter/Blueprints/Framework/BP_ShooterPlayerController.BP_ShooterPlayerController_C' (0x0000012810388C00) Class 'BlueprintGeneratedClass'>",
+  "map": "/Game/Experiments/RifleTransition/L_RifleTransition_ShooterCamera_Test.L_RifleTransition_ShooterCamera_Test",
+  "actors": [
+    "/Script/Engine.StaticMeshActor",
+    "/Script/Engine.DirectionalLight",
+    "/Script/Engine.SkyLight",
+    "/Script/Engine.CameraActor",
+    "/Script/Engine.PlayerStart"
+  ],
+  "scale": 1.0,
+  "fov": 90.0,
+  "fp_fov": 90.0,
+  "camera_location": "<Struct 'Vector' (0x000001280D3CE580) {x: -2.800000, y: 5.890000, z: 0.000000}>",
+  "camera_rotation": "<Struct 'Rotator' (0x000001280D3CE598) {pitch: -0.000000, yaw: 90.000000, roll: -90.000000}>",
+  "tp_class": "<Object '/Game/Experiments/RifleTransition/ABP_TP_RifleTransition_Test.ABP_TP_RifleTransition_Test_C' (0x000001280AFD6200) Class 'AnimBlueprintGeneratedClass'>",
+  "fp_class": "<Object '/Game/Shooter/Animation/FirstPerson/ABP_FP_Player.ABP_FP_Player_C' (0x000001280AFD1C00) Class 'AnimBlueprintGeneratedClass'>"
+}

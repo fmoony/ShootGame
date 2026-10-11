@@ -1,0 +1,22 @@
+{
+  "use_selection": true,
+  "object_types": [
+    "ARMATURE"
+  ],
+  "axis_forward": "-Y",
+  "axis_up": "Z",
+  "global_scale": 1.0,
+  "apply_unit_scale": true,
+  "apply_scale_options": "FBX_SCALE_NONE",
+  "use_space_transform": true,
+  "bake_space_transform": false,
+  "add_leaf_bones": false,
+  "use_armature_deform_only": false,
+  "bake_anim": true,
+  "bake_anim_use_all_bones": true,
+  "bake_anim_use_nla_strips": false,
+  "bake_anim_use_all_actions": false,
+  "bake_anim_force_startend_keying": true,
+  "bake_anim_step": 1.0,
+  "bake_anim_simplify_factor": 0.0
+}

@@ -1,0 +1,74 @@
+Log started at 10/10/2026 21:39:35 (2026-10-10T13:39:35Z)
+Resolved project argument D:/Unreal_Projects/ShootGame/ShootGame.uproject to D:\Unreal_Projects\ShootGame\ShootGame.uproject
+No config file at C:\ProgramData\Unreal Engine\UnrealBuildTool\BuildConfiguration.xml
+No config file at C:\Users\HP\AppData\Local\Unreal Engine\UnrealBuildTool\BuildConfiguration.xml
+No config file at C:\Users\HP\Documents\Unreal Engine\UnrealBuildTool\BuildConfiguration.xml
+Configuration will be read from:
+  C:\Users\HP\AppData\Roaming\Unreal Engine\UnrealBuildTool\BuildConfiguration.xml
+Reading configuration file from cache (D:\Unreal_Projects\ShootGame\Intermediate\Build\XmlConfigCache.bin): C:\Users\HP\AppData\Roaming\Unreal Engine\UnrealBuildTool\BuildConfiguration.xml
+Reading configuration file from cache (D:\Unreal_Projects\ShootGame\Intermediate\Build\XmlConfigCache.bin): D:\Unreal_Projects\ShootGame\Saved\UnrealBuildTool\BuildConfiguration.xml
+Reading configuration file from cache (D:\Unreal_Projects\ShootGame\Intermediate\Build\XmlConfigCache.bin): C:\Users\HP\AppData\Local\UnrealEngine\Intermediate\Build\UnrealBuildTool.Env.BuildConfiguration.xml
+Log file: D:\Unreal_Projects\ShootGame\Saved\RifleInheritedCamera\build.log
+
+Setting temp directory to 'C:\Users\HP\AppData\Local\Temp\UnrealBuildTool\bd434abe'
+    Registering build platform: UnrealBuildTool.AndroidPlatformFactory
+    Registering build platform: UnrealBuildTool.IOSPlatformFactory
+    Registering build platform: UnrealBuildTool.LinuxPlatformFactory
+    Registering build platform: UnrealBuildTool.MacPlatformFactory
+    Registering build platform: UnrealBuildTool.TVOSPlatformFactory
+    Registering build platform: UnrealBuildTool.WindowsPlatformFactory
+Found Windows 10 SDK root at D:\Windows Kits\10 (1)
+Found Windows 10 SDK root at D:\Windows Kits\10 (2)
+Found Windows 10 SDK version 10.0.22621.0 at D:\Windows Kits\10
+Found Universal CRT version 10.0.22621.0 at D:\Windows Kits\10
+Found Windows 10 SDK version 10.0.26100.0 at D:\Windows Kits\10
+Found Universal CRT version 10.0.26100.0 at D:\Windows Kits\10
+Win64 Installed SDK(s): MinVersion_Sdk=10.0.19041.0, MaxVersion_Sdk=10.9.99999.0, CurrentVersion_Sdk=10.0.22621.0, Version_AutoSdk=10.0.22621.0, CurrentVersion_AutoSdk=
+        Registering build platform: Win64 - buildable: True
+    Registering build platform: UnrealBuildTool.VisionOSPlatformFactory
+Command line: E:\Unreal_Engine\UE_5.6\Engine\Binaries\DotNET\UnrealBuildTool\UnrealBuildTool.dll ShootGameEditor Win64 Development -Project=D:/Unreal_Projects/ShootGame/ShootGame.uproject -WaitMutex -NoHotReload -Log=D:/Unreal_Projects/ShootGame/Saved/RifleInheritedCamera/build.log
+Using 'git status' to determine working set for adaptive non-unity build (D:\Unreal_Projects\ShootGame).
+Generated code is up to date.
+ShooterRifleTransitionFixture.cpp: Prerequisite D:\Unreal_Projects\ShootGame\Source\ShootGameEditor\Tests\RifleTransition\ShooterRifleTransitionFixture.cpp is newer than the last execution of the action: 10/10/2026 21:39:35 vs 10/10/2026 21:34:53
+UnrealEditor-ShootGameEditor.lib: Prerequisite ShooterRifleTransitionFixture.cpp is produced by outdated action.
+UnrealEditor-ShootGameEditor.dll: Prerequisite ShooterRifleTransitionFixture.cpp is produced by outdated action.
+ShootGameEditor.target: Prerequisite UnrealEditor-ShootGameEditor.dll is produced by outdated action.
+Checking for live coding mutex: Global\LiveCoding_E++Unreal_Engine+UE_5.6+Engine+Binaries+Win64+UnrealEditor.exe
+Deleting outdated item: D:\Unreal_Projects\ShootGame\Binaries\Win64\UnrealEditor-ShootGameEditor.pdb
+Deleting outdated item: D:\Unreal_Projects\ShootGame\Intermediate\Build\Win64\x64\UnrealEditor\Development\ShootGameEditor\UnrealEditor-ShootGameEditor.lib
+Building ShootGameEditor...
+Using Visual Studio 2022 14.38.33145 toolchain (D:\Visual Studio IDE\VC\Tools\MSVC\14.38.33130) and Windows 10.0.22621.0 SDK (D:\Windows Kits\10).
+[Adaptive Build] Excluded from ShootGameEditor unity file: ShooterRifleTransitionFixture.cpp, ShooterRifleTransitionTestCommandlet.cpp
+Determining max actions to execute in parallel (24 physical cores, 32 logical cores)
+  Executing up to 24 processes, one per physical core
+  Requested 1.5 GB memory per action, 15.7 GB available: limiting max parallel actions to 10
+Using Unreal Build Accelerator local executor to run 4 action(s)
+  Storage capacity 40Gb
+  RootDir C:\ProgramData\Epic\UnrealBuildAccelerator
+---- Starting trace: 261010_213936 ----
+UbaSessionServer - Disable remote execution (remote sessions will finish current processes)
+------ Building 4 action(s) started ------
+[1/4] Compile [x64] ShooterRifleTransitionFixture.cpp
+[2/4] Link [x64] UnrealEditor-ShootGameEditor.lib
+  正在创建库 D:/Unreal_Projects/ShootGame/Intermediate/Build/Win64/x64/UnrealEditor/Development/ShootGameEditor/UnrealEditor-ShootGameEditor.lib 和对象 D:/Unreal_Projects/ShootGame/Intermediate/Build/Win64/x64/UnrealEditor/Development/ShootGameEditor/UnrealEditor-ShootGameEditor.exp
+[3/4] Link [x64] UnrealEditor-ShootGameEditor.dll
+[4/4] WriteMetadata ShootGameEditor.target (UBA disabled)
+Trace written to file D:/Unreal_Projects/ShootGame/Saved/RifleInheritedCamera/build.uba with size 5.1kb
+Total time in Unreal Build Accelerator local executor: 18.27 seconds
+WriteFileIfChanged() wrote 0 changed files of 1 requested writes.
+
+Timeline:
+[  0.000]  +0.323 Main
+   0.086          [  0.086]  +0.087 Apply XmlConfig
+   0.222          [  0.222]  +0.100 RegisterPlatforms
+[  0.323] +18.734 BuildMode
+   0.354          [  0.031]  +0.322 Creating MakeFile for ShootGameEditor
+   0.681          [  0.357]  +0.036 Preparing ActionGraph
+   0.720          [  0.396] +18.285 Executing ActionGraph
+  19.005          [ 18.682]  +0.000 Deploying targets
+  19.006          [ 18.682]  +0.051 Saving caches
+[ 19.058]  +0.000 TelemetryService.FlushEvents
+[ 19.058]
+
+Result: Succeeded
+Total execution time: 19.06 seconds

@@ -1,0 +1,18 @@
+[
+  {
+    "clip": "Down30",
+    "bridge": {
+      "max_position_cm": 0.004952084977681249,
+      "max_rotation_deg": 0.0062781876887830395
+    },
+    "fbx_bytes": 724108
+  },
+  {
+    "clip": "Down60",
+    "bridge": {
+      "max_position_cm": 0.004952084977681249,
+      "max_rotation_deg": 0.0062781876887830395
+    },
+    "fbx_bytes": 724108
+  }
+]

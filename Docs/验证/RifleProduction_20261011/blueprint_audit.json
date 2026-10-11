@@ -1,0 +1,445 @@
+{
+  "animBlueprint": {
+    "path": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player",
+    "parentClass": "/Script/ShootGame.ShooterThirdPersonAnimInstance",
+    "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin",
+    "graphs": [
+      {
+        "name": "AnimGraph",
+        "graphPath": "AnimGraph",
+        "class": "/Script/AnimGraph.AnimationGraph",
+        "type": "function",
+        "nodeCount": 25
+      },
+      {
+        "name": "LocomotioStateMachine",
+        "graphPath": "AnimGraph.AnimGraphNode_StateMachine_58.LocomotioStateMachine",
+        "class": "/Script/AnimGraph.AnimationStateMachineGraph",
+        "type": "unknown",
+        "nodeCount": 17
+      },
+      {
+        "name": "FPP_Idle",
+        "graphPath": "AnimGraph.AnimGraphNode_StateMachine_58.LocomotioStateMachine.AnimStateNode_1.FPP_Idle",
+        "class": "/Script/AnimGraph.AnimationStateGraph",
+        "type": "unknown",
+        "nodeCount": 2
+      },
+      {
+        "name": "FPP_JumpStart",
+        "graphPath": "AnimGraph.AnimGraphNode_StateMachine_58.LocomotioStateMachine.AnimStateNode_0.FPP_JumpStart",
+        "class": "/Script/AnimGraph.AnimationStateGraph",
+        "type": "unknown",
+        "nodeCount": 2
+      },
+      {
+        "name": "FPP_JumpLoop",
+        "graphPath": "AnimGraph.AnimGraphNode_StateMachine_58.LocomotioStateMachine.AnimStateNode_7.FPP_JumpLoop",
+        "class": "/Script/AnimGraph.AnimationStateGraph",
+        "type": "unknown",
+        "nodeCount": 2
+      },
+      {
+        "name": "AnimationTransitionGraph_213",
+        "graphPath": "AnimGraph.AnimGraphNode_StateMachine_58.LocomotioStateMachine.AnimStateTransitionNode_5.AnimationTransitionGraph_213",
+        "class": "/Script/AnimGraph.AnimationTransitionGraph",
+        "type": "unknown",
+        "nodeCount": 3
+      },
+      {
+        "name": "FPP_JumpEnd",
+        "graphPath": "AnimGraph.AnimGraphNode_StateMachine_58.LocomotioStateMachine.AnimStateNode_9.FPP_JumpEnd",
+        "class": "/Script/AnimGraph.AnimationStateGraph",
+        "type": "unknown",
+        "nodeCount": 2
+      },
+      {
+        "name": "AnimationTransitionGraph_214",
+        "graphPath": "AnimGraph.AnimGraphNode_StateMachine_58.LocomotioStateMachine.AnimStateTransitionNode_7.AnimationTransitionGraph_214",
+        "class": "/Script/AnimGraph.AnimationTransitionGraph",
+        "type": "unknown",
+        "nodeCount": 3
+      },
+      {
+        "name": "AnimationTransitionGraph_215",
+        "graphPath": "AnimGraph.AnimGraphNode_StateMachine_58.LocomotioStateMachine.AnimStateTransitionNode_9.AnimationTransitionGraph_215",
+        "class": "/Script/AnimGraph.AnimationTransitionGraph",
+        "type": "unknown",
+        "nodeCount": 3
+      },
+      {
+        "name": "FPP_Run",
+        "graphPath": "AnimGraph.AnimGraphNode_StateMachine_58.LocomotioStateMachine.AnimStateNode_2.FPP_Run",
+        "class": "/Script/AnimGraph.AnimationStateGraph",
+        "type": "unknown",
+        "nodeCount": 4
+      },
+      {
+        "name": "AnimationTransitionGraph_216",
+        "graphPath": "AnimGraph.AnimGraphNode_StateMachine_58.LocomotioStateMachine.AnimStateTransitionNode_2.AnimationTransitionGraph_216",
+        "class": "/Script/AnimGraph.AnimationTransitionGraph",
+        "type": "unknown",
+        "nodeCount": 2
+      },
+      {
+        "name": "AnimationTransitionGraph_217",
+        "graphPath": "AnimGraph.AnimGraphNode_StateMachine_58.LocomotioStateMachine.AnimStateTransitionNode_4.AnimationTransitionGraph_217",
+        "class": "/Script/AnimGraph.AnimationTransitionGraph",
+        "type": "unknown",
+        "nodeCount": 3
+      },
+      {
+        "name": "AnimationTransitionGraph_218",
+        "graphPath": "AnimGraph.AnimGraphNode_StateMachine_58.LocomotioStateMachine.AnimStateTransitionNode_6.AnimationTransitionGraph_218",
+        "class": "/Script/AnimGraph.AnimationTransitionGraph",
+        "type": "unknown",
+        "nodeCount": 2
+      },
+      {
+        "name": "AnimationTransitionGraph_219",
+        "graphPath": "AnimGraph.AnimGraphNode_StateMachine_58.LocomotioStateMachine.AnimStateTransitionNode_16.AnimationTransitionGraph_219",
+        "class": "/Script/AnimGraph.AnimationTransitionGraph",
+        "type": "unknown",
+        "nodeCount": 2
+      },
+      {
+        "name": "LocomotionEntry",
+        "graphPath": "AnimGraph.AnimGraphNode_StateMachine_58.LocomotioStateMachine.AnimStateConduitNode_0.LocomotionEntry",
+        "class": "/Script/AnimGraph.AnimationTransitionGraph",
+        "type": "unknown",
+        "nodeCount": 1
+      },
+      {
+        "name": "Transition",
+        "graphPath": "AnimGraph.AnimGraphNode_StateMachine_58.LocomotioStateMachine.AnimStateTransitionNode_0.Transition",
+        "class": "/Script/AnimGraph.AnimationTransitionGraph",
+        "type": "unknown",
+        "nodeCount": 2
+      },
+      {
+        "name": "Transition",
+        "graphPath": "AnimGraph.AnimGraphNode_StateMachine_58.LocomotioStateMachine.AnimStateTransitionNode_1.Transition",
+        "class": "/Script/AnimGraph.AnimationTransitionGraph",
+        "type": "unknown",
+        "nodeCount": 3
+      },
+      {
+        "name": "Transition",
+        "graphPath": "AnimGraph.AnimGraphNode_StateMachine_58.LocomotioStateMachine.AnimStateTransitionNode_3.Transition",
+        "class": "/Script/AnimGraph.AnimationTransitionGraph",
+        "type": "unknown",
+        "nodeCount": 3
+      },
+      {
+        "name": "WeaponAction",
+        "graphPath": "AnimGraph.AnimGraphNode_StateMachine_0.WeaponAction",
+        "class": "/Script/AnimGraph.AnimationStateMachineGraph",
+        "type": "unknown",
+        "nodeCount": 5
+      },
+      {
+        "name": "ArmedAim",
+        "graphPath": "AnimGraph.AnimGraphNode_StateMachine_0.WeaponAction.AnimStateNode_0.ArmedAim",
+        "class": "/Script/AnimGraph.AnimationStateGraph",
+        "type": "unknown",
+        "nodeCount": 6
+      },
+      {
+        "name": "RifleReady",
+        "graphPath": "AnimGraph.AnimGraphNode_StateMachine_0.WeaponAction.AnimStateNode_0.ArmedAim.AnimGraphNode_StateMachine_0.RifleReady",
+        "class": "/Script/AnimGraph.AnimationStateMachineGraph",
+        "type": "unknown",
+        "nodeCount": 10
+      },
+      {
+        "name": "ArmedAim",
+        "graphPath": "AnimGraph.AnimGraphNode_StateMachine_0.WeaponAction.AnimStateNode_0.ArmedAim.AnimGraphNode_StateMachine_0.RifleReady.AnimStateNode_0.ArmedAim",
+        "class": "/Script/AnimGraph.AnimationStateGraph",
+        "type": "unknown",
+        "nodeCount": 2
+      },
+      {
+        "name": "AimTransition",
+        "graphPath": "AnimGraph.AnimGraphNode_StateMachine_0.WeaponAction.AnimStateNode_0.ArmedAim.AnimGraphNode_StateMachine_0.RifleReady.AnimStateNode_1.AimTransition",
+        "class": "/Script/AnimGraph.AnimationStateGraph",
+        "type": "unknown",
+        "nodeCount": 5
+      },
+      {
+        "name": "LowReady",
+        "graphPath": "AnimGraph.AnimGraphNode_StateMachine_0.WeaponAction.AnimStateNode_0.ArmedAim.AnimGraphNode_StateMachine_0.RifleReady.AnimStateNode_2.LowReady",
+        "class": "/Script/AnimGraph.AnimationStateGraph",
+        "type": "unknown",
+        "nodeCount": 2
+      },
+      {
+        "name": "Transition",
+        "graphPath": "AnimGraph.AnimGraphNode_StateMachine_0.WeaponAction.AnimStateNode_0.ArmedAim.AnimGraphNode_StateMachine_0.RifleReady.AnimStateTransitionNode_0.Transition",
+        "class": "/Script/AnimGraph.AnimationTransitionGraph",
+        "type": "unknown",
+        "nodeCount": 2
+      },
+      {
+        "name": "Transition",
+        "graphPath": "AnimGraph.AnimGraphNode_StateMachine_0.WeaponAction.AnimStateNode_0.ArmedAim.AnimGraphNode_StateMachine_0.RifleReady.AnimStateTransitionNode_1.Transition",
+        "class": "/Script/AnimGraph.AnimationTransitionGraph",
+        "type": "unknown",
+        "nodeCount": 2
+      },
+      {
+        "name": "Transition",
+        "graphPath": "AnimGraph.AnimGraphNode_StateMachine_0.WeaponAction.AnimStateNode_0.ArmedAim.AnimGraphNode_StateMachine_0.RifleReady.AnimStateTransitionNode_2.Transition",
+        "class": "/Script/AnimGraph.AnimationTransitionGraph",
+        "type": "unknown",
+        "nodeCount": 2
+      },
+      {
+        "name": "Transition",
+        "graphPath": "AnimGraph.AnimGraphNode_StateMachine_0.WeaponAction.AnimStateNode_0.ArmedAim.AnimGraphNode_StateMachine_0.RifleReady.AnimStateTransitionNode_3.Transition",
+        "class": "/Script/AnimGraph.AnimationTransitionGraph",
+        "type": "unknown",
+        "nodeCount": 2
+      },
+      {
+        "name": "Transition",
+        "graphPath": "AnimGraph.AnimGraphNode_StateMachine_0.WeaponAction.AnimStateNode_0.ArmedAim.AnimGraphNode_StateMachine_0.RifleReady.AnimStateTransitionNode_4.Transition",
+        "class": "/Script/AnimGraph.AnimationTransitionGraph",
+        "type": "unknown",
+        "nodeCount": 2
+      },
+      {
+        "name": "Transition",
+        "graphPath": "AnimGraph.AnimGraphNode_StateMachine_0.WeaponAction.AnimStateNode_0.ArmedAim.AnimGraphNode_StateMachine_0.RifleReady.AnimStateTransitionNode_5.Transition",
+        "class": "/Script/AnimGraph.AnimationTransitionGraph",
+        "type": "unknown",
+        "nodeCount": 2
+      },
+      {
+        "name": "Reload",
+        "graphPath": "AnimGraph.AnimGraphNode_StateMachine_0.WeaponAction.AnimStateNode_1.Reload",
+        "class": "/Script/AnimGraph.AnimationStateGraph",
+        "type": "unknown",
+        "nodeCount": 13
+      },
+      {
+        "name": "Transition",
+        "graphPath": "AnimGraph.AnimGraphNode_StateMachine_0.WeaponAction.AnimStateTransitionNode_0.Transition",
+        "class": "/Script/AnimGraph.AnimationTransitionGraph",
+        "type": "unknown",
+        "nodeCount": 5
+      },
+      {
+        "name": "Transition",
+        "graphPath": "AnimGraph.AnimGraphNode_StateMachine_0.WeaponAction.AnimStateTransitionNode_1.Transition",
+        "class": "/Script/AnimGraph.AnimationTransitionGraph",
+        "type": "unknown",
+        "nodeCount": 5
+      },
+      {
+        "name": "EventGraph",
+        "graphPath": "EventGraph",
+        "class": "/Script/Engine.EdGraph",
+        "type": "event",
+        "nodeCount": 13
+      }
+    ]
+  },
+  "characterInput": {
+    "path": "/Game/Shooter/Blueprints/Characters/BP_ShooterCharacter.BP_ShooterCharacter",
+    "nodes": [
+      {
+        "id": "03E07AA5-436B-17E2-7829-A7A06EDEAA7C",
+        "name": "K2Node_InputKey_2",
+        "title": "K",
+        "class": "/Script/BlueprintGraph.K2Node_InputKey",
+        "x": 0,
+        "y": 480,
+        "comment": "临时 Rifle 动画切换：本地表现，可在过渡中反向；不改变 Gameplay。",
+        "pins": [
+          {
+            "id": "1F7A73D9-4826-0940-1A12-ACAC35D5B782",
+            "name": "Pressed",
+            "direction": "output",
+            "category": "exec",
+            "subCategory": "None",
+            "container": "none",
+            "isReference": false,
+            "isConst": false,
+            "defaultValue": "",
+            "defaultText": "",
+            "links": [
+              {
+                "nodeId": "5F19865F-4435-C73A-9B4F-26BA43421953",
+                "nodeName": "K2Node_CallFunction_28",
+                "pinName": "execute"
+              }
+            ]
+          },
+          {
+            "id": "C1BC0115-439A-4879-EE35-2793F1A7F40E",
+            "name": "Released",
+            "direction": "output",
+            "category": "exec",
+            "subCategory": "None",
+            "container": "none",
+            "isReference": false,
+            "isConst": false,
+            "defaultValue": "",
+            "defaultText": "",
+            "links": []
+          },
+          {
+            "id": "D9F5E71A-459A-D209-CC9D-80BDFED3F90E",
+            "name": "Key",
+            "direction": "output",
+            "category": "struct",
+            "subCategory": "None",
+            "container": "none",
+            "isReference": false,
+            "isConst": false,
+            "defaultValue": "",
+            "defaultText": "",
+            "typeObject": "/Script/InputCore.Key",
+            "links": []
+          }
+        ]
+      },
+      {
+        "id": "7C4A8189-47C7-FE4B-E38F-25A0C8CAA90D",
+        "name": "K2Node_Self_2",
+        "title": "Self-Reference",
+        "class": "/Script/BlueprintGraph.K2Node_Self",
+        "x": 240,
+        "y": 650,
+        "comment": "",
+        "pins": [
+          {
+            "id": "6AA0F2F0-469E-CD6D-6DB0-5EBFC723A711",
+            "name": "self",
+            "direction": "output",
+            "category": "object",
+            "subCategory": "self",
+            "container": "none",
+            "isReference": false,
+            "isConst": false,
+            "defaultValue": "",
+            "defaultText": "",
+            "links": [
+              {
+                "nodeId": "5F19865F-4435-C73A-9B4F-26BA43421953",
+                "nodeName": "K2Node_CallFunction_28",
+                "pinName": "Pawn"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "5F19865F-4435-C73A-9B4F-26BA43421953",
+        "name": "K2Node_CallFunction_28",
+        "title": "ToggleDebugRifleLowReady",
+        "class": "/Script/BlueprintGraph.K2Node_CallFunction",
+        "x": 520,
+        "y": 480,
+        "comment": "",
+        "pins": [
+          {
+            "id": "3E85FD23-4644-CD78-CA04-628A0B33A1E3",
+            "name": "execute",
+            "direction": "input",
+            "category": "exec",
+            "subCategory": "None",
+            "container": "none",
+            "isReference": false,
+            "isConst": false,
+            "defaultValue": "",
+            "defaultText": "",
+            "links": [
+              {
+                "nodeId": "03E07AA5-436B-17E2-7829-A7A06EDEAA7C",
+                "nodeName": "K2Node_InputKey_2",
+                "pinName": "Pressed"
+              }
+            ]
+          },
+          {
+            "id": "EACBD2B3-48C4-306F-0DDB-E486BAD0F7E6",
+            "name": "then",
+            "direction": "output",
+            "category": "exec",
+            "subCategory": "None",
+            "container": "none",
+            "isReference": false,
+            "isConst": false,
+            "defaultValue": "",
+            "defaultText": "",
+            "links": []
+          },
+          {
+            "id": "BF205CD9-4396-4D71-7D1D-C19800D802E9",
+            "name": "self",
+            "direction": "input",
+            "category": "object",
+            "subCategory": "None",
+            "container": "none",
+            "isReference": false,
+            "isConst": false,
+            "defaultValue": "",
+            "defaultText": "",
+            "typeObject": "/Script/ShootGame.ShooterThirdPersonAnimInstance",
+            "defaultObject": "/Script/ShootGame.Default__ShooterThirdPersonAnimInstance",
+            "links": []
+          },
+          {
+            "id": "E820AD0C-4862-1F46-E70C-56B944799B23",
+            "name": "Pawn",
+            "direction": "input",
+            "category": "object",
+            "subCategory": "None",
+            "container": "none",
+            "isReference": false,
+            "isConst": false,
+            "defaultValue": "",
+            "defaultText": "",
+            "typeObject": "/Script/Engine.Pawn",
+            "links": [
+              {
+                "nodeId": "7C4A8189-47C7-FE4B-E38F-25A0C8CAA90D",
+                "nodeName": "K2Node_Self_2",
+                "pinName": "self"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "meshDefaults": {
+    "blueprintPath": "/Game/Shooter/Blueprints/Characters/BP_ShooterCharacter.BP_ShooterCharacter",
+    "source": "blueprint_component_template",
+    "objectPath": "/Game/Shooter/Blueprints/Characters/BP_ShooterCharacter.Default__BP_ShooterCharacter_C:CharacterMesh0",
+    "found": true,
+    "packageDirty": false,
+    "components": [
+      "AimPresentationComponent",
+      "Arrow",
+      "CharacterMesh0",
+      "CharMoveComp",
+      "CollisionCylinder",
+      "Death Camera",
+      "EquipmentComponent",
+      "First Person Camera",
+      "First Person Mesh",
+      "InventoryComponent",
+      "Pawn Noise Emitter",
+      "SpringArm"
+    ],
+    "properties": [
+      {
+        "name": "AnimClass",
+        "type": "TSubclassOf<UAnimInstance>",
+        "valueText": "/Script/Engine.AnimBlueprintGeneratedClass'/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player_C'"
+      }
+    ]
+  }
+}

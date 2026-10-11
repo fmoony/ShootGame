@@ -1,0 +1,7 @@
+{
+  "operation": "import",
+  "fbx": "D:/Unreal_Projects/ShootGame/Scripts/Animation/RifleTools/Inputs/Down30.fbx",
+  "destination": "/Game/Experiments/RifleTransition/Edit_New",
+  "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin",
+  "output_json": "D:/Unreal_Projects/ShootGame/Saved/RifleTools/Import_New.json"
+}

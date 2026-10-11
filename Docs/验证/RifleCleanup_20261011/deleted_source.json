@@ -1,0 +1,8 @@
+[
+  "Source/ShootGameEditor/Tests/BlenderRifle/ShooterRifleSoftGripCommandlet.cpp",
+  "Source/ShootGameEditor/Tests/BlenderRifle/ShooterRifleSoftGripCommandlet.h",
+  "Source/ShootGameEditor/Tests/BlenderRifle/ShooterRifleDownPitchCommandlet.cpp",
+  "Source/ShootGameEditor/Tests/BlenderRifle/ShooterRifleDownPitchCommandlet.h",
+  "Source/ShootGameEditor/Tests/RifleTransition/ShooterRifleTransitionTestCommandlet.cpp",
+  "Source/ShootGameEditor/Tests/RifleTransition/ShooterRifleTransitionTestCommandlet.h"
+]

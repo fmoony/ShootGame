@@ -1,0 +1,280 @@
+# ShootGame — Rifle 俯仰姿态来源与 Blend Mask 可行性专项审查
+
+## 一、任务目标
+
+本轮仅进行只读审查，回答两个问题：
+
+**Q1：现有 AO_Rifle 在不同俯仰角下，实际通过哪些骨骼形成自然的上半身、颈部和头部姿态？**
+
+**Q2：能否借鉴现有 Reload 的 Blend Mask 机制，在 AimTransition / LowReady 中保留适量自然俯仰，同时尽量维持 Mixamo 提供的低位持枪动作及枪械姿态？**
+
+本轮不实施、不修改、不保存任何生产或测试资产。
+
+## 二、必须核对的项目事实
+
+首先读取以下实际资产及其连接关系：
+
+- `ABP_TP_Player`
+- `ABP_TP_RifleTransition_Test`
+- `AO_Rifle`
+- `MF_Rifle_Idle_ADS`
+- `ArmedAimPose`
+- `RifleReloadWeightedUpperBody`
+- Reload 对应的 Layered Blend per Bone 节点
+- `MM_Rifle_AimToLowReady`
+- `MM_Rifle_LowReady`
+- 外层 Spine_01 Layered Bone Blend
+
+同时参考已经完成的两份报告：
+
+1. 《Rifle 上半身分层与 AimTransition 混合机制专项审查》
+2. 《Rifle 方案 A 隔离原型运行时验证》
+
+以实际编辑器资产、AnimGraph 节点配置、Skeleton 骨骼层级及 UE5.6.1 实现为准。
+
+此前方案 A 已验证三态状态机、单 Sequence Player 正反向播放及中途反转，本轮不重复审查这些机制。
+
+## 三、Q1：AO_Rifle 的人体俯仰究竟由哪些骨骼产生？
+
+### 1. 核查实际姿态来源
+
+检查 ArmedAimPose 的完整求值链：
+
+- Hold Sequence。
+- AO_Rifle。
+- AO 输入参数、采样位置和混合方式。
+- Save Cached Pose。
+- 后续 Layered Bone Blend。
+
+不能只读取单个 AO 采样动画，就将其称为真实 ArmedAimPose。
+
+需要特别回答：
+
+1. `AO_Rifle` 实际影响哪些 spine、neck、head 骨骼？
+2. 腰部、胸部、颈部、头部分别承担了多少俯仰变化？
+3. 头部俯仰主要来自自身局部旋转，还是来自父级脊柱的累计旋转？
+4. 上仰和下俯的骨骼贡献是否对称？
+5. 是否存在某些头颈骨骼几乎没有局部变化，但组件空间朝向变化明显的情况？
+
+### 2. 量化自然俯仰的骨骼来源
+
+优先使用已有运行时取证数据。
+
+选择：
+
+- -60°
+- -30°
+- 0°
+- +30°
+- +60°
+
+以平视的真实 ArmedAimPose 为参考，比较不同俯仰下各骨骼的 Local Rotation 和 Component Space Rotation。
+
+重点骨骼：
+
+- spine_01～spine_05
+- neck_01
+- head
+
+必要时增加 clavicle，但本轮不重新分析整条手臂 IK。
+
+请尽量给出实际测量表，区分：
+
+- 骨骼自身旋转变化。
+- 父级骨骼带来的累计变化。
+- 最终头部组件空间朝向。
+
+不能直接把多个局部 Euler 角相加当作最终头部旋转。
+
+如果现有 CSV 没有真正的 P0 数据，请明确指出缺失条件。不得使用静态动画样本冒充运行时输出，也不必为了填满表格而开发新的诊断工具。
+
+### 3. 得出明确结论
+
+回答：
+
+**保留自然头部俯仰，究竟需要保留 AO_Rifle 中哪些骨骼的姿态贡献？**
+
+不要预设 Head-only Mask 一定合理。
+
+也不要预设必须覆盖全部脊柱。
+
+结论必须来自真实动画与骨骼层级。
+
+---
+
+## 四、Q2：能否通过额外 Blend Mask 保留俯仰与收枪动作？
+
+### 1. 审查现有 Reload 分层方式
+
+读取 `RifleReloadWeightedUpperBody` 的实际内容及使用位置。
+
+明确：
+
+1. 该 Mask 在哪些骨骼上设置了权重？
+2. Base Pose 与 Blend Pose 分别是什么？
+3. 混合节点使用 Local Space 还是 Mesh Space Rotation Blend？
+4. Mask 是否保留了部分 ArmedAimPose 姿态？
+5. 它如何与现有 WeaponAction、Arms Slot 和外层 Spine_01 分层配合？
+6. 哪些机制可以复用到 LowReady，哪些不适合直接复用？
+
+不得修改原有 Reload Mask。
+
+### 2. 审查新混合方案
+
+预期结构：
+```sql
+现有 WeaponAction 状态机
+    │
+    ├── ArmedAim
+    ├── AimTransition
+    └── LowReady
+            │
+            ▼
+      动作主体姿态
+            │
+            ├─────────────────────┐
+            │                     │
+            │              ArmedAimPose
+            │              动态 Hold + AO
+            │                     │
+            ▼                     ▼
+          Layered Blend per Bone
+               新 Blend Mask
+                    │
+                    ▼
+              Arms Slot
+                    │
+                    ▼
+             原有外层分层
+```
+
+这只是候选结构。
+
+请根据真实 AnimGraph 判断节点应放在哪里，是否需要调整此图，不要机械照搬。
+
+目标：
+
+- 枪械保持 Mixamo 的低位姿态。
+- 双臂尽量保留 Mixamo 收枪动作。
+- 头部继续随玩家实时视角发生自然的俯仰变化。
+- 必要时保留少量腰部、胸部的俯仰贡献。
+- ArmedAim 本身保持完全不变。
+- 保留现有方案 A 状态机。
+
+重点审查：
+
+**A. 骨骼遮罩范围**
+
+依据 Q1 的结果，判断合理的骨骼范围及权重变化趋势。
+
+不能直接给 neck/head 100%、spine 0% 这样的未经验证配置。
+
+**B. Mesh Space Rotation Blend**
+
+如果胸椎采用 Mixamo，而头颈采用 ArmedAim，最终组件空间头部朝向会怎样？
+
+是否存在边界补偿、颈部扭曲或混合不连续？
+
+**C. 枪械稳定性**
+
+脊柱和肩部存在父子层级关系，保留脊柱俯仰可能改变手部与枪械的位置。
+
+请判断：
+
+- 哪些遮罩权重可能明显带动枪械？
+- 是否能够保持身体轻微俯仰，同时让手臂主要使用 Mixamo 姿态？
+- Mesh Space Rotation Blend 能解决哪些旋转问题，不能解决哪些位置问题？
+- 是否存在只依靠一个 Blend Mask 就无法同时满足的约束？
+
+**D. ArmedAimPose 不是纯 AimOffset**
+
+直接混合 ArmedAimPose 会同时带入 Hold 基础姿态。
+
+请分析这是否会使新的脊柱/头颈混合包含不需要的基础姿态差异。
+
+如果可以从现有动画数据提取真正的俯仰增量，请说明与直接姿态混合的区别，但不要因此引入新的生产架构。
+
+**E. 状态机与过渡衔接**
+
+新增混合必须保证：
+
+- ArmedAim 保持原有输出。
+- AimTransition 正反向功能不变。
+- LowReady 可以持续使用动态俯仰来源。
+- 返回 ArmedAim 时不会重复混合相同姿态。
+- 不额外改变 Reload 和 Fire 的现有输出。
+
+请重点指出混合权重在状态边界的连续性要求。
+
+## 五、明确排除的范围
+
+本轮不讨论：
+
+- Aim IK 的启停或 Alpha。
+- LeftHand IK 的位置、旋转分离。
+- 左手握点误差修复。
+- 程序化 PitchNormalize。
+- 新增 PitchNormalize 状态。
+- 重新制作 Mixamo 动画。
+- Gameplay、GAS 或开火条件。
+- 完整第一人称相机修正。
+- 方案 A/C 的重新比较。
+
+这些问题留到后续。
+
+若发现有关联，只需简要记录依赖，不展开实施设计。
+
+禁止修改现有 AnimBP、Blend Mask、动画资源及生产代码。
+
+禁止提交或推送。
+
+## 六、输出要求
+
+请严格控制报告范围，只输出三部分。
+
+### 1. AO_Rifle 俯仰骨骼分析
+
+说明各脊柱、颈部、头部骨骼的实际贡献。
+
+提供可获得的测量数据，标注无法确认的部分。
+
+最终回答：自然头部俯仰主要由哪些骨骼共同实现？
+
+### 2. Blend Mask 可行性与推荐结构
+
+基于现有 Reload 的真实实现，给出：
+
+- 推荐的新增混合节点位置。
+- Base Pose 与 Blend Pose。
+- 推荐 Mask 骨骼范围。
+- 各区域权重建议及依据。
+- Mesh Space Rotation Blend 的必要性和风险。
+- 对枪械姿态、头部朝向、状态切换的影响。
+
+给出一张与实际蓝图相符的候选 AnimGraph 结构图。
+
+若存在多个实现，优先推荐最小侵入方案，不要扩大成完整架构选型。
+
+### 3. 最小实验建议
+
+只回答：
+
+**下一轮在现有隔离 AnimBP 中，最少增加哪些节点与测试参数，才能验证新 Blend Mask 是否真的达到“自然俯仰 + 固定低位枪械”的效果？**
+
+建议对比 0°、±30°、±60° 的头部组件空间朝向、枪械姿态，以及不同状态间是否出现明显跳变。
+
+不要在本轮执行实验。
+
+---
+
+## 最终约束
+
+本轮的核心不是重新设计一套瞄准系统，而是验证：
+
+**能否利用现有 AO_Rifle 动画已经提供的自然人体俯仰，通过合理的骨骼遮罩，部分保留到 AimTransition 和 LowReady，同时尽量不影响 Mixamo 的主体收枪动作。**
+
+保留原生状态机。
+
+保护 ArmedAim 和 Reload。
+
+只读审查完成后停止，等待进一步授权。

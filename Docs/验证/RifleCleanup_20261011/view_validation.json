@@ -1,0 +1,118 @@
+{
+  "status": "Passed",
+  "map": "/Game/Experiments/RifleTransition/Segmented50_20261011/L_RifleSegmented_LowToReady",
+  "capture_count": 10,
+  "shots": [
+    {
+      "name": "pitch-50_mask0_ArmedAim",
+      "manual_frame": 59,
+      "states_time_rate": [
+        "ArmedAim,0.000000000,1.000",
+        "ArmedAim,0.000000000,1.000"
+      ],
+      "segment": "/Game/Experiments/RifleTransition/Blender_20261011/CorrectedGrip/MM_Rifle_AimToLowReady.MM_Rifle_AimToLowReady | selected at 0.000 | now -50.000 | time 0.000000 | rate 1.0"
+    },
+    {
+      "name": "pitch-50_mask0_EarlyFoldComparison",
+      "manual_frame": 65,
+      "states_time_rate": [
+        "AimTransition,0.083333336,1.000",
+        "AimTransition,0.083333336,1.000"
+      ],
+      "segment": "/Game/Experiments/RifleTransition/DownPitch_20261011/Down30/MM_Rifle_AimToLowReady.MM_Rifle_AimToLowReady | selected at -50.000 | now -50.000 | time 0.083333 | rate 1.0"
+    },
+    {
+      "name": "pitch-50_mask0_Middle",
+      "manual_frame": 85,
+      "states_time_rate": [
+        "AimTransition,0.416666806,1.000",
+        "AimTransition,0.416666806,1.000"
+      ],
+      "segment": "/Game/Experiments/RifleTransition/DownPitch_20261011/Down30/MM_Rifle_AimToLowReady.MM_Rifle_AimToLowReady | selected at -50.000 | now -50.000 | time 0.416667 | rate 1.0"
+    },
+    {
+      "name": "pitch-50_mask0_LowReady",
+      "manual_frame": 139,
+      "states_time_rate": [
+        "LowReady,0.833333313,1.000",
+        "LowReady,0.833333313,1.000"
+      ],
+      "segment": "/Game/Experiments/RifleTransition/DownPitch_20261011/Down30/MM_Rifle_AimToLowReady.MM_Rifle_AimToLowReady | selected at -50.000 | now -50.000 | time 0.833333 | rate 1.0"
+    },
+    {
+      "name": "pitch-50_mask0_ReverseMiddle",
+      "manual_frame": 180,
+      "states_time_rate": [
+        "AimTransition,0.166666761,-1.000",
+        "AimTransition,0.166666761,-1.000"
+      ],
+      "segment": "/Game/Experiments/RifleTransition/DownPitch_20261011/Down30/MM_Rifle_AimToLowReady.MM_Rifle_AimToLowReady | selected at -50.000 | now -50.000 | time 0.166667 | rate -1.0"
+    },
+    {
+      "name": "pitch-50.01_mask0_ArmedAim",
+      "manual_frame": 279,
+      "states_time_rate": [
+        "ArmedAim,0.000000000,-1.000",
+        "ArmedAim,0.000000000,-1.000"
+      ],
+      "segment": "/Game/Experiments/RifleTransition/DownPitch_20261011/Down30/MM_Rifle_AimToLowReady.MM_Rifle_AimToLowReady | selected at -50.000 | now -50.010 | time 0.000000 | rate -1.0"
+    },
+    {
+      "name": "pitch-50.01_mask0_EarlyFoldComparison",
+      "manual_frame": 285,
+      "states_time_rate": [
+        "AimTransition,0.083333336,1.000",
+        "AimTransition,0.083333336,1.000"
+      ],
+      "segment": "/Game/Experiments/RifleTransition/DownPitch_20261011/Down60/MM_Rifle_AimToLowReady.MM_Rifle_AimToLowReady | selected at -50.010 | now -50.010 | time 0.083333 | rate 1.0"
+    },
+    {
+      "name": "pitch-50.01_mask0_Middle",
+      "manual_frame": 305,
+      "states_time_rate": [
+        "AimTransition,0.416666806,1.000",
+        "AimTransition,0.416666806,1.000"
+      ],
+      "segment": "/Game/Experiments/RifleTransition/DownPitch_20261011/Down60/MM_Rifle_AimToLowReady.MM_Rifle_AimToLowReady | selected at -50.010 | now -50.010 | time 0.416667 | rate 1.0"
+    },
+    {
+      "name": "pitch-50.01_mask0_LowReady",
+      "manual_frame": 359,
+      "states_time_rate": [
+        "LowReady,0.833333313,1.000",
+        "LowReady,0.833333313,1.000"
+      ],
+      "segment": "/Game/Experiments/RifleTransition/DownPitch_20261011/Down60/MM_Rifle_AimToLowReady.MM_Rifle_AimToLowReady | selected at -50.010 | now -50.010 | time 0.833333 | rate 1.0"
+    },
+    {
+      "name": "pitch-50.01_mask0_ReverseMiddle",
+      "manual_frame": 400,
+      "states_time_rate": [
+        "AimTransition,0.166666761,-1.000",
+        "AimTransition,0.166666761,-1.000"
+      ],
+      "segment": "/Game/Experiments/RifleTransition/DownPitch_20261011/Down60/MM_Rifle_AimToLowReady.MM_Rifle_AimToLowReady | selected at -50.010 | now -50.010 | time 0.166667 | rate -1.0"
+    }
+  ],
+  "actors": [
+    {
+      "actor": "Original CorrectedGrip - IK off - Mask 0",
+      "states": [
+        "AimTransition",
+        "ArmedAim",
+        "LowReady"
+      ],
+      "reverse_seen": true
+    },
+    {
+      "actor": "Segmented50 LowToReady - IK off - Mask 0",
+      "states": [
+        "AimTransition",
+        "ArmedAim",
+        "LowReady"
+      ],
+      "reverse_seen": true
+    }
+  ],
+  "temporary_screenshots": "removed after validation at user request"
+}

@@ -1,0 +1,50 @@
+[
+  {
+    "source": "Saved/BlenderRifleExperiment_20261011/RifleAimToLowReady_Corrected_Grip.blend",
+    "retained": "Scripts/Animation/RifleTools/Inputs/CorrectedGrip.blend",
+    "sha256": "9b90b04c7d57cb16b341149f353d222ab21c116efb8982b1e9f93dde635068b2",
+    "bytes": 2509588
+  },
+  {
+    "source": "Saved/BlenderRifleExperiment_20261011/RifleAimToLowReady_Corrected_Grip.fbx",
+    "retained": "Scripts/Animation/RifleTools/Inputs/CorrectedGrip.fbx",
+    "sha256": "dd5b45b8c18291a3eb5fb60c23aaa38961739b4457403a150cec021e83ad7566",
+    "bytes": 724124
+  },
+  {
+    "source": "Saved/RifleDownPitch_20261011/RifleAimToLowReady_Down30.blend",
+    "retained": "Scripts/Animation/RifleTools/Inputs/Down30.blend",
+    "sha256": "8627477434a92101fdb9761be37ffdb8dd3ad025c0c954c024ded5925d756b52",
+    "bytes": 2509588
+  },
+  {
+    "source": "Saved/RifleDownPitch_20261011/RifleAimToLowReady_Down30.fbx",
+    "retained": "Scripts/Animation/RifleTools/Inputs/Down30.fbx",
+    "sha256": "401eb7c327f5772262802bdc37f9ce29df0ddad3be8738ee111a93a326940593",
+    "bytes": 724108
+  },
+  {
+    "source": "Saved/RifleDownPitch_20261011/RifleAimToLowReady_Down60.blend",
+    "retained": "Scripts/Animation/RifleTools/Inputs/Down60.blend",
+    "sha256": "e041a749c00a19be02f0cb24fa55835ea86e7c2d8b21039d5c856945a13fdbf5",
+    "bytes": 2509588
+  },
+  {
+    "source": "Saved/RifleDownPitch_20261011/RifleAimToLowReady_Down60.fbx",
+    "retained": "Scripts/Animation/RifleTools/Inputs/Down60.fbx",
+    "sha256": "5ca056d4cbde1c6989ae73760583419ca163c4b991814c71843cd65015d823d6",
+    "bytes": 724108
+  },
+  {
+    "source": "Saved/RifleDownPitch_20261011/sources.json",
+    "retained": "Scripts/Animation/RifleTools/Inputs/sources.json",
+    "sha256": "bafb12ed66fe4b17639901869b65a3a8cd0322ce59a7eb96b6a0cb9ee788efaa",
+    "bytes": 9614777
+  },
+  {
+    "source": "Saved/RifleDownPitch_20261011/baseline_analysis.json",
+    "retained": "Scripts/Animation/RifleTools/Inputs/reference.json",
+    "sha256": "5f782cc8b6f471678460e2bb18edd118b7ba0286569ed0866b656fe294789611",
+    "bytes": 1116947
+  }
+]

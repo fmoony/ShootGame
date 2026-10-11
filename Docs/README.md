@@ -51,6 +51,9 @@
 
 ## 验证与工程操作
 
+- [Blender 动画编辑工具链](Blender动画编辑工具链.md)：后台 bpy、FBX 与分段 LowToReady 隔离方案。
+- [Rifle 收枪动画表现](Rifle收枪动画表现.md)：正式动画资源、临时 K 键与接入边界。
+- [Rifle 动画验证索引](验证/README.md)：历史实验报告位置、当前证据与迁移说明。
 - [自动化测试](自动化测试.md)。
 - [Agent 自动化验证操作手册](Agent自动化验证操作手册.md)。
 - [Visual Studio 项目同步](VisualStudio项目同步.md)。

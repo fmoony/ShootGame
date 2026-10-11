@@ -1,0 +1,17 @@
+{
+  "baseline_files": 1122,
+  "changed_existing": [
+    "Source/ShootGameEditor/Tests/BlenderRifle/ShooterRifleSegmentedCommandlet.cpp",
+    "Source/ShootGameEditor/Tests/BlenderRifle/ShooterRifleSegmentedCommandlet.h",
+    "Scripts/Animation/RifleTools/analyze_segmented.py",
+    "Scripts/Animation/RifleTools/Run.ps1",
+    "Docs/Blender动画编辑工具链.md",
+    "Docs/验证/README.md"
+  ],
+  "unexpected": [],
+  "screenshot_count": 25,
+  "new_asset_files": [
+    "Content/Experiments/RifleTransition/Segmented50_20261011/ABP_RifleSegmented_LowToReady.uasset",
+    "Content/Experiments/RifleTransition/Segmented50_20261011/L_RifleSegmented_LowToReady.umap"
+  ]
+}

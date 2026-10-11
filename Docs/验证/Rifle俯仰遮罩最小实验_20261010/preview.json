@@ -1,0 +1,9 @@
+{
+  "map_saved": true,
+  "mask_exported": true,
+  "strength": 1.0,
+  "ik_flag": false,
+  "pitch": 0.0,
+  "goal": "<RifleTransitionTestGoal.ARMED_AIM: 0>",
+  "scope": "only existing experiment map; preserve actor goal/pitch and all production assets"
+}

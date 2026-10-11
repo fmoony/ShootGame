@@ -1,0 +1,52 @@
+[
+  {
+    "source": "D:\\Unreal_Projects\\ShootGame\\Docs\\Blender工具链与Rifle动画修正实验_20261011.md",
+    "destination": "D:\\Unreal_Projects\\ShootGame\\Docs\\验证\\BlenderRifle_20261011\\Blender工具链与Rifle动画修正实验_20261011.md",
+    "sha256": "531ee92ad4186b2f7077777c2a4faeeff89655ff694b813dcd664a4a5109933e"
+  },
+  {
+    "source": "D:\\Unreal_Projects\\ShootGame\\Docs\\Rifle上半身分层与AimTransition专项审查_20261010.md",
+    "destination": "D:\\Unreal_Projects\\ShootGame\\Docs\\验证\\RifleLayering_20261010\\Rifle上半身分层与AimTransition专项审查_20261010.md",
+    "sha256": "e3405468d7f8d950bc386501e01a564050460e5ae321c6b60f6a37e556eb2e89"
+  },
+  {
+    "source": "D:\\Unreal_Projects\\ShootGame\\Docs\\Rifle俯仰姿态与BlendMask可行性专项审查_20261010.md",
+    "destination": "D:\\Unreal_Projects\\ShootGame\\Docs\\验证\\Rifle俯仰与BlendMask_20261010\\Rifle俯仰姿态与BlendMask可行性专项审查_20261010.md",
+    "sha256": "8defd957ce5dfcd9ac43987d584e917205d42262f526f0e1c97791b2bd7ac52d"
+  },
+  {
+    "source": "D:\\Unreal_Projects\\ShootGame\\Docs\\Rifle俯仰遮罩最小实验实施与验证_20261010.md",
+    "destination": "D:\\Unreal_Projects\\ShootGame\\Docs\\验证\\Rifle俯仰遮罩最小实验_20261010\\Rifle俯仰遮罩最小实验实施与验证_20261010.md",
+    "sha256": "4ef6f5eedaf07d0a4fd6c8b6fb89b1cf768e90bb9b49f7cac46f09d4bdc46550"
+  },
+  {
+    "source": "D:\\Unreal_Projects\\ShootGame\\Docs\\Rifle实验视角继承正式角色对齐_20261010.md",
+    "destination": "D:\\Unreal_Projects\\ShootGame\\Docs\\验证\\Rifle实验视角继承对齐_20261010\\Rifle实验视角继承正式角色对齐_20261010.md",
+    "sha256": "a0583c4e5b4fc8dd9c98cf12dcc21d738da051fa842e3de5822927c4faca10e2"
+  },
+  {
+    "source": "D:\\Unreal_Projects\\ShootGame\\Docs\\Rifle左臂自然运动与握点软约束校准_20261011.md",
+    "destination": "D:\\Unreal_Projects\\ShootGame\\Docs\\验证\\RifleSoftGrip_20261011\\Rifle左臂自然运动与握点软约束校准_20261011.md",
+    "sha256": "e6dac63cda9c9a5fbaaf219ddf15962a3b994b3043e20126a6c0caaf970842d6"
+  },
+  {
+    "source": "D:\\Unreal_Projects\\ShootGame\\Docs\\Rifle新动画与WeaponAction预审查_20261010.md",
+    "destination": "D:\\Unreal_Projects\\ShootGame\\Docs\\验证\\RifleWeaponAction_20261010\\Rifle新动画与WeaponAction预审查_20261010.md",
+    "sha256": "5c7d79af24aa3e26df13546579810eb637af68142f3df4e2a2b2c1b84583b242"
+  },
+  {
+    "source": "D:\\Unreal_Projects\\ShootGame\\Docs\\Rifle方案A隔离原型运行时验证_20261010.md",
+    "destination": "D:\\Unreal_Projects\\ShootGame\\Docs\\验证\\Rifle方案A隔离原型_20261010\\Rifle方案A隔离原型运行时验证_20261010.md",
+    "sha256": "a591e3ba19fd5dc59850a4e639d8b5f274d0d88516a53b0eea138fa990fa6dcb"
+  },
+  {
+    "source": "D:\\Unreal_Projects\\ShootGame\\Docs\\Rifle第一人称可附身调试蓝图_20261010.md",
+    "destination": "D:\\Unreal_Projects\\ShootGame\\Docs\\验证\\Rifle第一人称调试蓝图_20261010\\Rifle第一人称可附身调试蓝图_20261010.md",
+    "sha256": "177340d826a82476d3396d1708673f71f3e879fa1e0f79fb86a8ae1f8038d3a0"
+  },
+  {
+    "source": "D:\\Unreal_Projects\\ShootGame\\Docs\\Rifle负俯仰专用收枪动画制作与隔离验证_20261011.md",
+    "destination": "D:\\Unreal_Projects\\ShootGame\\Docs\\验证\\RifleDownPitch_20261011\\Rifle负俯仰专用收枪动画制作与隔离验证_20261011.md",
+    "sha256": "f2040d81a38221a94c67ebb612dad416efa4f05497eb33adfbb8d848cc7585e0"
+  }
+]

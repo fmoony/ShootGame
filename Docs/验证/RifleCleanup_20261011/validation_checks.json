@@ -1,0 +1,10 @@
+{
+  "blender_replay": "Down30 / Down60 exported from retained Inputs",
+  "diff_check": "Passed",
+  "source_includes": "Passed",
+  "layout": "Passed; 8 scoped files; zero warnings",
+  "build": "Passed final Editor build",
+  "runtime": "126 cases / 32760 frames; zero violations",
+  "temporary_outputs": "Removed after summarized evidence was retained",
+  "map": "One map; 10 finite viewport captures; three states and reverse playback"
+}

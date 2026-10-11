@@ -1,0 +1,2001 @@
+{
+  "down60_threshold": -50.0,
+  "scope": "actual graph; fixed 60Hz; IK off; direct input pitch changes, no cross-clip blending",
+  "cases": [
+    {
+      "pitch": 0.0,
+      "strength": 0,
+      "scenario": "Full",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": 0.0,
+          "clip": "Original",
+          "time": 0.016666668
+        },
+        {
+          "frame": 140,
+          "pitch": 0.0,
+          "clip": "Original",
+          "time": 0.816666663
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 140,
+          "before_time": 0.833333313,
+          "after_time": 0.816666663,
+          "clip_before": "Original",
+          "clip_after": "Original",
+          "hand_r_cm": 0.9513523901009218,
+          "muzzle_deg": 5.865128545448271
+        }
+      ],
+      "entry_muzzle_step_deg": 2.443501822204132,
+      "entry_hand_r_step_cm": 1.3158851901734088,
+      "muzzle_pitch_extra_deg": 0,
+      "muzzle_height_extra_cm": 0,
+      "max_hand_r_step_cm": 1.3273674359094063,
+      "max_muzzle_step_deg": 5.865128545448271
+    },
+    {
+      "pitch": 0.0,
+      "strength": 0,
+      "scenario": "Reverse25",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": 0.0,
+          "clip": "Original",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 73,
+          "before_time": 0.216666669,
+          "after_time": 0.200000003,
+          "clip_before": "Original",
+          "clip_after": "Original",
+          "hand_r_cm": 0.9567016786239237,
+          "muzzle_deg": 3.8006996025332564
+        }
+      ],
+      "entry_muzzle_step_deg": 2.443501822204132,
+      "entry_hand_r_step_cm": 1.3158851901734088,
+      "muzzle_pitch_extra_deg": 0.041148490159285345,
+      "muzzle_height_extra_cm": 0.04593229900001461,
+      "max_hand_r_step_cm": 1.3158851901734088,
+      "max_muzzle_step_deg": 3.827706457650425
+    },
+    {
+      "pitch": 0.0,
+      "strength": 0,
+      "scenario": "Reverse50",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": 0.0,
+          "clip": "Original",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 85,
+          "before_time": 0.416666806,
+          "after_time": 0.400000125,
+          "clip_before": "Original",
+          "clip_after": "Original",
+          "hand_r_cm": 1.0711089977593626,
+          "muzzle_deg": 2.093811711621818
+        }
+      ],
+      "entry_muzzle_step_deg": 2.443501822204132,
+      "entry_hand_r_step_cm": 1.3158851901734088,
+      "muzzle_pitch_extra_deg": 0.029671209326302517,
+      "muzzle_height_extra_cm": 0.03465224200002126,
+      "max_hand_r_step_cm": 1.3158851901734088,
+      "max_muzzle_step_deg": 3.827706457650425
+    },
+    {
+      "pitch": 0.0,
+      "strength": 0,
+      "scenario": "Reverse75",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": 0.0,
+          "clip": "Original",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 98,
+          "before_time": 0.633333385,
+          "after_time": 0.616666734,
+          "clip_before": "Original",
+          "clip_after": "Original",
+          "hand_r_cm": 0.24480800680102735,
+          "muzzle_deg": 1.0565284452407064
+        }
+      ],
+      "entry_muzzle_step_deg": 2.443501822204132,
+      "entry_hand_r_step_cm": 1.3158851901734088,
+      "muzzle_pitch_extra_deg": 0,
+      "muzzle_height_extra_cm": 0,
+      "max_hand_r_step_cm": 1.3169871694380026,
+      "max_muzzle_step_deg": 3.827709491211285
+    },
+    {
+      "pitch": 30.0,
+      "strength": 0,
+      "scenario": "Full",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": 30.0,
+          "clip": "Original",
+          "time": 0.016666668
+        },
+        {
+          "frame": 140,
+          "pitch": 30.0,
+          "clip": "Original",
+          "time": 0.816666663
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 140,
+          "before_time": 0.833333313,
+          "after_time": 0.816666663,
+          "clip_before": "Original",
+          "clip_after": "Original",
+          "hand_r_cm": 0.9513523901009218,
+          "muzzle_deg": 5.865128545448271
+        }
+      ],
+      "entry_muzzle_step_deg": 47.71925937275633,
+      "entry_hand_r_step_cm": 17.67245093146493,
+      "muzzle_pitch_extra_deg": 0,
+      "muzzle_height_extra_cm": 0,
+      "max_hand_r_step_cm": 17.67245093146493,
+      "max_muzzle_step_deg": 47.71925937275633
+    },
+    {
+      "pitch": 30.0,
+      "strength": 0,
+      "scenario": "Reverse25",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": 30.0,
+          "clip": "Original",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 73,
+          "before_time": 0.216666669,
+          "after_time": 0.200000003,
+          "clip_before": "Original",
+          "clip_after": "Original",
+          "hand_r_cm": 0.9567016786239237,
+          "muzzle_deg": 3.8006996025332564
+        }
+      ],
+      "entry_muzzle_step_deg": 47.71925937275633,
+      "entry_hand_r_step_cm": 17.67245093146493,
+      "muzzle_pitch_extra_deg": 0.043734708977524406,
+      "muzzle_height_extra_cm": 0.015561447000010276,
+      "max_hand_r_step_cm": 17.67245093146493,
+      "max_muzzle_step_deg": 47.71925937275633
+    },
+    {
+      "pitch": 30.0,
+      "strength": 0,
+      "scenario": "Reverse50",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": 30.0,
+          "clip": "Original",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 85,
+          "before_time": 0.416666806,
+          "after_time": 0.400000125,
+          "clip_before": "Original",
+          "clip_after": "Original",
+          "hand_r_cm": 1.0711089977593626,
+          "muzzle_deg": 2.093811711621818
+        }
+      ],
+      "entry_muzzle_step_deg": 47.71925937275633,
+      "entry_hand_r_step_cm": 17.67245093146493,
+      "muzzle_pitch_extra_deg": 0.02941652451258392,
+      "muzzle_height_extra_cm": 0,
+      "max_hand_r_step_cm": 17.67245093146493,
+      "max_muzzle_step_deg": 47.71925937275633
+    },
+    {
+      "pitch": 30.0,
+      "strength": 0,
+      "scenario": "Reverse75",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": 30.0,
+          "clip": "Original",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 98,
+          "before_time": 0.633333385,
+          "after_time": 0.616666734,
+          "clip_before": "Original",
+          "clip_after": "Original",
+          "hand_r_cm": 0.24480800680102735,
+          "muzzle_deg": 1.0565284452407064
+        }
+      ],
+      "entry_muzzle_step_deg": 47.71925937275633,
+      "entry_hand_r_step_cm": 17.67245093146493,
+      "muzzle_pitch_extra_deg": 0,
+      "muzzle_height_extra_cm": 0,
+      "max_hand_r_step_cm": 17.67245093146493,
+      "max_muzzle_step_deg": 47.71925937275633
+    },
+    {
+      "pitch": 60.0,
+      "strength": 0,
+      "scenario": "Full",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": 60.0,
+          "clip": "Original",
+          "time": 0.016666668
+        },
+        {
+          "frame": 140,
+          "pitch": 60.0,
+          "clip": "Original",
+          "time": 0.816666663
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 140,
+          "before_time": 0.833333313,
+          "after_time": 0.816666663,
+          "clip_before": "Original",
+          "clip_after": "Original",
+          "hand_r_cm": 0.9513523901009218,
+          "muzzle_deg": 5.865128545448271
+        }
+      ],
+      "entry_muzzle_step_deg": 81.7896293073844,
+      "entry_hand_r_step_cm": 31.412231263213034,
+      "muzzle_pitch_extra_deg": 0,
+      "muzzle_height_extra_cm": 0,
+      "max_hand_r_step_cm": 31.412231263213034,
+      "max_muzzle_step_deg": 81.7896293073844
+    },
+    {
+      "pitch": 60.0,
+      "strength": 0,
+      "scenario": "Reverse25",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": 60.0,
+          "clip": "Original",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 73,
+          "before_time": 0.216666669,
+          "after_time": 0.200000003,
+          "clip_before": "Original",
+          "clip_after": "Original",
+          "hand_r_cm": 0.9567016786239237,
+          "muzzle_deg": 3.8006996025332564
+        }
+      ],
+      "entry_muzzle_step_deg": 81.7896293073844,
+      "entry_hand_r_step_cm": 31.412231263213034,
+      "muzzle_pitch_extra_deg": 0.11001348982061643,
+      "muzzle_height_extra_cm": 0,
+      "max_hand_r_step_cm": 31.412231263213034,
+      "max_muzzle_step_deg": 81.7896293073844
+    },
+    {
+      "pitch": 60.0,
+      "strength": 0,
+      "scenario": "Reverse50",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": 60.0,
+          "clip": "Original",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 85,
+          "before_time": 0.416666806,
+          "after_time": 0.400000125,
+          "clip_before": "Original",
+          "clip_after": "Original",
+          "hand_r_cm": 1.0711089977593626,
+          "muzzle_deg": 2.093811711621818
+        }
+      ],
+      "entry_muzzle_step_deg": 81.7896293073844,
+      "entry_hand_r_step_cm": 31.412231263213034,
+      "muzzle_pitch_extra_deg": 0.11001348982061643,
+      "muzzle_height_extra_cm": 0,
+      "max_hand_r_step_cm": 31.412231263213034,
+      "max_muzzle_step_deg": 81.7896293073844
+    },
+    {
+      "pitch": 60.0,
+      "strength": 0,
+      "scenario": "Reverse75",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": 60.0,
+          "clip": "Original",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 98,
+          "before_time": 0.633333385,
+          "after_time": 0.616666734,
+          "clip_before": "Original",
+          "clip_after": "Original",
+          "hand_r_cm": 0.24480800680102735,
+          "muzzle_deg": 1.0565284452407064
+        }
+      ],
+      "entry_muzzle_step_deg": 81.7896293073844,
+      "entry_hand_r_step_cm": 31.412231263213034,
+      "muzzle_pitch_extra_deg": 0,
+      "muzzle_height_extra_cm": 0,
+      "max_hand_r_step_cm": 31.412231263213034,
+      "max_muzzle_step_deg": 81.7896293073844
+    },
+    {
+      "pitch": -15.0,
+      "strength": 0,
+      "scenario": "Full",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -15.0,
+          "clip": "Original",
+          "time": 0.016666668
+        },
+        {
+          "frame": 140,
+          "pitch": -15.0,
+          "clip": "Original",
+          "time": 0.816666663
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 140,
+          "before_time": 0.833333313,
+          "after_time": 0.816666663,
+          "clip_before": "Original",
+          "clip_after": "Original",
+          "hand_r_cm": 0.9513523901009218,
+          "muzzle_deg": 5.865128545448271
+        }
+      ],
+      "entry_muzzle_step_deg": 19.479420406451908,
+      "entry_hand_r_step_cm": 7.975193848780772,
+      "muzzle_pitch_extra_deg": 19.456585023682067,
+      "muzzle_height_extra_cm": 27.066992185000004,
+      "max_hand_r_step_cm": 7.975193848780772,
+      "max_muzzle_step_deg": 19.479420406451908
+    },
+    {
+      "pitch": -15.0,
+      "strength": 0,
+      "scenario": "Reverse25",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -15.0,
+          "clip": "Original",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 73,
+          "before_time": 0.216666669,
+          "after_time": 0.200000003,
+          "clip_before": "Original",
+          "clip_after": "Original",
+          "hand_r_cm": 0.9567016786239237,
+          "muzzle_deg": 3.8006996025332564
+        }
+      ],
+      "entry_muzzle_step_deg": 19.479420406451908,
+      "entry_hand_r_step_cm": 7.975193848780772,
+      "muzzle_pitch_extra_deg": 21.447492146489875,
+      "muzzle_height_extra_cm": 30.179211152999983,
+      "max_hand_r_step_cm": 7.975193848780772,
+      "max_muzzle_step_deg": 19.479420406451908
+    },
+    {
+      "pitch": -15.0,
+      "strength": 0,
+      "scenario": "Reverse50",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -15.0,
+          "clip": "Original",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 85,
+          "before_time": 0.416666806,
+          "after_time": 0.400000125,
+          "clip_before": "Original",
+          "clip_after": "Original",
+          "hand_r_cm": 1.0711089977593626,
+          "muzzle_deg": 2.093811711621818
+        }
+      ],
+      "entry_muzzle_step_deg": 19.479420406451908,
+      "entry_hand_r_step_cm": 7.975193848780772,
+      "muzzle_pitch_extra_deg": 21.51455182778182,
+      "muzzle_height_extra_cm": 30.035706062999992,
+      "max_hand_r_step_cm": 7.975193848780772,
+      "max_muzzle_step_deg": 19.479420406451908
+    },
+    {
+      "pitch": -15.0,
+      "strength": 0,
+      "scenario": "Reverse75",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -15.0,
+          "clip": "Original",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 98,
+          "before_time": 0.633333385,
+          "after_time": 0.616666734,
+          "clip_before": "Original",
+          "clip_after": "Original",
+          "hand_r_cm": 0.24480800680102735,
+          "muzzle_deg": 1.0565284452407064
+        }
+      ],
+      "entry_muzzle_step_deg": 19.479420406451908,
+      "entry_hand_r_step_cm": 7.975193848780772,
+      "muzzle_pitch_extra_deg": 12.683053383732439,
+      "muzzle_height_extra_cm": 17.543575465999993,
+      "max_hand_r_step_cm": 7.975193848780772,
+      "max_muzzle_step_deg": 19.479420406451908
+    },
+    {
+      "pitch": -29.999,
+      "strength": 0,
+      "scenario": "Full",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -29.999,
+          "clip": "Original",
+          "time": 0.016666668
+        },
+        {
+          "frame": 140,
+          "pitch": -29.999,
+          "clip": "Original",
+          "time": 0.816666663
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 140,
+          "before_time": 0.833333313,
+          "after_time": 0.816666663,
+          "clip_before": "Original",
+          "clip_after": "Original",
+          "hand_r_cm": 0.9513523901009218,
+          "muzzle_deg": 5.865128545448271
+        }
+      ],
+      "entry_muzzle_step_deg": 41.31908761216668,
+      "entry_hand_r_step_cm": 14.803900623200555,
+      "muzzle_pitch_extra_deg": 33.28794955314001,
+      "muzzle_height_extra_cm": 55.98716940199999,
+      "max_hand_r_step_cm": 14.803900623200555,
+      "max_muzzle_step_deg": 41.31908761216668
+    },
+    {
+      "pitch": -29.999,
+      "strength": 0,
+      "scenario": "Reverse25",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -29.999,
+          "clip": "Original",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 73,
+          "before_time": 0.216666669,
+          "after_time": 0.200000003,
+          "clip_before": "Original",
+          "clip_after": "Original",
+          "hand_r_cm": 0.9567016786239237,
+          "muzzle_deg": 3.8006996025332564
+        }
+      ],
+      "entry_muzzle_step_deg": 41.31908761216668,
+      "entry_hand_r_step_cm": 14.803900623200555,
+      "muzzle_pitch_extra_deg": 43.286487038294666,
+      "muzzle_height_extra_cm": 59.18531467199999,
+      "max_hand_r_step_cm": 14.803900623200555,
+      "max_muzzle_step_deg": 41.31908761216668
+    },
+    {
+      "pitch": -29.999,
+      "strength": 0,
+      "scenario": "Reverse50",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -29.999,
+          "clip": "Original",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 85,
+          "before_time": 0.416666806,
+          "after_time": 0.400000125,
+          "clip_before": "Original",
+          "clip_after": "Original",
+          "hand_r_cm": 1.0711089977593626,
+          "muzzle_deg": 2.093811711621818
+        }
+      ],
+      "entry_muzzle_step_deg": 41.31908761216668,
+      "entry_hand_r_step_cm": 14.803900623200555,
+      "muzzle_pitch_extra_deg": 43.353873102503634,
+      "muzzle_height_extra_cm": 59.01138602899999,
+      "max_hand_r_step_cm": 14.803900623200555,
+      "max_muzzle_step_deg": 41.31908761216668
+    },
+    {
+      "pitch": -29.999,
+      "strength": 0,
+      "scenario": "Reverse75",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -29.999,
+          "clip": "Original",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 98,
+          "before_time": 0.633333385,
+          "after_time": 0.616666734,
+          "clip_before": "Original",
+          "clip_after": "Original",
+          "hand_r_cm": 0.24480800680102735,
+          "muzzle_deg": 1.0565284452407064
+        }
+      ],
+      "entry_muzzle_step_deg": 41.31908761216668,
+      "entry_hand_r_step_cm": 14.803900623200555,
+      "muzzle_pitch_extra_deg": 25.41363952822619,
+      "muzzle_height_extra_cm": 35.21351336399999,
+      "max_hand_r_step_cm": 14.803900623200555,
+      "max_muzzle_step_deg": 41.31908761216668
+    },
+    {
+      "pitch": -30.0,
+      "strength": 0,
+      "scenario": "Full",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -30.0,
+          "clip": "Down30",
+          "time": 0.016666668
+        },
+        {
+          "frame": 140,
+          "pitch": -30.0,
+          "clip": "Down30",
+          "time": 0.816666663
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 140,
+          "before_time": 0.833333313,
+          "after_time": 0.816666663,
+          "clip_before": "Down30",
+          "clip_after": "Down30",
+          "hand_r_cm": 0.031038095007774477,
+          "muzzle_deg": 0.024284520322982568
+        }
+      ],
+      "entry_muzzle_step_deg": 0.022275769937215924,
+      "entry_hand_r_step_cm": 0.015186090623912511,
+      "muzzle_pitch_extra_deg": 0.023446659792117686,
+      "muzzle_height_extra_cm": 0.006759610000003136,
+      "max_hand_r_step_cm": 1.1901559743521917,
+      "max_muzzle_step_deg": 2.867818290391506
+    },
+    {
+      "pitch": -30.0,
+      "strength": 0,
+      "scenario": "Reverse25",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -30.0,
+          "clip": "Down30",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 73,
+          "before_time": 0.216666669,
+          "after_time": 0.200000003,
+          "clip_before": "Down30",
+          "clip_after": "Down30",
+          "hand_r_cm": 0.8127702626198201,
+          "muzzle_deg": 1.6708493737069843
+        }
+      ],
+      "entry_muzzle_step_deg": 0.022275769937215924,
+      "entry_hand_r_step_cm": 0.015186090623912511,
+      "muzzle_pitch_extra_deg": 0.618263164973861,
+      "muzzle_height_extra_cm": 0.11297844000000623,
+      "max_hand_r_step_cm": 0.8134129449960504,
+      "max_muzzle_step_deg": 1.6708493737069843
+    },
+    {
+      "pitch": -30.0,
+      "strength": 0,
+      "scenario": "Reverse50",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -30.0,
+          "clip": "Down30",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 85,
+          "before_time": 0.416666806,
+          "after_time": 0.400000125,
+          "clip_before": "Down30",
+          "clip_after": "Down30",
+          "hand_r_cm": 0.41149674811439696,
+          "muzzle_deg": 2.867800370096148
+        }
+      ],
+      "entry_muzzle_step_deg": 0.022275769937215924,
+      "entry_hand_r_step_cm": 0.015186090623912511,
+      "muzzle_pitch_extra_deg": 3.756793289044552,
+      "muzzle_height_extra_cm": 0.072848503000003,
+      "max_hand_r_step_cm": 0.8359374189127314,
+      "max_muzzle_step_deg": 2.867800370096148
+    },
+    {
+      "pitch": -30.0,
+      "strength": 0,
+      "scenario": "Reverse75",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -30.0,
+          "clip": "Down30",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 98,
+          "before_time": 0.633333385,
+          "after_time": 0.616666734,
+          "clip_before": "Down30",
+          "clip_after": "Down30",
+          "hand_r_cm": 1.1238352650544134,
+          "muzzle_deg": 1.7192907344571657
+        }
+      ],
+      "entry_muzzle_step_deg": 0.022275769937215924,
+      "entry_hand_r_step_cm": 0.015186090623912511,
+      "muzzle_pitch_extra_deg": 7.25523864997141,
+      "muzzle_height_extra_cm": 0.006759610000003136,
+      "max_hand_r_step_cm": 1.2018276604798113,
+      "max_muzzle_step_deg": 2.867800370096148
+    },
+    {
+      "pitch": -45.0,
+      "strength": 0,
+      "scenario": "Full",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -45.0,
+          "clip": "Down30",
+          "time": 0.016666668
+        },
+        {
+          "frame": 140,
+          "pitch": -45.0,
+          "clip": "Down30",
+          "time": 0.816666663
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 140,
+          "before_time": 0.833333313,
+          "after_time": 0.816666663,
+          "clip_before": "Down30",
+          "clip_after": "Down30",
+          "hand_r_cm": 0.031038095007774477,
+          "muzzle_deg": 0.024284520322982568
+        }
+      ],
+      "entry_muzzle_step_deg": 18.82481331299566,
+      "entry_hand_r_step_cm": 5.309821234350446,
+      "muzzle_pitch_extra_deg": 0.023446659792117686,
+      "muzzle_height_extra_cm": 0.4376093999999995,
+      "max_hand_r_step_cm": 5.309821234350446,
+      "max_muzzle_step_deg": 18.82481331299566
+    },
+    {
+      "pitch": -45.0,
+      "strength": 0,
+      "scenario": "Reverse25",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -45.0,
+          "clip": "Down30",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 73,
+          "before_time": 0.216666669,
+          "after_time": 0.200000003,
+          "clip_before": "Down30",
+          "clip_after": "Down30",
+          "hand_r_cm": 0.8127702626198201,
+          "muzzle_deg": 1.6708493737069843
+        }
+      ],
+      "entry_muzzle_step_deg": 18.82481331299566,
+      "entry_hand_r_step_cm": 5.309821234350446,
+      "muzzle_pitch_extra_deg": 19.42506329744342,
+      "muzzle_height_extra_cm": 20.893087111,
+      "max_hand_r_step_cm": 5.309821234350446,
+      "max_muzzle_step_deg": 18.82481331299566
+    },
+    {
+      "pitch": -45.0,
+      "strength": 0,
+      "scenario": "Reverse50",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -45.0,
+          "clip": "Down30",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 85,
+          "before_time": 0.416666806,
+          "after_time": 0.400000125,
+          "clip_before": "Down30",
+          "clip_after": "Down30",
+          "hand_r_cm": 0.41149674811439696,
+          "muzzle_deg": 2.867800370096148
+        }
+      ],
+      "entry_muzzle_step_deg": 18.82481331299566,
+      "entry_hand_r_step_cm": 5.309821234350446,
+      "muzzle_pitch_extra_deg": 22.564133994762248,
+      "muzzle_height_extra_cm": 20.876767889999996,
+      "max_hand_r_step_cm": 5.309821234350446,
+      "max_muzzle_step_deg": 18.82481331299566
+    },
+    {
+      "pitch": -45.0,
+      "strength": 0,
+      "scenario": "Reverse75",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -45.0,
+          "clip": "Down30",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 98,
+          "before_time": 0.633333385,
+          "after_time": 0.616666734,
+          "clip_before": "Down30",
+          "clip_after": "Down30",
+          "hand_r_cm": 1.1238352650544134,
+          "muzzle_deg": 1.7192907344571657
+        }
+      ],
+      "entry_muzzle_step_deg": 18.82481331299566,
+      "entry_hand_r_step_cm": 5.309821234350446,
+      "muzzle_pitch_extra_deg": 18.22711595211034,
+      "muzzle_height_extra_cm": 12.903156517,
+      "max_hand_r_step_cm": 5.309821234350446,
+      "max_muzzle_step_deg": 18.82481331299566
+    },
+    {
+      "pitch": -45.0,
+      "strength": 0,
+      "scenario": "ChangeDuringLower",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -45.0,
+          "clip": "Down30",
+          "time": 0.016666668
+        },
+        {
+          "frame": 140,
+          "pitch": -75.0,
+          "clip": "Down60",
+          "time": 0.816666663
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 140,
+          "before_time": 0.833333313,
+          "after_time": 0.816666663,
+          "clip_before": "Down30",
+          "clip_after": "Down60",
+          "hand_r_cm": 0.028842061508934647,
+          "muzzle_deg": 0.02624104345663946
+        }
+      ],
+      "entry_muzzle_step_deg": 18.82481331299566,
+      "entry_hand_r_step_cm": 5.309821234350446,
+      "muzzle_pitch_extra_deg": 0.023446659792117686,
+      "muzzle_height_extra_cm": 0.4376093999999995,
+      "max_hand_r_step_cm": 5.309821234350446,
+      "max_muzzle_step_deg": 18.82481331299566
+    },
+    {
+      "pitch": -45.0,
+      "strength": 0,
+      "scenario": "ChangeDuringRaise",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -45.0,
+          "clip": "Down30",
+          "time": 0.016666668
+        },
+        {
+          "frame": 140,
+          "pitch": -45.0,
+          "clip": "Down30",
+          "time": 0.816666663
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 140,
+          "before_time": 0.833333313,
+          "after_time": 0.816666663,
+          "clip_before": "Down30",
+          "clip_after": "Down30",
+          "hand_r_cm": 0.031038095007774477,
+          "muzzle_deg": 0.024284520322982568
+        }
+      ],
+      "entry_muzzle_step_deg": 18.82481331299566,
+      "entry_hand_r_step_cm": 5.309821234350446,
+      "muzzle_pitch_extra_deg": 0.023446659792117686,
+      "muzzle_height_extra_cm": 0.4376093999999995,
+      "max_hand_r_step_cm": 5.309821234350446,
+      "max_muzzle_step_deg": 18.82481331299566
+    },
+    {
+      "pitch": -45.0,
+      "strength": 0,
+      "scenario": "ChangeDuringReverse",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -45.0,
+          "clip": "Down30",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 85,
+          "before_time": 0.416666806,
+          "after_time": 0.400000125,
+          "clip_before": "Down30",
+          "clip_after": "Down30",
+          "hand_r_cm": 0.41149674811439696,
+          "muzzle_deg": 2.867800370096148
+        }
+      ],
+      "entry_muzzle_step_deg": 18.82481331299566,
+      "entry_hand_r_step_cm": 5.309821234350446,
+      "muzzle_pitch_extra_deg": 22.808018714838017,
+      "muzzle_height_extra_cm": 20.876767889999996,
+      "max_hand_r_step_cm": 5.309821234350446,
+      "max_muzzle_step_deg": 18.82481331299566
+    },
+    {
+      "pitch": -49.999,
+      "strength": 0,
+      "scenario": "Full",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -49.999,
+          "clip": "Down30",
+          "time": 0.016666668
+        },
+        {
+          "frame": 140,
+          "pitch": -49.999,
+          "clip": "Down30",
+          "time": 0.816666663
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 140,
+          "before_time": 0.833333313,
+          "after_time": 0.816666663,
+          "clip_before": "Down30",
+          "clip_after": "Down30",
+          "hand_r_cm": 0.031038095007774477,
+          "muzzle_deg": 0.024284520322982568
+        }
+      ],
+      "entry_muzzle_step_deg": 24.041162814108123,
+      "entry_hand_r_step_cm": 6.611488886021027,
+      "muzzle_pitch_extra_deg": 0.023446659792117686,
+      "muzzle_height_extra_cm": 0.4376093999999995,
+      "max_hand_r_step_cm": 6.611488886021027,
+      "max_muzzle_step_deg": 24.041162814108123
+    },
+    {
+      "pitch": -49.999,
+      "strength": 0,
+      "scenario": "Reverse25",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -49.999,
+          "clip": "Down30",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 73,
+          "before_time": 0.216666669,
+          "after_time": 0.200000003,
+          "clip_before": "Down30",
+          "clip_after": "Down30",
+          "hand_r_cm": 0.8127702626198201,
+          "muzzle_deg": 1.6708493737069843
+        }
+      ],
+      "entry_muzzle_step_deg": 24.041162814108123,
+      "entry_hand_r_step_cm": 6.611488886021027,
+      "muzzle_pitch_extra_deg": 24.634099368823126,
+      "muzzle_height_extra_cm": 25.72025665000001,
+      "max_hand_r_step_cm": 6.611488886021027,
+      "max_muzzle_step_deg": 24.041162814108123
+    },
+    {
+      "pitch": -49.999,
+      "strength": 0,
+      "scenario": "Reverse50",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -49.999,
+          "clip": "Down30",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 85,
+          "before_time": 0.416666806,
+          "after_time": 0.400000125,
+          "clip_before": "Down30",
+          "clip_after": "Down30",
+          "hand_r_cm": 0.41149674811439696,
+          "muzzle_deg": 2.867800370096148
+        }
+      ],
+      "entry_muzzle_step_deg": 24.041162814108123,
+      "entry_hand_r_step_cm": 6.611488886021027,
+      "muzzle_pitch_extra_deg": 27.773415315018692,
+      "muzzle_height_extra_cm": 25.703937429000007,
+      "max_hand_r_step_cm": 6.611488886021027,
+      "max_muzzle_step_deg": 24.041162814108123
+    },
+    {
+      "pitch": -49.999,
+      "strength": 0,
+      "scenario": "Reverse75",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -49.999,
+          "clip": "Down30",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 98,
+          "before_time": 0.633333385,
+          "after_time": 0.616666734,
+          "clip_before": "Down30",
+          "clip_after": "Down30",
+          "hand_r_cm": 1.1238352650544134,
+          "muzzle_deg": 1.7192907344571657
+        }
+      ],
+      "entry_muzzle_step_deg": 24.041162814108123,
+      "entry_hand_r_step_cm": 6.611488886021027,
+      "muzzle_pitch_extra_deg": 21.267014901382105,
+      "muzzle_height_extra_cm": 16.157046672999996,
+      "max_hand_r_step_cm": 6.611488886021027,
+      "max_muzzle_step_deg": 24.041162814108123
+    },
+    {
+      "pitch": -50.0,
+      "strength": 0,
+      "scenario": "Full",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -50.0,
+          "clip": "Down30",
+          "time": 0.016666668
+        },
+        {
+          "frame": 140,
+          "pitch": -50.0,
+          "clip": "Down30",
+          "time": 0.816666663
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 140,
+          "before_time": 0.833333313,
+          "after_time": 0.816666663,
+          "clip_before": "Down30",
+          "clip_after": "Down30",
+          "hand_r_cm": 0.031038095007774477,
+          "muzzle_deg": 0.024284520322982568
+        }
+      ],
+      "entry_muzzle_step_deg": 24.04214592937192,
+      "entry_hand_r_step_cm": 6.611726820855527,
+      "muzzle_pitch_extra_deg": 0.023446659792117686,
+      "muzzle_height_extra_cm": 0.4376093999999995,
+      "max_hand_r_step_cm": 6.611726820855527,
+      "max_muzzle_step_deg": 24.04214592937192
+    },
+    {
+      "pitch": -50.0,
+      "strength": 0,
+      "scenario": "Reverse25",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -50.0,
+          "clip": "Down30",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 73,
+          "before_time": 0.216666669,
+          "after_time": 0.200000003,
+          "clip_before": "Down30",
+          "clip_after": "Down30",
+          "hand_r_cm": 0.8127702626198201,
+          "muzzle_deg": 1.6708493737069843
+        }
+      ],
+      "entry_muzzle_step_deg": 24.04214592937192,
+      "entry_hand_r_step_cm": 6.611726820855527,
+      "muzzle_pitch_extra_deg": 24.635080896966382,
+      "muzzle_height_extra_cm": 25.721122014000002,
+      "max_hand_r_step_cm": 6.611726820855527,
+      "max_muzzle_step_deg": 24.04214592937192
+    },
+    {
+      "pitch": -50.0,
+      "strength": 0,
+      "scenario": "Reverse50",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -50.0,
+          "clip": "Down30",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 85,
+          "before_time": 0.416666806,
+          "after_time": 0.400000125,
+          "clip_before": "Down30",
+          "clip_after": "Down30",
+          "hand_r_cm": 0.41149674811439696,
+          "muzzle_deg": 2.867800370096148
+        }
+      ],
+      "entry_muzzle_step_deg": 24.04214592937192,
+      "entry_hand_r_step_cm": 6.611726820855527,
+      "muzzle_pitch_extra_deg": 27.774396900768334,
+      "muzzle_height_extra_cm": 25.704802793,
+      "max_hand_r_step_cm": 6.611726820855527,
+      "max_muzzle_step_deg": 24.04214592937192
+    },
+    {
+      "pitch": -50.0,
+      "strength": 0,
+      "scenario": "Reverse75",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -50.0,
+          "clip": "Down30",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 98,
+          "before_time": 0.633333385,
+          "after_time": 0.616666734,
+          "clip_before": "Down30",
+          "clip_after": "Down30",
+          "hand_r_cm": 1.1238352650544134,
+          "muzzle_deg": 1.7192907344571657
+        }
+      ],
+      "entry_muzzle_step_deg": 24.04214592937192,
+      "entry_hand_r_step_cm": 6.611726820855527,
+      "muzzle_pitch_extra_deg": 21.26758780391686,
+      "muzzle_height_extra_cm": 16.157647296999997,
+      "max_hand_r_step_cm": 6.611726820855527,
+      "max_muzzle_step_deg": 24.04214592937192
+    },
+    {
+      "pitch": -50.001,
+      "strength": 0,
+      "scenario": "Full",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -50.001,
+          "clip": "Down60",
+          "time": 0.016666668
+        },
+        {
+          "frame": 140,
+          "pitch": -50.001,
+          "clip": "Down60",
+          "time": 0.816666663
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 140,
+          "before_time": 0.833333313,
+          "after_time": 0.816666663,
+          "clip_before": "Down60",
+          "clip_after": "Down60",
+          "hand_r_cm": 0.028842061508934647,
+          "muzzle_deg": 0.02624104345663946
+        }
+      ],
+      "entry_muzzle_step_deg": 8.601904939152933,
+      "entry_hand_r_step_cm": 2.0443344156279117,
+      "muzzle_pitch_extra_deg": 0.023446659792117686,
+      "muzzle_height_extra_cm": 0.1259201069999989,
+      "max_hand_r_step_cm": 2.0443344156279117,
+      "max_muzzle_step_deg": 8.601904939152933
+    },
+    {
+      "pitch": -50.001,
+      "strength": 0,
+      "scenario": "Reverse25",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -50.001,
+          "clip": "Down60",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 73,
+          "before_time": 0.216666669,
+          "after_time": 0.200000003,
+          "clip_before": "Down60",
+          "clip_after": "Down60",
+          "hand_r_cm": 0.9017609124489195,
+          "muzzle_deg": 1.738799107712819
+        }
+      ],
+      "entry_muzzle_step_deg": 8.601904939152933,
+      "entry_hand_r_step_cm": 2.0443344156279117,
+      "muzzle_pitch_extra_deg": 0.036877058627254655,
+      "muzzle_height_extra_cm": 0.019028911000006588,
+      "max_hand_r_step_cm": 2.0443344156279117,
+      "max_muzzle_step_deg": 8.601904939152933
+    },
+    {
+      "pitch": -50.001,
+      "strength": 0,
+      "scenario": "Reverse50",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -50.001,
+          "clip": "Down60",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 85,
+          "before_time": 0.416666806,
+          "after_time": 0.400000125,
+          "clip_before": "Down60",
+          "clip_after": "Down60",
+          "hand_r_cm": 0.2767419935375626,
+          "muzzle_deg": 3.013401331695412
+        }
+      ],
+      "entry_muzzle_step_deg": 8.601904939152933,
+      "entry_hand_r_step_cm": 2.0443344156279117,
+      "muzzle_pitch_extra_deg": 11.478848458037838,
+      "muzzle_height_extra_cm": 9.249498111999998,
+      "max_hand_r_step_cm": 2.0443344156279117,
+      "max_muzzle_step_deg": 8.601904939152933
+    },
+    {
+      "pitch": -50.001,
+      "strength": 0,
+      "scenario": "Reverse75",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -50.001,
+          "clip": "Down60",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 98,
+          "before_time": 0.633333385,
+          "after_time": 0.616666734,
+          "clip_before": "Down60",
+          "clip_after": "Down60",
+          "hand_r_cm": 1.2729636774469473,
+          "muzzle_deg": 1.8798885409071866
+        }
+      ],
+      "entry_muzzle_step_deg": 8.601904939152933,
+      "entry_hand_r_step_cm": 2.0443344156279117,
+      "muzzle_pitch_extra_deg": 28.235410139806895,
+      "muzzle_height_extra_cm": 22.298833949,
+      "max_hand_r_step_cm": 2.0443344156279117,
+      "max_muzzle_step_deg": 8.601904939152933
+    },
+    {
+      "pitch": -55.0,
+      "strength": 0,
+      "scenario": "Full",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -55.0,
+          "clip": "Down60",
+          "time": 0.016666668
+        },
+        {
+          "frame": 140,
+          "pitch": -55.0,
+          "clip": "Down60",
+          "time": 0.816666663
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 140,
+          "before_time": 0.833333313,
+          "after_time": 0.816666663,
+          "clip_before": "Down60",
+          "clip_after": "Down60",
+          "hand_r_cm": 0.028842061508934647,
+          "muzzle_deg": 0.02624104345663946
+        }
+      ],
+      "entry_muzzle_step_deg": 3.9861119532842695,
+      "entry_hand_r_step_cm": 0.9310061111042245,
+      "muzzle_pitch_extra_deg": 0.023446659792117686,
+      "muzzle_height_extra_cm": 0.1259201069999989,
+      "max_hand_r_step_cm": 1.3299257709806789,
+      "max_muzzle_step_deg": 3.9861119532842695
+    },
+    {
+      "pitch": -55.0,
+      "strength": 0,
+      "scenario": "Reverse25",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -55.0,
+          "clip": "Down60",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 73,
+          "before_time": 0.216666669,
+          "after_time": 0.200000003,
+          "clip_before": "Down60",
+          "clip_after": "Down60",
+          "hand_r_cm": 0.9017609124489195,
+          "muzzle_deg": 1.738799107712819
+        }
+      ],
+      "entry_muzzle_step_deg": 3.9861119532842695,
+      "entry_hand_r_step_cm": 0.9310061111042245,
+      "muzzle_pitch_extra_deg": 0.40876701533767346,
+      "muzzle_height_extra_cm": 0.7276740939999939,
+      "max_hand_r_step_cm": 0.9310061111042245,
+      "max_muzzle_step_deg": 3.9861119532842695
+    },
+    {
+      "pitch": -55.0,
+      "strength": 0,
+      "scenario": "Reverse50",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -55.0,
+          "clip": "Down60",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 85,
+          "before_time": 0.416666806,
+          "after_time": 0.400000125,
+          "clip_before": "Down60",
+          "clip_after": "Down60",
+          "hand_r_cm": 0.2767419935375626,
+          "muzzle_deg": 3.013401331695412
+        }
+      ],
+      "entry_muzzle_step_deg": 3.9861119532842695,
+      "entry_hand_r_step_cm": 0.9310061111042245,
+      "muzzle_pitch_extra_deg": 16.086413039204416,
+      "muzzle_height_extra_cm": 13.120319686999991,
+      "max_hand_r_step_cm": 0.9310061111042245,
+      "max_muzzle_step_deg": 3.9861119532842695
+    },
+    {
+      "pitch": -55.0,
+      "strength": 0,
+      "scenario": "Reverse75",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -55.0,
+          "clip": "Down60",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 98,
+          "before_time": 0.633333385,
+          "after_time": 0.616666734,
+          "clip_before": "Down60",
+          "clip_after": "Down60",
+          "hand_r_cm": 1.2729636774469473,
+          "muzzle_deg": 1.8798885409071866
+        }
+      ],
+      "entry_muzzle_step_deg": 3.9861119532842695,
+      "entry_hand_r_step_cm": 0.9310061111042245,
+      "muzzle_pitch_extra_deg": 32.84159422850541,
+      "muzzle_height_extra_cm": 26.169655523999992,
+      "max_hand_r_step_cm": 1.3531146673356602,
+      "max_muzzle_step_deg": 3.9861119532842695
+    },
+    {
+      "pitch": -59.999,
+      "strength": 0,
+      "scenario": "Full",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -59.999,
+          "clip": "Down60",
+          "time": 0.016666668
+        },
+        {
+          "frame": 140,
+          "pitch": -59.999,
+          "clip": "Down60",
+          "time": 0.816666663
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 140,
+          "before_time": 0.833333313,
+          "after_time": 0.816666663,
+          "clip_before": "Down60",
+          "clip_after": "Down60",
+          "hand_r_cm": 0.028842061508934647,
+          "muzzle_deg": 0.02624104345663946
+        }
+      ],
+      "entry_muzzle_step_deg": 0.022814559349741335,
+      "entry_hand_r_step_cm": 0.019609392374131368,
+      "muzzle_pitch_extra_deg": 0.023446659792117686,
+      "muzzle_height_extra_cm": 0.1259201069999989,
+      "max_hand_r_step_cm": 1.3299257709806789,
+      "max_muzzle_step_deg": 3.0266375901385403
+    },
+    {
+      "pitch": -59.999,
+      "strength": 0,
+      "scenario": "Reverse25",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -59.999,
+          "clip": "Down60",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 73,
+          "before_time": 0.216666669,
+          "after_time": 0.200000003,
+          "clip_before": "Down60",
+          "clip_after": "Down60",
+          "hand_r_cm": 0.9017609124489195,
+          "muzzle_deg": 1.738799107712819
+        }
+      ],
+      "entry_muzzle_step_deg": 0.022814559349741335,
+      "entry_hand_r_step_cm": 0.019609392374131368,
+      "muzzle_pitch_extra_deg": 4.3961274407971445,
+      "muzzle_height_extra_cm": 3.759577323000002,
+      "max_hand_r_step_cm": 0.9036798634221533,
+      "max_muzzle_step_deg": 1.738799107712819
+    },
+    {
+      "pitch": -59.999,
+      "strength": 0,
+      "scenario": "Reverse50",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -59.999,
+          "clip": "Down60",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 85,
+          "before_time": 0.416666806,
+          "after_time": 0.400000125,
+          "clip_before": "Down60",
+          "clip_after": "Down60",
+          "hand_r_cm": 0.2767419935375626,
+          "muzzle_deg": 3.013401331695412
+        }
+      ],
+      "entry_muzzle_step_deg": 0.022814559349741335,
+      "entry_hand_r_step_cm": 0.019609392374131368,
+      "muzzle_pitch_extra_deg": 20.074092090787204,
+      "muzzle_height_extra_cm": 16.152222916,
+      "max_hand_r_step_cm": 0.929022730887517,
+      "max_muzzle_step_deg": 3.013401331695412
+    },
+    {
+      "pitch": -59.999,
+      "strength": 0,
+      "scenario": "Reverse75",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -59.999,
+          "clip": "Down60",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 98,
+          "before_time": 0.633333385,
+          "after_time": 0.616666734,
+          "clip_before": "Down60",
+          "clip_after": "Down60",
+          "hand_r_cm": 1.2729636774469473,
+          "muzzle_deg": 1.8798885409071866
+        }
+      ],
+      "entry_muzzle_step_deg": 0.022814559349741335,
+      "entry_hand_r_step_cm": 0.019609392374131368,
+      "muzzle_pitch_extra_deg": 36.82275230975751,
+      "muzzle_height_extra_cm": 29.201558753,
+      "max_hand_r_step_cm": 1.3531146673356602,
+      "max_muzzle_step_deg": 3.026643865447623
+    },
+    {
+      "pitch": -60.0,
+      "strength": 0,
+      "scenario": "Full",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -60.0,
+          "clip": "Down60",
+          "time": 0.016666668
+        },
+        {
+          "frame": 140,
+          "pitch": -60.0,
+          "clip": "Down60",
+          "time": 0.816666663
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 140,
+          "before_time": 0.833333313,
+          "after_time": 0.816666663,
+          "clip_before": "Down60",
+          "clip_after": "Down60",
+          "hand_r_cm": 0.028842061508934647,
+          "muzzle_deg": 0.02624104345663946
+        }
+      ],
+      "entry_muzzle_step_deg": 0.023183521493786254,
+      "entry_hand_r_step_cm": 0.01953262949324227,
+      "muzzle_pitch_extra_deg": 0.023446659792117686,
+      "muzzle_height_extra_cm": 0.1259201069999989,
+      "max_hand_r_step_cm": 1.3299257709806789,
+      "max_muzzle_step_deg": 3.0266375901385403
+    },
+    {
+      "pitch": -60.0,
+      "strength": 0,
+      "scenario": "Reverse25",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -60.0,
+          "clip": "Down60",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 73,
+          "before_time": 0.216666669,
+          "after_time": 0.200000003,
+          "clip_before": "Down60",
+          "clip_after": "Down60",
+          "hand_r_cm": 0.9017609124489195,
+          "muzzle_deg": 1.738799107712819
+        }
+      ],
+      "entry_muzzle_step_deg": 0.023183521493786254,
+      "entry_hand_r_step_cm": 0.01953262949324227,
+      "muzzle_pitch_extra_deg": 4.396865403290306,
+      "muzzle_height_extra_cm": 3.760110369000003,
+      "max_hand_r_step_cm": 0.9036798634221533,
+      "max_muzzle_step_deg": 1.738799107712819
+    },
+    {
+      "pitch": -60.0,
+      "strength": 0,
+      "scenario": "Reverse50",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -60.0,
+          "clip": "Down60",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 85,
+          "before_time": 0.416666806,
+          "after_time": 0.400000125,
+          "clip_before": "Down60",
+          "clip_after": "Down60",
+          "hand_r_cm": 0.2767419935375626,
+          "muzzle_deg": 3.013401331695412
+        }
+      ],
+      "entry_muzzle_step_deg": 0.023183521493786254,
+      "entry_hand_r_step_cm": 0.01953262949324227,
+      "muzzle_pitch_extra_deg": 20.07483010795042,
+      "muzzle_height_extra_cm": 16.152755962,
+      "max_hand_r_step_cm": 0.929022730887517,
+      "max_muzzle_step_deg": 3.013401331695412
+    },
+    {
+      "pitch": -60.0,
+      "strength": 0,
+      "scenario": "Reverse75",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -60.0,
+          "clip": "Down60",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 98,
+          "before_time": 0.633333385,
+          "after_time": 0.616666734,
+          "clip_before": "Down60",
+          "clip_after": "Down60",
+          "hand_r_cm": 1.2729636774469473,
+          "muzzle_deg": 1.8798885409071866
+        }
+      ],
+      "entry_muzzle_step_deg": 0.023183521493786254,
+      "entry_hand_r_step_cm": 0.01953262949324227,
+      "muzzle_pitch_extra_deg": 36.82318299903368,
+      "muzzle_height_extra_cm": 29.202091799,
+      "max_hand_r_step_cm": 1.3531146673356602,
+      "max_muzzle_step_deg": 3.026643865447623
+    },
+    {
+      "pitch": -60.001,
+      "strength": 0,
+      "scenario": "Full",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -60.001,
+          "clip": "Down60",
+          "time": 0.016666668
+        },
+        {
+          "frame": 140,
+          "pitch": -60.001,
+          "clip": "Down60",
+          "time": 0.816666663
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 140,
+          "before_time": 0.833333313,
+          "after_time": 0.816666663,
+          "clip_before": "Down60",
+          "clip_after": "Down60",
+          "hand_r_cm": 0.028842061508934647,
+          "muzzle_deg": 0.02624104345663946
+        }
+      ],
+      "entry_muzzle_step_deg": 0.023567268250981002,
+      "entry_hand_r_step_cm": 0.01945750696119843,
+      "muzzle_pitch_extra_deg": 0.023446659792117686,
+      "muzzle_height_extra_cm": 0.1259201069999989,
+      "max_hand_r_step_cm": 1.3299257709806789,
+      "max_muzzle_step_deg": 3.0266375901385403
+    },
+    {
+      "pitch": -60.001,
+      "strength": 0,
+      "scenario": "Reverse25",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -60.001,
+          "clip": "Down60",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 73,
+          "before_time": 0.216666669,
+          "after_time": 0.200000003,
+          "clip_before": "Down60",
+          "clip_after": "Down60",
+          "hand_r_cm": 0.9017609124489195,
+          "muzzle_deg": 1.738799107712819
+        }
+      ],
+      "entry_muzzle_step_deg": 0.023567268250981002,
+      "entry_hand_r_step_cm": 0.01945750696119843,
+      "muzzle_pitch_extra_deg": 4.397598338698231,
+      "muzzle_height_extra_cm": 3.7606397769999944,
+      "max_hand_r_step_cm": 0.9036798634221533,
+      "max_muzzle_step_deg": 1.738799107712819
+    },
+    {
+      "pitch": -60.001,
+      "strength": 0,
+      "scenario": "Reverse50",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -60.001,
+          "clip": "Down60",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 85,
+          "before_time": 0.416666806,
+          "after_time": 0.400000125,
+          "clip_before": "Down60",
+          "clip_after": "Down60",
+          "hand_r_cm": 0.2767419935375626,
+          "muzzle_deg": 3.013401331695412
+        }
+      ],
+      "entry_muzzle_step_deg": 0.023567268250981002,
+      "entry_hand_r_step_cm": 0.01945750696119843,
+      "muzzle_pitch_extra_deg": 20.075563119850827,
+      "muzzle_height_extra_cm": 16.153285369999992,
+      "max_hand_r_step_cm": 0.929022730887517,
+      "max_muzzle_step_deg": 3.013401331695412
+    },
+    {
+      "pitch": -60.001,
+      "strength": 0,
+      "scenario": "Reverse75",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -60.001,
+          "clip": "Down60",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 98,
+          "before_time": 0.633333385,
+          "after_time": 0.616666734,
+          "clip_before": "Down60",
+          "clip_after": "Down60",
+          "hand_r_cm": 1.2729636774469473,
+          "muzzle_deg": 1.8798885409071866
+        }
+      ],
+      "entry_muzzle_step_deg": 0.023567268250981002,
+      "entry_hand_r_step_cm": 0.01945750696119843,
+      "muzzle_pitch_extra_deg": 36.823610770390566,
+      "muzzle_height_extra_cm": 29.202621206999993,
+      "max_hand_r_step_cm": 1.3531146673356602,
+      "max_muzzle_step_deg": 3.026643865447623
+    },
+    {
+      "pitch": -75.0,
+      "strength": 0,
+      "scenario": "Full",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -75.0,
+          "clip": "Down60",
+          "time": 0.016666668
+        },
+        {
+          "frame": 140,
+          "pitch": -75.0,
+          "clip": "Down60",
+          "time": 0.816666663
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 140,
+          "before_time": 0.833333313,
+          "after_time": 0.816666663,
+          "clip_before": "Down60",
+          "clip_after": "Down60",
+          "hand_r_cm": 0.028842061508934647,
+          "muzzle_deg": 0.02624104345663946
+        }
+      ],
+      "entry_muzzle_step_deg": 8.25727036186427,
+      "entry_hand_r_step_cm": 1.7595687247620446,
+      "muzzle_pitch_extra_deg": 0.023446659792117686,
+      "muzzle_height_extra_cm": 0.1259201069999989,
+      "max_hand_r_step_cm": 1.7595687247620446,
+      "max_muzzle_step_deg": 8.25727036186427
+    },
+    {
+      "pitch": -75.0,
+      "strength": 0,
+      "scenario": "Reverse25",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -75.0,
+          "clip": "Down60",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 73,
+          "before_time": 0.216666669,
+          "after_time": 0.200000003,
+          "clip_before": "Down60",
+          "clip_after": "Down60",
+          "hand_r_cm": 0.9017609124489195,
+          "muzzle_deg": 1.738799107712819
+        }
+      ],
+      "entry_muzzle_step_deg": 8.25727036186427,
+      "entry_hand_r_step_cm": 1.7595687247620446,
+      "muzzle_pitch_extra_deg": 12.60824356164089,
+      "muzzle_height_extra_cm": 9.027146150999997,
+      "max_hand_r_step_cm": 1.7595687247620446,
+      "max_muzzle_step_deg": 8.25727036186427
+    },
+    {
+      "pitch": -75.0,
+      "strength": 0,
+      "scenario": "Reverse50",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -75.0,
+          "clip": "Down60",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 85,
+          "before_time": 0.416666806,
+          "after_time": 0.400000125,
+          "clip_before": "Down60",
+          "clip_after": "Down60",
+          "hand_r_cm": 0.2767419935375626,
+          "muzzle_deg": 3.013401331695412
+        }
+      ],
+      "entry_muzzle_step_deg": 8.25727036186427,
+      "entry_hand_r_step_cm": 1.7595687247620446,
+      "muzzle_pitch_extra_deg": 28.287263869702315,
+      "muzzle_height_extra_cm": 21.419791743999994,
+      "max_hand_r_step_cm": 1.7595687247620446,
+      "max_muzzle_step_deg": 8.25727036186427
+    },
+    {
+      "pitch": -75.0,
+      "strength": 0,
+      "scenario": "Reverse75",
+      "entries": [
+        {
+          "frame": 60,
+          "pitch": -75.0,
+          "clip": "Down60",
+          "time": 0.016666668
+        }
+      ],
+      "reverse": [
+        {
+          "frame": 98,
+          "before_time": 0.633333385,
+          "after_time": 0.616666734,
+          "clip_before": "Down60",
+          "clip_after": "Down60",
+          "hand_r_cm": 1.2729636774469473,
+          "muzzle_deg": 1.8798885409071866
+        }
+      ],
+      "entry_muzzle_step_deg": 8.25727036186427,
+      "entry_hand_r_step_cm": 1.7595687247620446,
+      "muzzle_pitch_extra_deg": 41.619401289606735,
+      "muzzle_height_extra_cm": 32.564951410999996,
+      "max_hand_r_step_cm": 1.7595687247620446,
+      "max_muzzle_step_deg": 8.25727036186427
+    }
+  ],
+  "violations": [],
+  "frames": 16380,
+  "status": "Passed selection/time checks; human motion review pending"
+}

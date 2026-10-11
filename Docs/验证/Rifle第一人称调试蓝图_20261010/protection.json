@@ -1,0 +1,18 @@
+{
+  "beforeCount": 921,
+  "unchangedCount": 918,
+  "changes": [
+    {
+      "path": "Source\\ShootGameEditor\\Tests\\RifleTransition\\ShooterRifleTransitionFixture.cpp",
+      "status": "changed"
+    },
+    {
+      "path": "Source\\ShootGameEditor\\ShootGameEditor.Build.cs",
+      "status": "changed"
+    },
+    {
+      "path": "Source\\ShootGameEditor\\Tests\\RifleTransition\\ShooterRifleTransitionFixture.h",
+      "status": "changed"
+    }
+  ]
+}

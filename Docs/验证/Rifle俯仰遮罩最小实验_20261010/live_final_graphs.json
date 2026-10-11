@@ -1,0 +1,1244 @@
+{
+  "blueprint": "/Game/Experiments/RifleTransition/ABP_TP_RifleTransition_Test",
+  "targetSkeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin",
+  "capturedAfterLayoutSave": true,
+  "graphs": [
+    {
+      "path": "AnimGraph",
+      "count": 23,
+      "nodes": [
+        {
+          "id": "77A05FCE-4786-FBE2-63AD-A393F368B268",
+          "title": "Output Pose",
+          "class": "/Script/AnimGraph.AnimGraphNode_Root",
+          "x": 1168,
+          "y": -32,
+          "pins": [
+            {
+              "name": "Result",
+              "direction": "input",
+              "links": [
+                {
+                  "nodeId": "DDE715A9-4DC4-986C-B559-A9949098091D",
+                  "nodeName": "AnimGraphNode_ComponentToLocalSpace_0",
+                  "pinName": "Pose"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "E3430CF6-4442-180C-91B2-7390749C51DB",
+          "title": "LocomotioStateMachine",
+          "class": "/Script/AnimGraph.AnimGraphNode_StateMachine",
+          "x": -320,
+          "y": 16,
+          "pins": [
+            {
+              "name": "Pose",
+              "direction": "output",
+              "links": [
+                {
+                  "nodeId": "DAD0BF11-4FD6-5017-EF95-F080C525181D",
+                  "nodeName": "AnimGraphNode_LayeredBoneBlend_1",
+                  "pinName": "BasePose"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "DAD0BF11-4FD6-5017-EF95-F080C525181D",
+          "title": "Layered blend per bone",
+          "class": "/Script/AnimGraph.AnimGraphNode_LayeredBoneBlend",
+          "x": -80,
+          "y": 32,
+          "pins": [
+            {
+              "name": "BasePose",
+              "direction": "input",
+              "links": [
+                {
+                  "nodeId": "E3430CF6-4442-180C-91B2-7390749C51DB",
+                  "nodeName": "AnimGraphNode_StateMachine_58",
+                  "pinName": "Pose"
+                }
+              ]
+            },
+            {
+              "name": "BlendPoses_0",
+              "direction": "input",
+              "links": [
+                {
+                  "nodeId": "45963CB2-4201-B893-F255-F994FD392F7F",
+                  "nodeName": "AnimGraphNode_Slot_1",
+                  "pinName": "Pose"
+                }
+              ]
+            },
+            {
+              "name": "BlendWeights_0",
+              "direction": "input",
+              "links": [
+                {
+                  "nodeId": "A3E4368E-4273-359E-C59C-FFACDD0CF145",
+                  "nodeName": "K2Node_VariableGet_7",
+                  "pinName": "WeaponUpperBodyWeight"
+                }
+              ]
+            },
+            {
+              "name": "Pose",
+              "direction": "output",
+              "links": [
+                {
+                  "nodeId": "5E8DB46B-4332-C5D3-B2B3-6A852F045DA7",
+                  "nodeName": "AnimGraphNode_LocalToComponentSpace_0",
+                  "pinName": "LocalPose"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "59A3BDC0-4C83-11D3-C64D-41815E9EAA40",
+          "title": "Sequence Player",
+          "class": "/Script/AnimGraph.AnimGraphNode_SequencePlayer",
+          "x": -736,
+          "y": 432,
+          "pins": [
+            {
+              "name": "Sequence",
+              "direction": "input",
+              "links": [
+                {
+                  "nodeId": "8E641C26-466F-3405-36EC-DAADFB52270A",
+                  "nodeName": "K2Node_VariableGet_0",
+                  "pinName": "ThirdPersonHoldSequence"
+                }
+              ]
+            },
+            {
+              "name": "Pose",
+              "direction": "output",
+              "links": [
+                {
+                  "nodeId": "CEB22CB0-48EE-78FD-35B3-79A8ABBC85E9",
+                  "nodeName": "AnimGraphNode_RotationOffsetBlendSpace_0",
+                  "pinName": "BasePose"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "CEB22CB0-48EE-78FD-35B3-79A8ABBC85E9",
+          "title": "AimOffset Player '(None)'",
+          "class": "/Script/AnimGraph.AnimGraphNode_RotationOffsetBlendSpace",
+          "x": -512,
+          "y": 304,
+          "pins": [
+            {
+              "name": "X",
+              "direction": "input",
+              "links": []
+            },
+            {
+              "name": "Y",
+              "direction": "input",
+              "links": [
+                {
+                  "nodeId": "4936002B-4A45-B256-41E7-01B556508764",
+                  "nodeName": "K2Node_VariableGet_1",
+                  "pinName": "AimPitchN"
+                }
+              ]
+            },
+            {
+              "name": "BlendSpace",
+              "direction": "input",
+              "links": [
+                {
+                  "nodeId": "FD378294-4E90-C99C-A747-2DBACF4EDC0C",
+                  "nodeName": "K2Node_VariableGet_5",
+                  "pinName": "ThirdPersonAimOffset"
+                }
+              ]
+            },
+            {
+              "name": "BasePose",
+              "direction": "input",
+              "links": [
+                {
+                  "nodeId": "59A3BDC0-4C83-11D3-C64D-41815E9EAA40",
+                  "nodeName": "AnimGraphNode_SequencePlayer_0",
+                  "pinName": "Pose"
+                }
+              ]
+            },
+            {
+              "name": "Alpha",
+              "direction": "input",
+              "links": []
+            },
+            {
+              "name": "AlphaCurveName",
+              "direction": "input",
+              "links": []
+            },
+            {
+              "name": "bAlphaBoolEnabled",
+              "direction": "input",
+              "links": []
+            },
+            {
+              "name": "Pose",
+              "direction": "output",
+              "links": [
+                {
+                  "nodeId": "DB35BB05-4D8E-826D-F337-8B9F1C14ECBB",
+                  "nodeName": "AnimGraphNode_SaveCachedPose_0",
+                  "pinName": "Pose"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "45963CB2-4201-B893-F255-F994FD392F7F",
+          "title": "Slot 'Arms'",
+          "class": "/Script/AnimGraph.AnimGraphNode_Slot",
+          "x": -304,
+          "y": 128,
+          "pins": [
+            {
+              "name": "Source",
+              "direction": "input",
+              "links": [
+                {
+                  "nodeId": "BD9F03B3-4F86-90CB-D3E1-AE8A03EF9C05",
+                  "nodeName": "AnimGraphNode_StateMachine_0",
+                  "pinName": "Pose"
+                }
+              ]
+            },
+            {
+              "name": "Pose",
+              "direction": "output",
+              "links": [
+                {
+                  "nodeId": "DAD0BF11-4FD6-5017-EF95-F080C525181D",
+                  "nodeName": "AnimGraphNode_LayeredBoneBlend_1",
+                  "pinName": "BlendPoses_0"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "2B166577-4A4B-13F1-833C-FDB6E6B5C498",
+          "title": "Get HandToMuzzle",
+          "class": "/Script/BlueprintGraph.K2Node_VariableGet",
+          "x": 112,
+          "y": 384,
+          "pins": [
+            {
+              "name": "HandToMuzzle",
+              "direction": "output",
+              "links": []
+            },
+            {
+              "name": "self",
+              "direction": "input",
+              "links": []
+            }
+          ]
+        },
+        {
+          "id": "DDE715A9-4DC4-986C-B559-A9949098091D",
+          "title": "Component To Local",
+          "class": "/Script/AnimGraph.AnimGraphNode_ComponentToLocalSpace",
+          "x": 976,
+          "y": 32,
+          "pins": [
+            {
+              "name": "ComponentPose",
+              "direction": "input",
+              "links": [
+                {
+                  "nodeId": "5E8DB46B-4332-C5D3-B2B3-6A852F045DA7",
+                  "nodeName": "AnimGraphNode_LocalToComponentSpace_0",
+                  "pinName": "ComponentPose"
+                }
+              ]
+            },
+            {
+              "name": "Pose",
+              "direction": "output",
+              "links": [
+                {
+                  "nodeId": "77A05FCE-4786-FBE2-63AD-A393F368B268",
+                  "nodeName": "AnimGraphNode_Root_0",
+                  "pinName": "Result"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "5E8DB46B-4332-C5D3-B2B3-6A852F045DA7",
+          "title": "Local To Component",
+          "class": "/Script/AnimGraph.AnimGraphNode_LocalToComponentSpace",
+          "x": 160,
+          "y": 32,
+          "pins": [
+            {
+              "name": "LocalPose",
+              "direction": "input",
+              "links": [
+                {
+                  "nodeId": "DAD0BF11-4FD6-5017-EF95-F080C525181D",
+                  "nodeName": "AnimGraphNode_LayeredBoneBlend_1",
+                  "pinName": "Pose"
+                }
+              ]
+            },
+            {
+              "name": "ComponentPose",
+              "direction": "output",
+              "links": [
+                {
+                  "nodeId": "DDE715A9-4DC4-986C-B559-A9949098091D",
+                  "nodeName": "AnimGraphNode_ComponentToLocalSpace_0",
+                  "pinName": "ComponentPose"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "637F65C9-4ECC-12A8-458B-0CB7B282EBF7",
+          "title": "Get AimDirectionWorld",
+          "class": "/Script/BlueprintGraph.K2Node_VariableGet",
+          "x": 112,
+          "y": 240,
+          "pins": [
+            {
+              "name": "AimDirectionWorld",
+              "direction": "output",
+              "links": []
+            },
+            {
+              "name": "self",
+              "direction": "input",
+              "links": []
+            }
+          ]
+        },
+        {
+          "id": "41326CEF-4AE8-A8E3-A91D-C6B0B46F1D6A",
+          "title": "Get LeftHandGripInRightHandSpace",
+          "class": "/Script/BlueprintGraph.K2Node_VariableGet",
+          "x": 464,
+          "y": 368,
+          "pins": [
+            {
+              "name": "LeftHandGripInRightHandSpace",
+              "direction": "output",
+              "links": []
+            },
+            {
+              "name": "self",
+              "direction": "input",
+              "links": []
+            }
+          ]
+        },
+        {
+          "id": "30C423EF-41A8-EF40-9C7E-0B80EAD26F7C",
+          "title": "Get HandGripInLeftHandSpace",
+          "class": "/Script/BlueprintGraph.K2Node_VariableGet",
+          "x": 464,
+          "y": 416,
+          "pins": [
+            {
+              "name": "HandGripInLeftHandSpace",
+              "direction": "output",
+              "links": []
+            },
+            {
+              "name": "self",
+              "direction": "input",
+              "links": []
+            }
+          ]
+        },
+        {
+          "id": "4936002B-4A45-B256-41E7-01B556508764",
+          "title": "Get AimPitchN",
+          "class": "/Script/BlueprintGraph.K2Node_VariableGet",
+          "x": -736,
+          "y": 384,
+          "pins": [
+            {
+              "name": "AimPitchN",
+              "direction": "output",
+              "links": [
+                {
+                  "nodeId": "CEB22CB0-48EE-78FD-35B3-79A8ABBC85E9",
+                  "nodeName": "AnimGraphNode_RotationOffsetBlendSpace_0",
+                  "pinName": "Y"
+                }
+              ]
+            },
+            {
+              "name": "self",
+              "direction": "input",
+              "links": []
+            }
+          ]
+        },
+        {
+          "id": "617EAA72-47F7-CEA7-4E7C-56BA75A24BB7",
+          "title": "Get AimTargetWorld",
+          "class": "/Script/BlueprintGraph.K2Node_VariableGet",
+          "x": 112,
+          "y": 288,
+          "pins": [
+            {
+              "name": "AimTargetWorld",
+              "direction": "output",
+              "links": []
+            },
+            {
+              "name": "self",
+              "direction": "input",
+              "links": []
+            }
+          ]
+        },
+        {
+          "id": "AA3DE896-46DD-8326-3410-7F99045982FA",
+          "title": "Get bAimTargetWorldValid",
+          "class": "/Script/BlueprintGraph.K2Node_VariableGet",
+          "x": 80,
+          "y": 336,
+          "pins": [
+            {
+              "name": "bAimTargetWorldValid",
+              "direction": "output",
+              "links": []
+            },
+            {
+              "name": "self",
+              "direction": "input",
+              "links": []
+            }
+          ]
+        },
+        {
+          "id": "BD9F03B3-4F86-90CB-D3E1-AE8A03EF9C05",
+          "title": "WeaponAction",
+          "class": "/Script/AnimGraph.AnimGraphNode_StateMachine",
+          "x": -464,
+          "y": 128,
+          "pins": [
+            {
+              "name": "Pose",
+              "direction": "output",
+              "links": [
+                {
+                  "nodeId": "45963CB2-4201-B893-F255-F994FD392F7F",
+                  "nodeName": "AnimGraphNode_Slot_1",
+                  "pinName": "Source"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "0DC6D7F1-4416-4BF4-266F-5693AF2A0C14",
+          "title": "Get LeftHandIKPresentationAlpha",
+          "class": "/Script/BlueprintGraph.K2Node_VariableGet",
+          "x": 464,
+          "y": 304,
+          "pins": [
+            {
+              "name": "LeftHandIKPresentationAlpha",
+              "direction": "output",
+              "links": []
+            },
+            {
+              "name": "self",
+              "direction": "input",
+              "links": []
+            }
+          ]
+        },
+        {
+          "id": "3620C6D7-4A75-3520-737F-9C82B1A9DBD0",
+          "title": "Get AimIKPresentationAlpha",
+          "class": "/Script/BlueprintGraph.K2Node_VariableGet",
+          "x": 96,
+          "y": 176,
+          "pins": [
+            {
+              "name": "AimIKPresentationAlpha",
+              "direction": "output",
+              "links": []
+            },
+            {
+              "name": "self",
+              "direction": "input",
+              "links": []
+            }
+          ]
+        },
+        {
+          "id": "DB35BB05-4D8E-826D-F337-8B9F1C14ECBB",
+          "title": "Save cached pose 'ArmedAimPose'",
+          "class": "/Script/AnimGraph.AnimGraphNode_SaveCachedPose",
+          "x": -304,
+          "y": 320,
+          "pins": [
+            {
+              "name": "Pose",
+              "direction": "input",
+              "links": [
+                {
+                  "nodeId": "CEB22CB0-48EE-78FD-35B3-79A8ABBC85E9",
+                  "nodeName": "AnimGraphNode_RotationOffsetBlendSpace_0",
+                  "pinName": "Pose"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "B4178B52-470F-8F9C-D737-EC9548F89670",
+          "title": "Get MinimumRemoteAimTargetDistanceFromMuzzle",
+          "class": "/Script/BlueprintGraph.K2Node_VariableGet",
+          "x": -64,
+          "y": 448,
+          "pins": [
+            {
+              "name": "MinimumRemoteAimTargetDistanceFromMuzzle",
+              "direction": "output",
+              "links": []
+            },
+            {
+              "name": "self",
+              "direction": "input",
+              "links": []
+            }
+          ]
+        },
+        {
+          "id": "8E641C26-466F-3405-36EC-DAADFB52270A",
+          "title": "Get ThirdPersonHoldSequence",
+          "class": "/Script/BlueprintGraph.K2Node_VariableGet",
+          "x": -1008,
+          "y": 464,
+          "pins": [
+            {
+              "name": "ThirdPersonHoldSequence",
+              "direction": "output",
+              "links": [
+                {
+                  "nodeId": "59A3BDC0-4C83-11D3-C64D-41815E9EAA40",
+                  "nodeName": "AnimGraphNode_SequencePlayer_0",
+                  "pinName": "Sequence"
+                }
+              ]
+            },
+            {
+              "name": "self",
+              "direction": "input",
+              "links": []
+            }
+          ]
+        },
+        {
+          "id": "FD378294-4E90-C99C-A747-2DBACF4EDC0C",
+          "title": "Get ThirdPersonAimOffset",
+          "class": "/Script/BlueprintGraph.K2Node_VariableGet",
+          "x": -772,
+          "y": 304,
+          "pins": [
+            {
+              "name": "ThirdPersonAimOffset",
+              "direction": "output",
+              "links": [
+                {
+                  "nodeId": "CEB22CB0-48EE-78FD-35B3-79A8ABBC85E9",
+                  "nodeName": "AnimGraphNode_RotationOffsetBlendSpace_0",
+                  "pinName": "BlendSpace"
+                }
+              ]
+            },
+            {
+              "name": "self",
+              "direction": "input",
+              "links": []
+            }
+          ]
+        },
+        {
+          "id": "A3E4368E-4273-359E-C59C-FFACDD0CF145",
+          "title": "Get WeaponUpperBodyWeight",
+          "class": "/Script/BlueprintGraph.K2Node_VariableGet",
+          "x": -304,
+          "y": 240,
+          "pins": [
+            {
+              "name": "WeaponUpperBodyWeight",
+              "direction": "output",
+              "links": [
+                {
+                  "nodeId": "DAD0BF11-4FD6-5017-EF95-F080C525181D",
+                  "nodeName": "AnimGraphNode_LayeredBoneBlend_1",
+                  "pinName": "BlendWeights_0"
+                }
+              ]
+            },
+            {
+              "name": "self",
+              "direction": "input",
+              "links": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "AnimGraph.AnimGraphNode_StateMachine_0.WeaponAction",
+      "count": 8,
+      "nodes": [
+        {
+          "id": "CC9B101E-4EB1-F646-2BB4-9DADFDBBCF54",
+          "title": "WeaponAction",
+          "class": "/Script/AnimGraph.AnimStateEntryNode",
+          "x": 0,
+          "y": -32,
+          "pins": [
+            {
+              "name": "Entry",
+              "direction": "output",
+              "links": [
+                {
+                  "nodeId": "9A8EE574-4FD7-3EFF-1D73-F381374E7BB7",
+                  "nodeName": "AnimStateNode_0",
+                  "pinName": "In"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "9A8EE574-4FD7-3EFF-1D73-F381374E7BB7",
+          "title": "ArmedAim",
+          "class": "/Script/AnimGraph.AnimStateNode",
+          "x": 192,
+          "y": -32,
+          "pins": [
+            {
+              "name": "In",
+              "direction": "input",
+              "links": [
+                {
+                  "nodeId": "CC9B101E-4EB1-F646-2BB4-9DADFDBBCF54",
+                  "nodeName": "AnimStateEntryNode_0",
+                  "pinName": "Entry"
+                },
+                {
+                  "nodeId": "8266646D-40C7-FE06-56C0-848DC161213A",
+                  "nodeName": "AnimStateTransitionNode_5",
+                  "pinName": "Out"
+                }
+              ]
+            },
+            {
+              "name": "Out",
+              "direction": "output",
+              "links": [
+                {
+                  "nodeId": "A939EB69-4AED-BACE-9A86-3EA3B28E09E8",
+                  "nodeName": "AnimStateTransitionNode_2",
+                  "pinName": "In"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "A1AD12AB-418C-12C5-97A7-AAAE4A20E09D",
+          "title": "AimTransition",
+          "class": "/Script/AnimGraph.AnimStateNode",
+          "x": 250,
+          "y": 0,
+          "pins": [
+            {
+              "name": "In",
+              "direction": "input",
+              "links": [
+                {
+                  "nodeId": "A939EB69-4AED-BACE-9A86-3EA3B28E09E8",
+                  "nodeName": "AnimStateTransitionNode_2",
+                  "pinName": "Out"
+                },
+                {
+                  "nodeId": "D5CE2501-40C8-DAAE-B256-54BAADB8E93C",
+                  "nodeName": "AnimStateTransitionNode_3",
+                  "pinName": "Out"
+                }
+              ]
+            },
+            {
+              "name": "Out",
+              "direction": "output",
+              "links": [
+                {
+                  "nodeId": "9FEFB544-4618-6AE3-D62A-E1A531C27B8F",
+                  "nodeName": "AnimStateTransitionNode_4",
+                  "pinName": "In"
+                },
+                {
+                  "nodeId": "8266646D-40C7-FE06-56C0-848DC161213A",
+                  "nodeName": "AnimStateTransitionNode_5",
+                  "pinName": "In"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "427225C1-4300-9AE6-2D19-9B93ED617DD1",
+          "title": "LowReady",
+          "class": "/Script/AnimGraph.AnimStateNode",
+          "x": 500,
+          "y": 0,
+          "pins": [
+            {
+              "name": "In",
+              "direction": "input",
+              "links": [
+                {
+                  "nodeId": "9FEFB544-4618-6AE3-D62A-E1A531C27B8F",
+                  "nodeName": "AnimStateTransitionNode_4",
+                  "pinName": "Out"
+                }
+              ]
+            },
+            {
+              "name": "Out",
+              "direction": "output",
+              "links": [
+                {
+                  "nodeId": "D5CE2501-40C8-DAAE-B256-54BAADB8E93C",
+                  "nodeName": "AnimStateTransitionNode_3",
+                  "pinName": "In"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "A939EB69-4AED-BACE-9A86-3EA3B28E09E8",
+          "title": "ArmedAim to AimTransition",
+          "class": "/Script/AnimGraph.AnimStateTransitionNode",
+          "x": 254,
+          "y": -4,
+          "pins": [
+            {
+              "name": "In",
+              "direction": "input",
+              "links": [
+                {
+                  "nodeId": "9A8EE574-4FD7-3EFF-1D73-F381374E7BB7",
+                  "nodeName": "AnimStateNode_0",
+                  "pinName": "Out"
+                }
+              ]
+            },
+            {
+              "name": "Out",
+              "direction": "output",
+              "links": [
+                {
+                  "nodeId": "A1AD12AB-418C-12C5-97A7-AAAE4A20E09D",
+                  "nodeName": "AnimStateNode_2",
+                  "pinName": "In"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "D5CE2501-40C8-DAAE-B256-54BAADB8E93C",
+          "title": "LowReady to AimTransition",
+          "class": "/Script/AnimGraph.AnimStateTransitionNode",
+          "x": 445,
+          "y": 41,
+          "pins": [
+            {
+              "name": "In",
+              "direction": "input",
+              "links": [
+                {
+                  "nodeId": "427225C1-4300-9AE6-2D19-9B93ED617DD1",
+                  "nodeName": "AnimStateNode_3",
+                  "pinName": "Out"
+                }
+              ]
+            },
+            {
+              "name": "Out",
+              "direction": "output",
+              "links": [
+                {
+                  "nodeId": "A1AD12AB-418C-12C5-97A7-AAAE4A20E09D",
+                  "nodeName": "AnimStateNode_2",
+                  "pinName": "In"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "9FEFB544-4618-6AE3-D62A-E1A531C27B8F",
+          "title": "AimTransition to LowReady",
+          "class": "/Script/AnimGraph.AnimStateTransitionNode",
+          "x": 445,
+          "y": -18,
+          "pins": [
+            {
+              "name": "In",
+              "direction": "input",
+              "links": [
+                {
+                  "nodeId": "A1AD12AB-418C-12C5-97A7-AAAE4A20E09D",
+                  "nodeName": "AnimStateNode_2",
+                  "pinName": "Out"
+                }
+              ]
+            },
+            {
+              "name": "Out",
+              "direction": "output",
+              "links": [
+                {
+                  "nodeId": "427225C1-4300-9AE6-2D19-9B93ED617DD1",
+                  "nodeName": "AnimStateNode_3",
+                  "pinName": "In"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "8266646D-40C7-FE06-56C0-848DC161213A",
+          "title": "AimTransition to ArmedAim",
+          "class": "/Script/AnimGraph.AnimStateTransitionNode",
+          "x": 314,
+          "y": -4,
+          "pins": [
+            {
+              "name": "In",
+              "direction": "input",
+              "links": [
+                {
+                  "nodeId": "A1AD12AB-418C-12C5-97A7-AAAE4A20E09D",
+                  "nodeName": "AnimStateNode_2",
+                  "pinName": "Out"
+                }
+              ]
+            },
+            {
+              "name": "Out",
+              "direction": "output",
+              "links": [
+                {
+                  "nodeId": "9A8EE574-4FD7-3EFF-1D73-F381374E7BB7",
+                  "nodeName": "AnimStateNode_0",
+                  "pinName": "In"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "AnimGraph.AnimGraphNode_StateMachine_0.WeaponAction.AnimStateNode_2.AimTransition",
+      "count": 7,
+      "nodes": [
+        {
+          "id": "9B3B6EB2-4E7A-7558-0295-D59EE280E02F",
+          "title": "Output Animation Pose",
+          "class": "/Script/AnimGraph.AnimGraphNode_StateResult",
+          "x": 700,
+          "y": 0,
+          "pins": [
+            {
+              "name": "Result",
+              "direction": "input",
+              "links": [
+                {
+                  "nodeId": "A17E06C3-4DE8-2DBF-5F29-4494A47020EE",
+                  "nodeName": "AnimGraphNode_LayeredBoneBlend_0",
+                  "pinName": "Pose"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "6C7D14D1-4C44-4409-FCC1-E8BF1081B561",
+          "title": "Sequence Player 'MM_Rifle_AimToLowReady'",
+          "class": "/Script/AnimGraph.AnimGraphNode_SequencePlayer",
+          "x": -64,
+          "y": 32,
+          "pins": [
+            {
+              "name": "PlayRate",
+              "direction": "input",
+              "links": [
+                {
+                  "nodeId": "6D7CCEFF-4DCE-AE5E-5701-FE9DA5A4B62F",
+                  "nodeName": "K2Node_VariableGet_0",
+                  "pinName": "RifleTestPlayRate"
+                }
+              ]
+            },
+            {
+              "name": "StartPosition",
+              "direction": "input",
+              "links": [
+                {
+                  "nodeId": "3ECE5731-4010-6F44-D80F-439E020FEBC4",
+                  "nodeName": "K2Node_VariableGet_1",
+                  "pinName": "RifleTestStartPosition"
+                }
+              ]
+            },
+            {
+              "name": "Pose",
+              "direction": "output",
+              "links": [
+                {
+                  "nodeId": "A17E06C3-4DE8-2DBF-5F29-4494A47020EE",
+                  "nodeName": "AnimGraphNode_LayeredBoneBlend_0",
+                  "pinName": "BasePose"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "6D7CCEFF-4DCE-AE5E-5701-FE9DA5A4B62F",
+          "title": "Get RifleTestPlayRate",
+          "class": "/Script/BlueprintGraph.K2Node_VariableGet",
+          "x": -300,
+          "y": 0,
+          "pins": [
+            {
+              "name": "RifleTestPlayRate",
+              "direction": "output",
+              "links": [
+                {
+                  "nodeId": "6C7D14D1-4C44-4409-FCC1-E8BF1081B561",
+                  "nodeName": "AnimGraphNode_SequencePlayer_0",
+                  "pinName": "PlayRate"
+                }
+              ]
+            },
+            {
+              "name": "self",
+              "direction": "input",
+              "links": []
+            }
+          ]
+        },
+        {
+          "id": "3ECE5731-4010-6F44-D80F-439E020FEBC4",
+          "title": "Get RifleTestStartPosition",
+          "class": "/Script/BlueprintGraph.K2Node_VariableGet",
+          "x": -300,
+          "y": 150,
+          "pins": [
+            {
+              "name": "RifleTestStartPosition",
+              "direction": "output",
+              "links": [
+                {
+                  "nodeId": "6C7D14D1-4C44-4409-FCC1-E8BF1081B561",
+                  "nodeName": "AnimGraphNode_SequencePlayer_0",
+                  "pinName": "StartPosition"
+                }
+              ]
+            },
+            {
+              "name": "self",
+              "direction": "input",
+              "links": []
+            }
+          ]
+        },
+        {
+          "id": "A17E06C3-4DE8-2DBF-5F29-4494A47020EE",
+          "title": "Layered blend per bone",
+          "class": "/Script/AnimGraph.AnimGraphNode_LayeredBoneBlend",
+          "x": 350,
+          "y": 0,
+          "pins": [
+            {
+              "name": "BasePose",
+              "direction": "input",
+              "links": [
+                {
+                  "nodeId": "6C7D14D1-4C44-4409-FCC1-E8BF1081B561",
+                  "nodeName": "AnimGraphNode_SequencePlayer_0",
+                  "pinName": "Pose"
+                }
+              ]
+            },
+            {
+              "name": "BlendPoses_0",
+              "direction": "input",
+              "links": [
+                {
+                  "nodeId": "E835B4BC-4CF7-BB57-1424-A8918733FD8C",
+                  "nodeName": "AnimGraphNode_UseCachedPose_0",
+                  "pinName": "Pose"
+                }
+              ]
+            },
+            {
+              "name": "BlendWeights_0",
+              "direction": "input",
+              "links": [
+                {
+                  "nodeId": "F9A510D1-4EEB-8E65-3F16-7EBD66DD511F",
+                  "nodeName": "K2Node_VariableGet_2",
+                  "pinName": "RifleTestNaturalPitchStrength"
+                }
+              ]
+            },
+            {
+              "name": "Pose",
+              "direction": "output",
+              "links": [
+                {
+                  "nodeId": "9B3B6EB2-4E7A-7558-0295-D59EE280E02F",
+                  "nodeName": "AnimGraphNode_StateResult_0",
+                  "pinName": "Result"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "E835B4BC-4CF7-BB57-1424-A8918733FD8C",
+          "title": "Use cached pose 'ArmedAimPose'",
+          "class": "/Script/AnimGraph.AnimGraphNode_UseCachedPose",
+          "x": 0,
+          "y": 300,
+          "pins": [
+            {
+              "name": "Pose",
+              "direction": "output",
+              "links": [
+                {
+                  "nodeId": "A17E06C3-4DE8-2DBF-5F29-4494A47020EE",
+                  "nodeName": "AnimGraphNode_LayeredBoneBlend_0",
+                  "pinName": "BlendPoses_0"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "F9A510D1-4EEB-8E65-3F16-7EBD66DD511F",
+          "title": "Get RifleTestNaturalPitchStrength",
+          "class": "/Script/BlueprintGraph.K2Node_VariableGet",
+          "x": 0,
+          "y": 450,
+          "pins": [
+            {
+              "name": "RifleTestNaturalPitchStrength",
+              "direction": "output",
+              "links": [
+                {
+                  "nodeId": "A17E06C3-4DE8-2DBF-5F29-4494A47020EE",
+                  "nodeName": "AnimGraphNode_LayeredBoneBlend_0",
+                  "pinName": "BlendWeights_0"
+                }
+              ]
+            },
+            {
+              "name": "self",
+              "direction": "input",
+              "links": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "AnimGraph.AnimGraphNode_StateMachine_0.WeaponAction.AnimStateNode_3.LowReady",
+      "count": 5,
+      "nodes": [
+        {
+          "id": "67A4CB75-4867-26B3-F7F9-0C8C89724B54",
+          "title": "Output Animation Pose",
+          "class": "/Script/AnimGraph.AnimGraphNode_StateResult",
+          "x": 700,
+          "y": 0,
+          "pins": [
+            {
+              "name": "Result",
+              "direction": "input",
+              "links": [
+                {
+                  "nodeId": "AF53A51F-46E1-174D-D018-DC81CC7EF48C",
+                  "nodeName": "AnimGraphNode_LayeredBoneBlend_0",
+                  "pinName": "Pose"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "314EEF8C-492D-BEBD-48EE-1B9144043051",
+          "title": "Sequence Player 'MM_Rifle_LowReady'",
+          "class": "/Script/AnimGraph.AnimGraphNode_SequencePlayer",
+          "x": 0,
+          "y": 0,
+          "pins": [
+            {
+              "name": "Pose",
+              "direction": "output",
+              "links": [
+                {
+                  "nodeId": "AF53A51F-46E1-174D-D018-DC81CC7EF48C",
+                  "nodeName": "AnimGraphNode_LayeredBoneBlend_0",
+                  "pinName": "BasePose"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "AF53A51F-46E1-174D-D018-DC81CC7EF48C",
+          "title": "Layered blend per bone",
+          "class": "/Script/AnimGraph.AnimGraphNode_LayeredBoneBlend",
+          "x": 350,
+          "y": 0,
+          "pins": [
+            {
+              "name": "BasePose",
+              "direction": "input",
+              "links": [
+                {
+                  "nodeId": "314EEF8C-492D-BEBD-48EE-1B9144043051",
+                  "nodeName": "AnimGraphNode_SequencePlayer_0",
+                  "pinName": "Pose"
+                }
+              ]
+            },
+            {
+              "name": "BlendPoses_0",
+              "direction": "input",
+              "links": [
+                {
+                  "nodeId": "9153020E-4362-B6BE-CB44-1F8CAD1474C9",
+                  "nodeName": "AnimGraphNode_UseCachedPose_0",
+                  "pinName": "Pose"
+                }
+              ]
+            },
+            {
+              "name": "BlendWeights_0",
+              "direction": "input",
+              "links": [
+                {
+                  "nodeId": "23A27385-48E2-15D9-F7A2-4593157A8A4D",
+                  "nodeName": "K2Node_VariableGet_0",
+                  "pinName": "RifleTestNaturalPitchStrength"
+                }
+              ]
+            },
+            {
+              "name": "Pose",
+              "direction": "output",
+              "links": [
+                {
+                  "nodeId": "67A4CB75-4867-26B3-F7F9-0C8C89724B54",
+                  "nodeName": "AnimGraphNode_StateResult_0",
+                  "pinName": "Result"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "9153020E-4362-B6BE-CB44-1F8CAD1474C9",
+          "title": "Use cached pose 'ArmedAimPose'",
+          "class": "/Script/AnimGraph.AnimGraphNode_UseCachedPose",
+          "x": 0,
+          "y": 300,
+          "pins": [
+            {
+              "name": "Pose",
+              "direction": "output",
+              "links": [
+                {
+                  "nodeId": "AF53A51F-46E1-174D-D018-DC81CC7EF48C",
+                  "nodeName": "AnimGraphNode_LayeredBoneBlend_0",
+                  "pinName": "BlendPoses_0"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "23A27385-48E2-15D9-F7A2-4593157A8A4D",
+          "title": "Get RifleTestNaturalPitchStrength",
+          "class": "/Script/BlueprintGraph.K2Node_VariableGet",
+          "x": 0,
+          "y": 450,
+          "pins": [
+            {
+              "name": "RifleTestNaturalPitchStrength",
+              "direction": "output",
+              "links": [
+                {
+                  "nodeId": "AF53A51F-46E1-174D-D018-DC81CC7EF48C",
+                  "nodeName": "AnimGraphNode_LayeredBoneBlend_0",
+                  "pinName": "BlendWeights_0"
+                }
+              ]
+            },
+            {
+              "name": "self",
+              "direction": "input",
+              "links": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "newBlends": [
+    {
+      "state": "AimTransition",
+      "node": "A17E06C3-4DE8-2DBF-5F29-4494A47020EE",
+      "configuration": "(BasePose=(LinkID=-1,SourceLinkID=-1),BlendPoses=(()),BlendMode=BlendMask,BlendMasks=(\"/Script/Engine.BlendProfile'/Game/Experiments/RifleTransition/SK_RiflePitchMask_Test.SK_RiflePitchMask_Test:RifleLowReadyNaturalPitch'\"),LayerSetup=,BlendWeights=(1.000000),PerBoneBlendWeights=,SkeletonGuid=00000000000000000000000000000000,VirtualBoneGuid=00000000000000000000000000000000,LODThreshold=-1,bMeshSpaceRotationBlend=True,bRootSpaceRotationBlend=False,bMeshSpaceScaleBlend=False,CurveBlendOption=UseBasePose,bBlendRootMotionBasedOnRootBone=True,InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+    },
+    {
+      "state": "LowReady",
+      "node": "AF53A51F-46E1-174D-D018-DC81CC7EF48C",
+      "configuration": "(BasePose=(LinkID=-1,SourceLinkID=-1),BlendPoses=(()),BlendMode=BlendMask,BlendMasks=(\"/Script/Engine.BlendProfile'/Game/Experiments/RifleTransition/SK_RiflePitchMask_Test.SK_RiflePitchMask_Test:RifleLowReadyNaturalPitch'\"),LayerSetup=,BlendWeights=(1.000000),PerBoneBlendWeights=,SkeletonGuid=00000000000000000000000000000000,VirtualBoneGuid=00000000000000000000000000000000,LODThreshold=-1,bMeshSpaceRotationBlend=True,bRootSpaceRotationBlend=False,bMeshSpaceScaleBlend=False,CurveBlendOption=UseBasePose,bBlendRootMotionBasedOnRootBone=True,InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+    }
+  ]
+}

@@ -11,6 +11,7 @@
 #include "KismetAnimationLibrary.h"
 #include "Animation/AnimInstanceProxy.h"
 #include "Animation/AnimNode_StateMachine.h"
+#include "Animation/AnimNode_SequencePlayer.h"
 #include "Animation/AnimSequence.h"
 #include "Animation/AimOffsetBlendSpace.h"
 #include "GameFramework/PlayerState/ShooterPlayerState.h"
@@ -125,8 +126,105 @@ bool UShooterThirdPersonAnimInstance::IsMathematicallyValidBindingFrame(const FT
 	return T.IsValid() && T.GetScale3D().X > 0.0f && T.GetScale3D().Y > 0.0f && T.GetScale3D().Z > 0.0f;
 }
 
+void UShooterThirdPersonAnimInstance::ToggleDebugRifleLowReady(APawn* Pawn)
+{
+	AShooterCharacter* Character = Cast<AShooterCharacter>(Pawn);
+	if (!Character || !Character->IsLocallyControlled())
+	{
+		return;
+	}
+	AShooterWeapon* Weapon = Character->GetCurrentWeaponActor();
+	auto* Instance = Cast<UShooterThirdPersonAnimInstance>(Character->GetMesh()->GetAnimInstance());
+	if (Instance && Weapon && Weapon->GetOwner() == Character && Weapon->GetWeaponId() == TEXT("Rifle") &&
+		!Instance->bIsReloading && !Instance->bIsEquipping && !Instance->bIsDead && !Instance->bIsFiring &&
+		!Instance->IsAnyMontagePlaying())
+	{
+		Instance->bDebugRifleLowReady = !Instance->bDebugRifleLowReady;
+	}
+}
+
+const FAnimNode_SequencePlayer* UShooterThirdPersonAnimInstance::GetRifleTransitionPlayer() const
+{
+	const FAnimInstanceProxy& Proxy = GetProxyOnAnyThread<FAnimInstanceProxy>();
+	const int32 Index = Proxy.GetInstanceAssetPlayerIndex(TEXT("RifleReady"), TEXT("AimTransition"));
+	return Index == INDEX_NONE ? nullptr : Proxy.GetNodeFromIndex<FAnimNode_SequencePlayer>(Index);
+}
+
+bool UShooterThirdPersonAnimInstance::GetRifleReadyAbortRequested() const
+{
+	return !bDebugRifleReadyAvailable || bIsReloading || bIsEquipping || bIsDead || bIsFiring || bDebugRifleActionMontageActive;
+}
+
+bool UShooterThirdPersonAnimInstance::GetRifleLowerRequested() const
+{
+	return bDebugRifleLowReady && !GetRifleReadyAbortRequested();
+}
+
+bool UShooterThirdPersonAnimInstance::GetRifleRaiseRequested() const
+{
+	return !bDebugRifleLowReady && !GetRifleReadyAbortRequested();
+}
+
+bool UShooterThirdPersonAnimInstance::GetRifleAtLowEndpoint() const
+{
+	const auto* Player = GetRifleTransitionPlayer();
+	return GetRifleLowerRequested() && Player && Player->GetSequence() &&
+		Player->GetAccumulatedTime() >= Player->GetSequence()->GetPlayLength() - UE_SMALL_NUMBER;
+}
+
+bool UShooterThirdPersonAnimInstance::GetRifleAtAimEndpoint() const
+{
+	const auto* Player = GetRifleTransitionPlayer();
+	return GetRifleRaiseRequested() && Player && Player->GetAccumulatedTime() <= UE_SMALL_NUMBER;
+}
+
+void UShooterThirdPersonAnimInstance::UpdateRifleReadyAnimation()
+{
+	if (GetRifleReadyAbortRequested())
+	{
+		bDebugRifleLowReady = false;
+	}
+	const auto* Machine = GetStateMachineInstanceFromName(TEXT("RifleReady"));
+	if (Machine && ((Machine->GetCurrentStateName() == TEXT("ArmedAim") && GetRifleLowerRequested()) ||
+		(Machine->GetCurrentStateName() == TEXT("LowReady") && GetRifleRaiseRequested())))
+	{
+		// Sin / Asin 与角度归一的浮点误差只在边界容忍万分之一度；不建立迟滞区间。
+		constexpr float BoundaryTolerance = 0.0001f;
+		RifleTransitionSequence = AimPitchDegrees < -50.0f - BoundaryTolerance ? RifleTransitionDown60
+			: AimPitchDegrees <= -30.0f + BoundaryTolerance ? RifleTransitionDown30 : RifleTransitionCorrected;
+	}
+	RifleTransitionPlayRate = bDebugRifleLowReady ? 1.0f : -1.0f;
+	RifleTransitionStartPosition = bDebugRifleLowReady || !RifleTransitionSequence
+		? 0.0f : RifleTransitionSequence->GetPlayLength();
+}
+
+float UShooterThirdPersonAnimInstance::GetRifleAimCorrectionWeight() const
+{
+	if (GetRifleReadyAbortRequested())
+	{
+		// Reload / 非 Rifle 时交还现有 IK 曲线，不能消费未更新的子状态机时间。
+		return 1.0f;
+	}
+	const auto* Machine = GetStateMachineInstanceFromName(TEXT("RifleReady"));
+	if (!Machine || Machine->GetCurrentStateName() == TEXT("ArmedAim"))
+	{
+		return 1.0f;
+	}
+	if (Machine->GetCurrentStateName() == TEXT("LowReady"))
+	{
+		return 0.0f;
+	}
+	const auto* Player = GetRifleTransitionPlayer();
+	return Player && Player->GetSequence() && Player->GetSequence()->GetPlayLength() > UE_SMALL_NUMBER
+		? 1.0f - FMath::Clamp(Player->GetAccumulatedTime() / Player->GetSequence()->GetPlayLength(), 0.0f, 1.0f) : 1.0f;
+}
+
 void UShooterThirdPersonAnimInstance::NativeInitializeAnimation()
 {
+	bDebugRifleLowReady = false;
+	bDebugRifleReadyAvailable = false;
+	bDebugRifleActionMontageActive = false;
+	RifleTransitionSequence = RifleTransitionCorrected;
 	Super::NativeInitializeAnimation();
 
 	AShooterCharacter* Character = GetCachedShooterCharacter();
@@ -144,6 +242,8 @@ void UShooterThirdPersonAnimInstance::NativeInitializeAnimation()
 
 void UShooterThirdPersonAnimInstance::NativeUninitializeAnimation()
 {
+	bDebugRifleLowReady = false;
+	bDebugRifleReadyAvailable = false;
 	AShooterCharacter* Character = GetCachedShooterCharacter();
 	if (Character)
 	{
@@ -164,6 +264,12 @@ void UShooterThirdPersonAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	const bool bPreviouslyReloading = bIsReloading;
 	Super::NativeUpdateAnimation(DeltaSeconds);
+	const AShooterCharacter* Character = GetCachedShooterCharacter();
+	bDebugRifleReadyAvailable = Character && Character->IsLocallyControlled() && bHasEquippedWeapon &&
+		CurrentWeaponActor && CurrentWeaponActor->GetWeaponId() == TEXT("Rifle");
+	// 瞬时 Fire 的 Tag 可能在同帧结束；已播放的 Montage 仍是可靠的动画表现边界。
+	bDebugRifleActionMontageActive = IsAnyMontagePlaying();
+	UpdateRifleReadyAnimation();
 	if (bPreviouslyReloading != bIsReloading)
 	{
 		LogReloadPresentation(TEXT("ReloadingTagChanged"));
@@ -298,6 +404,10 @@ bool UShooterThirdPersonAnimInstance::HasWeaponAnimationResources(const AShooter
 
 void UShooterThirdPersonAnimInstance::HandleWeaponPresentationChanged(AShooterWeapon* PreviousWeapon, AShooterWeapon* CurrentWeapon)
 {
+	if (PreviousWeapon != CurrentWeapon)
+	{
+		bDebugRifleLowReady = false;
+	}
 	// 表现事件已由 Character 验证完成后才发布；这里只消费 (Previous, Current) 上下文。
 	if (IsValid(CurrentWeapon) && CurrentWeapon->GetOwner() == GetCachedShooterCharacter())
 	{
@@ -524,7 +634,7 @@ void UShooterThirdPersonAnimInstance::UpdateAimIKPresentationAlpha(float DeltaSe
 {
 	const float ReloadCurveAlpha = FMath::Clamp(GetCurveValue(ReloadIKAlphaCurveName), 0.0f, 1.0f);
 	const float ReloadGateAlpha = bIsReloading && !bReloadPresentationRecovering ? ReloadCurveAlpha : 1.0;
-	const float TargetAlpha = bAimIKEnabled ? ReloadGateAlpha : 0.0f;
+	const float TargetAlpha = bAimIKEnabled ? ReloadGateAlpha * GetRifleAimCorrectionWeight() : 0.0f;
 	const float BlendTime = TargetAlpha > AimIKPresentationAlpha ? AimIKBlendInTime : AimIKBlendOutTime;
 
 	if (BlendTime <= UE_KINDA_SMALL_NUMBER || DeltaSeconds <= 0.0f)

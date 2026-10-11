@@ -1,0 +1,6 @@
+{
+  "source_blend": "D:/Unreal_Projects/ShootGame/Scripts/Animation/RifleTools/Inputs/CorrectedGrip.blend",
+  "sources_json": "D:/Unreal_Projects/ShootGame/Scripts/Animation/RifleTools/Inputs/sources.json",
+  "reference_json": "D:/Unreal_Projects/ShootGame/Scripts/Animation/RifleTools/Inputs/reference.json",
+  "output_dir": "D:/Unreal_Projects/ShootGame/Saved/RifleTools/Build_New"
+}

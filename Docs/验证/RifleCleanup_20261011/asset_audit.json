@@ -1,0 +1,620 @@
+{
+  "assets": {
+    "/Game/Experiments/RifleTransition/SK_RiflePitchMask_Test": "<Struct 'TopLevelAssetPath' (0x0000016CE4673CDC) {package_name: \"/Script/Engine\", asset_name: \"Skeleton\"}>",
+    "/Game/Experiments/RifleTransition/L_RifleTransition_Test": "<Struct 'TopLevelAssetPath' (0x0000016CE4673B9C) {package_name: \"/Script/Engine\", asset_name: \"World\"}>",
+    "/Game/Experiments/RifleTransition/L_RifleTransition_ShooterCamera_Test": "<Struct 'TopLevelAssetPath' (0x0000016CE432CB7C) {package_name: \"/Script/Engine\", asset_name: \"World\"}>",
+    "/Game/Experiments/RifleTransition/L_RifleTransition_FirstPerson_Test": "<Struct 'TopLevelAssetPath' (0x0000016CE4673A5C) {package_name: \"/Script/Engine\", asset_name: \"World\"}>",
+    "/Game/Experiments/RifleTransition/BP_RifleTransition_ShooterGameMode_Test": "<Struct 'TopLevelAssetPath' (0x0000016CE467495C) {package_name: \"/Script/Engine\", asset_name: \"Blueprint\"}>",
+    "/Game/Experiments/RifleTransition/BP_RifleTransition_ShooterCharacter_Test": "<Struct 'TopLevelAssetPath' (0x0000016CE46746DC) {package_name: \"/Script/Engine\", asset_name: \"Blueprint\"}>",
+    "/Game/Experiments/RifleTransition/BP_RifleTransition_Preview": "<Struct 'TopLevelAssetPath' (0x0000016CE4676B1C) {package_name: \"/Script/Engine\", asset_name: \"Blueprint\"}>",
+    "/Game/Experiments/RifleTransition/BP_RifleTransition_DebugPawn": "<Struct 'TopLevelAssetPath' (0x0000016CE467521C) {package_name: \"/Script/Engine\", asset_name: \"Blueprint\"}>",
+    "/Game/Experiments/RifleTransition/BP_RifleTransition_DebugGameMode": "<Struct 'TopLevelAssetPath' (0x0000016CE4675ADC) {package_name: \"/Script/Engine\", asset_name: \"Blueprint\"}>",
+    "/Game/Experiments/RifleTransition/ABP_TP_RifleTransition_Test": "<Struct 'TopLevelAssetPath' (0x0000016CE4675C1C) {package_name: \"/Script/Engine\", asset_name: \"AnimBlueprint\"}>",
+    "/Game/Experiments/RifleTransition/ABP_TP_RifleTransition_AlwaysUpdate_Test": "<Struct 'TopLevelAssetPath' (0x0000016CE4675D5C) {package_name: \"/Script/Engine\", asset_name: \"AnimBlueprint\"}>",
+    "/Game/Experiments/RifleTransition/Blender_20261011/SK_RifleBlender_Test": "<Struct 'TopLevelAssetPath' (0x0000016CE467643C) {package_name: \"/Script/Engine\", asset_name: \"Skeleton\"}>",
+    "/Game/Experiments/RifleTransition/Blender_20261011/MM_Rifle_AimToLowReady_RootPreserved_Test": "<Struct 'TopLevelAssetPath' (0x0000016CE46766BC) {package_name: \"/Script/Engine\", asset_name: \"AnimSequence\"}>",
+    "/Game/Experiments/RifleTransition/Blender_20261011/MM_Rifle_AimToLowReady_FromSource_Test": "<Struct 'TopLevelAssetPath' (0x0000016CE467E77C) {package_name: \"/Script/Engine\", asset_name: \"AnimSequence\"}>",
+    "/Game/Experiments/RifleTransition/Blender_20261011/MM_Rifle_AimToLowReady_ExportControl_Test": "<Struct 'TopLevelAssetPath' (0x0000016CE467693C) {package_name: \"/Script/Engine\", asset_name: \"AnimSequence\"}>",
+    "/Game/Experiments/RifleTransition/Blender_20261011/L_RifleBlender_GripCompare_Test": "<Struct 'TopLevelAssetPath' (0x0000016CE467E45C) {package_name: \"/Script/Engine\", asset_name: \"World\"}>",
+    "/Game/Experiments/RifleTransition/Blender_20261011/L_RifleBlender_Compare_Test": "<Struct 'TopLevelAssetPath' (0x0000016CE467EBDC) {package_name: \"/Script/Engine\", asset_name: \"World\"}>",
+    "/Game/Experiments/RifleTransition/Blender_20261011/ABP_RifleBlender_GripCorrected_Test": "<Struct 'TopLevelAssetPath' (0x0000016CE467F53C) {package_name: \"/Script/Engine\", asset_name: \"AnimBlueprint\"}>",
+    "/Game/Experiments/RifleTransition/Blender_20261011/ABP_RifleBlender_Corrected_Test": "<Struct 'TopLevelAssetPath' (0x0000016CE4676C5C) {package_name: \"/Script/Engine\", asset_name: \"AnimBlueprint\"}>",
+    "/Game/Experiments/RifleTransition/Blender_20261011/Corrected/MM_Rifle_AimToLowReady": "<Struct 'TopLevelAssetPath' (0x0000016CE467F7BC) {package_name: \"/Script/Engine\", asset_name: \"AnimSequence\"}>",
+    "/Game/Experiments/RifleTransition/Blender_20261011/CorrectedGrip/MM_Rifle_AimToLowReady": "<Struct 'TopLevelAssetPath' (0x0000016CE467F67C) {package_name: \"/Script/Engine\", asset_name: \"AnimSequence\"}>",
+    "/Game/Experiments/RifleTransition/DownPitch_20261011/SK_DownPitch_Import": "<Struct 'TopLevelAssetPath' (0x0000016CE467FCBC) {package_name: \"/Script/Engine\", asset_name: \"Skeleton\"}>",
+    "/Game/Experiments/RifleTransition/DownPitch_20261011/L_RifleDownPitch_Compare": "<Struct 'TopLevelAssetPath' (0x0000016CE467D87C) {package_name: \"/Script/Engine\", asset_name: \"World\"}>",
+    "/Game/Experiments/RifleTransition/DownPitch_20261011/ABP_RifleDownPitch_Down60": "<Struct 'TopLevelAssetPath' (0x0000016CE467DE1C) {package_name: \"/Script/Engine\", asset_name: \"AnimBlueprint\"}>",
+    "/Game/Experiments/RifleTransition/DownPitch_20261011/ABP_RifleDownPitch_Down30": "<Struct 'TopLevelAssetPath' (0x0000016CE467DCDC) {package_name: \"/Script/Engine\", asset_name: \"AnimBlueprint\"}>",
+    "/Game/Experiments/RifleTransition/DownPitch_20261011/Down30/MM_Rifle_AimToLowReady": "<Struct 'TopLevelAssetPath' (0x0000016CE467DA5C) {package_name: \"/Script/Engine\", asset_name: \"AnimSequence\"}>",
+    "/Game/Experiments/RifleTransition/DownPitch_20261011/Down60/MM_Rifle_AimToLowReady": "<Struct 'TopLevelAssetPath' (0x0000016CE467D91C) {package_name: \"/Script/Engine\", asset_name: \"AnimSequence\"}>",
+    "/Game/Experiments/RifleTransition/Segmented50_20261011/L_RifleSegmented_LowToReady": "<Struct 'TopLevelAssetPath' (0x0000016CE467CFBC) {package_name: \"/Script/Engine\", asset_name: \"World\"}>",
+    "/Game/Experiments/RifleTransition/Segmented50_20261011/ABP_RifleSegmented_LowToReady": "<Struct 'TopLevelAssetPath' (0x0000016CE467D73C) {package_name: \"/Script/Engine\", asset_name: \"AnimBlueprint\"}>",
+    "/Game/Experiments/RifleTransition/Segmented_20261011/L_RifleSegmented_LowToReady": "<Struct 'TopLevelAssetPath' (0x0000016CE467D55C) {package_name: \"/Script/Engine\", asset_name: \"World\"}>",
+    "/Game/Experiments/RifleTransition/Segmented_20261011/ABP_RifleSegmented_LowToReady": "<Struct 'TopLevelAssetPath' (0x0000016CE467D5FC) {package_name: \"/Script/Engine\", asset_name: \"AnimBlueprint\"}>",
+    "/Game/Experiments/RifleTransition/Segmented_20261011/ToolImportReplay/SK_Import": "<Struct 'TopLevelAssetPath' (0x0000016CE467D2DC) {package_name: \"/Script/Engine\", asset_name: \"Skeleton\"}>",
+    "/Game/Experiments/RifleTransition/Segmented_20261011/ToolImportReplay/MM_Rifle_AimToLowReady": "<Struct 'TopLevelAssetPath' (0x0000016CE467D19C) {package_name: \"/Script/Engine\", asset_name: \"AnimSequence\"}>",
+    "/Game/Experiments/RifleTransition/SoftGrip_20261011/SK_SoftGrip_Import": "<Struct 'TopLevelAssetPath' (0x0000016CE467C29C) {package_name: \"/Script/Engine\", asset_name: \"Skeleton\"}>",
+    "/Game/Experiments/RifleTransition/SoftGrip_20261011/L_RifleSoftGrip_Compare": "<Struct 'TopLevelAssetPath' (0x0000016CE467CD3C) {package_name: \"/Script/Engine\", asset_name: \"World\"}>",
+    "/Game/Experiments/RifleTransition/SoftGrip_20261011/ABP_RifleSoftGrip_Medium": "<Struct 'TopLevelAssetPath' (0x0000016CE467C8DC) {package_name: \"/Script/Engine\", asset_name: \"AnimBlueprint\"}>",
+    "/Game/Experiments/RifleTransition/SoftGrip_20261011/ABP_RifleSoftGrip_Light": "<Struct 'TopLevelAssetPath' (0x0000016CE467C79C) {package_name: \"/Script/Engine\", asset_name: \"AnimBlueprint\"}>",
+    "/Game/Experiments/RifleTransition/SoftGrip_20261011/Light/MM_Rifle_AimToLowReady": "<Struct 'TopLevelAssetPath' (0x0000016CE467C3DC) {package_name: \"/Script/Engine\", asset_name: \"AnimSequence\"}>",
+    "/Game/Experiments/RifleTransition/SoftGrip_20261011/Medium/MM_Rifle_AimToLowReady": "<Struct 'TopLevelAssetPath' (0x0000016CE467C33C) {package_name: \"/Script/Engine\", asset_name: \"AnimSequence\"}>"
+  },
+  "dependencies": {
+    "/Game/Experiments/RifleTransition/SK_RiflePitchMask_Test": [
+      "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple",
+      "/Game/Characters/Mannequins/Meshes/SKM_Quinn_Simple"
+    ],
+    "/Game/Experiments/RifleTransition/L_RifleTransition_Test": [
+      "/Script/NavigationSystem",
+      "/Engine/BasicShapes/Cube",
+      "/Engine/EngineMaterials/WorldGridMaterial",
+      "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple",
+      "/Game/Weapons/Rifle/Meshes/SKM_Rifle",
+      "/Game/Shooter/Animation/FirstPerson/ABP_FP_Player",
+      "/Game/Experiments/RifleTransition/BP_RifleTransition_Preview",
+      "/Game/Experiments/RifleTransition/ABP_TP_RifleTransition_Test",
+      "/Engine/EditorResources/LightIcons/S_LightError"
+    ],
+    "/Game/Experiments/RifleTransition/L_RifleTransition_ShooterCamera_Test": [
+      "/Script/NavigationSystem",
+      "/Engine/BasicShapes/Cube",
+      "/Engine/EngineMaterials/WorldGridMaterial",
+      "/Engine/EditorResources/LightIcons/S_LightError",
+      "/Game/Weapons/Rifle/Meshes/SM_Rifle",
+      "/Game/Shooter/Blueprints/Pickups/BP_ShooterPickup_Rifle",
+      "/Game/Experiments/RifleTransition/BP_RifleTransition_ShooterGameMode_Test"
+    ],
+    "/Game/Experiments/RifleTransition/L_RifleTransition_FirstPerson_Test": [
+      "/Script/NavigationSystem",
+      "/Engine/BasicShapes/Cube",
+      "/Script/ShootGameEditor",
+      "/Engine/EngineMaterials/WorldGridMaterial",
+      "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple",
+      "/Game/Weapons/Rifle/Meshes/SKM_Rifle",
+      "/Game/Shooter/Animation/FirstPerson/ABP_FP_Player",
+      "/Game/Experiments/RifleTransition/ABP_TP_RifleTransition_Test",
+      "/Engine/EditorResources/LightIcons/S_LightError",
+      "/Game/Experiments/RifleTransition/BP_RifleTransition_DebugPawn",
+      "/Game/Experiments/RifleTransition/BP_RifleTransition_DebugGameMode"
+    ],
+    "/Game/Experiments/RifleTransition/BP_RifleTransition_ShooterGameMode_Test": [
+      "/Game/Shooter/Blueprints/Framework/BP_ShooterGameMode",
+      "/Game/Experiments/RifleTransition/BP_RifleTransition_ShooterCharacter_Test"
+    ],
+    "/Game/Experiments/RifleTransition/BP_RifleTransition_ShooterCharacter_Test": [
+      "/Script/ShootGame",
+      "/Script/ShootGameEditor",
+      "/Game/Experiments/RifleTransition/ABP_TP_RifleTransition_Test",
+      "/Game/Shooter/Blueprints/Characters/BP_ShooterCharacter"
+    ],
+    "/Game/Experiments/RifleTransition/BP_RifleTransition_Preview": [
+      "/Script/ShootGameEditor"
+    ],
+    "/Game/Experiments/RifleTransition/BP_RifleTransition_DebugPawn": [
+      "/Script/ShootGameEditor"
+    ],
+    "/Game/Experiments/RifleTransition/BP_RifleTransition_DebugGameMode": [],
+    "/Game/Experiments/RifleTransition/ABP_TP_RifleTransition_Test": [
+      "/Script/AnimGraph",
+      "/Script/AnimGraphRuntime",
+      "/Script/ShootGame",
+      "/Script/ShootGameEditor",
+      "/Game/Experiments/RifleTransition/SK_RiflePitchMask_Test",
+      "/Game/Characters/Mannequins/Anims/Rifle/AIM/AO_Rifle",
+      "/Game/Characters/Mannequins/Anims/Rifle/MF_Rifle_Idle_ADS",
+      "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_Reload",
+      "/Game/Characters/Mannequins/Meshes/SK_Mannequin",
+      "/Game/Characters/Mannequins/Anims/Unarmed/BS_Idle_Walk_Run",
+      "/Game/Characters/Mannequins/Anims/Unarmed/Jump/MM_Fall_Loop",
+      "/Game/Characters/Mannequins/Anims/Unarmed/Jump/MM_Jump",
+      "/Game/Characters/Mannequins/Anims/Unarmed/Jump/MM_Land",
+      "/Game/Characters/Mannequins/Anims/Unarmed/MM_Idle",
+      "/Game/Shooter/Animation/ThirdPerson/Rifle/MM_Rifle_LowReady",
+      "/Game/Shooter/Animation/ThirdPerson/Rifle/MM_Rifle_AimToLowReady"
+    ],
+    "/Game/Experiments/RifleTransition/ABP_TP_RifleTransition_AlwaysUpdate_Test": [
+      "/Script/AnimGraph",
+      "/Script/AnimGraphRuntime",
+      "/Script/ShootGame",
+      "/Script/ShootGameEditor",
+      "/Game/Characters/Mannequins/Anims/Rifle/AIM/AO_Rifle",
+      "/Game/Characters/Mannequins/Anims/Rifle/MF_Rifle_Idle_ADS",
+      "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_Reload",
+      "/Game/Characters/Mannequins/Meshes/SK_Mannequin",
+      "/Game/Characters/Mannequins/Anims/Unarmed/BS_Idle_Walk_Run",
+      "/Game/Characters/Mannequins/Anims/Unarmed/Jump/MM_Fall_Loop",
+      "/Game/Characters/Mannequins/Anims/Unarmed/Jump/MM_Jump",
+      "/Game/Characters/Mannequins/Anims/Unarmed/Jump/MM_Land",
+      "/Game/Characters/Mannequins/Anims/Unarmed/MM_Idle",
+      "/Game/Shooter/Animation/ThirdPerson/Rifle/MM_Rifle_LowReady",
+      "/Game/Shooter/Animation/ThirdPerson/Rifle/MM_Rifle_AimToLowReady"
+    ],
+    "/Game/Experiments/RifleTransition/Blender_20261011/SK_RifleBlender_Test": [
+      "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple",
+      "/Game/Characters/Mannequins/Meshes/SKM_Quinn_Simple"
+    ],
+    "/Game/Experiments/RifleTransition/Blender_20261011/MM_Rifle_AimToLowReady_RootPreserved_Test": [
+      "/Script/MovieScene",
+      "/Script/AnimationModifiers",
+      "/Script/ControlRig",
+      "/Script/AnimationData",
+      "/ACLPlugin/ACLAnimBoneCompressionSettings",
+      "/ACLPlugin/ACLAnimCurveCompressionSettings",
+      "/Engine/Animation/DefaultVariableFrameStrippingSettings",
+      "/Game/Experiments/RifleTransition/Blender_20261011/SK_RifleBlender_Test"
+    ],
+    "/Game/Experiments/RifleTransition/Blender_20261011/MM_Rifle_AimToLowReady_FromSource_Test": [
+      "/Script/MovieScene",
+      "/Script/AnimationModifiers",
+      "/Script/ControlRig",
+      "/Script/AnimationData",
+      "/ACLPlugin/ACLAnimBoneCompressionSettings",
+      "/ACLPlugin/ACLAnimCurveCompressionSettings",
+      "/Engine/Animation/DefaultVariableFrameStrippingSettings",
+      "/Game/Experiments/RifleTransition/Blender_20261011/SK_RifleBlender_Test"
+    ],
+    "/Game/Experiments/RifleTransition/Blender_20261011/MM_Rifle_AimToLowReady_ExportControl_Test": [
+      "/Script/MovieScene",
+      "/Script/AnimationModifiers",
+      "/Script/ControlRig",
+      "/Script/AnimationData",
+      "/ACLPlugin/ACLAnimBoneCompressionSettings",
+      "/ACLPlugin/ACLAnimCurveCompressionSettings",
+      "/Engine/Animation/DefaultVariableFrameStrippingSettings",
+      "/Game/Experiments/RifleTransition/Blender_20261011/SK_RifleBlender_Test"
+    ],
+    "/Game/Experiments/RifleTransition/Blender_20261011/L_RifleBlender_GripCompare_Test": [
+      "/Script/NavigationSystem",
+      "/Engine/BasicShapes/Cube",
+      "/Script/ShootGameEditor",
+      "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple",
+      "/Game/Weapons/Rifle/Meshes/SKM_Rifle",
+      "/Game/Shooter/Animation/FirstPerson/ABP_FP_Player",
+      "/Game/Experiments/RifleTransition/ABP_TP_RifleTransition_Test",
+      "/Engine/EditorResources/LightIcons/S_LightError",
+      "/Game/Experiments/RifleTransition/Blender_20261011/ABP_RifleBlender_GripCorrected_Test"
+    ],
+    "/Game/Experiments/RifleTransition/Blender_20261011/L_RifleBlender_Compare_Test": [
+      "/Script/NavigationSystem",
+      "/Script/ShootGameEditor",
+      "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple",
+      "/Game/Weapons/Rifle/Meshes/SKM_Rifle",
+      "/Game/Shooter/Animation/FirstPerson/ABP_FP_Player",
+      "/Game/Experiments/RifleTransition/ABP_TP_RifleTransition_Test",
+      "/Engine/EditorResources/LightIcons/S_LightError",
+      "/Game/Experiments/RifleTransition/Blender_20261011/ABP_RifleBlender_Corrected_Test"
+    ],
+    "/Game/Experiments/RifleTransition/Blender_20261011/ABP_RifleBlender_GripCorrected_Test": [
+      "/Script/AnimGraph",
+      "/Script/AnimGraphRuntime",
+      "/Script/ShootGame",
+      "/Script/ShootGameEditor",
+      "/Game/Experiments/RifleTransition/SK_RiflePitchMask_Test",
+      "/Game/Characters/Mannequins/Anims/Rifle/AIM/AO_Rifle",
+      "/Game/Characters/Mannequins/Anims/Rifle/MF_Rifle_Idle_ADS",
+      "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_Reload",
+      "/Game/Characters/Mannequins/Meshes/SK_Mannequin",
+      "/Game/Characters/Mannequins/Anims/Unarmed/BS_Idle_Walk_Run",
+      "/Game/Characters/Mannequins/Anims/Unarmed/Jump/MM_Fall_Loop",
+      "/Game/Characters/Mannequins/Anims/Unarmed/Jump/MM_Jump",
+      "/Game/Characters/Mannequins/Anims/Unarmed/Jump/MM_Land",
+      "/Game/Characters/Mannequins/Anims/Unarmed/MM_Idle",
+      "/Game/Shooter/Animation/ThirdPerson/Rifle/MM_Rifle_LowReady",
+      "/Game/Experiments/RifleTransition/Blender_20261011/CorrectedGrip/MM_Rifle_AimToLowReady"
+    ],
+    "/Game/Experiments/RifleTransition/Blender_20261011/ABP_RifleBlender_Corrected_Test": [
+      "/Script/AnimGraph",
+      "/Script/AnimGraphRuntime",
+      "/Script/ShootGame",
+      "/Script/ShootGameEditor",
+      "/Game/Experiments/RifleTransition/SK_RiflePitchMask_Test",
+      "/Game/Characters/Mannequins/Anims/Rifle/AIM/AO_Rifle",
+      "/Game/Characters/Mannequins/Anims/Rifle/MF_Rifle_Idle_ADS",
+      "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_Reload",
+      "/Game/Characters/Mannequins/Meshes/SK_Mannequin",
+      "/Game/Characters/Mannequins/Anims/Unarmed/BS_Idle_Walk_Run",
+      "/Game/Characters/Mannequins/Anims/Unarmed/Jump/MM_Fall_Loop",
+      "/Game/Characters/Mannequins/Anims/Unarmed/Jump/MM_Jump",
+      "/Game/Characters/Mannequins/Anims/Unarmed/Jump/MM_Land",
+      "/Game/Characters/Mannequins/Anims/Unarmed/MM_Idle",
+      "/Game/Shooter/Animation/ThirdPerson/Rifle/MM_Rifle_LowReady",
+      "/Game/Experiments/RifleTransition/Blender_20261011/Corrected/MM_Rifle_AimToLowReady"
+    ],
+    "/Game/Experiments/RifleTransition/Blender_20261011/Corrected/MM_Rifle_AimToLowReady": [
+      "/Script/MovieScene",
+      "/Script/AnimationModifiers",
+      "/Script/ControlRig",
+      "/Script/AnimationData",
+      "/ACLPlugin/ACLAnimBoneCompressionSettings",
+      "/ACLPlugin/ACLAnimCurveCompressionSettings",
+      "/Engine/Animation/DefaultVariableFrameStrippingSettings",
+      "/Game/Characters/Mannequins/Meshes/SK_Mannequin"
+    ],
+    "/Game/Experiments/RifleTransition/Blender_20261011/CorrectedGrip/MM_Rifle_AimToLowReady": [
+      "/Script/MovieScene",
+      "/Script/AnimationModifiers",
+      "/Script/ControlRig",
+      "/Script/AnimationData",
+      "/ACLPlugin/ACLAnimBoneCompressionSettings",
+      "/ACLPlugin/ACLAnimCurveCompressionSettings",
+      "/Engine/Animation/DefaultVariableFrameStrippingSettings",
+      "/Game/Characters/Mannequins/Meshes/SK_Mannequin"
+    ],
+    "/Game/Experiments/RifleTransition/DownPitch_20261011/SK_DownPitch_Import": [
+      "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple",
+      "/Game/Characters/Mannequins/Meshes/SKM_Quinn_Simple"
+    ],
+    "/Game/Experiments/RifleTransition/DownPitch_20261011/L_RifleDownPitch_Compare": [
+      "/Script/NavigationSystem",
+      "/Engine/BasicShapes/Cube",
+      "/Script/ShootGameEditor",
+      "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple",
+      "/Game/Weapons/Rifle/Meshes/SKM_Rifle",
+      "/Game/Shooter/Animation/FirstPerson/ABP_FP_Player",
+      "/Engine/EditorResources/LightIcons/S_LightError",
+      "/Game/Experiments/RifleTransition/Blender_20261011/ABP_RifleBlender_GripCorrected_Test",
+      "/Game/Experiments/RifleTransition/DownPitch_20261011/ABP_RifleDownPitch_Down60",
+      "/Game/Experiments/RifleTransition/DownPitch_20261011/ABP_RifleDownPitch_Down30"
+    ],
+    "/Game/Experiments/RifleTransition/DownPitch_20261011/ABP_RifleDownPitch_Down60": [
+      "/Script/AnimGraph",
+      "/Script/AnimGraphRuntime",
+      "/Script/ShootGame",
+      "/Script/ShootGameEditor",
+      "/Game/Experiments/RifleTransition/SK_RiflePitchMask_Test",
+      "/Game/Characters/Mannequins/Anims/Rifle/AIM/AO_Rifle",
+      "/Game/Characters/Mannequins/Anims/Rifle/MF_Rifle_Idle_ADS",
+      "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_Reload",
+      "/Game/Characters/Mannequins/Meshes/SK_Mannequin",
+      "/Game/Characters/Mannequins/Anims/Unarmed/BS_Idle_Walk_Run",
+      "/Game/Characters/Mannequins/Anims/Unarmed/Jump/MM_Fall_Loop",
+      "/Game/Characters/Mannequins/Anims/Unarmed/Jump/MM_Jump",
+      "/Game/Characters/Mannequins/Anims/Unarmed/Jump/MM_Land",
+      "/Game/Characters/Mannequins/Anims/Unarmed/MM_Idle",
+      "/Game/Shooter/Animation/ThirdPerson/Rifle/MM_Rifle_LowReady",
+      "/Game/Experiments/RifleTransition/DownPitch_20261011/Down60/MM_Rifle_AimToLowReady"
+    ],
+    "/Game/Experiments/RifleTransition/DownPitch_20261011/ABP_RifleDownPitch_Down30": [
+      "/Script/AnimGraph",
+      "/Script/AnimGraphRuntime",
+      "/Script/ShootGame",
+      "/Script/ShootGameEditor",
+      "/Game/Experiments/RifleTransition/SK_RiflePitchMask_Test",
+      "/Game/Characters/Mannequins/Anims/Rifle/AIM/AO_Rifle",
+      "/Game/Characters/Mannequins/Anims/Rifle/MF_Rifle_Idle_ADS",
+      "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_Reload",
+      "/Game/Characters/Mannequins/Meshes/SK_Mannequin",
+      "/Game/Characters/Mannequins/Anims/Unarmed/BS_Idle_Walk_Run",
+      "/Game/Characters/Mannequins/Anims/Unarmed/Jump/MM_Fall_Loop",
+      "/Game/Characters/Mannequins/Anims/Unarmed/Jump/MM_Jump",
+      "/Game/Characters/Mannequins/Anims/Unarmed/Jump/MM_Land",
+      "/Game/Characters/Mannequins/Anims/Unarmed/MM_Idle",
+      "/Game/Shooter/Animation/ThirdPerson/Rifle/MM_Rifle_LowReady",
+      "/Game/Experiments/RifleTransition/DownPitch_20261011/Down30/MM_Rifle_AimToLowReady"
+    ],
+    "/Game/Experiments/RifleTransition/DownPitch_20261011/Down30/MM_Rifle_AimToLowReady": [
+      "/Script/MovieScene",
+      "/Script/AnimationModifiers",
+      "/Script/ControlRig",
+      "/Script/AnimationData",
+      "/ACLPlugin/ACLAnimBoneCompressionSettings",
+      "/ACLPlugin/ACLAnimCurveCompressionSettings",
+      "/Engine/Animation/DefaultVariableFrameStrippingSettings",
+      "/Game/Characters/Mannequins/Meshes/SK_Mannequin"
+    ],
+    "/Game/Experiments/RifleTransition/DownPitch_20261011/Down60/MM_Rifle_AimToLowReady": [
+      "/Script/MovieScene",
+      "/Script/AnimationModifiers",
+      "/Script/ControlRig",
+      "/Script/AnimationData",
+      "/ACLPlugin/ACLAnimBoneCompressionSettings",
+      "/ACLPlugin/ACLAnimCurveCompressionSettings",
+      "/Engine/Animation/DefaultVariableFrameStrippingSettings",
+      "/Game/Characters/Mannequins/Meshes/SK_Mannequin"
+    ],
+    "/Game/Experiments/RifleTransition/Segmented50_20261011/L_RifleSegmented_LowToReady": [
+      "/Script/NavigationSystem",
+      "/Engine/BasicShapes/Cube",
+      "/Script/ShootGameEditor",
+      "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple",
+      "/Game/Weapons/Rifle/Meshes/SKM_Rifle",
+      "/Game/Shooter/Animation/FirstPerson/ABP_FP_Player",
+      "/Engine/EditorResources/LightIcons/S_LightError",
+      "/Game/Experiments/RifleTransition/Blender_20261011/ABP_RifleBlender_GripCorrected_Test",
+      "/Game/Experiments/RifleTransition/Segmented50_20261011/ABP_RifleSegmented_LowToReady"
+    ],
+    "/Game/Experiments/RifleTransition/Segmented50_20261011/ABP_RifleSegmented_LowToReady": [
+      "/Script/AnimGraph",
+      "/Script/AnimGraphRuntime",
+      "/Script/ShootGame",
+      "/Script/ShootGameEditor",
+      "/Game/Experiments/RifleTransition/SK_RiflePitchMask_Test",
+      "/Game/Characters/Mannequins/Anims/Rifle/AIM/AO_Rifle",
+      "/Game/Characters/Mannequins/Anims/Rifle/MF_Rifle_Idle_ADS",
+      "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_Reload",
+      "/Game/Characters/Mannequins/Meshes/SK_Mannequin",
+      "/Game/Characters/Mannequins/Anims/Unarmed/BS_Idle_Walk_Run",
+      "/Game/Characters/Mannequins/Anims/Unarmed/Jump/MM_Fall_Loop",
+      "/Game/Characters/Mannequins/Anims/Unarmed/Jump/MM_Jump",
+      "/Game/Characters/Mannequins/Anims/Unarmed/Jump/MM_Land",
+      "/Game/Characters/Mannequins/Anims/Unarmed/MM_Idle",
+      "/Game/Shooter/Animation/ThirdPerson/Rifle/MM_Rifle_LowReady",
+      "/Game/Experiments/RifleTransition/DownPitch_20261011/Down60/MM_Rifle_AimToLowReady",
+      "/Game/Experiments/RifleTransition/DownPitch_20261011/Down30/MM_Rifle_AimToLowReady",
+      "/Game/Experiments/RifleTransition/Blender_20261011/CorrectedGrip/MM_Rifle_AimToLowReady"
+    ],
+    "/Game/Experiments/RifleTransition/Segmented_20261011/L_RifleSegmented_LowToReady": [
+      "/Script/NavigationSystem",
+      "/Engine/BasicShapes/Cube",
+      "/Script/ShootGameEditor",
+      "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple",
+      "/Game/Weapons/Rifle/Meshes/SKM_Rifle",
+      "/Game/Shooter/Animation/FirstPerson/ABP_FP_Player",
+      "/Engine/EditorResources/LightIcons/S_LightError",
+      "/Game/Experiments/RifleTransition/Blender_20261011/ABP_RifleBlender_GripCorrected_Test",
+      "/Game/Experiments/RifleTransition/Segmented_20261011/ABP_RifleSegmented_LowToReady"
+    ],
+    "/Game/Experiments/RifleTransition/Segmented_20261011/ABP_RifleSegmented_LowToReady": [
+      "/Script/AnimGraph",
+      "/Script/AnimGraphRuntime",
+      "/Script/ShootGame",
+      "/Script/ShootGameEditor",
+      "/Game/Experiments/RifleTransition/SK_RiflePitchMask_Test",
+      "/Game/Characters/Mannequins/Anims/Rifle/AIM/AO_Rifle",
+      "/Game/Characters/Mannequins/Anims/Rifle/MF_Rifle_Idle_ADS",
+      "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_Reload",
+      "/Game/Characters/Mannequins/Meshes/SK_Mannequin",
+      "/Game/Characters/Mannequins/Anims/Unarmed/BS_Idle_Walk_Run",
+      "/Game/Characters/Mannequins/Anims/Unarmed/Jump/MM_Fall_Loop",
+      "/Game/Characters/Mannequins/Anims/Unarmed/Jump/MM_Jump",
+      "/Game/Characters/Mannequins/Anims/Unarmed/Jump/MM_Land",
+      "/Game/Characters/Mannequins/Anims/Unarmed/MM_Idle",
+      "/Game/Shooter/Animation/ThirdPerson/Rifle/MM_Rifle_LowReady",
+      "/Game/Experiments/RifleTransition/DownPitch_20261011/Down60/MM_Rifle_AimToLowReady",
+      "/Game/Experiments/RifleTransition/DownPitch_20261011/Down30/MM_Rifle_AimToLowReady",
+      "/Game/Experiments/RifleTransition/Blender_20261011/CorrectedGrip/MM_Rifle_AimToLowReady"
+    ],
+    "/Game/Experiments/RifleTransition/Segmented_20261011/ToolImportReplay/SK_Import": [
+      "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple",
+      "/Game/Characters/Mannequins/Meshes/SKM_Quinn_Simple"
+    ],
+    "/Game/Experiments/RifleTransition/Segmented_20261011/ToolImportReplay/MM_Rifle_AimToLowReady": [
+      "/Script/MovieScene",
+      "/Script/AnimationModifiers",
+      "/Script/ControlRig",
+      "/Script/AnimationData",
+      "/ACLPlugin/ACLAnimBoneCompressionSettings",
+      "/ACLPlugin/ACLAnimCurveCompressionSettings",
+      "/Engine/Animation/DefaultVariableFrameStrippingSettings",
+      "/Game/Experiments/RifleTransition/Segmented_20261011/ToolImportReplay/SK_Import"
+    ],
+    "/Game/Experiments/RifleTransition/SoftGrip_20261011/SK_SoftGrip_Import": [
+      "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple",
+      "/Game/Characters/Mannequins/Meshes/SKM_Quinn_Simple"
+    ],
+    "/Game/Experiments/RifleTransition/SoftGrip_20261011/L_RifleSoftGrip_Compare": [
+      "/Script/NavigationSystem",
+      "/Engine/BasicShapes/Cube",
+      "/Script/ShootGameEditor",
+      "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple",
+      "/Game/Weapons/Rifle/Meshes/SKM_Rifle",
+      "/Game/Shooter/Animation/FirstPerson/ABP_FP_Player",
+      "/Engine/EditorResources/LightIcons/S_LightError",
+      "/Game/Experiments/RifleTransition/Blender_20261011/ABP_RifleBlender_GripCorrected_Test",
+      "/Game/Experiments/RifleTransition/SoftGrip_20261011/ABP_RifleSoftGrip_Medium",
+      "/Game/Experiments/RifleTransition/SoftGrip_20261011/ABP_RifleSoftGrip_Light"
+    ],
+    "/Game/Experiments/RifleTransition/SoftGrip_20261011/ABP_RifleSoftGrip_Medium": [
+      "/Script/AnimGraph",
+      "/Script/AnimGraphRuntime",
+      "/Script/ShootGame",
+      "/Script/ShootGameEditor",
+      "/Game/Experiments/RifleTransition/SK_RiflePitchMask_Test",
+      "/Game/Characters/Mannequins/Anims/Rifle/AIM/AO_Rifle",
+      "/Game/Characters/Mannequins/Anims/Rifle/MF_Rifle_Idle_ADS",
+      "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_Reload",
+      "/Game/Characters/Mannequins/Meshes/SK_Mannequin",
+      "/Game/Characters/Mannequins/Anims/Unarmed/BS_Idle_Walk_Run",
+      "/Game/Characters/Mannequins/Anims/Unarmed/Jump/MM_Fall_Loop",
+      "/Game/Characters/Mannequins/Anims/Unarmed/Jump/MM_Jump",
+      "/Game/Characters/Mannequins/Anims/Unarmed/Jump/MM_Land",
+      "/Game/Characters/Mannequins/Anims/Unarmed/MM_Idle",
+      "/Game/Shooter/Animation/ThirdPerson/Rifle/MM_Rifle_LowReady",
+      "/Game/Experiments/RifleTransition/SoftGrip_20261011/Medium/MM_Rifle_AimToLowReady"
+    ],
+    "/Game/Experiments/RifleTransition/SoftGrip_20261011/ABP_RifleSoftGrip_Light": [
+      "/Script/AnimGraph",
+      "/Script/AnimGraphRuntime",
+      "/Script/ShootGame",
+      "/Script/ShootGameEditor",
+      "/Game/Experiments/RifleTransition/SK_RiflePitchMask_Test",
+      "/Game/Characters/Mannequins/Anims/Rifle/AIM/AO_Rifle",
+      "/Game/Characters/Mannequins/Anims/Rifle/MF_Rifle_Idle_ADS",
+      "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_Reload",
+      "/Game/Characters/Mannequins/Meshes/SK_Mannequin",
+      "/Game/Characters/Mannequins/Anims/Unarmed/BS_Idle_Walk_Run",
+      "/Game/Characters/Mannequins/Anims/Unarmed/Jump/MM_Fall_Loop",
+      "/Game/Characters/Mannequins/Anims/Unarmed/Jump/MM_Jump",
+      "/Game/Characters/Mannequins/Anims/Unarmed/Jump/MM_Land",
+      "/Game/Characters/Mannequins/Anims/Unarmed/MM_Idle",
+      "/Game/Shooter/Animation/ThirdPerson/Rifle/MM_Rifle_LowReady",
+      "/Game/Experiments/RifleTransition/SoftGrip_20261011/Light/MM_Rifle_AimToLowReady"
+    ],
+    "/Game/Experiments/RifleTransition/SoftGrip_20261011/Light/MM_Rifle_AimToLowReady": [
+      "/Script/MovieScene",
+      "/Script/AnimationModifiers",
+      "/Script/ControlRig",
+      "/Script/AnimationData",
+      "/ACLPlugin/ACLAnimBoneCompressionSettings",
+      "/ACLPlugin/ACLAnimCurveCompressionSettings",
+      "/Engine/Animation/DefaultVariableFrameStrippingSettings",
+      "/Game/Characters/Mannequins/Meshes/SK_Mannequin"
+    ],
+    "/Game/Experiments/RifleTransition/SoftGrip_20261011/Medium/MM_Rifle_AimToLowReady": [
+      "/Script/MovieScene",
+      "/Script/AnimationModifiers",
+      "/Script/ControlRig",
+      "/Script/AnimationData",
+      "/ACLPlugin/ACLAnimBoneCompressionSettings",
+      "/ACLPlugin/ACLAnimCurveCompressionSettings",
+      "/Engine/Animation/DefaultVariableFrameStrippingSettings",
+      "/Game/Characters/Mannequins/Meshes/SK_Mannequin"
+    ]
+  },
+  "referencers": {
+    "/Game/Experiments/RifleTransition/SK_RiflePitchMask_Test": [
+      "/Game/Experiments/RifleTransition/ABP_TP_RifleTransition_Test",
+      "/Game/Experiments/RifleTransition/Blender_20261011/ABP_RifleBlender_GripCorrected_Test",
+      "/Game/Experiments/RifleTransition/DownPitch_20261011/ABP_RifleDownPitch_Down60",
+      "/Game/Experiments/RifleTransition/DownPitch_20261011/ABP_RifleDownPitch_Down30",
+      "/Game/Experiments/RifleTransition/Blender_20261011/ABP_RifleBlender_Corrected_Test",
+      "/Game/Experiments/RifleTransition/SoftGrip_20261011/ABP_RifleSoftGrip_Medium",
+      "/Game/Experiments/RifleTransition/SoftGrip_20261011/ABP_RifleSoftGrip_Light",
+      "/Game/Experiments/RifleTransition/Segmented_20261011/ABP_RifleSegmented_LowToReady",
+      "/Game/Experiments/RifleTransition/Segmented50_20261011/ABP_RifleSegmented_LowToReady"
+    ],
+    "/Game/Experiments/RifleTransition/L_RifleTransition_Test": [],
+    "/Game/Experiments/RifleTransition/L_RifleTransition_ShooterCamera_Test": [],
+    "/Game/Experiments/RifleTransition/L_RifleTransition_FirstPerson_Test": [],
+    "/Game/Experiments/RifleTransition/BP_RifleTransition_ShooterGameMode_Test": [
+      "/Game/Experiments/RifleTransition/L_RifleTransition_ShooterCamera_Test"
+    ],
+    "/Game/Experiments/RifleTransition/BP_RifleTransition_ShooterCharacter_Test": [
+      "/Game/Experiments/RifleTransition/BP_RifleTransition_ShooterGameMode_Test"
+    ],
+    "/Game/Experiments/RifleTransition/BP_RifleTransition_Preview": [
+      "/Game/Experiments/RifleTransition/L_RifleTransition_Test"
+    ],
+    "/Game/Experiments/RifleTransition/BP_RifleTransition_DebugPawn": [
+      "/Game/Experiments/RifleTransition/L_RifleTransition_FirstPerson_Test"
+    ],
+    "/Game/Experiments/RifleTransition/BP_RifleTransition_DebugGameMode": [
+      "/Game/Experiments/RifleTransition/L_RifleTransition_FirstPerson_Test"
+    ],
+    "/Game/Experiments/RifleTransition/ABP_TP_RifleTransition_Test": [
+      "/Game/Experiments/RifleTransition/L_RifleTransition_Test",
+      "/Game/Experiments/RifleTransition/L_RifleTransition_FirstPerson_Test",
+      "/Game/Experiments/RifleTransition/BP_RifleTransition_ShooterCharacter_Test",
+      "/Game/Experiments/RifleTransition/Blender_20261011/L_RifleBlender_GripCompare_Test",
+      "/Game/Experiments/RifleTransition/Blender_20261011/L_RifleBlender_Compare_Test"
+    ],
+    "/Game/Experiments/RifleTransition/ABP_TP_RifleTransition_AlwaysUpdate_Test": [],
+    "/Game/Experiments/RifleTransition/Blender_20261011/SK_RifleBlender_Test": [
+      "/Game/Experiments/RifleTransition/Blender_20261011/MM_Rifle_AimToLowReady_RootPreserved_Test",
+      "/Game/Experiments/RifleTransition/Blender_20261011/MM_Rifle_AimToLowReady_FromSource_Test",
+      "/Game/Experiments/RifleTransition/Blender_20261011/MM_Rifle_AimToLowReady_ExportControl_Test"
+    ],
+    "/Game/Experiments/RifleTransition/Blender_20261011/MM_Rifle_AimToLowReady_RootPreserved_Test": [],
+    "/Game/Experiments/RifleTransition/Blender_20261011/MM_Rifle_AimToLowReady_FromSource_Test": [],
+    "/Game/Experiments/RifleTransition/Blender_20261011/MM_Rifle_AimToLowReady_ExportControl_Test": [],
+    "/Game/Experiments/RifleTransition/Blender_20261011/L_RifleBlender_GripCompare_Test": [],
+    "/Game/Experiments/RifleTransition/Blender_20261011/L_RifleBlender_Compare_Test": [],
+    "/Game/Experiments/RifleTransition/Blender_20261011/ABP_RifleBlender_GripCorrected_Test": [
+      "/Game/Experiments/RifleTransition/SoftGrip_20261011/L_RifleSoftGrip_Compare",
+      "/Game/Experiments/RifleTransition/DownPitch_20261011/L_RifleDownPitch_Compare",
+      "/Game/Experiments/RifleTransition/Segmented_20261011/L_RifleSegmented_LowToReady",
+      "/Game/Experiments/RifleTransition/Segmented50_20261011/L_RifleSegmented_LowToReady",
+      "/Game/Experiments/RifleTransition/Blender_20261011/L_RifleBlender_GripCompare_Test"
+    ],
+    "/Game/Experiments/RifleTransition/Blender_20261011/ABP_RifleBlender_Corrected_Test": [
+      "/Game/Experiments/RifleTransition/Blender_20261011/L_RifleBlender_Compare_Test"
+    ],
+    "/Game/Experiments/RifleTransition/Blender_20261011/Corrected/MM_Rifle_AimToLowReady": [
+      "/Game/Experiments/RifleTransition/Blender_20261011/ABP_RifleBlender_Corrected_Test"
+    ],
+    "/Game/Experiments/RifleTransition/Blender_20261011/CorrectedGrip/MM_Rifle_AimToLowReady": [
+      "/Game/Experiments/RifleTransition/Blender_20261011/ABP_RifleBlender_GripCorrected_Test",
+      "/Game/Experiments/RifleTransition/Segmented_20261011/ABP_RifleSegmented_LowToReady",
+      "/Game/Experiments/RifleTransition/Segmented50_20261011/ABP_RifleSegmented_LowToReady"
+    ],
+    "/Game/Experiments/RifleTransition/DownPitch_20261011/SK_DownPitch_Import": [],
+    "/Game/Experiments/RifleTransition/DownPitch_20261011/L_RifleDownPitch_Compare": [],
+    "/Game/Experiments/RifleTransition/DownPitch_20261011/ABP_RifleDownPitch_Down60": [
+      "/Game/Experiments/RifleTransition/DownPitch_20261011/L_RifleDownPitch_Compare"
+    ],
+    "/Game/Experiments/RifleTransition/DownPitch_20261011/ABP_RifleDownPitch_Down30": [
+      "/Game/Experiments/RifleTransition/DownPitch_20261011/L_RifleDownPitch_Compare"
+    ],
+    "/Game/Experiments/RifleTransition/DownPitch_20261011/Down30/MM_Rifle_AimToLowReady": [
+      "/Game/Experiments/RifleTransition/DownPitch_20261011/ABP_RifleDownPitch_Down30",
+      "/Game/Experiments/RifleTransition/Segmented_20261011/ABP_RifleSegmented_LowToReady",
+      "/Game/Experiments/RifleTransition/Segmented50_20261011/ABP_RifleSegmented_LowToReady"
+    ],
+    "/Game/Experiments/RifleTransition/DownPitch_20261011/Down60/MM_Rifle_AimToLowReady": [
+      "/Game/Experiments/RifleTransition/DownPitch_20261011/ABP_RifleDownPitch_Down60",
+      "/Game/Experiments/RifleTransition/Segmented_20261011/ABP_RifleSegmented_LowToReady",
+      "/Game/Experiments/RifleTransition/Segmented50_20261011/ABP_RifleSegmented_LowToReady"
+    ],
+    "/Game/Experiments/RifleTransition/Segmented50_20261011/L_RifleSegmented_LowToReady": [],
+    "/Game/Experiments/RifleTransition/Segmented50_20261011/ABP_RifleSegmented_LowToReady": [
+      "/Game/Experiments/RifleTransition/Segmented50_20261011/L_RifleSegmented_LowToReady"
+    ],
+    "/Game/Experiments/RifleTransition/Segmented_20261011/L_RifleSegmented_LowToReady": [],
+    "/Game/Experiments/RifleTransition/Segmented_20261011/ABP_RifleSegmented_LowToReady": [
+      "/Game/Experiments/RifleTransition/Segmented_20261011/L_RifleSegmented_LowToReady"
+    ],
+    "/Game/Experiments/RifleTransition/Segmented_20261011/ToolImportReplay/SK_Import": [
+      "/Game/Experiments/RifleTransition/Segmented_20261011/ToolImportReplay/MM_Rifle_AimToLowReady"
+    ],
+    "/Game/Experiments/RifleTransition/Segmented_20261011/ToolImportReplay/MM_Rifle_AimToLowReady": [],
+    "/Game/Experiments/RifleTransition/SoftGrip_20261011/SK_SoftGrip_Import": [],
+    "/Game/Experiments/RifleTransition/SoftGrip_20261011/L_RifleSoftGrip_Compare": [],
+    "/Game/Experiments/RifleTransition/SoftGrip_20261011/ABP_RifleSoftGrip_Medium": [
+      "/Game/Experiments/RifleTransition/SoftGrip_20261011/L_RifleSoftGrip_Compare"
+    ],
+    "/Game/Experiments/RifleTransition/SoftGrip_20261011/ABP_RifleSoftGrip_Light": [
+      "/Game/Experiments/RifleTransition/SoftGrip_20261011/L_RifleSoftGrip_Compare"
+    ],
+    "/Game/Experiments/RifleTransition/SoftGrip_20261011/Light/MM_Rifle_AimToLowReady": [
+      "/Game/Experiments/RifleTransition/SoftGrip_20261011/ABP_RifleSoftGrip_Light"
+    ],
+    "/Game/Experiments/RifleTransition/SoftGrip_20261011/Medium/MM_Rifle_AimToLowReady": [
+      "/Game/Experiments/RifleTransition/SoftGrip_20261011/ABP_RifleSoftGrip_Medium"
+    ]
+  },
+  "keep": [
+    "/Game/Experiments/RifleTransition/Blender_20261011/ABP_RifleBlender_GripCorrected_Test",
+    "/Game/Experiments/RifleTransition/Blender_20261011/CorrectedGrip/MM_Rifle_AimToLowReady",
+    "/Game/Experiments/RifleTransition/DownPitch_20261011/Down30/MM_Rifle_AimToLowReady",
+    "/Game/Experiments/RifleTransition/DownPitch_20261011/Down60/MM_Rifle_AimToLowReady",
+    "/Game/Experiments/RifleTransition/SK_RiflePitchMask_Test",
+    "/Game/Experiments/RifleTransition/Segmented50_20261011/ABP_RifleSegmented_LowToReady",
+    "/Game/Experiments/RifleTransition/Segmented50_20261011/L_RifleSegmented_LowToReady"
+  ],
+  "delete": [
+    "/Game/Experiments/RifleTransition/ABP_TP_RifleTransition_AlwaysUpdate_Test",
+    "/Game/Experiments/RifleTransition/ABP_TP_RifleTransition_Test",
+    "/Game/Experiments/RifleTransition/BP_RifleTransition_DebugGameMode",
+    "/Game/Experiments/RifleTransition/BP_RifleTransition_DebugPawn",
+    "/Game/Experiments/RifleTransition/BP_RifleTransition_Preview",
+    "/Game/Experiments/RifleTransition/BP_RifleTransition_ShooterCharacter_Test",
+    "/Game/Experiments/RifleTransition/BP_RifleTransition_ShooterGameMode_Test",
+    "/Game/Experiments/RifleTransition/Blender_20261011/ABP_RifleBlender_Corrected_Test",
+    "/Game/Experiments/RifleTransition/Blender_20261011/Corrected/MM_Rifle_AimToLowReady",
+    "/Game/Experiments/RifleTransition/Blender_20261011/L_RifleBlender_Compare_Test",
+    "/Game/Experiments/RifleTransition/Blender_20261011/L_RifleBlender_GripCompare_Test",
+    "/Game/Experiments/RifleTransition/Blender_20261011/MM_Rifle_AimToLowReady_ExportControl_Test",
+    "/Game/Experiments/RifleTransition/Blender_20261011/MM_Rifle_AimToLowReady_FromSource_Test",
+    "/Game/Experiments/RifleTransition/Blender_20261011/MM_Rifle_AimToLowReady_RootPreserved_Test",
+    "/Game/Experiments/RifleTransition/Blender_20261011/SK_RifleBlender_Test",
+    "/Game/Experiments/RifleTransition/DownPitch_20261011/ABP_RifleDownPitch_Down30",
+    "/Game/Experiments/RifleTransition/DownPitch_20261011/ABP_RifleDownPitch_Down60",
+    "/Game/Experiments/RifleTransition/DownPitch_20261011/L_RifleDownPitch_Compare",
+    "/Game/Experiments/RifleTransition/DownPitch_20261011/SK_DownPitch_Import",
+    "/Game/Experiments/RifleTransition/L_RifleTransition_FirstPerson_Test",
+    "/Game/Experiments/RifleTransition/L_RifleTransition_ShooterCamera_Test",
+    "/Game/Experiments/RifleTransition/L_RifleTransition_Test",
+    "/Game/Experiments/RifleTransition/Segmented_20261011/ABP_RifleSegmented_LowToReady",
+    "/Game/Experiments/RifleTransition/Segmented_20261011/L_RifleSegmented_LowToReady",
+    "/Game/Experiments/RifleTransition/Segmented_20261011/ToolImportReplay/MM_Rifle_AimToLowReady",
+    "/Game/Experiments/RifleTransition/Segmented_20261011/ToolImportReplay/SK_Import",
+    "/Game/Experiments/RifleTransition/SoftGrip_20261011/ABP_RifleSoftGrip_Light",
+    "/Game/Experiments/RifleTransition/SoftGrip_20261011/ABP_RifleSoftGrip_Medium",
+    "/Game/Experiments/RifleTransition/SoftGrip_20261011/L_RifleSoftGrip_Compare",
+    "/Game/Experiments/RifleTransition/SoftGrip_20261011/Light/MM_Rifle_AimToLowReady",
+    "/Game/Experiments/RifleTransition/SoftGrip_20261011/Medium/MM_Rifle_AimToLowReady",
+    "/Game/Experiments/RifleTransition/SoftGrip_20261011/SK_SoftGrip_Import"
+  ],
+  "external_referencers": {}
+}

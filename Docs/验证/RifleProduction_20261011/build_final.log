@@ -1,0 +1,34 @@
+[Build] Project: D:\Unreal_Projects\ShootGame\ShootGame.uproject
+[Build] Target: ShootGameEditor Win64 Development
+Using bundled DotNet SDK version: 8.0.300 win-x64
+Running UnrealBuildTool: dotnet "..\..\Engine\Binaries\DotNET\UnrealBuildTool\UnrealBuildTool.dll" ShootGameEditor Win64 Development -Project=D:\Unreal_Projects\ShootGame\ShootGame.uproject -WaitMutex -FromMsBuild -NoUBA
+Log file: C:\Users\HP\AppData\Local\UnrealBuildTool\Log.txt
+Using 'git status' to determine working set for adaptive non-unity build (D:\Unreal_Projects\ShootGame).
+Parsing headers for ShootGameEditor
+  Running Internal UnrealHeaderTool D:\Unreal_Projects\ShootGame\ShootGame.uproject D:\Unreal_Projects\ShootGame\Intermediate\Build\Win64\ShootGameEditor\Development\ShootGameEditor.uhtmanifest -WarningsAsErrors -installed
+Total of 0 written
+Reflection code generated for ShootGameEditor in 1.0244452 seconds
+Building ShootGameEditor...
+Using Visual Studio 2022 14.38.33145 toolchain (D:\Visual Studio IDE\VC\Tools\MSVC\14.38.33130) and Windows 10.0.22621.0 SDK (D:\Windows Kits\10).
+[Adaptive Build] Excluded from ShootGame unity file: ShooterThirdPersonAnimInstance.cpp
+[Adaptive Build] Excluded from ShootGameEditor unity file: ShooterTPPlayerPIETests.cpp, ShooterRifleBlenderCommandlet.cpp, ShooterRifleSegmentedCommandlet.cpp, ShooterRifleTransitionFixture.cpp
+Determining max actions to execute in parallel (24 physical cores, 32 logical cores)
+  Executing up to 24 processes, one per physical core
+  Requested 1.5 GB memory per action, 5.18 GB available: limiting max parallel actions to 3
+Using Parallel executor to run 8 action(s)
+------ Building 8 action(s) started ------
+[1/8] Compile [x64] Module.ShootGameEditor.gen.cpp
+[2/8] Compile [x64] ShooterThirdPersonAnimInstance.cpp
+[3/8] Link [x64] UnrealEditor-ShootGame.lib
+  ���ڴ����� D:/Unreal_Projects/ShootGame/Intermediate/Build/Win64/x64/UnrealEditor/Development/ShootGame/UnrealEditor-ShootGame.lib �Ͷ��� D:/Unreal_Projects/ShootGame/Intermediate/Build/Win64/x64/UnrealEditor/Development/ShootGame/UnrealEditor-ShootGame.exp
+[4/8] Compile [x64] ShooterRifleSegmentedCommandlet.cpp
+[5/8] Link [x64] UnrealEditor-ShootGameEditor.lib
+  ���ڴ����� D:/Unreal_Projects/ShootGame/Intermediate/Build/Win64/x64/UnrealEditor/Development/ShootGameEditor/UnrealEditor-ShootGameEditor.lib �Ͷ��� D:/Unreal_Projects/ShootGame/Intermediate/Build/Win64/x64/UnrealEditor/Development/ShootGameEditor/UnrealEditor-ShootGameEditor.exp
+[6/8] Link [x64] UnrealEditor-ShootGame.dll
+[7/8] Link [x64] UnrealEditor-ShootGameEditor.dll
+[8/8] WriteMetadata ShootGameEditor.target
+Total time in Parallel executor: 3.04 seconds
+
+Result: Succeeded
+Total execution time: 4.85 seconds
+[Passed] ShootGameEditor build succeeded.

@@ -1,0 +1,53 @@
+{
+  "blueprint": {
+    "name": "BP_RifleTransition_ShooterCharacter_Test",
+    "path": "/Game/Experiments/RifleTransition/BP_RifleTransition_ShooterCharacter_Test.BP_RifleTransition_ShooterCharacter_Test",
+    "graphCount": 2,
+    "graphs": [
+      {
+        "name": "UserConstructionScript",
+        "graphPath": "UserConstructionScript",
+        "class": "/Script/Engine.EdGraph",
+        "type": "function",
+        "nodeCount": 2
+      },
+      {
+        "name": "EventGraph",
+        "graphPath": "EventGraph",
+        "class": "/Script/Engine.EdGraph",
+        "type": "event",
+        "nodeCount": 4
+      }
+    ],
+    "parentClass": "/Game/Shooter/Blueprints/Characters/BP_ShooterCharacter.BP_ShooterCharacter_C"
+  },
+  "camera": {
+    "blueprintPath": "/Game/Experiments/RifleTransition/BP_RifleTransition_ShooterCharacter_Test.BP_RifleTransition_ShooterCharacter_Test",
+    "source": "blueprint_component_template",
+    "objectPath": "/Game/Experiments/RifleTransition/BP_RifleTransition_ShooterCharacter_Test.Default__BP_RifleTransition_ShooterCharacter_Test_C:First Person Camera",
+    "found": true,
+    "packageDirty": false,
+    "components": [
+      "AimPresentationComponent",
+      "Arrow",
+      "CharacterMesh0",
+      "CharMoveComp",
+      "CollisionCylinder",
+      "Death Camera",
+      "EquipmentComponent",
+      "First Person Camera",
+      "First Person Mesh",
+      "InventoryComponent",
+      "Pawn Noise Emitter",
+      "ShooterRifleCharacterDebug",
+      "SpringArm"
+    ],
+    "properties": [
+      {
+        "name": "FirstPersonScale",
+        "type": "float",
+        "valueText": "1.000000"
+      }
+    ]
+  }
+}

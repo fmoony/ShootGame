@@ -1,0 +1,478 @@
+# ShootGame — 方案 A：Rifle 原生状态机过渡隔离原型与运行时验证
+
+## 一、任务性质与目标
+
+本轮从只读审查转为**有限授权的隔离原型实施**。
+
+目标是在 UE5.6.1 中，采用原生 State Machine Transition Blend，验证 Rifle 三个动画状态之间的自然过渡、反向播放、动态俯仰以及中断恢复。
+
+目标状态：
+
+```text
+ArmedAim
+    ↕
+AimTransition
+    ↕
+LowReady
+```
+
+只研究同一把 Rifle 的持枪姿态切换。
+
+本轮**允许创建、修改并保存隔离测试资产**，允许进行必要的隔离测试与诊断。
+
+不得修改、保存或覆盖正式生产 AnimBP、原有动画资产、Gameplay 代码及稳定动画系统。
+
+**不实施 Drawing、Holstering、Stowed，不修改 GAS，不改变任何开火资格。**
+
+本轮是功能性实验，不是完整换枪系统交付。
+
+## 二、工程基线与执行规则
+
+开始前：
+
+1. 阅读项目 `AGENTS.md`。
+2. 阅读最新《Rifle 上半身分层与 AimTransition 混合机制专项审查》。
+3. 核对本地 Git HEAD、工作区未提交修改和未跟踪资产。
+4. 按项目要求使用 CodeGraph 与 UE 编辑器工具读取当前图。
+5. 在任何编辑器修改、关闭、重启或资产保存操作前，先确认用户已经保存当前编辑器工作，并且不会同时编辑相关资产。
+6. 不清理、覆盖或暂存用户已有的未提交文件。
+
+上次审查 HEAD 为 `63f9d35`，但以本地实际状态为准。
+
+遵循最小可验证改动原则。
+
+不 commit、不 push。
+
+## 三、严格保护范围
+
+以下生产资产与逻辑必须保持不变：
+
+- `ABP_TP_Player`
+- `ABP_FP_Player`
+- `MF_Rifle_Idle_ADS`
+- `AO_Rifle`
+- 现有 ArmedAimPose 缓存的组成和语义
+- 原有 Reload / ReloadRecovery
+- 原有 Fire Montage 与 Arms Slot 配置
+- 现有 Aim IK / LeftHand IK 实现
+- FP CopyPose 和第一人称修正
+- 武器 Socket / Equipment / GAS / ASC
+- 服务器枪口与弹丸生成逻辑
+- 其他武器的动画和配置
+
+不能为了使 Mixamo 看起来更自然，而修改任何受保护的稳定基准。
+
+不得修改原始 Mixamo 动画或已经生成的四份规范副本。
+
+## 四、创建隔离测试环境
+
+优先复制现有 `ABP_TP_Player`，建立独立测试 AnimBP。
+
+建议名称：
+
+`ABP_TP_RifleTransition_Test`
+
+建议将测试资产放入明确的实验目录，与正式 Shooter 动画资产隔离。
+
+测试图应尽量保持生产 AnimGraph 的实际结构：
+
+```text
+ThirdPersonHoldSequence
+          ↓
+ThirdPersonAimOffset
+          ↓
+Save Cached Pose: ArmedAimPose
+          ↓
+WeaponAction
+          ↓
+Arms Slot
+          ↓
+Layered Bone Blend
+          ↓
+Aim IK
+          ↓
+LeftHand IK
+          ↓
+Output
+```
+
+只扩展测试副本的 `WeaponAction`。
+
+禁止在 `AimTransition` 内新增 Cached Pose 混合层。
+
+允许复用现有 `ArmedAimPose`，但不得修改其上游 Hold + AimOffset 求值链。
+
+### 运行环境要求
+
+测试必须能够使用真实 Rifle、正确的角色 Skeleton 和现有 AnimInstance 数据。
+
+特别注意：
+
+- 生产 Character 可能自动修复 AnimClass。
+- Native Update 会覆盖某些 AnimBP 调试变量。
+- 无有效武器时 `WeaponUpperBodyWeight` 可能变为 0。
+- 仅在预览面板设置一个布尔值，不代表实际测试姿态有效。
+
+可以使用隔离预览 Actor、测试 Character 或 Editor/Test AnimInstance 子类建立测试夹具，但必须说明必要性。
+
+不得通过修改正式 Character 的 AnimClass 收敛逻辑来让测试运行。
+
+先确认测试夹具中的 ArmedAim 输出与生产 ArmedAim 基线一致。
+
+如果无法可靠复现基线，停止比较并报告原因。
+
+## 五、方案 A：实现原生状态机
+
+测试状态：
+
+1. `ArmedAim`
+2. `AimTransition`
+3. `LowReady`
+
+### ArmedAim
+
+完整复用现有 ArmedAimPose。
+
+继续支持：
+
+- Rifle Hold Sequence
+- AO_Rifle
+- 动态 AimPitchN
+- 原有上半身分层
+
+不得将 ArmedAim 替换为固定 Sequence 或 Mixamo 姿态。
+
+### LowReady
+
+使用：
+
+`MM_Rifle_LowReady`
+
+要求：
+
+- 正常循环。
+- 能维持非瞄准低位持枪姿态。
+- 不自动触发 Gameplay 状态修改。
+
+### AimTransition
+
+使用：
+
+`MM_Rifle_AimToLowReady`
+
+这段 Sequence 的方向约定：
+
+- t=0：接近 ArmedAim 的抬枪端。
+- t=L：接近 LowReady 的降低端。
+
+ArmedAim → LowReady：
+
+- 正向播放。
+- 从 t=0 开始。
+- 到达 LowReady 端后进入 LowReady。
+
+LowReady → ArmedAim：
+
+- 反向播放。
+- 从 t=L 开始。
+- 到达 ArmedAim 端后进入 ArmedAim。
+
+要求：
+
+1. 使用同一个 Sequence Player。
+2. 明确设置正反向进入时的播放起点。
+3. 中途改变方向时保留已有 Accumulated Time。
+4. 不允许每帧重置累计时间。
+5. 反向出口不能直接依赖只适合正向播放的自动结束规则。
+6. 状态已经失活后重新进入，应根据入口来源正确初始化时间。
+7. 原生 Transition Blend 负责状态之间的交叉混合。
+
+**必须区分状态机 Transition 反向与 Sequence Player 时间反向。**
+
+### 过渡混合
+
+首选 UE 原生 Standard Blend。
+
+初始试验参数：
+
+- ArmedAim ↔ AimTransition：0.10s
+- AimTransition ↔ LowReady：0.10s
+- Blend 曲线：HermiteCubic
+
+这些只是试验初值，不是最终手感参数。
+
+可在隔离环境中比较 0.08s、0.12s、0.15s。
+
+不要用过长混合掩盖素材问题，也不要为了缩短动画而强行提高播放倍率。
+
+## 六、测试意图控制
+
+增加最小的调试目标：
+
+```text
+RifleTestGoal:
+    ArmedAim
+    LowReady
+```
+
+仅驱动测试动画状态机。
+
+不增加 GameplayTag、不复制状态、不改正式输入映射。
+
+要求支持：
+
+- ArmedAim 请求 LowReady。
+- LowReady 请求 ArmedAim。
+- AimTransition 正向播放期间请求 ArmedAim。
+- AimTransition 逆向播放期间请求 LowReady。
+
+目标变化应尽可能在同一 AimTransition Player 内完成速率反转，保留当前累计时间。
+
+不得为每次输入重新创建一个动作实例或无条件从头播放。
+
+如果 UE 状态机相关性或初始化机制导致无法保持进度，请先定位并处理测试图的节点时间管理，而不是引入方案 C。
+
+## 七、优先验证的四项内容
+
+### 1. 原生过渡的实际观感
+
+测试：
+
+- ArmedAim → LowReady
+- LowReady → ArmedAim
+- 25%、50%、75% 进度反向
+- 刚进入 AimTransition 就反向
+- 靠近两端点时连续切换
+
+记录：
+
+- 实际 Sequence 累计时间。
+- 当前播放方向。
+- Transition Alpha。
+- 当前状态及状态权重。
+- 是否发生姿态突跳或动作重播。
+
+### 2. 动态俯仰
+
+至少测试：
+
+- 0°
+- +30°
+- +60°
+- -30°
+- -60°
+
+分别在不同俯仰下开始过渡。
+
+额外测试：
+
+- 抬枪期间继续向上看。
+- 降枪期间继续向下看。
+- 中途反向后恢复当前 AimPitch 对应的 ArmedAim。
+- 快速连续改变俯仰方向。
+
+不要把 AO 单独样本当作真实 ArmedAimPose 输出。
+
+### 3. Layered Bone Blend 边界
+
+保留生产图相同的：
+
+- Spine_01 Branch Filter
+- BlendDepth=1
+- Mesh Space Rotation Blend=True
+- WeaponUpperBodyWeight=1（有有效装备时）
+
+检查：
+
+- pelvis 最终来自哪条分支。
+- spine_01 的 Mesh Space Rotation 过渡是否连续。
+- clavicle / upperarm / hand 的组件空间轨迹。
+- Mixamo 的 pelvis 姿态是否在分层边界产生补偿旋转。
+
+重点记录：
+
+**普通 Transition Blend 是否导致可见的躯干或肩部快速偏转。**
+
+优先观察效果。
+
+若有明显问题，再进行节点级姿态取证，不必一开始就开发庞大的全骨骼导出框架。
+
+### 4. Arms Slot 满覆盖后的恢复
+
+当前生产 Slot：
+
+`Always Update Source Pose=False`
+
+在隔离副本中比较：
+
+A. False（当前配置）。
+
+B. True（实验配置）。
+
+使用现有 Fire Montage 制造 Arms Slot 覆盖，只测试动画表现，不触发真实射击 Gameplay。
+
+记录：
+
+- WeaponAction 是否持续 Update。
+- Sequence Player 时间是否继续推进。
+- 状态机是否重新初始化。
+- Fire Montage 结束后是否恢复正确姿态。
+- 是否出现 AimTransition 从头重播。
+
+**不要因为 True 看起来更合理就直接修改生产 Slot。**
+
+必须先给出实验结论。
+
+## 八、运行时姿态取证
+
+优先使用 UE5.6.1 原生调试能力：
+
+- Animation Blueprint Debugger
+- Pose Watch
+- Rewind Debugger
+
+必要时使用隔离测试代码导出节点姿态。
+
+比较点：
+
+P0：真实 ArmedAimPose 输出。
+
+P1：Mixamo AimTransition Sequence Player 输出。
+
+P2：Layered Bone Blend 后、Aim IK 前输出。
+
+如出现难以解释的最终视觉问题，再检查 P3（两项 IK 后）。
+
+观察骨骼：
+
+- pelvis
+- spine_01～05
+- clavicle_r/l
+- upperarm_r/l
+- lowerarm_r/l
+- hand_r/l
+
+记录坐标空间、骨骼映射、LOD 和同帧输入。
+
+如果无法获取某个节点的真实姿态数据，必须明确标记为未测，不能使用静态 Sequence 结果替代。
+
+注意：
+
+**我们不要求为了生成一份完整骨骼数据表而无限扩张本轮工具开发。**
+
+本轮最重要的是证明方案 A 的实际动画行为。
+
+## 九、视觉验收
+
+需要在隔离环境内实际播放并检查：
+
+- ArmedAim 是否保持原有握枪姿态。
+- LowReady 是否合理持枪。
+- 抬枪与降枪是否存在突然的肩部旋转。
+- 中途反向是否自然。
+- 是否出现短暂参考姿态。
+- 相机是否产生明显晃动。
+- FP CopyPose 是否继承正确的 TP 姿态。
+- 左手是否被 IK 强行拖拽。
+- Rifle 是否出现明显枪口跳动。
+
+允许调用已有 IK 诊断，不修改生产 IK 节点。
+
+如果只能验证节点、日志或骨骼坐标，不能声称已经完成人眼观感验收。
+
+无法可靠自动判断的视觉问题应提供可复现的编辑器操作步骤，交由用户确认。
+
+## 十、明确禁止的行为
+
+本轮不得：
+
+- 修改正式 ABP_TP_Player。
+- 修改原有 ArmedAimPose。
+- 修改 MF_Rifle_Idle_ADS 或 AO_Rifle。
+- 修改 Mixamo 动画关键帧。
+- 为适配素材调整 Reload / Fire 动画。
+- 添加内部 Cached Pose Blend（方案 C）。
+- 使用 Pose Snapshot 或自定义 AnimNode。
+- 接入 Drawing / Holstering / Stowed。
+- 修改 GAS、装备提交或开火资格。
+- 实现移动自动降枪、开火自动抬枪。
+- 修改枪械 Socket 或服务器弹丸生成。
+- 推广到 Pistol、AWP、GrenadeLauncher。
+- 为了让测试通过而修改既有测试期望。
+- 将没有运行过的测试写成通过。
+
+## 十一、失败处理
+
+若出现姿态不匹配：
+
+1. 先记录具体状态、俯仰、时间和可见异常。
+2. 分清是原始素材端点、状态时间管理、分层边界还是 IK 引起。
+3. 不要立即修改原有 ArmedAim。
+4. 不要盲目自动修改 Mixamo 骨骼轨道。
+5. 不要直接引入新的混合架构。
+
+允许测试不同的原生 Transition Duration，但不能把参数调节当成素材修复。
+
+若状态机搭建工具无法安全创建 Transition 或 Sequence Player：
+
+- 说明具体工具限制。
+- 可以在已确认授权范围内使用隔离 Editor Commandlet。
+- 不允许通过破坏正式资产绕过限制。
+- 无法可靠完成时停止并报告，而不是声称已经完成。
+
+## 十二、完成条件与交付
+
+本轮完成的最低标准：
+
+1. 存在独立可加载的 Rifle 动画测试 AnimBP。
+2. ArmedAim、AimTransition、LowReady 三态连接正确。
+3. 可以通过调试 Goal 反复切换。
+4. AimTransition 能正反播放并处理中途反向。
+5. ArmedAim 资源与 AimOffset 保持原样。
+6. 有实际运行时状态、时间和混合数据。
+7. 已测试不同俯仰与 Arms Slot 覆盖。
+8. 不影响生产 AnimBP、Gameplay 与其他武器。
+
+最终输出：
+
+### A. 实施清单
+- 新建的隔离资产。
+- 必要的测试代码。
+- 测试环境与操作方法。
+- 生产资产未变化的证据。
+
+### B. 运行时验证结果
+- 正常抬枪/降枪。
+- 中途反向。
+- 动态俯仰。
+- 分层后的骨骼表现。
+- Arms Slot 覆盖与恢复。
+- 实际可观察到的问题。
+
+### C. 方案 A 评价
+
+明确回答：
+
+- 原生 Transition Blend 是否能够稳定完成过渡？
+- 同一 Player 的反向时间控制是否可靠？
+- 是否存在无法通过混合参数解决的素材问题？
+- 是否需要进一步编辑 Mixamo 动画？
+- 是否值得推进正式阶段 B？
+
+### D. 后续建议
+
+根据实际结果，只推荐下一步最小必要修改。
+
+不要未经授权直接推进正式阶段 B。
+
+## 最终执行原则
+
+**先验证原生状态机，再判断素材是否需要修正。**
+
+不改变既有 ArmedAim，不增加新的混合层，不重构 Gameplay。
+
+允许完成必要的隔离实验，但所有生产修改必须等待下一轮明确授权。
+
+完成实验后保留便于用户打开预览的隔离测试 AnimBP 与验证记录，不擅自删除交付资产；测试产物保持与生产资源隔离，不提交 Git。
+
+完成后停止并等待用户验收。

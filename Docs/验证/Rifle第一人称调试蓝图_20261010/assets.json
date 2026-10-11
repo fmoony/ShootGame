@@ -1,0 +1,17 @@
+{
+  "pawn": "/Game/Experiments/RifleTransition/BP_RifleTransition_DebugPawn.BP_RifleTransition_DebugPawn_C",
+  "map": "/Game/Experiments/RifleTransition/L_RifleTransition_FirstPerson_Test.L_RifleTransition_FirstPerson_Test",
+  "auto_possess": "<AutoReceiveInput.PLAYER0: 1>",
+  "actions": [
+    "RIFLE DEBUG | FP | IK OFF\nState: ArmedAim  Goal: ArmedAim\nPitch: 0  Mask: 1.00\nTransition time: 0.000  Rate: -1\nLast: Ready\n[1] Goal  [2] Pitch  [3] Mask  [V] FP/TP  Mouse: Look",
+    "RIFLE DEBUG | FP | IK OFF\nState: ArmedAim  Goal: LowReady\nPitch: 0  Mask: 1.00\nTransition time: 0.000  Rate: -1\nLast: [1] Goal toggled\n[1] Goal  [2] Pitch  [3] Mask  [V] FP/TP  Mouse: Look",
+    "RIFLE DEBUG | FP | IK OFF\nState: ArmedAim  Goal: LowReady\nPitch: 30  Mask: 1.00\nTransition time: 0.000  Rate: -1\nLast: [2] Pitch cycled\n[1] Goal  [2] Pitch  [3] Mask  [V] FP/TP  Mouse: Look",
+    "RIFLE DEBUG | FP | IK OFF\nState: ArmedAim  Goal: LowReady\nPitch: 30  Mask: 0.00\nTransition time: 0.000  Rate: -1\nLast: [3] Mask strength cycled\n[1] Goal  [2] Pitch  [3] Mask  [V] FP/TP  Mouse: Look",
+    "RIFLE DEBUG | TP | IK OFF\nState: ArmedAim  Goal: LowReady\nPitch: 30  Mask: 0.00\nTransition time: 0.000  Rate: -1\nLast: [V] View toggled\n[1] Goal  [2] Pitch  [3] Mask  [V] FP/TP  Mouse: Look"
+  ],
+  "camera_offset": "<Struct 'Vector' (0x000001817346C180) {x: -2.800000, y: 5.890000, z: 0.000000}>",
+  "first_person_scale": 0.6000000238418579,
+  "ik_flag": false,
+  "game_mode_default_pawn": null,
+  "note": "button methods tested; keyboard routing and possession tested separately"
+}

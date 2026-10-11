@@ -1,0 +1,26 @@
+{
+  "beforeCount": 905,
+  "unchangedCount": 900,
+  "differences": [
+    {
+      "path": "Content\\Experiments\\RifleTransition\\L_RifleTransition_Test.umap",
+      "status": "changed"
+    },
+    {
+      "path": "Content\\Experiments\\RifleTransition\\ABP_TP_RifleTransition_Test.uasset",
+      "status": "changed"
+    },
+    {
+      "path": "Source\\ShootGameEditor\\Tests\\RifleTransition\\ShooterRifleTransitionFixture.cpp",
+      "status": "changed"
+    },
+    {
+      "path": "Source\\ShootGameEditor\\Tests\\RifleTransition\\ShooterRifleTransitionFixture.h",
+      "status": "changed"
+    },
+    {
+      "path": "Source\\ShootGameEditor\\Tests\\RifleTransition\\ShooterRifleTransitionTestCommandlet.cpp",
+      "status": "changed"
+    }
+  ]
+}

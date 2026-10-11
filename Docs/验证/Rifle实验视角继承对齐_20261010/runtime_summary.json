@@ -1,0 +1,30 @@
+{
+  "pitch_samples": [
+    -60.0,
+    -30.0,
+    -9.3,
+    -6.8,
+    0.0,
+    15.4,
+    30.0,
+    60.0
+  ],
+  "mask_strengths": [
+    0.0,
+    0.5,
+    1.0
+  ],
+  "fp_body_delta_final": [
+    "0.00",
+    "12.00"
+  ],
+  "pose_failures": 0,
+  "runtime_errors": 0,
+  "keys": [
+    "1",
+    "2",
+    "3",
+    "V"
+  ],
+  "final_return": true
+}

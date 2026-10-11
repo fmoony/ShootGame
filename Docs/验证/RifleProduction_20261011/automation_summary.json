@@ -1,0 +1,67 @@
+[
+  {
+    "report": "K_PIE7",
+    "counts": {
+      "succeeded": 0,
+      "succeededWithWarnings": 1,
+      "failed": 0,
+      "notRun": 0
+    },
+    "tests": [
+      {
+        "name": "ShootGame.Animation.RifleReady.PIE",
+        "state": "Success",
+        "duration": 26.86277198791504,
+        "warnings": [
+          "LogAbilitySystem: No GameplayCueNotifyPaths were specified in DefaultGame.ini under [/Script/GameplayAbilities.AbilitySystemGlobals]. Falling back to using all of /Game/. This may be slow on large projects. Consider specifying which paths are to be searched.",
+          "LogCrowdFollowing: Unable to find RecastNavMesh instance while trying to create UCrowdManager instance"
+        ],
+        "evidence": [
+          "RIFLE_K_PIE pitch=0.000 clip=MM_Rifle_AimToLowReady_CorrectedGrip reverse_time=0.250002",
+          "RIFLE_K_PIE pitch=-29.990 clip=MM_Rifle_AimToLowReady_CorrectedGrip reverse_time=0.250002",
+          "RIFLE_K_PIE pitch=-30.000 clip=MM_Rifle_AimToLowReady_Down30 reverse_time=0.250008",
+          "RIFLE_K_PIE pitch=-50.000 clip=MM_Rifle_AimToLowReady_Down30 reverse_time=0.250017",
+          "RIFLE_K_PIE pitch=-50.010 clip=MM_Rifle_AimToLowReady_Down60 reverse_time=0.250001",
+          "RIFLE_K_PIE pitch=-65.000 clip=MM_Rifle_AimToLowReady_Down60 reverse_time=0.250001",
+          "RIFLE_K_PIE_SUCCESS cases=6 input=BlueprintK interrupts=Fire,Reload,Pistol,Unarmed"
+        ]
+      }
+    ]
+  },
+  {
+    "report": "TPPlayer_PIE",
+    "counts": {
+      "succeeded": 0,
+      "succeededWithWarnings": 2,
+      "failed": 0,
+      "notRun": 0
+    },
+    "tests": [
+      {
+        "name": "ShootGame.Animation.TPPlayer.PIE.ListenOwnerObserver",
+        "state": "Success",
+        "duration": 13.188213348388672,
+        "warnings": [
+          "LogAbilitySystem: No GameplayCueNotifyPaths were specified in DefaultGame.ini under [/Script/GameplayAbilities.AbilitySystemGlobals]. Falling back to using all of /Game/. This may be slow on large projects. Consider specifying which paths are to be searched.",
+          "LogCrowdFollowing: Unable to find RecastNavMesh instance while trying to create UCrowdManager instance",
+          "LogAbilitySystem: IsNetAuthority called when OwnerActor was invalid. Returning false. AbilitySystemComponent: AbilitySystemComponent"
+        ],
+        "evidence": [
+          "TP_PLAYER_PIE_SUCCESS GroundSwitches=4 Jumps=2 JumpStartSwitch=2 JumpLoopSwitch=2 Fire=1 Reload=1"
+        ]
+      },
+      {
+        "name": "ShootGame.Animation.TPPlayer.PIE.Standalone",
+        "state": "Success",
+        "duration": 10.953300476074219,
+        "warnings": [
+          "LogCrowdFollowing: Unable to find RecastNavMesh instance while trying to create UCrowdManager instance",
+          "LogCrowdFollowing: Unable to find RecastNavMesh instance while trying to create UCrowdManager instance"
+        ],
+        "evidence": [
+          "TP_PLAYER_PIE_SUCCESS GroundSwitches=4 Jumps=2 JumpStartSwitch=2 JumpLoopSwitch=2 Fire=1 Reload=1"
+        ]
+      }
+    ]
+  }
+]
