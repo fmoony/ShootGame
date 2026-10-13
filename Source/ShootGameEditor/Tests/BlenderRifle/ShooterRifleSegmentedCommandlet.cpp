@@ -2,30 +2,11 @@
 
 #include "ShooterRifleSegmentedCommandlet.h"
 
-#include "AnimGraphNode_StateMachine.h"
-#include "AnimGraphNode_SequencePlayer.h"
-#include "AnimGraphNode_StateResult.h"
-#include "AnimGraphNode_TransitionResult.h"
-#include "AnimGraphNode_SaveCachedPose.h"
-#include "AnimGraphNode_UseCachedPose.h"
-#include "AnimStateNode.h"
-#include "AnimStateEntryNode.h"
-#include "AnimStateTransitionNode.h"
-#include "AnimationStateMachineGraph.h"
 #include "Animation/AnimBlueprint.h"
 #include "Animation/AnimInstance.h"
-#include "EdGraph/EdGraph.h"
-#include "EdGraph/EdGraphSchema.h"
-#include "EdGraphSchema_K2.h"
-#include "K2Node_CallFunction.h"
-#include "K2Node_InputKey.h"
-#include "K2Node_VariableGet.h"
 #include "Kismet2/BlueprintEditorUtils.h"
 #include "Kismet2/KismetEditorUtilities.h"
 #include "Kismet2/CompilerResultsLog.h"
-#include "K2Node_Self.h"
-#include "Misc/PackageName.h"
-#include "UObject/SavePackage.h"
 
 #include "Animation/AnimNode_SequencePlayer.h"
 #include "Animation/AnimNode_StateMachine.h"
@@ -110,80 +91,9 @@ namespace RifleSegmented
 	const FString Name = TEXT("ABP_RifleSegmented_LowToReady");
 	const FString Output = FPaths::ProjectSavedDir() / TEXT("RifleTools/Measure");
 
-	/** 限定两个正式蓝图的可重复接入工具；不创建 Skeleton、地图或 Gameplay 资产。 */
+	/** 正式图的只读测量编译；不写入接入配置或资产。 */
 	namespace Production
 	{
-		template <typename T> T* Add(UEdGraph* Graph, int32 X, int32 Y)
-		{
-			FGraphNodeCreator<T> Creator(*Graph);
-			T* Node = Creator.CreateNode();
-			Node->NodePosX = X;
-			Node->NodePosY = Y;
-			Creator.Finalize();
-			return Node;
-		}
-
-		bool Link(UEdGraphPin* A, UEdGraphPin* B)
-		{
-			return A && B && A->GetOwningNode()->GetGraph()->GetSchema()->TryCreateConnection(A, B);
-		}
-
-		UK2Node_CallFunction* Call(UEdGraph* Graph, UFunction* Function, int32 X, int32 Y)
-		{
-			FGraphNodeCreator<UK2Node_CallFunction> Creator(*Graph);
-			auto* Node = Creator.CreateNode();
-			Node->SetFromFunction(Function);
-			Node->NodePosX = X;
-			Node->NodePosY = Y;
-			Creator.Finalize();
-			return Node;
-		}
-
-		bool Bind(UAnimGraphNode_Base* Node, FName Pin, FName Variable)
-		{
-			for (int32 I = 0; I < Node->ShowPinForProperties.Num(); ++I)
-			{
-				if (Node->ShowPinForProperties[I].PropertyName == Pin)
-				{
-					Node->SetPinVisibility(true, I);
-					break;
-				}
-			}
-			FGraphNodeCreator<UK2Node_VariableGet> Creator(*Node->GetGraph());
-			auto* Getter = Creator.CreateNode();
-			Getter->VariableReference.SetSelfMember(Variable);
-			Getter->NodePosX = Node->NodePosX - 300;
-			Getter->NodePosY = Node->NodePosY + Node->GetGraph()->Nodes.Num() * 32;
-			Creator.Finalize();
-			return Link(Getter->FindPin(Variable), Node->FindPin(Pin));
-		}
-
-		UAnimStateNode* State(UEdGraph* Graph, const TCHAR* StateName, int32 X)
-		{
-			auto* Node = Add<UAnimStateNode>(Graph, X, 0);
-			Node->BoundGraph->Rename(StateName);
-			Node->bAlwaysResetOnEntry = true;
-			return Node;
-		}
-
-		bool Rule(UAnimStateNode* From, UAnimStateNode* To, const TCHAR* Function, float Duration, int32 Priority)
-		{
-			auto* Node = Add<UAnimStateTransitionNode>(From->GetGraph(), From->NodePosX + 80, Priority * 60);
-			Node->CrossfadeDuration = Duration;
-			Node->PriorityOrder = Priority;
-			Node->CreateConnections(From, To);
-			auto* FunctionNode = Call(Node->BoundGraph,
-				UShooterThirdPersonAnimInstance::StaticClass()->FindFunctionByName(Function), -300, 0);
-			for (UEdGraphNode* Result : Node->BoundGraph->Nodes)
-			{
-				if (Cast<UAnimGraphNode_TransitionResult>(Result))
-				{
-					return Link(FunctionNode->GetReturnValuePin(), Result->FindPin(TEXT("bCanEnterTransition")));
-				}
-			}
-			return false;
-		}
-
 		bool Compile(UBlueprint* BP)
 		{
 			FCompilerResultsLog Results;
@@ -191,132 +101,6 @@ namespace RifleSegmented
 			UE_LOG(LogRifleSegmented, Display, TEXT("RIFLE_PRODUCTION_COMPILE %s errors=%d warnings=%d"),
 				*BP->GetName(), Results.NumErrors, Results.NumWarnings);
 			return Results.NumErrors == 0 && BP->Status != BS_Error;
-		}
-
-		bool Save(UObject* Asset)
-		{
-			UPackage* Package = Asset->GetOutermost();
-			const FString File = FPackageName::LongPackageNameToFilename(Package->GetName(), TEXT(".uasset"));
-			FSavePackageArgs Args;
-			Args.TopLevelFlags = RF_Public | RF_Standalone;
-			Package->MarkPackageDirty();
-			return UPackage::SavePackage(Package, Asset, *File, Args);
-		}
-
-		bool Apply()
-		{
-			auto* BP = LoadObject<UAnimBlueprint>(nullptr, TEXT("/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player"));
-			auto* CharacterBP = LoadObject<UBlueprint>(nullptr, TEXT("/Game/Shooter/Blueprints/Characters/BP_ShooterCharacter"));
-			const FString Root = TEXT("/Game/Characters/Mannequins/Anims/Rifle/");
-			auto* Corrected = LoadObject<UAnimSequence>(nullptr,
-				*(Root + TEXT("MM_Rifle_AimToLowReady_CorrectedGrip")));
-			auto* Down30 = LoadObject<UAnimSequence>(nullptr, *(Root + TEXT("MM_Rifle_AimToLowReady_Down30")));
-			auto* Down60 = LoadObject<UAnimSequence>(nullptr, *(Root + TEXT("MM_Rifle_AimToLowReady_Down60")));
-			auto* LowSequence = LoadObject<UAnimSequence>(nullptr,
-				TEXT("/Game/Shooter/Animation/ThirdPerson/Rifle/MM_Rifle_LowReady"));
-			if (!BP || !CharacterBP || !Corrected || !Down30 || !Down60 || !LowSequence ||
-				BP->ParentClass != UShooterThirdPersonAnimInstance::StaticClass() ||
-				Corrected->GetSkeleton() != BP->TargetSkeleton || Down30->GetSkeleton() != BP->TargetSkeleton ||
-				Down60->GetSkeleton() != BP->TargetSkeleton || LowSequence->GetSkeleton() != BP->TargetSkeleton)
-			{
-				return false;
-			}
-			TArray<UEdGraph*> Graphs;
-			BP->GetAllGraphs(Graphs);
-			UEdGraph* Armed = nullptr;
-			UAnimGraphNode_SaveCachedPose* Cache = nullptr;
-			bool bInstalled = false;
-			for (UEdGraph* Graph : Graphs)
-			{
-				bInstalled |= Graph->GetFName() == TEXT("RifleReady");
-				if (Graph->GetFName() == TEXT("ArmedAim")) { Armed = Graph; }
-				for (UEdGraphNode* Node : Graph->Nodes)
-				{
-					if (auto* Cached = Cast<UAnimGraphNode_SaveCachedPose>(Node))
-					{
-						if (Cached->CacheName == TEXT("ArmedAimPose")) { Cache = Cached; }
-					}
-				}
-			}
-			if (!Armed || !Cache) { return false; }
-			if (!bInstalled)
-			{
-				auto* Machine = Add<UAnimGraphNode_StateMachine>(Armed, 64, 400);
-				Machine->EditorStateMachineGraph->Rename(TEXT("RifleReady"));
-				UAnimationStateMachineGraph* Graph = Machine->EditorStateMachineGraph;
-				auto* Aim = State(Graph, TEXT("ArmedAim"), 200);
-				auto* Transition = State(Graph, TEXT("AimTransition"), 500);
-				auto* Low = State(Graph, TEXT("LowReady"), 800);
-				for (UEdGraphNode* Node : Graph->Nodes)
-				{
-					if (Cast<UAnimStateEntryNode>(Node))
-					{
-						if (!Link(Node->FindPin(TEXT("Entry")), Aim->GetInputPin())) { return false; }
-					}
-				}
-				auto* Use = Add<UAnimGraphNode_UseCachedPose>(Aim->BoundGraph, -100, 0);
-				Use->SaveCachedPoseNode = Cache;
-				Use->ReconstructNode();
-				if (!Link(Use->FindPin(TEXT("Pose")), Aim->GetPoseSinkPinInsideState())) { return false; }
-				auto* Player = Add<UAnimGraphNode_SequencePlayer>(Transition->BoundGraph, 0, 0);
-				Player->Node.SetSequence(Corrected);
-				Player->Node.SetLoopAnimation(false);
-				if (!Bind(Player, TEXT("Sequence"), TEXT("RifleTransitionSequence")) ||
-					!Bind(Player, TEXT("PlayRate"), TEXT("RifleTransitionPlayRate")) ||
-					!Bind(Player, TEXT("StartPosition"), TEXT("RifleTransitionStartPosition")) ||
-					!Link(Player->FindPin(TEXT("Pose")), Transition->GetPoseSinkPinInsideState())) { return false; }
-				auto* LowPlayer = Add<UAnimGraphNode_SequencePlayer>(Low->BoundGraph, 0, 0);
-				LowPlayer->Node.SetSequence(LowSequence);
-				if (!Link(LowPlayer->FindPin(TEXT("Pose")), Low->GetPoseSinkPinInsideState())) { return false; }
-				if (!Rule(Aim, Transition, TEXT("GetRifleLowerRequested"), 0.0f, 2) ||
-					!Rule(Low, Transition, TEXT("GetRifleRaiseRequested"), 0.0f, 2) ||
-					!Rule(Transition, Low, TEXT("GetRifleAtLowEndpoint"), 0.12f, 2) ||
-					!Rule(Transition, Aim, TEXT("GetRifleAtAimEndpoint"), 0.12f, 2) ||
-					!Rule(Transition, Aim, TEXT("GetRifleReadyAbortRequested"), 0.10f, 1) ||
-					!Rule(Low, Aim, TEXT("GetRifleReadyAbortRequested"), 0.10f, 1)) { return false; }
-				for (UEdGraphNode* Node : Armed->Nodes)
-				{
-					if (Cast<UAnimGraphNode_StateResult>(Node))
-					{
-						Node->FindPin(TEXT("Result"))->BreakAllPinLinks();
-						if (!Link(Machine->FindPin(TEXT("Pose")), Node->FindPin(TEXT("Result")))) { return false; }
-					}
-				}
-			}
-			UEdGraph* Event = CharacterBP->UbergraphPages[0];
-			bool bKeyInstalled = false;
-			for (UEdGraphNode* Node : Event->Nodes)
-			{
-				if (auto* Key = Cast<UK2Node_InputKey>(Node)) { bKeyInstalled |= Key->InputKey == EKeys::K; }
-			}
-			if (!bKeyInstalled)
-			{
-				FGraphNodeCreator<UK2Node_InputKey> Creator(*Event);
-				auto* Key = Creator.CreateNode();
-				Key->InputKey = EKeys::K;
-				Key->bConsumeInput = false;
-				Key->NodePosY = 480;
-				Key->NodeComment = TEXT("临时 Rifle 动画切换：本地表现，可在过渡中反向；不改变 Gameplay。");
-				Creator.Finalize();
-				auto* Pawn = Add<UK2Node_Self>(Event, 240, 650);
-				UFunction* ToggleFunction = UShooterThirdPersonAnimInstance::StaticClass()->FindFunctionByName(
-					TEXT("ToggleDebugRifleLowReady"));
-				auto* Toggle = Call(Event, ToggleFunction, 520, 480);
-				if (!Link(Pawn->FindPin(UEdGraphSchema_K2::PN_Self), Toggle->FindPin(TEXT("Pawn"))) ||
-					!Link(Key->FindPin(TEXT("Pressed")), Toggle->FindPin(UEdGraphSchema_K2::PN_Execute)))
-				{
-					return false;
-				}
-			}
-			FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(BP);
-			FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(CharacterBP);
-			if (!Compile(BP) || !Compile(CharacterBP)) { return false; }
-			auto* Defaults = CastChecked<UShooterThirdPersonAnimInstance>(BP->GeneratedClass->GetDefaultObject());
-			Defaults->RifleTransitionCorrected = Corrected;
-			Defaults->RifleTransitionDown30 = Down30;
-			Defaults->RifleTransitionDown60 = Down60;
-			Defaults->RifleTransitionSequence = Corrected;
-			return Save(BP) && Save(CharacterBP);
 		}
 	}
 
@@ -449,9 +233,8 @@ int32 UShooterRifleSegmentedCommandlet::Main(const FString& Params)
 {
 	if (FParse::Param(*Params, TEXT("ProductionApply")))
 	{
-		const bool bSuccess = RifleSegmented::Production::Apply();
-		UE_LOG(LogRifleSegmented, Display, TEXT("RIFLE_PRODUCTION_APPLY success=%d"), bSuccess);
-		return bSuccess ? 0 : 1;
+		UE_LOG(LogRifleSegmented, Error, TEXT("旧分段接入入口已移除；正式方案为 Local，工具只保留测量。"));
+		return 1;
 	}
 	if (FParse::Param(*Params, TEXT("Prepare")))
 	{

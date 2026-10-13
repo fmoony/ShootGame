@@ -1,0 +1,518 @@
+# ShootGame — Rifle LowReady 复用 Reload 分层混合方案与取消负俯仰专用动画可行性审计
+
+## 一、审计目标
+
+本轮重新评估 Rifle 收枪动画的实现方案。
+
+用户提出新的技术思路：
+
+**不再针对不同负俯仰角度分别制作 Down30、Down60 动画，而是参考已有 Reload 的分层混合机制，保留 ArmedAim / AimOffset 产生的脊柱俯仰，仅将 LowReady / AimTransition 的必要肩臂动作混合到最终姿态。**
+
+必要时通过局部空间、组件空间或相对姿态计算，补偿不同脊柱俯仰带来的手部与枪械轨迹变化。
+
+希望最终使用一套主要收枪动画，适配不同俯仰角度，减少动画资产数量和状态切换复杂度。
+
+**本轮只审计可行性，不实施架构修改。**
+
+必须基于 UE5.6.1 当前工程的真实源码、动画蓝图、Skeleton、Blend Mask 和运行时姿态证据给出判断。
+
+不能仅因为 Reload 已采用分层混合，就直接认定该方案可以复用。
+
+## 二、当前实现背景
+
+项目：ShootGame，UE5.6.1。
+
+当前 Rifle 动画系统包括：
+
+- ArmedAim。
+- AimTransition。
+- LowReady。
+- `AO_Rifle` / `MF_Rifle_Idle_ADS`。
+- 原有 Reload 动画及其专用上半身混合机制。
+- 第三人称完整动画。
+- 第一人称 CopyPose + 原生 ClearanceProxy。
+
+此前制作了：
+
+- CorrectedGrip。
+- Down30。
+- Down60。
+
+当前实验使用的俯仰分区大致为：
+
+| 俯仰角 | 收枪动画 |
+|---|---|
+| Pitch > -30° | CorrectedGrip |
+| -50° < Pitch ≤ -30° | Down30 |
+| Pitch ≤ -50° | Down60 |
+
+以本地实际运行时选择代码为准。
+
+Down30、Down60 已经改善了大幅低头时枪械先上抬、再下降的折返现象。
+
+但用户发现，现有方案可能没有充分利用 ArmedAim 已经具备的背部弯曲和动态俯仰能力。
+
+此前的 Natural Pitch Blend Mask 尝试主要关注脊柱、颈部和头部的权重分配，未系统验证过：
+
+**以 ArmedAimPose 为完整身体基础姿态，仅混合收枪动作所需肩臂骨骼，并对右手与枪械进行相对姿态补偿。**
+
+因此需要重新评估方案，而非默认继续当前 Down 动画路线。
+
+## 三、首先核实真实资产与 AnimGraph
+
+阅读：
+
+- `AGENTS.md`
+- 当前实际 `ABP_TP_Player`。
+- ArmedAim / AimTransition / LowReady 对应状态与播放器。
+- `AO_Rifle`。
+- `MF_Rifle_Idle_ADS`。
+- Reload 的 State Machine、动画序列和 Blend Mask。
+- 现有 RifleTransition 隔离原型。
+- Natural Pitch Blend Mask 实验报告。
+- Down30 / Down60 制作与验证报告。
+- FP CopyPose 和 ClearanceProxy 相关实现。
+
+特别注意：
+
+**生产图与实验图可能不同。**
+
+此前的 Natural Pitch Blend Mask 仍属于隔离实验，不能默认已经部署在生产图。
+
+需要明确列出每一套图的真实节点关系和资源引用。
+
+不要凭名称猜测动画用途。
+
+## 四、专项 A：彻底核实 Reload 的现有分层混合机制
+
+重点研究现有 Reload 为什么能在 ArmedAim 下工作。
+
+此前记录表明，Reload 使用类似：
+
+`RifleReloadWeightedUpperBody`
+
+的专用 Blend Mask。
+
+其结构大致是：
+
+```text
+ArmedAimPose ─────────────┐
+                         │
+                         ▼
+                Layered Blend per Bone
+                         ▲
+                         │
+Reload Animation ────────┘
+                         │
+                         ▼
+                  WeaponAction
+```
+
+但上述仅作为待核实线索。
+
+必须从真实 AnimGraph 读取：
+
+1. Base Pose 是否确实来自 ArmedAimPose。
+2. Blend Pose 来自哪个 Reload Sequence 或 State。
+3. 是否启用 Mesh Space Rotation Blend。
+4. 每根 spine、clavicle、upperarm、lowerarm、hand、neck、head 的实际权重。
+5. 是否存在修改过的脊柱旋转数据。
+6. Reload 动画是否包含有效的躯干运动。
+7. Layered Blend per Bone 位于何处，是否还有外层混合。
+8. 后续 Aim IK / LeftHand IK 是否改变最终握持姿态。
+9. AimOffset 在 Reload 时是否继续实时更新。
+10. Reload 的动画设计是否依赖固定起始姿态。
+
+尤其核实此前提及的设计：
+
+- spine 与 head 权重较低或为 0。
+- 两侧手臂权重较高。
+- 部分肩胸辅助骨骼具有过渡权重。
+- Mesh Space Rotation Blend 启用。
+
+最终给出真实骨骼权重表。
+
+**不要只看 Mask 权重，还要结合 Reload 源动画的实际骨骼姿态说明为什么不会出现明显断层。**
+
+## 五、专项 B：评估 ArmedAim 的脊柱俯仰是否能复用
+
+此前 ArmedAim 借助 `AO_Rifle` 动态调整人体姿态。
+
+重点检查：
+
+- spine_01～spine_05。
+- neck_01、neck_02。
+- head。
+- clavicle_l / clavicle_r。
+- upperarm_l / upperarm_r。
+- lowerarm_l / lowerarm_r。
+- hand_l / hand_r。
+
+分析实际 AimOffset 对这些骨骼的旋转贡献。
+
+至少考虑：
+
+- -60°
+- -30°
+- 0°
+- +30°
+- +60°
+
+必须区分：
+
+**局部空间骨骼旋转、组件空间骨骼变换以及最终世界空间武器轨迹。**
+
+重点回答：
+
+1. ArmedAim 的背部弯曲有多少可以在收枪时直接保留？
+2. 哪些弯曲来自 spine，哪些来自 neck/head？
+3. AO 是否也修改肩膀和手臂？
+4. 只保留 spine 俯仰是否足以保持自然人体姿态？
+5. 收枪时继续实时更新 AimOffset，会不会让枪械运动受到当前视角的额外影响？
+6. 现有 LowReady 是否需要与视角 Pitch 解耦？
+
+不能将“保留脊柱弯曲”等同于“枪械一定沿正确轨迹收回”。
+
+## 六、专项 C：只混合肩臂骨骼是否真正可行
+
+重点审查以下候选：
+
+```text
+                ArmedAimPose
+                     │
+                     ▼
+                  Base Pose
+                     │
+                     ├──────────────┐
+                     │              │
+                     ▼              ▼
+             保留脊柱俯仰      收枪动画肩臂姿态
+                     │              │
+                     └──────┬───────┘
+                            ▼
+                 Layered Blend per Bone
+                            │
+                            ▼
+                     最终收枪姿态
+```
+
+需要验证：
+
+### C1. 骨骼混合范围
+
+是否能够将收枪的 Blend Mask 主要限定在：
+
+- clavicle_l / clavicle_r
+- upperarm_l / upperarm_r
+- lowerarm_l / lowerarm_r
+- hand_l / hand_r
+
+以及必要的辅助骨骼。
+
+spine 是否可以完全保留 ArmedAim？
+
+是否需要对 spine_04、spine_05 或部分 clavicle 设置渐进权重？
+
+尤其注意 Manny 骨架的真实父子关系。
+
+### C2. 低头时枪械运动
+
+假设玩家当前低头 -60°：
+
+- ArmedAim 的上半身已向下弯曲。
+- 收枪动画仅替换双臂动作。
+- 右手的父级肩关节仍然受到脊柱弯曲影响。
+- Rifle 附着于 hand_r。
+
+那么最终 Rifle 是否仍会：
+
+1. 产生先抬后降？
+2. 沿着合理的路径收向身体？
+3. 因为上半身弯曲而过度下沉？
+4. 发生异常抬肘或手腕扭转？
+5. 与胸部、相机发生新的遮挡或穿插？
+
+应以实际姿态变换推导和已有采样数据回答，而非直觉推断。
+
+### C3. LowReady 的语义
+
+必须明确区分两个目标：
+
+**目标 A：人体躯干继续保留随视角变化的自然弯曲。**
+
+**目标 B：枪械进入稳定、自然的 LowReady，不因俯仰角变化而无限抬高或降低。**
+
+这两个目标未必能通过简单的手臂 Mask 同时满足。
+
+请判断是否存在冲突，以及是否需要额外相对补偿。
+
+不能为了保留 AO 而让枪械始终跟随瞄准方向，也不能为了固定枪械而让肩臂姿态严重扭曲。
+
+## 七、专项 D：相对姿态计算是否可以解决父级旋转问题
+
+这是本轮最重要的技术问题之一。
+
+研究以下思路：
+
+**将收枪动作视为相对于某个人体参考姿态的肩臂运动，而不是直接把固定俯仰下的绝对骨骼姿态覆盖到当前人体。**
+
+审计可能的实现方式：
+
+### 方案 D1：直接 Layered Blend per Bone
+
+- ArmedAimPose 作为 Base。
+- 收枪 Sequence 作为 Blend。
+- Mask 只覆盖肩臂。
+- 使用现有 Mesh Space Rotation Blend。
+
+判断是否已足够。
+
+### 方案 D2：局部空间相对增量
+
+从参考姿态中提取收枪动画的骨骼旋转差：
+
+```text
+Reference Arm Pose
+        ↓
+计算相对旋转增量
+        ↓
+应用到当前 ArmedAim 肩臂
+```
+
+检查是否能用 UE 原生 Additive 动画或现有节点表达。
+
+必须确认该差分定义在什么参考空间、使用什么旋转组合顺序，以及它是否适用于不同的父级骨骼姿态。
+
+不能只用一个 Local Rotation 差值就宣称 Component Space 的枪械轨迹得到保持。
+
+### 方案 D3：组件空间目标补偿
+
+允许脊柱保持 AO 弯曲，但根据当前父级变换计算目标手部或枪械姿态。
+
+研究：
+
+- 肩部父级变换的影响。
+- hand_r 目标位置与朝向。
+- 手臂骨链的几何可达性。
+- 枪械相对于躯干的目标姿态。
+- 是否需要有限的双骨骼 IK 或 Control Rig。
+- 是否会与现有 ShooterAimIK / LeftHandIK 冲突。
+
+只评估必要性，不实施新的 IK 系统。
+
+### 方案 D4：Reload 风格的渐进式权重
+
+保留部分脊柱或肩带运动，通过渐进权重协调：
+
+- 脊柱运动。
+- 肩部运动。
+- 手部轨迹。
+- 枪械方向。
+
+判断它是否比完全锁定 spine 更容易产生自然结果。
+
+**不要为了追求复杂而默认 D2、D3 优于 D1。**
+
+如果原生 LBB 已足够，明确说明为什么不需要新增相对计算系统。
+
+## 八、专项 E：能否真正取消 Down30 / Down60
+
+对比三个方向：
+
+| 方案 | 内容 |
+|---|---|
+| 当前方案 | CorrectedGrip + Down30 + Down60，按 Pitch 选择 |
+| Reload 风格方案 | 单一收枪动画 + ArmedAim Base + 肩臂 Blend Mask |
+| 相对补偿方案 | 单一收枪动画 + 肩臂分层 + 必要的姿态相对补偿 |
+
+重点比较：
+
+1. 低头收枪是否仍出现枪械折返。
+2. 0° 下动作是否保持自然。
+3. +30° / +60° 是否出现异常举枪。
+4. 是否能共用一个稳定 LowReady。
+5. 是否保持原有累计时间及中途反向机制。
+6. 是否支持玩家在动作中改变俯仰角。
+7. 是否减少维护成本和动画资产数量。
+8. 是否引入更多运行时计算和节点复杂度。
+9. 是否依赖额外 IK。
+10. 是否会影响后续 FP 视野净空。
+
+特别注意：
+
+现有 Down30 / Down60 已经解决了部分明显的低头折返问题。
+
+**新方案必须有证据表明能保持这些收益，才有理由替换。**
+
+不能单纯因为新方案资产数量少，就建议直接删除现有动画。
+
+## 九、必须考虑 TP 与 FP 的实际关系
+
+当前真实角色使用：
+
+```text
+TP AnimGraph
+    ↓
+TP Final Pose
+    ↓
+FP CopyPoseFromMesh
+    ↓
+Arms Slot
+    ↓
+原生 FClearanceProxy
+    ↓
+FP Final Pose
+    ↓
+FP Character / FP Rifle
+```
+
+当前已确认：
+
+- 负俯仰 LowReady 时，FP Rifle 会遮挡画面中心。
+- +75° 收枪时，FP Character 右侧身体表面会进入画面。
+- ClearanceProxy 正常执行，但其深度约束并不能保证视野无遮挡。
+- 第一人称相机附着于 FP Mesh 的 head。
+- 动画期间相机实际位置可能随 head 变化。
+
+因此，审计新 Mask 时必须考虑：
+
+**当脊柱继续继承 ArmedAim 时，是否有望减少 FP 枪械与肩部遮挡？还是只改变了遮挡出现的位置？**
+
+请注意：
+
+这属于可行性预测，不能在没有实际 FP 运行时验证时宣称遮挡已经修复。
+
+本轮不要顺带修改 ClearanceProxy 或 Camera。
+
+## 十、审计方法与范围
+
+本轮以实际代码、动画资产、Skeleton 和已有运行时证据为基础。
+
+允许：
+
+- 读取本地 UE 源码及 AnimBlueprint。
+- 读取 Blend Mask 权重。
+- 读取 AnimSequence 的 RAW/COMPRESSED 骨骼轨迹。
+- 使用已有 UE 动画求值、采样和数学分析工具。
+- 分析已有 CorrectedGrip / Down30 / Down60 的对照数据。
+- 复用已有测试结果。
+
+如果需要进一步证明单一动画方案的可行性，可以提出最小隔离实验设计，但**本轮不修改 AnimGraph、不制作新动画、不新增 Mask、不改变现有运行时代码**。
+
+不要重新开展大范围 Blender 取证、IK 重构或 FP 遮挡修复实验。
+
+不要为了完成审计而重复执行已经具备充分证据的工具链验证。
+
+如果无法取得某一关键姿态，必须明确指出缺失证据及其对结论的影响。
+
+不得将没有实际运行的候选方案描述为已经验证通过。
+
+## 十一、最终交付
+
+报告应集中回答以下问题。
+
+### 1. Reload 为什么能够使用现有分层混合？
+
+提供真实 AnimGraph 结构、权重及关键骨骼姿态关系。
+
+说明哪些机制可以直接复用，哪些只适用于 Reload。
+
+### 2. 单一收枪动画能否复用 ArmedAim 的背部弯曲？
+
+明确回答：
+
+- 单纯肩臂 Mask 是否可行。
+- 是否需要保留部分脊柱动画。
+- 是否需要相对旋转或组件空间补偿。
+- 哪些姿态与枪械轨迹存在潜在冲突。
+
+### 3. 三种实现方案比较
+
+| 评价维度 | 当前 Down 方案 | 单一动画 + Mask | 单一动画 + 相对补偿 |
+|---|---|---|---|
+| 负俯仰枪械轨迹 | | | |
+| 头颈脊柱自然度 | | | |
+| 双臂握持关系 | | | |
+| LowReady 稳定性 | | | |
+| 正反播放连续性 | | | |
+| 动态改变 Pitch | | | |
+| FP 视野风险 | | | |
+| 实现复杂度 | | | |
+| 维护成本 | | | |
+
+每项标记为：
+
+- 已有实测证据。
+- 理论可行，未实测。
+- 已发现明显冲突。
+- 证据不足。
+
+不要将理论优势写成实测结论。
+
+### 4. 最终技术判断
+
+明确给出：
+
+**A. 推荐继续保留 Down30 / Down60。**
+
+**B. 推荐尝试单一动画 + Reload 风格 Mask。**
+
+**C. 推荐单一动画 + 相对姿态补偿。**
+
+**D. 现阶段证据不足，先补充指定测试。**
+
+可以给出主推荐及备选，但必须解释依据。
+
+特别说明：
+
+- 是否真正有机会废弃 Down30 / Down60。
+- 是否仍然需要 CorrectedGrip。
+- 是否需要新增 LowReady 专用 Mask。
+- 是否值得复用现有 Reload Mask。
+- 是否应保持当前状态机结构不变。
+
+### 5. 下一轮最小验证方案
+
+如果新方向值得尝试，只提出一个最小实验。
+
+优先考虑：
+
+- 复制现有 TP AnimBP 至隔离目录。
+- 保留 ArmedAim / AimTransition / LowReady 三态。
+- 使用 CorrectedGrip 作为单一过渡动画。
+- 使用 ArmedAimPose 作为 Base。
+- 新建实验 Mask，或复用经过验证的 Reload 权重作为初始参考。
+- 对照 0°、-30°、-60°、+60°。
+- 检查枪械折返、LowReady 端点、肩臂姿态和反向播放。
+- 不影响生产图。
+
+本轮只提出实验设计，不直接实施。
+
+## 十二、保护约束
+
+禁止：
+
+- 修改生产 AnimBP。
+- 修改 Reload Blend Mask。
+- 修改 Skeleton 上的既有 Mask。
+- 修改 CorrectedGrip、Down30、Down60。
+- 删除任何既有动画资产。
+- 修改武器 Socket 或骨骼。
+- 修改 FP ClearanceProxy。
+- 修改 Aim IK / LeftHandIK。
+- 修改 GAS、网络、Fire、Reload。
+- 自动 commit / push。
+
+允许将审计报告和必要的只读分析结果输出到新的 Docs 或 Saved 目录。
+
+## 最终原则
+
+**本轮的核心不是证明旧方案错误，而是验证能否以更少的动画资产、更合理的骨骼分层和相对姿态计算，达到不低于现有 Down30 / Down60 的视觉质量。**
+
+优先利用 UE 已有的 AnimGraph、Blend Mask、Additive 和姿态混合机制，不为简单问题引入复杂的新动画求解系统。
+
+必须真正检查 Reload 的实现细节，区分肩臂局部动作与父级脊柱姿态对最终枪械轨迹的影响。
+
+在没有明确证据前，保留现有 Down30 / Down60 作为可靠回退方案。
+
+完成审计报告后停止，等待下一轮隔离实验授权。

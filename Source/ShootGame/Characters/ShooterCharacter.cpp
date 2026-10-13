@@ -3,6 +3,7 @@
 
 #include "ShooterCharacter.h"
 #include "Characters/Animation/ShooterThirdPersonAnimInstance.h"
+#include "Characters/Animation/ShooterRifleReadyPreviewComponent.h"
 #include "Characters/Aim/ShooterAimPresentationComponent.h"
 #include "Characters/Equipment/ShooterEquipmentComponent.h"
 #include "Weapons/ShooterWeapon.h"
@@ -105,6 +106,9 @@ FVector AShooterCharacter::TracePreSpreadAimTarget(UWorld* World, const FVector&
 
 AShooterCharacter::AShooterCharacter()
 {
+	// 临时网络姿态桥：移除该挂点及动画实例桥接即可撤销，不挂接 GAS / 装备事务。
+	CreateDefaultSubobject<UShooterRifleReadyPreviewComponent>(TEXT("RifleReadyNetworkPreview"));
+
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(55.f, 96.0f);
 

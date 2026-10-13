@@ -1,9 +1,9 @@
 # Blender 动画编辑工具链
 
-维护日期：2026-10-11；适用 ShootGame、UE 5.6.1、Blender 4.5.8 LTS。
-用户已接受当前 -50° 隔离方案的视觉验收；三段素材已迁入正式 Rifle 动画目录。
+维护日期：2026-10-13；适用 ShootGame、UE 5.6.1、Blender 4.5.8 LTS。
+用户已接受正式 Local 方案 2 与临时 K 网络预览；三段素材保留在正式 Rifle 动画目录。
 生产角色已接入临时 K 键动画切换，使用边界见[Rifle 收枪动画表现](Rifle收枪动画表现.md)。
-旧实验资源已清理，当前仅保留一个地图及其必要依赖。
+一次性原型已清理，当前仅保留 Segmented50 回退地图及其必要依赖。
 历史报告保持原貌；数据删除与清理结果见[清理记录](验证/RifleCleanup_20261011/清理与验收记录.md)。
 
 ## 保留的工具与输入
@@ -82,7 +82,7 @@ Sample 需要 operation、asset、output_json；Import 还需 fbx、destination�
 Sample / Blender 输出必须是本项目 Saved 下的新文件或目录。
 Import 复制 Skeleton 后导入，只允许新的 /Game/Experiments/RifleTransition 子目录。
 不覆盖生产 Skeleton 或既有动画，26 点 / 0.833333 秒不匹配时拒绝继续。
-Measure 默认读取当前 -50° 方案，CSV 输出到 Saved/RifleTools/Measure。
+Measure 默认读取保留的 -50° 分段夹具，CSV 输出到 Saved/RifleTools/Measure。
 分析默认阈值 -50°；若指定自定义目录，第二个参数为该实验的 Down60 阈值。
 Measure 可以更新测量 CSV，不保存 UE 资产；缓存位于 Saved/RifleTools/DDC。
 兼容旧 -Down50 参数，但不再提供已清理的旧 -60° 方案测量入口。
@@ -101,7 +101,14 @@ Measure 可以更新测量 CSV，不保存 UE 资产；缓存位于 Saved/RifleT
 LowReady 是动态素材，端点比较必须指定参考时间和相位。
 手指及父空间变化仍需视觉检查；无 IK 实验不代表完整 Gameplay 验收。
 
-## 当前唯一地图与选片规则
+## 当前正式方案
+
+正式采用单 CorrectedGrip、动态 ArmedAimPose 与 Local 肩臂分层，网络 K 接口已验收。
+操作、网络限制、关闭与移除方法统一维护于[Rifle 收枪动画表现](Rifle收枪动画表现.md)。
+旧分段 ProductionApply 及一次性 Local 接入工具已移除，避免覆盖当前正式图。
+只读 ProductionMeasure 与 Blender 重放工具保留；下节分段规则仅用于回退夹具。
+
+## 保留的分段回退夹具与选片规则
 
 ```text
 /Game/Experiments/RifleTransition/Segmented50_20261011/L_RifleSegmented_LowToReady
@@ -118,7 +125,7 @@ LowReady 是动态素材，端点比较必须指定参考时间和相位。
 收枪新入场从 0 秒正向播放；从 LowReady 抬枪时按当前俯仰选片并从末端反向播放。
 活动过渡中只翻转速率，不更换素材或重置时间；新入场才重新选片。
 选片在 NativeUpdateAnimation 中、状态机更新前执行。
-没有新增跨片混合或 IK 求解算法；生产收枪过程释放既有 Aim IK 的表现权重。
+没有新增跨片混合或 IK 求解算法；原生产收枪期 Aim IK 权重释放机制继续沿用。
 UE 5.6.1 SetSequence 不主动重置时间，新入场仍由原状态机初始化。
 此前官方依据见[UE 5.6 动画节点函数](https://dev.epicgames.com/documentation/en-us/unreal-engine/animation-blueprint-node-functions-in-unreal-engine?application_version=5.6)。
 本夹具采用 Native 更新，实际时序已在保留方案中复验。
@@ -130,7 +137,7 @@ Cycle Rifle Test Natural Pitch Strength 对比强度 0 / 1；默认 IK 关闭。
 另一个 Actor 固定 CorrectedGrip，保留作同地图对照。
 用按钮操作，避免编辑详情属性导致 Actor 重建和时间重置。
 
-用户已接受当前方案；严格分段的跨角度素材差异及快速改角度后的姿态追赶仍客观存在。
+用户此前接受分段方案；其跨角度素材差异及快速改角度后的姿态追赶仍客观存在。
 此结论不扩大为完整 Gameplay 或新 IK 算法验收。
 生产接入的本轮证据单独记录，不沿用历史实验绿色结果。
 历史数值通过[验证索引](验证/README.md)查阅；清理后的旧 Saved 链接不再可用。

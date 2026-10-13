@@ -651,10 +651,8 @@ namespace ShooterRifleReadyPIE
 			}
 			else if (Phase == 2 && State == TEXT("AimTransition") && Time >= 0.25f)
 			{
-				const FString Expected = Pitches[PitchIndex] < -50.0f ? TEXT("_Down60")
-					: Pitches[PitchIndex] <= -30.0f ? TEXT("_Down30") : TEXT("_CorrectedGrip");
-				Test->TestTrue(TEXT("K selects correct pitch segment"),
-					Player->GetSequence()->GetName().EndsWith(Expected));
+				Test->TestTrue(TEXT("Local K uses one CorrectedGrip sequence at every pitch"),
+					Player->GetSequence() == Anim->RifleTransitionCorrected);
 				Selected = Player->GetSequence();
 				BeforeReverse = Time;
 				Key();

@@ -1,6 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "ShooterThirdPersonAnimInstance.h"
+#include "Characters/Animation/ShooterRifleReadyPreviewComponent.h"
 #include "Characters/Animation/AnimNodes/ShooterAimIKMath.h"
 #include "Characters/Aim/ShooterAimPresentationComponent.h"
 #include "Characters/Equipment/ShooterEquipmentComponent.h"
@@ -139,7 +140,9 @@ void UShooterThirdPersonAnimInstance::ToggleDebugRifleLowReady(APawn* Pawn)
 		!Instance->bIsReloading && !Instance->bIsEquipping && !Instance->bIsDead && !Instance->bIsFiring &&
 		!Instance->IsAnyMontagePlaying())
 	{
-		Instance->bDebugRifleLowReady = !Instance->bDebugRifleLowReady;
+		auto* Preview = Character->FindComponentByClass<UShooterRifleReadyPreviewComponent>();
+		if (Preview && Preview->IsNetworkPreviewEnabled()) { Preview->ToggleNetworkPreview(); }
+		else { Instance->bDebugRifleLowReady = !Instance->bDebugRifleLowReady; }
 	}
 }
 
@@ -265,11 +268,21 @@ void UShooterThirdPersonAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	const bool bPreviouslyReloading = bIsReloading;
 	Super::NativeUpdateAnimation(DeltaSeconds);
 	const AShooterCharacter* Character = GetCachedShooterCharacter();
-	bDebugRifleReadyAvailable = Character && Character->IsLocallyControlled() && bHasEquippedWeapon &&
+	auto* Preview = Character ? Character->FindComponentByClass<UShooterRifleReadyPreviewComponent>() : nullptr;
+	const bool bNetwork = Preview && Preview->IsNetworkPreviewEnabled();
+	if (bNetwork) { bDebugRifleLowReady = Preview->GetLowReadyRequested(); }
+	else if (bWasNetworkRiflePreview) { bDebugRifleLowReady = false; }
+	bWasNetworkRiflePreview = bNetwork;
+	const bool bNetworkView = bNetwork && Character->GetNetMode() != NM_DedicatedServer;
+	bDebugRifleReadyAvailable = Character && (Character->IsLocallyControlled() || bNetworkView) && bHasEquippedWeapon &&
 		CurrentWeaponActor && CurrentWeaponActor->GetWeaponId() == TEXT("Rifle");
 	// 瞬时 Fire 的 Tag 可能在同帧结束；已播放的 Montage 仍是可靠的动画表现边界。
 	bDebugRifleActionMontageActive = IsAnyMontagePlaying();
 	UpdateRifleReadyAnimation();
+	if (bNetwork && Character->IsLocallyControlled() && Preview->GetLowReadyRequested() && !bDebugRifleLowReady)
+	{
+		Preview->CancelNetworkPreview();
+	}
 	if (bPreviouslyReloading != bIsReloading)
 	{
 		LogReloadPresentation(TEXT("ReloadingTagChanged"));

@@ -5,7 +5,23 @@
 各报告迁移前后 SHA256 一致；开发记录和已完成计划继续保留在原目录。
 可复用工具的当前入口是[Blender 动画编辑工具链](../Blender动画编辑工具链.md)。
 
-## 当前隔离方案
+## 当前方案与验收清理
+
+2026-10-13 用户接受单动画 Local 肩臂分层及 K 网络预览，正式行为见[当前说明][current]。
+本轮只保留一个 Segmented50 回退地图，Local / Mesh / Boundary 原型及一次性取证工具已移除。
+重复截图、JSON、Mask 转储和旧 Saved 采集数据已清理；历史报告与首发提示词保持原貌。
+历史材料中已删除的证据路径不再可用，不重写原文或制造重复副本。
+当前回归测试仍可运行，最新清理结果见[本次开发记录][accepted]。
+
+## 2026-10-13 的历史审计与实现
+
+- [LowReady 复用 Reload 分层可行性审计](RifleLowReadyLayeringAudit_20261013/可行性审计.md)。
+- [单动画分层原型](RifleLowReadyLayeringPrototype_20261013/原型实施与验收.md)。
+- [胸腔相对与动态俯仰原型](RifleChestRelativePrototype_20261013/原型实施与验收.md)。
+- [真实 K 收枪组件取证](RifleFPOcclusion_20261011/组件级取证.md)。
+- [网络预览实施与验证](RifleReadyNetworkPreview_20261013/实施与验证.md)。
+
+## 2026-10-11 的迁移与分段回退
 
 - [动画迁移与生产接入](RifleProduction_20261011/迁移与生产接入记录.md)。
 
@@ -51,3 +67,6 @@
 [fp]: Rifle第一人称调试蓝图_20261010/Rifle第一人称可附身调试蓝图_20261010.md
 [camera]: Rifle实验视角继承对齐_20261010/Rifle实验视角继承正式角色对齐_20261010.md
 [mask-image]: Rifle俯仰遮罩最小实验_20261010/LowReady_实际图.png
+
+[current]: ../Rifle收枪动画表现.md
+[accepted]: ../开发记录/2026-10-13-1803-Rifle验收清理与提交.md

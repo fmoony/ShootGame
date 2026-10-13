@@ -44,3 +44,6 @@ Thumbs.db
 /.reasonix/
 /reasonix.toml
 /.zcode/
+
+# Python 临时缓存
+__pycache__/

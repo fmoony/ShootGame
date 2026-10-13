@@ -29,7 +29,7 @@ class SHOOTGAME_API UShooterThirdPersonAnimInstance : public UShooterAnimInstanc
 	GENERATED_BODY()
 
 public:
-	/** 临时蓝图按键入口：仅切换本地 Rifle 动画目标，不发送 RPC 或修改 Gameplay。 */
+	/** 临时蓝图 K 入口：网络模式委托可移除组件；Standalone 保留本地切换，不改 Gameplay。 */
 	UFUNCTION(BlueprintCallable, Category = "Shooter|Rifle Preview")
 	static void ToggleDebugRifleLowReady(APawn* Pawn);
 
@@ -253,6 +253,7 @@ protected:
 	void UpdateRifleReadyAnimation();
 	bool bDebugRifleReadyAvailable = false;
 	bool bDebugRifleActionMontageActive = false;
+	bool bWasNetworkRiflePreview = false;
 
 	/** 初始化：订阅 Character 表现完成事件并回放 Equipment 当前状态。 */
 	virtual void NativeInitializeAnimation() override;

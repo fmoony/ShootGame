@@ -1,0 +1,492 @@
+# ShootGame — Rifle 单一动画 + 肩臂分层混合最小原型实施
+
+## 一、任务目标
+
+根据最新审计：
+
+`Docs/验证/RifleLowReadyLayeringAudit_20261013/可行性审计.md`
+
+本轮正式实施审计推荐的最小隔离实验，验证是否可以废弃按俯仰角选择的 Down30、Down60 动画。
+
+**核心方案：**
+
+- 保留现有 ArmedAimPose 作为 Base Pose。
+- 使用单一 `CorrectedGrip` 收枪动画作为 Blend Pose。
+- 参考生产 Reload 的 `RifleReloadWeightedUpperBody` Blend Mask。
+- 保留 ArmedAim 的 spine、neck、head 俯仰。
+- 用随过渡播放时间渐进变化的 Alpha 混入收枪动画的肩臂姿态。
+- 保留现有三态结构及同一播放器正反播放机制。
+
+目标不是立即替换生产方案，而是取得真实运行结果，判断这一方案能否达到不低于 Down30/Down60 的动作质量。
+
+本轮允许实际创建实验资产、修改隔离 AnimGraph、编译、运行测试、采样和截图。
+
+**禁止修改任何生产动画、状态机、Reload 逻辑或 Gameplay。**
+
+## 二、审计结论与技术基线
+
+首先阅读 `AGENTS.md` 和上述审计报告，并核实本地实际资源。
+
+当前生产图：
+
+```text
+Hold + AO_Rifle
+      ↓
+Save ArmedAimPose
+      ↓
+WeaponAction
+  ArmedAim ↔ AimTransition ↔ LowReady
+      ↓
+Arms Slot
+      ↓
+外层 Layered Blend per Bone
+      ↓
+ShooterAimIK → LeftHandIK
+      ↓
+TP Output
+```
+
+当前 Reload 使用：
+
+```text
+ArmedAimPose ──────────────────────┐
+                                  ▼
+Reload Sequence → 3×ModifyBone → LBB
+                                  ▲
+                    RifleReloadWeightedUpperBody
+```
+
+Reload Mask 的主要权重：
+
+- spine_01～05：0
+- neck_01、neck_02、head：0
+- 双侧 clavicle、upperarm、lowerarm、hand：1
+- 部分肩胸辅助骨骼：按现有资产权重
+
+本轮可以只读引用生产 Reload Mask，但不得修改它。
+
+**不要复制 Reload 的三处 spine ModifyBone。**
+
+它们负责换弹时的动态俯仰适配，不属于本轮最小原型。
+
+## 三、创建独立实验原型
+
+在：
+
+`/Game/Experiments/RifleTransition/LowReadyLayering_20261013/`
+
+建立新的独立实验目录。
+
+复制当前生产 `ABP_TP_Player` 作为实验基础，尽可能保留：
+
+- 原 WeaponAction 三态。
+- 原累计时间与 PlayRate 正反播放。
+- 原状态转移及 Blend 时间。
+- 原 ArmedAimPose。
+- 原外层 LBB。
+- 原 Arms Slot。
+- 原 ShooterAimIK / LeftHandIK。
+- 原 Reload 分支。
+
+必要时使用独立实验 AnimInstance 或 Editor 测试数据源提供实验参数，不修改生产 Runtime 类。
+
+原有 CorrectedGrip、Down30、Down60 全部保留，不修改、不重导入。
+
+### 3.1 AimTransition 内部结构
+
+实现：
+
+```text
+                ArmedAimPose
+                     │
+                     ▼
+                  Base Pose
+                     │
+                     │       CorrectedGrip
+                     │             │
+                     ▼             ▼
+               Layered Blend per Bone
+               Reload Shoulder/Arm Mask
+                     │
+              Progressive Alpha
+                     │
+                     ▼
+             AimTransition Result
+```
+
+Mask 初始直接引用 `RifleReloadWeightedUpperBody`。
+
+Mesh Space Rotation Blend 保持与 Reload 一致。
+
+初始 spine 权重为 0。
+
+不要在第一轮加入局部 Additive、额外脊柱补偿或 IK 求解器。
+
+### 3.2 渐进 Alpha
+
+以当前 AimTransition 播放器的实际累计时间 `t` 和动画长度 `T` 为基础：
+
+```cpp
+float NormalizedTime = Clamp(t / T, 0.0f, 1.0f);
+float BlendAlpha = NormalizedTime;
+```
+
+初版采用线性 Alpha，先验证最简单的情况。
+
+根据实际结果再考虑 SmoothStep 等平滑曲线，但不要预先引入复杂参数。
+
+预期语义：
+
+| 动作阶段 | Alpha |
+|---|---|
+| ArmedAim | 0 |
+| 开始收枪 | 从 0 增加 |
+| 收枪结束 | 1 |
+| 稳定 LowReady | 1 |
+| 开始反向抬枪 | 从 1 下降 |
+| 返回 ArmedAim | 0 |
+
+注意：Alpha 必须以播放器真实时间为依据，不得再建立一个容易漂移的独立动画时间轴。
+
+### 3.3 解决 Alpha=0 的播放器更新问题
+
+这是本轮必须优先解决的工程风险。
+
+UE5.6 的 Layered Blend per Bone 在 Blend 权重为 0 或不相关时，可能跳过 Blend 输入的更新。
+
+如果播放器因此停在首帧，而 Alpha 又依赖该播放器时间，就会产生循环依赖。
+
+必须实际验证：
+
+1. Alpha=0 时播放器是否仍然更新。
+2. 正向播放能否从 0 开始推进。
+3. 反向播放能否沿原累计时间返回。
+4. 中途反向是否发生播放器重新初始化。
+5. 外层状态混合是否影响时间连续性。
+
+如原生图存在上述问题，优先使用隔离实验数据源或原生节点允许的更新机制保证播放器时间有效。
+
+允许在实验层让时间驱动独立于 LBB 的相关性裁剪，但必须与实际 SequencePlayer 保持同步。
+
+不得依赖重置播放器、伪造过渡完成或修改正式状态机来绕过问题。
+
+必须记录真实状态时间、播放器时间、PlayRate 和 Alpha。
+
+## 四、LowReady 状态处理
+
+LowReady 不能继续简单输出原始 `MM_Rifle_LowReady`，否则进入 LowReady 后又会丢失 ArmedAim 脊柱姿态。
+
+实验中将 LowReady 也改为：
+
+```text
+ArmedAimPose ───────────────────┐
+                               ▼
+                              LBB → LowReady Result
+                               ▲
+MM_Rifle_LowReady ──────────────┘
+```
+
+使用相同的肩臂 Mask，Alpha=1。
+
+检查：
+
+- spine、neck、head 是否保留 AimOffset。
+- Rifle 是否真正进入低位，而不是继续维持瞄准。
+- 手臂是否产生不自然弯折。
+- LowReady 循环中是否稳定。
+- 玩家在 LowReady 改变 Pitch 后枪械是否异常跟随、抬高或下沉。
+- AimTransition 与 LowReady 边界是否产生姿态跳变。
+
+特别注意：
+
+**保留 AO 躯干弯曲与保持稳定 LowReady 枪械方向，是两个独立要求。**
+
+不能只因枪口角度正确就认定整体姿态自然。
+
+## 五、建立最小 A/B 对照
+
+至少提供三个对照：
+
+| 版本 | 作用 |
+|---|---|
+| Existing Down | 当前生产分区方案，作为基准 |
+| FullAlpha Mask | CorrectedGrip + 肩臂 Mask，Alpha 始终为 1，仅诊断入场断层 |
+| Progressive Mask | CorrectedGrip + 肩臂 Mask，Alpha 随时间渐进，本轮主候选 |
+
+FullAlpha 仅需隔离数值和必要截图，不必单独构建完整 Gameplay。
+
+Progressive 必须可实际连续播放。
+
+所有版本使用一致的：
+
+- Skeleton。
+- Hold 相位。
+- Camera Pitch。
+- 动作时间。
+- 状态 Blend。
+- LowReady 采样相位。
+- IK 设置。
+
+不能拿不同相位的动画结果直接比较。
+
+## 六、测试范围
+
+### 6.1 固定俯仰
+
+重点测试：
+
+- 0°
+- -30°
+- -60°
+- +60°
+
+每组验证：
+
+1. ArmedAim → LowReady。
+2. LowReady → ArmedAim。
+3. 收枪 25% 中途反向。
+4. 收枪 50% 中途反向。
+5. 收枪 75% 中途反向。
+6. 稳定 LowReady 至少一个完整动画循环。
+
+必须记录：
+
+- 动画状态。
+- SequencePlayer 累计时间。
+- PlayRate。
+- Progressive Alpha。
+- hand_r、hand_l 位置和旋转。
+- Rifle 枪口位置、方向和运动轨迹。
+- 肩肘腕运动连续性。
+- 握点误差。
+- 相邻状态姿态差。
+
+固定 60 Hz 采样，尽量复用现有工具，不重新建设大型自动化系统。
+
+### 6.2 负俯仰折返
+
+对比已有 Down30/Down60 的实测基准。
+
+尤其检查：
+
+- -30° 是否重新出现枪口先上抬再下降。
+- -60° 是否重新出现明显方向折返。
+- 过渡第一步是否产生手部大位移。
+- 是否出现单独源动画没有的状态混合峰值。
+
+现有 Down 方案曾将约 20° 的额外上抬降低至约 0.025°。
+
+新方案必须在相同测量口径下对比，不得仅凭本轮数学模型判断它已经达到同等质量。
+
+### 6.3 动态改变 Pitch
+
+在一段正常收枪中，连续改变 Pitch，例如：
+
+```text
+0° → -30° → -60° → -30° → 0°
+```
+
+以及：
+
+```text
+0° → +30° → +60°
+```
+
+使用一个 CorrectedGrip，不重新选片。
+
+重点检查：
+
+- ArmedAimPose 是否实时更新。
+- 脊柱和头颈是否保持自然连续。
+- 右手与 Rifle 是否受到异常牵拉。
+- Alpha 与动画时间是否受到视角变化影响。
+- 动态改变 Pitch 时是否发生枪口大幅跳动。
+
+不需要本轮制作更多动画资源。
+
+## 七、IK 的处理
+
+分两次测试：
+
+**第一阶段：IK 关闭。**
+
+验证分层混合本身的姿态、枪口轨迹与骨骼连续性。
+
+**第二阶段：恢复现有 AimIK 和 LeftHandIK。**
+
+验证生产姿态链下的最终表现。
+
+不要修改 IK 求解算法、IK 权重曲线或骨骼目标。
+
+如果 IK 开启后出现明显差异，应记录是哪一个 IK 引起，以及发生的阶段。
+
+不能通过临时修改现有 IK 来强行使本轮 Mask 方案通过。
+
+## 八、FP 视觉检查
+
+只有 TP 原型的主要轨迹和状态时间通过后，再进行小范围真实 FP 验证。
+
+复用已有真实 ShooterCharacter 组件级取证工具。
+
+重点场景：
+
+- -60° LowReady。
+- -60° 收枪中段。
+- +75° 收枪约 0.267 秒。
+- 0° ArmedAim。
+
+核对实验 TP 动画是否确实被真实 FP CopyPose 使用。
+
+比较：
+
+- FP Rifle 对画面中心的遮挡。
+- FP Character 右侧身体表面入镜。
+- Camera 最终位置和姿态。
+- ClearanceProxy 是否仍生效。
+
+**本轮只观察是否改善或退化，不修改 FP ClearanceProxy、Camera 或武器构图。**
+
+如果实验 AnimBP 无法安全接入真实 FP，明确报告缺口，不用旧 Preview Actor 假冒 Gameplay 视觉验收。
+
+## 九、验收及停止条件
+
+重点判断三件事。
+
+### A. 分层机制是否成立
+
+- 保留 ArmedAim 脊柱及头颈俯仰。
+- 肩臂正常执行单一收枪动作。
+- 低头不再出现明显多余抬枪。
+- LowReady 可以稳定保持。
+- 正反播放累计时间连续。
+
+### B. 是否优于继续维护 Down 动画
+
+不仅比较枪口上抬数值，也比较：
+
+- 手臂自然度。
+- 0° 原有动作节奏。
+- 极端 Pitch 下的人体姿态。
+- 动态视角变化。
+- FP 遮挡风险。
+- 动画系统复杂度。
+
+如果渐进 Alpha 虽然改善入场，却在 LowReady 或中途产生明显姿态问题，不得宣布可以废弃 Down30/Down60。
+
+### C. 是否需要进一步空间补偿
+
+若简单 Mask 失败，区分原因：
+
+1. 入场 Alpha 或播放器时间问题。
+2. 肩臂与 AO 父级姿态冲突。
+3. 枪械 Component Space 轨迹不正确。
+4. LowReady 端点不连续。
+5. 原有 IK 或 FP 表现干扰。
+
+明确指出失败机制，但本轮不要自动进入 D2/D3 相对姿态求解或新 IK 架构。
+
+如果需要这些额外系统，应先比较其复杂度是否仍值得替换 Down 方案。
+
+## 十、工程保护
+
+本轮允许：
+
+- 新建隔离 AnimBP。
+- 新建隔离测试关卡与 Actor。
+- 使用现有 Mask 的只读引用。
+- 修改隔离 Editor 测试数据源。
+- 运行 UE 构建、动画求值和截图测试。
+- 创建分析脚本和实验报告。
+
+本轮禁止：
+
+- 修改生产 `ABP_TP_Player`、`ABP_FP_Player`。
+- 修改 `RifleReloadWeightedUpperBody`。
+- 修改生产 Skeleton。
+- 修改 CorrectedGrip、Down30、Down60。
+- 修改生产 `MM_Rifle_LowReady`。
+- 修改 ShooterAimIK、LeftHandIK。
+- 修改 FP ClearanceProxy。
+- 修改相机和 Mesh 组件层级。
+- 修改 GAS、武器逻辑、网络、Fire、Reload。
+- 删除旧实验资产。
+- 自动 commit、push。
+
+所有新资产保存在独立实验目录。
+
+执行前记录工作区状态，结束时核对受保护文件。
+
+在隔离范围内允许自主完成必要的构建与测试，无需对每个普通实验步骤反复请求授权。
+
+## 十一、最终交付
+
+### 1. 运行原型
+
+给出：
+
+- 实验 AnimBP 路径。
+- 实验关卡。
+- 启动、操作和切换版本的方式。
+- Progressive Alpha 的实际驱动方法。
+- Alpha=0 的播放器更新问题如何解决。
+
+### 2. 实测结果
+
+提供：
+
+| 指标 | Existing Down | FullAlpha | Progressive |
+|---|---|---|---|
+| -30° 枪口额外上抬 | | | |
+| -60° 枪口额外上抬 | | | |
+| 0° 动作连续性 | | | |
+| LowReady 端点跳变 | | | |
+| 反向播放连续性 | | | |
+| 动态 Pitch 稳定性 | | | |
+| 左右手握持关系 | | | |
+| FP 视野表现 | | | |
+
+不能完成的测试标记未测。
+
+必须区分：
+
+- 数学预测。
+- 实际 UE AnimGraph 数值。
+- 截图观察。
+- 用户连续播放视觉验收。
+
+### 3. 最终推荐
+
+明确回答：
+
+1. 单一 CorrectedGrip + Reload 风格 Mask 是否实际可行？
+2. 渐进 Alpha 是否解决入场断层？
+3. 0° 动作是否比原本明显退化？
+4. LowReady 是否还能保持稳定的枪械方向？
+5. 玩家动态改变 Pitch 时是否稳定？
+6. 是否需要额外相对姿态补偿？
+7. 是否已经值得取消 Down30/Down60 运行时选片？
+
+最终只给出以下建议之一：
+
+- **接受 B**：单一动画 + 渐进 Mask 值得进入下一阶段。
+- **保留 A**：现有 Down30/Down60 更可靠。
+- **需要补证据**：明确指出尚缺的最小验证项。
+- **考虑 C**：只有证明简单 Mask 无法满足要求且补偿有明确收益时才提出。
+
+本轮完成后停止。
+
+---
+
+## 最终原则
+
+**先验证一套动画能否借助 ArmedAim 的既有背部俯仰和 Reload 风格肩臂分层，获得自然的 LowReady。**
+
+不制作新 Blender 动画，不引入新 IK，不修改生产状态机。
+
+优先使用 UE 原生 Layered Blend per Bone。
+
+重点解决入场姿态差和播放器更新时间问题，真实验证正反播放、LowReady 循环及动态 Pitch。
+
+Down30、Down60 继续保留为基准与回退资源。
+
+只有实验结果证明新方案整体不低于现有表现，才讨论正式替换。

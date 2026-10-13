@@ -1,26 +1,22 @@
 # Rifle 收枪动画表现
 
-适用 UE 5.6.1；2026-10-11 接入临时蓝图按键。这里只改变动画表现。
+维护日期：2026-10-13；适用 UE 5.6.1。
+用户已验收 Local 方案 2 与临时 K 网络动画预览；本功能只改变动画表现。
 
-## 操作与选片
+## 当前正式方案
 
-在正式 Shooter 关卡中 Play，装备 Rifle 后按 K：ArmedAim ↔ LowReady。
-过渡中再次按 K，从当前时间反向；按住不重复触发。
-输入节点位于 BP_ShooterCharacter 的 EventGraph，可直接更换 Key。
-该入口只接受本地控制且装备有效 Rifle 的角色，不发送 RPC、不复制姿态目标。
+正式图为 `/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player`。
+父类保持运行时 ShooterThirdPersonAnimInstance，不依赖实验 AnimInstance。
+WeaponAction 的 ArmedAim 内沿用 RifleReady：ArmedAim ↔ AimTransition ↔ LowReady。
 
-| 新过渡入场时的动画俯仰 P | 素材后缀 |
-|---|---|
-| P < -50° | Down60 |
-| -50° ≤ P ≤ -30° | Down30 |
-| P > -30° | CorrectedGrip |
+AimTransition 使用 MM_Rifle_AimToLowReady_CorrectedGrip，LowReady 使用原低位动画。
+动态 ArmedAimPose 是分层底姿态，肩臂按原 RifleReloadWeightedUpperBody Mask 做 Local 混合。
+运行时 ShooterRifleReadyLayer 保持子播放器相关，姿态 Alpha 按真实 t/T 渐进。
+正式三个选片槽均引用 CorrectedGrip；Down30 / Down60 保留作回退，不用于当前选片。
+不接入方案 3 的额外反向边界混合；原播放时长约 0.833333 秒，速率仍为 ±1。
+中途反向保持当前累计时间，实时改俯仰不会重置动画或切换素材。
 
-选片采用现有 AimPitchDegrees，处理角度转换时仅容忍 0.0001° 浮点误差。
-活动过渡锁定素材；实时改变俯仰不会重置时间，也不会中途换片。
-从 LowReady 新入场抬枪时，重新按当前俯仰选片，从末端反向播放。
-三段素材均约 0.833333 秒，播放倍率仍为 ±1。
-
-资源目录：
+当前 Rifle 素材目录：
 
 ```text
 /Game/Characters/Mannequins/Anims/Rifle
@@ -29,56 +25,55 @@
     MM_Rifle_AimToLowReady_Down60
 ```
 
-原始 MM_Rifle_AimToLowReady 和 MM_Rifle_LowReady 保留在 Shooter 动画目录。
-原始 Mixamo 素材、MF_Rifle_Idle_ADS、AO_Rifle、Skeleton 和武器 Socket 均未改动。
+原始 Mixamo、ArmedAim、AO_Rifle、Skeleton、Socket 和 Blender 调整输入保留。
+本轮未调整 Mask 权重、Aim IK、LeftHand IK、FP Proxy 或相机层级。
+本地 FP 沿用 CopyPose 和现有净空机制，远端只消费自己的 TP 动画实例。
 
-## 图与表现边界
+## K 蓝图与临时网络接口
 
-ABP_TP_Player 继续继承运行时 ShooterThirdPersonAnimInstance。
-WeaponAction 仍是 ArmedAim ↔ Reload，ArmedAim 内新增 RifleReady 子状态机：
-ArmedAim ↔ AimTransition ↔ LowReady。
-原 Locomotion、Arms Slot、Reload 与第一人称 CopyPose 的接线保留。
-生产图不依赖实验 AnimInstance、测试 Skeleton 或 Natural Pitch Blend Mask。
+输入位于 BP_ShooterCharacter 的 EventGraph：K Pressed → ToggleDebugRifleLowReady(Self)。
+该入口要求本地控制及有效 Rifle；按住不重复触发，过渡中再次按 K 可以反向。
 
-收枪过程按播放时间逐渐释放原 Aim IK 表现权重，LowReady 时不纠正回瞄准方向。
-原 LeftHand IK 保留；没有新增 IK 求解算法，也没有改 Blend Mask 权重。
-Reload 的曲线和 IK 恢复继续由原管线处理。
-开火还检查正在播放的 Montage，避免瞬时 Fire Tag 在同帧结束后遗漏动画中断。
-换弹、装备、开火、死亡、失去本地控制或换武器时清除调试目标。
-清除只影响动画；不会禁止开火、换弹或其它 Gameplay 行为。
-这是临时视觉入口，尚未定义 LowReady 的 Gameplay 状态或网络复制规则。
+Standalone 直接切换本地目标；多人模式委托 ShooterRifleReadyPreviewComponent。
+拥有端提交可靠 Server Toggle，服务器检查现有武器和动作限制，再复制姿态目标 bool。
+Owner / Observer 各自推进原播放器；Dedicated Server 仅保存目标，不要求渲染动画。
+原 Fire、Reload、Equipping、Dead、Montage 等边界仍可中断，临时接口不禁止任何 Gameplay 动作。
+组件不修改 GAS Tag、Ammo、射速、Hit、Damage、装备规则或权威射击结果。
 
-## 调整与检查
+只同步目标，不同步逐帧时钟；网络 K 等服务器确认，动画阶段可能存在延迟。
+快速目标可被属性复制合并；晚加入、跨机器与极端延迟尚未专项验收。
+不能用本次动画验收替代完整射击预测与反馈四路径验证。
 
-Blender 输入和重放入口见[工具链文档](Blender动画编辑工具链.md)。
-三个资源字段可在 ABP_TP_Player Class Defaults 中查看。
-生产图只读测量入口：Run.ps1 -Mode Measure -Production。
-阈值与锁定逻辑位于 ShooterThirdPersonAnimInstance::UpdateRifleReadyAnimation。
-按键只在蓝图，未来接入正式状态来源时可移除 K 节点并替换该表现目标入口。
+快速关闭：各进程执行 `ShootGame.RifleReady.NetPreview 0`；恢复用 1。
+彻底移除：删除 PreviewComponent h / cpp，撤销 Character 构造挂点和 AnimInstance 网络桥接。
+K 蓝图、Local 节点及素材仍可保留；详细范围见历史[网络预览报告][net]。
 
-保留的定向 Editor 工具：
+## 调整工具与回归
+
+Blender 工具与必要输入见[工具链文档](Blender动画编辑工具链.md)。
+正式图的三个素材字段可在 Class Defaults 中查看，Local 节点也保留编辑器外壳。
+旧分段 ProductionApply 已移除，避免重新覆盖正式选片；不再提供一次性正式接入工具。
+保留 `Run.ps1 -Mode Measure -Production` 作为内存只读测量入口，不保存生产资产。
+analyze_segmented.py 用于保留的分段回退夹具，不把旧阈值检查作为 Local 方案验收。
 
 ```text
--run=ShooterRifleSegmented -ProductionApply
--run=ShooterRifleSegmented -ProductionMeasure
-Automation RunTests ShootGame.Animation.RifleReady.PIE
+Automation RunTests ShootGame.Animation.RifleReady
 ```
 
-ProductionApply 只处理 ABP_TP_Player 和 BP_ShooterCharacter，执行前先保护基线。
-ProductionMeasure 在内存中复制正式图、注入固定输入，不保存新的测试资产。
-输出目录为 Saved/RifleTools/ProductionMeasure，可用 analyze_segmented.py 分析。
-PIE 用真实 K 输入检查正式图，固定角度且移除临时世界的 NPC，避免外部输入和死亡干扰。
-这些自动检查覆盖接入与时间行为，不替代肩臂、枪械轨迹的人工视觉验收。
+五项回归覆盖 Standalone、Listen、Dedicated、延迟丢包及关闭网络开关的本地对照。
+网络夹具使用真实 NetDriver、拥有连接、K 蓝图输入与原 Fire / Reload 入口。
+纯 K 在固定权威武器上检查 Shot / Ammo 增量为 0，不构造新的 Gameplay 状态。
 
-正式关卡视觉检查：装备 Rifle，分别看 0°、-30°、-50°、-55°、-65°，反复按 K。
-在过渡中反向，检查双手握持、肩部连续性和枪械降低方向；再试移动、开火、换弹和换枪。
-原隔离地图仍保留，适合对照关闭 IK 的素材和 Natural Pitch Mask 效果。
+## 手动检查
 
-## 依据与现状
+在正式 Lvl_Shooter 设置 2 Players / Listen Server，双方装备 Rifle。
+一端按 K，从另一端观察收枪、抬枪、中途反向及连续改变俯仰；再交换操作者。
+本地检查第一人称肩臂和枪械可见性，再触发原 Fire / Reload 确认动作仍可执行。
+Dedicated 对照选 Play As Client、2 Players；主观画面不由无头 Automation 判定。
 
-[Epic UE 5.6 状态机文档](https://dev.epicgames.com/documentation/en-us/unreal-engine/state-machines-in-unreal-engine?application_version=5.6)
-支持状态内部动画图及入场重置。安装版本的 AnimNode_SequencePlayer.cpp 核对了
-StartPosition、负 PlayRate 与累计时间行为；本项目沿用已有 Native 更新快照。
-实验父类属于 Editor 夹具，生产图保留运行时父类，是接入与隔离方案的主要区别。
+一次性 Local / Mesh / Boundary 原型已清理，只保留 Segmented50 回退地图及必要依赖。
+该地图仍用于素材和 Natural Pitch Mask 对照，不代表正式 Local 方案或真实 FP 角色。
+历史报告原文保留，已删除的截图、JSON、CSV 和脚本路径可能失效，见[验证索引][index]。
 
-本轮证据见[迁移与生产接入记录](验证/RifleProduction_20261011/迁移与生产接入记录.md)。
+[net]: 验证/RifleReadyNetworkPreview_20261013/实施与验证.md
+[index]: 验证/README.md

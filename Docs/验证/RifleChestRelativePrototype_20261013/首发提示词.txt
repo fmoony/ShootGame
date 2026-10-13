@@ -1,0 +1,375 @@
+# ShootGame — Rifle 胸腔相对收枪与动态俯仰适配最小原型
+
+## 一、核心目标
+
+继续迭代现有 Rifle LowReady 分层实验，验证是否能够以单一 CorrectedGrip 动画完成不同俯仰角度下的自然收枪，并最终替代 Down30 / Down60。
+
+**首先纠正此前实验的验收目标：**
+
+用户并不要求 Rifle 在不同视角 Pitch 下保持固定的 Mesh Component Space 位置或朝向。
+
+真正目标是：
+
+1. ArmedAim 已经通过 AimOffset 实现自然的脊柱、肩臂与头颈俯仰。
+2. 玩家开始收枪时，应从当前真实 ArmedAim 姿态自然进入动作。
+3. 收枪动作应相对于当前人体上半身执行，而非强制回到水平人体姿态。
+4. LowReady 中枪械应相对于胸腔处于合理的低位持枪姿态。
+5. 当玩家继续改变视角，胸腔和枪械可以自然地一起运动。
+6. 收枪、抬枪及中途反向均应连续，不能发生不合理折返或突然跳变。
+7. 最终还需验证这种人体相对收枪方式能否改善真实 FP 视野遮挡。
+
+**允许枪械在 Mesh Space 和 World Space 中随身体俯仰而移动、旋转。**
+
+不能再单纯因为 LowReady 的枪械 Component Space 高度变化较大，就判定方案失败。
+
+本轮实施隔离实验，不修改生产资源。
+
+## 二、读取现有实验
+
+阅读：
+
+- `AGENTS.md`
+- `Docs/验证/RifleLowReadyLayeringAudit_20261013/可行性审计.md`
+- `Docs/验证/RifleLowReadyLayeringPrototype_20261013/原型实施与验收.md`
+- 当前生产 Reload 的分层混合实现
+- 现有 FP ClearanceProxy 及组件级遮挡取证报告
+
+重点复用：
+
+`/Game/Experiments/RifleTransition/LowReadyLayering_20261013/`
+
+已有：
+
+- ExistingDown
+- FullAlpha
+- Progressive
+- `L_RifleLowReadyLayering`
+
+原 Progressive 已经验证：
+
+- ArmedAimPose 可以保留 spine、neck、head 的实时 AO。
+- 单一 CorrectedGrip 可以通过肩臂 Mask 执行收枪。
+- 渐进 Alpha 能明显降低入场断层。
+- 原生播放器时间和中途反向连续。
+- Alpha=0 时的播放器更新问题已有隔离解决方案。
+
+**不要重新实现这些已验证机制。**
+
+目前的问题在于：
+
+- Progressive 使用 Mesh Space Rotation Blend，肩臂的组件空间旋转倾向于固定收枪源姿态。
+- 脊柱虽然弯曲，枪械却未充分体现相对于胸腔的收枪关系。
+- LowReady 循环后反向抬枪存在较大的第一步姿态差。
+- 原 AimIK 与渐进姿态存在一定组合偏差。
+- 真实 FP 视觉效果尚未验证。
+
+## 三、首先明确胸腔相对空间
+
+使用实际 Manny 骨架，优先以 `spine_05` 或经过验证的上胸参考骨骼建立相对坐标。
+
+对于同一时刻的最终姿态，取得：
+
+- Chest 的 Component Space Transform。
+- hand_r / hand_l 的 Component Space Transform。
+- Rifle Root、HandGrip 与 Muzzle 的 Component Space Transform。
+
+计算：
+
+`GunRelativeToChest = GunComponentTransform relative to ChestComponentTransform`
+
+同样计算双手相对于 Chest 的 Transform。
+
+注意 UE 的 FTransform 乘法约定与坐标空间转换方向，必须通过实际 FK / Socket 读回验证，不能仅凭公式假设。
+
+**相对胸腔稳定不代表每一帧相对 Transform 完全固定。**
+
+收枪动画本身存在运动轨迹；目标是让这条轨迹以当前人体姿态为基础，而不是把枪械焊死在胸口。
+
+不同 Pitch 下允许少量相对姿态差异，以保留自然肘向和手部运动。
+
+## 四、建立两个主要候选
+
+在新的隔离目录中复制现有 Progressive 实验，不覆盖旧实验。
+
+### 候选 A：现有 Progressive Mesh Space
+
+保留：
+
+- ArmedAimPose 为 Base。
+- CorrectedGrip 为 AimTransition Blend。
+- MM_Rifle_LowReady 为 LowReady Blend。
+- Reload 风格肩臂 Mask。
+- 渐进 Alpha。
+- Mesh Space Rotation Blend=True。
+
+作为当前分层实验的对照。
+
+### 候选 B：Progressive Local Space
+
+仅改变内部 LBB 的旋转混合空间：
+
+`Mesh Space Rotation Blend=False`
+
+保持：
+
+- 相同 Base/Blend 输入。
+- 相同 Mask 权重。
+- 相同 Alpha。
+- 相同 SequencePlayer。
+- 相同 LowReady 资源。
+- 相同状态机和转移时长。
+- 相同外层 LBB 与现有 IK。
+
+目的是验证：
+
+**当 spine 来自 ArmedAim，而肩臂使用收枪动画的局部旋转时，枪械能否自然继承当前胸腔姿态。**
+
+特别注意：
+
+AO 本身也会修改 upperarm、hand 等骨骼。
+
+直接 Local Space Blend 并不自动保证手臂轨迹自然，也不保证起点姿态匹配。
+
+必须通过真实 AnimGraph 求值判断，不能根据 Local Space 的理论定义直接宣布成功。
+
+### 候选 C：有限胸腔相对补偿（条件候选）
+
+仅当候选 B 的实际结果显示：
+
+- 胸腔相对轨迹仍明显异常；
+- 或 LowReady 与 AimTransition 端点不一致；
+- 或右手位置/方向出现明显冲突；
+
+才评估最小的胸腔相对补偿。
+
+优先考虑 UE 原生姿态节点、相对变换或有限骨骼调整。
+
+不得直接建设大型 IK、Control Rig 或通用空间求解框架。
+
+若候选 B 已经足够自然，就不要实施 C。
+
+## 五、入场、末端和反向处理
+
+这是本轮另一重点。
+
+当前 Progressive 在 LowReady 循环后反向抬枪时，第一步右手位移约 3.6～4.2 cm，明显高于 ExistingDown。
+
+请检查：
+
+1. CorrectedGrip 末端与 LowReady 在胸腔相对空间下的姿态差。
+2. 该差异主要来自 clavicle、upperarm、lowerarm、hand 中哪些骨骼。
+3. 进入 LowReady 后，动画循环相位是否改变了反向动作的起始姿态。
+4. 当前状态转移混合与渐进 Alpha 是否在边界叠加造成不连续。
+5. Local Space Blend 是否自然缓解或加重这一问题。
+
+优先通过隔离实验中的混合权重、过渡衔接或少量必要骨骼姿态修正处理。
+
+可以尝试对 Alpha 使用平滑曲线，但必须保留同一播放器的真实累计时间。
+
+若需要调整局部角度，应尽可能使用一套与 Pitch 无关的胸腔相对姿态修正，不重新制作 Down30 / Down60 版本。
+
+不要直接修改 CorrectedGrip 或 LowReady 的生产动画关键帧。
+
+不能只为了降低单步位移而造成明显的抬枪迟滞、动作冻结或不自然的减速。
+
+## 六、运行时测试
+
+### 6.1 固定 Pitch
+
+验证：
+
+- -60°
+- -30°
+- 0°
+- +30°
+- +60°
+
+对照：
+
+- ExistingDown
+- Progressive Mesh Space
+- Progressive Local Space
+- 若必要，有限相对补偿候选
+
+观察完整：
+
+- ArmedAim → AimTransition → LowReady
+- 稳定 LowReady 循环
+- LowReady → AimTransition → ArmedAim
+- 25% / 50% / 75% 中途反向
+
+### 6.2 动态 Pitch
+
+验证：
+
+`0° → -30° → -60° → -30° → 0°`
+
+以及：
+
+`0° → +30° → +60° → 0°`
+
+分别在收枪过程中、稳定 LowReady 和反向抬枪时测试。
+
+重点观察：
+
+- Chest 是否实时继承 AO。
+- Rifle 是否相对 Chest 自然运动。
+- 双手是否保持合理握持。
+- 是否出现枪口突然折返。
+- 是否出现手臂扭曲。
+- 状态时钟是否保持连续。
+
+### 6.3 IK
+
+先关闭原有 AimIK / LeftHandIK，隔离验证分层行为。
+
+然后恢复原 IK，再次检查最终姿态。
+
+本轮不修改 IK 算法。
+
+如发现 AimIK 对枪械朝向产生不合理修正，记录具体动作阶段及姿态差异，提出最小修正建议，不直接重构 IK。
+
+## 七、重新定义验收指标
+
+**不再使用枪械在 Mesh Component Space 中的位置变化幅度作为独立失败条件。**
+
+重点比较：
+
+| 指标 | 判断重点 |
+|---|---|
+| 胸腔相对枪械轨迹 | 是否符合自然收枪动作 |
+| 当前 ArmedAim 入场 | 是否平滑 |
+| 负俯仰枪械折返 | 是否存在不必要的先抬后降 |
+| LowReady 胸腔相对姿态 | 是否合理、自然 |
+| 动态 Pitch | 是否自然跟随上半身 |
+| 抬枪边界 | 是否存在明显位置、旋转突跳 |
+| 左右手握持 | 是否协调 |
+| 肩肘腕 | 是否存在不自然扭曲 |
+| 原有 IK | 是否造成明显额外修正 |
+| FP 画面 | 是否减少枪械和肩部遮挡 |
+
+同时记录枪械 Component Space 数据供诊断，但不能仅凭绝对位置变化判定失败。
+
+特别关注不同 Pitch 下的相对胸腔轨迹是否过度分散，以及这种差异是否符合自然人体动作。
+
+## 八、必须实际验证第一人称表现
+
+此前原型由于 TP 指标没有完全达到 ExistingDown 而提前停止 FP 测试。
+
+**本轮不再沿用这一前置门槛。**
+
+只要新候选不存在严重骨骼失控、不可用的状态机或明显安全问题，就应进入隔离真实 FP 验证。
+
+复用已建立的真实 ShooterCharacter 组件级取证机制。
+
+重点对照：
+
+**场景 A：-60° 稳定 LowReady**
+
+检查 FP Rifle 是否仍然遮挡第一人称画面中心。
+
+**场景 B：-70° 稳定 LowReady**
+
+检查极端低头时 Rifle 和 FP Character 的可见性。
+
+**场景 C：+75° 收枪 0.267 秒**
+
+检查右侧 FP Character 身体表面是否仍然进入画面。
+
+**场景 D：0° 正常收枪**
+
+确认原有第一人称表现没有明显退化。
+
+比较：
+
+- ExistingDown 的真实 FP 画面。
+- Progressive Mesh Space 的真实 FP 画面。
+- Progressive Local Space 的真实 FP 画面。
+- 如实现 C，再比较相对补偿版本。
+
+保持原 ClearanceProxy、Camera、FOV、Mesh Scale 和 Rifle Attachment 不变。
+
+不得通过隐藏 FP Rifle、关闭 FP Character 渲染或调整 Camera 来伪造改善。
+
+保留组件排除截图，并记录 Camera Transform 与 FP 骨骼姿态，明确是身体关系改善还是相机位移造成画面变化。
+
+**FP 遮挡改善是本轮的重要评价维度，即使 TP 枪械 Component Space 位置变化更大，也不能因此跳过该项。**
+
+但不能预设新方案必然消除遮挡。
+
+## 九、实施范围
+
+允许：
+
+- 复制现有 Progressive 原型。
+- 创建隔离 Local Space 候选。
+- 复用已有 Mask。
+- 调整实验 Alpha 曲线。
+- 新增有限的胸腔相对姿态测量。
+- 必要时增加最小实验骨骼补偿。
+- 复用测试脚本、运行构建、截图与分析。
+- 创建独立对照关卡。
+
+禁止：
+
+- 修改生产 ABP_TP_Player / ABP_FP_Player。
+- 修改生产 Reload Mask。
+- 修改 CorrectedGrip、Down30、Down60、MM_Rifle_LowReady 原始资产。
+- 修改生产 Skeleton。
+- 修改 FP ClearanceProxy 或相机系统。
+- 修改正式 IK、GAS、网络、Fire、Reload。
+- 删除旧原型。
+- 自动 commit / push。
+
+若需要运行时支持，仅在隔离 Editor/Test 实现中添加，不提前接入正式游戏。
+
+开始前检查 Git 状态和项目会话；结束时验证既有受保护文件未变化。
+
+## 十、交付结果
+
+请实际完成可运行的候选原型和对照地图，不仅输出理论分析。
+
+报告重点回答：
+
+1. 当前 Mesh Space Rotation Blend 是否确实限制了枪械自然继承胸腔旋转？
+2. 改为 Local Space 后，Rifle 相对胸腔的收枪轨迹如何变化？
+3. 是否能够使用单一 CorrectedGrip，在 -60°～+60° 下自然收枪？
+4. LowReady 是否能跟随背部俯仰保持自然的胸腔相对持枪姿态？
+5. LowReady 循环后反向抬枪跳变是否改善？根因是什么？
+6. 是否需要额外胸腔相对补偿？如需要，最小补偿是什么？
+7. 第一人称负俯仰 Rifle 遮挡和高俯仰身体入镜是否改善？
+8. 当前结果是否值得继续替代 Down30 / Down60？
+
+提供：
+
+- 实际实验资产路径。
+- 可连续播放的实验地图。
+- 各候选切换方式。
+- 核心量化对比。
+- TP 和真实 FP 截图对照。
+- 必要的动作连续性曲线。
+- 当前仍未通过的视觉验收项。
+
+严格区分自动化数值、截图判断和用户实际连续播放验收。
+
+不必再制作大量与判断无关的数据和重复报告。以能够解释动作差异、定位失败机制为主。
+
+若 Local Space 明显更好，保留为后续迭代候选；若效果不佳，说明具体空间冲突，不为了完成任务强行新增复杂求解器。
+
+本轮不正式取消 Down30 / Down60，保留回退方案。
+
+---
+
+## 最终原则
+
+**LowReady 应当是相对于当前人体上半身的自然收枪，而不是强制把枪械固定在某个角色组件空间角度或位置。**
+
+我们要解决的是：
+
+**不同俯仰下，角色如何从真实 ArmedAim 姿态自然地把枪收回身体附近。**
+
+优先尝试原生 Local Space 肩臂混合；必要时研究少量胸腔相对补偿。
+
+不追求绝对空间位置固定，不以减少动画资产数量牺牲人体自然度。
+
+这轮必须实际检查 FP 表现，再综合决定是否有理由替代 Down30 / Down60。
