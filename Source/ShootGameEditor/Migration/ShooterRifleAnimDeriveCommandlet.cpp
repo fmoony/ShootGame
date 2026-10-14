@@ -20,7 +20,7 @@ DEFINE_LOG_CATEGORY_STATIC(LogShooterRifleAnimDerive, Log, All);
 namespace ShooterRifleAnimDerive
 {
 	const TCHAR* const SourceFolder = TEXT("/Game/Characters/Mannequins/Anims/Rifle");
-	const TCHAR* const TargetFolder = TEXT("/Game/Shooter/Animation/ThirdPerson/Rifle");
+	const TCHAR* const TargetFolder = TEXT("/Game/Characters/Mannequins/Anims/Rifle");
 	const TCHAR* const ExpectedSkeleton = TEXT("/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin");
 
 	/**

@@ -1,0 +1,17 @@
+{
+  "shoulders": {
+    "clavicle_l": [
+      -0.033464790949941724,
+      -0.0674829319936427,
+      -0.02889626135005987,
+      0.9967402709513685
+    ],
+    "clavicle_r": [
+      0.018562460785250364,
+      0.09427337572439747,
+      -0.02529775244750512,
+      0.9950517521215808
+    ]
+  },
+  "reference": "Actual ArmedAim at Pitch 0 Hold .25; local clavicle quaternion, original 18% reference expanded to 35%."
+}

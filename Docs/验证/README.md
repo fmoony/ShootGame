@@ -13,6 +13,13 @@
 历史材料中已删除的证据路径不再可用，不重写原文或制造重复副本。
 当前回归测试仍可运行，最新清理结果见[本次开发记录][accepted]。
 
+## 2026-10-14 的姿态生产接入
+
+用户接受 ShoulderSeam；Relaxed 动画和头颈 Runtime 节点已接入正式 ABP_TP_Player。
+五轮肩部头部实验资产、地图、一次性取证源码与 Saved 原始采集资料已清理。
+必要 Blender 输入与调整脚本进入 RifleTools；历史报告及开发记录保持原貌。
+生产行为见[当前说明][current]，本轮范围和结果见[接入记录][posture]。
+
 ## 2026-10-13 的历史审计与实现
 
 - [LowReady 复用 Reload 分层可行性审计](RifleLowReadyLayeringAudit_20261013/可行性审计.md)。
@@ -70,3 +77,8 @@
 
 [current]: ../Rifle收枪动画表现.md
 [accepted]: ../开发记录/2026-10-13-1803-Rifle验收清理与提交.md
+
+[posture]: ../开发记录/2026-10-14-1224-Rifle姿态生产接入与清理.md
+
+当前动画目录已统一：Shooter/Animation 仅存放 AnimBP，素材与 Rig 位于 Characters。
+详见[迁移记录](../开发记录/2026-10-14-1622-动画资源目录统一与Rifle验收提交.md)。

@@ -1,6 +1,6 @@
 # Rifle 收枪动画表现
 
-维护日期：2026-10-13；适用 UE 5.6.1。
+维护日期：2026-10-14；适用 UE 5.6.1。
 用户已验收 Local 方案 2 与临时 K 网络动画预览；本功能只改变动画表现。
 
 ## 当前正式方案
@@ -9,22 +9,27 @@
 父类保持运行时 ShooterThirdPersonAnimInstance，不依赖实验 AnimInstance。
 WeaponAction 的 ArmedAim 内沿用 RifleReady：ArmedAim ↔ AimTransition ↔ LowReady。
 
-AimTransition 使用 MM_Rifle_AimToLowReady_CorrectedGrip，LowReady 使用原低位动画。
+AimTransition 使用 MM_Rifle_AimToLowReady_Relaxed，LowReady 使用 MM_Rifle_LowReady_Relaxed。
 动态 ArmedAimPose 是分层底姿态，肩臂按原 RifleReloadWeightedUpperBody Mask 做 Local 混合。
 运行时 ShooterRifleReadyLayer 保持子播放器相关，姿态 Alpha 按真实 t/T 渐进。
-正式三个选片槽均引用 CorrectedGrip；Down30 / Down60 保留作回退，不用于当前选片。
+正式三个选片槽均引用同一 Relaxed 过渡；旧 CorrectedGrip / Down30 / Down60 保留作回退。
 不接入方案 3 的额外反向边界混合；原播放时长约 0.833333 秒，速率仍为 ±1。
 中途反向保持当前累计时间，实时改俯仰不会重置动画或切换素材。
 
-当前 Rifle 素材目录：
+当前采用的 Rifle 素材目录：
 
 ```text
 /Game/Characters/Mannequins/Anims/Rifle
-    MM_Rifle_AimToLowReady_CorrectedGrip
-    MM_Rifle_AimToLowReady_Down30
-    MM_Rifle_AimToLowReady_Down60
+    MM_Rifle_AimToLowReady_Relaxed
+    MM_Rifle_LowReady_Relaxed
 ```
 
+六段 Rifle 序列统一位于上述目录；新资源采用验收的 35% 肩位与 SmoothSeam 端点。
+Shooter/Animation 仅存放 AnimBP，FP Rifle Montage 也已迁至 Characters 的 Rifle 目录。
+原 Ctrl_HandAdjusment 系列与 CtrlRig_FPWarp 位于 Characters/Mannequins/Rigs。
+头颈 Runtime 节点位于两个子状态的 Local 肩臂分层之后，只改变 neck_01/02 与 head。
+按真实播放器进度平滑解除 ADS 偏头并端正 Roll，保留原面部仰角。
+角色前向与竖直方向在游戏线程 PreUpdate 缓存；生产父类与原 AO、IK 顺序保持。
 原始 Mixamo、ArmedAim、AO_Rifle、Skeleton、Socket 和 Blender 调整输入保留。
 本轮未调整 Mask 权重、Aim IK、LeftHand IK、FP Proxy 或相机层级。
 本地 FP 沿用 CopyPose 和现有净空机制，远端只消费自己的 TP 动画实例。
@@ -71,9 +76,17 @@ Automation RunTests ShootGame.Animation.RifleReady
 本地检查第一人称肩臂和枪械可见性，再触发原 Fire / Reload 确认动作仍可执行。
 Dedicated 对照选 Play As Client、2 Players；主观画面不由无头 Automation 判定。
 
-一次性 Local / Mesh / Boundary 原型已清理，只保留 Segmented50 回退地图及必要依赖。
+一次性 Local / Mesh / Boundary 与五轮肩部头部原型已清理。
+仅保留原 Segmented50 回退地图及必要依赖，当前验证直接使用正式角色和 K 输入。
 该地图仍用于素材和 Natural Pitch Mask 对照，不代表正式 Local 方案或真实 FP 角色。
 历史报告原文保留，已删除的截图、JSON、CSV 和脚本路径可能失效，见[验证索引][index]。
+本次接入与清理的范围、验证和边界见[生产接入记录][posture]。
 
 [net]: 验证/RifleReadyNetworkPreview_20261013/实施与验证.md
 [index]: 验证/README.md
+
+[posture]: 开发记录/2026-10-14-1224-Rifle姿态生产接入与清理.md
+
+本次目录调整与提交说明见[动画目录迁移记录][layout]。
+
+[layout]: 开发记录/2026-10-14-1622-动画资源目录统一与Rifle验收提交.md

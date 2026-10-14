@@ -1,0 +1,333 @@
+{
+  "migration": [
+    {
+      "source": "/Game/Shooter/Animation/FirstPerson/FP_Rifle_Shoot_Montage",
+      "class": "AnimMontage",
+      "dependencies": [
+        "/Game/Characters/Mannequins/Anims/Rifle/MF_Rifle_Idle_ADS",
+        "/Game/Characters/Mannequins/Meshes/SKM_Quinn_Simple",
+        "/Game/Characters/Mannequins/Meshes/SK_Mannequin",
+        "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_Fire"
+      ],
+      "referencers": [
+        "/Game/Shooter/Data/DT_WeaponData"
+      ],
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin",
+      "length": 0.5333300232887268,
+      "destination": "/Game/Characters/Mannequins/Anims/Rifle/FP_Rifle_Shoot_Montage",
+      "preserved": {
+        "class": "AnimMontage",
+        "length": 0.5333300232887268,
+        "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin"
+      }
+    },
+    {
+      "source": "/Game/Shooter/Animation/Rigs/Ctrl_HandAdjusment_Pistol",
+      "class": "ControlRigBlueprint",
+      "dependencies": [
+        "/Script/AnimationCore",
+        "/Script/RigVM",
+        "/Script/ControlRigDeveloper",
+        "/Script/ControlRig",
+        "/Script/RigVMDeveloper",
+        "/ControlRig/Controls/DefaultGizmoLibraryNormalized",
+        "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple"
+      ],
+      "referencers": [
+        "/Game/Shooter/Animation/FirstPerson/ABP_FP_Pistol"
+      ],
+      "destination": "/Game/Characters/Mannequins/Rigs/Ctrl_HandAdjusment_Pistol",
+      "preserved": {
+        "class": "ControlRigBlueprint"
+      }
+    },
+    {
+      "source": "/Game/Shooter/Animation/Rigs/Ctrl_HandAdjusment1",
+      "class": "ControlRigBlueprint",
+      "dependencies": [
+        "/Script/AnimationCore",
+        "/Script/RigVM",
+        "/Script/ControlRigDeveloper",
+        "/Script/ControlRig",
+        "/Script/RigVMDeveloper",
+        "/ControlRig/Controls/DefaultGizmoLibraryNormalized",
+        "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple"
+      ],
+      "referencers": [],
+      "destination": "/Game/Characters/Mannequins/Rigs/Ctrl_HandAdjusment1",
+      "preserved": {
+        "class": "ControlRigBlueprint"
+      }
+    },
+    {
+      "source": "/Game/Shooter/Animation/Rigs/Ctrl_HandAdjusment",
+      "class": "ControlRigBlueprint",
+      "dependencies": [
+        "/Script/AnimationCore",
+        "/Script/RigVM",
+        "/Script/ControlRigDeveloper",
+        "/Script/ControlRig",
+        "/Script/RigVMDeveloper",
+        "/ControlRig/Controls/DefaultGizmoLibraryNormalized",
+        "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple",
+        "/Game/Characters/Mannequins/Meshes/SK_Mannequin"
+      ],
+      "referencers": [
+        "/Game/Shooter/Animation/FirstPerson/ABP_FP_Rifle",
+        "/Game/Shooter/Animation/FirstPerson/ABP_FP_Weapon",
+        "/Game/Shooter/Animation/FirstPerson/ABP_FP_GrenadeLauncher",
+        "/Game/Shooter/Animation/FirstPerson/ABP_FP_AWP"
+      ],
+      "destination": "/Game/Characters/Mannequins/Rigs/Ctrl_HandAdjusment",
+      "preserved": {
+        "class": "ControlRigBlueprint"
+      }
+    },
+    {
+      "source": "/Game/Shooter/Animation/Rigs/CtrlRig_FPWarp",
+      "class": "ControlRigBlueprint",
+      "dependencies": [
+        "/Script/AnimationCore",
+        "/Script/RigVM",
+        "/Script/ControlRigDeveloper",
+        "/Script/ControlRig",
+        "/Script/RigVMDeveloper",
+        "/ControlRig/Controls/DefaultGizmoLibraryNormalized",
+        "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple",
+        "/Game/Characters/Mannequins/Meshes/SK_Mannequin"
+      ],
+      "referencers": [
+        "/Game/Shooter/Animation/FirstPerson/ABP_FP_Copy"
+      ],
+      "destination": "/Game/Characters/Mannequins/Rigs/CtrlRig_FPWarp",
+      "preserved": {
+        "class": "ControlRigBlueprint"
+      }
+    },
+    {
+      "source": "/Game/Shooter/Animation/ThirdPerson/Rifle/MM_Rifle_LowReady_Relaxed",
+      "class": "AnimSequence",
+      "dependencies": [
+        "/Script/MovieScene",
+        "/Script/AnimationModifiers",
+        "/Script/ControlRig",
+        "/Script/AnimationData",
+        "/ACLPlugin/ACLAnimBoneCompressionSettings",
+        "/ACLPlugin/ACLAnimCurveCompressionSettings",
+        "/Engine/Animation/DefaultVariableFrameStrippingSettings",
+        "/Game/Characters/Mannequins/Meshes/SK_Mannequin"
+      ],
+      "referencers": [
+        "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player"
+      ],
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin",
+      "length": 8.566666603088379,
+      "destination": "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_LowReady_Relaxed",
+      "preserved": {
+        "class": "AnimSequence",
+        "length": 8.566666603088379,
+        "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin",
+        "raw_pose_sha256": "a82fc232292cd8d93de8fa23f7181181e0c3a4f9b11d58c84f81b46bc1a5803d",
+        "source_files": [
+          "D:/Unreal_Projects/ShootGame/Scripts/Animation/RifleTools/Inputs/LowReady_Relaxed.fbx"
+        ]
+      }
+    },
+    {
+      "source": "/Game/Shooter/Animation/ThirdPerson/Rifle/MM_Rifle_LowReady",
+      "class": "AnimSequence",
+      "dependencies": [
+        "/Script/InterchangeEngine",
+        "/Script/MovieScene",
+        "/Script/AnimationModifiers",
+        "/Script/ControlRig",
+        "/Script/AnimationData",
+        "/ACLPlugin/ACLAnimBoneCompressionSettings",
+        "/ACLPlugin/ACLAnimCurveCompressionSettings",
+        "/Engine/Animation/DefaultVariableFrameStrippingSettings",
+        "/Game/Characters/Mannequins/Meshes/SK_Mannequin"
+      ],
+      "referencers": [
+        "/Game/Experiments/RifleTransition/Blender_20261011/ABP_RifleBlender_GripCorrected_Test",
+        "/Game/Experiments/RifleTransition/Segmented50_20261011/ABP_RifleSegmented_LowToReady"
+      ],
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin",
+      "length": 8.566666603088379,
+      "destination": "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_LowReady",
+      "preserved": {
+        "class": "AnimSequence",
+        "length": 8.566666603088379,
+        "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin",
+        "raw_pose_sha256": "ee4f7fba81396fb9e5880cf33a819efe78af68e510c7d72287da72a8a0af5ea0",
+        "source_files": [
+          "D:/Game Model/UETemplate/RifleIdle.fbx"
+        ]
+      }
+    },
+    {
+      "source": "/Game/Shooter/Animation/ThirdPerson/Rifle/MM_Rifle_Holster",
+      "class": "AnimSequence",
+      "dependencies": [
+        "/Script/InterchangeEngine",
+        "/Script/MovieScene",
+        "/Script/AnimationModifiers",
+        "/Script/ControlRig",
+        "/Script/AnimationData",
+        "/ACLPlugin/ACLAnimBoneCompressionSettings",
+        "/ACLPlugin/ACLAnimCurveCompressionSettings",
+        "/Engine/Animation/DefaultVariableFrameStrippingSettings",
+        "/Game/Characters/Mannequins/Meshes/SK_Mannequin"
+      ],
+      "referencers": [],
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin",
+      "length": 3.3333332538604736,
+      "destination": "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_Holster",
+      "preserved": {
+        "class": "AnimSequence",
+        "length": 3.3333332538604736,
+        "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin",
+        "raw_pose_sha256": "347302f34dd9f5ccd8bc90c3c3c864cfbe50b2db2b44e33438fa762f8dbfa2c3",
+        "source_files": [
+          "D:/Game Model/UETemplate/PutBackRifleBehindShoulder.fbx"
+        ]
+      }
+    },
+    {
+      "source": "/Game/Shooter/Animation/ThirdPerson/Rifle/MM_Rifle_Draw",
+      "class": "AnimSequence",
+      "dependencies": [
+        "/Script/InterchangeEngine",
+        "/Script/MovieScene",
+        "/Script/AnimationModifiers",
+        "/Script/ControlRig",
+        "/Script/AnimationData",
+        "/ACLPlugin/ACLAnimBoneCompressionSettings",
+        "/ACLPlugin/ACLAnimCurveCompressionSettings",
+        "/Engine/Animation/DefaultVariableFrameStrippingSettings",
+        "/Game/Characters/Mannequins/Meshes/SK_Mannequin"
+      ],
+      "referencers": [],
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin",
+      "length": 3.3333332538604736,
+      "destination": "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_Draw",
+      "preserved": {
+        "class": "AnimSequence",
+        "length": 3.3333332538604736,
+        "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin",
+        "raw_pose_sha256": "fa9a2c079e537bea073fed42ef1dc890dc6bb1dff0b486a6391a02c4afc0b5de",
+        "source_files": [
+          "D:/Game Model/UETemplate/PutBackRifleBehindShoulder.fbx"
+        ]
+      }
+    },
+    {
+      "source": "/Game/Shooter/Animation/ThirdPerson/Rifle/MM_Rifle_AimToLowReady_Relaxed",
+      "class": "AnimSequence",
+      "dependencies": [
+        "/Script/MovieScene",
+        "/Script/AnimationModifiers",
+        "/Script/ControlRig",
+        "/Script/AnimationData",
+        "/ACLPlugin/ACLAnimBoneCompressionSettings",
+        "/ACLPlugin/ACLAnimCurveCompressionSettings",
+        "/Engine/Animation/DefaultVariableFrameStrippingSettings",
+        "/Game/Characters/Mannequins/Meshes/SK_Mannequin"
+      ],
+      "referencers": [
+        "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player"
+      ],
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin",
+      "length": 0.8333333134651184,
+      "destination": "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_AimToLowReady_Relaxed",
+      "preserved": {
+        "class": "AnimSequence",
+        "length": 0.8333333134651184,
+        "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin",
+        "raw_pose_sha256": "4f7eaf2f1a20012a37fbd3fa69dbd1fb3799e75d20f769d7216f8b09bedc15d8",
+        "source_files": [
+          "D:/Unreal_Projects/ShootGame/Scripts/Animation/RifleTools/Inputs/AimToLowReady_Relaxed.fbx"
+        ]
+      }
+    },
+    {
+      "source": "/Game/Shooter/Animation/ThirdPerson/Rifle/MM_Rifle_AimToLowReady",
+      "class": "AnimSequence",
+      "dependencies": [
+        "/Script/InterchangeEngine",
+        "/Script/MovieScene",
+        "/Script/AnimationModifiers",
+        "/Script/ControlRig",
+        "/Script/AnimationData",
+        "/ACLPlugin/ACLAnimBoneCompressionSettings",
+        "/ACLPlugin/ACLAnimCurveCompressionSettings",
+        "/Engine/Animation/DefaultVariableFrameStrippingSettings",
+        "/Game/Characters/Mannequins/Meshes/SK_Mannequin"
+      ],
+      "referencers": [],
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin",
+      "length": 0.8333333134651184,
+      "destination": "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_AimToLowReady",
+      "preserved": {
+        "class": "AnimSequence",
+        "length": 0.8333333134651184,
+        "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin",
+        "raw_pose_sha256": "a79e458d63d2acd87fdbacbbff9bff7c31dd26fd756d956123774ecc2a27867b",
+        "source_files": [
+          "D:/Game Model/UETemplate/RifleAimToDown.fbx"
+        ]
+      }
+    }
+  ],
+  "verification": {
+    "anim_blueprints_remaining": 12,
+    "migrated": 11,
+    "redirectors_remaining": 0,
+    "old_package_references": 0,
+    "all_anim_blueprints_compiled": true
+  },
+  "tests": [
+    {
+      "name": "ShootGame.Animation.TPPlayer.PIE.ListenOwnerObserver",
+      "state": "Success",
+      "errors": 0,
+      "warnings": 3
+    },
+    {
+      "name": "ShootGame.Animation.TPPlayer.PIE.Standalone",
+      "state": "Success",
+      "errors": 0,
+      "warnings": 2
+    },
+    {
+      "name": "ShootGame.Animation.RifleReady.NetworkPreview.Dedicated",
+      "state": "Success",
+      "errors": 0,
+      "warnings": 3
+    },
+    {
+      "name": "ShootGame.Animation.RifleReady.NetworkPreview.Emulated",
+      "state": "Success",
+      "errors": 0,
+      "warnings": 3
+    },
+    {
+      "name": "ShootGame.Animation.RifleReady.NetworkPreview.Listen",
+      "state": "Success",
+      "errors": 0,
+      "warnings": 3
+    },
+    {
+      "name": "ShootGame.Animation.RifleReady.NetworkPreview.Off",
+      "state": "Success",
+      "errors": 0,
+      "warnings": 2
+    },
+    {
+      "name": "ShootGame.Animation.RifleReady.PIE",
+      "state": "Success",
+      "errors": 0,
+      "warnings": 2
+    }
+  ],
+  "historical_documents_preserved": 291
+}

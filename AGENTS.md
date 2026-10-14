@@ -150,6 +150,8 @@ Source/ShootGame/
 ## Content 资产规则
 
 - Shooter 正式资产根为 `/Game/Shooter`。
+- `/Game/Shooter/Animation` 只存放 AnimBP；角色动画资源放在 `/Game/Characters` 对应目录。
+  当前 Manny 序列与 Montage 位于 `Mannequins/Anims`，Control Rig 位于 `Mannequins/Rigs`。
 - 共享资产只有在被多个长期目录实际使用时才进入 `/Game/Shared`。
 - 资产整理先审计依赖，再执行迁移。
 - 不根据文件名判断资产是否无用。

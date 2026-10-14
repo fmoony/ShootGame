@@ -1,7 +1,8 @@
 # Blender 动画编辑工具链
 
-维护日期：2026-10-13；适用 ShootGame、UE 5.6.1、Blender 4.5.8 LTS。
-用户已接受正式 Local 方案 2 与临时 K 网络预览；三段素材保留在正式 Rifle 动画目录。
+维护日期：2026-10-14；适用 ShootGame、UE 5.6.1、Blender 4.5.8 LTS。
+用户已接受 Local 方案、K 网络预览与肩部头部微调；当前生产使用 Relaxed 两段素材。
+角色动画位于 Characters/Mannequins/Anims/Rifle，Shooter/Animation 只保留 AnimBP。
 生产角色已接入临时 K 键动画切换，使用边界见[Rifle 收枪动画表现](Rifle收枪动画表现.md)。
 一次性原型已清理，当前仅保留 Segmented50 回退地图及其必要依赖。
 历史报告保持原貌；数据删除与清理结果见[清理记录](验证/RifleCleanup_20261011/清理与验收记录.md)。
@@ -16,12 +17,15 @@ D:/Unreal_Projects/ShootGame/Scripts/Animation/RifleTools/Run.ps1
 
 - blender_bridge.py：UE / Blender 坐标反射、Quaternion、骨骼 FK。
 - blender_down.py：从真实端点参考制作 Down30 / Down60，输出烘焙关键帧。
+- blender_shoulders.py：重放验收的 clavicle 局部调整与双臂协调，保持原手部目标。
+- blender_seam.py：用全段五次平滑曲线匹配 LowReady 首帧，保留过渡首帧与时长。
 - fbx_settings.json：已验证的轴向、单位、30 FPS 和 FBX 烘焙设置。
 - ue_pose_io.py 与 ue_job.py：配置驱动的取样、误差比较和隔离导入。
 - analyze_segmented.py：当前方案的选片锁定、正反向时间和姿态指标检查。
 - Editor 夹具与 ShooterRifleSegmentedCommandlet：实际三态图预览和测量。
 
-Inputs 目录保留 CorrectedGrip、Down30、Down60 各一份 blend / fbx。
+Inputs 保留 CorrectedGrip、Down30、Down60、LowReady_Relaxed、AimToLowReady_Relaxed 的 blend / fbx。
+ShoulderSources / ShoulderChanges / SeamSources 是两套姿态调整脚本的必要输入。
 sources.json 保留基准姿态与骨骼层级，reference.json 保留实际端点和枪械几何参考。
 manifest.json 记录迁移前后路径与 SHA256；保留输入复制前后完全一致。
 三段 UE 动画的导入源路径也更新到了 Inputs，不再引用已删除的 Saved。
@@ -33,7 +37,7 @@ D:/Unreal_Projects/ShootGame/Scripts/Animation/RifleTools/Examples
 
 这些输入是工具重放所必需的数据，不是旧 CSV、截图或临时执行脚本的归档。
 原始 Mixamo FBX 与生产动画保留原位置，不能替换此工具的 Manny 基准输入。
-当前仅验证 Manny Simple 的 89 骨、26 点素材；完整 Skeleton 有 161 骨。
+已验证 Manny Simple 的 89 骨、26 点过渡和 258 点 LowReady；完整 Skeleton 有 161 骨。
 Saved 只用于新的输出和缓存，不再作为工具输入依赖。
 
 原生工具目录：
@@ -103,10 +107,34 @@ LowReady 是动态素材，端点比较必须指定参考时间和相位。
 
 ## 当前正式方案
 
-正式采用单 CorrectedGrip、动态 ArmedAimPose 与 Local 肩臂分层，网络 K 接口已验收。
+正式采用单 Relaxed 过渡、动态 ArmedAimPose 与 Local 肩臂分层，网络 K 接口保持原样。
+HeadForward + Upright 已移入 Runtime，五轮微调的 Editor 原型类和实验资源已移除。
 操作、网络限制、关闭与移除方法统一维护于[Rifle 收枪动画表现](Rifle收枪动画表现.md)。
 旧分段 ProductionApply 及一次性 Local 接入工具已移除，避免覆盖当前正式图。
 只读 ProductionMeasure 与 Blender 重放工具保留；下节分段规则仅用于回退夹具。
+
+
+## 肩部与衔接的可复用调整
+
+从项目根目录运行；输出必须是 Saved 下尚不存在的目录，脚本拒绝覆盖：
+
+```powershell
+& 'D:/Blender/blender-4.5.8-windows-x64/blender.exe' `
+    --background --factory-startup --python-exit-code 1 `
+    --python Scripts/Animation/RifleTools/blender_shoulders.py `
+    -- LowRaised D:/Unreal_Projects/ShootGame/Saved/RifleTools/NewShoulders
+& 'D:/Blender/blender-4.5.8-windows-x64/blender.exe' `
+    --background --factory-startup --python-exit-code 1 `
+    --python Scripts/Animation/RifleTools/blender_seam.py `
+    -- SmoothSeam D:/Unreal_Projects/ShootGame/Saved/RifleTools/NewSeam
+```
+
+两条命令已实际重跑并成功导出。RoundTrip 模式仅复现各自参照，不应用调整。
+肩部脚本使用 ShoulderChanges 的局部 Quaternion；现有值来自相同 Hold 的 ArmedAim 参照。
+衔接脚本使用 SeamSources 的 transition / low 数据，并不自动读取新导出的肩部 FBX。
+下一轮改变 LowReady 后，应先按原取样工具更新参照，再重新匹配端点与隔离导入验证。
+这两条命令不修改 UE 资产；不将生成 FBX 自动覆盖正式动画。
+正式两段动画的 Import Source 已指向 Inputs 中对应 FBX；blend 用于继续编辑烘焙轨道。
 
 ## 保留的分段回退夹具与选片规则
 

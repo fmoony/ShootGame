@@ -46,5 +46,47 @@
     "retained": "Scripts/Animation/RifleTools/Inputs/reference.json",
     "sha256": "5f782cc8b6f471678460e2bb18edd118b7ba0286569ed0866b656fe294789611",
     "bytes": 1116947
+  },
+  {
+    "source": "Saved/RifleShoulderIdle_20261014/Rifle_LowRaised.blend",
+    "retained": "Scripts/Animation/RifleTools/Inputs/LowReady_Relaxed.blend",
+    "sha256": "01b4d4159f930de1309d0014e8c89a8253475c1852ae7918f4c2242516ee4600",
+    "bytes": 19082440
+  },
+  {
+    "source": "Saved/RifleShoulderIdle_20261014/Rifle_LowRaised.fbx",
+    "retained": "Scripts/Animation/RifleTools/Inputs/LowReady_Relaxed.fbx",
+    "sha256": "db429d8e38f346850dcb040ad09824dc666ede24532fe71a191ef1a6a3d752d4",
+    "bytes": 1932076
+  },
+  {
+    "source": "Saved/RifleShoulderSeam_20261014/Rifle_SmoothSeam.blend",
+    "retained": "Scripts/Animation/RifleTools/Inputs/AimToLowReady_Relaxed.blend",
+    "sha256": "ae43717de921044fc42739276b8f68f5b4ea8bb57be96b83d0f4c099cb54322e",
+    "bytes": 4382920
+  },
+  {
+    "source": "Saved/RifleShoulderSeam_20261014/Rifle_SmoothSeam.fbx",
+    "retained": "Scripts/Animation/RifleTools/Inputs/AimToLowReady_Relaxed.fbx",
+    "sha256": "7ede8e933933897ba07f5181cdf86fb9267c2fe10e781e967d473928e5d1c309",
+    "bytes": 724092
+  },
+  {
+    "source": "Saved/RifleShoulderIdle_20261014/Sources.json",
+    "retained": "Scripts/Animation/RifleTools/Inputs/ShoulderSources.json",
+    "sha256": "5adf0b9a5cbac7a35688e26ae3dcf747433fc8aa7817cb5e261419a333cdfc70",
+    "bytes": 18460133
+  },
+  {
+    "source": "Saved/RifleShoulderIdle_20261014/Changes.json",
+    "retained": "Scripts/Animation/RifleTools/Inputs/ShoulderChanges.json",
+    "sha256": "e83b676e0c565accfbbbe206c3b428785abe439555c249ddcdd9091535e3c8fa",
+    "bytes": 432
+  },
+  {
+    "source": "Saved/RifleShoulderSeam_20261014/Sources.json",
+    "retained": "Scripts/Animation/RifleTools/Inputs/SeamSources.json",
+    "sha256": "05ccdd456ef39d7b2d7373c5c650ee83d211fb4708fc5f2bbb21bc6dba9213a8",
+    "bytes": 11388061
   }
 ]
