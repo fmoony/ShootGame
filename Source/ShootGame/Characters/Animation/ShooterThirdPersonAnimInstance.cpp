@@ -136,7 +136,8 @@ void UShooterThirdPersonAnimInstance::ToggleDebugRifleLowReady(APawn* Pawn)
 	}
 	AShooterWeapon* Weapon = Character->GetCurrentWeaponActor();
 	auto* Instance = Cast<UShooterThirdPersonAnimInstance>(Character->GetMesh()->GetAnimInstance());
-	if (Instance && Weapon && Weapon->GetOwner() == Character && Weapon->GetWeaponId() == TEXT("Rifle") &&
+	if (Instance && Weapon && Weapon->GetOwner() == Character &&
+		UShooterRifleReadyPreviewComponent::SupportsWeapon(Weapon->GetWeaponId()) &&
 		!Instance->bIsReloading && !Instance->bIsEquipping && !Instance->bIsDead && !Instance->bIsFiring &&
 		!Instance->IsAnyMontagePlaying())
 	{
@@ -205,7 +206,7 @@ float UShooterThirdPersonAnimInstance::GetRifleAimCorrectionWeight() const
 {
 	if (GetRifleReadyAbortRequested())
 	{
-		// Reload / 非 Rifle 时交还现有 IK 曲线，不能消费未更新的子状态机时间。
+		// Reload / 非支持武器时交还现有 IK 曲线，不能消费未更新的子状态机时间。
 		return 1.0f;
 	}
 	const auto* Machine = GetStateMachineInstanceFromName(TEXT("RifleReady"));
@@ -275,7 +276,7 @@ void UShooterThirdPersonAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	bWasNetworkRiflePreview = bNetwork;
 	const bool bNetworkView = bNetwork && Character->GetNetMode() != NM_DedicatedServer;
 	bDebugRifleReadyAvailable = Character && (Character->IsLocallyControlled() || bNetworkView) && bHasEquippedWeapon &&
-		CurrentWeaponActor && CurrentWeaponActor->GetWeaponId() == TEXT("Rifle");
+		CurrentWeaponActor && UShooterRifleReadyPreviewComponent::SupportsWeapon(CurrentWeaponActor->GetWeaponId());
 	// 瞬时 Fire 的 Tag 可能在同帧结束；已播放的 Montage 仍是可靠的动画表现边界。
 	bDebugRifleActionMontageActive = IsAnyMontagePlaying();
 	UpdateRifleReadyAnimation();

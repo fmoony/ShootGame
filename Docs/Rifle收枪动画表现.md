@@ -12,6 +12,8 @@ WeaponAction 的 ArmedAim 内沿用 RifleReady：ArmedAim ↔ AimTransition ↔ 
 AimTransition 使用 MM_Rifle_AimToLowReady_Relaxed，LowReady 使用 MM_Rifle_LowReady_Relaxed。
 动态 ArmedAimPose 是分层底姿态，肩臂按原 RifleReloadWeightedUpperBody Mask 做 Local 混合。
 运行时 ShooterRifleReadyLayer 保持子播放器相关，姿态 Alpha 按真实 t/T 渐进。
+该自定义层只用于 AimTransition；稳定 LowReady 使用标准 Layered Blend Per Bone，权重恒为 1。
+LowReady 保持相同 BlendMask、Local Space 和头颈修正，未增加新的 C++ 节点。
 正式三个选片槽均引用同一 Relaxed 过渡；旧 CorrectedGrip / Down30 / Down60 保留作回退。
 不接入方案 3 的额外反向边界混合；原播放时长约 0.833333 秒，速率仍为 ±1。
 中途反向保持当前累计时间，实时改俯仰不会重置动画或切换素材。
@@ -37,7 +39,9 @@ Shooter/Animation 仅存放 AnimBP，FP Rifle Montage 也已迁至 Characters �
 ## K 蓝图与临时网络接口
 
 输入位于 BP_ShooterCharacter 的 EventGraph：K Pressed → ToggleDebugRifleLowReady(Self)。
-该入口要求本地控制及有效 Rifle；按住不重复触发，过渡中再次按 K 可以反向。
+该入口要求本地控制及有效 Rifle、AWP 或 GrenadeLauncher；Pistol 保持排除。
+三枪暂时共用现有 Rifle 素材、Mask 和头颈修正，不新增专用动画。
+按住不重复触发，过渡中再次按 K 可以反向；本次复用未处理 FP 遮挡。
 
 Standalone 直接切换本地目标；多人模式委托 ShooterRifleReadyPreviewComponent。
 拥有端提交可靠 Server Toggle，服务器检查现有武器和动作限制，再复制姿态目标 bool。
@@ -65,13 +69,13 @@ analyze_segmented.py 用于保留的分段回退夹具，不把旧阈值检查�
 Automation RunTests ShootGame.Animation.RifleReady
 ```
 
-五项回归覆盖 Standalone、Listen、Dedicated、延迟丢包及关闭网络开关的本地对照。
+回归覆盖 Rifle Standalone，以及三枪各自的 Listen、Dedicated、延迟丢包与本地对照。
 网络夹具使用真实 NetDriver、拥有连接、K 蓝图输入与原 Fire / Reload 入口。
 纯 K 在固定权威武器上检查 Shot / Ammo 增量为 0，不构造新的 Gameplay 状态。
 
 ## 手动检查
 
-在正式 Lvl_Shooter 设置 2 Players / Listen Server，双方装备 Rifle。
+在正式 Lvl_Shooter 设置 2 Players / Listen Server，依次装备 Rifle、AWP 和 GrenadeLauncher。
 一端按 K，从另一端观察收枪、抬枪、中途反向及连续改变俯仰；再交换操作者。
 本地检查第一人称肩臂和枪械可见性，再触发原 Fire / Reload 确认动作仍可执行。
 Dedicated 对照选 Play As Client、2 Players；主观画面不由无头 Automation 判定。
@@ -90,3 +94,7 @@ Dedicated 对照选 Play As Client、2 Players；主观画面不由无头 Automa
 本次目录调整与提交说明见[动画目录迁移记录][layout]。
 
 [layout]: 开发记录/2026-10-14-1622-动画资源目录统一与Rifle验收提交.md
+
+稳定 LowReady 标准节点替换见[本轮记录][standard]。
+
+[standard]: 开发记录/2026-10-14-1630-LowReady标准分层节点.md

@@ -23,6 +23,11 @@ UShooterRifleReadyPreviewComponent::UShooterRifleReadyPreviewComponent()
 	PrimaryComponentTick.bStartWithTickEnabled = false;
 }
 
+bool UShooterRifleReadyPreviewComponent::SupportsWeapon(FName WeaponId)
+{
+	return WeaponId == TEXT("Rifle") || WeaponId == TEXT("AWP") || WeaponId == TEXT("GrenadeLauncher");
+}
+
 bool UShooterRifleReadyPreviewComponent::IsNetworkPreviewEnabled() const
 {
 	return GetWorld() && GetWorld()->GetNetMode() != NM_Standalone && CVarRifleNetworkPreview.GetValueOnGameThread() != 0;
@@ -35,7 +40,7 @@ bool UShooterRifleReadyPreviewComponent::CanPreview() const
 	const auto* ASC = Character ? Character->GetAbilitySystemComponent() : nullptr;
 	const auto* Anim = Character ? Character->GetMesh()->GetAnimInstance() : nullptr;
 	return Character && Cast<APlayerController>(Character->GetController()) && Weapon &&
-		Weapon->GetOwner() == Character && Weapon->GetWeaponId() == TEXT("Rifle") && ASC &&
+		Weapon->GetOwner() == Character && SupportsWeapon(Weapon->GetWeaponId()) && ASC &&
 		!ASC->HasMatchingGameplayTag(ShooterGameplayTags::State_Firing) &&
 		!ASC->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading) &&
 		!ASC->HasMatchingGameplayTag(ShooterGameplayTags::State_Equipping) &&

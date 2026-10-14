@@ -63,8 +63,8 @@ namespace RifleReadyNetworkPIE
 	class FValidate : public IAutomationLatentCommand
 	{
 	public:
-		FValidate(FAutomationTestBase* InTest, FString InMode)
-			: Test(InTest), Mode(MoveTemp(InMode)), Started(FPlatformTime::Seconds()) {}
+		FValidate(FAutomationTestBase* InTest, FString InMode, FName InWeaponId)
+			: Test(InTest), Mode(MoveTemp(InMode)), WeaponId(InWeaponId), Started(FPlatformTime::Seconds()) {}
 
 		virtual bool Update() override
 		{
@@ -88,7 +88,7 @@ namespace RifleReadyNetworkPIE
 				const auto* State = Anim ? Anim->GetStateMachineInstanceFromName(TEXT("RifleReady")) : nullptr;
 				const auto* Player = Anim ? Anim->GetRifleTransitionPlayer() : nullptr;
 				const auto* Equipped = Copy->GetCurrentWeaponActor();
-				if (!Preview || !Equipped || Equipped->GetWeaponId() != TEXT("Rifle"))
+				if (!Preview || !Equipped || Equipped->GetWeaponId() != WeaponId)
 				{
 					return false;
 				}
@@ -252,13 +252,13 @@ namespace RifleReadyNetworkPIE
 				for (int32 I = 0; I < AuthorityPlayers.Num(); ++I)
 				{
 					auto* C = AuthorityPlayers[I];
-					auto* Rifle = C->GetInventoryComponent()->FindWeaponByWeaponId(TEXT("Rifle"));
+					auto* Rifle = C->GetInventoryComponent()->FindWeaponByWeaponId(WeaponId);
 					if (!Rifle)
 					{
-						Rifle = Runtime->AcquireWeapon(TEXT("Rifle"), C, C);
+						Rifle = Runtime->AcquireWeapon(WeaponId, C, C);
 						if (!Rifle || C->GetInventoryComponent()->AddWeapon(Rifle) != EShooterInventoryAddResult::Added)
 						{
-							return Fail(TEXT("real Rifle grant failed"));
+							return Fail(TEXT("real preview weapon grant failed"));
 						}
 					}
 					C->GetEquipmentComponent()->EquipWeapon(Rifle);
@@ -323,9 +323,9 @@ namespace RifleReadyNetworkPIE
 		}
 		bool Finish()
 		{
-			const FString Folder = FPaths::ProjectSavedDir() / TEXT("RifleReadyNetworkPreview_20261013");
+			const FString Folder = FPaths::ProjectSavedDir() / TEXT("ReadyPreviewReuse_20261014");
 			IFileManager::Get().MakeDirectory(*Folder, true);
-			FFileHelper::SaveStringToFile(Rows, *(Folder / (Mode + TEXT(".csv"))));
+			FFileHelper::SaveStringToFile(Rows, *(Folder / (WeaponId.ToString() + TEXT("_") + Mode + TEXT(".csv"))));
 			Test->AddInfo(FString::Printf(TEXT("RIFLE_NET_RESULT mode=%s errors=%d reverse=%d reload=%d"),
 				*Mode, Test->HasAnyErrors(), bReverseSeen, bReloadSeen));
 			return true;
@@ -338,6 +338,7 @@ namespace RifleReadyNetworkPIE
 		}
 		FAutomationTestBase* Test;
 		FString Mode;
+		FName WeaponId;
 		double Started, PhaseStarted = 0;
 		int32 Phase = 0, BaselineAmmo = 0, BaselineShots = 0;
 		float PreviousTime = 0;
@@ -354,16 +355,21 @@ IMPLEMENT_COMPLEX_AUTOMATION_TEST(FShooterRifleReadyNetworkPIETest, "ShootGame.A
 
 void FShooterRifleReadyNetworkPIETest::GetTests(TArray<FString>& Names, TArray<FString>& Commands) const
 {
-	for (const TCHAR* Mode : {TEXT("Listen"), TEXT("Dedicated"), TEXT("Emulated"), TEXT("Off")})
+	for (const TCHAR* WeaponId : {TEXT("Rifle"), TEXT("AWP"), TEXT("GrenadeLauncher")})
 	{
-		Names.Add(Mode);
-		Commands.Add(Mode);
+		for (const TCHAR* Mode : {TEXT("Listen"), TEXT("Dedicated"), TEXT("Emulated"), TEXT("Off")})
+		{
+			Names.Add(FString(WeaponId) == TEXT("Rifle") ? FString(Mode) : FString(WeaponId) + TEXT(".") + Mode);
+			Commands.Add(FString(Mode) + TEXT("|") + WeaponId);
+		}
 	}
 }
 
-bool FShooterRifleReadyNetworkPIETest::RunTest(const FString& Mode)
+bool FShooterRifleReadyNetworkPIETest::RunTest(const FString& Parameters)
 {
 	using namespace RifleReadyNetworkPIE;
+	FString Mode, WeaponName;
+	Parameters.Split(TEXT("|"), &Mode, &WeaponName);
 	auto* Play = GetMutableDefault<ULevelEditorPlaySettings>();
 	FSettings Original;
 	Play->GetPlayNetMode(Original.Mode);
@@ -379,7 +385,7 @@ bool FShooterRifleReadyNetworkPIETest::RunTest(const FString& Mode)
 	Play->bLaunchSeparateServer = false;
 	ADD_LATENT_AUTOMATION_COMMAND(FEditorLoadMap(TEXT("/Game/Shooter/Maps/Lvl_Shooter")));
 	ADD_LATENT_AUTOMATION_COMMAND(FStartPIECommand(false));
-	FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FValidate>(this, Mode));
+	FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FValidate>(this, Mode, FName(*WeaponName)));
 	ADD_LATENT_AUTOMATION_COMMAND(FEndPlayMapCommand());
 	FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FRestore>(Original));
 	return true;

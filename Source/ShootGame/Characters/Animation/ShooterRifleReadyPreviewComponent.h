@@ -6,7 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "ShooterRifleReadyPreviewComponent.generated.h"
 
-/** 可移除的网络姿态预览桥；只复制 Rifle 收枪目标，不参与 Gameplay 或射击结果。 */
+/** 可移除的网络姿态预览桥；只复制收枪目标，不参与 Gameplay 或射击结果。 */
 UCLASS()
 class SHOOTGAME_API UShooterRifleReadyPreviewComponent : public UActorComponent
 {
@@ -14,6 +14,8 @@ class SHOOTGAME_API UShooterRifleReadyPreviewComponent : public UActorComponent
 
 public:
 	UShooterRifleReadyPreviewComponent();
+	/** 临时复用 Rifle 动画的武器名单；本地入口、服务器与动画可用性共用。 */
+	static bool SupportsWeapon(FName WeaponId);
 	bool IsNetworkPreviewEnabled() const;
 	bool GetLowReadyRequested() const { return bLowReadyRequested && !bCancelPending; }
 	void ToggleNetworkPreview();
