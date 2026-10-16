@@ -1,0 +1,17 @@
+继续本聊天的 ShootGame Linux Server 构建监控，每次定时唤醒只检查一轮。
+已有基线时不主动重读 AGENTS.md、部署文档、源码、工具实现或历史日志；仅上下文缺失或文件变化时补读相关段落。
+工作区 D:/Unreal_Projects/ShootGame；服务器 103.236.77.127；SSH 用户 root。
+服务 shootgame-build-20261014.service；远程根目录 /home/ash-run/shootgame-dedicated-20261014。
+基线：8 并发、CPUQuota=800%、MemoryHigh/Max=20/24 GiB、swap 上限 4 GiB、磁盘保护 80 GiB。
+优先复用本聊天尚存活的交互式 SSH 工具 session_id，执行既有只读状态命令；不因一次唤醒而退出或另开连接。
+断线时用本聊天已有的授权凭据重连一次；凭据不可用则仅告警一次，等待用户处理，后续不重复询问。
+重连工具：python -B -u Scripts/Deployment/ShootGameRemote.py；校验固定主机指纹，密码不输出、不写入提示词或任何文件。
+只检查 unit、根目录 BuildStatus.json、当前 log_directory 的新增日志、磁盘、MemoryCurrent、swap 与 OOM。
+每次只取短摘要，日志正常时最多 8 行；不要打印整个状态文件和两份重复日志，错误时再取首错及必要上下文。
+在 Saved/Deployment/20261014/HeartbeatState.json 保留短检查点：session_id、阶段、日志目录/偏移、任务数、上次告警。
+正常推进或状态未变时保持安静；仅阶段变化、失败、磁盘低于 100 GiB、内存持续超过 18 GiB、新增 swap/OOM 或需用户操作时通知。
+任务编号可因增量重启归零；20:44 北京时间的旧退出是主动提并发，Produced item ... doesn't exist 本身不是编译错误。
+成功必须同时满足完成退出码 0、SERVER_TARGET_BUILD_SUCCESS、可执行 ShootGameServer 和 .target receipt；UBT 成功不是 Server 成功。
+失败不重试构建，只备份首错与日志交回主执行模型；成功备份日志、清单、脚本、二进制和 receipt 到本轮 Saved/Deployment。
+不改服务器或工程，不操作编辑器，不改并发/资源限制、防火墙、版本校验、Gameplay，不清理实验，不提交推送。
+只允许写本地检查点和备份。终态通知仅一次，停止继续查询终态；分别标明源码、Server 编译、Server 启动、公网连接状态。

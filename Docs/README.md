@@ -51,6 +51,10 @@
 
 ## 验证与工程操作
 
+- [Linux Dedicated Server 构建与跟踪](部署/LinuxDedicatedServer构建与跟踪.md)：
+  首次构建、公网双客户端登录证据、最后运行状态与本地交叉编译资源约束。
+- [Linux 构建环境完整备份](部署/Linux构建环境完整备份.md)：
+  G 盘未完成下载已删除；D 盘运行包保留，本地无完整构建环境备份。
 - [Blender 动画编辑工具链](Blender动画编辑工具链.md)：后台 bpy、FBX 与分段 LowToReady 隔离方案。
 - [Rifle 收枪动画表现](Rifle收枪动画表现.md)：正式动画资源、临时 K 键与接入边界。
 - [Rifle 动画验证索引](验证/README.md)：历史实验报告位置、当前证据与迁移说明。
