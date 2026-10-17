@@ -10,15 +10,19 @@
 #include "Characters/Animation/ShooterAnimNotify_Footstep.h"
 #include "Characters/Equipment/ShooterEquipmentComponent.h"
 #include "Characters/ShooterCharacter.h"
+#include "Characters/Movement/ShooterCharacterMovementComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Editor.h"
 #include "Engine/Engine.h"
+#include "Engine/StaticMeshActor.h"
+#include "Engine/StaticMesh.h"
 #include "EngineUtils.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PlayerState.h"
 #include "GameFramework/PlayerController.h"
 #include "InputKeyEventArgs.h"
+#include "HAL/IConsoleManager.h"
 #include "Inventory/ShooterInventoryComponent.h"
 #include "Misc/AutomationTest.h"
 #include "Settings/LevelEditorPlaySettings.h"
@@ -568,236 +572,118 @@ bool FShooterTPPlayerPIETest::RunTest(const FString& Parameters)
 
 namespace ShooterRifleReadyPIE
 {
-	/** 通过真实 PlayerController 的 K 输入，验证正式 AnimBP 与运行时数据源。 */
+	/** 单机正式输入覆盖六个俯仰；不覆盖生产目标或创建预览 RPC。 */
 	class FValidate final : public IAutomationLatentCommand
 	{
 	public:
 		explicit FValidate(FAutomationTestBase* InTest) : Test(InTest), Started(FPlatformTime::Seconds()) {}
-
 		virtual bool Update() override
 		{
-			if (FPlatformTime::Seconds() - Started > 75.0)
-			{
-				Test->AddError(FString::Printf(TEXT("Rifle K test timeout: phase=%d pitch=%d"), Phase, PitchIndex));
-				return true;
-			}
-			if (!Target.IsValid())
-			{
-				if (!GEditor->PlayWorld) { return false; }
-				for (TActorIterator<AShooterCharacter> It(GEditor->PlayWorld); It; ++It)
-				{
-					if (It->IsLocallyControlled()) { Target = *It; break; }
-				}
-				if (!Target.IsValid()) { return false; }
-				auto* Runtime = Target->GetWorld()->GetSubsystem<UShooterWeaponRuntimeSubsystem>();
-				if (!Runtime || !Runtime->IsRuntimeInitialized()) { Target.Reset(); return false; }
-				// 此用例只验动画输入；移除 PIE 世界内的 NPC，避免角色死亡与复活打断时间取证。
-				for (TActorIterator<AShooterNPC> It(Target->GetWorld()); It; ++It) { It->Destroy(); }
-				Rifle = Target->GetInventoryComponent()->FindWeaponByWeaponId(TEXT("Rifle"));
-				if (!Rifle.IsValid())
-				{
-					Rifle = Runtime->AcquireWeapon(TEXT("Rifle"), Target.Get(), Target.Get());
-					if (!Rifle.IsValid() || Target->GetInventoryComponent()->AddWeapon(Rifle.Get()) !=
-						EShooterInventoryAddResult::Added) { Test->AddError(TEXT("Rifle grant failed")); return true; }
-				}
-				Target->GetEquipmentComponent()->EquipWeapon(Rifle.Get());
-				Target->SetActorLocation(FVector(-534.0f, 1506.0f, 98.21f), false,
-					nullptr, ETeleportType::TeleportPhysics);
-				InitialInstance = Target->GetMesh()->GetAnimInstance();
-				CastChecked<APlayerController>(Target->GetController())->SetIgnoreLookInput(true);
-				Target->GetMesh()->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
-				Target->GetMesh()->bEnableUpdateRateOptimizations = false;
-				Ammo = Rifle->GetBulletCount();
-				Shots = Rifle->GetAuthorityShotCountForAutomationTest();
-				SetPitch();
-				return false;
-			}
+			if (FPlatformTime::Seconds() - Started > 60.0) { Test->AddError(TEXT("Rifle gameplay timeout")); return true; }
+			if (!Target.IsValid()) { return Prepare(); }
 			auto* Anim = Cast<UShooterThirdPersonAnimInstance>(Target->GetMesh()->GetAnimInstance());
-			if (bReleasePending)
-			{
-				auto* PC = CastChecked<APlayerController>(Target->GetController());
-				const FInputDeviceId Device = FInputDeviceId::CreateFromInternalId(0);
-				PC->InputKey(FInputKeyEventArgs(nullptr, Device, EKeys::K,
-					IE_Released, 0.0f, false, FPlatformTime::Cycles64()));
-				bReleasePending = false;
-			}
-			const auto* Ready = Anim ? Anim->GetStateMachineInstanceFromName(TEXT("RifleReady")) : nullptr;
+			const auto* State = Anim ? Anim->GetStateMachineInstanceFromName(TEXT("RifleReady")) : nullptr;
 			const auto* Player = Anim ? Anim->GetRifleTransitionPlayer() : nullptr;
-			if (FPlatformTime::Seconds() - LastDiagnostic > 2.0)
-			{
-				LastDiagnostic = FPlatformTime::Seconds();
-				UE_LOG(
-					LogTemp,
-					Display,
-					TEXT("RIFLE_K_WAIT phase=%d state=%s time=%.6f goal=%d pitch=%.3f anim=%s clip=%s"),
-					Phase,
-					Ready ? *Ready->GetCurrentStateName().ToString() : TEXT("Missing"),
-					Player ? Player->GetAccumulatedTime() : -1.0f,
-					Anim && Anim->bDebugRifleLowReady,
-					Anim ? Anim->AimPitchDegrees : 999.0f,
-					*GetNameSafe(Anim),
-					*GetNameSafe(Player ? Player->GetSequence() : nullptr));
-			}
-			if (!Ready || !Player || (Phase > 1 && !Player->GetSequence())) { return false; }
-			const FName State = Ready->GetCurrentStateName();
+			if (!State || !Player) { return false; }
+			const FName Name = State->GetCurrentStateName();
 			const float Time = Player->GetAccumulatedTime();
 			const double Elapsed = Target->GetWorld()->GetTimeSeconds() - PhaseStarted;
-			if (Phase == 1 && Elapsed > 0.4)
+			if (Phase == 0 && Elapsed > 0.4 && Name == TEXT("ArmedAim"))
 			{
 				Test->TestTrue(TEXT("Production Aim pitch reaches requested value"),
 					FMath::IsNearlyEqual(Anim->AimPitchDegrees, Pitches[PitchIndex], 0.02f));
-				Key();
-				Next(2);
+				Key(EKeys::LeftShift, true); Next(1);
 			}
-			else if (Phase == 2 && State == TEXT("AimTransition") && Time >= 0.25f)
+			else if (Phase == 1 && Name == TEXT("AimTransition") && Time > 0.25f && Time < 0.65f)
 			{
-				Test->TestTrue(TEXT("Local K uses one CorrectedGrip sequence at every pitch"),
+				Test->TestTrue(TEXT("Formal pitch slots use the accepted sequence"),
 					Player->GetSequence() == Anim->RifleTransitionCorrected);
-				Selected = Player->GetSequence();
-				BeforeReverse = Time;
-				Key();
+				Selected = Player->GetSequence(); BeforeReverse = Time;
+				Key(EKeys::LeftShift, false); Next(2);
+			}
+			else if (Phase == 2 && Player->GetPlayRate() < 0 && Time < BeforeReverse && Time > 0)
+			{
+				Test->TestTrue(TEXT("Shift reversal retains selected clip"), Selected.Get() == Player->GetSequence());
 				Next(3);
 			}
-			else if (Phase == 3 && Player->GetPlayRate() < 0.0f)
+			else if (Phase == 3 && Name == TEXT("ArmedAim") && Elapsed > 0.2)
 			{
-				Test->TestTrue(TEXT("K reverses without resetting time"), Time < BeforeReverse && Time > 0.0f);
-				Test->TestTrue(TEXT("K reversal retains selected clip"), Selected.Get() == Player->GetSequence());
-				Next(4);
+				Key(EKeys::LeftShift, true); Next(4);
 			}
-			else if (Phase == 4 && State == TEXT("ArmedAim") && Elapsed > 0.2)
-			{
-				Key();
-				Next(5);
-			}
-			else if (Phase == 5 && State == TEXT("LowReady") && Elapsed > 1.1)
+			else if (Phase == 4 && Name == TEXT("LowReady") && Elapsed > 0.4)
 			{
 				Test->TestTrue(TEXT("LowReady releases aim correction"), Anim->AimIKPresentationAlpha < 0.05f);
-				Test->TestTrue(TEXT("Existing left hand IK remains enabled"), Anim->bLeftHandIKEnabled);
-				Key();
-				Next(6);
+				Test->TestTrue(TEXT("LowReady keeps left hand IK enabled"), Anim->bLeftHandIKEnabled);
+				Key(EKeys::LeftShift, false); Next(5);
 			}
-			else if (Phase == 6 && State == TEXT("ArmedAim") && Elapsed > 1.1)
+			else if (Phase == 5 && Name == TEXT("ArmedAim") && Elapsed > 0.4)
 			{
-				Test->TestTrue(TEXT("Same production AnimInstance survives K cycles"), InitialInstance.Get() == Anim);
-				Test->TestEqual(TEXT("K does not change ammo"), Rifle->GetBulletCount(), Ammo);
-				Test->TestEqual(TEXT("K does not create authority shots"),
-					Rifle->GetAuthorityShotCountForAutomationTest(), Shots);
-				Test->AddInfo(FString::Printf(TEXT("RIFLE_K_PIE pitch=%.3f clip=%s reverse_time=%.6f"),
-					Pitches[PitchIndex], *Selected->GetName(), BeforeReverse));
+				Test->TestTrue(TEXT("Formal cycles keep the same AnimInstance"), InitialInstance.Get() == Anim);
+				Test->TestEqual(TEXT("Locomotion consumes no ammo"), Rifle->GetBulletCount(), Ammo);
+				Test->TestEqual(TEXT("Locomotion creates no shot"), Rifle->GetAuthorityShotCountForAutomationTest(), Shots);
 				if (++PitchIndex < Pitches.Num()) { SetPitch(); }
 				else
 				{
-					Key();
-					Next(9);
+					Key(EKeys::W, false);
+					Test->TestNull(TEXT("No production debug-mode switch"),
+						IConsoleManager::Get().FindConsoleVariable(TEXT("ShootGame.RifleReady.DebugPreview")));
+					Test->AddInfo(TEXT("RIFLE_GAMEPLAY_PIE_SUCCESS pitches=6 input=W,Shift reverse=6"));
+					return true;
 				}
-			}
-			else if (Phase == 9 && State == TEXT("LowReady") && Elapsed > 1.1)
-			{
-				Target->DoStartFiring();
-				Next(10);
-			}
-			else if (Phase == 10 && Elapsed > 0.2)
-			{
-				Target->DoStopFiring();
-				Test->TestFalse(TEXT("Firing clears only the debug pose target"), Anim->bDebugRifleLowReady);
-				Test->TestTrue(TEXT("LowReady does not block existing gameplay firing"),
-					Rifle->GetAuthorityShotCountForAutomationTest() > Shots);
-				Next(11);
-			}
-			else if (Phase == 11 && Elapsed > 0.4 && !Anim->IsAnyMontagePlaying())
-			{
-				Key();
-				Next(12);
-			}
-			else if (Phase == 12 && State == TEXT("LowReady") && Elapsed > 1.1)
-			{
-				Target->DoReload();
-				Next(13);
-			}
-			else if (Phase == 13)
-			{
-				const auto* Action = Anim->GetStateMachineInstanceFromName(TEXT("WeaponAction"));
-				bReloadSeen |= Action && Action->GetCurrentStateName() == TEXT("Reload");
-				if (Elapsed > 0.2) { Target->DoStopReload(); }
-				if (Elapsed > 3.2)
-				{
-					Test->TestTrue(TEXT("LowReady preserves the production Reload state"), bReloadSeen);
-					Test->TestFalse(TEXT("Reload clears debug pose target"), Anim->bDebugRifleLowReady);
-					auto* Pistol = Target->GetInventoryComponent()->FindWeaponByWeaponId(TEXT("Pistol"));
-					if (!Pistol)
-					{
-						auto* Runtime = Target->GetWorld()->GetSubsystem<UShooterWeaponRuntimeSubsystem>();
-						Pistol = Runtime->AcquireWeapon(TEXT("Pistol"), Target.Get(), Target.Get());
-						if (!Pistol || Target->GetInventoryComponent()->AddWeapon(Pistol) != EShooterInventoryAddResult::Added)
-						{
-							Test->AddError(TEXT("Pistol test grant failed"));
-							return true;
-						}
-					}
-					Target->GetEquipmentComponent()->EquipWeapon(Pistol);
-					Next(14);
-				}
-			}
-			else if (Phase == 14 && Elapsed > 0.4)
-			{
-				Key();
-				Next(15);
-			}
-			else if (Phase == 15 && Elapsed > 0.3)
-			{
-				Test->TestFalse(TEXT("Non Rifle K is rejected"), Anim->bDebugRifleLowReady);
-				Test->TestEqual(TEXT("Non Rifle retains original aim correction"),
-					Anim->GetRifleAimCorrectionWeight(), 1.0f);
-				Target->GetEquipmentComponent()->ClearEquippedWeapon();
-				Next(7);
-			}
-			else if (Phase == 7 && Elapsed > 0.4)
-			{
-				Key();
-				Next(8);
-			}
-			else if (Phase == 8 && Elapsed > 0.3)
-			{
-				Test->TestFalse(TEXT("Unarmed K is rejected"), Anim->bDebugRifleLowReady);
-				auto* PC = CastChecked<APlayerController>(Target->GetController());
-				PC->UnPossess();
-				UShooterThirdPersonAnimInstance::ToggleDebugRifleLowReady(Target.Get());
-				Test->TestFalse(TEXT("Nonlocal debug entry is rejected"), Anim->bDebugRifleLowReady);
-				PC->Possess(Target.Get());
-				Test->AddInfo(TEXT("RIFLE_K_PIE_SUCCESS cases=6 input=BlueprintK interrupts=Fire,Reload,Pistol,Unarmed"));
-				return true;
 			}
 			return false;
 		}
-
 	private:
-		void Key()
+		bool Prepare()
+		{
+			if (!GEditor->PlayWorld) { return false; }
+			for (TActorIterator<AShooterCharacter> It(GEditor->PlayWorld); It; ++It)
+			{
+				if (It->IsLocallyControlled()) { Target = *It; break; }
+			}
+			if (!Target.IsValid()) { return false; }
+			auto* Runtime = Target->GetWorld()->GetSubsystem<UShooterWeaponRuntimeSubsystem>();
+			if (!Runtime || !Runtime->IsRuntimeInitialized()) { Target.Reset(); return false; }
+			for (TActorIterator<AShooterNPC> It(Target->GetWorld()); It; ++It) { It->Destroy(); }
+			auto* Floor = Target->GetWorld()->SpawnActor<AStaticMeshActor>();
+			auto* Mesh = Floor->GetStaticMeshComponent();
+			Mesh->SetMobility(EComponentMobility::Movable);
+			Mesh->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cube.Cube")));
+			Mesh->SetCollisionProfileName(TEXT("BlockAll"));
+			Floor->SetActorScale3D(FVector(1000, 1000, 1)); Floor->SetActorLocation(FVector(0, 0, 9900));
+			Rifle = Target->GetInventoryComponent()->FindWeaponByWeaponId(TEXT("Rifle"));
+			if (!Rifle.IsValid())
+			{
+				Rifle = Runtime->AcquireWeapon(TEXT("Rifle"), Target.Get(), Target.Get());
+				if (!Rifle.IsValid() || Target->GetInventoryComponent()->AddWeapon(Rifle.Get()) != EShooterInventoryAddResult::Added)
+				{
+					Test->AddError(TEXT("Rifle grant failed")); return true;
+				}
+			}
+			Target->GetEquipmentComponent()->EquipWeapon(Rifle.Get());
+			Target->SetActorLocation(FVector(0, 0, 10048), false, nullptr, ETeleportType::TeleportPhysics);
+			InitialInstance = Target->GetMesh()->GetAnimInstance();
+			Target->GetMesh()->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
+			Target->GetMesh()->bEnableUpdateRateOptimizations = false;
+			Ammo = Rifle->GetBulletCount(); Shots = Rifle->GetAuthorityShotCountForAutomationTest();
+			Key(EKeys::W, true); SetPitch(); return false;
+		}
+		void Key(FKey Key, bool bHeld)
 		{
 			auto* PC = CastChecked<APlayerController>(Target->GetController());
-			const FInputDeviceId Device = FInputDeviceId::CreateFromInternalId(0);
-			PC->InputKey(FInputKeyEventArgs(nullptr, Device, EKeys::K,
-				IE_Pressed, 1.0f, false, FPlatformTime::Cycles64()));
-			bReleasePending = true;
-			UE_LOG(LogTemp, Display, TEXT("RIFLE_K_INPUT controller=%s"), *PC->GetClass()->GetPathName());
+			PC->InputKey(FInputKeyEventArgs(nullptr, FInputDeviceId::CreateFromInternalId(0), Key,
+				bHeld ? IE_Pressed : IE_Released, bHeld ? 1.0f : 0.0f, false, FPlatformTime::Cycles64()));
 		}
 		void SetPitch()
 		{
-			Target->GetController()->SetControlRotation(FRotator(Pitches[PitchIndex], 0.0f, 0.0f));
-			Next(1);
+			Target->GetController()->SetControlRotation(FRotator(Pitches[PitchIndex], 0, 0)); Next(0);
 		}
 		void Next(int32 Value) { Phase = Value; PhaseStarted = Target->GetWorld()->GetTimeSeconds(); }
 		FAutomationTestBase* Test;
-		double Started;
-		double PhaseStarted = 0.0;
-		double LastDiagnostic = 0.0;
-		int32 Phase = 0;
-		int32 PitchIndex = 0;
-		int32 Ammo = 0;
-		int32 Shots = 0;
-		float BeforeReverse = 0.0f;
-		bool bReleasePending = false;
-		bool bReloadSeen = false;
-		TArray<float> Pitches{0.0f, -29.99f, -30.0f, -50.0f, -50.01f, -65.0f};
+		double Started, PhaseStarted = 0;
+		int32 Phase = 0, PitchIndex = 0, Ammo = 0, Shots = 0;
+		float BeforeReverse = 0;
+		TArray<float> Pitches{0, -29.99f, -30, -50, -50.01f, -65};
 		TWeakObjectPtr<AShooterCharacter> Target;
 		TWeakObjectPtr<AShooterWeapon> Rifle;
 		TWeakObjectPtr<UAnimInstance> InitialInstance;
@@ -810,14 +696,12 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterRifleReadyPIETest, "ShootGame.Animation
 
 bool FShooterRifleReadyPIETest::RunTest(const FString& Parameters)
 {
-	ULevelEditorPlaySettings* Play = GetMutableDefault<ULevelEditorPlaySettings>();
+	auto* Play = GetMutableDefault<ULevelEditorPlaySettings>();
 	ShooterTPPlayerPIE::FSettingsSnapshot Original;
 	Play->GetPlayNetMode(Original.Mode);
 	Play->GetPlayNumberOfClients(Original.Clients);
 	Play->GetRunUnderOneProcess(Original.bOneProcess);
-	Play->SetPlayNetMode(PIE_Standalone);
-	Play->SetPlayNumberOfClients(1);
-	Play->SetRunUnderOneProcess(true);
+	Play->SetPlayNetMode(PIE_Standalone); Play->SetPlayNumberOfClients(1); Play->SetRunUnderOneProcess(true);
 	ADD_LATENT_AUTOMATION_COMMAND(FEditorLoadMap(TEXT("/Game/Shooter/Maps/Lvl_Shooter")));
 	ADD_LATENT_AUTOMATION_COMMAND(FStartPIECommand(false));
 	FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<ShooterRifleReadyPIE::FValidate>(this));

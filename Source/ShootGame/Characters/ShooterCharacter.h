@@ -13,6 +13,8 @@ class UAnimInstance;
 class UAbilitySystemComponent;
 class UInputAction;
 class UInputComponent;
+class UShooterCharacterMovementComponent;
+class UShooterAbilitySystemComponent;
 class UPawnNoiseEmitterComponent;
 class USkeletalMeshComponent;
 class UCameraComponent;
@@ -95,6 +97,20 @@ protected:
 	UPROPERTY(EditAnywhere, Category ="Input")
 	UInputAction* ReloadAction;
 
+	/** 走跑输入资产；角色蓝图配置为 IMC_Default 使用的同一 InputAction。 */
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> SprintAction;
+
+	/** 只服务本次快速抬枪的一次首发；不保存 PredictionKey，不提前激活 GA_Fire。 */
+	TWeakObjectPtr<AShooterWeapon> RifleFirstShotWeapon;
+	float RifleFirstShotExpiresAt = 0.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Shooter|Rifle Ready", meta = (ClampMin = "0.05", Units = "s"))
+	float RifleFirstShotBufferLifetime = 0.55f;
+
+	void CancelRifleFirstShot(const TCHAR* Reason = TEXT("Interrupted"));
+	bool IsRifleFirstShotContextValid() const;
+
 	/** Name of the first person mesh weapon socket */
 	UPROPERTY(EditAnywhere, Category ="Weapons")
 	FName FirstPersonWeaponSocket = FName("HandGrip_R");
@@ -174,7 +190,14 @@ public:
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 
 	/** Constructor */
-	AShooterCharacter();
+	AShooterCharacter(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+
+	UShooterCharacterMovementComponent* GetShooterMovement() const;
+	void DoStartSprint();
+	void DoStopSprint();
+	bool IsRifleReadyForFire() const;
+	void ProcessLocalAbilityInput(UShooterAbilitySystemComponent* AbilitySystem);
+	virtual void UnPossessed() override;
 
 	/** 为本地第一人称视图保留近距离手臂与武器，避免使用全局 5cm 近裁剪面。 */
 	virtual void CalcCamera(float DeltaTime, FMinimalViewInfo& OutResult) override;
@@ -420,6 +443,8 @@ protected:
 	void OnRespawn();
 
 private:
+	void ClearSprintInput();
+
 	/** 本机表现缓存：只用于幂等跳过与事件 Previous，不复制、不保存、不暴露给 Gameplay 读取方。 */
 	TWeakObjectPtr<AShooterWeapon> LastAppliedPresentationWeapon;
 

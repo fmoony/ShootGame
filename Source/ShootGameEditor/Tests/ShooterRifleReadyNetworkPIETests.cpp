@@ -3,21 +3,23 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "AI/ShooterNPC.h"
-#include "Characters/Animation/ShooterRifleReadyPreviewComponent.h"
-#include "Characters/Animation/ShooterThirdPersonAnimInstance.h"
-#include "Characters/Equipment/ShooterEquipmentComponent.h"
-#include "Characters/ShooterCharacter.h"
 #include "Animation/AnimNode_SequencePlayer.h"
 #include "Animation/AnimNode_StateMachine.h"
 #include "Animation/AnimSequence.h"
+#include "Characters/Animation/ShooterThirdPersonAnimInstance.h"
+#include "Characters/Equipment/ShooterEquipmentComponent.h"
+#include "Characters/Movement/ShooterCharacterMovementComponent.h"
+#include "Characters/ShooterCharacter.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Components/StaticMeshComponent.h"
 #include "Editor.h"
 #include "Engine/Engine.h"
 #include "Engine/NetDriver.h"
+#include "Engine/StaticMesh.h"
+#include "Engine/StaticMeshActor.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "GameFramework/PlayerController.h"
-#include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PlayerState.h"
 #include "HAL/IConsoleManager.h"
 #include "InputKeyEventArgs.h"
@@ -38,7 +40,6 @@ namespace RifleReadyNetworkPIE
 		int32 Clients;
 		bool bOneProcess;
 		bool bSeparateServer;
-		int32 Preview;
 	};
 
 	class FRestore : public IAutomationLatentCommand
@@ -49,11 +50,8 @@ namespace RifleReadyNetworkPIE
 		{
 			if (GEditor->PlayWorld) { return false; }
 			auto* Play = GetMutableDefault<ULevelEditorPlaySettings>();
-			Play->SetPlayNetMode(Saved.Mode);
-			Play->SetPlayNumberOfClients(Saved.Clients);
-			Play->SetRunUnderOneProcess(Saved.bOneProcess);
-			Play->bLaunchSeparateServer = Saved.bSeparateServer;
-			IConsoleManager::Get().FindConsoleVariable(TEXT("ShootGame.RifleReady.NetPreview"))->Set(Saved.Preview);
+			Play->SetPlayNetMode(Saved.Mode); Play->SetPlayNumberOfClients(Saved.Clients);
+			Play->SetRunUnderOneProcess(Saved.bOneProcess); Play->bLaunchSeparateServer = Saved.bSeparateServer;
 			return true;
 		}
 	private:
@@ -65,302 +63,268 @@ namespace RifleReadyNetworkPIE
 	public:
 		FValidate(FAutomationTestBase* InTest, FString InMode, FName InWeaponId)
 			: Test(InTest), Mode(MoveTemp(InMode)), WeaponId(InWeaponId), Started(FPlatformTime::Seconds()) {}
-
 		virtual bool Update() override
 		{
-			if (FPlatformTime::Seconds() - Started > 100.0) { return Fail(TEXT("network preview timeout")); }
-			if (!bPrepared) { return Prepare(); }
-			if (!Target.IsValid() || !Weapon.IsValid()) { return Fail(TEXT("stable target / weapon disappeared")); }
-			TArray<AShooterCharacter*> Copies = FindCopies();
+			if (FPlatformTime::Seconds() - Started > 80) { return Fail(TEXT("formal network timeout")); }
+			if (!Target.IsValid()) { return Prepare(); }
+			if (!Weapon.IsValid()) { return Fail(TEXT("weapon disappeared")); }
+			auto Copies = FindCopies();
 			AShooterCharacter* Owner = nullptr;
-			int32 Views = 0;
 			bool bAllLow = true, bAllAim = true;
-			for (AShooterCharacter* Copy : Copies)
+			int32 Views = 0;
+			for (auto* Copy : Copies)
 			{
-				// 仅冻结 PIE 取证角色的移动，避免地图边缘跌落导致稳定对象消失。
-				Copy->GetCharacterMovement()->DisableMovement();
 				if (Copy->IsLocallyControlled()) { Owner = Copy; }
-				auto* Mesh = Copy->GetMesh();
-				Mesh->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
-				Mesh->bEnableUpdateRateOptimizations = false;
-				auto* Anim = Cast<UShooterThirdPersonAnimInstance>(Mesh->GetAnimInstance());
-				auto* Preview = Copy->FindComponentByClass<UShooterRifleReadyPreviewComponent>();
+				else
+				{
+					Copy->GetMesh()->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
+					Copy->GetMesh()->bEnableUpdateRateOptimizations = false;
+				}
+				if (!Copy->GetCurrentWeaponActor() || Copy->GetCurrentWeaponActor()->GetWeaponId() != WeaponId) { return false; }
+				if (Copy->GetNetMode() == NM_DedicatedServer) { continue; }
+				auto* Anim = Cast<UShooterThirdPersonAnimInstance>(Copy->GetMesh()->GetAnimInstance());
 				const auto* State = Anim ? Anim->GetStateMachineInstanceFromName(TEXT("RifleReady")) : nullptr;
 				const auto* Player = Anim ? Anim->GetRifleTransitionPlayer() : nullptr;
-				const auto* Equipped = Copy->GetCurrentWeaponActor();
-				if (!Preview || !Equipped || Equipped->GetWeaponId() != WeaponId)
-				{
-					return false;
-				}
-				if (Copy->GetNetMode() == NM_DedicatedServer) { continue; }
-				if (!Anim || !State || !Player) { return false; }
+				if (!State || !Player) { return false; }
 				++Views;
-				const bool bExpectedGoal = Mode == TEXT("Off") ? Copy->IsLocallyControlled() : true;
-				bAllLow &= State->GetCurrentStateName() == (bExpectedGoal ? TEXT("LowReady") : TEXT("ArmedAim"));
-				bAllAim &= State->GetCurrentStateName() == TEXT("ArmedAim");
-				Rows += FString::Printf(TEXT("%s,%d,%.6f,%d,%d,%d,%s,%.9f,%.3f,%d,%d,%.3f\r\n"),
-					*Mode,
+				bAllLow &= State->GetCurrentStateName() == TEXT("LowReady") && Copy->GetShooterMovement()->IsSprinting();
+				bAllAim &= State->GetCurrentStateName() == TEXT("ArmedAim") &&
+					!Copy->GetShooterMovement()->IsSprinting();
+				Rows += FString::Printf(TEXT("%d,%d,%d,%s,%.6f,%.3f,%.6f,%d,%.1f,%d,%d\r\n"),
 					Phase,
-					FPlatformTime::Seconds() - Started,
-					Copy->GetWorld()->GetNetMode(),
-					Copy->GetLocalRole(),
+					int32(Copy->GetNetMode()),
 					Copy->IsLocallyControlled(),
 					*State->GetCurrentStateName().ToString(),
 					Player->GetAccumulatedTime(),
 					Player->GetPlayRate(),
-					Preview->GetLowReadyRequested(),
-					Anim->bDebugRifleLowReady,
-					Anim->AimPitchDegrees);
+					Player->GetSequence() ? Player->GetSequence()->RateScale : 0.0f,
+					Copy->GetShooterMovement()->IsSprinting(),
+					Copy->GetVelocity().Size2D(),
+					Copy->GetShooterMovement()->IsSprintHeld(),
+					Anim->GetRifleReadyAbortRequested());
 			}
-			if (!Owner || Views != 2 || Copies.Num() != (Mode == TEXT("Dedicated") ? 3 : 2)) { return false; }
-			const double Elapsed = FPlatformTime::Seconds() - PhaseStarted;
+			if (!Owner || Views != 2 || Copies.Num() != (Mode == TEXT("Listen") ? 2 : 3)) { return false; }
 			auto* Anim = CastChecked<UShooterThirdPersonAnimInstance>(Owner->GetMesh()->GetAnimInstance());
 			const auto* Player = Anim->GetRifleTransitionPlayer();
 			const auto* State = Anim->GetStateMachineInstanceFromName(TEXT("RifleReady"));
-			if (bRelease)
+			const float Time = Player->GetAccumulatedTime();
+			const double Elapsed = FPlatformTime::Seconds() - PhaseStarted;
+			if (Elapsed > 15) { return Fail(TEXT("formal stage timeout")); }
+			if (Phase == 0 && bAllAim && Elapsed > 0.5)
 			{
-				Input(Owner, IE_Released);
-				bRelease = false;
-			}
-			if (Phase == 0 && bAllAim && Elapsed > 1.0)
-			{
-				Test->TestTrue(TEXT("Actual owning client with server connection"),
+				Test->TestTrue(TEXT("Real owning client connection"),
 					Owner->GetNetMode() == NM_Client && Owner->GetWorld()->GetNetDriver()->ServerConnection != nullptr);
-				BaselineAmmo = Weapon->GetBulletCount();
-				BaselineShots = Weapon->GetAuthorityShotCountForAutomationTest();
-				Input(Owner, IE_Pressed);
-				Next(1);
+				Test->TestNull(TEXT("Preview CVar removed"),
+					IConsoleManager::Get().FindConsoleVariable(TEXT("ShootGame.RifleReady.NetPreview")));
+				for (const auto* Component : Owner->GetComponents())
+				{
+					Test->TestTrue(TEXT("Preview component removed"), Component->GetFName() != TEXT("RifleReadyNetworkPreview"));
+				}
+				const auto* Sequence = Anim->RifleTransitionCorrected.Get();
+				if (!Sequence) { return Fail(TEXT("configured transition sequence missing")); }
+				const float Duration = Sequence->GetPlayLength() / Sequence->RateScale;
+				Test->TestTrue(TEXT("Native resource duration is 0.25 to 0.4 seconds"), Duration >= 0.25f && Duration <= 0.4f);
+				Ammo = Weapon->GetBulletCount(); Shots = Weapon->GetAuthorityShotCountForAutomationTest();
+				Owner->GetController()->SetControlRotation(FRotator(-45, 0, 0));
+				Key(Owner, EKeys::W, true); Next(10);
+			}
+			else if (Phase == 10 && Owner->GetVelocity().Size2D() > 200)
+			{
+				Key(Owner, EKeys::LeftShift, true); Next(1);
 			}
 			else if (Phase == 1 && bAllLow)
 			{
-				Test->TestEqual(TEXT("Server owns final pose target"), ServerGoal(), Mode != TEXT("Off"));
-				CheckNoShots();
-				Input(Owner, IE_Pressed);
-				Next(2);
+				CheckNoShot(); Key(Owner, EKeys::LeftShift, false); Next(2);
 			}
-			else if (Phase == 2 && bAllAim && Elapsed > 0.3)
+			else if (Phase == 2 && State->GetCurrentStateName() == TEXT("AimTransition") && Time > 0.25f && Time < 0.65f)
 			{
-				CheckNoShots();
-				if (Mode == TEXT("Off")) { return Finish(); }
-				CastChecked<APlayerController>(Owner->GetController())->SetControlRotation(FRotator(-60, 0, 0));
-				Input(Owner, IE_Pressed);
-				Next(3);
+				BeforeReverse = Time; Key(Owner, EKeys::LeftShift, true); Next(3);
 			}
-			else if (Phase == 3 && State->GetCurrentStateName() == TEXT("AimTransition") &&
-				Player->GetAccumulatedTime() >= 0.25f && Player->GetAccumulatedTime() < 0.65f)
+			else if (Phase == 3)
 			{
-				Input(Owner, IE_Pressed);
-				PreviousTime = Player->GetAccumulatedTime();
-				Next(4);
+				bReverseSeen |= State->GetCurrentStateName() == TEXT("AimTransition") && Time > BeforeReverse && Time < 0.82f;
+				if (bAllLow)
+				{
+					Test->TestTrue(TEXT("Real Shift reverses in place"), bReverseSeen); CheckNoShot();
+					Feedback = Owner->GetOwnerLocalMontageCountForAutomationTest();
+					Owner->DoStartFiring(); Owner->DoStopFiring();
+					Test->TestTrue(TEXT("Released click waits for actual pose"), Owner->GetShooterMovement()->IsFireReadyPending());
+					Next(4);
+				}
 			}
 			else if (Phase == 4)
 			{
-				if (Player->GetPlayRate() < 0 && Player->GetAccumulatedTime() > 0 &&
-					Player->GetAccumulatedTime() < PreviousTime && State->GetCurrentStateName() == TEXT("AimTransition"))
+				if (Owner->GetShooterMovement()->IsFireReadyPending() && !Owner->IsRifleReadyForFire())
 				{
-					bReverseSeen = true;
+					Test->TestEqual(TEXT("No early owner feedback"),
+						Owner->GetOwnerLocalMontageCountForAutomationTest(), Feedback);
+					CheckNoShot();
 				}
-				PreviousTime = Player->GetAccumulatedTime();
-				if (bAllAim && Elapsed > 0.3)
+				if (Elapsed > 1.3 && bAllLow)
 				{
-					Test->TestTrue(TEXT("Actual mid-transition reverse keeps time"), bReverseSeen);
-					CheckNoShots();
-					Input(Owner, IE_Pressed);
-					Next(5);
-				}
-			}
-			else if (Phase == 5 && bAllLow)
-			{
-				// 非拥有者通过同一个蓝图入口尝试影响目标，不能改变服务器状态。
-				for (AShooterCharacter* Copy : Copies)
-				{
-					if (!Copy->IsLocallyControlled()) { UShooterThirdPersonAnimInstance::ToggleDebugRifleLowReady(Copy); }
-				}
-				Next(6);
-			}
-			else if (Phase == 6 && Elapsed > 0.4)
-			{
-				Test->TestTrue(TEXT("Foreign preview entry cannot toggle authoritative target"), ServerGoal());
-				CheckNoShots();
-				Owner->DoStartFiring();
-				Next(7);
-			}
-			else if (Phase == 7)
-			{
-				if (Elapsed > 0.03) { Owner->DoStopFiring(); }
-				if (Elapsed > 1.5 && bAllAim && !ServerGoal())
-				{
-					Test->TestTrue(TEXT("Existing network Fire still commits on authority"),
-						Weapon->GetAuthorityShotCountForAutomationTest() > BaselineShots);
-					Input(Owner, IE_Pressed);
-					Next(8);
+					Test->TestEqual(TEXT("One released first shot"),
+						Weapon->GetAuthorityShotCountForAutomationTest() - Shots, 1);
+					Test->TestEqual(TEXT("One ammo consumed"), Ammo - Weapon->GetBulletCount(), 1);
+					Test->TestEqual(TEXT("One owner montage"),
+						Owner->GetOwnerLocalMontageCountForAutomationTest() - Feedback, 1);
+					Shots = Weapon->GetAuthorityShotCountForAutomationTest(); Owner->DoReload(); Next(5);
 				}
 			}
-			else if (Phase == 8 && bAllLow)
+			else if (Phase == 5)
 			{
-				Owner->DoReload();
-				Next(9);
-			}
-			else if (Phase == 9)
-			{
-				const auto* Action = Anim->GetStateMachineInstanceFromName(TEXT("WeaponAction"));
-				bReloadSeen |= Action && Action->GetCurrentStateName() == TEXT("Reload");
-				if (Elapsed > 3.5 && bAllAim && !ServerGoal())
+				bReloadSeen |= Anim->bIsReloading && !Owner->GetShooterMovement()->IsSprinting();
+				if (Elapsed > 0.1) { Owner->DoStopReload(); }
+				if (Elapsed > 3.8 && bAllLow)
 				{
-					Test->TestTrue(TEXT("Reload keeps original state and clears network preview"), bReloadSeen);
-					if (Mode == TEXT("Dedicated")) { return Finish(); }
-					for (AShooterCharacter* C : AuthorityPlayers)
-					{
-						if (C->IsLocallyControlled()) { Target = C; break; }
-					}
-					Weapon = Target->GetCurrentWeaponActor();
-					BaselineAmmo = Weapon->GetBulletCount();
-					BaselineShots = Weapon->GetAuthorityShotCountForAutomationTest();
-					Input(Target.Get(), IE_Pressed);
-					Next(10);
+					Test->TestTrue(TEXT("Reload overrides actual sprint"), bReloadSeen);
+					Test->TestEqual(TEXT("Reload creates no extra shot"),
+						Weapon->GetAuthorityShotCountForAutomationTest(), Shots);
+					Test->TestEqual(TEXT("Reload restores initial magazine"), Weapon->GetBulletCount(), Ammo);
+					Key(Owner, EKeys::LeftShift, false); Next(6);
 				}
 			}
-			else if (Phase == 10 && bAllLow)
+			else if (Phase == 6 && bAllAim && Elapsed > 0.4)
 			{
-				Test->TestTrue(TEXT("Listen host has authoritative local animation"), Owner->HasAuthority());
-				CheckNoShots();
-				Input(Owner, IE_Pressed);
-				Next(11);
+				Key(Owner, EKeys::W, false); return Finish();
 			}
-			else if (Phase == 11 && bAllAim && Elapsed > 0.3) { CheckNoShots(); return Finish(); }
 			return false;
 		}
-
 	private:
 		bool Prepare()
 		{
-			for (const FWorldContext& Context : GEngine->GetWorldContexts())
+			UWorld* Server = nullptr; TArray<UWorld*> Worlds; TArray<AShooterCharacter*> Players;
+			for (const auto& Context : GEngine->GetWorldContexts())
 			{
-				UWorld* World = Context.World();
-				if (Context.WorldType != EWorldType::PIE || !World || World->GetNetMode() == NM_Client) { continue; }
-				AuthorityPlayers.Reset();
-				for (TActorIterator<AShooterCharacter> It(World); It; ++It)
-				{
-					if (Cast<APlayerController>(It->GetController()) && It->GetPlayerState()) { AuthorityPlayers.Add(*It); }
-				}
-				if (AuthorityPlayers.Num() != 2 || !World->GetNetDriver()) { continue; }
-				const int32 ExpectedConnections = Mode == TEXT("Dedicated") ? 2 : 1;
-				if (World->GetNetDriver()->ClientConnections.Num() != ExpectedConnections) { continue; }
-				auto* Runtime = World->GetSubsystem<UShooterWeaponRuntimeSubsystem>();
-				if (!Runtime || !Runtime->IsRuntimeInitialized()) { continue; }
-				for (TActorIterator<AShooterNPC> It(World); It; ++It) { It->Destroy(); }
-				for (int32 I = 0; I < AuthorityPlayers.Num(); ++I)
-				{
-					auto* C = AuthorityPlayers[I];
-					auto* Rifle = C->GetInventoryComponent()->FindWeaponByWeaponId(WeaponId);
-					if (!Rifle)
-					{
-						Rifle = Runtime->AcquireWeapon(WeaponId, C, C);
-						if (!Rifle || C->GetInventoryComponent()->AddWeapon(Rifle) != EShooterInventoryAddResult::Added)
-						{
-							return Fail(TEXT("real preview weapon grant failed"));
-						}
-					}
-					C->GetEquipmentComponent()->EquipWeapon(Rifle);
-					C->GetCharacterMovement()->DisableMovement();
-					C->SetActorLocation(FVector(-534, 1506 + I * 400, 98.21), false, nullptr, ETeleportType::TeleportPhysics);
-					if (!C->IsLocallyControlled()) { Target = C; }
-				}
-				Weapon = Target->GetCurrentWeaponActor();
-#if DO_ENABLE_NET_TEST
-				if (Mode == TEXT("Emulated"))
-				{
-					for (const FWorldContext& C : GEngine->GetWorldContexts())
-					{
-						if (C.WorldType != EWorldType::PIE || !C.World() || !C.World()->GetNetDriver()) { continue; }
-						FPacketSimulationSettings Packets;
-						Packets.PktLag = 80;
-						Packets.PktLoss = 2;
-						C.World()->GetNetDriver()->SetPacketSimulationSettings(Packets);
-					}
-				}
-#endif
-				bPrepared = true;
-				Next(0);
-				Test->AddInfo(FString::Printf(TEXT("RIFLE_NET_START mode=%s server_mode=%d connections=%d"),
-					*Mode, World->GetNetMode(), ExpectedConnections));
-				return false;
+				if (Context.WorldType != EWorldType::PIE || !Context.World()) { continue; }
+				Worlds.Add(Context.World());
+				if (Context.World()->GetNetMode() < NM_Client) { Server = Context.World(); }
 			}
-			return false;
+			if (!Server || Worlds.Num() != (Mode == TEXT("Listen") ? 2 : 3) || !Server->GetNetDriver()) { return false; }
+			for (TActorIterator<AShooterCharacter> It(Server); It; ++It)
+			{
+				auto* PC = Cast<APlayerController>(It->GetController());
+				if (PC && It->GetPlayerState()) { Players.Add(*It); }
+			}
+			if (Players.Num() != 2) { return false; }
+			auto* Runtime = Server->GetSubsystem<UShooterWeaponRuntimeSubsystem>();
+			if (!Runtime || !Runtime->IsRuntimeInitialized()) { return false; }
+			for (auto* Pawn : Players)
+			{
+				if (!CastChecked<APlayerController>(Pawn->GetController())->IsLocalController()) { Target = Pawn; break; }
+			}
+			if (!Target.IsValid()) { return Fail(TEXT("remote authority player missing")); }
+			for (TActorIterator<AShooterNPC> It(Server); It; ++It) { It->Destroy(); }
+			auto* Floor = Server->SpawnActor<AStaticMeshActor>();
+			Floor->bAlwaysRelevant = true; Floor->SetReplicates(true); Floor->SetReplicateMovement(true);
+			auto* Mesh = Floor->GetStaticMeshComponent(); Mesh->SetMobility(EComponentMobility::Movable);
+			Mesh->SetIsReplicated(true);
+			Mesh->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cube.Cube")));
+			Mesh->SetCollisionProfileName(TEXT("BlockAll"));
+			Floor->SetActorScale3D(FVector(1000, 1000, 1)); Floor->SetActorLocation(FVector(0, 0, 9900));
+			for (int32 Index = 0; Index < Players.Num(); ++Index)
+			{
+				Players[Index]->SetActorLocation(FVector(0, Index * 500, 10048), false, nullptr, ETeleportType::TeleportPhysics);
+			}
+#if DO_ENABLE_NET_TEST
+			if (Mode == TEXT("Emulated"))
+			{
+				for (auto* World : Worlds)
+				{
+					FPacketSimulationSettings Packets; Packets.PktLag = 100; Packets.PktLoss = 2;
+					World->GetNetDriver()->SetPacketSimulationSettings(Packets);
+					Test->TestEqual(TEXT("Actual lag"), World->GetNetDriver()->PacketSimulationSettings.PktLag, 100);
+					Test->TestEqual(TEXT("Actual loss"), World->GetNetDriver()->PacketSimulationSettings.PktLoss, 2);
+				}
+			}
+#else
+			if (Mode == TEXT("Emulated")) { return Fail(TEXT("network emulation unavailable")); }
+#endif
+			Weapon = Target->GetInventoryComponent()->FindWeaponByWeaponId(WeaponId);
+			if (!Weapon.IsValid())
+			{
+				Weapon = Runtime->AcquireWeapon(WeaponId, Target.Get(), Target.Get());
+				if (!Weapon.IsValid() || Target->GetInventoryComponent()->AddWeapon(Weapon.Get()) != EShooterInventoryAddResult::Added)
+				{
+					return Fail(TEXT("weapon grant failed"));
+				}
+			}
+			Target->GetEquipmentComponent()->EquipWeapon(Weapon.Get()); Next(0); return false;
 		}
-
 		TArray<AShooterCharacter*> FindCopies() const
 		{
 			TArray<AShooterCharacter*> Result;
-			const int32 Id = Target->GetPlayerState()->GetPlayerId();
-			for (const FWorldContext& Context : GEngine->GetWorldContexts())
+			for (const auto& Context : GEngine->GetWorldContexts())
 			{
 				if (Context.WorldType != EWorldType::PIE || !Context.World()) { continue; }
 				for (TActorIterator<AShooterCharacter> It(Context.World()); It; ++It)
 				{
-					if (It->GetPlayerState() && It->GetPlayerState()->GetPlayerId() == Id) { Result.Add(*It); }
+					if (It->GetPlayerState() && It->GetPlayerState()->GetPlayerId() == Target->GetPlayerState()->GetPlayerId())
+					{
+						Result.Add(*It);
+					}
 				}
 			}
 			return Result;
 		}
-		bool ServerGoal() const
+		void Key(AShooterCharacter* Pawn, FKey Key, bool bHeld)
 		{
-			return Target->FindComponentByClass<UShooterRifleReadyPreviewComponent>()->GetLowReadyRequested();
+			CastChecked<APlayerController>(Pawn->GetController())->InputKey(FInputKeyEventArgs(nullptr,
+				FInputDeviceId::CreateFromInternalId(0), Key, bHeld ? IE_Pressed : IE_Released,
+				bHeld ? 1.0f : 0.0f, false, FPlatformTime::Cycles64()));
 		}
-		void Input(AShooterCharacter* Owner, EInputEvent Event)
+		void Next(int32 Value)
 		{
-			auto* PC = CastChecked<APlayerController>(Owner->GetController());
-			const FInputDeviceId Device = FInputDeviceId::CreateFromInternalId(0);
-			PC->InputKey(FInputKeyEventArgs(nullptr, Device, EKeys::K, Event, Event == IE_Pressed ? 1.0f : 0.0f,
-				false, FPlatformTime::Cycles64()));
-			bRelease = Event == IE_Pressed;
+			Phase = Value; PhaseStarted = FPlatformTime::Seconds();
+			UE_LOG(LogAutomationTestFramework, Display, TEXT("RIFLE_GAMEPLAY_STAGE weapon=%s mode=%s phase=%d"),
+				*WeaponId.ToString(), *Mode, Phase);
 		}
-		void Next(int32 Value) { Phase = Value; PhaseStarted = FPlatformTime::Seconds(); }
-		void CheckNoShots()
+		void CheckNoShot()
 		{
-			Test->TestEqual(TEXT("K does not consume authority ammo"), Weapon->GetBulletCount(), BaselineAmmo);
-			Test->TestEqual(TEXT("K has zero extra authority shots"), Weapon->GetAuthorityShotCountForAutomationTest(), BaselineShots);
+			Test->TestEqual(TEXT("No premature authority shot"), Weapon->GetAuthorityShotCountForAutomationTest(), Shots);
+			Test->TestEqual(TEXT("No premature ammo consumption"), Weapon->GetBulletCount(), Ammo);
 		}
 		bool Finish()
 		{
-			const FString Folder = FPaths::ProjectSavedDir() / TEXT("ReadyPreviewReuse_20261014");
+			const FString Folder = FPaths::ProjectSavedDir() / TEXT("RifleReadyIntegration") /
+				FDateTime::UtcNow().ToString(TEXT("%Y%m%d_%H%M%S"));
 			IFileManager::Get().MakeDirectory(*Folder, true);
 			FFileHelper::SaveStringToFile(Rows, *(Folder / (WeaponId.ToString() + TEXT("_") + Mode + TEXT(".csv"))));
-			Test->AddInfo(FString::Printf(TEXT("RIFLE_NET_RESULT mode=%s errors=%d reverse=%d reload=%d"),
-				*Mode, Test->HasAnyErrors(), bReverseSeen, bReloadSeen));
+			Test->AddInfo(FString::Printf(
+				TEXT("RIFLE_GAMEPLAY_NETWORK weapon=%s mode=%s reverse=%d reload=%d errors=%d"),
+				*WeaponId.ToString(),
+				*Mode,
+				bReverseSeen,
+				bReloadSeen,
+				Test->HasAnyErrors()));
 			return true;
 		}
 		bool Fail(const TCHAR* Reason)
 		{
-			Test->AddError(FString::Printf(TEXT("RIFLE_NET_FAIL mode=%s phase=%d reason=%s"), *Mode, Phase, Reason));
-			Finish();
-			return true;
+			Test->AddError(FString::Printf(TEXT("RIFLE_GAMEPLAY_NETWORK_FAIL weapon=%s mode=%s phase=%d reason=%s"),
+				*WeaponId.ToString(), *Mode, Phase, Reason)); return Finish();
 		}
 		FAutomationTestBase* Test;
-		FString Mode;
-		FName WeaponId;
+		FString Mode; FName WeaponId;
 		double Started, PhaseStarted = 0;
-		int32 Phase = 0, BaselineAmmo = 0, BaselineShots = 0;
-		float PreviousTime = 0;
-		bool bPrepared = false, bRelease = false, bReverseSeen = false, bReloadSeen = false;
+		int32 Phase = 0, Ammo = 0, Shots = 0, Feedback = 0;
+		float BeforeReverse = 0;
+		bool bReverseSeen = false, bReloadSeen = false;
 		TWeakObjectPtr<AShooterCharacter> Target;
 		TWeakObjectPtr<AShooterWeapon> Weapon;
-		TArray<AShooterCharacter*> AuthorityPlayers;
-		FString Rows = TEXT("mode,phase,seconds,net_mode,role,local,state,time,rate,component_goal,anim_goal,pitch\r\n");
+		FString Rows = TEXT("phase,net,local,state,time,node_rate,asset_rate,sprint,speed,sprint_held,abort\r\n");
 	};
 }
 
-IMPLEMENT_COMPLEX_AUTOMATION_TEST(FShooterRifleReadyNetworkPIETest, "ShootGame.Animation.RifleReady.NetworkPreview",
+IMPLEMENT_COMPLEX_AUTOMATION_TEST(FShooterRifleReadyNetworkPIETest, "ShootGame.Animation.RifleReady.GameplayNetwork",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 void FShooterRifleReadyNetworkPIETest::GetTests(TArray<FString>& Names, TArray<FString>& Commands) const
 {
 	for (const TCHAR* WeaponId : {TEXT("Rifle"), TEXT("AWP"), TEXT("GrenadeLauncher")})
 	{
-		for (const TCHAR* Mode : {TEXT("Listen"), TEXT("Dedicated"), TEXT("Emulated"), TEXT("Off")})
+		for (const TCHAR* Mode : {TEXT("Listen"), TEXT("Dedicated"), TEXT("Emulated")})
 		{
-			Names.Add(FString(WeaponId) == TEXT("Rifle") ? FString(Mode) : FString(WeaponId) + TEXT(".") + Mode);
-			Commands.Add(FString(Mode) + TEXT("|") + WeaponId);
+			Names.Add(FString(WeaponId) + TEXT(".") + Mode); Commands.Add(FString(Mode) + TEXT("|") + WeaponId);
 		}
 	}
 }
@@ -368,21 +332,12 @@ void FShooterRifleReadyNetworkPIETest::GetTests(TArray<FString>& Names, TArray<F
 bool FShooterRifleReadyNetworkPIETest::RunTest(const FString& Parameters)
 {
 	using namespace RifleReadyNetworkPIE;
-	FString Mode, WeaponName;
-	Parameters.Split(TEXT("|"), &Mode, &WeaponName);
-	auto* Play = GetMutableDefault<ULevelEditorPlaySettings>();
-	FSettings Original;
-	Play->GetPlayNetMode(Original.Mode);
-	Play->GetPlayNumberOfClients(Original.Clients);
-	Play->GetRunUnderOneProcess(Original.bOneProcess);
-	Original.bSeparateServer = Play->bLaunchSeparateServer;
-	auto* Toggle = IConsoleManager::Get().FindConsoleVariable(TEXT("ShootGame.RifleReady.NetPreview"));
-	Original.Preview = Toggle->GetInt();
-	Toggle->Set(Mode == TEXT("Off") ? 0 : 1);
-	Play->SetPlayNetMode(Mode == TEXT("Dedicated") ? PIE_Client : PIE_ListenServer);
-	Play->SetPlayNumberOfClients(2);
-	Play->SetRunUnderOneProcess(true);
-	Play->bLaunchSeparateServer = false;
+	FString Mode, WeaponName; Parameters.Split(TEXT("|"), &Mode, &WeaponName);
+	auto* Play = GetMutableDefault<ULevelEditorPlaySettings>(); FSettings Original;
+	Play->GetPlayNetMode(Original.Mode); Play->GetPlayNumberOfClients(Original.Clients);
+	Play->GetRunUnderOneProcess(Original.bOneProcess); Original.bSeparateServer = Play->bLaunchSeparateServer;
+	Play->SetPlayNetMode(Mode == TEXT("Listen") ? PIE_ListenServer : PIE_Client);
+	Play->SetPlayNumberOfClients(2); Play->SetRunUnderOneProcess(true); Play->bLaunchSeparateServer = false;
 	ADD_LATENT_AUTOMATION_COMMAND(FEditorLoadMap(TEXT("/Game/Shooter/Maps/Lvl_Shooter")));
 	ADD_LATENT_AUTOMATION_COMMAND(FStartPIECommand(false));
 	FAutomationTestFramework::Get().EnqueueLatentCommand(MakeShared<FValidate>(this, Mode, FName(*WeaponName)));

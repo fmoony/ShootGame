@@ -1,11 +1,11 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "ShooterThirdPersonAnimInstance.h"
-#include "Characters/Animation/ShooterRifleReadyPreviewComponent.h"
 #include "Characters/Animation/AnimNodes/ShooterAimIKMath.h"
 #include "Characters/Aim/ShooterAimPresentationComponent.h"
 #include "Characters/Equipment/ShooterEquipmentComponent.h"
 #include "Characters/ShooterCharacter.h"
+#include "Characters/Movement/ShooterCharacterMovementComponent.h"
 #include "Weapons/ShooterWeapon.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -127,26 +127,6 @@ bool UShooterThirdPersonAnimInstance::IsMathematicallyValidBindingFrame(const FT
 	return T.IsValid() && T.GetScale3D().X > 0.0f && T.GetScale3D().Y > 0.0f && T.GetScale3D().Z > 0.0f;
 }
 
-void UShooterThirdPersonAnimInstance::ToggleDebugRifleLowReady(APawn* Pawn)
-{
-	AShooterCharacter* Character = Cast<AShooterCharacter>(Pawn);
-	if (!Character || !Character->IsLocallyControlled())
-	{
-		return;
-	}
-	AShooterWeapon* Weapon = Character->GetCurrentWeaponActor();
-	auto* Instance = Cast<UShooterThirdPersonAnimInstance>(Character->GetMesh()->GetAnimInstance());
-	if (Instance && Weapon && Weapon->GetOwner() == Character &&
-		UShooterRifleReadyPreviewComponent::SupportsWeapon(Weapon->GetWeaponId()) &&
-		!Instance->bIsReloading && !Instance->bIsEquipping && !Instance->bIsDead && !Instance->bIsFiring &&
-		!Instance->IsAnyMontagePlaying())
-	{
-		auto* Preview = Character->FindComponentByClass<UShooterRifleReadyPreviewComponent>();
-		if (Preview && Preview->IsNetworkPreviewEnabled()) { Preview->ToggleNetworkPreview(); }
-		else { Instance->bDebugRifleLowReady = !Instance->bDebugRifleLowReady; }
-	}
-}
-
 const FAnimNode_SequencePlayer* UShooterThirdPersonAnimInstance::GetRifleTransitionPlayer() const
 {
 	const FAnimInstanceProxy& Proxy = GetProxyOnAnyThread<FAnimInstanceProxy>();
@@ -156,17 +136,17 @@ const FAnimNode_SequencePlayer* UShooterThirdPersonAnimInstance::GetRifleTransit
 
 bool UShooterThirdPersonAnimInstance::GetRifleReadyAbortRequested() const
 {
-	return !bDebugRifleReadyAvailable || bIsReloading || bIsEquipping || bIsDead || bIsFiring || bDebugRifleActionMontageActive;
+	return !bRifleReadyAvailable || bIsReloading || bIsEquipping || bIsDead;
 }
 
 bool UShooterThirdPersonAnimInstance::GetRifleLowerRequested() const
 {
-	return bDebugRifleLowReady && !GetRifleReadyAbortRequested();
+	return bRifleLowReadyRequested && !GetRifleReadyAbortRequested();
 }
 
 bool UShooterThirdPersonAnimInstance::GetRifleRaiseRequested() const
 {
-	return !bDebugRifleLowReady && !GetRifleReadyAbortRequested();
+	return !bRifleLowReadyRequested && !GetRifleReadyAbortRequested();
 }
 
 bool UShooterThirdPersonAnimInstance::GetRifleAtLowEndpoint() const
@@ -186,7 +166,7 @@ void UShooterThirdPersonAnimInstance::UpdateRifleReadyAnimation()
 {
 	if (GetRifleReadyAbortRequested())
 	{
-		bDebugRifleLowReady = false;
+		bRifleLowReadyRequested = false;
 	}
 	const auto* Machine = GetStateMachineInstanceFromName(TEXT("RifleReady"));
 	if (Machine && ((Machine->GetCurrentStateName() == TEXT("ArmedAim") && GetRifleLowerRequested()) ||
@@ -197,9 +177,20 @@ void UShooterThirdPersonAnimInstance::UpdateRifleReadyAnimation()
 		RifleTransitionSequence = AimPitchDegrees < -50.0f - BoundaryTolerance ? RifleTransitionDown60
 			: AimPitchDegrees <= -30.0f + BoundaryTolerance ? RifleTransitionDown30 : RifleTransitionCorrected;
 	}
-	RifleTransitionPlayRate = bDebugRifleLowReady ? 1.0f : -1.0f;
-	RifleTransitionStartPosition = bDebugRifleLowReady || !RifleTransitionSequence
+	// 加速由序列资产 Rate Scale 配置；运行时只选择方向。
+	RifleTransitionPlayRate = bRifleLowReadyRequested ? 1.0f : -1.0f;
+	RifleTransitionStartPosition = bRifleLowReadyRequested || !RifleTransitionSequence
 		? 0.0f : RifleTransitionSequence->GetPlayLength();
+}
+
+bool UShooterThirdPersonAnimInstance::IsRifleReadyForFire() const
+{
+	// PC 输入处理先于本帧动画；读取上一帧已完成的图，最早在真实端点后提交。
+	const auto& Proxy = GetProxyOnGameThread<FAnimInstanceProxy>();
+	const auto* Machine = Proxy.GetStateMachineInstanceFromName(TEXT("RifleReady"));
+	if (!bRifleReadyAvailable || !Machine) { return true; }
+	return Machine->GetCurrentStateName() == TEXT("ArmedAim") ||
+		(Machine->GetCurrentStateName() == TEXT("AimTransition") && GetRifleAtAimEndpoint());
 }
 
 float UShooterThirdPersonAnimInstance::GetRifleAimCorrectionWeight() const
@@ -225,9 +216,8 @@ float UShooterThirdPersonAnimInstance::GetRifleAimCorrectionWeight() const
 
 void UShooterThirdPersonAnimInstance::NativeInitializeAnimation()
 {
-	bDebugRifleLowReady = false;
-	bDebugRifleReadyAvailable = false;
-	bDebugRifleActionMontageActive = false;
+	bRifleLowReadyRequested = false;
+	bRifleReadyAvailable = false;
 	RifleTransitionSequence = RifleTransitionCorrected;
 	Super::NativeInitializeAnimation();
 
@@ -246,8 +236,8 @@ void UShooterThirdPersonAnimInstance::NativeInitializeAnimation()
 
 void UShooterThirdPersonAnimInstance::NativeUninitializeAnimation()
 {
-	bDebugRifleLowReady = false;
-	bDebugRifleReadyAvailable = false;
+	bRifleLowReadyRequested = false;
+	bRifleReadyAvailable = false;
 	AShooterCharacter* Character = GetCachedShooterCharacter();
 	if (Character)
 	{
@@ -269,21 +259,10 @@ void UShooterThirdPersonAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	const bool bPreviouslyReloading = bIsReloading;
 	Super::NativeUpdateAnimation(DeltaSeconds);
 	const AShooterCharacter* Character = GetCachedShooterCharacter();
-	auto* Preview = Character ? Character->FindComponentByClass<UShooterRifleReadyPreviewComponent>() : nullptr;
-	const bool bNetwork = Preview && Preview->IsNetworkPreviewEnabled();
-	if (bNetwork) { bDebugRifleLowReady = Preview->GetLowReadyRequested(); }
-	else if (bWasNetworkRiflePreview) { bDebugRifleLowReady = false; }
-	bWasNetworkRiflePreview = bNetwork;
-	const bool bNetworkView = bNetwork && Character->GetNetMode() != NM_DedicatedServer;
-	bDebugRifleReadyAvailable = Character && (Character->IsLocallyControlled() || bNetworkView) && bHasEquippedWeapon &&
-		CurrentWeaponActor && UShooterRifleReadyPreviewComponent::SupportsWeapon(CurrentWeaponActor->GetWeaponId());
-	// 瞬时 Fire 的 Tag 可能在同帧结束；已播放的 Montage 仍是可靠的动画表现边界。
-	bDebugRifleActionMontageActive = IsAnyMontagePlaying();
+	bRifleReadyAvailable = Character && Character->GetNetMode() != NM_DedicatedServer && bHasEquippedWeapon &&
+		CurrentWeaponActor && UShooterCharacterMovementComponent::SupportsLowReady(CurrentWeaponActor->GetWeaponId());
+	bRifleLowReadyRequested = Character && Character->GetShooterMovement()->IsSprinting();
 	UpdateRifleReadyAnimation();
-	if (bNetwork && Character->IsLocallyControlled() && Preview->GetLowReadyRequested() && !bDebugRifleLowReady)
-	{
-		Preview->CancelNetworkPreview();
-	}
 	if (bPreviouslyReloading != bIsReloading)
 	{
 		LogReloadPresentation(TEXT("ReloadingTagChanged"));
@@ -418,10 +397,6 @@ bool UShooterThirdPersonAnimInstance::HasWeaponAnimationResources(const AShooter
 
 void UShooterThirdPersonAnimInstance::HandleWeaponPresentationChanged(AShooterWeapon* PreviousWeapon, AShooterWeapon* CurrentWeapon)
 {
-	if (PreviousWeapon != CurrentWeapon)
-	{
-		bDebugRifleLowReady = false;
-	}
 	// 表现事件已由 Character 验证完成后才发布；这里只消费 (Previous, Current) 上下文。
 	if (IsValid(CurrentWeapon) && CurrentWeapon->GetOwner() == GetCachedShooterCharacter())
 	{

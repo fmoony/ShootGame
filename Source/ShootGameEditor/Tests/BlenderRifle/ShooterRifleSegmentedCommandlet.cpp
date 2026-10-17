@@ -30,8 +30,8 @@ void UShooterRifleSegmentedAnimInstance::NativeUpdateAnimation(float DeltaSecond
 	Super::NativeUpdateAnimation(DeltaSeconds);
 	if (bProductionGraphTest)
 	{
-		bDebugRifleReadyAvailable = true;
-		bDebugRifleLowReady = RifleTestGoal == ERifleTransitionTestGoal::LowReady;
+		bRifleReadyAvailable = true;
+		bRifleLowReadyRequested = RifleTestGoal == ERifleTransitionTestGoal::LowReady;
 		const auto* Ready = GetStateMachineInstanceFromName(TEXT("RifleReady"));
 		if (Ready && ((Ready->GetCurrentStateName() == TEXT("ArmedAim") && GetRifleLowerRequested()) ||
 			(Ready->GetCurrentStateName() == TEXT("LowReady") && GetRifleRaiseRequested())))

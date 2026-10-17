@@ -29,48 +29,47 @@ class SHOOTGAME_API UShooterThirdPersonAnimInstance : public UShooterAnimInstanc
 	GENERATED_BODY()
 
 public:
-	/** 临时蓝图 K 入口：网络模式委托可移除组件；Standalone 保留本地切换，不改 Gameplay。 */
-	UFUNCTION(BlueprintCallable, Category = "Shooter|Rifle Preview")
-	static void ToggleDebugRifleLowReady(APawn* Pawn);
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Shooter|Rifle Preview")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Shooter|Rifle Ready")
 	TObjectPtr<UAnimSequence> RifleTransitionCorrected;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Shooter|Rifle Preview")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Shooter|Rifle Ready")
 	TObjectPtr<UAnimSequence> RifleTransitionDown30;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Shooter|Rifle Preview")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Shooter|Rifle Ready")
 	TObjectPtr<UAnimSequence> RifleTransitionDown60;
 
-	UPROPERTY(Transient, BlueprintReadOnly, Category = "Shooter|Rifle Preview")
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Shooter|Rifle Ready")
 	TObjectPtr<UAnimSequence> RifleTransitionSequence;
 
-	UPROPERTY(Transient, BlueprintReadOnly, Category = "Shooter|Rifle Preview")
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Shooter|Rifle Ready")
 	float RifleTransitionPlayRate = 1.0f;
 
-	UPROPERTY(Transient, BlueprintReadOnly, Category = "Shooter|Rifle Preview")
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Shooter|Rifle Ready")
 	float RifleTransitionStartPosition = 0.0f;
 
-	UPROPERTY(Transient, BlueprintReadOnly, Category = "Shooter|Rifle Preview")
-	bool bDebugRifleLowReady = false;
+	/** 状态机的唯一目标，由正式 Sprint 与动作限制解析。 */
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Shooter|Rifle Ready")
+	bool bRifleLowReadyRequested = false;
 
-	UFUNCTION(BlueprintPure, Category = "Shooter|Rifle Preview", meta = (BlueprintThreadSafe))
+	UFUNCTION(BlueprintPure, Category = "Shooter|Rifle Ready", meta = (BlueprintThreadSafe))
 	bool GetRifleLowerRequested() const;
 
-	UFUNCTION(BlueprintPure, Category = "Shooter|Rifle Preview", meta = (BlueprintThreadSafe))
+	UFUNCTION(BlueprintPure, Category = "Shooter|Rifle Ready", meta = (BlueprintThreadSafe))
 	bool GetRifleRaiseRequested() const;
 
-	UFUNCTION(BlueprintPure, Category = "Shooter|Rifle Preview", meta = (BlueprintThreadSafe))
+	UFUNCTION(BlueprintPure, Category = "Shooter|Rifle Ready", meta = (BlueprintThreadSafe))
 	bool GetRifleAtLowEndpoint() const;
 
-	UFUNCTION(BlueprintPure, Category = "Shooter|Rifle Preview", meta = (BlueprintThreadSafe))
+	UFUNCTION(BlueprintPure, Category = "Shooter|Rifle Ready", meta = (BlueprintThreadSafe))
 	bool GetRifleAtAimEndpoint() const;
 
-	UFUNCTION(BlueprintPure, Category = "Shooter|Rifle Preview", meta = (BlueprintThreadSafe))
+	UFUNCTION(BlueprintPure, Category = "Shooter|Rifle Ready", meta = (BlueprintThreadSafe))
 	bool GetRifleReadyAbortRequested() const;
 
 	const struct FAnimNode_SequencePlayer* GetRifleTransitionPlayer() const;
 	float GetRifleAimCorrectionWeight() const;
+	/** 本地输入门控只读真实状态机端点，不驱动服务器事务。 */
+	bool IsRifleReadyForFire() const;
 
 	/** 幂等应用已加载的武器动画配置；不初始化图、状态机或播放器。 */
 	void ApplyWeaponAnimationResources(const AShooterWeapon* Weapon);
@@ -251,9 +250,7 @@ public:
 protected:
 	/** 游戏线程选片快照；活动过渡只更新方向，不换片、不重置累计时间。 */
 	void UpdateRifleReadyAnimation();
-	bool bDebugRifleReadyAvailable = false;
-	bool bDebugRifleActionMontageActive = false;
-	bool bWasNetworkRiflePreview = false;
+	bool bRifleReadyAvailable = false;
 
 	/** 初始化：订阅 Character 表现完成事件并回放 Equipment 当前状态。 */
 	virtual void NativeInitializeAnimation() override;

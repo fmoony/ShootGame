@@ -1105,7 +1105,8 @@ private:
 
 	/** 5B 弱网 Fire-after-Reload：Reload 完成后单次 Fire 必须到达服务器且只激活 / 射击 / 扣弹一次。 */
 	bool bFireAfterReloadPhaseTriggered = false;
-	bool bFireAfterReloadActiveObserved = false;
+	bool bFireAfterReloadActivationObserved = false;
+	int32 FireAfterReloadActivationBefore = INDEX_NONE;
 	bool bFireAfterReloadSingleShotVerified = false;
 	bool bClientTriggeredStopFireAfterReload = false;
 	bool bFireAfterReloadQuiescentVerified = false;

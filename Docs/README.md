@@ -1,6 +1,6 @@
 # ShootGame 文档索引
 
-- 整理日期：2026-10-08；当前代码基线：`2d04667`。
+- 整理日期：2026-10-16；当前代码基线：`38be3be`。
 - 近期方向：继续完善表现，暂缓 Lobby / LAN Session。
 - 最新功能、验证与遗留项统一见[总路线当前进度][doc-link-1]。
 
@@ -33,6 +33,7 @@
 - [Shooter 模板蓝图分析](Shooter模板蓝图分析.md)。
 - [TP 脚步 Notify 与基础音效](TP脚步Notify与基础音效.md)。
 - [枪械可拆卸弹匣资产约定](枪械可拆卸弹匣资产约定.md)。
+- [Walk / Sprint 与自动收枪](WalkSprint与自动收枪.md)：移动预测、Fire 优先级与正式 RifleReady。
 - [FirstPerson 清理与架构审计](FirstPerson清理与架构审计.md)：早期清理记录。
 - [AnimClassMapping 失败分析](历史遗留/全量回归AnimClassMapping失败分析.md)：2026-09-09 历史调查。
 
@@ -56,13 +57,18 @@
 - [Linux 构建环境完整备份](部署/Linux构建环境完整备份.md)：
   G 盘未完成下载已删除；D 盘运行包保留，本地无完整构建环境备份。
 - [Blender 动画编辑工具链](Blender动画编辑工具链.md)：后台 bpy、FBX 与分段 LowToReady 隔离方案。
-- [Rifle 收枪动画表现](Rifle收枪动画表现.md)：正式动画资源、临时 K 键与接入边界。
+- [Rifle 收枪动画表现](Rifle收枪动画表现.md)：原生动画速率、分层图与正式走跑姿态。
 - [Rifle 动画验证索引](验证/README.md)：历史实验报告位置、当前证据与迁移说明。
 - [自动化测试](自动化测试.md)。
 - [Agent 自动化验证操作手册](Agent自动化验证操作手册.md)。
 - [Visual Studio 项目同步](VisualStudio项目同步.md)。
 - [MCP 外部 Agent 契约](../Plugins/McpAutomationBridge/EXTERNAL_AGENT_GUIDE.md)。
 
-最新完整回归尚未通过；本次文档整理不重跑 Gameplay 验证，也不扩展人工验收结论。
+2026-10-16：K 网络预览桥已退出，RifleReady 仅由正式 Sprint 驱动。
+双向加速保存为序列原生 Rate Scale=2.6，完整过渡约 0.32 秒。
+全量 Automation 187 项与七阶段网络回归均通过；首发继续等待真实端点。
+输入已复用 IA_SprintAction / IMC_Default，动态 SprintMappingContext 已移除。
+输入接入见[记录](开发记录/2026-10-16-1640-Sprint输入资产接入.md)。
+资源与预览桥清理见[正式整合记录](开发记录/2026-10-16-1613-RifleReady正式整合与资源速率.md)。
 
 [doc-link-1]: 执行计划/Shooter完整Demo最终路线规划.md#15-当前进度与近期方向

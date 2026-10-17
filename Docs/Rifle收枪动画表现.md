@@ -1,7 +1,8 @@
 # Rifle 收枪动画表现
 
-维护日期：2026-10-14；适用 UE 5.6.1。
-用户已验收 Local 方案 2 与临时 K 网络动画预览；本功能只改变动画表现。
+维护日期：2026-10-16；适用 UE 5.6.1。
+Local 方案 2 保持；临时 K 网络预览已退出，正式 Gameplay 见[走跑接入](WalkSprint与自动收枪.md)。
+本文说明动画资源与图结构，实际姿态目标由正式 Sprint 驱动。
 
 ## 当前正式方案
 
@@ -15,7 +16,9 @@ AimTransition 使用 MM_Rifle_AimToLowReady_Relaxed，LowReady 使用 MM_Rifle_L
 该自定义层只用于 AimTransition；稳定 LowReady 使用标准 Layered Blend Per Bone，权重恒为 1。
 LowReady 保持相同 BlendMask、Local Space 和头颈修正，未增加新的 C++ 节点。
 正式三个选片槽均引用同一 Relaxed 过渡；旧 CorrectedGrip / Down30 / Down60 保留作回退。
-不接入方案 3 的额外反向边界混合；原播放时长约 0.833333 秒，速率仍为 ±1。
+不接入方案 3 的额外反向边界混合；素材原长约 0.833333 秒。
+过渡序列原生 Rate Scale 为 2.6，双向全程约 0.320513 秒；运行时只选择 ±1 方向。
+首发等待真实抬枪端点；缓冲、取消和输入优先级见走跑专题。
 中途反向保持当前累计时间，实时改俯仰不会重置动画或切换素材。
 
 当前采用的 Rifle 素材目录：
@@ -36,26 +39,16 @@ Shooter/Animation 仅存放 AnimBP，FP Rifle Montage 也已迁至 Characters �
 本轮未调整 Mask 权重、Aim IK、LeftHand IK、FP Proxy 或相机层级。
 本地 FP 沿用 CopyPose 和现有净空机制，远端只消费自己的 TP 动画实例。
 
-## K 蓝图与临时网络接口
+## 正式姿态与旧预览退出
 
-输入位于 BP_ShooterCharacter 的 EventGraph：K Pressed → ToggleDebugRifleLowReady(Self)。
-该入口要求本地控制及有效 Rifle、AWP 或 GrenadeLauncher；Pistol 保持排除。
-三枪暂时共用现有 Rifle 素材、Mask 和头颈修正，不新增专用动画。
-按住不重复触发，过渡中再次按 K 可以反向；本次复用未处理 FP 遮挡。
+正式姿态只消费 CMC 的实际 Sprint，K 蓝图节点、预览模式开关及复制组件均已删除。
+AnimInstance 使用唯一目标和正式动作中断规则；没有调试模式射击放行分支。
+Rifle、AWP、GrenadeLauncher 共用现有 Rifle 素材、Mask 和头颈修正；Pistol 保持原持姿。
+正反方向由现有播放器选择，速度直接读取序列原生 Rate Scale，不写运行时加速倍率。
+首发在真实抬枪端点后走原 GAS；窗口与取消规则见走跑专题。
+Owner 自行预测 Sprint，Observer 消费服务器 Sprint；Dedicated 不依赖渲染动画推进射击事务。
 
-Standalone 直接切换本地目标；多人模式委托 ShooterRifleReadyPreviewComponent。
-拥有端提交可靠 Server Toggle，服务器检查现有武器和动作限制，再复制姿态目标 bool。
-Owner / Observer 各自推进原播放器；Dedicated Server 仅保存目标，不要求渲染动画。
-原 Fire、Reload、Equipping、Dead、Montage 等边界仍可中断，临时接口不禁止任何 Gameplay 动作。
-组件不修改 GAS Tag、Ammo、射速、Hit、Damage、装备规则或权威射击结果。
-
-只同步目标，不同步逐帧时钟；网络 K 等服务器确认，动画阶段可能存在延迟。
-快速目标可被属性复制合并；晚加入、跨机器与极端延迟尚未专项验收。
-不能用本次动画验收替代完整射击预测与反馈四路径验证。
-
-快速关闭：各进程执行 `ShootGame.RifleReady.NetPreview 0`；恢复用 1。
-彻底移除：删除 PreviewComponent h / cpp，撤销 Character 构造挂点和 AnimInstance 网络桥接。
-K 蓝图、Local 节点及素材仍可保留；详细范围见历史[网络预览报告][net]。
+旧网络预览的验收材料保留原貌，仅供历史查阅，见[网络预览报告][net]。
 
 ## 调整工具与回归
 
@@ -69,19 +62,19 @@ analyze_segmented.py 用于保留的分段回退夹具，不把旧阈值检查�
 Automation RunTests ShootGame.Animation.RifleReady
 ```
 
-回归覆盖 Rifle Standalone，以及三枪各自的 Listen、Dedicated、延迟丢包与本地对照。
-网络夹具使用真实 NetDriver、拥有连接、K 蓝图输入与原 Fire / Reload 入口。
-纯 K 在固定权威武器上检查 Shot / Ammo 增量为 0，不构造新的 Gameplay 状态。
+回归覆盖 Rifle Standalone 六个俯仰，以及三枪各自的 Listen、Dedicated 与延迟丢包。
+网络夹具使用真实 NetDriver、拥有连接、W / Shift 输入与原 Fire / Reload 入口。
+纯姿态切换在固定权威武器上检查 Shot / Ammo 增量为 0；开火继续验证一次首发。
 
 ## 手动检查
 
 在正式 Lvl_Shooter 设置 2 Players / Listen Server，依次装备 Rifle、AWP 和 GrenadeLauncher。
-一端按 K，从另一端观察收枪、抬枪、中途反向及连续改变俯仰；再交换操作者。
+一端用 W / Shift 走跑，从另一端观察收抬枪、中途反向及俯仰；再交换操作者。
 本地检查第一人称肩臂和枪械可见性，再触发原 Fire / Reload 确认动作仍可执行。
 Dedicated 对照选 Play As Client、2 Players；主观画面不由无头 Automation 判定。
 
 一次性 Local / Mesh / Boundary 与五轮肩部头部原型已清理。
-仅保留原 Segmented50 回退地图及必要依赖，当前验证直接使用正式角色和 K 输入。
+仅保留原 Segmented50 回退地图及必要依赖，当前验证直接使用正式角色与走跑输入。
 该地图仍用于素材和 Natural Pitch Mask 对照，不代表正式 Local 方案或真实 FP 角色。
 历史报告原文保留，已删除的截图、JSON、CSV 和脚本路径可能失效，见[验证索引][index]。
 本次接入与清理的范围、验证和边界见[生产接入记录][posture]。

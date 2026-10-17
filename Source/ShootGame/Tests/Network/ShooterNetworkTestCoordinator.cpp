@@ -2432,20 +2432,22 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			? ServerInventorySecondWeapon->GetBulletCount()
 			: INDEX_NONE;
 		FireAfterReloadProjectileBefore = ProjectileSpawnCount;
+		FireAfterReloadActivationBefore = TestFireActivatedCount;
 		bServerReadyForFireAfterReload = true;
 		ForceNetUpdate();
 		return;
 	}
 
-	if (bClientTriggeredFireAfterReload && !bFireAfterReloadActiveObserved)
+	if (bClientTriggeredFireAfterReload && !bFireAfterReloadActivationObserved)
 	{
-		if (AShooterPlayerState* ShooterPlayerState = Character->GetPlayerState<AShooterPlayerState>())
+		// GA_Fire 在同一调用栈内结束；轮询活动实例永远无法证明这次瞬时激活。
+		const int32 ActivationDelta = TestFireActivatedCount - FireAfterReloadActivationBefore;
+		if (ActivationDelta > 1)
 		{
-			UShooterAbilitySystemComponent* ShooterAbilitySystemComponent =
-				Cast<UShooterAbilitySystemComponent>(Character->GetAbilitySystemComponent());
-			bFireAfterReloadActiveObserved = ShooterAbilitySystemComponent &&
-				ShooterAbilitySystemComponent->GetActiveAbilityCountForClass(ShooterPlayerState->GetFireAbilityClass()) == 1;
+			FailTest(TEXT("Fire-after-reload produced more than one activation"));
+			return;
 		}
+		bFireAfterReloadActivationObserved = FireAfterReloadActivationBefore != INDEX_NONE && ActivationDelta == 1;
 	}
 
 	if (bClientTriggeredFireAfterReload && !bFireAfterReloadSingleShotVerified)
@@ -2454,7 +2456,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		const int32 MagazineAfterFire = ServerInventorySecondWeapon.IsValid()
 			? ServerInventorySecondWeapon->GetBulletCount()
 			: INDEX_NONE;
-		bFireAfterReloadSingleShotVerified = bFireAfterReloadActiveObserved && FireAfterReloadMagazineBefore != INDEX_NONE &&
+		bFireAfterReloadSingleShotVerified = bFireAfterReloadActivationObserved && FireAfterReloadMagazineBefore != INDEX_NONE &&
 			MagazineAfterFire == FireAfterReloadMagazineBefore - 1 && ProjectileSpawnCount == FireAfterReloadProjectileBefore + 1;
 		if (bFireAfterReloadSingleShotVerified)
 		{
@@ -3279,7 +3281,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 		bEquipInitialCommitConsistent &&
 		bEquipCancelReloadActiveObserved && bEquipSwitchBackActiveObserved &&
 		bEquipSingleRejectVerified && bEquipRejectDeadVerified &&
-		bFireAfterReloadActiveObserved && bFireAfterReloadSingleShotVerified &&
+		bFireAfterReloadActivationObserved && bFireAfterReloadSingleShotVerified &&
 		bFireAfterReloadQuiescentVerified &&
 		bSingleProjectileVerified && bOwnerAcceptedShotEvidenceVerified &&
 		bFullAutoReleaseVerified && bFullAutoLocalCadenceVerified &&
@@ -3349,7 +3351,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			bReloadSwitchBackVerified ? TEXT("true") : TEXT("false"),
 			bReloadNoReserveVerified ? TEXT("true") : TEXT("false"),
 			bReloadCancelDeathVerified ? TEXT("true") : TEXT("false"),
-			bFireAfterReloadActiveObserved ? TEXT("true") : TEXT("false"),
+			bFireAfterReloadActivationObserved ? TEXT("true") : TEXT("false"),
 			bFireAfterReloadSingleShotVerified ? TEXT("true") : TEXT("false"),
 			bFireAfterReloadQuiescentVerified ? TEXT("true") : TEXT("false"),
 			bEquipInitialCommitConsistent ? TEXT("true") : TEXT("false"),
@@ -3451,7 +3453,7 @@ void AShooterNetworkTestCoordinator::PollServerState()
 			bReloadSwitchBackVerified ? TEXT("true") : TEXT("false"),
 			bReloadNoReserveVerified ? TEXT("true") : TEXT("false"),
 			bReloadCancelDeathVerified ? TEXT("true") : TEXT("false"),
-			bFireAfterReloadActiveObserved ? TEXT("true") : TEXT("false"),
+			bFireAfterReloadActivationObserved ? TEXT("true") : TEXT("false"),
 			bFireAfterReloadSingleShotVerified ? TEXT("true") : TEXT("false"),
 			bFireAfterReloadQuiescentVerified ? TEXT("true") : TEXT("false"),
 			bEquipInitialCommitConsistent ? TEXT("true") : TEXT("false"),

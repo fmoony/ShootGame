@@ -3,7 +3,7 @@
 
 #include "ShooterCharacter.h"
 #include "Characters/Animation/ShooterThirdPersonAnimInstance.h"
-#include "Characters/Animation/ShooterRifleReadyPreviewComponent.h"
+#include "Characters/Movement/ShooterCharacterMovementComponent.h"
 #include "Characters/Aim/ShooterAimPresentationComponent.h"
 #include "Characters/Equipment/ShooterEquipmentComponent.h"
 #include "Weapons/ShooterWeapon.h"
@@ -104,11 +104,9 @@ FVector AShooterCharacter::TracePreSpreadAimTarget(UWorld* World, const FVector&
 	return Result.Target;
 }
 
-AShooterCharacter::AShooterCharacter()
+AShooterCharacter::AShooterCharacter(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer.SetDefaultSubobjectClass<UShooterCharacterMovementComponent>(CharacterMovementComponentName))
 {
-	// 临时网络姿态桥：移除该挂点及动画实例桥接即可撤销，不挂接 GAS / 装备事务。
-	CreateDefaultSubobject<UShooterRifleReadyPreviewComponent>(TEXT("RifleReadyNetworkPreview"));
-
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(55.f, 96.0f);
 
@@ -253,6 +251,7 @@ void AShooterCharacter::BeginPlay()
 
 void AShooterCharacter::EndPlay(EEndPlayReason::Type EndPlayReason)
 {
+	ClearSprintInput();
 	// 清理角色自身的延迟回调，避免销毁后继续触发。
 	GetWorld()->GetTimerManager().ClearTimer(RespawnTimer);
 
@@ -321,6 +320,7 @@ void AShooterCharacter::OnRep_PlayerState()
 void AShooterCharacter::OnRep_Controller()
 {
 	Super::OnRep_Controller();
+	if (!GetController()) { ClearSprintInput(); }
 	InitializeAbilityActorInfo();
 }
 
@@ -463,24 +463,27 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 		// Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AShooterCharacter::MoveInput);
 
+		// Sprint
+		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &AShooterCharacter::DoStartSprint);
+		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &AShooterCharacter::DoStopSprint);
+		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Canceled, this, &AShooterCharacter::DoStopSprint);
+
 		// Looking/Aiming
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AShooterCharacter::LookInput);
-		EnhancedInputComponent->BindAction(MouseLookAction, ETriggerEvent::Triggered, this,
-			&AShooterCharacter::LookInput);
+		EnhancedInputComponent->BindAction(MouseLookAction, ETriggerEvent::Triggered, this, &AShooterCharacter::LookInput);
 
 		// Firing
 		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &AShooterCharacter::DoStartFiring);
 		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this, &AShooterCharacter::DoStopFiring);
+		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Canceled, this, &AShooterCharacter::DoStopFiring);
 
 		// Reload：IA_Reload 只提交 Input.Reload，不直接改弹药。
 		// 它是隐式 Down 语义（按下期间持续 actuated），因此按压生命周期必须完整闭环：
 		// Started 提交按下沿；Completed（真实松开）与 Canceled（输入被取消，例如映射上下文移除）
 		// 都回收输入意图。缺少终点会让 ASC 永久把 Reload 当成"仍按住"。
 		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &AShooterCharacter::DoReload);
-		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Completed, this,
-			&AShooterCharacter::DoStopReload);
-		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Canceled, this,
-			&AShooterCharacter::DoStopReload);
+		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Completed, this, &AShooterCharacter::DoStopReload);
+		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Canceled, this, &AShooterCharacter::DoStopReload);
 
 		// 切枪使用 Axis1D：正值切下一把，负值切上一把。
 		// IA_SwapWeapon 配置了显式 InputTriggerPressed（单帧脉冲），物理上不存在"持续按住"语义，
@@ -495,6 +498,33 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 			*GetNameSafe(this));
 	}
 
+}
+
+UShooterCharacterMovementComponent* AShooterCharacter::GetShooterMovement() const
+{
+	return CastChecked<UShooterCharacterMovementComponent>(GetCharacterMovement());
+}
+
+void AShooterCharacter::DoStartSprint()
+{
+	GetShooterMovement()->SetSprintHeld(true);
+}
+
+void AShooterCharacter::DoStopSprint()
+{
+	GetShooterMovement()->SetSprintHeld(false);
+}
+
+void AShooterCharacter::ClearSprintInput()
+{
+	CancelRifleFirstShot();
+	GetShooterMovement()->ResetMovementIntents();
+}
+
+void AShooterCharacter::UnPossessed()
+{
+	ClearSprintInput();
+	Super::UnPossessed();
 }
 
 void AShooterCharacter::MoveInput(const FInputActionValue& Value)
@@ -620,6 +650,22 @@ void AShooterCharacter::CancelEquipAbility()
 
 void AShooterCharacter::DoStartFiring()
 {
+	// 输入当帧退出 Sprint；实际姿态未抬到位时，只保留一个有期限的本地首发。
+	GetShooterMovement()->SetFireHeld(true);
+	if (IsLocallyControlled() && !IsRifleReadyForFire() && IsRifleFirstShotContextValid())
+	{
+		if (!GetShooterMovement()->IsFireReadyPending())
+		{
+			RifleFirstShotWeapon = GetCurrentWeaponActor();
+			RifleFirstShotExpiresAt = GetWorld()->GetTimeSeconds() + RifleFirstShotBufferLifetime;
+			GetShooterMovement()->SetFireReadyPending(true);
+#if WITH_DEV_AUTOMATION_TESTS
+			UE_LOG(LogShootGame, Display, TEXT("RIFLE_FIRST_SHOT_BUFFERED Time=%.4f Expires=%.4f Weapon=%s"),
+				GetWorld()->GetTimeSeconds(), RifleFirstShotExpiresAt, *GetNameSafe(RifleFirstShotWeapon.Get()));
+#endif
+		}
+		return; // 重复点击既不叠加，也不延长当前窗口。
+	}
 	// 输入只提交给 ASC：GA_Fire 是本机拥有者的 LocalPredicted Ability，
 	// 本地预测负责表现与本地动作边界，GAS 同时把激活请求可靠交给服务器。
 	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent = Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
@@ -632,8 +678,79 @@ void AShooterCharacter::DoStartFiring()
 	UE_LOG(LogShootGame, Warning, TEXT("DoStartFiring ignored: ShooterASC unavailable for %s"), *GetName());
 }
 
+bool AShooterCharacter::IsRifleReadyForFire() const
+{
+	const auto* Weapon = GetCurrentWeaponActor();
+	if (!Weapon || !UShooterCharacterMovementComponent::SupportsLowReady(Weapon->GetWeaponId())) { return true; }
+	const auto* Anim = Cast<UShooterThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
+	return !GetShooterMovement()->IsSprinting() && (!Anim || Anim->IsRifleReadyForFire());
+}
+
+bool AShooterCharacter::IsRifleFirstShotContextValid() const
+{
+	const auto* Weapon = GetCurrentWeaponActor();
+	const auto* ASC = GetAbilitySystemComponent();
+	return IsLocallyControlled() && !IsDead() && GetController() && ASC && ASC->GetAvatarActor() == this && IsValid(Weapon) &&
+		Weapon->GetOwner() == this && !Weapon->IsHidden() &&
+		UShooterCharacterMovementComponent::SupportsLowReady(Weapon->GetWeaponId()) &&
+		!ASC->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading) &&
+		!ASC->HasMatchingGameplayTag(ShooterGameplayTags::State_Equipping) &&
+		!ASC->HasMatchingGameplayTag(ShooterGameplayTags::State_Dead) &&
+		!GetShooterMovement()->IsSprintBlockedByServerAction();
+}
+
+void AShooterCharacter::CancelRifleFirstShot(const TCHAR* Reason)
+{
+#if WITH_DEV_AUTOMATION_TESTS
+	if (GetShooterMovement()->IsFireReadyPending())
+	{
+		UE_LOG(LogShootGame, Display, TEXT("RIFLE_FIRST_SHOT_CLEARED Reason=%s Time=%.4f Weapon=%s"),
+			Reason, GetWorld()->GetTimeSeconds(), *GetNameSafe(RifleFirstShotWeapon.Get()));
+	}
+#endif
+	RifleFirstShotWeapon.Reset();
+	RifleFirstShotExpiresAt = 0.0f;
+	GetShooterMovement()->SetFireReadyPending(false);
+}
+
+void AShooterCharacter::ProcessLocalAbilityInput(UShooterAbilitySystemComponent* AbilitySystem)
+{
+	bool bConsumeFirstShot = false;
+	const bool bFireHeld = GetShooterMovement()->IsFireHeld();
+	if (GetShooterMovement()->IsFireReadyPending())
+	{
+		if (!IsRifleFirstShotContextValid() || RifleFirstShotWeapon.Get() != GetCurrentWeaponActor() ||
+			GetWorld()->GetTimeSeconds() > RifleFirstShotExpiresAt)
+		{
+			CancelRifleFirstShot(TEXT("InvalidOrExpired"));
+		}
+		else if (IsRifleReadyForFire())
+		{
+			bConsumeFirstShot = true;
+#if WITH_DEV_AUTOMATION_TESTS
+			UE_LOG(LogShootGame, Display, TEXT("RIFLE_FIRST_SHOT_READY Time=%.4f Held=%d Weapon=%s"),
+				GetWorld()->GetTimeSeconds(), bFireHeld, *GetNameSafe(RifleFirstShotWeapon.Get()));
+#endif
+			if (bFireHeld)
+			{
+				AbilitySystem->AbilityInputTagPressed(ShooterGameplayTags::Input_Fire);
+			}
+			else
+			{
+				// 已松开的首发只有一个 Edge；同帧标准 Release 清镜像，不建立 Held。
+				AbilitySystem->AbilityInputTagEdge(ShooterGameplayTags::Input_Fire);
+				AbilitySystem->AbilityInputTagReleased(ShooterGameplayTags::Input_Fire);
+			}
+		}
+	}
+	AbilitySystem->ProcessAbilityInput();
+	// 一次尝试即消费；失败由 GAS 正常裁决，不另排队补射或延长窗口。
+	if (bConsumeFirstShot) { CancelRifleFirstShot(TEXT("Consumed")); }
+}
+
 void AShooterCharacter::DoStopFiring()
 {
+	GetShooterMovement()->SetFireHeld(false);
 	// 松开输入同样进入 ASC；服务器活动 GA_Fire 收到释放后停止 Weapon 并结束 Ability。
 	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent = Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
 	{
@@ -646,6 +763,7 @@ void AShooterCharacter::DoStopFiring()
 
 void AShooterCharacter::DoReload()
 {
+	CancelRifleFirstShot();
 	// 输入只提交给 ASC：GA_Reload 的权威换弹事务始终在服务器执行，
 	// 激活请求由 GAS 可靠转发，不在 Character 里新开事务入口。
 	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent = Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
@@ -722,6 +840,7 @@ void AShooterCharacter::DoSwitchWeaponInput(const FInputActionValue& Value)
 
 void AShooterCharacter::DoSwitchWeaponInDirection(int32 Direction)
 {
+	CancelRifleFirstShot();
 	// 输入只提交给 ASC：两个动态标签 Spec 共用 GA_Equip，
 	// GAS 自动把选中的 Spec 激活请求可靠转发到服务器。
 	// 采集语义是"瞬时按下沿"：IA_SwapWeapon 是显式 Pressed Trigger 的单帧脉冲输入，
@@ -1111,6 +1230,8 @@ void AShooterCharacter::Die(AController* KillerController)
 
 void AShooterCharacter::ApplyDeathState()
 {
+	CancelRifleFirstShot();
+	GetShooterMovement()->ResetMovementIntents();
 	// 死亡是明确的生命周期边界：所有旧输入意图立即作废（含 Spec.InputPressed 的本地真值）。
 	// 服务器在 Die() 里、拥有者客户端在 OnRep_IsDead 里都会进入本函数，两端都不允许
 	// 把死亡前的按下状态带到重生后的新 Avatar 上（Avatar 变化另有 ASC 生命周期清理兜底）。

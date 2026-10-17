@@ -6,6 +6,7 @@
 #include "Characters/Equipment/ShooterEquipmentComponent.h"
 #include "GameplayTagContainer.h"
 #include "Characters/ShooterCharacter.h"
+#include "Characters/Movement/ShooterCharacterMovementComponent.h"
 #include "AbilitySystem/ShooterGameplayTags.h"
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
@@ -75,6 +76,10 @@ bool UShooterGameplayAbility_Fire::CanLocallyStartFire(const FGameplayAbilitySpe
 	if (!ActorInfo->IsLocallyControlledPlayer())
 	{
 		return false;
+	}
+	if (const auto* Character = Cast<AShooterCharacter>(AvatarActor); Character && !Character->IsRifleReadyForFire())
+	{
+		return false; // 真实动画端点之前不建立 Shot Attempt；不是可进入旧 Tag 缓冲的失败。
 	}
 
 	// 本次 Action 的武器身份来自 Spec 的 SourceObject，不来自 CurrentWeaponActor：
@@ -250,6 +255,11 @@ void UShooterGameplayAbility_Fire::ActivateAbility(
 	}
 
 	AActor* AvatarActor = ActorInfo ? ActorInfo->AvatarActor.Get() : nullptr;
+	// 激活可能早于本帧移动包；只刷新 Sprint，不改变即时 Shot 的执行顺序或门控。
+	if (auto* Character = Cast<AShooterCharacter>(AvatarActor))
+	{
+		Character->GetShooterMovement()->RefreshSprintState();
+	}
 	// 本次 Shot 的武器身份来自 Spec 的 SourceObject；CurrentWeaponActor 只在校验阶段使用。
 	// CanActivateAbility 与本函数在同一次同步调用栈内完成，中间不存在可让身份失效的窗口。
 	AShooterWeapon* Weapon = ResolveRequestedWeaponForActivation(Handle, ActorInfo);

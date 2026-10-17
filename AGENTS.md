@@ -24,6 +24,7 @@ Source/ShootGame/
 │   └── PlayerState/ShooterPlayerState.h/.cpp
 ├── Characters/                 # 玩家角色
 │   ├── ShooterCharacter.h/.cpp
+│   ├── Movement/               # 预测走跑、服务器动作门控与远端 Sprint
 │   ├── Aim/                    # ShooterAimPresentationComponent、ShooterAimMath
 │   ├── Equipment/              # ShooterEquipmentComponent：CurrentWeaponActor 装备权威
 │   └── Animation/              # 第三人称动画数据源与程序化瞄准 IK 节点
@@ -65,6 +66,7 @@ Source/ShootGame/
 - [Blender 动画编辑工具链](Docs/Blender动画编辑工具链.md)：可复用工具、坐标约定与当前隔离方案。
 - [TP 脚步 Notify 与基础音效][doc-link-1]：当前左右脚移动声音方案与验证边界。
 - [枪械可拆卸弹匣资产约定][doc-link-2]：当前四枪资产结构与弹匣表现约定。
+- [Walk / Sprint 与自动收枪](Docs/WalkSprint与自动收枪.md)：移动预测与 Fire 优先级。
 - [MCP 外部 Agent 契约](Plugins/McpAutomationBridge/EXTERNAL_AGENT_GUIDE.md)：
   工具调用前必读；说明接口、读写保存边界、失败重试与验证范围。
 - [Inventory 与武器数据架构](Docs/架构/Inventory与武器数据架构.md)：

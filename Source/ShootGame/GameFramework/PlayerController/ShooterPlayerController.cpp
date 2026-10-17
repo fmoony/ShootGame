@@ -33,7 +33,11 @@ void AShooterPlayerController::PostProcessInput(const float DeltaTime, const boo
 		if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent =
 			Cast<UShooterAbilitySystemComponent>(ShooterPlayerState->GetAbilitySystemComponent()))
 		{
-			ShooterAbilitySystemComponent->ProcessAbilityInput();
+			if (auto* ShooterCharacter = Cast<AShooterCharacter>(GetPawn()))
+			{
+				ShooterCharacter->ProcessLocalAbilityInput(ShooterAbilitySystemComponent);
+			}
+			else { ShooterAbilitySystemComponent->ProcessAbilityInput(); }
 		}
 	}
 
