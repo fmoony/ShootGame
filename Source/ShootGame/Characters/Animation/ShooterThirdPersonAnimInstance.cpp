@@ -151,14 +151,14 @@ bool UShooterThirdPersonAnimInstance::GetRifleRaiseRequested() const
 
 bool UShooterThirdPersonAnimInstance::GetRifleAtLowEndpoint() const
 {
-	const auto* Player = GetRifleTransitionPlayer();
+	const FAnimNode_SequencePlayer* Player = GetRifleTransitionPlayer();
 	return GetRifleLowerRequested() && Player && Player->GetSequence() &&
 		Player->GetAccumulatedTime() >= Player->GetSequence()->GetPlayLength() - UE_SMALL_NUMBER;
 }
 
 bool UShooterThirdPersonAnimInstance::GetRifleAtAimEndpoint() const
 {
-	const auto* Player = GetRifleTransitionPlayer();
+	const FAnimNode_SequencePlayer* Player = GetRifleTransitionPlayer();
 	return GetRifleRaiseRequested() && Player && Player->GetAccumulatedTime() <= UE_SMALL_NUMBER;
 }
 
@@ -168,7 +168,7 @@ void UShooterThirdPersonAnimInstance::UpdateRifleReadyAnimation()
 	{
 		bRifleLowReadyRequested = false;
 	}
-	const auto* Machine = GetStateMachineInstanceFromName(TEXT("RifleReady"));
+	const FAnimNode_StateMachine* Machine = GetStateMachineInstanceFromName(TEXT("RifleReady"));
 	if (Machine && ((Machine->GetCurrentStateName() == TEXT("ArmedAim") && GetRifleLowerRequested()) ||
 		(Machine->GetCurrentStateName() == TEXT("LowReady") && GetRifleRaiseRequested())))
 	{
@@ -186,8 +186,8 @@ void UShooterThirdPersonAnimInstance::UpdateRifleReadyAnimation()
 bool UShooterThirdPersonAnimInstance::IsRifleReadyForFire() const
 {
 	// PC 输入处理先于本帧动画；读取上一帧已完成的图，最早在真实端点后提交。
-	const auto& Proxy = GetProxyOnGameThread<FAnimInstanceProxy>();
-	const auto* Machine = Proxy.GetStateMachineInstanceFromName(TEXT("RifleReady"));
+	const FAnimInstanceProxy& Proxy = GetProxyOnGameThread<FAnimInstanceProxy>();
+	const FAnimNode_StateMachine* Machine = Proxy.GetStateMachineInstanceFromName(TEXT("RifleReady"));
 	if (!bRifleReadyAvailable || !Machine) { return true; }
 	return Machine->GetCurrentStateName() == TEXT("ArmedAim") ||
 		(Machine->GetCurrentStateName() == TEXT("AimTransition") && GetRifleAtAimEndpoint());
@@ -200,7 +200,7 @@ float UShooterThirdPersonAnimInstance::GetRifleAimCorrectionWeight() const
 		// Reload / 非支持武器时交还现有 IK 曲线，不能消费未更新的子状态机时间。
 		return 1.0f;
 	}
-	const auto* Machine = GetStateMachineInstanceFromName(TEXT("RifleReady"));
+	const FAnimNode_StateMachine* Machine = GetStateMachineInstanceFromName(TEXT("RifleReady"));
 	if (!Machine || Machine->GetCurrentStateName() == TEXT("ArmedAim"))
 	{
 		return 1.0f;
@@ -209,7 +209,7 @@ float UShooterThirdPersonAnimInstance::GetRifleAimCorrectionWeight() const
 	{
 		return 0.0f;
 	}
-	const auto* Player = GetRifleTransitionPlayer();
+	const FAnimNode_SequencePlayer* Player = GetRifleTransitionPlayer();
 	return Player && Player->GetSequence() && Player->GetSequence()->GetPlayLength() > UE_SMALL_NUMBER
 		? 1.0f - FMath::Clamp(Player->GetAccumulatedTime() / Player->GetSequence()->GetPlayLength(), 0.0f, 1.0f) : 1.0f;
 }

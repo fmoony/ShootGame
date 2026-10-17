@@ -15,8 +15,9 @@ namespace RifleHeadPose
 	FQuat ComponentRotation(const FCompactPose& Pose, FCompactPoseBoneIndex Bone)
 	{
 		FQuat Q = Pose[Bone].GetRotation();
-		const auto& Bones = Pose.GetBoneContainer();
-		for (auto Parent = Bones.GetParentBoneIndex(Bone); Parent.IsValid(); Parent = Bones.GetParentBoneIndex(Parent))
+		const FBoneContainer& Bones = Pose.GetBoneContainer();
+		for (FCompactPoseBoneIndex Parent = Bones.GetParentBoneIndex(Bone); Parent.IsValid();
+			Parent = Bones.GetParentBoneIndex(Parent))
 		{
 			Q = Pose[Parent].GetRotation() * Q;
 		}
@@ -28,8 +29,8 @@ void FAnimNode_ShooterRifleHeadPose::PreUpdate(const UAnimInstance* InAnimInstan
 {
 	BodyForward = FVector(0, 1, 0);
 	BodyUp = FVector::UpVector;
-	const auto* Mesh = InAnimInstance ? InAnimInstance->GetSkelMeshComponent() : nullptr;
-	const auto* Actor = InAnimInstance ? InAnimInstance->GetOwningActor() : nullptr;
+	const USkeletalMeshComponent* Mesh = InAnimInstance ? InAnimInstance->GetSkelMeshComponent() : nullptr;
+	const AActor* Actor = InAnimInstance ? InAnimInstance->GetOwningActor() : nullptr;
 	if (Mesh && Actor)
 	{
 		const FTransform& Transform = Mesh->GetComponentTransform();
@@ -56,15 +57,15 @@ void FAnimNode_ShooterRifleHeadPose::Update_AnyThread(const FAnimationUpdateCont
 void FAnimNode_ShooterRifleHeadPose::Evaluate_AnyThread(FPoseContext& Output)
 {
 	Source.Evaluate(Output);
-	const auto* Anim = Cast<UShooterThirdPersonAnimInstance>(Output.AnimInstanceProxy->GetAnimInstanceObject());
-	const auto* Player = Anim ? Anim->GetRifleTransitionPlayer() : nullptr;
+	const UShooterThirdPersonAnimInstance* Anim = Cast<UShooterThirdPersonAnimInstance>(Output.AnimInstanceProxy->GetAnimInstanceObject());
+	const FAnimNode_SequencePlayer* Player = Anim ? Anim->GetRifleTransitionPlayer() : nullptr;
 	const float T = bTransition && Player && Player->GetSequence()
 		? FMath::Clamp(Player->GetAccumulatedTime() / Player->GetSequence()->GetPlayLength(), 0.0f, 1.0f) : 1.0f;
 	ActualAlpha = Anim ? T * T * (3 - 2 * T) : 0;
 	AppliedSwingDegrees = 0;
 	if (!Anim || !FAnimWeight::IsRelevant(ActualAlpha)) { return; }
-	const auto& Bones = Output.Pose.GetBoneContainer();
-	const auto& Ref = Bones.GetReferenceSkeleton();
+	const FBoneContainer& Bones = Output.Pose.GetBoneContainer();
+	const FReferenceSkeleton& Ref = Bones.GetReferenceSkeleton();
 	const FName Names[] = {TEXT("neck_01"), TEXT("neck_02"), TEXT("head")};
 	FCompactPoseBoneIndex Chain[] = {FCompactPoseBoneIndex(INDEX_NONE), FCompactPoseBoneIndex(INDEX_NONE),
 		FCompactPoseBoneIndex(INDEX_NONE)};
@@ -99,7 +100,7 @@ void FAnimNode_ShooterRifleHeadPose::Evaluate_AnyThread(FPoseContext& Output)
 	const float Shares[] = {0.2f, 0.3f, 0.5f};
 	for (int32 I = 0; I < 3; ++I)
 	{
-		const auto Parent = Bones.GetParentBoneIndex(Chain[I]);
+		const FCompactPoseBoneIndex Parent = Bones.GetParentBoneIndex(Chain[I]);
 		const FQuat ParentQ = RifleHeadPose::ComponentRotation(Output.Pose, Parent);
 		const FQuat Part = FQuat::Slerp(FQuat::Identity, Swing, Shares[I]);
 		Delta.Pose[Chain[I]].SetRotation(ParentQ.Inverse() * Part * ParentQ);

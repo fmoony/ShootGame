@@ -680,16 +680,16 @@ void AShooterCharacter::DoStartFiring()
 
 bool AShooterCharacter::IsRifleReadyForFire() const
 {
-	const auto* Weapon = GetCurrentWeaponActor();
+	const AShooterWeapon* Weapon = GetCurrentWeaponActor();
 	if (!Weapon || !UShooterCharacterMovementComponent::SupportsLowReady(Weapon->GetWeaponId())) { return true; }
-	const auto* Anim = Cast<UShooterThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
+	const UShooterThirdPersonAnimInstance* Anim = Cast<UShooterThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 	return !GetShooterMovement()->IsSprinting() && (!Anim || Anim->IsRifleReadyForFire());
 }
 
 bool AShooterCharacter::IsRifleFirstShotContextValid() const
 {
-	const auto* Weapon = GetCurrentWeaponActor();
-	const auto* ASC = GetAbilitySystemComponent();
+	const AShooterWeapon* Weapon = GetCurrentWeaponActor();
+	const UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
 	return IsLocallyControlled() && !IsDead() && GetController() && ASC && ASC->GetAvatarActor() == this && IsValid(Weapon) &&
 		Weapon->GetOwner() == this && !Weapon->IsHidden() &&
 		UShooterCharacterMovementComponent::SupportsLowReady(Weapon->GetWeaponId()) &&

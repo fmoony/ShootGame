@@ -32,29 +32,29 @@ bool UShooterCharacterMovementComponent::SupportsLowReady(FName WeaponId)
 
 bool UShooterCharacterMovementComponent::CanSprint() const
 {
-	const auto* Character = Cast<AShooterCharacter>(CharacterOwner);
+	const AShooterCharacter* Character = Cast<AShooterCharacter>(CharacterOwner);
 	if (!Character || !Character->GetController() || Character->IsDead() || !bSprintHeld || bFireHeld ||
 		bFireReadyPending || !IsMovingOnGround() || IsCrouching() || Acceleration.IsNearlyZero())
 	{
 		return false;
 	}
-	const auto* ASC = Character->GetAbilitySystemComponent();
+	const UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent();
 	if (HasBlockingAction() || (!Character->HasAuthority() && bSprintBlockedByAction) ||
 		ASC->HasMatchingGameplayTag(ShooterGameplayTags::State_Firing))
 	{
 		return false;
 	}
 	// GA_Fire 的可靠激活可能先于 ServerMove 到达；权威输入镜像也要阻止恢复 Sprint。
-	const auto* State = Character->GetPlayerState<AShooterPlayerState>();
-	const auto* Weapon = Character->GetCurrentWeaponActor();
-	const auto* Spec = State && Weapon ? State->FindFireAbilitySpecForWeapon(Weapon) : nullptr;
+	const AShooterPlayerState* State = Character->GetPlayerState<AShooterPlayerState>();
+	const AShooterWeapon* Weapon = Character->GetCurrentWeaponActor();
+	const FGameplayAbilitySpec* Spec = State && Weapon ? State->FindFireAbilitySpecForWeapon(Weapon) : nullptr;
 	return !Character->HasAuthority() || !Spec || !Spec->InputPressed;
 }
 
 bool UShooterCharacterMovementComponent::HasBlockingAction() const
 {
-	const auto* Character = Cast<AShooterCharacter>(CharacterOwner);
-	const auto* ASC = Character ? Character->GetAbilitySystemComponent() : nullptr;
+	const AShooterCharacter* Character = Cast<AShooterCharacter>(CharacterOwner);
+	const UAbilitySystemComponent* ASC = Character ? Character->GetAbilitySystemComponent() : nullptr;
 	return !ASC || ASC->HasMatchingGameplayTag(ShooterGameplayTags::State_Dead) ||
 		ASC->HasMatchingGameplayTag(ShooterGameplayTags::State_Reloading) ||
 		ASC->HasMatchingGameplayTag(ShooterGameplayTags::State_Equipping);
@@ -137,7 +137,7 @@ FNetworkPredictionData_Client* UShooterCharacterMovementComponent::GetPrediction
 {
 	if (!ClientPredictionData)
 	{
-		auto* MutableThis = const_cast<UShooterCharacterMovementComponent*>(this);
+		UShooterCharacterMovementComponent* MutableThis = const_cast<UShooterCharacterMovementComponent*>(this);
 		MutableThis->ClientPredictionData = new FShooterClientPredictionData(*this);
 	}
 	return ClientPredictionData;
@@ -187,7 +187,7 @@ uint8 FShooterSavedMove::GetCompressedFlags() const
 
 bool FShooterSavedMove::CanCombineWith(const FSavedMovePtr& NewMove, ACharacter* Character, float MaxDelta) const
 {
-	const auto* Other = static_cast<const FShooterSavedMove*>(NewMove.Get());
+	const FShooterSavedMove* Other = static_cast<const FShooterSavedMove*>(NewMove.Get());
 	return bSprintHeld == Other->bSprintHeld && bFireHeld == Other->bFireHeld && bFireReadyPending == Other->bFireReadyPending &&
 		Super::CanCombineWith(NewMove, Character, MaxDelta);
 }
@@ -196,7 +196,7 @@ void FShooterSavedMove::SetMoveFor(ACharacter* Character, float DeltaSeconds, co
 	FNetworkPredictionData_Client_Character& ClientData)
 {
 	Super::SetMoveFor(Character, DeltaSeconds, NewAccel, ClientData);
-	const auto* Movement = CastChecked<UShooterCharacterMovementComponent>(Character->GetCharacterMovement());
+	const UShooterCharacterMovementComponent* Movement = CastChecked<UShooterCharacterMovementComponent>(Character->GetCharacterMovement());
 	bSprintHeld = Movement->IsSprintHeld();
 	bFireHeld = Movement->IsFireHeld();
 	bFireReadyPending = Movement->IsFireReadyPending();
@@ -205,7 +205,7 @@ void FShooterSavedMove::SetMoveFor(ACharacter* Character, float DeltaSeconds, co
 void FShooterSavedMove::PrepMoveFor(ACharacter* Character)
 {
 	Super::PrepMoveFor(Character);
-	auto* Movement = CastChecked<UShooterCharacterMovementComponent>(Character->GetCharacterMovement());
+	UShooterCharacterMovementComponent* Movement = CastChecked<UShooterCharacterMovementComponent>(Character->GetCharacterMovement());
 	Movement->SetSprintHeld(bSprintHeld);
 	Movement->SetFireHeld(bFireHeld);
 	Movement->SetFireReadyPending(bFireReadyPending);

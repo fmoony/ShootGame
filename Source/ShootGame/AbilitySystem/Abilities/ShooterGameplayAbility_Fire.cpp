@@ -77,7 +77,7 @@ bool UShooterGameplayAbility_Fire::CanLocallyStartFire(const FGameplayAbilitySpe
 	{
 		return false;
 	}
-	if (const auto* Character = Cast<AShooterCharacter>(AvatarActor); Character && !Character->IsRifleReadyForFire())
+	if (const AShooterCharacter* Character = Cast<AShooterCharacter>(AvatarActor); Character && !Character->IsRifleReadyForFire())
 	{
 		return false; // 真实动画端点之前不建立 Shot Attempt；不是可进入旧 Tag 缓冲的失败。
 	}
@@ -256,7 +256,7 @@ void UShooterGameplayAbility_Fire::ActivateAbility(
 
 	AActor* AvatarActor = ActorInfo ? ActorInfo->AvatarActor.Get() : nullptr;
 	// 激活可能早于本帧移动包；只刷新 Sprint，不改变即时 Shot 的执行顺序或门控。
-	if (auto* Character = Cast<AShooterCharacter>(AvatarActor))
+	if (AShooterCharacter* Character = Cast<AShooterCharacter>(AvatarActor))
 	{
 		Character->GetShooterMovement()->RefreshSprintState();
 	}
@@ -412,7 +412,7 @@ void UShooterGameplayAbility_Fire::RetireOwnedPredictionDebt(const FGameplayAbil
 		RequestedWeapon->RecordSpecRemovalCleanupForTest();
 	}
 
-	for (auto It = PendingShotRecords.CreateIterator(); It; ++It)
+	for (TMap<int32, FPredictedShotRecord>::TIterator It = PendingShotRecords.CreateIterator(); It; ++It)
 	{
 		FPredictedShotRecord& Record = It->Value;
 		const int32 PredictionKey = It.Key();
@@ -535,7 +535,7 @@ void UShooterGameplayAbility_Fire::RegisterShotRecordCore(int32 PredictionKey, A
 
 void UShooterGameplayAbility_Fire::PruneShotRecords()
 {
-	for (auto It = PendingShotRecords.CreateIterator(); It; ++It)
+	for (TMap<int32, FPredictedShotRecord>::TIterator It = PendingShotRecords.CreateIterator(); It; ++It)
 	{
 		const AShooterWeapon* Weapon = It->Value.Weapon.Get();
 		if (It->Value.bResolved || !Weapon || It->Value.WeaponPredictionGeneration != Weapon->GetAmmoPredictionGeneration())

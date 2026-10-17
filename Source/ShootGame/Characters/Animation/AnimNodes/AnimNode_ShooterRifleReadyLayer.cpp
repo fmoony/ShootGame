@@ -23,8 +23,9 @@ void FAnimNode_ShooterRifleReadyLayer::Update_AnyThread(const FAnimationUpdateCo
 
 void FAnimNode_ShooterRifleReadyLayer::Evaluate_AnyThread(FPoseContext& Output)
 {
-	const auto* Instance = Cast<UShooterThirdPersonAnimInstance>(Output.AnimInstanceProxy->GetAnimInstanceObject());
-	const auto* Player = Instance ? Instance->GetRifleTransitionPlayer() : nullptr;
+	const UShooterThirdPersonAnimInstance* Instance =
+		Cast<UShooterThirdPersonAnimInstance>(Output.AnimInstanceProxy->GetAnimInstanceObject());
+	const FAnimNode_SequencePlayer* Player = Instance ? Instance->GetRifleTransitionPlayer() : nullptr;
 	const float Length = Player && Player->GetSequence() ? Player->GetSequence()->GetPlayLength() : 0.0f;
 	const float Alpha = bTransition && Length > UE_SMALL_NUMBER
 		? FMath::Clamp(Player->GetAccumulatedTime() / Length, 0.0f, 1.0f) : 1.0f;
