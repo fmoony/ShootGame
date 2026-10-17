@@ -64,6 +64,9 @@
 - [Visual Studio 项目同步](VisualStudio项目同步.md)。
 - [MCP 外部 Agent 契约](../Plugins/McpAutomationBridge/EXTERNAL_AGENT_GUIDE.md)。
 
+2026-10-17：Compact 贴身跑姿已接入生产图，正式收枪仍由 Sprint 驱动。
+三套跑姿实验已清理，保留稳定编辑源文件；见[清理核对](验证/RifleRunCleanup_20261017/验收清理.md)。
+
 2026-10-16：K 网络预览桥已退出，RifleReady 仅由正式 Sprint 驱动。
 双向加速保存为序列原生 Rate Scale=2.6，完整过渡约 0.32 秒。
 全量 Automation 187 项与七阶段网络回归均通过；首发继续等待真实端点。

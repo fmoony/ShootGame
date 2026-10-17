@@ -1,10 +1,10 @@
 # Blender 动画编辑工具链
 
-维护日期：2026-10-14；适用 ShootGame、UE 5.6.1、Blender 4.5.8 LTS。
-用户已接受 Local 方案、K 网络预览与肩部头部微调；当前生产使用 Relaxed 两段素材。
+维护日期：2026-10-17；适用 ShootGame、UE 5.6.1、Blender 4.5.8 LTS。
+当前生产采用 Local 收枪与已验收的 Compact 贴身跑姿，包含 Base、Transition、Additive。
 角色动画位于 Characters/Mannequins/Anims/Rifle，Shooter/Animation 只保留 AnimBP。
-生产角色已接入临时 K 键动画切换，使用边界见[Rifle 收枪动画表现](Rifle收枪动画表现.md)。
-一次性原型已清理，当前仅保留 Segmented50 回退地图及其必要依赖。
+生产由实际 Sprint 驱动，K 预览已退出；见 [Rifle 收枪动画表现](Rifle收枪动画表现.md)。
+跑姿实验与采集资料已清理，Segmented50 地图恢复为原分段回退用途。
 历史报告保持原貌；数据删除与清理结果见[清理记录](验证/RifleCleanup_20261011/清理与验收记录.md)。
 
 ## 保留的工具与输入
@@ -51,6 +51,23 @@ D:/Unreal_Projects/ShootGame/Source/ShootGameEditor/Tests/RifleTransition
 BlenderPreview 和 TransitionFixture 保留，供当前地图及分段工具继承。
 Segmented Commandlet 现在只测量保留方案，拒绝旧 Prepare 操作。
 这些类只供 Editor 实验使用，不进入生产角色和网络流程。
+
+## Compact 稳定源文件
+
+正式三段素材的 blend / fbx 位于 Inputs/RunCompact，Manifest.json 记录路径与 SHA256。
+文件复制自用户已验收的 F4 版本，复制后逐文件校验；新 UE 资产导入源已指向该目录。
+
+| 正式动画 | 用途 |
+|---|---|
+| MM_Rifle_LowReady_Compact | 258 点呼吸底姿态 |
+| MM_Rifle_AimToLowReady_Compact | 26 点双向过渡，原生 Rate Scale=2.6 |
+| MM_Rifle_Sprint_Compact_Additive | 54 点循环，Local Additive |
+
+blend 保存完整烘焙骨骼关键帧，可在副本中继续调整并按已验证设置导出 FBX。
+重导入仍先用隔离资产验证，不能直接覆盖正式素材或 Skeleton。
+Additive 的 UE 参考必须为 Compact LowReady 第 0 帧；FBX 本身不保存 UE Additive 配置。
+旧 Run.ps1 的分段重放入口不负责重新生成 Compact，不能拿旧算法覆盖这三段素材。
+本轮只保留可编辑源文件，没有把依赖 Saved 的一次性生成脚本包装为通用工具。
 
 ## 运行方式
 

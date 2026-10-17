@@ -52,12 +52,13 @@ Observer 只消费权威 Sprint，不存在第二套预览目标。
 现有 ArmedAim ↔ AimTransition ↔ LowReady 图不变。
 Local Space 分层、真实 t/T 播放器、头颈修正、IK 和中途反向继续由原图执行。
 正式 Fire 请求抬枪并等待端点；原预览模式的 Fire / Montage 硬跳回分支已删除。
-过渡序列 MM_Rifle_AimToLowReady_Relaxed 的原生 Rate Scale 保存为 2.6。
+当前过渡序列 MM_Rifle_AimToLowReady_Compact 的原生 Rate Scale 为 2.6。
 在序列编辑器的 Asset Details → Animation → Rate Scale 调整，不配置代码时长。
 约 0.833333 秒素材双向全程约 0.320513 秒；运行时播放器只选择 +1 / -1 方向。
-中途反向保留累计时间和选片，原始骨骼采样、Local Space 与 IK 均不改动。
+中途反向保留累计时间和选片；现有 Local Space 分层与 IK 机制保持。
 输入最早读取上一帧已完成的真实端点，因此完整抬枪到首发含一至两帧调度余量。
-Local Space、头颈、肩部、IK、原始骨骼轨迹及状态机图均保持原样。
+Compact 素材已替换肩臂轨迹，并在原头颈修正前混入步态同步的小幅跑姿 Additive。
+头颈算法、Mask、IK、三态拓扑与首发等待逻辑保持；详见 [Rifle 表现](Rifle收枪动画表现.md)。
 Reload、Equip、Dead 和不支持武器仍通过原 Abort 边界交还动作状态机。
 
 ## 正式整合与旧预览退出
@@ -96,7 +97,7 @@ Emulated 在服务器和客户端均启用 100 ms 延迟与 2% 丢包。
 无延迟时可能已没有待重放 Move；延迟场景额外要求真实 SavedMove 重放次数增加。
 新增首发验证涵盖到位前零射击、提前松开一发、重复点击不续期、超时和动作取消。
 RifleReady.GameplayNetwork 使用真实 W / Shift / Fire，覆盖三种支持武器的网络模式。
-RifleReady.PIE 覆盖六个俯仰的正式走跑与反向，不再调用 K 或预览 RPC。
+RifleReady.PIE 已运行六俯仰走跑与反向；另采集 0°、±60° 的真实生产 FP / TP。
 
 走跑接入证据见[原开发记录](开发记录/2026-10-16-1115-WalkSprint与正式收枪.md)。
 前一版加速与首发结果见[原记录](开发记录/2026-10-16-1309-RifleReady加速与首发缓冲.md)。

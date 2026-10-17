@@ -5,6 +5,14 @@
 各报告迁移前后 SHA256 一致；开发记录和已完成计划继续保留在原目录。
 可复用工具的当前入口是[Blender 动画编辑工具链](../Blender动画编辑工具链.md)。
 
+## 2026-10-17 的 Compact 跑姿接入与清理
+
+已验收的 Compact 三段素材进入 Characters/Rifle，生产 ABP_TP_Player 使用标准 Additive。
+SprintSway、RifleRun、RifleRunCompact 共 16 个实验资产已删除，原 Segmented50 地图恢复。
+正式动画、稳定 blend / fbx、现有自动化测试和历史报告保留。
+四个专用 Saved 目录及当天 RifleReadyIntegration CSV 已清理，旧 HTML / 截图链接不再有效。
+历史报告原文与路径保持，以[清理核对](RifleRunCleanup_20261017/验收清理.md)为准。
+
 ## 当前方案与验收清理
 
 2026-10-13 用户接受单动画 Local 肩臂分层及 K 网络预览，正式行为见[当前说明][current]。

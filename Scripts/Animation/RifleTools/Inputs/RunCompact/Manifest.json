@@ -1,0 +1,32 @@
+[
+  {
+    "asset": "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_LowReady_Compact",
+    "source": "Scripts/Animation/RifleTools/Inputs/RunCompact/MM_Rifle_LowReady_Compact.blend",
+    "sha256": "2fbbd092893f3410df9ee266c7da689d68e0cd0057b5da5ff53af99de6279828"
+  },
+  {
+    "asset": "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_LowReady_Compact",
+    "source": "Scripts/Animation/RifleTools/Inputs/RunCompact/MM_Rifle_LowReady_Compact.fbx",
+    "sha256": "460fe7de66b9fca116494ef7aeba3a7e16df392e78e53be5b52d12db08a0c028"
+  },
+  {
+    "asset": "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_AimToLowReady_Compact",
+    "source": "Scripts/Animation/RifleTools/Inputs/RunCompact/MM_Rifle_AimToLowReady_Compact.blend",
+    "sha256": "1b844fa947114085f5dbe1f53391f3a9745c11cf373506b4e95830b15352db49"
+  },
+  {
+    "asset": "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_AimToLowReady_Compact",
+    "source": "Scripts/Animation/RifleTools/Inputs/RunCompact/MM_Rifle_AimToLowReady_Compact.fbx",
+    "sha256": "4ac03f37205e8c3faa1771615550000e31473f771d6415d2353cbd222283d70b"
+  },
+  {
+    "asset": "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_Sprint_Compact_Additive",
+    "source": "Scripts/Animation/RifleTools/Inputs/RunCompact/MM_Rifle_Sprint_Compact_Additive.blend",
+    "sha256": "19249d00ac97ca08c69e290c8a02249e1fe9dc87ed3b3aba2b5f77919da37410"
+  },
+  {
+    "asset": "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_Sprint_Compact_Additive",
+    "source": "Scripts/Animation/RifleTools/Inputs/RunCompact/MM_Rifle_Sprint_Compact_Additive.fbx",
+    "sha256": "b47c567ec98e511de9db8f18556791d98fd946e0787388669a5d6dfaab0c4745"
+  }
+]

@@ -1,0 +1,543 @@
+{
+  "date": "2026-10-17",
+  "deleted_assets": [
+    "/Game/Experiments/RifleTransition/RifleRunCompact_20261017/ABP_RifleRunCompact",
+    "/Game/Experiments/RifleTransition/RifleRunCompact_20261017/BP_RifleRunCompactCharacter",
+    "/Game/Experiments/RifleTransition/RifleRunCompact_20261017/BP_RifleRunCompactGameMode",
+    "/Game/Experiments/RifleTransition/RifleRunCompact_20261017/BP_RifleRunCompactHUD",
+    "/Game/Experiments/RifleTransition/RifleRunCompact_20261017/MM_Rifle_RunCompact_Additive",
+    "/Game/Experiments/RifleTransition/RifleRunCompact_20261017/MM_Rifle_RunCompact_Base",
+    "/Game/Experiments/RifleTransition/RifleRunCompact_20261017/MM_Rifle_RunCompact_Transition",
+    "/Game/Experiments/RifleTransition/RifleRun_20261017/ABP_RifleRun",
+    "/Game/Experiments/RifleTransition/RifleRun_20261017/MM_Rifle_RunUpperBody_Additive",
+    "/Game/Experiments/RifleTransition/RifleRun_20261017/MM_Rifle_Run_Source",
+    "/Game/Experiments/RifleTransition/SprintSway_20261017/ABP_SprintSway",
+    "/Game/Experiments/RifleTransition/SprintSway_20261017/ABP_SprintSway_Original",
+    "/Game/Experiments/RifleTransition/SprintSway_20261017/BP_SprintSwayCharacter",
+    "/Game/Experiments/RifleTransition/SprintSway_20261017/BP_SprintSwayGameMode",
+    "/Game/Experiments/RifleTransition/SprintSway_20261017/BP_SprintSwayHUD",
+    "/Game/Experiments/RifleTransition/SprintSway_20261017/MM_Rifle_SprintSway_Additive"
+  ],
+  "remaining_assets": [],
+  "referencers_before": {
+    "/Game/Experiments/RifleTransition/RifleRunCompact_20261017/ABP_RifleRunCompact": [
+      "/Game/Experiments/RifleTransition/RifleRunCompact_20261017/BP_RifleRunCompactCharacter"
+    ],
+    "/Game/Experiments/RifleTransition/RifleRunCompact_20261017/BP_RifleRunCompactCharacter": [
+      "/Game/Experiments/RifleTransition/RifleRunCompact_20261017/BP_RifleRunCompactGameMode"
+    ],
+    "/Game/Experiments/RifleTransition/RifleRunCompact_20261017/BP_RifleRunCompactGameMode": [
+      "/Game/Experiments/RifleTransition/Segmented50_20261011/L_RifleSegmented_LowToReady"
+    ],
+    "/Game/Experiments/RifleTransition/RifleRunCompact_20261017/BP_RifleRunCompactHUD": [
+      "/Game/Experiments/RifleTransition/RifleRunCompact_20261017/BP_RifleRunCompactGameMode"
+    ],
+    "/Game/Experiments/RifleTransition/RifleRunCompact_20261017/MM_Rifle_RunCompact_Additive": [
+      "/Game/Experiments/RifleTransition/RifleRunCompact_20261017/ABP_RifleRunCompact"
+    ],
+    "/Game/Experiments/RifleTransition/RifleRunCompact_20261017/MM_Rifle_RunCompact_Base": [
+      "/Game/Experiments/RifleTransition/RifleRunCompact_20261017/MM_Rifle_RunCompact_Additive",
+      "/Game/Experiments/RifleTransition/RifleRunCompact_20261017/ABP_RifleRunCompact"
+    ],
+    "/Game/Experiments/RifleTransition/RifleRunCompact_20261017/MM_Rifle_RunCompact_Transition": [
+      "/Game/Experiments/RifleTransition/RifleRunCompact_20261017/ABP_RifleRunCompact"
+    ],
+    "/Game/Experiments/RifleTransition/RifleRun_20261017/ABP_RifleRun": [
+      "/Game/Experiments/RifleTransition/SprintSway_20261017/BP_SprintSwayCharacter",
+      "/Game/Experiments/RifleTransition/RifleRunCompact_20261017/BP_RifleRunCompactCharacter"
+    ],
+    "/Game/Experiments/RifleTransition/RifleRun_20261017/MM_Rifle_RunUpperBody_Additive": [
+      "/Game/Experiments/RifleTransition/RifleRun_20261017/ABP_RifleRun"
+    ],
+    "/Game/Experiments/RifleTransition/RifleRun_20261017/MM_Rifle_Run_Source": [],
+    "/Game/Experiments/RifleTransition/SprintSway_20261017/ABP_SprintSway": [
+      "/Game/Experiments/RifleTransition/SprintSway_20261017/BP_SprintSwayCharacter",
+      "/Game/Experiments/RifleTransition/RifleRunCompact_20261017/BP_RifleRunCompactCharacter"
+    ],
+    "/Game/Experiments/RifleTransition/SprintSway_20261017/ABP_SprintSway_Original": [
+      "/Game/Experiments/RifleTransition/SprintSway_20261017/BP_SprintSwayCharacter",
+      "/Game/Experiments/RifleTransition/RifleRunCompact_20261017/BP_RifleRunCompactCharacter"
+    ],
+    "/Game/Experiments/RifleTransition/SprintSway_20261017/BP_SprintSwayCharacter": [
+      "/Game/Experiments/RifleTransition/SprintSway_20261017/BP_SprintSwayGameMode"
+    ],
+    "/Game/Experiments/RifleTransition/SprintSway_20261017/BP_SprintSwayGameMode": [],
+    "/Game/Experiments/RifleTransition/SprintSway_20261017/BP_SprintSwayHUD": [
+      "/Game/Experiments/RifleTransition/SprintSway_20261017/BP_SprintSwayGameMode"
+    ],
+    "/Game/Experiments/RifleTransition/SprintSway_20261017/MM_Rifle_SprintSway_Additive": [
+      "/Game/Experiments/RifleTransition/SprintSway_20261017/ABP_SprintSway"
+    ]
+  },
+  "external_referencers_after_map_restore": {
+    "/Game/Experiments/RifleTransition/RifleRunCompact_20261017/ABP_RifleRunCompact": [],
+    "/Game/Experiments/RifleTransition/RifleRunCompact_20261017/BP_RifleRunCompactCharacter": [],
+    "/Game/Experiments/RifleTransition/RifleRunCompact_20261017/BP_RifleRunCompactGameMode": [],
+    "/Game/Experiments/RifleTransition/RifleRunCompact_20261017/BP_RifleRunCompactHUD": [],
+    "/Game/Experiments/RifleTransition/RifleRunCompact_20261017/MM_Rifle_RunCompact_Additive": [],
+    "/Game/Experiments/RifleTransition/RifleRunCompact_20261017/MM_Rifle_RunCompact_Base": [],
+    "/Game/Experiments/RifleTransition/RifleRunCompact_20261017/MM_Rifle_RunCompact_Transition": [],
+    "/Game/Experiments/RifleTransition/RifleRun_20261017/ABP_RifleRun": [],
+    "/Game/Experiments/RifleTransition/RifleRun_20261017/MM_Rifle_RunUpperBody_Additive": [],
+    "/Game/Experiments/RifleTransition/RifleRun_20261017/MM_Rifle_Run_Source": [],
+    "/Game/Experiments/RifleTransition/SprintSway_20261017/ABP_SprintSway": [],
+    "/Game/Experiments/RifleTransition/SprintSway_20261017/ABP_SprintSway_Original": [],
+    "/Game/Experiments/RifleTransition/SprintSway_20261017/BP_SprintSwayCharacter": [],
+    "/Game/Experiments/RifleTransition/SprintSway_20261017/BP_SprintSwayGameMode": [],
+    "/Game/Experiments/RifleTransition/SprintSway_20261017/BP_SprintSwayHUD": [],
+    "/Game/Experiments/RifleTransition/SprintSway_20261017/MM_Rifle_SprintSway_Additive": []
+  },
+  "restored_map_sha256": "0b45c314681909f6adc96276b63c33c172fa4be31aba1ede433b7306cb1c6f80",
+  "map_game_mode": "/Script/Engine.GameModeBase",
+  "map_actors": [
+    {
+      "label": "Original CorrectedGrip - IK off - Mask 0",
+      "class": "/Script/ShootGameEditor.ShooterRifleSegmentedPreview"
+    },
+    {
+      "label": "Segmented50 LowToReady - IK off - Mask 0",
+      "class": "/Script/ShootGameEditor.ShooterRifleSegmentedPreview"
+    },
+    {
+      "label": "DirectionalLight",
+      "class": "/Script/Engine.DirectionalLight"
+    },
+    {
+      "label": "SkyLight",
+      "class": "/Script/Engine.SkyLight"
+    },
+    {
+      "label": "StaticMeshActor",
+      "class": "/Script/Engine.StaticMeshActor"
+    }
+  ],
+  "production_sha256": {
+    "Content/Shooter/Animation/ThirdPerson/ABP_TP_Player.uasset": "703a674bbcbb2b1587f9539038e2325cca7d404afd5c4e0cb675d7c6307d8e60",
+    "Content/Characters/Mannequins/Anims/Rifle/MM_Rifle_LowReady_Compact.uasset": "786b4dba780d8ab8c788b4de1f0bfc9adfb61845591e89a3c361791c4cd5e338",
+    "Content/Characters/Mannequins/Anims/Rifle/MM_Rifle_AimToLowReady_Compact.uasset": "1b7d86542708f3d066b235e27509a68043bf7805cbe8227d0e64f7dd7ea51382",
+    "Content/Characters/Mannequins/Anims/Rifle/MM_Rifle_Sprint_Compact_Additive.uasset": "fb825746318f77d12b57e1bd4d62dbb7d5262b5dcbc30d2346f71e72e3252356"
+  },
+  "production_dependency_packages": 55,
+  "production_experimental_dependencies": [],
+  "approved_node_comparison": {
+    "differences": []
+  },
+  "copied_animation_equivalence": [
+    {
+      "source": "/Game/Experiments/RifleTransition/RifleRunCompact_20261017/MM_Rifle_RunCompact_Base.MM_Rifle_RunCompact_Base",
+      "production": "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_LowReady_Compact.MM_Rifle_LowReady_Compact",
+      "keys": 258,
+      "length": 8.566666603088379,
+      "rate_scale": 1.0,
+      "max_local_cm": 0.0,
+      "max_local_deg": 0.0,
+      "max_scale": 0.0,
+      "import_source": "D:/Unreal_Projects/ShootGame/Scripts/Animation/RifleTools/Inputs/RunCompact/MM_Rifle_LowReady_Compact.fbx"
+    },
+    {
+      "source": "/Game/Experiments/RifleTransition/RifleRunCompact_20261017/MM_Rifle_RunCompact_Transition.MM_Rifle_RunCompact_Transition",
+      "production": "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_AimToLowReady_Compact.MM_Rifle_AimToLowReady_Compact",
+      "keys": 26,
+      "length": 0.8333333134651184,
+      "rate_scale": 2.5999999046325684,
+      "max_local_cm": 0.0,
+      "max_local_deg": 0.0,
+      "max_scale": 0.0,
+      "import_source": "D:/Unreal_Projects/ShootGame/Scripts/Animation/RifleTools/Inputs/RunCompact/MM_Rifle_AimToLowReady_Compact.fbx"
+    },
+    {
+      "source": "/Game/Experiments/RifleTransition/RifleRunCompact_20261017/MM_Rifle_RunCompact_Additive.MM_Rifle_RunCompact_Additive",
+      "production": "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_Sprint_Compact_Additive.MM_Rifle_Sprint_Compact_Additive",
+      "keys": 54,
+      "length": 1.7666666507720947,
+      "rate_scale": 1.0,
+      "max_local_cm": 0.0,
+      "max_local_deg": 0.0,
+      "max_scale": 0.0,
+      "import_source": "D:/Unreal_Projects/ShootGame/Scripts/Animation/RifleTools/Inputs/RunCompact/MM_Rifle_Sprint_Compact_Additive.fbx"
+    }
+  ],
+  "runtime_metrics_before_cleanup": {
+    "0": {
+      "steady_samples": 153,
+      "raise_samples": 20,
+      "max_stride_phase_error": 0.0,
+      "chest_rotation_span_deg": 11.591151323255788,
+      "max_left_hand_relative_right_deviation_cm": 0.000301142601850636,
+      "undefined_raise_elbow_plane_samples": 2,
+      "max_valid_sampled_raise_elbow_plane_step_deg": 5.696457565253337
+    },
+    "-60": {
+      "steady_samples": 177,
+      "raise_samples": 20,
+      "max_stride_phase_error": 0.0,
+      "chest_rotation_span_deg": 11.852835381046681,
+      "max_left_hand_relative_right_deviation_cm": 8.371872909096792e-05,
+      "undefined_raise_elbow_plane_samples": 0,
+      "max_valid_sampled_raise_elbow_plane_step_deg": 3.8202341393529795
+    },
+    "60": {
+      "steady_samples": 176,
+      "raise_samples": 20,
+      "max_stride_phase_error": 0.0,
+      "chest_rotation_span_deg": 12.007345941560395,
+      "max_left_hand_relative_right_deviation_cm": 0.00019644636350295142,
+      "undefined_raise_elbow_plane_samples": 0,
+      "max_valid_sampled_raise_elbow_plane_step_deg": 7.693035857368803
+    }
+  },
+  "validation_before_cleanup": {
+    "OfficialNetwork": {
+      "succeeded": 0,
+      "succeededWithWarnings": 10,
+      "failed": 0,
+      "notRun": 0,
+      "tests": [
+        {
+          "path": "ShootGame.Animation.RifleReady.GameplayNetwork.AWP.Dedicated",
+          "state": "Success"
+        },
+        {
+          "path": "ShootGame.Animation.RifleReady.GameplayNetwork.AWP.Emulated",
+          "state": "Success"
+        },
+        {
+          "path": "ShootGame.Animation.RifleReady.GameplayNetwork.AWP.Listen",
+          "state": "Success"
+        },
+        {
+          "path": "ShootGame.Animation.RifleReady.GameplayNetwork.GrenadeLauncher.Dedicated",
+          "state": "Success"
+        },
+        {
+          "path": "ShootGame.Animation.RifleReady.GameplayNetwork.GrenadeLauncher.Emulated",
+          "state": "Success"
+        },
+        {
+          "path": "ShootGame.Animation.RifleReady.GameplayNetwork.GrenadeLauncher.Listen",
+          "state": "Success"
+        },
+        {
+          "path": "ShootGame.Animation.RifleReady.GameplayNetwork.Rifle.Dedicated",
+          "state": "Success"
+        },
+        {
+          "path": "ShootGame.Animation.RifleReady.GameplayNetwork.Rifle.Emulated",
+          "state": "Success"
+        },
+        {
+          "path": "ShootGame.Animation.RifleReady.GameplayNetwork.Rifle.Listen",
+          "state": "Success"
+        },
+        {
+          "path": "ShootGame.Animation.RifleReady.PIE",
+          "state": "Success"
+        }
+      ]
+    },
+    "Footsteps": {
+      "succeeded": 2,
+      "succeededWithWarnings": 0,
+      "failed": 0,
+      "notRun": 0,
+      "tests": [
+        {
+          "path": "ShootGame.Audio.Footsteps.NotifyGuards",
+          "state": "Success"
+        },
+        {
+          "path": "ShootGame.Audio.Footsteps.ProductionConfiguration",
+          "state": "Success"
+        }
+      ]
+    },
+    "Production_0": {
+      "succeeded": 0,
+      "succeededWithWarnings": 1,
+      "failed": 0,
+      "notRun": 0,
+      "tests": [
+        {
+          "path": "ShootGame.Animation.RifleReady.GameplayNetwork.Rifle.Listen",
+          "state": "Success"
+        }
+      ]
+    },
+    "Production_-60": {
+      "succeeded": 0,
+      "succeededWithWarnings": 1,
+      "failed": 0,
+      "notRun": 0,
+      "tests": [
+        {
+          "path": "ShootGame.Animation.RifleReady.GameplayNetwork.Rifle.Listen",
+          "state": "Success"
+        }
+      ]
+    },
+    "Production_60": {
+      "succeeded": 0,
+      "succeededWithWarnings": 1,
+      "failed": 0,
+      "notRun": 0,
+      "tests": [
+        {
+          "path": "ShootGame.Animation.RifleReady.GameplayNetwork.Rifle.Listen",
+          "state": "Success"
+        }
+      ]
+    }
+  },
+  "validation_after_cleanup": {
+    "succeeded": 0,
+    "succeededWithWarnings": 1,
+    "failed": 0,
+    "notRun": 0,
+    "tests": [
+      {
+        "path": "ShootGame.Animation.RifleReady.PIE",
+        "state": "Success"
+      }
+    ]
+  },
+  "stable_sources": [
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_LowReady_Compact",
+      "source": "Scripts/Animation/RifleTools/Inputs/RunCompact/MM_Rifle_LowReady_Compact.blend",
+      "sha256": "2fbbd092893f3410df9ee266c7da689d68e0cd0057b5da5ff53af99de6279828"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_LowReady_Compact",
+      "source": "Scripts/Animation/RifleTools/Inputs/RunCompact/MM_Rifle_LowReady_Compact.fbx",
+      "sha256": "460fe7de66b9fca116494ef7aeba3a7e16df392e78e53be5b52d12db08a0c028"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_AimToLowReady_Compact",
+      "source": "Scripts/Animation/RifleTools/Inputs/RunCompact/MM_Rifle_AimToLowReady_Compact.blend",
+      "sha256": "1b844fa947114085f5dbe1f53391f3a9745c11cf373506b4e95830b15352db49"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_AimToLowReady_Compact",
+      "source": "Scripts/Animation/RifleTools/Inputs/RunCompact/MM_Rifle_AimToLowReady_Compact.fbx",
+      "sha256": "4ac03f37205e8c3faa1771615550000e31473f771d6415d2353cbd222283d70b"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_Sprint_Compact_Additive",
+      "source": "Scripts/Animation/RifleTools/Inputs/RunCompact/MM_Rifle_Sprint_Compact_Additive.blend",
+      "sha256": "19249d00ac97ca08c69e290c8a02249e1fe9dc87ed3b3aba2b5f77919da37410"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_Sprint_Compact_Additive",
+      "source": "Scripts/Animation/RifleTools/Inputs/RunCompact/MM_Rifle_Sprint_Compact_Additive.fbx",
+      "sha256": "b47c567ec98e511de9db8f18556791d98fd946e0787388669a5d6dfaab0c4745"
+    }
+  ],
+  "removed_saved_outputs": [
+    {
+      "path": "Saved/SprintSway_20261017",
+      "files": 153,
+      "bytes": 43378765
+    },
+    {
+      "path": "Saved/RifleRun_20261017",
+      "files": 72,
+      "bytes": 20621455
+    },
+    {
+      "path": "Saved/RifleRunCompact_20261017",
+      "files": 317,
+      "bytes": 101520684
+    },
+    {
+      "path": "Saved/RifleRunProduction_20261017",
+      "files": 158,
+      "bytes": 18917936
+    },
+    {
+      "path": "Saved/RifleReadyIntegration/20261017_063715",
+      "files": 1,
+      "bytes": 56770
+    },
+    {
+      "path": "Saved/RifleReadyIntegration/20261017_063727",
+      "files": 1,
+      "bytes": 59500
+    },
+    {
+      "path": "Saved/RifleReadyIntegration/20261017_063738",
+      "files": 1,
+      "bytes": 59987
+    },
+    {
+      "path": "Saved/RifleReadyIntegration/20261017_063850",
+      "files": 1,
+      "bytes": 59243
+    },
+    {
+      "path": "Saved/RifleReadyIntegration/20261017_063925",
+      "files": 1,
+      "bytes": 42893
+    },
+    {
+      "path": "Saved/RifleReadyIntegration/20261017_063959",
+      "files": 1,
+      "bytes": 58561
+    },
+    {
+      "path": "Saved/RifleReadyIntegration/20261017_064033",
+      "files": 1,
+      "bytes": 58693
+    },
+    {
+      "path": "Saved/RifleReadyIntegration/20261017_064106",
+      "files": 1,
+      "bytes": 59043
+    },
+    {
+      "path": "Saved/RifleReadyIntegration/20261017_064140",
+      "files": 1,
+      "bytes": 58619
+    },
+    {
+      "path": "Saved/RifleReadyIntegration/20261017_064214",
+      "files": 1,
+      "bytes": 58301
+    },
+    {
+      "path": "Saved/RifleReadyIntegration/20261017_075757",
+      "files": 1,
+      "bytes": 43812
+    },
+    {
+      "path": "Saved/RifleReadyIntegration/20261017_075810",
+      "files": 1,
+      "bytes": 46876
+    },
+    {
+      "path": "Saved/RifleReadyIntegration/20261017_075821",
+      "files": 1,
+      "bytes": 48875
+    },
+    {
+      "path": "Saved/RifleReadyIntegration/20261017_075904",
+      "files": 1,
+      "bytes": 46675
+    },
+    {
+      "path": "Saved/RifleReadyIntegration/20261017_075944",
+      "files": 1,
+      "bytes": 49207
+    },
+    {
+      "path": "Saved/RifleReadyIntegration/20261017_120447",
+      "files": 1,
+      "bytes": 57049
+    },
+    {
+      "path": "Saved/RifleReadyIntegration/20261017_120955",
+      "files": 1,
+      "bytes": 39377
+    },
+    {
+      "path": "Saved/RifleReadyIntegration/20261017_121035",
+      "files": 1,
+      "bytes": 40999
+    },
+    {
+      "path": "Saved/RifleReadyIntegration/20261017_121116",
+      "files": 1,
+      "bytes": 37652
+    },
+    {
+      "path": "Saved/RifleReadyIntegration/20261017_121128",
+      "files": 1,
+      "bytes": 40539
+    },
+    {
+      "path": "Saved/RifleReadyIntegration/20261017_121140",
+      "files": 1,
+      "bytes": 40225
+    },
+    {
+      "path": "Saved/RifleReadyIntegration/20261017_121221",
+      "files": 1,
+      "bytes": 42745
+    },
+    {
+      "path": "Saved/RifleReadyIntegration/20261017_121301",
+      "files": 1,
+      "bytes": 42293
+    },
+    {
+      "path": "Saved/RifleReadyIntegration/20261017_121435",
+      "files": 1,
+      "bytes": 47201
+    },
+    {
+      "path": "Saved/RifleReadyIntegration/20261017_121514",
+      "files": 1,
+      "bytes": 48027
+    },
+    {
+      "path": "Saved/RifleReadyIntegration/20261017_124142",
+      "files": 1,
+      "bytes": 66305
+    },
+    {
+      "path": "Saved/RifleReadyIntegration/20261017_124215",
+      "files": 1,
+      "bytes": 72861
+    },
+    {
+      "path": "Saved/RifleReadyIntegration/20261017_124249",
+      "files": 1,
+      "bytes": 71513
+    },
+    {
+      "path": "Saved/RifleReadyIntegration/20261017_124543",
+      "files": 1,
+      "bytes": 41423
+    },
+    {
+      "path": "Saved/RifleReadyIntegration/20261017_124552",
+      "files": 1,
+      "bytes": 44321
+    },
+    {
+      "path": "Saved/RifleReadyIntegration/20261017_124601",
+      "files": 1,
+      "bytes": 43343
+    },
+    {
+      "path": "Saved/RifleReadyIntegration/20261017_124610",
+      "files": 1,
+      "bytes": 41964
+    },
+    {
+      "path": "Saved/RifleReadyIntegration/20261017_124619",
+      "files": 1,
+      "bytes": 44415
+    },
+    {
+      "path": "Saved/RifleReadyIntegration/20261017_124628",
+      "files": 1,
+      "bytes": 43457
+    },
+    {
+      "path": "Saved/RifleReadyIntegration/20261017_124637",
+      "files": 1,
+      "bytes": 42233
+    },
+    {
+      "path": "Saved/RifleReadyIntegration/20261017_124646",
+      "files": 1,
+      "bytes": 44753
+    },
+    {
+      "path": "Saved/RifleReadyIntegration/20261017_124654",
+      "files": 1,
+      "bytes": 43541
+    }
+  ],
+  "historical_documents_preserved": 314
+}
