@@ -23,9 +23,14 @@ Gameplay Ability、第一/第三人称表现、AI 与多人生命周期。当前
 - 武器启动配置快照、按类型预热的实体池，以及池耗尽后的按需 Spawn。
 - Owner-only Inventory 数据、当前装备复制、双向切枪、死亡与断线清理。
 - 第一/第三人称动画、瞄准同步、程序化 IK、Reload 与 Equip 表现。
+- 本机预测开火动画在第三人称 Mesh 播放，第一人称经 CopyPose 继承。
+- Walk / Sprint 移动预测、服务器动作门控与远端 Sprint 状态同步。
+- Sprint 自动收枪；Fire 优先抬枪，到达真实动画端点后消费最多一次首发缓冲。
+- Compact 贴身跑姿与步态同步；Rifle、AWP、GrenadeLauncher 共用收抬枪表现。
 - 四枪可拆卸弹匣表现，以及已验收的 TP 左右脚 Notify 基础脚步音效。
 - StateTree NPC、权威伤害、死亡、重生和基础计分流程。
 - Build、Automation、Standalone、Dedicated、Listen、网络模拟与断线清理验证。
+- Linux Dedicated Server 构建、打包与公网双客户端登录、角色复制验证。
 
 ## 网络射击边界
 
@@ -48,19 +53,31 @@ Server Accept / Reject 结清状态，Owner 确认不补播过去的瞬时开火
 [网络射击 AI 自主验证契约](Docs/架构/网络射击AI自主验证契约.md)。
 
 近期继续完善表现，暂缓 Lobby / LAN Session。
-截至 2026-10-08，最新完整回归的 Build、172 项 Automation 与 Standalone 通过，
-Dedicated 射击协调器在后段超时，其后的阶段未执行。
-独立脚步 Dedicated / Listen 专项通过，不能替代完整射击回归。
-阶段证据与遗留项见[当前进度](Docs/执行计划/Shooter完整Demo最终路线规划.md#15-当前进度与近期方向)。
+本页功能概述截至 2026-10-17 的已提交基线，不包含工作区实验。
+
+最新完整默认 RunAll 记录为 2026-10-16：七阶段全部通过，187 项 Automation 通过。
+该轮首次带渲染运行曾发生 RifleReady.PIE 启动超时，单项带渲染复跑通过。
+超时根因尚未定位；最终默认全量通过不等于整轮带渲染通过。
+详见[完整回归记录][regression]。
+
+2026-10-17 Compact 跑姿接入完成编译、九项网络、一项六俯仰 PIE 与两项脚步验证。
+清理后再次通过六俯仰 PIE；未重跑完整 Cook、跨机器或全套网络射击不变量验证。
+这些专项结果不能替代当前提交的完整回归，详见[跑姿提交记录][run-posture]。
+长期目标见[总路线](Docs/执行计划/Shooter完整Demo最终路线规划.md)；
+其中当前进度仍为 2026-10-08 快照，后续状态以本页所引记录和专题为准。
 
 ## 环境要求
 
-- Windows 10/11。
+- Windows 10/11 开发环境与客户端。
 - Unreal Engine 5.6。
 - Visual Studio 2022 与 C++ 游戏开发工具链。
 - Windows SDK 10.0.22621 或兼容版本。
 
 仓库提供了 [.vsconfig](.vsconfig)，Visual Studio 可据此安装所需组件。
+
+Linux 专服已通过源码引擎构建、打包与公网双客户端登录验证。
+公网移动、射击、伤害等完整玩法尚未完成验收，也不承诺服务器当前在线。
+Linux 构建条件及验证边界见[部署说明](Docs/部署/LinuxDedicatedServer构建与跟踪.md)。
 
 ## 快速开始
 
@@ -74,6 +91,10 @@ cd ShootGame
 3. 编译 `ShootGameEditor Win64 Development`。
 4. 打开 `ShootGame.uproject`。
 5. 加载 `/Game/Shooter/Maps/Lvl_Shooter` 开始运行。
+
+默认 Walk，按住左 Shift 跑步，松开恢复；滚轮切枪。
+跑动中按 Fire 会先抬枪，到位后开火；持续按住则沿用武器原有连发规则。
+操作与取消边界见[Walk / Sprint 与自动收枪](Docs/WalkSprint与自动收枪.md)。
 
 刷新工程文件：
 
@@ -123,6 +144,7 @@ Source/ShootGame/
 ├── AbilitySystem/    # GAS、属性与 Gameplay Effect 工具
 ├── AI/               # NPC、AIController 与 StateTree 支撑
 ├── Characters/       # 角色、瞄准、装备与动画数据源
+│   └── Movement/     # 预测走跑、服务器动作门控与远端 Sprint
 ├── GameFramework/    # GameMode、GameState、Controller、PlayerState
 ├── Inventory/        # Owner-only Inventory 与运行时实例数据
 ├── Tests/            # Automation 与网络端到端验证
@@ -130,6 +152,8 @@ Source/ShootGame/
 └── Weapons/          # 武器、配置、池、Pickup、开火行为与 Projectile
 ```
 
+同级 `Source/ShootGameEditor/` 为 UncookedOnly 模块，承载动画图节点和编辑器工具、测试。
+`Source/ShootGameServer.Target.cs` 提供 Dedicated Server 构建目标。
 `Plugins/McpAutomationBridge` 是 Editor-only 自动化桥接插件，不参与运行时 Gameplay。
 
 ## 设计与开发文档
@@ -137,7 +161,10 @@ Source/ShootGame/
 - [文档索引](Docs/README.md)
 - [TP 脚步 Notify 与基础音效](Docs/TP脚步Notify与基础音效.md)
 - [枪械可拆卸弹匣资产约定](Docs/枪械可拆卸弹匣资产约定.md)
-
+- [Walk / Sprint 与自动收枪](Docs/WalkSprint与自动收枪.md)
+- [Rifle 收枪动画表现](Docs/Rifle收枪动画表现.md)
+- [Blender 动画编辑工具链](Docs/Blender动画编辑工具链.md)
+- [Linux Dedicated Server 构建与跟踪](Docs/部署/LinuxDedicatedServer构建与跟踪.md)
 - [Inventory 与武器数据架构](Docs/架构/Inventory与武器数据架构.md)
 - [网络射击 AI 自主验证契约](Docs/架构/网络射击AI自主验证契约.md)
 - [完整 Demo 最终路线规划](Docs/执行计划/Shooter完整Demo最终路线规划.md)
@@ -168,3 +195,6 @@ FMoony 拥有权利的代码部分，不改变其他内容的许可。
   各资产来源的许可，包括适用时的
   [Epic Content License](https://www.unrealengine.com/eula/content) 或
   [Fab Standard License](https://www.fab.com/eula)。
+
+[regression]: Docs/开发记录/2026-10-16-1732-生产代码显式类型整理.md
+[run-posture]: Docs/开发记录/2026-10-17-2102-Rifle跑姿验收清理与提交.md
