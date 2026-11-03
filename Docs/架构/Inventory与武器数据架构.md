@@ -96,6 +96,9 @@ Timer / Delegate / bIsFiring
 - `RemoveWeapon / ClearInventory` 先广播（Equipment 清空当前装备），再把 Actor Release 回正确 Bucket；
 - 查询全部使用短数组线性扫描；首版最多 3 个 Slot；
 - Inventory 不再读取 DataTable、生成 GUID、保存弹药或维护 InstanceId 映射。
+- 普通 Remove 使用当前宿主，退出 Clear 由 Character 显式提供原 PlayerState。
+  撤销沿用已有的 `Weapon → Spec.SourceObject` 查询，并在武器归池之前完成。
+  Inventory 不保存第二份授予集合；更换能力宿主前先清理旧背包。
 
 ### 2.4 Equipment
 
@@ -130,6 +133,29 @@ Timer / Delegate / bIsFiring
 - `GA_Equip` → `Inventory->FindNextWeapon(CurrentActor)` → `Equipment->EquipWeapon(TargetActor)`；
 - 提交前统一校验：Actor 仍在 Inventory、`Actor->GetOwner() == Character`、
   Equipment CurrentActor 与 Ability 目标一致、Actor 不处于 InPool。
+
+### 2.8 玩家 Pawn 与持久能力宿主的退出边界
+
+- `PlayerState / ASC` 跨普通重生保留；`Character / Inventory / Equipment` 随 Pawn 生命周期结束。
+- Character 的 `CleanupPawnGameplay` 协调死亡、解除控制与 EndPlay：
+  先使旧输入失效、取消旧动作，再由 Inventory 撤销授予并归还武器，最后按需解除 ActorInfo。
+- `UnPossessed` 在调用 Super 前清理，因为 UE 5.6 的 Super 会清空 Pawn.PlayerState。
+- 死亡时保留 Avatar，供属性桥接、死亡表现与计分继续使用；解除控制 / 销毁时才解除关联。
+- 建立关联时保存 ASC 弱引用；客户端控制器 / PlayerState 失效通知也能通过原上下文清理。
+- 只有当前 Avatar 仍是该 Pawn 时才取消动作、清输入与解除关联。
+  新 Pawn 建立关联前通知旧 Avatar 拆卸；迟到的旧 Pawn 清理不能结束新 Avatar 的动作。
+- Character 复用已绑定 ASC 的 OwnerActor 向 Inventory 传入原 PlayerState。
+  Inventory 沿用 PlayerState 的 `RemoveFireAbilityForWeapon`，不另存逐武器 Grant 凭据。
+  Clear 在广播前固定本次调用的宿主；Reload / Equip 的持久 Spec 保留。
+- Equipment、武器表现、AnimInstance 与网络复制字段沿用现有分工。
+
+该边界参考 Epic UE 5.6 Lyra 对持久 ASC 与 Pawn 相关状态撤销的说明：
+
+<https://dev.epicgames.com/documentation/en-us/unreal-engine/abilities-in-lyra-in-unreal-engine?application_version=5.6>
+
+本项目在既有类内完成退出协调，不引入 Lyra 的组件体系。
+当前单宿主模型通过明确的退出上下文清理，不引入完整的授予凭据管理。
+本地 UE 5.6.1 的 Avatar 销毁委托只清 Avatar 属性，不代替动作取消与授予撤销。
 
 ---
 

@@ -88,6 +88,7 @@ bool UShooterInventoryComponent::RemoveWeapon(AShooterWeapon* Weapon)
 		return false;
 	}
 
+	AShooterPlayerState* AbilityHost = ResolveAbilityHostPlayerState();
 	const bool bRemoved = ReplicatedInventory.RemoveItem(Weapon);
 	if (bRemoved)
 	{
@@ -96,7 +97,7 @@ bool UShooterInventoryComponent::RemoveWeapon(AShooterWeapon* Weapon)
 
 		// Fire Ability 撤销必须早于归还池：Spec.SourceObject 是弱引用，
 		// 武器被销毁后再撤销会留下"SourceObject 已失效"的孤儿 Spec。
-		if (AShooterPlayerState* AbilityHost = ResolveAbilityHostPlayerState())
+		if (IsValid(AbilityHost))
 		{
 			AbilityHost->RemoveFireAbilityForWeapon(Weapon);
 		}
@@ -109,13 +110,15 @@ bool UShooterInventoryComponent::RemoveWeapon(AShooterWeapon* Weapon)
 	return bRemoved;
 }
 
-void UShooterInventoryComponent::ClearInventory()
+void UShooterInventoryComponent::ClearInventory(AShooterPlayerState* AbilityHost)
 {
 	if (!GetOwner() || !GetOwner()->HasAuthority())
 	{
 		return;
 	}
 
+	// 在广播前固定本次清理的宿主，避免回调改变控制关系后撤销到其他 PlayerState。
+	AShooterPlayerState* OriginalAbilityHost = AbilityHost ? AbilityHost : ResolveAbilityHostPlayerState();
 	// E1 顺序：冻结待归还 WeaponActor，先清逻辑 Entries 并广播，
 	// 让 Equipment 在归还池之前清理当前装备，最后统一归还。
 	TArray<AShooterWeapon*> WeaponsToRelease;
@@ -127,7 +130,7 @@ void UShooterInventoryComponent::ClearInventory()
 		}
 	}
 
-	if (ReplicatedInventory.Items.Num() == 0 && WeaponsToRelease.Num() == 0)
+	if (ReplicatedInventory.Items.Num() == 0)
 	{
 		// 重复 Clear / 空 Inventory 幂等返回，不重复广播错误状态。
 		return;
@@ -136,13 +139,12 @@ void UShooterInventoryComponent::ClearInventory()
 	ReplicatedInventory.ClearItems();
 	OnInventoryCleared.Broadcast();
 
-	// Fire Ability 与武器持有关系同生命周期：先撤销全部 Spec，再归还 / 销毁 WeaponActor，
-	// 顺序理由与 RemoveWeapon 相同（Spec.SourceObject 是弱引用）。
-	if (AShooterPlayerState* AbilityHost = ResolveAbilityHostPlayerState())
+	// Weapon 仍有效且尚未归池，沿用 SourceObject 查询撤销；宿主来自本次调用的上下文。
+	if (IsValid(OriginalAbilityHost))
 	{
 		for (AShooterWeapon* Weapon : WeaponsToRelease)
 		{
-			AbilityHost->RemoveFireAbilityForWeapon(Weapon);
+			OriginalAbilityHost->RemoveFireAbilityForWeapon(Weapon);
 		}
 	}
 
@@ -211,7 +213,7 @@ void UShooterInventoryComponent::HandleWeaponEntryRemoved(AShooterWeapon* Weapon
 	}
 }
 
-/** 取本组件的 Ability 宿主：玩家角色的 PlayerState；NPC / 无 PlayerState 时返回 nullptr。 */
+/** 普通增删时取玩家 PlayerState；退出清理由调用方明确提供原宿主。 */
 AShooterPlayerState* UShooterInventoryComponent::ResolveAbilityHostPlayerState() const
 {
 	const AShooterCharacter* Character = Cast<AShooterCharacter>(GetOwner());

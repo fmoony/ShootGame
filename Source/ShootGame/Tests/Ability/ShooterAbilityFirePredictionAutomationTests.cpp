@@ -4,16 +4,19 @@
 
 #include "Misc/AutomationTest.h"
 
+#include "Abilities/Tasks/AbilityTask_WaitDelay.h"
 #include "AbilitySystem/Abilities/ShooterGameplayAbility_Fire.h"
 #include "AbilitySystem/ShooterAbilitySystemComponent.h"
 #include "AbilitySystem/ShooterGameplayTags.h"
 #include "AbilitySystemComponent.h"
 #include "Characters/Equipment/ShooterEquipmentComponent.h"
+#include "Engine/DamageEvents.h"
 #include "Engine/Engine.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/PlayerState.h"
+#include "GameFramework/WorldSettings.h"
 #include "GameFramework/PlayerState/ShooterPlayerState.h"
 #include "Inventory/ShooterInventoryComponent.h"
 #include "NiagaraSystem.h"
@@ -23,6 +26,8 @@
 #include "Tests/Weapon/ShooterWeaponTestTableTypes.h"
 #include "TimerManager.h"
 #include "UObject/Package.h"
+#include "UObject/StrongObjectPtr.h"
+#include "UObject/UObjectIterator.h"
 #include "Weapons/Data/ShooterWeaponConfigRow.h"
 #include "Weapons/Projectile/ShooterProjectile.h"
 #include "Weapons/ShooterWeapon.h"
@@ -1198,6 +1203,321 @@ bool FShooterFireSpecRemovalPredictionRetirementTest::RunTest(const FString& Par
 		Ability->GetAuthorityRejectCountForTest(), AuthorityRejectsBeforeCaseB);
 
 	DestroyPredictionTestWorld(World);
+	return true;
+}
+
+namespace ShooterPawnLifecycleEvidence
+{
+	/** 保留清理前的观测身份，不经已销毁 Pawn 重新解析 ASC。 */
+	struct FContext
+	{
+		FAutomationTestBase* Test = nullptr;
+		UWorld* World = nullptr;
+		APlayerController* Controller = nullptr;
+		TStrongObjectPtr<AShooterPlayerState> PlayerState;
+		TStrongObjectPtr<UShooterAbilitySystemComponent> ASC;
+		AShooterWeapon* Weapon = nullptr;
+		UGameplayAbility* Ability = nullptr;
+		FGameplayAbilitySpecHandle ActionHandle;
+		FGameplayTag ActionTag;
+		FString Scenario;
+		float Elapsed = 0.0f;
+
+		~FContext()
+		{
+			if (World)
+			{
+				World->EndPlay(EEndPlayReason::Quit);
+				World->DestroyWorld(false);
+				GEngine->DestroyWorldContext(World);
+			}
+		}
+
+		int32 CountWaitTasks() const
+		{
+			int32 Count = 0;
+			// UE 5.6 的 AbilityTask Outer 是瞬态包，所属能力通过 Ability 字段建立。
+			for (TObjectIterator<UAbilityTask_WaitDelay> It; It; ++It)
+			{
+				if (It->Ability == Ability && It->GetState() == EGameplayTaskState::Active)
+				{
+					++Count;
+				}
+			}
+			return Count;
+		}
+
+		bool Snapshot(const TCHAR* Stage, bool bRequireClean)
+		{
+			if (!Test->TestTrue(TEXT("原 PlayerState / ASC / 武器仍可观测"),
+				IsValid(PlayerState.Get()) && !PlayerState->IsActorBeingDestroyed() &&
+				IsValid(ASC.Get()) && IsValid(Weapon) && IsValid(Ability)))
+			{
+				return false;
+			}
+			Test->TestTrue(TEXT("Controller 仍持有原 PlayerState"), Controller->PlayerState == PlayerState.Get());
+			Test->TestTrue(TEXT("PlayerState 仍持有原 ASC"), PlayerState->GetAbilitySystemComponent() == ASC.Get());
+			const FGameplayAbilitySpec* Action = ASC->FindAbilitySpecFromHandle(ActionHandle);
+			if (!Test->TestNotNull(TEXT("跨 Pawn 的动作 Spec 仍存在"), Action))
+			{
+				return false;
+			}
+			const int32 FireSpecs = PlayerState->GetFireAbilitySpecCount();
+			const int32 Tasks = CountWaitTasks();
+			const int32 Tags = ASC->GetTagCount(ActionTag);
+			UShooterWeaponRuntimeSubsystem* Runtime = World->GetSubsystem<UShooterWeaponRuntimeSubsystem>();
+			Test->AddInfo(FString::Printf(
+				TEXT("LIFECYCLE_EVIDENCE Scenario=%s Stage=%s PS=%s ASC=%s Avatar=%s ")
+				TEXT("FireSpecs=%d Active=%d ActionTags=%d WaitTasks=%d Held=%d Buffered=%d ")
+				TEXT("Weapon=%s WeaponOwner=%s WeaponState=%d Leased=%d"),
+				*Scenario, Stage, *PlayerState->GetName(), *ASC->GetName(), *GetNameSafe(ASC->GetAvatarActor()),
+				FireSpecs, Action->IsActive(), Tags, Tasks, ASC->GetHeldInputTagCountForTest(),
+				ASC->GetBufferedInputCountForTest(), *Weapon->GetName(), *GetNameSafe(Weapon->GetOwner()),
+				static_cast<int32>(Weapon->GetLifecycleState()), Runtime->IsLeased(Weapon)));
+			if (bRequireClean)
+			{
+				const FString Prefix = FString(Stage) + TEXT(": ");
+				Test->TestEqual(Prefix + TEXT("旧武器 Fire Spec 已撤销"), FireSpecs, 0);
+				Test->TestFalse(Prefix + TEXT("旧动作已结束"), Action->IsActive());
+				Test->TestEqual(Prefix + TEXT("旧动作 Tag 已清理"), Tags, 0);
+				Test->TestEqual(Prefix + TEXT("旧 WaitDelay 已结束"), Tasks, 0);
+				Test->TestEqual(Prefix + TEXT("Held 输入已失效"), ASC->GetHeldInputTagCountForTest(), 0);
+				Test->TestEqual(Prefix + TEXT("缓存输入已失效"), ASC->GetBufferedInputCountForTest(), 0);
+				Test->TestFalse(Prefix + TEXT("旧武器不再租出"), Runtime->IsLeased(Weapon));
+				Test->TestNull(Prefix + TEXT("旧武器 Owner 已清理"), Weapon->GetOwner());
+			}
+			return true;
+		}
+	};
+
+	/** 跨真实引擎帧推进测试 World，观察旧 WaitDelay 到期后的状态，再正常结束 World。 */
+	class FObserveExpiry : public IAutomationLatentCommand
+	{
+	public:
+		explicit FObserveExpiry(TSharedRef<FContext> InContext) : Context(InContext) {}
+
+		virtual bool Update() override
+		{
+			Context->World->Tick(LEVELTICK_All, 0.05f);
+			Context->Elapsed += 0.05f;
+			if (Context->Elapsed < 2.0f)
+			{
+				return false;
+			}
+			Context->Snapshot(TEXT("AfterWaitExpiry"), true);
+			return true;
+		}
+
+	private:
+		TSharedRef<FContext> Context;
+	};
+}
+
+IMPLEMENT_COMPLEX_AUTOMATION_TEST(FShooterPawnRetainedASCLifecycleTest, "ShootGame.Ability.Lifecycle.RetainedASC",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+void FShooterPawnRetainedASCLifecycleTest::GetTests(TArray<FString>& Names, TArray<FString>& Commands) const
+{
+	for (const TCHAR* Action : {TEXT("Reload"), TEXT("Equip")})
+	{
+		for (const TCHAR* Path :
+			{TEXT("DeathDestroy"), TEXT("DirectDestroy"), TEXT("UnpossessDestroy"), TEXT("LateOldDestroy")})
+		{
+			const FString Name = FString(Action) + TEXT(".") + Path;
+			Names.Add(Name);
+			Commands.Add(Name);
+		}
+	}
+}
+
+bool FShooterPawnRetainedASCLifecycleTest::RunTest(const FString& Parameters)
+{
+	using namespace ShooterAbilityFirePredictionAutomationTests;
+	using namespace ShooterPawnLifecycleEvidence;
+	TSharedRef<FContext> Context = MakeShared<FContext>();
+	Context->Test = this;
+	Context->Scenario = Parameters;
+	Context->World = CreatePredictionTestWorld();
+	if (!TestNotNull(TEXT("生命周期测试 World 已创建"), Context->World))
+	{
+		return false;
+	}
+	// 使 SpawnActor 完整执行组件初始化；仅 DispatchBeginPlay 不满足 RouteEndPlay 的初始化前提。
+	Context->World->InitializeActorsForPlay(FURL());
+	Context->World->GetWorldSettings()->NotifyBeginPlay();
+	AShooterCharacter* Character = SpawnLocalPlayerCharacter(Context->World);
+	if (!TestNotNull(TEXT("真实玩家 Pawn 已创建"), Character))
+	{
+		return false;
+	}
+	Context->Controller = Cast<APlayerController>(Character->GetController());
+	Context->PlayerState.Reset(Character->GetPlayerState<AShooterPlayerState>());
+	Context->ASC.Reset(Cast<UShooterAbilitySystemComponent>(Character->GetAbilitySystemComponent()));
+	if (!TestNotNull(TEXT("玩家 Controller 存在"), Context->Controller) ||
+		!TestNotNull(TEXT("原 PlayerState 存在"), Context->PlayerState.Get()) ||
+		!TestNotNull(TEXT("原 ASC 存在"), Context->ASC.Get()))
+	{
+		return false;
+	}
+	UShooterInventoryComponent* Inventory = Character->GetInventoryComponent();
+	Context->Weapon = GrantTestWeapon(Context->World, Inventory,
+		AShooterWeaponPresentationTestWeaponPrimary::StaticClass(), 10, 20);
+	AShooterWeapon* TargetWeapon = GrantTestWeapon(Context->World, Inventory,
+		AShooterWeaponPresentationTestWeaponSecondary::StaticClass(), 10, 20);
+	if (!TestNotNull(TEXT("当前武器已授予"), Context->Weapon) || !TestNotNull(TEXT("目标武器已授予"), TargetWeapon) ||
+		!TestTrue(TEXT("真实装备成功"), Character->GetEquipmentComponent()->EquipWeapon(Context->Weapon)) ||
+		!TestTrue(TEXT("真实权威扣弹建立可换弹起点"), Context->Weapon->ConsumeAmmo()))
+	{
+		return false;
+	}
+	const bool bReload = Parameters.StartsWith(TEXT("Reload."));
+	Context->ActionTag = bReload ? ShooterGameplayTags::State_Reloading : ShooterGameplayTags::State_Equipping;
+	const FGameplayTag InputTag = bReload ? ShooterGameplayTags::Input_Reload : ShooterGameplayTags::Input_Equip_Next;
+	FGameplayAbilitySpec* Spec = Context->ASC->FindAbilitySpecFromInputTag(InputTag);
+	if (!TestNotNull(TEXT("生产动作 Spec 已授予"), Spec))
+	{
+		return false;
+	}
+	Context->ActionHandle = Spec->Handle;
+	Context->Ability = Spec->GetPrimaryInstance();
+	if (!TestNotNull(TEXT("生产动作实例存在"), Context->Ability) ||
+		!TestTrue(TEXT("真实激活动作"), Context->ASC->TryActivateAbility(Context->ActionHandle)) ||
+		!TestTrue(TEXT("动作确实处于活动状态"), Context->Ability->IsActive()) ||
+		!TestEqual(TEXT("WaitDelay 确实已活动"), Context->CountWaitTasks(), 1) ||
+		!TestTrue(TEXT("动作 Tag 确实已存在"), Context->ASC->HasMatchingGameplayTag(Context->ActionTag)))
+	{
+		return false;
+	}
+	Context->ASC->AbilityInputTagPressed(ShooterGameplayTags::Input_Fire);
+	Context->ASC->ProcessAbilityInputForTest();
+	TestEqual(TEXT("边界前确有 Held 输入"), Context->ASC->GetHeldInputTagCountForTest(), 1);
+	TestEqual(TEXT("边界前确有被动作阻塞的缓存输入"), Context->ASC->GetBufferedInputCountForTest(), 1);
+	Context->Snapshot(TEXT("BeforeBoundary"), false);
+
+	if (Parameters.EndsWith(TEXT("DeathDestroy")))
+	{
+		Character->TakeDamage(10000.0f, FDamageEvent(), nullptr, nullptr);
+		TestTrue(TEXT("真实伤害已进入 Die"), Character->IsDead());
+		Context->Snapshot(TEXT("AfterDie"), true);
+		Context->Controller->UnPossess();
+	}
+	const bool bLateOldDestroy = Parameters.EndsWith(TEXT("LateOldDestroy"));
+	if (Parameters.EndsWith(TEXT("UnpossessDestroy")) || bLateOldDestroy)
+	{
+		Context->Controller->UnPossess();
+		TestNull(TEXT("解除控制已清空 Pawn.PlayerState"), Character->GetPlayerState());
+		Context->Snapshot(TEXT("AfterUnpossess"), true);
+	}
+	if (!bLateOldDestroy)
+	{
+		if (!TestTrue(TEXT("通过真实 Destroy 销毁旧 Pawn"), Character->Destroy()))
+		{
+			return false;
+		}
+		TestFalse(TEXT("旧 Pawn 已真实执行 EndPlay"), Character->HasActorBegunPlay());
+		Context->Snapshot(TEXT("AfterDestroy"), true);
+	}
+	TestNull(TEXT("旧 Pawn 销毁后 ASC 的 Avatar 属性已清空"), Context->ASC->GetAvatarActor());
+
+	FActorSpawnParameters SpawnParameters;
+	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	AShooterCharacter* NewCharacter = Context->World->SpawnActor<AShooterWeaponPresentationTestCharacter>(
+		FVector(1000.0f, 0.0f, 100.0f), FRotator::ZeroRotator, SpawnParameters);
+	if (!TestNotNull(TEXT("新 Pawn 已创建"), NewCharacter))
+	{
+		return false;
+	}
+	Context->Controller->Possess(NewCharacter);
+	TestTrue(TEXT("同一 ASC 已绑定新 Avatar"), Context->ASC->GetAvatarActor() == NewCharacter);
+	Context->Snapshot(TEXT("AfterNewAvatar"), true);
+	if (bLateOldDestroy)
+	{
+		UShooterInventoryComponent* NewInventory = NewCharacter->GetInventoryComponent();
+		UShooterWeaponRuntimeSubsystem* Runtime = Context->World->GetSubsystem<UShooterWeaponRuntimeSubsystem>();
+		// 复用同一配置和实体，不通过测试表重导入销毁已经归池的观测武器。
+		AShooterWeapon* NewWeapon = Runtime->AcquireWeapon(Context->Weapon->GetWeaponId(), NewCharacter, NewCharacter);
+		AShooterWeapon* NewTarget = Runtime->AcquireWeapon(TargetWeapon->GetWeaponId(), NewCharacter, NewCharacter);
+		if (!TestNotNull(TEXT("新 Pawn 武器已授予"), NewWeapon) ||
+			!TestNotNull(TEXT("新 Pawn 目标武器已授予"), NewTarget) ||
+			!TestEqual(TEXT("复用武器加入新背包"), NewInventory->AddWeapon(NewWeapon), EShooterInventoryAddResult::Added) ||
+			!TestEqual(TEXT("目标武器加入新背包"), NewInventory->AddWeapon(NewTarget), EShooterInventoryAddResult::Added) ||
+			!TestTrue(TEXT("新 Pawn 装备成功"), NewCharacter->GetEquipmentComponent()->EquipWeapon(NewWeapon)) ||
+			!TestTrue(TEXT("新武器建立可换弹起点"), NewWeapon->ConsumeAmmo()) ||
+			!TestTrue(TEXT("同一持久 Spec 在新 Avatar 重新激活"),
+				Context->ASC->TryActivateAbility(Context->ActionHandle)))
+		{
+			return false;
+		}
+		TestTrue(TEXT("已回池武器实体被新 Pawn 实际复用"), NewWeapon == Context->Weapon);
+		Context->ASC->AbilityInputTagPressed(ShooterGameplayTags::Input_Fire);
+		Context->ASC->ProcessAbilityInputForTest();
+		Context->Snapshot(TEXT("NewActionBeforeOldDestroy"), false);
+		// 模拟旧 Pawn 的 PlayerState 引用晚于新 Avatar 关联失效，覆盖按 Avatar 核对的保护分支。
+		Character->SetPlayerState(Context->PlayerState.Get());
+		TestTrue(TEXT("迟到旧 Pawn 通过真实 Destroy 销毁"), Character->Destroy());
+		Context->Snapshot(TEXT("AfterLateOldDestroy"), false);
+		TestTrue(TEXT("旧 Pawn 清理没有解除新 Avatar"), Context->ASC->GetAvatarActor() == NewCharacter);
+		TestEqual(TEXT("新 Pawn 的两份 Fire Spec 保留"), Context->PlayerState->GetFireAbilitySpecCount(), 2);
+		TestTrue(TEXT("新 Avatar 动作仍活动"), Context->Ability->IsActive());
+		TestEqual(TEXT("新动作的 WaitDelay 未被清理"), Context->CountWaitTasks(), 1);
+		TestEqual(TEXT("新动作 Tag 未被清理"), Context->ASC->GetTagCount(Context->ActionTag), 1);
+		TestEqual(TEXT("新 Avatar Held 输入未被清理"), Context->ASC->GetHeldInputTagCountForTest(), 1);
+		TestEqual(TEXT("新 Avatar 缓存输入未被清理"), Context->ASC->GetBufferedInputCountForTest(), 1);
+		TestTrue(TEXT("新 Pawn 销毁正常收束自身状态"), NewCharacter->Destroy());
+		Context->Snapshot(TEXT("AfterNewPawnDestroy"), true);
+	}
+	ADD_LATENT_AUTOMATION_COMMAND(FObserveExpiry(Context));
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FShooterInventoryExplicitCleanupHostTest,
+	"ShootGame.Ability.Lifecycle.InventoryExplicitCleanupHost",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FShooterInventoryExplicitCleanupHostTest::RunTest(const FString& Parameters)
+{
+	using namespace ShooterAbilityFirePredictionAutomationTests;
+	TSharedRef<ShooterPawnLifecycleEvidence::FContext> Context = MakeShared<ShooterPawnLifecycleEvidence::FContext>();
+	Context->World = CreatePredictionTestWorld();
+	if (!TestNotNull(TEXT("授予目标测试 World 已创建"), Context->World))
+	{
+		return false;
+	}
+	Context->World->InitializeActorsForPlay(FURL());
+	Context->World->GetWorldSettings()->NotifyBeginPlay();
+	AShooterCharacter* Character = SpawnLocalPlayerCharacter(Context->World);
+	AShooterPlayerState* OriginalHost = Character ? Character->GetPlayerState<AShooterPlayerState>() : nullptr;
+	AShooterPlayerState* OtherHost = Context->World->SpawnActor<AShooterPlayerState>();
+	if (!TestNotNull(TEXT("原授予宿主存在"), OriginalHost) || !TestNotNull(TEXT("另一宿主存在"), OtherHost))
+	{
+		return false;
+	}
+	UShooterInventoryComponent* Inventory = Character->GetInventoryComponent();
+	AShooterWeapon* First = GrantTestWeapon(Context->World, Inventory,
+		AShooterWeaponPresentationTestWeaponPrimary::StaticClass());
+	AShooterWeapon* Second = GrantTestWeapon(Context->World, Inventory,
+		AShooterWeaponPresentationTestWeaponSecondary::StaticClass());
+	if (!TestNotNull(TEXT("两次授予的第一把武器"), First) || !TestNotNull(TEXT("第二把武器"), Second))
+	{
+		return false;
+	}
+	TestEqual(TEXT("原宿主确有两份 Inventory 授予"), OriginalHost->GetFireAbilitySpecCount(), 2);
+	// 同一武器在另一 ASC 上的独立授予不能被本次清理撤销。
+	OtherHost->GrantFireAbilityForWeapon(First);
+	OtherHost->GrantFireAbilityForWeapon(Second);
+	TestEqual(TEXT("另一宿主确有独立授予"), OtherHost->GetFireAbilitySpecCount(), 2);
+	TestTrue(TEXT("正常控制关系中可移除武器"), Inventory->RemoveWeapon(First));
+	TestEqual(TEXT("Remove 撤销原宿主的 Spec"), OriginalHost->GetFireAbilitySpecCount(), 1);
+	TestEqual(TEXT("Remove 没有撤销另一宿主的授予"), OtherHost->GetFireAbilitySpecCount(), 2);
+	// 退出后 Pawn 可能已无法解析 PlayerState；调用方仍持有本次关联的原宿主上下文。
+	Character->SetPlayerState(nullptr);
+	TestNull(TEXT("当前 Pawn 已无法反查能力宿主"), Character->GetPlayerState());
+	Inventory->ClearInventory(OriginalHost);
+	TestEqual(TEXT("Clear 撤销原宿主剩余授予"), OriginalHost->GetFireAbilitySpecCount(), 0);
+	TestEqual(TEXT("Clear 没有撤销另一宿主的授予"), OtherHost->GetFireAbilitySpecCount(), 2);
+	OtherHost->RemoveFireAbilityForWeapon(First);
+	OtherHost->RemoveFireAbilityForWeapon(Second);
+	Character->SetPlayerState(OriginalHost);
 	return true;
 }
 

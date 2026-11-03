@@ -423,14 +423,8 @@ protected:
 	/** 本次伤害的击杀者；Health 归零桥接时用于现有 Death/Kill/计分闭环。 */
 	AController* PendingDeathInstigator = nullptr;
 
-	/** 幂等取消 GA_Fire；死亡、切枪、角色销毁共用。 */
-	void CancelFireAbility();
-
-	/** 幂等取消 GA_Reload；死亡、切枪、角色销毁共用。 */
-	void CancelReloadAbility();
-
-	/** 幂等取消 GA_Equip；死亡、角色销毁与重生防御性清理共用。 */
-	void CancelEquipAbility();
+	/** 结束本 Pawn 的动作与持有关系；死亡保留 Avatar，解除控制与销毁同时解除 ActorInfo。 */
+	void CleanupPawnGameplay(bool bClearActorInfo);
 
 	/** Called when this character's HP is depleted */
 	void Die(AController* KillerController);
@@ -444,6 +438,9 @@ protected:
 
 private:
 	void ClearSprintInput();
+
+	/** 建立关联时保存的宿主；退出时不依赖可能已清空的 Pawn.PlayerState，不延长宿主寿命。 */
+	TWeakObjectPtr<UShooterAbilitySystemComponent> BoundAbilitySystemComponent;
 
 	/** 本机表现缓存：只用于幂等跳过与事件 Previous，不复制、不保存、不暴露给 Gameplay 读取方。 */
 	TWeakObjectPtr<AShooterWeapon> LastAppliedPresentationWeapon;

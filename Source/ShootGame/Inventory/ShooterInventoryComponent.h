@@ -58,8 +58,11 @@ public:
 	/** 服务器权威：移除一把武器；先广播移除（Equipment 清空当前装备），再把 Actor 归还运行时池。 */
 	bool RemoveWeapon(AShooterWeapon* Weapon);
 
-	/** 服务器权威：清空全部武器；先清 Entries 并广播（Equipment 收敛装备），最后统一归还。 */
-	void ClearInventory();
+	/**
+	 * 服务器清空武器；先清 Entries 并广播，再撤销能力并归还。
+	 * 退出时由调用方传入原能力宿主；普通调用缺省使用当前 PlayerState，不保存额外授予记录。
+	 */
+	void ClearInventory(AShooterPlayerState* AbilityHost = nullptr);
 
 	/** 按武器种类身份查找所持 WeaponActor；不存在时返回 nullptr。重复类型判定使用本入口。 */
 	AShooterWeapon* FindWeaponByWeaponId(FName WeaponId) const;
@@ -101,8 +104,8 @@ protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	/**
-	 * Fire Ability 宿主：本组件只通过"武器持有关系"驱动每把武器的 Fire Spec 授予 / 撤销，
-	 * 不自己保存 Ability 状态。无法解析宿主（NPC / 无 PlayerState）时返回 nullptr。
+	 * 普通增删武器时解析当前 Fire Ability 宿主；退出清理可由调用方明确提供原宿主。
+	 * 无法解析宿主（NPC / 无 PlayerState）时返回 nullptr。
 	 */
 	AShooterPlayerState* ResolveAbilityHostPlayerState() const;
 

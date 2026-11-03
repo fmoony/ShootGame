@@ -255,48 +255,7 @@ void AShooterCharacter::EndPlay(EEndPlayReason::Type EndPlayReason)
 	// 清理角色自身的延迟回调，避免销毁后继续触发。
 	GetWorld()->GetTimerManager().ClearTimer(RespawnTimer);
 
-	// 必须先于 ClearActorInfo 取消 Ability：清空 ActorInfo 本身不会结束 Ability，
-	// 而 Ability 的清理依赖仍指向本 Character 的 Avatar 关系。
-	// 服务器取消 Fire / Reload / Equip；拥有者本地再取消预测 Fire，避免本地表现节拍残留。
-	if (HasAuthority())
-	{
-		CancelFireAbility();
-		CancelReloadAbility();
-		CancelEquipAbility();
-	}
-	else if (IsPlayerControlled() && IsLocallyControlled())
-	{
-		CancelFireAbility();
-	}
-
-	// 角色销毁时若仍是 ASC 的 Avatar，再解除 ActorInfo，避免残留旧 Pawn 引用。
-	// 服务器复活或客户端收到新 Pawn 时会重新建立 ActorInfo。
-	if (AShooterPlayerState* ShooterPlayerState = GetPlayerState<AShooterPlayerState>())
-	{
-		if (IsValid(ShooterPlayerState))
-		{
-			if (UAbilitySystemComponent* AbilitySystemComponent = ShooterPlayerState->GetAbilitySystemComponent();
-				AbilitySystemComponent && AbilitySystemComponent->GetAvatarActor() == this)
-			{
-				AbilitySystemComponent->ClearActorInfo();
-			}
-		}
-	}
-
-	// 武器是服务器按角色生命周期生成的独立 Actor；Owner 关系不会自动级联销毁。
-	// Inventory 是唯一回收入口：它销毁 BoundWeaponActors、清空 FastArray 与 Active。
-	if (HasAuthority())
-	{
-		if (InventoryComponent)
-		{
-			InventoryComponent->ClearInventory();
-		}
-
-		if (EquipmentComponent)
-		{
-			EquipmentComponent->ClearEquippedWeapon();
-		}
-	}
+	CleanupPawnGameplay(/*bClearActorInfo*/ true);
 
 	Super::EndPlay(EndPlayReason);
 }
@@ -311,6 +270,10 @@ void AShooterCharacter::PossessedBy(AController* NewController)
 
 void AShooterCharacter::OnRep_PlayerState()
 {
+	if (!GetPlayerState())
+	{
+		CleanupPawnGameplay(/*bClearActorInfo*/ true);
+	}
 	Super::OnRep_PlayerState();
 
 	// 客户端在 PlayerState 复制到达后建立 ASC ActorInfo；重生后的新 Pawn 会再次进入这里。
@@ -320,7 +283,12 @@ void AShooterCharacter::OnRep_PlayerState()
 void AShooterCharacter::OnRep_Controller()
 {
 	Super::OnRep_Controller();
-	if (!GetController()) { ClearSprintInput(); }
+	if (!GetController())
+	{
+		ClearSprintInput();
+		CleanupPawnGameplay(/*bClearActorInfo*/ true);
+		return;
+	}
 	InitializeAbilityActorInfo();
 }
 
@@ -346,6 +314,14 @@ void AShooterCharacter::InitializeAbilityActorInfo()
 	{
 		return;
 	}
+
+	// 客户端新 Pawn 的关联通知可能早于旧 Pawn 的退出通知；先让旧 Avatar 完成自己的拆卸。
+	if (AShooterCharacter* PreviousAvatar = Cast<AShooterCharacter>(AbilitySystemComponent->GetAvatarActor());
+		PreviousAvatar && PreviousAvatar != this)
+	{
+		PreviousAvatar->CleanupPawnGameplay(/*bClearActorInfo*/ true);
+	}
+	BoundAbilitySystemComponent = Cast<UShooterAbilitySystemComponent>(AbilitySystemComponent);
 
 	if (AbilitySystemComponent->GetOwnerActor() == ShooterPlayerState && AbilitySystemComponent->GetAvatarActor() == this)
 	{
@@ -524,6 +500,8 @@ void AShooterCharacter::ClearSprintInput()
 void AShooterCharacter::UnPossessed()
 {
 	ClearSprintInput();
+	// Super 会清空 PlayerState / Owner / Controller；取消动作与撤销授予必须在此前完成。
+	CleanupPawnGameplay(/*bClearActorInfo*/ true);
 	Super::UnPossessed();
 }
 
@@ -624,27 +602,45 @@ void AShooterCharacter::OnRep_IsDead()
 	}
 }
 
-void AShooterCharacter::CancelFireAbility()
+void AShooterCharacter::CleanupPawnGameplay(bool bClearActorInfo)
 {
-	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent = Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
+	UShooterAbilitySystemComponent* ASC = BoundAbilitySystemComponent.Get();
+	if (!ASC)
 	{
-		ShooterAbilitySystemComponent->CancelAbilitiesByTag(ShooterGameplayTags::Input_Fire);
+		ASC = Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent());
 	}
-}
-
-void AShooterCharacter::CancelReloadAbility()
-{
-	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent = Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
+	// ASC 跨 Pawn 保留。旧 Pawn 的迟到清理不得取消新 Avatar 的动作或清除其输入。
+	if (ASC && ASC->GetAvatarActor() == this)
 	{
-		ShooterAbilitySystemComponent->CancelAbilitiesByTag(ShooterGameplayTags::Input_Reload);
+		ASC->InvalidateInputIntents();
+		if (HasAuthority() || (ASC->AbilityActorInfo.IsValid() && ASC->AbilityActorInfo->IsLocallyControlledPlayer()))
+		{
+			ASC->CancelAbilitiesByTag(ShooterGameplayTags::Input_Fire);
+			ASC->CancelAbilitiesByTag(ShooterGameplayTags::Input_Reload);
+			ASC->CancelAbilitiesByTag(ShooterGameplayTags::Input_Equip);
+		}
 	}
-}
 
-void AShooterCharacter::CancelEquipAbility()
-{
-	if (UShooterAbilitySystemComponent* ShooterAbilitySystemComponent = Cast<UShooterAbilitySystemComponent>(GetAbilitySystemComponent()))
+	// Inventory 负责撤销自身授予并归还武器；这些操作仍需有效的 Ability ActorInfo。
+	if (HasAuthority())
 	{
-		ShooterAbilitySystemComponent->CancelAbilitiesByTag(ShooterGameplayTags::Input_Equip);
+		if (InventoryComponent)
+		{
+			InventoryComponent->ClearInventory(ASC ? Cast<AShooterPlayerState>(ASC->GetOwnerActor()) : nullptr);
+		}
+		if (EquipmentComponent)
+		{
+			EquipmentComponent->ClearEquippedWeapon();
+		}
+	}
+	if (bClearActorInfo)
+	{
+		// 取消 / 撤销回调可能已建立新关联，解除前再次核对 Avatar。
+		if (ASC && ASC->GetAvatarActor() == this)
+		{
+			ASC->ClearActorInfo();
+		}
+		BoundAbilitySystemComponent.Reset();
 	}
 }
 
@@ -1190,17 +1186,8 @@ void AShooterCharacter::Die(AController* KillerController)
 	{
 		AbilitySystemComponent->AddLooseGameplayTag(ShooterGameplayTags::State_Dead);
 	}
-	CancelFireAbility();
-	CancelReloadAbility();
-	CancelEquipAbility();
-
-	// Death Clear：销毁全部 WeaponActor -> Inventory Clear -> Equipment 收敛为无装备。
-	// 开火事务本身已经由 State.Dead 阻塞与 CancelFireAbility 收口：一次 GA_Fire 只提交一发并立即结束。
-	if (InventoryComponent)
-	{
-		InventoryComponent->ClearInventory();
-	}
-
+	// 死亡时保留 Avatar，供属性桥接、死亡表现与计分使用；解除控制时再解除关联。
+	CleanupPawnGameplay(/*bClearActorInfo*/ false);
 
 	bIsDead = true;
 	ApplyDeathState();
