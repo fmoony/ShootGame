@@ -104,9 +104,21 @@ Timer / Delegate / bIsFiring
 
 - 只保存 `CurrentWeaponActor` 并复制给所有观察者；`OnRep_CurrentWeaponActor` 发布
   `(Previous, Current)` 逻辑事件并进入幂等表现收敛；
-- `EquipWeapon` 校验目标仍在 Inventory、Owner 正确、不在池内后原子提交；
+- `EquipWeapon` 校验持有关系并准备枪口挂接，然后协调旧武器停用与新武器激活。
+  服务器使用转换不依赖本端动画 / HUD 已完成；逻辑事件之后复核目标，防止重入激活旧值。
 - `ClearEquippedWeapon` 幂等清空；Inventory Remove/Clear 的广播与 Owner Client FastArray
   Remove 回调都能收敛本地装备镜像。
+
+Character 的 `EnsureWeaponPresentation` 保留为本端幂等补齐入口：
+
+- BeginPlay、CurrentWeapon OnRep、Owner / WeaponId Ready 都只请求补齐最新目标。
+- `EnsureWeaponAttachment` 由服务器准备与本端修复共用，挂接关系只维护一套判断。
+- Weapon 的 `ActivateWeapon / DeactivateWeapon` 只管理服务器使用状态与权威显隐。
+  `SetWeaponPresentationActive` 管本端显隐、弹匣代理复位与确认反馈抑制，不清权威 Timer。
+- 普通切枪保留射速时钟和待裁决记录；Owner 变化 / 归池才结束旧预测上下文。
+- Character 直接应用动画资源与装备 HUD，并在完成后发布表现事件。
+  AnimInstance 继续订阅事件并初始化回放；本端死亡先到时，后续 Ready 不重新显示武器。
+- 私有表现缓存只记录本机已应用结果，不负责决定服务器旧武器退出。
 
 ### 2.5 Pickup
 

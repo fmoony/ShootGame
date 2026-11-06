@@ -245,15 +245,18 @@ bool FShooterInventoryRemoveCurrentWeaponOrderTest::RunTest(const FString& Param
 
 	UShooterEquipmentComponent* Equipment = Character->GetEquipmentComponent();
 	UShooterInventoryComponent* Inventory = Character->GetInventoryComponent();
+	auto* PresentationListener = NewObject<UShooterWeaponPresentationEventTestListener>();
+	Character->OnWeaponPresentationChanged.AddDynamic(PresentationListener,
+		&UShooterWeaponPresentationEventTestListener::HandleWeaponPresentationChanged);
 	TestTrue(TEXT("Current weapon is equipped"), Equipment->EquipWeapon(CurrentWeapon));
 	TestTrue(TEXT("Current weapon is visible before remove"), !CurrentWeapon->IsHidden());
-	TestEqual(TEXT("Current weapon has not been deactivated yet"), Character->WeaponDeactivatedCount, 0);
+	TestEqual(TEXT("Current presentation has not been cleared yet"), PresentationListener->ClearCount, 0);
 
 	TestTrue(TEXT("Current weapon is removed"), Inventory->RemoveWeapon(CurrentWeapon));
 
-	// 顺序证据：移除广播先驱动 Equipment 收敛并 Deactivate（经 IShooterWeaponHolder 回调可观测），
-	// 之后 WeaponActor 才归还池；归还发生在解绑与隐藏之后，池内对象不再属于 Inventory。
-	TestEqual(TEXT("Removal broadcast deactivated the current weapon exactly once"), Character->WeaponDeactivatedCount, 1);
+	// 在真实表现清空事件中观测 Holstered / Hidden 且 Owner 仍在，证明退出发生在归池前。
+	TestEqual(TEXT("Removal clears presentation once"), PresentationListener->ClearCount, 1);
+	TestTrue(TEXT("Removal retires usage before pool release"), PresentationListener->bClearedBeforeRelease);
 	TestTrue(TEXT("Current weapon was hidden by deactivate before release"), CurrentWeapon->IsHidden());
 	TestFalse(TEXT("Removed WeaponActor is not destroyed while pooled"), CurrentWeapon->IsActorBeingDestroyed());
 	TestTrue(TEXT("Removed WeaponActor is pooled"), Runtime->IsPooled(CurrentWeapon));
@@ -362,12 +365,16 @@ bool FShooterInventoryClearWeaponOrderTest::RunTest(const FString& Parameters)
 
 	UShooterEquipmentComponent* Equipment = Character->GetEquipmentComponent();
 	UShooterInventoryComponent* Inventory = Character->GetInventoryComponent();
+	auto* PresentationListener = NewObject<UShooterWeaponPresentationEventTestListener>();
+	Character->OnWeaponPresentationChanged.AddDynamic(PresentationListener,
+		&UShooterWeaponPresentationEventTestListener::HandleWeaponPresentationChanged);
 	TestTrue(TEXT("Current weapon is equipped"), Equipment->EquipWeapon(CurrentWeapon));
 
 	Inventory->ClearInventory();
 
-	// 顺序证据：Clear 先清逻辑 Entries 并广播，Equipment 收敛后 Deactivate 一次，最后才归还池。
-	TestEqual(TEXT("Clear broadcast deactivated the current weapon exactly once"), Character->WeaponDeactivatedCount, 1);
+	// 清空事件发生时仍能观测原 Owner 和已退出的使用状态，随后才归池。
+	TestEqual(TEXT("Clear retires presentation once"), PresentationListener->ClearCount, 1);
+	TestTrue(TEXT("Clear retires usage before pool release"), PresentationListener->bClearedBeforeRelease);
 	TestTrue(TEXT("Clear hid the current weapon by deactivate before release"), CurrentWeapon->IsHidden());
 	TestFalse(TEXT("Cleared WeaponActor is not destroyed while pooled"), CurrentWeapon->IsActorBeingDestroyed());
 	TestTrue(TEXT("Cleared WeaponActor is pooled"), Runtime->IsPooled(CurrentWeapon));

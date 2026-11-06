@@ -287,16 +287,6 @@ FVector AShooterNPC::GetWeaponTargetLocation()
 	return OutHit.bBlockingHit ? OutHit.ImpactPoint : OutHit.TraceEnd;
 }
 
-void AShooterNPC::OnWeaponActivated(AShooterWeapon* InWeapon)
-{
-	// unused
-}
-
-void AShooterNPC::OnWeaponDeactivated(AShooterWeapon* InWeapon)
-{
-	// unused
-}
-
 void AShooterNPC::OnWeaponRefireReady()
 {
 	// 权威节拍到期的唯一后续动作：仍要射击就再提交一次开火意图。

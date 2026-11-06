@@ -192,12 +192,6 @@ public:
 	/** 返回当前装备的 WeaponActor（IShooterWeaponHolder 最小只读接口）。 */
 	virtual AShooterWeapon* GetCurrentWeapon() const override { return Weapon; }
 
-	/** Activates the passed weapon */
-	virtual void OnWeaponActivated(AShooterWeapon* Weapon) override;
-
-	/** Deactivates the passed weapon */
-	virtual void OnWeaponDeactivated(AShooterWeapon* Weapon) override;
-
 	/** 权威射速就绪：仍处于射击状态时再次提交一次开火意图（一次一发）。 */
 	virtual void OnWeaponRefireReady() override;
 

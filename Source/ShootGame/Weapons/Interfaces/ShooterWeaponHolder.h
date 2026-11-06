@@ -51,12 +51,6 @@ public:
 	/** 最小只读接口：返回持有者当前可开火的 WeaponActor；没有时为 nullptr。 */
 	virtual AShooterWeapon* GetCurrentWeapon() const = 0;
 
-	/** Activates the passed weapon */
-	virtual void OnWeaponActivated(AShooterWeapon* Weapon) = 0;
-
-	/** Deactivates the passed weapon */
-	virtual void OnWeaponDeactivated(AShooterWeapon* Weapon) = 0;
-
 	/** 通知持有者：武器的权威射速已就绪，可以再次提交一次开火意图（不产生任何 Shot）。 */
 	virtual void OnWeaponRefireReady() = 0;
 };

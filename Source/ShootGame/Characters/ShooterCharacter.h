@@ -317,6 +317,9 @@ public:
 	 */
 	bool EnsureWeaponPresentation(AShooterWeapon* ExpectedWeapon);
 
+	/** 幂等准备持枪附着，供服务器枪口几何与本端表现共用；结构不足时返回 false。 */
+	bool EnsureWeaponAttachment(AShooterWeapon* Weapon);
+
 
 	// ---- 表现瞄准只读出口：保留被旧 AnimBP / 自动化消费的 BP 数据契约。 ----
 
@@ -405,12 +408,6 @@ public:
 	virtual FVector GetWeaponTargetLocation() override;
 
 
-	/** Activates the passed weapon */
-	virtual void OnWeaponActivated(AShooterWeapon* Weapon) override;
-
-	/** Deactivates the passed weapon */
-	virtual void OnWeaponDeactivated(AShooterWeapon* Weapon) override;
-
 	/** 玩家连发由 ASC 的 Held 重激活表达，权威节拍通知在这里不需要额外动作。 */
 	virtual void OnWeaponRefireReady() override;
 
@@ -450,6 +447,9 @@ private:
 	int32 OwnerLocalRecoilCount = 0;
 	int32 RemoteConfirmedMontageCount = 0;
 #endif
+
+	/** 检查持有者身份以及 FP / TP 的挂接关系；不要求动画类已应用。 */
+	bool HasCompleteWeaponAttachment(const AShooterWeapon* Weapon) const;
 
 	/** 非空表现后置条件是否已满足，含固定 TP 主类及当前武器动画资源。 */
 	bool HasCompleteWeaponPresentation(const AShooterWeapon* Weapon) const;

@@ -137,9 +137,7 @@ void AShooterPlayerState::GrantFireAbilityForWeapon(AShooterWeapon* Weapon)
 		return;
 	}
 
-	FGameplayAbilitySpec FireAbilitySpec(FireAbilityClass,
-		/*AbilityLevel*/1,
-		INDEX_NONE, Weapon);
+	FGameplayAbilitySpec FireAbilitySpec(FireAbilityClass, /*AbilityLevel*/ 1, INDEX_NONE, Weapon);
 	const FGameplayAbilitySpecHandle GrantedHandle = AbilitySystemComponent->GiveAbility(FireAbilitySpec);
 
 	UE_LOG(LogShootGame, Display, TEXT("FIRE_SPEC_GRANT Weapon=%s Handle=%s Count=%d"),

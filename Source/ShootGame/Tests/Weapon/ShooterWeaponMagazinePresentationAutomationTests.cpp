@@ -527,10 +527,10 @@ bool FShooterWeaponMagazinePresentationTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("Side presentation keeps MagazineAmmo unchanged"), Weapon->GetBulletCount(), 7);
 	TestEqual(TEXT("Side presentation keeps ReserveAmmo unchanged"), Weapon->GetReserveAmmo(), 13);
 
-	// 生命周期清理即使武器当前处于 InPool 也必须复位，不依赖 Deactivate 的状态转换分支。
+	// 本端退场即使权威镜像仍处于 InPool 也必须复位，不依赖使用状态转换。
 	Weapon->ShowMagazineProxyInPlace();
-	Weapon->DeactivateWeapon();
-	TestTrue(TEXT("Deactivate resets magazine proxy"),
+	Weapon->SetWeaponPresentationActive(false);
+	TestTrue(TEXT("Presentation retirement resets magazine proxy"),
 		FirstPersonProxy->bHiddenInGame && ThirdPersonProxy->bHiddenInGame);
 
 	const FProperty* FirstPersonProxyProperty =

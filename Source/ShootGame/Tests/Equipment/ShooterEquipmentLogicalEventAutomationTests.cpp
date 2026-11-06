@@ -138,12 +138,14 @@ bool FShooterEquipmentLogicalEventSemanticsTest::RunTest(const FString& Paramete
 	TestEqual(TEXT("First equip publishes exactly one logical change"), Listener->EventCount, 1);
 	TestNull(TEXT("First equip PreviousWeapon is null"), Listener->LastPreviousWeapon.Get());
 	TestTrue(TEXT("First equip CurrentWeapon is primary"), Listener->LastCurrentWeapon == PrimaryWeapon);
-	TestEqual(TEXT("First equip does not deactivate a previous weapon"), Character->WeaponDeactivatedCount, 0);
+	TestTrue(TEXT("First equip enters authority usage"),
+		PrimaryWeapon->GetLifecycleState() == EShooterWeaponLifecycleState::Equipped);
 
 	// 同一武器重复提交：不是真实转移，不发布第二次逻辑变化。
 	TestTrue(TEXT("Re-equipping the same weapon succeeds"), Equipment->EquipWeapon(PrimaryWeapon));
 	TestEqual(TEXT("Re-equip does not publish a second logical change"), Listener->EventCount, 1);
-	TestEqual(TEXT("Re-equip does not deactivate the current weapon"), Character->WeaponDeactivatedCount, 0);
+	TestTrue(TEXT("Re-equip retains authority usage"),
+		PrimaryWeapon->GetLifecycleState() == EShooterWeaponLifecycleState::Equipped);
 
 	AShooterWeapon* SecondaryWeapon = GrantEquipmentEventTestWeapon(*this, Character,
 		AShooterWeaponPresentationTestWeaponSecondary::StaticClass());
@@ -158,13 +160,15 @@ bool FShooterEquipmentLogicalEventSemanticsTest::RunTest(const FString& Paramete
 	TestTrue(TEXT("Switch PreviousWeapon is primary"), Listener->LastPreviousWeapon == PrimaryWeapon);
 	TestTrue(TEXT("Switch CurrentWeapon is secondary"), Listener->LastCurrentWeapon == SecondaryWeapon);
 	TestTrue(TEXT("Switch hides the previous weapon"), PrimaryWeapon->IsHidden());
-	TestEqual(TEXT("Switch deactivates previous presentation exactly once"), Character->WeaponDeactivatedCount, 1);
+	TestTrue(TEXT("Switch retires previous authority usage"),
+		PrimaryWeapon->GetLifecycleState() == EShooterWeaponLifecycleState::Holstered);
 
 	Equipment->ClearEquippedWeapon();
 	TestEqual(TEXT("Unequip publishes exactly one logical change"), Listener->EventCount, 3);
 	TestTrue(TEXT("Unequip PreviousWeapon is secondary"), Listener->LastPreviousWeapon == SecondaryWeapon);
 	TestNull(TEXT("Unequip CurrentWeapon is null"), Listener->LastCurrentWeapon.Get());
-	TestEqual(TEXT("Unequip deactivates previous presentation exactly once"), Character->WeaponDeactivatedCount, 2);
+	TestTrue(TEXT("Unequip retires current authority usage"),
+		SecondaryWeapon->GetLifecycleState() == EShooterWeaponLifecycleState::Holstered);
 
 	Equipment->ClearEquippedWeapon();
 	TestEqual(TEXT("Repeated unequip does not publish a second logical change"), Listener->EventCount, 3);

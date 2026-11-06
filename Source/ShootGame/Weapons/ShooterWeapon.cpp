@@ -975,64 +975,55 @@ void AShooterWeapon::OnOwnerDestroyed(AActor* DestroyedActor)
 
 void AShooterWeapon::ActivateWeapon()
 {
-	// 池内武器不可直接装备；必须先由运行时池租出（Holstered）。
-	// 拒绝只在权威端生效：客户端状态是复制镜像，在那里拒绝会永久丢失远端第三人称表现。
-	if (HasAuthority() && LifecycleState == EShooterWeaponLifecycleState::InPool)
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	// 只有已租出的武器可以进入使用状态；本端表现补齐不参与此转换。
+	if (LifecycleState == EShooterWeaponLifecycleState::InPool)
 	{
 		UE_LOG(LogShootGame, Warning, TEXT("WeaponActor ActivateWeapon rejected in InPool state: Weapon=%s"), *GetNameSafe(this));
 		return;
 	}
 
-	// 重复激活保持幂等，表现收敛入口会多次调用。
-	if (LifecycleState == EShooterWeaponLifecycleState::Equipped)
-	{
-		return;
-	}
-
 	SetLifecycleState(EShooterWeaponLifecycleState::Equipped, TEXT("ActivateWeapon"));
-
-	// unhide this weapon
 	SetActorHiddenInGame(false);
-
-	// 客户端可能先收到 Character 的武器 RepNotify，再执行武器 BeginPlay。
-	if (WeaponOwner)
-	{
-		WeaponOwner->OnWeaponActivated(this);
-	}
 }
 
 void AShooterWeapon::DeactivateWeapon()
 {
-	ResetMagazinePresentation();
-	if (UShooterGameplayAbility_Fire* Ability = Cast<UShooterGameplayAbility_Fire>(BoundPredictionAbility.Get()))
+	if (!HasAuthority())
 	{
-		Ability->SuppressWeaponConfirmedFeedback(this);
+		return;
 	}
 
-	// 权威端重复卸下幂等：池内或已收起时不重复触发表现回调。
-	// 客户端不做该提前返回，保持与池化前的本地隐藏时机一致。
-	if (HasAuthority() && (LifecycleState == EShooterWeaponLifecycleState::InPool ||
-		 LifecycleState == EShooterWeaponLifecycleState::Holstered))
+	if (LifecycleState == EShooterWeaponLifecycleState::InPool || LifecycleState == EShooterWeaponLifecycleState::Holstered)
 	{
 		return;
 	}
 
 	SetLifecycleState(EShooterWeaponLifecycleState::Holstered, TEXT("DeactivateWeapon"));
-
-	// 收起武器即清掉尚未到期的权威节拍通知；本武器不保留任何"正在开火"状态。
+	// 停用取消后续就绪通知，TimeOfLastShot 保留，切枪不能刷新射速间隔。
 	if (UWorld* World = GetWorld())
 	{
 		World->GetTimerManager().ClearTimer(RefireTimer);
 	}
-
-	// hide the weapon
 	SetActorHiddenInGame(true);
+}
 
-	// 复制初始化顺序不保证 WeaponOwner 已经在 BeginPlay 中完成赋值。
-	if (WeaponOwner)
+void AShooterWeapon::SetWeaponPresentationActive(bool bActive)
+{
+	if (!bActive)
 	{
-		WeaponOwner->OnWeaponDeactivated(this);
+		ResetMagazinePresentation();
+		if (UShooterGameplayAbility_Fire* Ability = Cast<UShooterGameplayAbility_Fire>(BoundPredictionAbility.Get()))
+		{
+			// 普通退场只抑制确认表现；记录仍等待裁决，不结束本次租用的预测上下文。
+			Ability->SuppressWeaponConfirmedFeedback(this);
+		}
 	}
+	SetActorHiddenInGame(!bActive);
 }
 
 void AShooterWeapon::ShowMagazineProxyInPlace()

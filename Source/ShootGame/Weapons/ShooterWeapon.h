@@ -390,15 +390,18 @@ public:
 
 	/**
 	 * 装备事务开始：Holstered -> Equipping。
-	 * 由 Equipment 在原子提交入口调用；表现完成（ActivateWeapon）后进入 Equipped。
+	 * 由 Equipment 在提交入口调用；随后通过权威 ActivateWeapon 进入 Equipped。
 	 */
 	void BeginEquipTransaction();
 
-	/** Activates this weapon and gets it ready to fire（Holstered/Equipping -> Equipped，InPool 拒绝） */
+	/** 服务器激活：Holstered / Equipping -> Equipped 并解除隐藏，不应用角色动画或 HUD。 */
 	void ActivateWeapon();
 
-	/** Deactivates this weapon（Equipped/Equipping -> Holstered，InPool 拒绝） */
+	/** 服务器停用：进入 Holstered、取消续射通知并隐藏；保留本次租用的射速时钟。 */
 	void DeactivateWeapon();
+
+	/** 本端显隐与退场清理；不修改生命周期、权威 Timer、Owner 或预测代次。 */
+	void SetWeaponPresentationActive(bool bActive);
 
 	/**
 	 * 服务器权威射速资格：距上一次真实提交是否已满 RefireRate。

@@ -57,13 +57,11 @@ public:
 		SwitchWeaponAction = InabilitySwitchWeaponAction;
 	}
 
-	virtual void OnWeaponDeactivated(AShooterWeapon* Weapon) override
+	void SimulateDeathReplicationForTest()
 	{
-		++WeaponDeactivatedCount;
-		Super::OnWeaponDeactivated(Weapon);
+		bIsDead = true;
+		OnRep_IsDead();
 	}
-
-	int32 WeaponDeactivatedCount = 0;
 };
 
 /** 表现测试主武器：不配置 AnimClass，FP/TP 动画类都由角色固定。 */
@@ -149,6 +147,8 @@ public:
 	/** 供 P1 半自动与全自动射速资格用例切换武器模式。 */
 	void SetFullAutoForTest(bool bInFullAuto) { bFullAuto = bInFullAuto; }
 
+	void SimulateWeaponIdReplicationForTest() { OnRep_WeaponId(); }
+
 	/** 模拟客户端收到 Owner 属性复制并执行 RepNotify。 */
 	void SimulateOwnerReplicationForTest(AActor* ReplicatedOwner)
 	{
@@ -198,8 +198,15 @@ public:
 		++EventCount;
 		LastPreviousWeapon = PreviousWeapon;
 		LastCurrentWeapon = CurrentWeapon;
+		if (ClearOnNextChange)
+		{
+			UShooterEquipmentComponent* Equipment = ClearOnNextChange;
+			ClearOnNextChange = nullptr;
+			Equipment->ClearEquippedWeapon();
+		}
 	}
 
+	TObjectPtr<UShooterEquipmentComponent> ClearOnNextChange = nullptr;
 	int32 EventCount = 0;
 	TObjectPtr<AShooterWeapon> LastPreviousWeapon = nullptr;
 	TObjectPtr<AShooterWeapon> LastCurrentWeapon = nullptr;
@@ -218,9 +225,17 @@ public:
 		++EventCount;
 		LastPreviousWeapon = PreviousWeapon;
 		LastCurrentWeapon = CurrentWeapon;
+		if (!CurrentWeapon)
+		{
+			++ClearCount;
+			bClearedBeforeRelease = IsValid(PreviousWeapon) && PreviousWeapon->GetOwner() && PreviousWeapon->IsHidden() &&
+				PreviousWeapon->GetLifecycleState() == EShooterWeaponLifecycleState::Holstered;
+		}
 	}
 
 	int32 EventCount = 0;
+	int32 ClearCount = 0;
+	bool bClearedBeforeRelease = false;
 	TObjectPtr<AShooterWeapon> LastPreviousWeapon = nullptr;
 	TObjectPtr<AShooterWeapon> LastCurrentWeapon = nullptr;
 };

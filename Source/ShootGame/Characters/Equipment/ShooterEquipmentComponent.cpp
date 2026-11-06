@@ -46,7 +46,7 @@ bool UShooterEquipmentComponent::EquipWeapon(AShooterWeapon* TargetWeapon)
 {
 	AShooterCharacter* Character = GetOwnerCharacter();
 	UShooterInventoryComponent* Inventory = GetOwnerInventory();
-	if (!Character || !Character->HasAuthority() || !Inventory || !IsValid(TargetWeapon))
+	if (!Character || !Character->HasAuthority() || Character->IsDead() || !Inventory || !IsValid(TargetWeapon))
 	{
 		return false;
 	}
@@ -62,14 +62,17 @@ bool UShooterEquipmentComponent::EquipWeapon(AShooterWeapon* TargetWeapon)
 	AShooterWeapon* PreviousWeapon = CurrentWeaponActor;
 	const bool bChangedCurrentWeapon = PreviousWeapon != TargetWeapon;
 
-	// 旧武器不再需要在逻辑提交前"停火"：一次 GA_Fire 只提交一发并立即结束，
-	// 不存在跨枪存活的连续开火事务；旧武器的表现与权威节拍通知由 Character 表现层
-	// 的 DeactivateWeapon 统一收起。
-
-	// 生命周期状态机：装备事务 Holstered -> Equipping；表现完成（ActivateWeapon）后进入 Equipped。
-	// 同武器重复提交保持幂等，不重复进入事务。
+	// 枪口几何先准备；失败时旧装备保持原样，不依赖角色动画 / HUD 已完成。
+	if (!Character->EnsureWeaponAttachment(TargetWeapon))
+	{
+		return false;
+	}
 	if (bChangedCurrentWeapon)
 	{
+		if (IsValid(PreviousWeapon) && PreviousWeapon->GetOwner() == Character)
+		{
+			PreviousWeapon->DeactivateWeapon();
+		}
 		TargetWeapon->BeginEquipTransaction();
 	}
 
@@ -96,21 +99,36 @@ bool UShooterEquipmentComponent::EquipWeapon(AShooterWeapon* TargetWeapon)
 	// E2：逻辑变化只在真实转移时发布；相同武器重复提交不再重复广播。
 	BroadcastEquippedWeaponChanged(PreviousWeapon, TargetWeapon);
 
-	// 逻辑事件发布后进入同一幂等表现收敛入口；重复提交不重复 Attach / Activate / HUD。
-	Character->EnsureWeaponPresentation(TargetWeapon);
+	// 逻辑委托可以重入清空 / 切枪；只激活仍然有效的当前目标。
+	if (CurrentWeaponActor == TargetWeapon && IsValid(TargetWeapon) && TargetWeapon->GetOwner() == Character &&
+		Inventory->ContainsWeapon(TargetWeapon) && !Character->IsDead())
+	{
+		if (bChangedCurrentWeapon)
+		{
+			TargetWeapon->ActivateWeapon();
+		}
+	}
+	Character->EnsureWeaponPresentation(CurrentWeaponActor);
 	ResetAimPresentationForEquipChange();
 	Character->ForceNetUpdate();
 
 	UE_LOG(LogShootGame, Display, TEXT("Equipment EquipWeapon committed: Actor=%s WeaponId=%s Weapon=%s"),
 		*GetNameSafe(Character), *TargetWeapon->GetWeaponId().ToString(), *GetNameSafe(TargetWeapon));
-	return true;
+	return CurrentWeaponActor == TargetWeapon && IsValid(TargetWeapon) && !Character->IsDead();
 }
 
 void UShooterEquipmentComponent::ClearEquippedWeapon()
 {
 	AShooterWeapon* PreviousWeapon = CurrentWeaponActor;
 
-	// 清空只改逻辑权威：旧武器的表现收敛由 EnsureWeaponPresentation(nullptr) 执行。
+	// 权威使用退出依据逻辑旧武器；表现是否完成不决定通知 Timer 的清理。
+	if (AShooterCharacter* Character = GetOwnerCharacter())
+	{
+		if (Character->HasAuthority() && IsValid(PreviousWeapon) && PreviousWeapon->GetOwner() == Character)
+		{
+			PreviousWeapon->DeactivateWeapon();
+		}
+	}
 	CurrentWeaponActor = nullptr;
 
 	// E2：Unequip 也是真实逻辑转移；重复 Clear 不重复发布。
