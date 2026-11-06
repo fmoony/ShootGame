@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [string]$EngineRoot = "E:\Unreal_Engine\UE_5.6",
+	[string]$EngineRoot = "",
     [string]$ProjectPath = "",
     [string]$MapPath = "/Game/Shooter/Maps/Lvl_Shooter",
     [ValidateRange(1, 120)]
@@ -9,6 +9,8 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
+
+$EngineRoot = & (Join-Path $PSScriptRoot "../Development/ResolveShootGameEngine.ps1") -EngineRoot $EngineRoot
 
 function ConvertTo-ProcessArgumentLine
 {

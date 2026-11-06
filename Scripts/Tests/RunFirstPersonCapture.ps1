@@ -1,6 +1,6 @@
-﻿[CmdletBinding()]
+[CmdletBinding()]
 param(
-    [string]$EngineRoot = "E:\Unreal_Engine\UE_5.6",
+	[string]$EngineRoot = "",
     [ValidatePattern('^[A-Za-z0-9_-]+$')]
     [string]$Label = "Current",
     [ValidateRange(0.1, 10.0)]
@@ -17,6 +17,8 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
+
+$EngineRoot = & (Join-Path $PSScriptRoot "../Development/ResolveShootGameEngine.ps1") -EngineRoot $EngineRoot
 $projectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 $projectPath = Join-Path $projectRoot "ShootGame.uproject"
 $outputRoot = Join-Path $projectRoot "Saved\Automation\FirstPersonCapture\$Label"

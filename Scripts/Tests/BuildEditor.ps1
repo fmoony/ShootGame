@@ -1,6 +1,6 @@
-﻿[CmdletBinding()]
+[CmdletBinding()]
 param(
-    [string]$EngineRoot = "E:\Unreal_Engine\UE_5.6",
+	[string]$EngineRoot = "",
     [string]$ProjectPath = "",
     [ValidateSet("DebugGame", "Development")]
     [string]$Configuration = "Development"
@@ -8,6 +8,8 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
+
+$EngineRoot = & (Join-Path $PSScriptRoot "../Development/ResolveShootGameEngine.ps1") -EngineRoot $EngineRoot
 
 $projectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 if ([string]::IsNullOrWhiteSpace($ProjectPath))

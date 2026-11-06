@@ -47,3 +47,8 @@ Thumbs.db
 
 # Python 临时缓存
 __pycache__/
+
+# Local UE integration output
+*.slnx
+/UE584Validation/
+/UEUserLaunch/
