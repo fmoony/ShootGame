@@ -3,6 +3,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "Misc/AutomationTest.h"
+#include "Tests/ShooterTestWorld.h"
 #include "Abilities/GameplayAbility.h"
 #include "EnhancedActionKeyMapping.h"
 #include "InputAction.h"
@@ -40,8 +41,7 @@ namespace ShooterAbilityEquipBehaviorAutomationTests
 	{
 		if (World && GEngine)
 		{
-			GEngine->DestroyWorldContext(World);
-			World->DestroyWorld(false);
+			ShooterTestWorld::Destroy(World);
 		}
 	}
 

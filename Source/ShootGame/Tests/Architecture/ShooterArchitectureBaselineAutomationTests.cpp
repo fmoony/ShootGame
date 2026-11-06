@@ -1,8 +1,9 @@
-﻿// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright Epic Games, Inc. All Rights Reserved.
 
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "Misc/AutomationTest.h"
+#include "Tests/ShooterTestWorld.h"
 #include "Animation/AnimInstance.h"
 #include "Characters/Aim/ShooterAimPresentationComponent.h"
 #include "Characters/Equipment/ShooterEquipmentComponent.h"
@@ -46,8 +47,7 @@ namespace ShooterArchitectureBaselineAutomationTests
 			return;
 		}
 
-		GEngine->DestroyWorldContext(World);
-		World->DestroyWorld(false);
+		ShooterTestWorld::Destroy(World);
 	}
 }
 

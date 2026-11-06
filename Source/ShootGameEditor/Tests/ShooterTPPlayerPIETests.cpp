@@ -12,6 +12,7 @@
 #include "Characters/ShooterCharacter.h"
 #include "Characters/Movement/ShooterCharacterMovementComponent.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Components/StateTreeAIComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Editor.h"
 #include "Engine/Engine.h"
@@ -387,6 +388,20 @@ namespace ShooterTPPlayerPIE
 			if (!Runtime || !Runtime->IsRuntimeInitialized())
 			{
 				return false;
+			}
+			// 独立动画测试需要同一 Pawn 贯穿动作序列。真实 AI 攻击由 AI PIE 和网络场景另行验证。
+			if (!bNetwork)
+			{
+				for (TActorIterator<AShooterNPC> It(Target->GetWorld()); It; ++It)
+				{
+					AController* Controller = It->GetController();
+					if (UStateTreeAIComponent* Tree = Controller
+						? Controller->FindComponentByClass<UStateTreeAIComponent>()
+						: nullptr)
+					{
+						Tree->StopLogic(TEXT("Standalone animation fixture"));
+					}
+				}
 			}
 			// 随机出生点前方可能紧邻掩体；测试统一从本地图已核对的畅通通道开始。
 			Target->SetActorLocation(FVector(-534.0f, 1506.0f, 98.21f), false, nullptr, ETeleportType::TeleportPhysics);

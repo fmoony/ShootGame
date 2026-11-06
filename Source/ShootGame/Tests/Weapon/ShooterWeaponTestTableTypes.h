@@ -71,6 +71,7 @@ inline FName AddTestWeaponRow(UDataTable* Table, const FShooterWeaponConfigRow& 
 }
 
 /** 从武器类当前配置构造测试行，并覆盖弹药声明与预热数量。 */
+// 最小测试行只声明武器/弹药/池参数。验证弹丸生成的用例必须另行配置 ProjectileClass 并观察 Actor。
 inline FShooterWeaponConfigRow MakeTestWeaponRow(TSubclassOf<AShooterWeapon> WeaponActorClass, int32 MagazineSize = 10,
 	int32 InitialReserveAmmo = -1, int32 InitialPoolSize = 1)
 {

@@ -3,6 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Camera/CameraComponent.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "Characters/ShooterCharacter.h"
 #include "Weapons/ShooterWeapon.h"
 #include "ShooterArchitectureTestTypes.generated.h"
@@ -17,7 +19,11 @@ class AShooterArchitectureTestCharacter : public AShooterCharacter
 	GENERATED_BODY()
 
 public:
-	AShooterArchitectureTestCharacter() = default;
+	AShooterArchitectureTestCharacter()
+	{
+		// 架构夹具没有骨骼网格，仍保留第一人称相机的组件层级。
+		GetFirstPersonCameraComponent()->SetupAttachment(GetFirstPersonMesh());
+	}
 };
 
 /**

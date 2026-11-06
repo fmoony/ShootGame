@@ -3,6 +3,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "Misc/AutomationTest.h"
+#include "Tests/ShooterTestWorld.h"
 
 #include "Engine/Engine.h"
 #include "Engine/World.h"
@@ -50,8 +51,7 @@ namespace ShooterRemoteBatchCoordinatorAutomationTests
 			return;
 		}
 
-		GEngine->DestroyWorldContext(World);
-		World->DestroyWorld(false);
+		ShooterTestWorld::Destroy(World);
 	}
 
 	/** 两名玩家各自的 Coordinator + 一把用于武器身份核对的武器。 */

@@ -3,6 +3,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "Misc/AutomationTest.h"
+#include "Tests/ShooterTestWorld.h"
 
 #include "Blueprint/UserWidget.h"
 #include "Blueprint/WidgetTree.h"
@@ -34,8 +35,7 @@ namespace ShooterBulletCounterReserveAutomationTests
 			return;
 		}
 
-		GEngine->DestroyWorldContext(World);
-		World->DestroyWorld(false);
+		ShooterTestWorld::Destroy(World);
 	}
 }
 

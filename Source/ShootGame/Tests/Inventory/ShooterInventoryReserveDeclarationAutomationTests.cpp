@@ -3,6 +3,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "Misc/AutomationTest.h"
+#include "Tests/ShooterTestWorld.h"
 
 #include "Characters/ShooterCharacter.h"
 #include "Engine/Engine.h"
@@ -37,8 +38,7 @@ namespace ShooterInventoryReserveDeclarationAutomationTests
 			return;
 		}
 
-		GEngine->DestroyWorldContext(World);
-		World->DestroyWorld(false);
+		ShooterTestWorld::Destroy(World);
 	}
 
 	AShooterWeaponPresentationTestCharacter* SpawnReserveDeclarationTestCharacter(FAutomationTestBase& Test, UWorld* World)

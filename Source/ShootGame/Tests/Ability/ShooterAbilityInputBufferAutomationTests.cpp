@@ -3,6 +3,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "Misc/AutomationTest.h"
+#include "Tests/ShooterTestWorld.h"
 
 #include "AbilitySystem/ShooterAbilitySystemComponent.h"
 #include "AbilitySystem/ShooterGameplayTags.h"
@@ -52,8 +53,7 @@ namespace ShooterAbilityInputBufferAutomationTests
 			return;
 		}
 
-		GEngine->DestroyWorldContext(World);
-		World->DestroyWorld(false);
+		ShooterTestWorld::Destroy(World);
 	}
 
 	/**
@@ -91,6 +91,7 @@ namespace ShooterAbilityInputBufferAutomationTests
 			return nullptr;
 		}
 
+		PlayerController->SetAsLocalPlayerController();
 		PlayerController->DispatchBeginPlay();
 		Character->DispatchBeginPlay();
 		PlayerController->Possess(Character);

@@ -3,6 +3,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "Misc/AutomationTest.h"
+#include "Tests/ShooterTestWorld.h"
 
 #include "Abilities/Tasks/AbilityTask_WaitDelay.h"
 #include "AbilitySystem/Abilities/ShooterGameplayAbility_Fire.h"
@@ -67,8 +68,7 @@ namespace ShooterAbilityFirePredictionAutomationTests
 			return;
 		}
 
-		GEngine->DestroyWorldContext(World);
-		World->DestroyWorld(false);
+		ShooterTestWorld::Destroy(World);
 	}
 
 	/**
@@ -92,6 +92,7 @@ namespace ShooterAbilityFirePredictionAutomationTests
 		{
 			return nullptr;
 		}
+		PlayerController->SetAsLocalPlayerController();
 		PlayerController->DispatchBeginPlay();
 
 		if (PlayerController->PlayerState == nullptr)
@@ -1228,8 +1229,7 @@ namespace ShooterPawnLifecycleEvidence
 			if (World)
 			{
 				World->EndPlay(EEndPlayReason::Quit);
-				World->DestroyWorld(false);
-				GEngine->DestroyWorldContext(World);
+				ShooterTestWorld::Destroy(World);
 			}
 		}
 

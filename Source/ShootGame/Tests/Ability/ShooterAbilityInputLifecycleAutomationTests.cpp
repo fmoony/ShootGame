@@ -3,6 +3,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "Misc/AutomationTest.h"
+#include "Tests/ShooterTestWorld.h"
 
 #include "AbilitySystem/ShooterAbilitySystemComponent.h"
 #include "AbilitySystem/ShooterGameplayTags.h"
@@ -57,8 +58,7 @@ namespace ShooterAbilityInputLifecycleAutomationTests
 			return;
 		}
 
-		GEngine->DestroyWorldContext(World);
-		World->DestroyWorld(false);
+		ShooterTestWorld::Destroy(World);
 	}
 
 	/** 本机拥有者视图 + ShooterPlayerState ASC。 */
@@ -96,6 +96,7 @@ namespace ShooterAbilityInputLifecycleAutomationTests
 			return Fixture;
 		}
 
+		PlayerController->SetAsLocalPlayerController();
 		PlayerController->DispatchBeginPlay();
 		Character->DispatchBeginPlay();
 		PlayerController->Possess(Character);

@@ -20,6 +20,6 @@ public class ShootGameEditor : ModuleRules
 			// Rifle 动画派生的原生裁切与逐骨骼轨道写入依赖它已加载。
 			PrivateDependencyModuleNames.AddRange(new string[] { "UnrealEd", "BlueprintEditorLibrary", "Kismet",
 				"Slate", "SlateCore", "AssetTools", "AnimationDataController" });
-		PrivateDependencyModuleNames.Add("InputCore");
+		PrivateDependencyModuleNames.AddRange(new string[] { "InputCore", "GameplayStateTreeModule", "NavigationSystem" });
 	}
 }

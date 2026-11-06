@@ -1,6 +1,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "Misc/AutomationTest.h"
+#include "Tests/ShooterTestWorld.h"
 #include "Animation/AnimSequence.h"
 #include "Components/ActorComponent.h"
 #include "Components/SkeletalMeshComponent.h"
@@ -178,8 +179,7 @@ bool FShooterFootstepNotifyGuardsTest::RunTest(const FString& Parameters)
 	{
 		AddError(TEXT("Footstep guard fixture could not load its character or production mesh"));
 	}
-	GEngine->DestroyWorldContext(World);
-	World->DestroyWorld(false);
+	ShooterTestWorld::Destroy(World);
 	return true;
 }
 

@@ -4,6 +4,7 @@
 
 #include "Animation/AnimSequence.h"
 #include "Misc/AutomationTest.h"
+#include "Tests/ShooterTestWorld.h"
 
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -47,8 +48,7 @@ namespace ShooterWeaponMagazinePresentationAutomationTests
 			return;
 		}
 
-		GEngine->DestroyWorldContext(World);
-		World->DestroyWorld(false);
+		ShooterTestWorld::Destroy(World);
 	}
 
 	const FShooterWeaponConfigRow* ResolveRifleRow(FAutomationTestBase& Test)

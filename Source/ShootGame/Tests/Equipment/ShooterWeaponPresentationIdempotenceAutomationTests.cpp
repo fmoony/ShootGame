@@ -3,6 +3,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "Misc/AutomationTest.h"
+#include "Tests/ShooterTestWorld.h"
 #include "AbilitySystem/Abilities/ShooterGameplayAbility_Fire.h"
 #include "Characters/Equipment/ShooterEquipmentComponent.h"
 #include "Characters/ShooterCharacter.h"
@@ -38,8 +39,7 @@ namespace ShooterWeaponPresentationIdempotenceAutomationTests
 			return;
 		}
 
-		GEngine->DestroyWorldContext(World);
-		World->DestroyWorld(false);
+		ShooterTestWorld::Destroy(World);
 	}
 
 	AShooterWeaponPresentationTestCharacter* SpawnIdempotenceTestCharacter(FAutomationTestBase& Test, UWorld* World)

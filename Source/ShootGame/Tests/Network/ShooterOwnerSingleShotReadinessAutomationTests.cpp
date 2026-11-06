@@ -3,6 +3,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "Misc/AutomationTest.h"
+#include "Tests/ShooterTestWorld.h"
 
 #include "AbilitySystem/Abilities/ShooterGameplayAbility_Fire.h"
 #include "AbilitySystem/ShooterAbilitySystemComponent.h"
@@ -54,8 +55,7 @@ namespace ShooterOwnerSingleShotReadinessAutomationTests
 			return;
 		}
 
-		GEngine->DestroyWorldContext(World);
-		World->DestroyWorld(false);
+		ShooterTestWorld::Destroy(World);
 	}
 
 	/** 本机拥有者视图 + 可控制 Fire Spec 授予时机的夹具。 */
@@ -96,6 +96,7 @@ namespace ShooterOwnerSingleShotReadinessAutomationTests
 			return Fixture;
 		}
 
+		PlayerController->SetAsLocalPlayerController();
 		PlayerController->DispatchBeginPlay();
 		Character->DispatchBeginPlay();
 		PlayerController->Possess(Character);

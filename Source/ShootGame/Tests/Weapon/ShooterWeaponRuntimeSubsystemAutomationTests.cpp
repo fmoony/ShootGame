@@ -3,6 +3,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "Misc/AutomationTest.h"
+#include "Tests/ShooterTestWorld.h"
 
 #include "Engine/DataTable.h"
 #include "Engine/Engine.h"
@@ -47,8 +48,7 @@ namespace ShooterWeaponRuntimeSubsystemAutomationTests
 			return;
 		}
 
-		GEngine->DestroyWorldContext(World);
-		World->DestroyWorld(false);
+		ShooterTestWorld::Destroy(World);
 	}
 
 	UDataTable* CreateRuntimeTestTable()
@@ -185,12 +185,6 @@ bool FShooterWeaponRuntimeStartupInvalidTableTest::RunTest(const FString& Parame
 {
 	using namespace ShooterWeaponRuntimeSubsystemAutomationTests;
 
-	// 初始化失败的 Error 与非法行跳过的 Error 都是该路径的预期输出，显式声明避免误判。
-	AddExpectedError(TEXT("WeaponRuntime initialization failed: table"),
-		EAutomationExpectedErrorFlags::Contains, /*Count*/ 1);
-	AddExpectedError(TEXT("WeaponRuntime skipped invalid row"),
-		EAutomationExpectedErrorFlags::Contains, /*Count*/ 2);
-
 	// 1) 结构错误的表：RowStruct 不是 FShooterWeaponConfigRow，初始化必须失败。
 	UWorld* BadStructWorld = CreateRuntimeTestWorld();
 	if (TestNotNull(TEXT("Bad struct world created"), BadStructWorld))
@@ -200,6 +194,9 @@ bool FShooterWeaponRuntimeStartupInvalidTableTest::RunTest(const FString& Parame
 		{
 			UDataTable* BadTable = NewObject<UDataTable>(GetTransientPackage(), NAME_None, RF_Transient);
 			// RowStruct 保持为空：与正式行结构不符。
+			const FString ExpectedTableError = FString::Printf(
+				TEXT("WeaponRuntime initialization failed: table %s does not use FShooterWeaponConfigRow"), *BadTable->GetName());
+			AddExpectedErrorPlain(ExpectedTableError, EAutomationExpectedErrorFlags::Exact, 1);
 			Runtime->SetWeaponTableOverride(BadTable);
 			if (BeginRuntimeWorldPlay(*this, BadStructWorld))
 			{
@@ -231,6 +228,12 @@ bool FShooterWeaponRuntimeStartupInvalidTableTest::RunTest(const FString& Parame
 		MakeRuntimeTestRow(AShooterRuntimePoolTestWeapon::StaticClass(), /*MagazineSize*/ 10, /*Reserve*/ -1, /*Pool*/ 0));
 	AddRuntimeTestRow(Table, TEXT("ValidRow"),
 		MakeRuntimeTestRow(AShooterRuntimePoolTestWeapon::StaticClass(), /*MagazineSize*/ 6, /*Reserve*/ -1, /*Pool*/ 1));
+	const FString ExpectedAbstractRowError = FString::Printf(
+		TEXT("WeaponRuntime skipped invalid row: WeaponId=AbstractClass Table=%s"), *Table->GetName());
+	AddExpectedErrorPlain(ExpectedAbstractRowError, EAutomationExpectedErrorFlags::Exact, 1);
+	const FString ExpectedZeroPoolError = FString::Printf(
+		TEXT("WeaponRuntime skipped invalid row: WeaponId=ZeroPoolSize Table=%s"), *Table->GetName());
+	AddExpectedErrorPlain(ExpectedZeroPoolError, EAutomationExpectedErrorFlags::Exact, 1);
 	Runtime->SetWeaponTableOverride(Table);
 
 	if (!BeginRuntimeWorldPlay(*this, World))

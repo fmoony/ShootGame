@@ -3,6 +3,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "Misc/AutomationTest.h"
+#include "Tests/ShooterTestWorld.h"
 #include "Characters/Equipment/ShooterEquipmentComponent.h"
 #include "Characters/ShooterCharacter.h"
 #include "Engine/Engine.h"
@@ -38,8 +39,7 @@ namespace ShooterPickupRespawnGateAutomationTests
 			return;
 		}
 
-		GEngine->DestroyWorldContext(World);
-		World->DestroyWorld(false);
+		ShooterTestWorld::Destroy(World);
 	}
 
 	AShooterWeaponPresentationTestCharacter* SpawnRespawnGateTestCharacter(FAutomationTestBase& Test, UWorld* World)

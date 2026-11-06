@@ -3,6 +3,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "Misc/AutomationTest.h"
+#include "Tests/ShooterTestWorld.h"
 
 #include "AbilitySystem/Abilities/ShooterGameplayAbility_Fire.h"
 #include "AbilitySystem/ShooterAbilitySystemComponent.h"
@@ -11,11 +12,13 @@
 #include "Characters/ShooterCharacter.h"
 #include "Engine/Engine.h"
 #include "Engine/World.h"
+#include "EngineUtils.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/PlayerState/ShooterPlayerState.h"
 #include "Inventory/ShooterInventoryComponent.h"
 #include "Tests/Equipment/ShooterWeaponPresentationTestTypes.h"
 #include "Tests/Weapon/ShooterWeaponTestTableTypes.h"
+#include "Weapons/Projectile/ShooterProjectile.h"
 #include "Weapons/ShooterWeapon.h"
 
 /**
@@ -53,8 +56,7 @@ namespace ShooterFireInputLifecycleAutomationTests
 			return;
 		}
 
-		GEngine->DestroyWorldContext(World);
-		World->DestroyWorld(false);
+		ShooterTestWorld::Destroy(World);
 	}
 
 	/** 本机拥有者视图 + 可装备武器的输入夹具。 */
@@ -99,6 +101,7 @@ namespace ShooterFireInputLifecycleAutomationTests
 			return Fixture;
 		}
 
+		PlayerController->SetAsLocalPlayerController();
 		PlayerController->DispatchBeginPlay();
 		Character->DispatchBeginPlay();
 		PlayerController->Possess(Character);
@@ -344,6 +347,15 @@ bool FShooterFireInputSameFrameClickTest::RunTest(const FString& Parameters)
 		return false;
 	}
 
+	UClass* ProjectileClass = LoadObject<UClass>(nullptr,
+		TEXT("/Game/Shooter/Blueprints/Weapons/BP_ShooterProjectile_Bullet_Pistol.BP_ShooterProjectile_Bullet_Pistol_C"));
+	if (!TestNotNull(TEXT("production projectile class loaded"), ProjectileClass))
+	{
+		DestroyFireInputTestWorld(World);
+		return false;
+	}
+	FullAutoWeapon->SetProjectileClassForTest(ProjectileClass);
+
 	// 同一帧内按下 + 松开：帧末采集里 Held 已经为空，但那一次 Press edge 仍然是真实的输入事实。
 	PressFire(Fixture);
 	ReleaseFire(Fixture);
@@ -355,6 +367,16 @@ bool FShooterFireInputSameFrameClickTest::RunTest(const FString& Parameters)
 	ProcessInput(Fixture);
 	TestEqual(TEXT("a same-frame click forms exactly one full-auto action boundary"),
 		FullAutoWeapon->GetAuthorityShotCountForAutomationTest(), 1);
+
+	int32 ProjectileCount = 0;
+	for (TActorIterator<AShooterProjectile> It(World, ProjectileClass); It; ++It)
+	{
+		++ProjectileCount;
+		TestTrue(TEXT("spawned projectile is authoritative"), It->HasAuthority());
+		TestTrue(TEXT("spawned projectile carries the firing pawn"), It->GetInstigator() == Fixture.Character);
+	}
+	TestEqual(TEXT("same-frame click spawns exactly one authoritative projectile"), ProjectileCount, 1);
+	TestEqual(TEXT("same-frame click debits exactly one round"), FullAutoWeapon->GetBulletCount(), 9);
 
 	// 之后既没有按住也没有按下沿：不得再开一枪。
 	ReopenCadence(FullAutoWeapon);

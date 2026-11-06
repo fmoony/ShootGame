@@ -3,6 +3,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "Misc/AutomationTest.h"
+#include "Tests/ShooterTestWorld.h"
 #include "Characters/Equipment/ShooterEquipmentComponent.h"
 #include "Characters/ShooterCharacter.h"
 #include "Engine/DataTable.h"
@@ -40,8 +41,7 @@ namespace ShooterInventoryLifecycleAutomationTests
 			return;
 		}
 
-		GEngine->DestroyWorldContext(World);
-		World->DestroyWorld(false);
+		ShooterTestWorld::Destroy(World);
 	}
 
 	AShooterWeaponPresentationTestCharacter* SpawnLifecycleTestCharacter(FAutomationTestBase& Test, UWorld* World)

@@ -3,6 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Camera/CameraComponent.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "Characters/Animation/ShooterFirstPersonAnimInstance.h"
 #include "Characters/Animation/ShooterThirdPersonAnimInstance.h"
 #include "Characters/Equipment/ShooterEquipmentComponent.h"
@@ -27,6 +29,8 @@ class AShooterWeaponPresentationTestCharacter : public AShooterCharacter
 public:
 	AShooterWeaponPresentationTestCharacter()
 	{
+		// 夹具保留相机组件及其父子关系，但不加载网格或依赖 head 骨骼姿态。
+		GetFirstPersonCameraComponent()->SetupAttachment(GetFirstPersonMesh());
 		PlayerThirdPersonAnimInstanceClass = UShooterThirdPersonAnimInstance::StaticClass();
 		PlayerFirstPersonAnimInstanceClass = UShooterFirstPersonAnimInstance::StaticClass();
 	}
@@ -123,6 +127,10 @@ class AShooterWeaponLifecycleTestWeapon : public AShooterWeapon
 	GENERATED_BODY()
 
 public:
+	void SetProjectileClassForTest(TSubclassOf<AShooterProjectile> InClass)
+	{
+		ProjectileClass = InClass;
+	}
 	AShooterWeaponLifecycleTestWeapon()
 	{
 		MagazineSize = 10;
