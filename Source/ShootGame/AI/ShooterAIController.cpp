@@ -12,6 +12,7 @@ AShooterAIController::AShooterAIController()
 {
 	// create the StateTree component
 	StateTreeAI = CreateDefaultSubobject<UStateTreeAIComponent>(TEXT("StateTreeAI"));
+	StateTreeAI->SetStartLogicAutomatically(false);
 
 	// create the AI perception component. It will be configured in BP
 	AIPerception = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerception"));
@@ -21,28 +22,53 @@ AShooterAIController::AShooterAIController()
 	AIPerception->OnTargetPerceptionForgotten.AddDynamic(this, &AShooterAIController::OnPerceptionForgotten);
 }
 
+void AShooterAIController::BeginPlay()
+{
+	Super::BeginPlay();
+
+	// 地图中预放置的 NPC 可能在 Controller BeginPlay 之前就已被占有。
+	if (GetPawn() && !StateTreeAI->IsRunning())
+	{
+		StateTreeAI->StartLogic();
+	}
+}
+
 void AShooterAIController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
-
-	// ensure we're possessing an NPC
-	if (AShooterNPC* NPC = Cast<AShooterNPC>(InPawn))
+	AShooterNPC* NPC = Cast<AShooterNPC>(GetPawn());
+	if (!NPC || NPC != InPawn)
 	{
-		// add the team tag to the pawn
-		NPC->Tags.Add(TeamTag);
-
-		// subscribe to the pawn's OnDeath delegate
-		NPC->OnPawnDeath.AddDynamic(this, &AShooterAIController::OnPawnDeath);
+		return;
 	}
+
+	NPC->Tags.AddUnique(TeamTag);
+	NPC->OnPawnDeath.AddUniqueDynamic(this, &AShooterAIController::OnPawnDeath);
+
+	if (HasActorBegunPlay() && !StateTreeAI->IsRunning())
+	{
+		StateTreeAI->StartLogic();
+	}
+}
+
+void AShooterAIController::OnUnPossess()
+{
+	if (AShooterNPC* NPC = Cast<AShooterNPC>(GetPawn()))
+	{
+		NPC->OnPawnDeath.RemoveDynamic(this, &AShooterAIController::OnPawnDeath);
+	}
+
+	// ExitState 依赖当前 Pawn 上下文，必须在基类清除占有关系前运行。
+	StateTreeAI->StopLogic(TEXT("UnPossess"));
+	ClearCurrentTarget();
+
+	Super::OnUnPossess();
 }
 
 void AShooterAIController::OnPawnDeath()
 {
 	// stop movement
 	GetPathFollowingComponent()->AbortMove(*this, FPathFollowingResultFlags::UserAbort);
-
-	// stop StateTree logic
-	StateTreeAI->StopLogic(FString(""));
 
 	// unpossess the pawn
 	UnPossess();

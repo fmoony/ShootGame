@@ -341,6 +341,8 @@ void AShooterNPC::Die()
 
 	// schedule actor destruction
 	GetWorld()->GetTimerManager().SetTimer(DeathTimer, this, &AShooterNPC::DeferredDestruction, DeferredDestructionTime, false);
+
+	OnPawnDeath.Broadcast();
 }
 
 void AShooterNPC::DeferredDestruction()
