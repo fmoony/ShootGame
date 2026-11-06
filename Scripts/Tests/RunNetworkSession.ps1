@@ -22,6 +22,7 @@ param(
     [switch]$EnableClientRendering,
     [switch]$VisibleClients,
     [switch]$ParallelClientStartup,
+	[switch]$StrictWeaponSync,
     [ValidateRange(0, 8)]
     [int]$DisconnectClientIndex = 0,
     [ValidateRange(1, 300)]
@@ -35,6 +36,26 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $EngineRoot = & (Join-Path $PSScriptRoot "../Development/ResolveShootGameEngine.ps1") -EngineRoot $EngineRoot
+
+if ($StrictWeaponSync)
+{
+	if (($ServerExtraArgs + $ClientExtraArgs) -match 'ShootGameSkipRemote(Montage|CurrentWeapon)')
+	{
+		throw "Strict weapon sync requires remote Montage and CurrentWeapon checks."
+	}
+	$participants = $ClientCount + [int]($ServerMode -eq "Listen")
+	if ($participants -lt 2 -or $participants -gt 3)
+	{
+		throw "Strict weapon sync supports two or three players, including the Listen host."
+	}
+	$ServerExtraArgs += @("-ShootGameNetworkTest", "-ShootGameStrictPlayers=$participants")
+	$SuccessMarker = "AUTOMATION_TEST_STRICT_WEAPON_SUCCESS"
+	$SuccessMarkerCount = $participants
+	if (!$PSBoundParameters.ContainsKey("SessionDurationSeconds"))
+	{
+		$SessionDurationSeconds = 65
+	}
+}
 
 function ConvertTo-ProcessArgumentLine
 {

@@ -21,6 +21,8 @@ class UShooterGameplayAbility_Equip;
 class UShooterGameplayAbility_Fire;
 class UShooterGameplayAbility_Reload;
 class UGameplayAbility;
+class UAnimInstance;
+class UAnimMontage;
 struct FOnAttributeChangeData;
 struct FGameplayAbilitySpec;
 struct FGameplayTagContainer;
@@ -46,6 +48,44 @@ class AShooterNetworkTestWeapon : public AShooterWeapon
 
 public:
 	AShooterNetworkTestWeapon();
+};
+
+/** 一条面向拥有者的测试指令，身份与阶段一起复制。 */
+UENUM()
+enum class EShooterStrictStep : uint8
+{
+	Ready,
+	Switch,
+	Fire,
+	Reload,
+	Death
+};
+
+USTRUCT()
+struct FShooterStrictCommand
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	int32 Sequence = 0;
+
+	UPROPERTY()
+	int32 PlayerId = INDEX_NONE;
+
+	UPROPERTY()
+	EShooterStrictStep Step = EShooterStrictStep::Ready;
+
+	UPROPERTY()
+	TObjectPtr<AShooterCharacter> Pawn;
+
+	UPROPERTY()
+	TObjectPtr<AShooterWeapon> Weapon;
+
+	UPROPERTY()
+	int32 Magazine = INDEX_NONE;
+
+	UPROPERTY()
+	uint32 ReloadId = 0;
 };
 
 /**
@@ -134,6 +174,47 @@ protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 private:
+	UPROPERTY(Replicated)
+	int32 StrictParticipantCount = 0;
+
+	UPROPERTY(Replicated)
+	FShooterStrictCommand StrictCommand;
+
+	UFUNCTION(Server, Reliable)
+	void ServerReportStrictStep(int32 Sequence, AShooterCharacter* ObservedPawn, AShooterWeapon* ObservedWeapon);
+
+	UFUNCTION()
+	void OnStrictMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+
+	void PollStrictAuthority();
+	void AdvanceStrictSubject();
+	void PollStrictLocal();
+	void IssueStrictStep(EShooterStrictStep Step, AShooterCharacter* Pawn, AShooterWeapon* Weapon);
+	bool PrepareStrictWeapons(AShooterCharacter* Pawn);
+	bool CaptureStrictFireBaseline(AShooterCharacter* Pawn, AShooterWeapon* Weapon);
+	void ClearStrictMontageObserver();
+
+	TArray<TWeakObjectPtr<AShooterNetworkTestCoordinator>> StrictParticipants;
+	TWeakObjectPtr<AShooterCharacter> StrictRetiredPawn;
+	TWeakObjectPtr<UAnimInstance> StrictAnimInstance;
+	TWeakObjectPtr<UAnimMontage> StrictFireMontage;
+	FShooterRemotePresentationDeltasForTest StrictRemoteBaseline;
+	int32 StrictParticipantIndex = 0;
+	int32 StrictRound = 0;
+	bool bStrictAwaitingReady = true;
+	bool bStrictAfterRespawn = false;
+	int32 StrictInputSequence = 0;
+	int32 StrictWaitLoggedSequence = 0;
+	int32 StrictReportedSequence = 0;
+	int32 StrictAcknowledgedSequence = 0;
+	int32 StrictOwnerFeedbackBefore = 0;
+	int32 StrictOwnerConfirmationBefore = 0;
+	int32 StrictAuthorityShotsBefore = 0;
+	int32 StrictProjectilesBefore = 0;
+	int32 StrictReserveBefore = 0;
+	int32 StrictMontageEnds = 0;
+	float StrictScenarioStart = 0.0f;
+
 	/** 专用 flag 分支复用现有三名玩家的 OwnerOnly Coordinator，不进入旧整体回归。 */
 	UPROPERTY(Replicated)
 	bool bReloadIdentityMode = false;

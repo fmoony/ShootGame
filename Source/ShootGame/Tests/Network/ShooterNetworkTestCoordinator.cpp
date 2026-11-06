@@ -688,6 +688,7 @@ void AShooterNetworkTestCoordinator::BeginPlay()
 	TestStartTime = GetWorld()->GetTimeSeconds();
 	if (HasAuthority())
 	{
+		FParse::Value(FCommandLine::Get(), TEXT("ShootGameStrictPlayers="), StrictParticipantCount);
 		ActorSpawnedHandle = GetWorld()->AddOnActorSpawnedHandler(FOnActorSpawned::FDelegate::CreateUObject(this,
 				&AShooterNetworkTestCoordinator::HandleActorSpawned));
 	}
@@ -702,6 +703,7 @@ void AShooterNetworkTestCoordinator::BeginPlay()
 
 void AShooterNetworkTestCoordinator::EndPlay(EEndPlayReason::Type EndPlayReason)
 {
+	ClearStrictMontageObserver();
 	CleanupReloadIdentityTest();
 	CleanupAmmoPredictionTest();
 	UnregisterAimTurnCsvPoseProbe(AimTurnCsvOwnerPoseProbe);
@@ -1257,6 +1259,8 @@ void AShooterNetworkTestCoordinator::GetLifetimeReplicatedProps(TArray<FLifetime
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyForFullAuto);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerReadyForSemiAutoRapidClick);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerOwnBatchStartAllowed);
+	DOREPLIFETIME(AShooterNetworkTestCoordinator, StrictParticipantCount);
+	DOREPLIFETIME(AShooterNetworkTestCoordinator, StrictCommand);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerObservedBatchArmed);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerObservedBatchFireEnded);
 	DOREPLIFETIME(AShooterNetworkTestCoordinator, bServerObservedBatchFrozen);
@@ -1282,6 +1286,13 @@ void AShooterNetworkTestCoordinator::GetLifetimeReplicatedProps(TArray<FLifetime
 
 void AShooterNetworkTestCoordinator::PollServerState()
 {
+	if (StrictParticipantCount > 0)
+	{
+		PollStrictAuthority();
+		PollStrictLocal();
+		return;
+	}
+
 	if (bAmmoPredictionMode)
 	{
 		RunAmmoPredictionServerPhase();
@@ -3524,6 +3535,12 @@ void AShooterNetworkTestCoordinator::HandleActorSpawned(AActor* SpawnedActor)
 
 void AShooterNetworkTestCoordinator::PollClientState()
 {
+	if (StrictParticipantCount > 0)
+	{
+		PollStrictLocal();
+		return;
+	}
+
 	if (bReloadIdentityMode || bAmmoPredictionMode)
 	{
 		return;
