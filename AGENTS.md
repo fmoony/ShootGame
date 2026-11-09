@@ -4,10 +4,11 @@
 
 ## 项目概况
 
-- **引擎**: UE 5.6
+- **引擎**: UE 5.8.4
 - **模块**: `ShootGame`（Runtime 模块，含 `Engine`、`AIModule`、`UMG`、`EnhancedInput`、`StateTreeModule` 等依赖）
 - **入口**: `Source/ShootGame/ShootGame.cpp` → `FDefaultGameModuleImpl`
-- **插件**: `ModelingToolsEditorMode`（Editor）、`StateTree`、`GameplayStateTree`、`GameplayAbilities`、`McpAutomationBridge`（Editor）
+- **插件**: `ModelingToolsEditorMode`（Editor）、`StateTree`、`GameplayStateTree`。
+  GAS 使用 `GameplayAbilities`；MCP 使用官方插件和按需 Toolset（仅 Editor）。
 
 ## 源码结构
 
@@ -67,8 +68,8 @@ Source/ShootGame/
 - [TP 脚步 Notify 与基础音效][doc-link-1]：当前左右脚移动声音方案与验证边界。
 - [枪械可拆卸弹匣资产约定][doc-link-2]：当前四枪资产结构与弹匣表现约定。
 - [Walk / Sprint 与自动收枪](Docs/WalkSprint与自动收枪.md)：移动预测与 Fire 优先级。
-- [MCP 外部 Agent 契约](Plugins/McpAutomationBridge/EXTERNAL_AGENT_GUIDE.md)：
-  工具调用前必读；说明接口、读写保存边界、失败重试与验证范围。
+- [UE 5.8 官方 MCP](Docs/UE58官方MCP.md)：
+  工具调用前必读；说明发现方式、保存边界、退役能力与 Blender 分工。
 - [Inventory 与武器数据架构](Docs/架构/Inventory与武器数据架构.md)：
   当前 WeaponId、WeaponActor、SlotIndex、装备与预测的数据边界。
 - [网络射击 AI 自主验证契约](Docs/架构/网络射击AI自主验证契约.md)：

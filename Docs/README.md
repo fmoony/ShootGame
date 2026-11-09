@@ -1,6 +1,6 @@
 # ShootGame 文档索引
 
-- 整理日期：2026-10-16；当前代码基线：`38be3be`。
+- 操作入口更新：2026-11-08；开发分支：`codex/ue-5.8`，引擎：UE 5.8.4。
 - 近期方向：继续完善表现，暂缓 Lobby / LAN Session。
 - 最新功能、验证与遗留项统一见[总路线当前进度][doc-link-1]。
 
@@ -62,7 +62,7 @@
 - [自动化测试](自动化测试.md)。
 - [Agent 自动化验证操作手册](Agent自动化验证操作手册.md)。
 - [Visual Studio 项目同步](VisualStudio项目同步.md)。
-- [MCP 外部 Agent 契约](../Plugins/McpAutomationBridge/EXTERNAL_AGENT_GUIDE.md)。
+- [UE 5.8 官方 MCP](UE58官方MCP.md)：官方工具接入、操作边界与旧桥接退役说明。
 
 2026-10-17：Compact 贴身跑姿已接入生产图，正式收枪仍由 Sprint 驱动。
 三套跑姿实验已清理，保留稳定编辑源文件；见[清理核对](验证/RifleRunCleanup_20261017/验收清理.md)。

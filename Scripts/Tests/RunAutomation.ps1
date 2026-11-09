@@ -78,7 +78,7 @@ $arguments = @(
     "-nosplash",
     "-NoSound",
     "-DDC-ForceMemoryCache",
-    "-DisablePlugins=McpAutomationBridge",
+	"-DisablePlugins=ModelContextProtocol",
     "-stdout",
     "-FullStdOutLogOutput"
 )

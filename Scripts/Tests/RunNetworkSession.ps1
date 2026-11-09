@@ -183,7 +183,7 @@ $commonArguments = @(
     "-NoSound",
     "-NullRHI",
     "-DDC-ForceMemoryCache",
-    "-DisablePlugins=McpAutomationBridge"
+	"-DisablePlugins=ModelContextProtocol"
 )
 $clientCommonArguments = if ($EnableClientRendering -or $VisibleClients)
 {

@@ -34,7 +34,7 @@ $materialCommand = if ($LightingOnly) { ",ShowFlag.Materials 0" } else { "" }
 $arguments = @(
     "`"$projectPath`"", "/Game/Shooter/Maps/Lvl_Shooter", "-game", "-RenderOffscreen",
     "-windowed", "-ResX=1280", "-ResY=720", "-unattended", "-NoSound", "-nosplash", "-UseFixedTimeStep", "-FPS=30",
-    "-DDC-ForceMemoryCache", "-DisablePlugins=McpAutomationBridge", "-ShootGameFirstPersonCapture",
+	"-DDC-ForceMemoryCache", "-DisablePlugins=ModelContextProtocol", "-ShootGameFirstPersonCapture",
     "`"-ABSLOG=$logPath`"", "-ShootGameCaptureDrop=$dropText",
     "`"-ExecCmds=t.MaxFPS 30,r.MotionBlurQuality 0$materialCommand,ShootGame.FirstPerson.NearClip $clipText,ShootGame.FirstPerson.Clearance $clearanceText,ShootGame.FirstPerson.Capture $Label$captureMode`""
 )

@@ -1,5 +1,13 @@
 # Blender 动画编辑工具链
 
+## UE 5.8 工作区现状
+
+本工具链独立于 MCP；移除旧桥接不移除后台 bpy、UE Python、夹具和动画源文件。
+UE 5.8 工作区保留原有脚本与输入，本轮未执行动画重放或重新导入。
+下文旧机器路径仅为此前验证环境，当前不可直接照抄执行。
+`Run.ps1` 的 Blender、UE 5.6 路径及 Examples 的工程路径仍待单独适配。
+正式 Compact 输入与 Stance 实验均不属于本轮 MCP 替换范围。
+
 维护日期：2026-10-17；适用 ShootGame、UE 5.6.1、Blender 4.5.8 LTS。
 当前生产采用 Local 收枪与已验收的 Compact 贴身跑姿，包含 Base、Transition、Additive。
 角色动画位于 Characters/Mannequins/Anims/Rifle，Shooter/Animation 只保留 AnimBP。

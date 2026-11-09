@@ -61,7 +61,7 @@ try
         "-NoSound",
         "-NullRHI",
         "-DDC-ForceMemoryCache",
-        "-DisablePlugins=McpAutomationBridge",
+		"-DisablePlugins=ModelContextProtocol",
         "-ABSLOG=$logPath"
     )
 

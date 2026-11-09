@@ -1,10 +1,10 @@
 # ShootGame
 
-[![Unreal Engine](https://img.shields.io/badge/Unreal%20Engine-5.6-0E1128?logo=unrealengine)](https://www.unrealengine.com/)
+[![Unreal Engine](https://img.shields.io/badge/Unreal%20Engine-5.8.4-0E1128?logo=unrealengine)](https://www.unrealengine.com/)
 ![Language](https://img.shields.io/badge/C%2B%2B-20-00599C?logo=cplusplus)
 ![Platform](https://img.shields.io/badge/Platform-Windows-0078D6?logo=windows)
 
-基于 Unreal Engine 5.6 的多人网络射击学习项目。
+当前开发分支使用 Unreal Engine 5.8.4，工程由 UE 5.6 迁移。
 
 项目以服务器权威、清晰的运行时职责和可重复验证为核心，逐步实现武器、Inventory、
 Gameplay Ability、第一/第三人称表现、AI 与多人生命周期。当前重点是让每个网络闭环
@@ -154,7 +154,8 @@ Source/ShootGame/
 
 同级 `Source/ShootGameEditor/` 为 UncookedOnly 模块，承载动画图节点和编辑器工具、测试。
 `Source/ShootGameServer.Target.cs` 提供 Dedicated Server 构建目标。
-`Plugins/McpAutomationBridge` 是 Editor-only 自动化桥接插件，不参与运行时 Gameplay。
+项目使用引擎内置的官方 MCP 与按需 Toolset，仅为 Editor 启用。
+旧桥接和专用协议测试已退役，见 [UE 5.8 官方 MCP](Docs/UE58官方MCP.md)。
 
 ## 设计与开发文档
 
@@ -189,8 +190,6 @@ FMoony 拥有权利的代码部分，不改变其他内容的许可。
 
 - Unreal Engine 代码、模板与示例内容适用
   [Unreal Engine EULA](https://www.unrealengine.com/eula/unreal)，保留其版权声明。
-- `Plugins/McpAutomationBridge` 中的第三方代码适用其目录内的
-  [MIT 许可证](Plugins/McpAutomationBridge/LICENSE)，并保留原版权声明。
 - `Content` 中的非代码资产不因本仓库的 MIT 声明获得授权；使用与再分发须遵守
   各资产来源的许可，包括适用时的
   [Epic Content License](https://www.unrealengine.com/eula/content) 或

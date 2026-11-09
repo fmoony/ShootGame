@@ -45,7 +45,28 @@
 			"Enabled": true
 		},
 		{
-			"Name": "McpAutomationBridge",
+			"Name": "EditorToolset",
+			"Enabled": true,
+			"TargetAllowList": [
+				"Editor"
+			]
+		},
+		{
+			"Name": "ConfigSettingsToolset",
+			"Enabled": true,
+			"TargetAllowList": [
+				"Editor"
+			]
+		},
+		{
+			"Name": "SlateInspectorToolset",
+			"Enabled": true,
+			"TargetAllowList": [
+				"Editor"
+			]
+		},
+		{
+			"Name": "ModelContextProtocol",
 			"Enabled": true,
 			"TargetAllowList": [
 				"Editor"
