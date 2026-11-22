@@ -1,0 +1,74 @@
+{
+  "date": "2026-11-21",
+  "branch": "codex/ue-5.8",
+  "scope": "/Game/Experiments/Stance_20261022",
+  "result": {
+    "before": 219,
+    "deleted": 198,
+    "retained": 21,
+    "deleted_content_bytes": 63799679,
+    "method": "UE EditorAssetLibrary.delete_loaded_assets on the exact audited batch; empty folders removed only via UE asset API",
+    "redirectors_after": 0
+  },
+  "retained": {
+    "current_movement_and_shared_sources": 9,
+    "AB_comparison_assets": 6,
+    "legacy_startup_assets_required_by_AB": 6,
+    "note": "The current movement map does not depend on the legacy six. The retained A/B map still uses the native four-direction GameMode, whose startup class needs these six."
+  },
+  "backup": {
+    "file": "D:\\UE_Projects\\_worktrees\\ShootGame_UE58\\Saved\\StanceCleanup_20261121_01\\DeletedAssets_Backup.zip",
+    "bytes": 15164897,
+    "sha256": "7621e6a98e65f1358cdf7e49612c288fa281b0a9e1539b9083f38814d2a67be7",
+    "each_file_verified": true,
+    "note": "ZIP contains original Content-relative asset files; no restoration or source-file deletion was performed."
+  },
+  "validation": {
+    "reference_scan_project_assets": 511,
+    "dangling_to_deleted": {},
+    "retained_missing_dependencies": {},
+    "AB_compiled_input_events": 8,
+    "AB_max_position_error_cm": 0,
+    "cold_movement_preview": {
+      "world": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/UEDPIE_0_L_OWLocalMovement.L_OWLocalMovement",
+      "game_mode": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/BP_OWLocalGameMode.BP_OWLocalGameMode_C",
+      "configured_anim": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/ABP_OWLocalMovement.ABP_OWLocalMovement_C",
+      "actual_anim": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/ABP_OWLocalMovement.ABP_OWLocalMovement_C",
+      "pawn_tick_enabled": true,
+      "location": [
+        0,
+        0,
+        0
+      ],
+      "flags": {
+        "bTestOverride": false,
+        "bSnapInput": false,
+        "bManualPhase": false
+      },
+      "old_six_loaded": {
+        "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/AS_BlendMirror_BackLeft": false,
+        "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/AS_BlendMirror_ForwardRight": false,
+        "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/BS_EightDirection_Mirrored": false,
+        "/Game/Experiments/Stance_20261022/FourDirection_20261117/ABP_FourDirection": false,
+        "/Game/Experiments/Stance_20261022/TorsoMirrorHeadHands_20261118/AS_MirrorTorsoKeepHeadHands_BackRight": false,
+        "/Game/Experiments/Stance_20261022/TorsoMirrorHeadHands_20261118/AS_MirrorTorsoKeepHeadHands_ForwardLeft": false
+      },
+      "dirty_content": [],
+      "dirty_maps": []
+    }
+  },
+  "unchanged": [
+    "All 21 retained asset files",
+    "Production assets and C++",
+    "All C++ and configuration files",
+    "SourceAssets and external original FBX inputs",
+    "Historical verification documents and data"
+  ],
+  "retired": "Older maps and assets listed in DeletedAssets.csv are retired. Existing historical generation/verification scripts and reports may still name deleted paths; those old entrypoints must not be treated as runnable current experiments. No script was run to recreate assets.",
+  "limitations": [
+    "Existing locomotion ground penetration and quick-turn pose problems were not changed.",
+    "A/B validation invokes actual compiled event handlers, not physical OS keyboard acceptance.",
+    "Historical handler names had changed after recompilation; the validation fixture discovered the current names read-only. Original A/B assets remained byte-identical.",
+    "No gameplay/network validation or code build was needed for this asset-only cleanup."
+  ]
+}

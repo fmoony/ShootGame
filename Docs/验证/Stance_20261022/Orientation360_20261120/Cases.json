@@ -1,0 +1,250 @@
+[
+  {
+    "mode": "Warp",
+    "name": "Warp_F",
+    "kind": "fixed",
+    "duration": 2.0,
+    "start": 0,
+    "end": 0
+  },
+  {
+    "mode": "Warp",
+    "name": "Warp_FR",
+    "kind": "fixed",
+    "duration": 2.0,
+    "start": 45,
+    "end": 45
+  },
+  {
+    "mode": "Warp",
+    "name": "Warp_R",
+    "kind": "fixed",
+    "duration": 2.0,
+    "start": 90,
+    "end": 90
+  },
+  {
+    "mode": "Warp",
+    "name": "Warp_BR",
+    "kind": "fixed",
+    "duration": 2.0,
+    "start": 135,
+    "end": 135
+  },
+  {
+    "mode": "Warp",
+    "name": "Warp_B",
+    "kind": "fixed",
+    "duration": 2.0,
+    "start": 180,
+    "end": 180
+  },
+  {
+    "mode": "Warp",
+    "name": "Warp_BL",
+    "kind": "fixed",
+    "duration": 2.0,
+    "start": -135,
+    "end": -135
+  },
+  {
+    "mode": "Warp",
+    "name": "Warp_L",
+    "kind": "fixed",
+    "duration": 2.0,
+    "start": -90,
+    "end": -90
+  },
+  {
+    "mode": "Warp",
+    "name": "Warp_FL",
+    "kind": "fixed",
+    "duration": 2.0,
+    "start": -45,
+    "end": -45
+  },
+  {
+    "mode": "Baseline",
+    "name": "Baseline_F",
+    "kind": "fixed",
+    "duration": 2.0,
+    "start": 0,
+    "end": 0
+  },
+  {
+    "mode": "Baseline",
+    "name": "Baseline_FR",
+    "kind": "fixed",
+    "duration": 2.0,
+    "start": 45,
+    "end": 45
+  },
+  {
+    "mode": "Baseline",
+    "name": "Baseline_R",
+    "kind": "fixed",
+    "duration": 2.0,
+    "start": 90,
+    "end": 90
+  },
+  {
+    "mode": "Baseline",
+    "name": "Baseline_BR",
+    "kind": "fixed",
+    "duration": 2.0,
+    "start": 135,
+    "end": 135
+  },
+  {
+    "mode": "Baseline",
+    "name": "Baseline_B",
+    "kind": "fixed",
+    "duration": 2.0,
+    "start": 180,
+    "end": 180
+  },
+  {
+    "mode": "Baseline",
+    "name": "Baseline_BL",
+    "kind": "fixed",
+    "duration": 2.0,
+    "start": -135,
+    "end": -135
+  },
+  {
+    "mode": "Baseline",
+    "name": "Baseline_L",
+    "kind": "fixed",
+    "duration": 2.0,
+    "start": -90,
+    "end": -90
+  },
+  {
+    "mode": "Baseline",
+    "name": "Baseline_FL",
+    "kind": "fixed",
+    "duration": 2.0,
+    "start": -45,
+    "end": -45
+  },
+  {
+    "mode": "ReferenceB",
+    "name": "AcceptedB_FL",
+    "kind": "fixed",
+    "duration": 3.0,
+    "start": -45,
+    "end": -45
+  },
+  {
+    "mode": "Warp",
+    "name": "FL_out",
+    "kind": "ramp",
+    "duration": 3.0,
+    "start": 0,
+    "end": -90
+  },
+  {
+    "mode": "Warp",
+    "name": "FL_back",
+    "kind": "ramp",
+    "duration": 3.0,
+    "start": -90,
+    "end": 0
+  },
+  {
+    "mode": "Warp",
+    "name": "FR_out",
+    "kind": "ramp",
+    "duration": 3.0,
+    "start": 0,
+    "end": 90
+  },
+  {
+    "mode": "Warp",
+    "name": "FR_back",
+    "kind": "ramp",
+    "duration": 3.0,
+    "start": 90,
+    "end": 0
+  },
+  {
+    "mode": "Warp",
+    "name": "BL_out",
+    "kind": "ramp",
+    "duration": 3.0,
+    "start": 180,
+    "end": 270
+  },
+  {
+    "mode": "Warp",
+    "name": "BL_back",
+    "kind": "ramp",
+    "duration": 3.0,
+    "start": 270,
+    "end": 180
+  },
+  {
+    "mode": "Warp",
+    "name": "BR_out",
+    "kind": "ramp",
+    "duration": 3.0,
+    "start": 180,
+    "end": 90
+  },
+  {
+    "mode": "Warp",
+    "name": "BR_back",
+    "kind": "ramp",
+    "duration": 3.0,
+    "start": 90,
+    "end": 180
+  },
+  {
+    "mode": "Warp",
+    "name": "F_B",
+    "kind": "reverse",
+    "duration": 3.2,
+    "start": 0,
+    "end": 180
+  },
+  {
+    "mode": "Warp",
+    "name": "R_L",
+    "kind": "reverse",
+    "duration": 3.2,
+    "start": 90,
+    "end": -90
+  },
+  {
+    "mode": "Warp",
+    "name": "FL_BR",
+    "kind": "reverse",
+    "duration": 3.2,
+    "start": -45,
+    "end": 135
+  },
+  {
+    "mode": "Warp",
+    "name": "FR_BL",
+    "kind": "reverse",
+    "duration": 3.2,
+    "start": 45,
+    "end": -135
+  },
+  {
+    "mode": "Warp",
+    "name": "Circle_CW",
+    "kind": "ramp",
+    "duration": 9.0,
+    "start": 0,
+    "end": 720
+  },
+  {
+    "mode": "Warp",
+    "name": "Circle_CCW",
+    "kind": "ramp",
+    "duration": 9.0,
+    "start": 720,
+    "end": 0
+  }
+]

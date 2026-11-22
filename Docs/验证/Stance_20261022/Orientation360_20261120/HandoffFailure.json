@@ -1,0 +1,178 @@
+{
+  "case": "FL_back",
+  "frame_a": {
+    "elapsed": 1.3666709996759892,
+    "scalars": {
+      "Phase": 0.366719800978899,
+      "DesiredYaw": -51.74980545043945,
+      "SmoothedYaw": -55.49946212768555,
+      "WeightF": 0.46257148968097617,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.5374285103190238,
+      "AngleF": -55.49946212768555,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 34.50053787231445
+    }
+  },
+  "frame_b": {
+    "elapsed": 1.3833376988768578,
+    "scalars": {
+      "Phase": 0.3833865001797676,
+      "DesiredYaw": -50.99980545043945,
+      "SmoothedYaw": -54.74951934814453,
+      "WeightF": 0.5187821200652594,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.48121787993474063,
+      "AngleF": -54.74951934814453,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 35.25048065185547
+    }
+  },
+  "max_foot_step_cm": 61.329813505860784,
+  "bone_changes": [
+    {
+      "bone": "calf_twist_02_r",
+      "position_step_cm": 20.109156203474527,
+      "quat_step_deg": 173.39064319380032
+    },
+    {
+      "bone": "calf_twist_01_r",
+      "position_step_cm": 40.636777739643314,
+      "quat_step_deg": 173.39064319380032
+    },
+    {
+      "bone": "calf_r",
+      "position_step_cm": 4.251185644856625,
+      "quat_step_deg": 173.3906430326189
+    },
+    {
+      "bone": "ball_r",
+      "position_step_cm": 60.53654558663326,
+      "quat_step_deg": 15.850529660393983
+    },
+    {
+      "bone": "foot_r",
+      "position_step_cm": 61.329813505860784,
+      "quat_step_deg": 15.85052672997005
+    },
+    {
+      "bone": "calf_twist_02_l",
+      "position_step_cm": 4.249963077734574,
+      "quat_step_deg": 10.505827829212103
+    },
+    {
+      "bone": "calf_twist_01_l",
+      "position_step_cm": 2.250944838039164,
+      "quat_step_deg": 10.505827829212103
+    },
+    {
+      "bone": "calf_l",
+      "position_step_cm": 6.259690640397645,
+      "quat_step_deg": 10.50582767375474
+    },
+    {
+      "bone": "foot_l",
+      "position_step_cm": 0.4534842320605171,
+      "quat_step_deg": 10.302370829826529
+    },
+    {
+      "bone": "ball_l",
+      "position_step_cm": 2.7329095997418698,
+      "quat_step_deg": 10.302370007920647
+    },
+    {
+      "bone": "thigh_twist_01_l",
+      "position_step_cm": 2.588724364907877,
+      "quat_step_deg": 10.122187306496778
+    },
+    {
+      "bone": "thigh_twist_02_l",
+      "position_step_cm": 4.363025405191055,
+      "quat_step_deg": 10.122187306496778
+    },
+    {
+      "bone": "thigh_l",
+      "position_step_cm": 1.4765644629010874,
+      "quat_step_deg": 10.122184856539743
+    },
+    {
+      "bone": "thigh_r",
+      "position_step_cm": 1.137621180870251,
+      "quat_step_deg": 10.062208184383966
+    },
+    {
+      "bone": "thigh_twist_01_r",
+      "position_step_cm": 1.8741834119659044,
+      "quat_step_deg": 10.062207783454873
+    }
+  ],
+  "source_pair_approximation": [
+    {
+      "t": 1.3666709996759892,
+      "phase": 0.366719800978899,
+      "yaw": -55.49946212768555,
+      "pairs": {
+        "thigh_l": {
+          "dot": 0.17051080590034956,
+          "shortest_degrees": 160.36496058043176
+        },
+        "thigh_r": {
+          "dot": 0.10062047537447955,
+          "shortest_degrees": 168.45019736594628
+        },
+        "calf_l": {
+          "dot": 0.21802301604907426,
+          "shortest_degrees": 154.81411659364213
+        },
+        "calf_r": {
+          "dot": -0.01577756901974131,
+          "shortest_degrees": 178.19194874955303
+        },
+        "foot_l": {
+          "dot": 0.14479565916464388,
+          "shortest_degrees": 163.3491071079314
+        },
+        "foot_r": {
+          "dot": -0.12546355878668197,
+          "shortest_degrees": 165.5849470082921
+        }
+      }
+    },
+    {
+      "t": 1.3833376988768578,
+      "phase": 0.3833865001797676,
+      "yaw": -54.74951934814453,
+      "pairs": {
+        "thigh_l": {
+          "dot": 0.16734943690095902,
+          "shortest_degrees": 160.73250935151006
+        },
+        "thigh_r": {
+          "dot": 0.11272083225425258,
+          "shortest_degrees": 167.0556329396688
+        },
+        "calf_l": {
+          "dot": 0.22066084878347103,
+          "shortest_degrees": 154.50429844596619
+        },
+        "calf_r": {
+          "dot": 0.0309952152738045,
+          "shortest_degrees": 176.44764101064604
+        },
+        "foot_l": {
+          "dot": 0.14127396029246375,
+          "shortest_degrees": 163.75685692125282
+        },
+        "foot_r": {
+          "dot": -0.05316295634803739,
+          "shortest_degrees": 173.90510064496937
+        }
+      }
+    }
+  ],
+  "conclusion": "Native warped pose handoff has a confirmed discontinuity. Source pair quaternion measurements use 61-frame interpolation and are diagnostic, not proof of an engine bug."
+}

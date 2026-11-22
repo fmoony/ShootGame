@@ -1,0 +1,254 @@
+{
+  "source_pose_probe": {
+    "Forward": {
+      "max_position_difference_cm": 0.0,
+      "scope": "AnimPoseExtensions incorporate_root_motion_into_pose=True bypasses root lock; source pose equivalence only, not runtime lock validation"
+    },
+    "Back": {
+      "max_position_difference_cm": 0.0,
+      "scope": "AnimPoseExtensions incorporate_root_motion_into_pose=True bypasses root lock; source pose equivalence only, not runtime lock validation"
+    },
+    "Left": {
+      "max_position_difference_cm": 0.0,
+      "scope": "AnimPoseExtensions incorporate_root_motion_into_pose=True bypasses root lock; source pose equivalence only, not runtime lock validation"
+    },
+    "Right": {
+      "max_position_difference_cm": 0.0,
+      "scope": "AnimPoseExtensions incorporate_root_motion_into_pose=True bypasses root lock; source pose equivalence only, not runtime lock validation"
+    }
+  },
+  "runtime": [
+    {
+      "direction": "Forward",
+      "frames": 72,
+      "phase_difference_max": 0.0,
+      "before": {
+        "root_max_position_change_cm": 81.74759234481031,
+        "root_max_rotation_change_deg": 14.698404804641374,
+        "root_z_range": [
+          -28.290388,
+          -23.705418
+        ],
+        "pelvis_z_range": [
+          67.610072,
+          71.857231
+        ]
+      },
+      "after": {
+        "root_max_position_change_cm": 0.0,
+        "root_max_rotation_change_deg": 0.0,
+        "root_z_range": [
+          -25.843658,
+          -25.843658
+        ],
+        "pelvis_z_range": [
+          69.985503,
+          69.985503
+        ]
+      }
+    },
+    {
+      "direction": "ForwardRight",
+      "frames": 72,
+      "phase_difference_max": 0.0,
+      "before": {
+        "root_max_position_change_cm": 60.328277559591974,
+        "root_max_rotation_change_deg": 8.77038253291218,
+        "root_z_range": [
+          -29.265858,
+          -25.821855
+        ],
+        "pelvis_z_range": [
+          66.325964,
+          69.15384
+        ]
+      },
+      "after": {
+        "root_max_position_change_cm": 5.0000000001659824e-06,
+        "root_max_rotation_change_deg": 1.758027537185658e-05,
+        "root_z_range": [
+          -27.773708,
+          -27.773705
+        ],
+        "pelvis_z_range": [
+          67.535874,
+          67.535884
+        ]
+      }
+    },
+    {
+      "direction": "Right",
+      "frames": 72,
+      "phase_difference_max": 0.0,
+      "before": {
+        "root_max_position_change_cm": 13.014951534600579,
+        "root_max_rotation_change_deg": 10.531685939314421,
+        "root_z_range": [
+          -30.366001,
+          -27.675398
+        ],
+        "pelvis_z_range": [
+          64.329226,
+          67.007268
+        ]
+      },
+      "after": {
+        "root_max_position_change_cm": 0.0,
+        "root_max_rotation_change_deg": 0.0,
+        "root_z_range": [
+          -29.703756,
+          -29.703756
+        ],
+        "pelvis_z_range": [
+          64.598328,
+          64.598328
+        ]
+      }
+    },
+    {
+      "direction": "BackRight",
+      "frames": 72,
+      "phase_difference_max": 0.0,
+      "before": {
+        "root_max_position_change_cm": 99.67050317942685,
+        "root_max_rotation_change_deg": 7.061642223807399,
+        "root_z_range": [
+          -30.402086,
+          -27.959638
+        ],
+        "pelvis_z_range": [
+          65.290066,
+          67.88819
+        ]
+      },
+      "after": {
+        "root_max_position_change_cm": 6.633249581018704e-06,
+        "root_max_rotation_change_deg": 1.4183953086968139e-05,
+        "root_z_range": [
+          -30.196679,
+          -30.196677
+        ],
+        "pelvis_z_range": [
+          65.444682,
+          65.444692
+        ]
+      }
+    },
+    {
+      "direction": "Back",
+      "frames": 72,
+      "phase_difference_max": 0.0,
+      "before": {
+        "root_max_position_change_cm": 198.2868359324516,
+        "root_max_rotation_change_deg": 11.043861606422261,
+        "root_z_range": [
+          -31.990757,
+          -26.794703
+        ],
+        "pelvis_z_range": [
+          63.367075,
+          67.161021
+        ]
+      },
+      "after": {
+        "root_max_position_change_cm": 0.0,
+        "root_max_rotation_change_deg": 0.0,
+        "root_z_range": [
+          -30.6896,
+          -30.6896
+        ],
+        "pelvis_z_range": [
+          65.177763,
+          65.177763
+        ]
+      }
+    },
+    {
+      "direction": "BackLeft",
+      "frames": 72,
+      "phase_difference_max": 0.0,
+      "before": {
+        "root_max_position_change_cm": 140.1684923081544,
+        "root_max_rotation_change_deg": 10.506889930312575,
+        "root_z_range": [
+          -30.631167,
+          -27.481618
+        ],
+        "pelvis_z_range": [
+          65.26106,
+          68.194655
+        ]
+      },
+      "after": {
+        "root_max_position_change_cm": 5.3851648069588525e-06,
+        "root_max_rotation_change_deg": 1.322660445345283e-05,
+        "root_z_range": [
+          -29.589644,
+          -29.589644
+        ],
+        "pelvis_z_range": [
+          66.024689,
+          66.024689
+        ]
+      }
+    },
+    {
+      "direction": "Left",
+      "frames": 72,
+      "phase_difference_max": 0.0,
+      "before": {
+        "root_max_position_change_cm": 198.2353506838698,
+        "root_max_rotation_change_deg": 11.05279254873106,
+        "root_z_range": [
+          -29.391579,
+          -26.808804
+        ],
+        "pelvis_z_range": [
+          65.310441,
+          67.445682
+        ]
+      },
+      "after": {
+        "root_max_position_change_cm": 0.0,
+        "root_max_rotation_change_deg": 0.0,
+        "root_z_range": [
+          -28.489689,
+          -28.489689
+        ],
+        "pelvis_z_range": [
+          65.688181,
+          65.688181
+        ]
+      }
+    },
+    {
+      "direction": "ForwardLeft",
+      "frames": 72,
+      "phase_difference_max": 0.0,
+      "before": {
+        "root_max_position_change_cm": 117.56098463095987,
+        "root_max_rotation_change_deg": 8.148972057611054,
+        "root_z_range": [
+          -28.075781,
+          -26.482487
+        ],
+        "pelvis_z_range": [
+          67.453989,
+          68.975514
+        ]
+      },
+      "after": {
+        "root_max_position_change_cm": 5.000000002297611e-06,
+        "root_max_rotation_change_deg": 1.366037834002551e-05,
+        "root_z_range": [
+          -27.166675,
+          -27.166672
+        ],
+        "pelvis_z_range": [
+          68.104333,
+          68.104342
+        ]
+      }
+    }
+  ]
+}

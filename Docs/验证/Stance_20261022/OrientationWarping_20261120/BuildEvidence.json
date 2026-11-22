@@ -1,0 +1,47 @@
+{
+  "engine_id": "db931d31-8703-4c38-b2b7-93dc445fd12b",
+  "plugin_id": "db931d31-8703-4c38-b2b7-93dc445fd12b",
+  "ids_match": true,
+  "engine_protected": [
+    {
+      "path": "E:\\UnrealEngine\\UE_5.8_Source\\Engine\\Binaries\\Win64\\UnrealEditor.modules",
+      "sha256": "6d4cd057b86467de01916025068ad5bb2e55e4d9c257d5d0b15962a8cf2e8d38",
+      "unchanged": true
+    },
+    {
+      "path": "E:\\UnrealEngine\\UE_5.8_Source\\Engine\\Binaries\\Win64\\UnrealEditor.version",
+      "sha256": "39b2173ee959b09f796fab3e3b2e985111125105ba1bd4a9f2af1edadd6043c0",
+      "unchanged": true
+    }
+  ],
+  "plugin_products": [
+    {
+      "name": "UnrealEditor-AnimationWarpingEditor.dll",
+      "before_sha256": "e7841ee3a32299bb574b1b99775b42e1f1bc7976babb958f2d7bed3936f2e119",
+      "after_sha256": "9aac8996e713733572cc0ecbf5b0f4127077cb0b80dbd843d05d94e18210138b"
+    },
+    {
+      "name": "UnrealEditor-AnimationWarpingEditor.pdb",
+      "before_sha256": "7a65680fb5fcd73ae3b3a7ccd295472c6248ed9ca02efa2231643ae979a20939",
+      "after_sha256": "25c982e13860b217216560a16d97baa4536180d3fcb6b22e983f01942301f96a"
+    },
+    {
+      "name": "UnrealEditor-AnimationWarpingRuntime.dll",
+      "before_sha256": "7d19be3c0914b6334a21a18c5b85db414ab7df19c75711c420e2f9d3bbcd8339",
+      "after_sha256": "97852cf2ce30f576c5e4b30c6b7b8bdd850f1b256286b2b2a889546383d8e8a3"
+    },
+    {
+      "name": "UnrealEditor-AnimationWarpingRuntime.pdb",
+      "before_sha256": "594731aa0277600aa6907af232e512a1474427245b23005c3a2134d311fb90b9",
+      "after_sha256": "9534f2323c38ef6f16509d522ebf504aca3ff947747a034baf5ce4fb92e4c950"
+    },
+    {
+      "name": "UnrealEditor.modules",
+      "before_sha256": "248736fe66289c7485660f7d7934796af3c3cbceaa36c691c40f8ad73b744761",
+      "after_sha256": "d8b9d01d1cd74041af38506d4e9e98980713b6c70a234127e8e554c4f6b615ca"
+    }
+  ],
+  "source_edits": false,
+  "build_log": "PluginBuild.log",
+  "metadata_generation": "UBT WriteMetadata, restricted to AnimationWarping manifest after recompilation"
+}

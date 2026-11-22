@@ -1,0 +1,16 @@
+[
+  {
+    "file": "D:/UE_Projects/_worktrees/ShootGame_UE58/Source/ShootGameEditor/Tests/Stance/ShooterStancePreview.h",
+    "CRLF": true,
+    "added_lines": 5,
+    "max_added_width": 68,
+    "bad": []
+  },
+  {
+    "file": "D:/UE_Projects/_worktrees/ShootGame_UE58/Source/ShootGameEditor/Tests/Stance/ShooterStancePreview.cpp",
+    "CRLF": true,
+    "added_lines": 8,
+    "max_added_width": 112,
+    "bad": []
+  }
+]

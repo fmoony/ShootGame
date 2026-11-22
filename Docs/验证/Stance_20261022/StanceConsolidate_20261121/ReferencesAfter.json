@@ -1,0 +1,45 @@
+{
+  "remaining": [
+    "/Game/Experiments/Stance_20261022/ABP_OWLocalMovement",
+    "/Game/Experiments/Stance_20261022/AS_RootLockSource_Back",
+    "/Game/Experiments/Stance_20261022/AS_RootLockSource_Forward",
+    "/Game/Experiments/Stance_20261022/AS_RootLockSource_Left",
+    "/Game/Experiments/Stance_20261022/AS_RootLockSource_Right",
+    "/Game/Experiments/Stance_20261022/BP_OWLocalGameMode",
+    "/Game/Experiments/Stance_20261022/BP_OWLocalPreview",
+    "/Game/Experiments/Stance_20261022/L_OWLocalMovement",
+    "/Game/Experiments/Stance_20261022/SK_FourDirection"
+  ],
+  "project_assets_checked": 499,
+  "dangling_old_paths": {},
+  "missing_dependencies": {},
+  "redirectors": [],
+  "removed_empty_folders": [
+    {
+      "path": "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117",
+      "success": true
+    },
+    {
+      "path": "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120",
+      "success": true
+    },
+    {
+      "path": "/Game/Experiments/Stance_20261022/TorsoMirrorHeadHands_20261118",
+      "success": true
+    },
+    {
+      "path": "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117",
+      "success": true
+    },
+    {
+      "path": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121",
+      "success": true
+    },
+    {
+      "path": "/Game/Experiments/Stance_20261022/FourDirection_20261117",
+      "success": true
+    }
+  ],
+  "dirty_content": [],
+  "dirty_maps": []
+}

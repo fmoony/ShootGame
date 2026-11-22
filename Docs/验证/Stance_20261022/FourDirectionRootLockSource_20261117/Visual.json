@@ -1,0 +1,98 @@
+[
+  {
+    "direction": "Right",
+    "input": {
+      "PreviewForward": -6.874568612147414e-7,
+      "PreviewRight": 0.9999992847442627
+    },
+    "after_pause": {
+      "PreviewForward": -6.874568612147414e-7,
+      "PreviewRight": 0.9999992847442627
+    },
+    "file": "Right_SourceRootLock.png"
+  },
+  {
+    "direction": "BackRight",
+    "input": {
+      "PreviewForward": -0.5000004768371582,
+      "PreviewRight": 0.4999994933605194
+    },
+    "after_pause": {
+      "PreviewForward": -0.5000004768371582,
+      "PreviewRight": 0.4999994933605194
+    },
+    "file": "BackRight_SourceRootLock.png"
+  },
+  {
+    "direction": "Back",
+    "input": {
+      "PreviewForward": -0.9999986886978149,
+      "PreviewRight": -0.000001327213453805598
+    },
+    "after_pause": {
+      "PreviewForward": -0.9999986886978149,
+      "PreviewRight": -0.000001327213453805598
+    },
+    "file": "Back_SourceRootLock.png"
+  },
+  {
+    "direction": "BackLeft",
+    "input": {
+      "PreviewForward": -0.5000001192092896,
+      "PreviewRight": -0.49999988079071045
+    },
+    "after_pause": {
+      "PreviewForward": -0.5000001192092896,
+      "PreviewRight": -0.49999988079071045
+    },
+    "file": "BackLeft_SourceRootLock.png"
+  },
+  {
+    "direction": "Left",
+    "input": {
+      "PreviewForward": 5.962439786344476e-8,
+      "PreviewRight": -0.9999999403953552
+    },
+    "after_pause": {
+      "PreviewForward": 5.962439786344476e-8,
+      "PreviewRight": -0.9999999403953552
+    },
+    "file": "Left_SourceRootLock.png"
+  },
+  {
+    "direction": "ForwardLeft",
+    "input": {
+      "PreviewForward": 0.5000001788139343,
+      "PreviewRight": -0.4999998211860657
+    },
+    "after_pause": {
+      "PreviewForward": 0.5000001788139343,
+      "PreviewRight": -0.4999998211860657
+    },
+    "file": "ForwardLeft_SourceRootLock.png"
+  },
+  {
+    "direction": "Forward",
+    "input": {
+      "PreviewForward": 0.9999992847442627,
+      "PreviewRight": 6.99381757840456e-7
+    },
+    "after_pause": {
+      "PreviewForward": 0.9999992847442627,
+      "PreviewRight": 6.99381757840456e-7
+    },
+    "file": "Forward_SourceRootLock.png"
+  },
+  {
+    "direction": "ForwardRight",
+    "input": {
+      "PreviewForward": 0.4999994933605194,
+      "PreviewRight": 0.500000536441803
+    },
+    "after_pause": {
+      "PreviewForward": 0.4999994933605194,
+      "PreviewRight": 0.500000536441803
+    },
+    "file": "ForwardRight_SourceRootLock.png"
+  }
+]

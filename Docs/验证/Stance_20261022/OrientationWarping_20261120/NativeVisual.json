@@ -1,0 +1,13 @@
+{
+  "frames_per_mode": {
+    "A": 14,
+    "B": 14,
+    "C": 14
+  },
+  "range_s": [
+    0.4051911011338234,
+    2.5645474195480347
+  ],
+  "interval_holding_original_images": true,
+  "note": "UE viewport Shot only; native cadence about 6Hz; repeating frames for viewing, no motion interpolation; phase not synchronized."
+}

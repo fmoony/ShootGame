@@ -1,0 +1,12 @@
+{
+  "method": "native full-body BlendSpace evaluation; two faithful bakes and two left-right mirrors",
+  "phase_offset": 0,
+  "ik": false,
+  "height_correction": false,
+  "trajectory_regeneration": false,
+  "roundtrip_position_cm": 0,
+  "roundtrip_angle_deg": 4.537065941587485e-05,
+  "mirror_height_cm": 3.814550666447758e-06,
+  "bake_position_cm": 3.496227794613525e-05,
+  "bake_angle_deg": 0.00024815309590975196
+}

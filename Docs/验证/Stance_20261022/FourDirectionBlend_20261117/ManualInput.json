@@ -1,0 +1,52 @@
+[
+  {
+    "keys": [
+      87
+    ],
+    "PreviewForward": 1,
+    "PreviewRight": 0,
+    "GlobalAnimRateScale": 1
+  },
+  {
+    "keys": [
+      83
+    ],
+    "PreviewForward": -1,
+    "PreviewRight": 0,
+    "GlobalAnimRateScale": 1
+  },
+  {
+    "keys": [
+      65
+    ],
+    "PreviewForward": 0,
+    "PreviewRight": -1,
+    "GlobalAnimRateScale": 1
+  },
+  {
+    "keys": [
+      68
+    ],
+    "PreviewForward": 0,
+    "PreviewRight": 1,
+    "GlobalAnimRateScale": 1
+  },
+  {
+    "keys": [
+      87,
+      65
+    ],
+    "PreviewForward": 0.5,
+    "PreviewRight": -0.5,
+    "GlobalAnimRateScale": 1
+  },
+  {
+    "keys": [
+      83,
+      68
+    ],
+    "PreviewForward": -0.5,
+    "PreviewRight": 0.5,
+    "GlobalAnimRateScale": 1
+  }
+]

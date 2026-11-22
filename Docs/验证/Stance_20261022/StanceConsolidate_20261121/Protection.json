@@ -1,0 +1,12 @@
+{
+  "checked": 2230,
+  "old_asset_paths_removed": 21,
+  "expected_old_asset_paths": 21,
+  "unexpected_missing": [],
+  "changed": [
+    "Source/ShootGameEditor/Tests/Stance/ShooterStancePreview.cpp",
+    "Docs/_工作区文档/下蹲实验进度.md",
+    "Docs/验证/Stance_20261022/滑铲与下蹲动画实验.md"
+  ],
+  "unexpected_changed": []
+}

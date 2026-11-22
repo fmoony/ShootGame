@@ -1,0 +1,51 @@
+{
+  "cardinal_body_motion": [
+    {
+      "direction": "Forward",
+      "pelvis_z_range_cm": [
+        63.728354,
+        66.872474
+      ],
+      "root_z_range_cm": [
+        -31.995811,
+        -28.122589
+      ]
+    },
+    {
+      "direction": "Right",
+      "pelvis_z_range_cm": [
+        64.121702,
+        67.01923
+      ],
+      "root_z_range_cm": [
+        -30.453432,
+        -27.661436
+      ]
+    },
+    {
+      "direction": "Back",
+      "pelvis_z_range_cm": [
+        63.329295,
+        67.176896
+      ],
+      "root_z_range_cm": [
+        -32.03569,
+        -26.753178
+      ]
+    },
+    {
+      "direction": "Left",
+      "pelvis_z_range_cm": [
+        65.274897,
+        67.449171
+      ],
+      "root_z_range_cm": [
+        -29.499357,
+        -26.742077
+      ]
+    }
+  ],
+  "max_root_step_cm": 5.725485540521607,
+  "max_loop_boundary_root_step_cm": 2.8445024243380423,
+  "scope": "Per-record 1/30 second steps, includes authored body motion; not net travel or a visual pass"
+}

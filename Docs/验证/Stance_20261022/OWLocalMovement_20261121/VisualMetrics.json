@@ -1,0 +1,126 @@
+{
+  "F": {
+    "shoe_min_cm": -7.113645661524152,
+    "intersection_pairs": 0,
+    "max_pose_error_cm": 4.263256414560601e-14,
+    "camera": [
+      155.0,
+      620.0,
+      135.0
+    ]
+  },
+  "FR": {
+    "shoe_min_cm": -7.113861335600373,
+    "intersection_pairs": 0,
+    "max_pose_error_cm": 3.1776437161565096e-14,
+    "camera": [
+      155.0,
+      620.0,
+      135.0
+    ]
+  },
+  "R": {
+    "shoe_min_cm": -0.1310218707807413,
+    "intersection_pairs": 0,
+    "max_pose_error_cm": 6.355287432313019e-14,
+    "camera": [
+      155.0,
+      620.0,
+      135.0
+    ]
+  },
+  "BR": {
+    "shoe_min_cm": -0.15825550177605013,
+    "intersection_pairs": 0,
+    "max_pose_error_cm": 6.07087979554246e-14,
+    "camera": [
+      155.0,
+      620.0,
+      135.0
+    ]
+  },
+  "B": {
+    "shoe_min_cm": -0.15825564388660202,
+    "intersection_pairs": 0,
+    "max_pose_error_cm": 6.404745667978754e-14,
+    "camera": [
+      155.0,
+      620.0,
+      135.0
+    ]
+  },
+  "BL": {
+    "shoe_min_cm": -0.15824782132495918,
+    "intersection_pairs": 0,
+    "max_pose_error_cm": 5.728578676879116e-14,
+    "camera": [
+      155.0,
+      620.0,
+      135.0
+    ]
+  },
+  "L": {
+    "shoe_min_cm": 0.06808384030899686,
+    "intersection_pairs": 0,
+    "max_pose_error_cm": 2.929642751054232e-14,
+    "camera": [
+      155.0,
+      620.0,
+      135.0
+    ]
+  },
+  "FL": {
+    "shoe_min_cm": -7.081331163444973,
+    "intersection_pairs": 0,
+    "max_pose_error_cm": 1.4210854715202004e-14,
+    "camera": [
+      155.0,
+      620.0,
+      135.0
+    ]
+  },
+  "ReverseBefore": {
+    "shoe_min_cm": -13.405218795296404,
+    "intersection_pairs": 0,
+    "max_pose_error_cm": 2.929642751054232e-14,
+    "camera": [
+      155.0,
+      620.0,
+      135.0
+    ]
+  },
+  "ReverseAfter": {
+    "shoe_min_cm": -2.3094195906627033,
+    "intersection_pairs": 0,
+    "max_pose_error_cm": 3.1776437161565096e-14,
+    "camera": [
+      155.0,
+      620.0,
+      135.0
+    ]
+  },
+  "Regression0": {
+    "shoe_min_cm": -18.47991835912363,
+    "intersection_pairs": 0,
+    "max_pose_error_cm": 0.0,
+    "camera": [
+      155.0,
+      620.0,
+      135.0
+    ]
+  },
+  "Regression1": {
+    "shoe_min_cm": -18.41783966808803,
+    "intersection_pairs": 0,
+    "max_pose_error_cm": 0.0,
+    "camera": [
+      155.0,
+      620.0,
+      135.0
+    ]
+  },
+  "RegressionDelta": {
+    "calf_r_deg": 10.752744159728051,
+    "foot_r_cm": 4.565095674939684
+  }
+}

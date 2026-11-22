@@ -1,0 +1,82 @@
+[
+  {
+    "direction": "Right",
+    "input": {
+      "PreviewForward": -0.0000021816160824528197,
+      "PreviewRight": 0.9999977946281433
+    },
+    "paused": true,
+    "file": "Right_Paused.png",
+    "time_utc": "2026-11-17T09:19:18.359Z"
+  },
+  {
+    "direction": "BackRight",
+    "input": {
+      "PreviewForward": -0.5000022053718567,
+      "PreviewRight": 0.4999977946281433
+    },
+    "paused": true,
+    "file": "BackRight_Paused.png",
+    "time_utc": "2026-11-17T09:19:22.062Z"
+  },
+  {
+    "direction": "Back",
+    "input": {
+      "PreviewForward": -0.9999933838844299,
+      "PreviewRight": -0.000006636032139795134
+    },
+    "paused": true,
+    "file": "Back_Paused.png",
+    "time_utc": "2026-11-17T09:19:25.772Z"
+  },
+  {
+    "direction": "BackLeft",
+    "input": {
+      "PreviewForward": -0.49999937415122986,
+      "PreviewRight": -0.5000005960464478
+    },
+    "paused": true,
+    "file": "BackLeft_Paused.png",
+    "time_utc": "2026-11-17T09:19:29.465Z"
+  },
+  {
+    "direction": "Left",
+    "input": {
+      "PreviewForward": 0.0000034611246064741863,
+      "PreviewRight": -0.999996542930603
+    },
+    "paused": true,
+    "file": "Left_Paused.png",
+    "time_utc": "2026-11-17T09:19:33.325Z"
+  },
+  {
+    "direction": "ForwardLeft",
+    "input": {
+      "PreviewForward": 0.5000028610229492,
+      "PreviewRight": -0.49999716877937317
+    },
+    "paused": true,
+    "file": "ForwardLeft_Paused.png",
+    "time_utc": "2026-11-17T09:19:36.976Z"
+  },
+  {
+    "direction": "Forward",
+    "input": {
+      "PreviewForward": 0.9999997019767761,
+      "PreviewRight": 2.861970358480903e-7
+    },
+    "paused": true,
+    "file": "Forward_Paused.png",
+    "time_utc": "2026-11-17T09:19:40.642Z"
+  },
+  {
+    "direction": "ForwardRight",
+    "input": {
+      "PreviewForward": 0.4999987483024597,
+      "PreviewRight": 0.5000012516975403
+    },
+    "paused": true,
+    "file": "ForwardRight_Paused.png",
+    "time_utc": "2026-11-17T09:19:44.311Z"
+  }
+]

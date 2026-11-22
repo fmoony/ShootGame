@@ -1,0 +1,200 @@
+{
+  "Baseline": {
+    "status": {
+      "status": "Complete",
+      "frames": 524,
+      "native_phase_getter": false
+    },
+    "result": {
+      "FL": {
+        "tap_samples": 3,
+        "tap_start_phase": 0.3000798970460892,
+        "freeze_phase": 0.3334134966135025,
+        "freeze_min_shoe_cm": -19.979,
+        "tap_min_shoe_cm": -19.979,
+        "freeze_range_cm": [
+          -19.979,
+          -19.979
+        ],
+        "body_z_cm": 0.0,
+        "stop_pawn_displacement_cm": 0.0,
+        "stop_pose_displacement_cm": 0.0
+      },
+      "BR": {
+        "tap_samples": 3,
+        "tap_start_phase": 0.6335920952260494,
+        "freeze_phase": 0.6669254973530769,
+        "freeze_min_shoe_cm": -20.242,
+        "tap_min_shoe_cm": -20.242,
+        "freeze_range_cm": [
+          -20.242,
+          -20.242
+        ],
+        "body_z_cm": 0.0,
+        "stop_pawn_displacement_cm": 0.0,
+        "stop_pose_displacement_cm": 0.0
+      },
+      "FL_phase2": {
+        "tap_samples": 3,
+        "tap_start_phase": 0.2678575962781906,
+        "freeze_phase": 0.3011909946799278,
+        "freeze_min_shoe_cm": -17.157,
+        "tap_min_shoe_cm": -17.157,
+        "freeze_range_cm": [
+          -17.157,
+          -17.157
+        ],
+        "body_z_cm": 0.0,
+        "stop_pawn_displacement_cm": 0.0,
+        "stop_pose_displacement_cm": 0.0
+      },
+      "BR_phase2": {
+        "tap_samples": 3,
+        "tap_start_phase": 0.5845796950161457,
+        "freeze_phase": 0.6179131977260113,
+        "freeze_min_shoe_cm": -20.54,
+        "tap_min_shoe_cm": -20.54,
+        "freeze_range_cm": [
+          -20.54,
+          -20.54
+        ],
+        "body_z_cm": 0.0,
+        "stop_pawn_displacement_cm": 0.0,
+        "stop_pose_displacement_cm": 0.0
+      },
+      "FL_turn": {
+        "intervals": {
+          "turn_in": {
+            "min_shoe_cm": -21.008,
+            "max_joint_change_per_frame_cm": 26.392,
+            "max_joint_change_frame_phase": 0.3346164971590042,
+            "max_joint_change_frame_seconds": 0.01667260006070137
+          },
+          "turn_out": {
+            "min_shoe_cm": -15.569,
+            "max_joint_change_per_frame_cm": 19.194,
+            "max_joint_change_frame_phase": 0.857933796942234,
+            "max_joint_change_frame_seconds": 0.016666799783706665
+          }
+        },
+        "stable_diagonal_observed_min_shoe_cm": -6.589
+      },
+      "BR_turn": {
+        "intervals": {
+          "turn_in": {
+            "min_shoe_cm": -19.499,
+            "max_joint_change_per_frame_cm": 28.51,
+            "max_joint_change_frame_phase": 0.6770080998539925,
+            "max_joint_change_frame_seconds": 0.016666702926158905
+          },
+          "turn_out": {
+            "min_shoe_cm": -17.771,
+            "max_joint_change_per_frame_cm": 20.578,
+            "max_joint_change_frame_phase": 0.21034299954771996,
+            "max_joint_change_frame_seconds": 0.016666699200868607
+          }
+        },
+        "stable_diagonal_observed_min_shoe_cm": -5.52
+      }
+    }
+  },
+  "Zero": {
+    "status": {
+      "status": "Complete",
+      "frames": 528,
+      "native_phase_getter": false
+    },
+    "result": {
+      "FL": {
+        "tap_samples": 3,
+        "tap_start_phase": 0.30013780295848846,
+        "freeze_phase": 0.3334712013602257,
+        "freeze_min_shoe_cm": -5.951,
+        "tap_min_shoe_cm": -6.921,
+        "freeze_range_cm": [
+          -5.951,
+          -5.951
+        ],
+        "body_z_cm": 0.0,
+        "stop_pawn_displacement_cm": 0.0,
+        "stop_pose_displacement_cm": 0.0
+      },
+      "BR": {
+        "tap_samples": 3,
+        "tap_start_phase": 0.633531603962183,
+        "freeze_phase": 0.6668651029467583,
+        "freeze_min_shoe_cm": -6.325,
+        "tap_min_shoe_cm": -6.325,
+        "freeze_range_cm": [
+          -6.325,
+          -6.325
+        ],
+        "body_z_cm": 0.0,
+        "stop_pawn_displacement_cm": 0.0,
+        "stop_pose_displacement_cm": 0.0
+      },
+      "FL_phase2": {
+        "tap_samples": 3,
+        "tap_start_phase": 0.26697080209851265,
+        "freeze_phase": 0.30030420422554016,
+        "freeze_min_shoe_cm": -6.923,
+        "tap_min_shoe_cm": -6.923,
+        "freeze_range_cm": [
+          -6.923,
+          -6.923
+        ],
+        "body_z_cm": 0.0,
+        "stop_pawn_displacement_cm": 0.0,
+        "stop_pose_displacement_cm": 0.0
+      },
+      "BR_phase2": {
+        "tap_samples": 3,
+        "tap_start_phase": 0.5836572013795376,
+        "freeze_phase": 0.6169907003641129,
+        "freeze_min_shoe_cm": -4.678,
+        "tap_min_shoe_cm": -4.678,
+        "freeze_range_cm": [
+          -4.678,
+          -4.678
+        ],
+        "body_z_cm": 0.0,
+        "stop_pawn_displacement_cm": 0.0,
+        "stop_pose_displacement_cm": 0.0
+      },
+      "FL_turn": {
+        "intervals": {
+          "turn_in": {
+            "min_shoe_cm": -6.924,
+            "max_joint_change_per_frame_cm": 108.713,
+            "max_joint_change_frame_phase": 0.30050820112228394,
+            "max_joint_change_frame_seconds": 0.016666699200868607
+          },
+          "turn_out": {
+            "min_shoe_cm": -4.284,
+            "max_joint_change_per_frame_cm": 90.993,
+            "max_joint_change_frame_phase": 0.841685701161623,
+            "max_joint_change_frame_seconds": 0.016666699200868607
+          }
+        },
+        "stable_diagonal_observed_min_shoe_cm": -6.588
+      },
+      "BR_turn": {
+        "intervals": {
+          "turn_in": {
+            "min_shoe_cm": -6.16,
+            "max_joint_change_per_frame_cm": 122.684,
+            "max_joint_change_frame_phase": 0.6417987048625946,
+            "max_joint_change_frame_seconds": 0.016666702926158905
+          },
+          "turn_out": {
+            "min_shoe_cm": -3.673,
+            "max_joint_change_per_frame_cm": 92.648,
+            "max_joint_change_frame_phase": 0.17513490468263626,
+            "max_joint_change_frame_seconds": 0.016666702926158905
+          }
+        },
+        "stable_diagonal_observed_min_shoe_cm": -5.44
+      }
+    }
+  }
+}

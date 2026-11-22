@@ -1,0 +1,19 @@
+{
+  "world": "/Game/Experiments/Stance_20261022/Orientation360_20261120/UEDPIE_0_L_Orientation360.L_Orientation360",
+  "anim_class": "/Game/Experiments/Stance_20261022/Orientation360_20261120/ABP_OW360.ABP_OW360_C",
+  "continuous": false,
+  "mode": 2,
+  "flags": {
+    "bTestOverride": false,
+    "bSnapInput": false,
+    "bManualPhase": false
+  },
+  "current_parameters": {
+    "Phase": 0.0,
+    "SmoothedYaw": 0.0,
+    "WeightF": 1.0,
+    "WeightR": 0.0,
+    "WeightB": 0.0,
+    "WeightL": 0.0
+  }
+}

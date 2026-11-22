@@ -1,0 +1,4494 @@
+[
+  {
+    "group": "ExactPair",
+    "yaw": -55.49946212768555,
+    "phase": 0.366719800978899,
+    "source": "frame_a"
+  },
+  {
+    "group": "ExactPair",
+    "yaw": -54.74951934814453,
+    "phase": 0.3833865001797676,
+    "source": "frame_b"
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -65.0,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -64.9,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -64.8,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -64.7,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -64.6,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -64.5,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -64.4,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -64.3,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -64.2,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -64.1,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -64.0,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -63.9,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -63.8,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -63.7,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -63.6,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -63.5,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -63.4,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -63.3,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -63.2,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -63.1,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -63.0,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -62.9,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -62.8,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -62.7,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -62.6,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -62.5,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -62.4,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -62.3,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -62.2,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -62.1,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -62.0,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -61.9,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -61.8,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -61.7,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -61.6,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -61.5,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -61.4,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -61.3,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -61.2,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -61.1,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -61.0,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -60.9,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -60.8,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -60.7,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -60.6,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -60.5,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -60.4,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -60.3,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -60.2,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -60.1,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -60.0,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -59.9,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -59.8,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -59.7,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -59.6,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -59.5,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -59.4,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -59.3,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -59.2,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -59.1,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -59.0,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -58.9,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -58.8,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -58.7,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -58.6,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -58.5,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -58.4,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -58.3,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -58.2,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -58.1,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -58.0,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -57.9,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -57.8,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -57.7,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -57.6,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -57.5,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -57.4,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -57.3,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -57.2,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -57.1,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -57.0,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -56.9,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -56.8,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -56.7,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -56.6,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -56.5,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -56.4,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -56.3,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -56.2,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -56.1,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -56.0,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -55.9,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -55.8,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -55.7,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -55.6,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -55.5,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -55.4,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -55.3,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -55.2,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -55.1,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -55.0,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -54.9,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -54.8,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -54.7,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -54.6,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -54.5,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -54.4,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -54.3,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -54.2,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -54.1,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -54.0,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -53.9,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -53.8,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -53.7,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -53.6,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -53.5,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -53.4,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -53.3,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -53.2,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -53.1,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -53.0,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -52.9,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -52.8,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -52.7,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -52.6,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -52.5,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -52.4,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -52.3,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -52.2,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -52.1,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -52.0,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -51.9,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -51.8,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -51.7,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -51.6,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -51.5,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -51.4,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -51.3,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -51.2,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -51.1,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -51.0,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -50.9,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -50.8,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -50.7,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -50.6,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -50.5,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -50.4,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -50.3,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -50.2,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -50.1,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -50.0,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -49.9,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -49.8,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -49.7,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -49.6,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -49.5,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -49.4,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -49.3,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -49.2,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -49.1,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -49.0,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -48.9,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -48.8,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -48.7,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -48.599999999999994,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -48.5,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -48.4,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -48.3,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -48.2,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -48.099999999999994,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -48.0,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -47.9,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -47.8,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -47.7,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -47.599999999999994,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -47.5,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -47.4,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -47.3,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -47.2,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -47.099999999999994,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -47.0,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -46.9,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -46.8,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -46.7,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -46.599999999999994,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -46.5,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -46.4,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -46.3,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -46.2,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -46.099999999999994,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -46.0,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -45.9,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -45.8,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -45.7,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -45.599999999999994,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -45.5,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -45.4,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -45.3,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -45.2,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -45.099999999999994,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.366719800978899",
+    "yaw": -45.0,
+    "phase": 0.366719800978899
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -65.0,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -64.9,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -64.8,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -64.7,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -64.6,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -64.5,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -64.4,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -64.3,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -64.2,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -64.1,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -64.0,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -63.9,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -63.8,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -63.7,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -63.6,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -63.5,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -63.4,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -63.3,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -63.2,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -63.1,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -63.0,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -62.9,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -62.8,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -62.7,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -62.6,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -62.5,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -62.4,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -62.3,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -62.2,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -62.1,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -62.0,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -61.9,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -61.8,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -61.7,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -61.6,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -61.5,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -61.4,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -61.3,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -61.2,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -61.1,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -61.0,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -60.9,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -60.8,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -60.7,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -60.6,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -60.5,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -60.4,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -60.3,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -60.2,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -60.1,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -60.0,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -59.9,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -59.8,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -59.7,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -59.6,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -59.5,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -59.4,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -59.3,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -59.2,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -59.1,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -59.0,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -58.9,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -58.8,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -58.7,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -58.6,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -58.5,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -58.4,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -58.3,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -58.2,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -58.1,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -58.0,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -57.9,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -57.8,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -57.7,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -57.6,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -57.5,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -57.4,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -57.3,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -57.2,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -57.1,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -57.0,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -56.9,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -56.8,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -56.7,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -56.6,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -56.5,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -56.4,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -56.3,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -56.2,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -56.1,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -56.0,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -55.9,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -55.8,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -55.7,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -55.6,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -55.5,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -55.4,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -55.3,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -55.2,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -55.1,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -55.0,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -54.9,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -54.8,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -54.7,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -54.6,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -54.5,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -54.4,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -54.3,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -54.2,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -54.1,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -54.0,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -53.9,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -53.8,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -53.7,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -53.6,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -53.5,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -53.4,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -53.3,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -53.2,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -53.1,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -53.0,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -52.9,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -52.8,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -52.7,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -52.6,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -52.5,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -52.4,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -52.3,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -52.2,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -52.1,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -52.0,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -51.9,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -51.8,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -51.7,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -51.6,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -51.5,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -51.4,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -51.3,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -51.2,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -51.1,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -51.0,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -50.9,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -50.8,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -50.7,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -50.6,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -50.5,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -50.4,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -50.3,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -50.2,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -50.1,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -50.0,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -49.9,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -49.8,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -49.7,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -49.6,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -49.5,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -49.4,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -49.3,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -49.2,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -49.1,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -49.0,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -48.9,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -48.8,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -48.7,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -48.599999999999994,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -48.5,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -48.4,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -48.3,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -48.2,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -48.099999999999994,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -48.0,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -47.9,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -47.8,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -47.7,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -47.599999999999994,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -47.5,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -47.4,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -47.3,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -47.2,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -47.099999999999994,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -47.0,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -46.9,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -46.8,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -46.7,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -46.599999999999994,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -46.5,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -46.4,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -46.3,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -46.2,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -46.099999999999994,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -46.0,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -45.9,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -45.8,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -45.7,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -45.599999999999994,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -45.5,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -45.4,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -45.3,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -45.2,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -45.099999999999994,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.38",
+    "yaw": -45.0,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -65.0,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -64.9,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -64.8,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -64.7,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -64.6,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -64.5,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -64.4,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -64.3,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -64.2,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -64.1,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -64.0,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -63.9,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -63.8,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -63.7,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -63.6,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -63.5,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -63.4,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -63.3,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -63.2,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -63.1,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -63.0,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -62.9,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -62.8,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -62.7,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -62.6,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -62.5,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -62.4,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -62.3,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -62.2,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -62.1,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -62.0,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -61.9,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -61.8,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -61.7,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -61.6,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -61.5,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -61.4,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -61.3,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -61.2,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -61.1,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -61.0,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -60.9,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -60.8,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -60.7,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -60.6,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -60.5,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -60.4,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -60.3,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -60.2,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -60.1,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -60.0,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -59.9,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -59.8,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -59.7,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -59.6,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -59.5,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -59.4,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -59.3,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -59.2,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -59.1,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -59.0,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -58.9,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -58.8,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -58.7,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -58.6,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -58.5,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -58.4,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -58.3,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -58.2,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -58.1,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -58.0,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -57.9,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -57.8,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -57.7,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -57.6,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -57.5,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -57.4,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -57.3,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -57.2,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -57.1,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -57.0,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -56.9,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -56.8,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -56.7,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -56.6,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -56.5,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -56.4,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -56.3,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -56.2,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -56.1,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -56.0,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -55.9,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -55.8,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -55.7,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -55.6,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -55.5,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -55.4,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -55.3,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -55.2,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -55.1,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -55.0,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -54.9,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -54.8,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -54.7,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -54.6,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -54.5,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -54.4,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -54.3,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -54.2,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -54.1,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -54.0,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -53.9,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -53.8,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -53.7,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -53.6,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -53.5,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -53.4,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -53.3,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -53.2,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -53.1,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -53.0,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -52.9,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -52.8,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -52.7,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -52.6,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -52.5,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -52.4,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -52.3,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -52.2,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -52.1,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -52.0,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -51.9,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -51.8,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -51.7,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -51.6,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -51.5,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -51.4,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -51.3,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -51.2,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -51.1,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -51.0,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -50.9,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -50.8,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -50.7,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -50.6,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -50.5,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -50.4,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -50.3,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -50.2,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -50.1,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -50.0,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -49.9,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -49.8,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -49.7,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -49.6,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -49.5,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -49.4,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -49.3,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -49.2,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -49.1,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -49.0,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -48.9,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -48.8,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -48.7,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -48.599999999999994,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -48.5,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -48.4,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -48.3,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -48.2,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -48.099999999999994,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -48.0,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -47.9,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -47.8,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -47.7,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -47.599999999999994,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -47.5,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -47.4,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -47.3,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -47.2,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -47.099999999999994,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -47.0,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -46.9,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -46.8,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -46.7,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -46.599999999999994,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -46.5,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -46.4,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -46.3,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -46.2,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -46.099999999999994,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -46.0,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -45.9,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -45.8,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -45.7,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -45.599999999999994,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -45.5,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -45.4,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -45.3,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -45.2,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -45.099999999999994,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedPhase_0.3833865001797676",
+    "yaw": -45.0,
+    "phase": 0.3833865001797676
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.34
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.341
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.342
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.343
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.34400000000000003
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.34500000000000003
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.34600000000000003
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.34700000000000003
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.34800000000000003
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.34900000000000003
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.35000000000000003
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.35100000000000003
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.35200000000000004
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.35300000000000004
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.35400000000000004
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.35500000000000004
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.35600000000000004
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.35700000000000004
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.35800000000000004
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.35900000000000004
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.36000000000000004
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.36100000000000004
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.36200000000000004
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.36300000000000004
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.36400000000000005
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.36500000000000005
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.36600000000000005
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.36700000000000005
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.36800000000000005
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.36900000000000005
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.37
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.371
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.372
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.373
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.374
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.375
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.376
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.377
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.378
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.379
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.38
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.381
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.382
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.383
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.384
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.385
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.386
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.387
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.388
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.389
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.39
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.391
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.392
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.393
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.394
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.395
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.396
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.397
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.398
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.399
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.4
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.401
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.402
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.403
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.404
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.405
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.406
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.40700000000000003
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.40800000000000003
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.40900000000000003
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.41000000000000003
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.41100000000000003
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.41200000000000003
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.41300000000000003
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.41400000000000003
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.41500000000000004
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.41600000000000004
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.41700000000000004
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.41800000000000004
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.41900000000000004
+  },
+  {
+    "group": "FixedYaw_PhaseOnly",
+    "yaw": -55.0,
+    "phase": 0.42000000000000004
+  },
+  {
+    "group": "Recorded_FL_out",
+    "yaw": -45.001380920410156,
+    "phase": 0.6000301018357277,
+    "original_t": 36.688209500163794,
+    "original_elapsed": 1.6000301018357277,
+    "original_scalars": {
+      "Phase": 0.6000301018357277,
+      "DesiredYaw": -48.7513542175293,
+      "SmoothedYaw": -45.001380920410156,
+      "WeightF": 0.9999999856985995,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 1.4301400508287543e-08,
+      "AngleF": -45.001380920410156,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 44.998619079589844
+    }
+  },
+  {
+    "group": "Recorded_FL_out",
+    "yaw": -45.75137710571289,
+    "phase": 0.6166968010365963,
+    "original_t": 36.70487619936466,
+    "original_elapsed": 1.6166968010365963,
+    "original_scalars": {
+      "Phase": 0.6166968010365963,
+      "DesiredYaw": -49.50135421752929,
+      "SmoothedYaw": -45.75137710571289,
+      "WeightF": 0.9958717941214408,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.004128205878559221,
+      "AngleF": -45.75137710571289,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 44.24862289428711
+    }
+  },
+  {
+    "group": "Recorded_FL_out",
+    "yaw": -46.501373291015625,
+    "phase": 0.6333635002374649,
+    "original_t": 36.72154289856553,
+    "original_elapsed": 1.633363500237465,
+    "original_scalars": {
+      "Phase": 0.6333635002374649,
+      "DesiredYaw": -50.2513542175293,
+      "SmoothedYaw": -46.501373291015625,
+      "WeightF": 0.9839401563585924,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.016059843641407556,
+      "AngleF": -46.501373291015625,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 43.498626708984375
+    }
+  },
+  {
+    "group": "Recorded_FL_out",
+    "yaw": -47.251373291015625,
+    "phase": 0.6500302031636238,
+    "original_t": 36.73820960149169,
+    "original_elapsed": 1.6500302031636238,
+    "original_scalars": {
+      "Phase": 0.6500302031636238,
+      "DesiredYaw": -51.00135803222656,
+      "SmoothedYaw": -47.251373291015625,
+      "WeightF": 0.9648377609312373,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.0351622390687627,
+      "AngleF": -47.251373291015625,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 42.748626708984375
+    }
+  },
+  {
+    "group": "Recorded_FL_out",
+    "yaw": -48.001373291015625,
+    "phase": 0.6666969023644924,
+    "original_t": 36.75487630069256,
+    "original_elapsed": 1.6666969023644924,
+    "original_scalars": {
+      "Phase": 0.6666969023644924,
+      "DesiredYaw": -51.75135803222657,
+      "SmoothedYaw": -48.001373291015625,
+      "WeightF": 0.9391974617181768,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.06080253828182325,
+      "AngleF": -48.001373291015625,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 41.998626708984375
+    }
+  },
+  {
+    "group": "Recorded_FL_out",
+    "yaw": -48.751373291015625,
+    "phase": 0.683363601565361,
+    "original_t": 36.77154299989343,
+    "original_elapsed": 1.683363601565361,
+    "original_scalars": {
+      "Phase": 0.683363601565361,
+      "DesiredYaw": -52.50136184692383,
+      "SmoothedYaw": -48.751373291015625,
+      "WeightF": 0.9076520712194105,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.0923479287805895,
+      "AngleF": -48.751373291015625,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 41.248626708984375
+    }
+  },
+  {
+    "group": "Recorded_FL_out",
+    "yaw": -49.501373291015625,
+    "phase": 0.7000303007662296,
+    "original_t": 36.788209699094296,
+    "original_elapsed": 1.7000303007662296,
+    "original_scalars": {
+      "Phase": 0.7000303007662296,
+      "DesiredYaw": -53.25136184692382,
+      "SmoothedYaw": -49.501373291015625,
+      "WeightF": 0.8708344019349388,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.12916559806506123,
+      "AngleF": -49.501373291015625,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 40.498626708984375
+    }
+  },
+  {
+    "group": "Recorded_FL_out",
+    "yaw": -50.251373291015625,
+    "phase": 0.7166969999670982,
+    "original_t": 36.804876398295164,
+    "original_elapsed": 1.7166969999670982,
+    "original_scalars": {
+      "Phase": 0.7166969999670982,
+      "DesiredYaw": -54.00136184692383,
+      "SmoothedYaw": -50.251373291015625,
+      "WeightF": 0.8293772663647614,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.1706227336352386,
+      "AngleF": -50.251373291015625,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 39.748626708984375
+    }
+  },
+  {
+    "group": "Recorded_FL_out",
+    "yaw": -51.001373291015625,
+    "phase": 0.7333637028932571,
+    "original_t": 36.82154310122132,
+    "original_elapsed": 1.7333637028932571,
+    "original_scalars": {
+      "Phase": 0.7333637028932571,
+      "DesiredYaw": -54.7513656616211,
+      "SmoothedYaw": -51.001373291015625,
+      "WeightF": 0.7839134770088785,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.21608652299112152,
+      "AngleF": -51.001373291015625,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 38.998626708984375
+    }
+  },
+  {
+    "group": "Recorded_FL_out",
+    "yaw": -51.751373291015625,
+    "phase": 0.7500304020941257,
+    "original_t": 36.83820980042219,
+    "original_elapsed": 1.7500304020941257,
+    "original_scalars": {
+      "Phase": 0.7500304020941257,
+      "DesiredYaw": -55.5013656616211,
+      "SmoothedYaw": -51.751373291015625,
+      "WeightF": 0.73507584636729,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.26492415363271005,
+      "AngleF": -51.751373291015625,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 38.248626708984375
+    }
+  },
+  {
+    "group": "Recorded_FL_out",
+    "yaw": -52.501373291015625,
+    "phase": 0.7666971012949944,
+    "original_t": 36.85487649962306,
+    "original_elapsed": 1.7666971012949944,
+    "original_scalars": {
+      "Phase": 0.7666971012949944,
+      "DesiredYaw": -56.25136947631836,
+      "SmoothedYaw": -52.501373291015625,
+      "WeightF": 0.683497186939996,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.31650281306000405,
+      "AngleF": -52.501373291015625,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 37.498626708984375
+    }
+  },
+  {
+    "group": "Recorded_FL_out",
+    "yaw": -53.25137710571289,
+    "phase": 0.783363901078701,
+    "original_t": 36.87154329940677,
+    "original_elapsed": 1.783363901078701,
+    "original_scalars": {
+      "Phase": 0.783363901078701,
+      "DesiredYaw": -57.00136947631836,
+      "SmoothedYaw": -53.25137710571289,
+      "WeightF": 0.629810033872819,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.370189966127181,
+      "AngleF": -53.25137710571289,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 36.74862289428711
+    }
+  },
+  {
+    "group": "Recorded_FL_out",
+    "yaw": -54.00137710571289,
+    "phase": 0.8000306002795696,
+    "original_t": 36.888209998607635,
+    "original_elapsed": 1.8000306002795696,
+    "original_scalars": {
+      "Phase": 0.8000306002795696,
+      "DesiredYaw": -57.75137710571289,
+      "SmoothedYaw": -54.00137710571289,
+      "WeightF": 0.5746477484791556,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.42535225152084444,
+      "AngleF": -54.00137710571289,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 35.99862289428711
+    }
+  },
+  {
+    "group": "Recorded_FL_out",
+    "yaw": -54.75137710571289,
+    "phase": 0.8166973032057285,
+    "original_t": 36.904876701533794,
+    "original_elapsed": 1.8166973032057285,
+    "original_scalars": {
+      "Phase": 0.8166973032057285,
+      "DesiredYaw": -58.5013771057129,
+      "SmoothedYaw": -54.75137710571289,
+      "WeightF": 0.5186428750184375,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.48135712498156247,
+      "AngleF": -54.75137710571289,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 35.24862289428711
+    }
+  },
+  {
+    "group": "Recorded_FL_out",
+    "yaw": -55.50137710571289,
+    "phase": 0.8333640024065971,
+    "original_t": 36.92154340073466,
+    "original_elapsed": 1.8333640024065971,
+    "original_scalars": {
+      "Phase": 0.8333640024065971,
+      "DesiredYaw": -59.25137710571289,
+      "SmoothedYaw": -55.50137710571289,
+      "WeightF": 0.4624282259906648,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.5375717740093352,
+      "AngleF": -55.50137710571289,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 34.49862289428711
+    }
+  },
+  {
+    "group": "Recorded_FL_out",
+    "yaw": -56.251380920410156,
+    "phase": 0.8500307016074657,
+    "original_t": 36.93821009993553,
+    "original_elapsed": 1.8500307016074657,
+    "original_scalars": {
+      "Phase": 0.8500307016074657,
+      "DesiredYaw": -60.001380920410156,
+      "SmoothedYaw": -56.251380920410156,
+      "WeightF": 0.4066363322737596,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.5933636677262404,
+      "AngleF": -56.251380920410156,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 33.748619079589844
+    }
+  },
+  {
+    "group": "Recorded_FL_out",
+    "yaw": -57.001380920410156,
+    "phase": 0.8666974008083344,
+    "original_t": 36.9548767991364,
+    "original_elapsed": 1.8666974008083344,
+    "original_scalars": {
+      "Phase": 0.8666974008083344,
+      "DesiredYaw": -60.751380920410156,
+      "SmoothedYaw": -57.001380920410156,
+      "WeightF": 0.35190057659153884,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.6480994234084612,
+      "AngleF": -57.001380920410156,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 32.998619079589844
+    }
+  },
+  {
+    "group": "Recorded_FL_out",
+    "yaw": -57.75138473510742,
+    "phase": 0.883364100009203,
+    "original_t": 36.97154349833727,
+    "original_elapsed": 1.883364100009203,
+    "original_scalars": {
+      "Phase": 0.883364100009203,
+      "DesiredYaw": -61.50138473510742,
+      "SmoothedYaw": -57.75138473510742,
+      "WeightF": 0.29885322161687033,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.7011467783831297,
+      "AngleF": -57.75138473510742,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 32.24861526489258
+    }
+  },
+  {
+    "group": "Recorded_FL_out",
+    "yaw": -58.50138473510742,
+    "phase": 0.9000308029353619,
+    "original_t": 36.98821020126343,
+    "original_elapsed": 1.9000308029353619,
+    "original_scalars": {
+      "Phase": 0.9000308029353619,
+      "DesiredYaw": -62.25138473510743,
+      "SmoothedYaw": -58.50138473510742,
+      "WeightF": 0.24812762215482131,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.7518723778451787,
+      "AngleF": -58.50138473510742,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 31.498615264892578
+    }
+  },
+  {
+    "group": "Recorded_FL_out",
+    "yaw": -59.25138473510742,
+    "phase": 0.9166975021362305,
+    "original_t": 37.004876900464296,
+    "original_elapsed": 1.9166975021362305,
+    "original_scalars": {
+      "Phase": 0.9166975021362305,
+      "DesiredYaw": -63.00138473510742,
+      "SmoothedYaw": -59.25138473510742,
+      "WeightF": 0.20035631606301907,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.7996436839369809,
+      "AngleF": -59.25138473510742,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 30.748615264892578
+    }
+  },
+  {
+    "group": "Recorded_FL_out",
+    "yaw": -60.00138854980469,
+    "phase": 0.9333642013370991,
+    "original_t": 37.021543599665165,
+    "original_elapsed": 1.933364201337099,
+    "original_scalars": {
+      "Phase": 0.9333642013370991,
+      "DesiredYaw": -63.75138854980469,
+      "SmoothedYaw": -60.00138854980469,
+      "WeightF": 0.15617190130442027,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.8438280986955797,
+      "AngleF": -60.00138854980469,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 29.998611450195312
+    }
+  },
+  {
+    "group": "Recorded_FL_out",
+    "yaw": -60.75138854980469,
+    "phase": 0.9500309005379677,
+    "original_t": 37.038210298866034,
+    "original_elapsed": 1.9500309005379677,
+    "original_scalars": {
+      "Phase": 0.9500309005379677,
+      "DesiredYaw": -64.50138854980469,
+      "SmoothedYaw": -60.75138854980469,
+      "WeightF": 0.11620764252606008,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.8837923574739399,
+      "AngleF": -60.75138854980469,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 29.248611450195312
+    }
+  },
+  {
+    "group": "Recorded_FL_out",
+    "yaw": -61.502098083496094,
+    "phase": 0.9667133018374443,
+    "original_t": 37.05489270016551,
+    "original_elapsed": 1.9667133018374443,
+    "original_scalars": {
+      "Phase": 0.9667133018374443,
+      "DesiredYaw": -65.25138854980469,
+      "SmoothedYaw": -61.502098083496094,
+      "WeightF": 0.08106539822041192,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.9189346017795881,
+      "AngleF": -61.502098083496094,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 28.497901916503906
+    }
+  },
+  {
+    "group": "Recorded_FL_out",
+    "yaw": -62.252098083496094,
+    "phase": 0.9833800010383129,
+    "original_t": 37.07155939936638,
+    "original_elapsed": 1.983380001038313,
+    "original_scalars": {
+      "Phase": 0.9833800010383129,
+      "DesiredYaw": -66.0020980834961,
+      "SmoothedYaw": -62.252098083496094,
+      "WeightF": 0.05144490931105117,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.9485550906889488,
+      "AngleF": -62.252098083496094,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 27.747901916503906
+    }
+  },
+  {
+    "group": "Recorded_FL_out",
+    "yaw": -63.002098083496094,
+    "phase": 4.6700239181518555e-05,
+    "original_t": 37.08822609856725,
+    "original_elapsed": 2.0000467002391815,
+    "original_scalars": {
+      "Phase": 4.6700239181518555e-05,
+      "DesiredYaw": -66.7520980834961,
+      "SmoothedYaw": -63.002098083496094,
+      "WeightF": 0.02794337815964054,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.9720566218403595,
+      "AngleF": -63.002098083496094,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 26.997901916503906
+    }
+  },
+  {
+    "group": "Recorded_FL_out",
+    "yaw": -63.752098083496094,
+    "phase": 0.016713403165340424,
+    "original_t": 37.104892801493406,
+    "original_elapsed": 2.0167134031653404,
+    "original_scalars": {
+      "Phase": 0.016713403165340424,
+      "DesiredYaw": -67.5020980834961,
+      "SmoothedYaw": -63.752098083496094,
+      "WeightF": 0.011193617266179623,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.9888063827338204,
+      "AngleF": -63.752098083496094,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 26.247901916503906
+    }
+  },
+  {
+    "group": "Recorded_FL_out",
+    "yaw": -64.5020980834961,
+    "phase": 0.03338010236620903,
+    "original_t": 37.121559500694275,
+    "original_elapsed": 2.033380102366209,
+    "original_scalars": {
+      "Phase": 0.03338010236620903,
+      "DesiredYaw": -68.25210571289062,
+      "SmoothedYaw": -64.5020980834961,
+      "WeightF": 0.0018284391306685466,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.9981715608693315,
+      "AngleF": -64.5020980834961,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 25.497901916503906
+    }
+  },
+  {
+    "group": "Recorded_FL_back",
+    "yaw": -64.49675750732422,
+    "phase": 0.16671940311789513,
+    "original_t": 39.25489880144596,
+    "original_elapsed": 1.1666706018149853,
+    "original_scalars": {
+      "Phase": 0.16671940311789513,
+      "DesiredYaw": -60.749828338623054,
+      "SmoothedYaw": -64.49675750732422,
+      "WeightF": 0.0018675356297001011,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.9981324643702999,
+      "AngleF": -64.49675750732422,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 25.50324249267578
+    }
+  },
+  {
+    "group": "Recorded_FL_back",
+    "yaw": -63.74726867675781,
+    "phase": 0.18338610231876373,
+    "original_t": 39.27156550064683,
+    "original_elapsed": 1.1833373010158539,
+    "original_scalars": {
+      "Phase": 0.18338610231876373,
+      "DesiredYaw": -59.99982452392579,
+      "SmoothedYaw": -63.74726867675781,
+      "WeightF": 0.011278529243353708,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.9887214707566463,
+      "AngleF": -63.74726867675781,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 26.252731323242188
+    }
+  },
+  {
+    "group": "Recorded_FL_back",
+    "yaw": -62.9976921081543,
+    "phase": 0.20005280151963234,
+    "original_t": 39.2882321998477,
+    "original_elapsed": 1.2000040002167225,
+    "original_scalars": {
+      "Phase": 0.20005280151963234,
+      "DesiredYaw": -59.24982070922852,
+      "SmoothedYaw": -62.9976921081543,
+      "WeightF": 0.02806234503494942,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.9719376549650506,
+      "AngleF": -62.9976921081543,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 27.002307891845703
+    }
+  },
+  {
+    "group": "Recorded_FL_back",
+    "yaw": -62.248046875,
+    "phase": 0.21671950072050095,
+    "original_t": 39.30489889904857,
+    "original_elapsed": 1.216670699417591,
+    "original_scalars": {
+      "Phase": 0.21671950072050095,
+      "DesiredYaw": -58.499820709228516,
+      "SmoothedYaw": -62.248046875,
+      "WeightF": 0.05158904051594437,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.9484109594840556,
+      "AngleF": -62.248046875,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 27.751953125
+    }
+  },
+  {
+    "group": "Recorded_FL_back",
+    "yaw": -61.49834060668945,
+    "phase": 0.23338619992136955,
+    "original_t": 39.321565598249435,
+    "original_elapsed": 1.2333373986184597,
+    "original_scalars": {
+      "Phase": 0.23338619992136955,
+      "DesiredYaw": -57.74981689453125,
+      "SmoothedYaw": -61.49834060668945,
+      "WeightF": 0.08122813589535338,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.9187718641046466,
+      "AngleF": -61.49834060668945,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 28.501659393310547
+    }
+  },
+  {
+    "group": "Recorded_FL_back",
+    "yaw": -60.74858474731445,
+    "phase": 0.25005290284752846,
+    "original_t": 39.338232301175594,
+    "original_elapsed": 1.2500041015446186,
+    "original_scalars": {
+      "Phase": 0.25005290284752846,
+      "DesiredYaw": -56.99981689453126,
+      "SmoothedYaw": -60.74858474731445,
+      "WeightF": 0.11634840249444989,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.8836515975055501,
+      "AngleF": -60.74858474731445,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 29.251415252685547
+    }
+  },
+  {
+    "group": "Recorded_FL_back",
+    "yaw": -59.99878692626953,
+    "phase": 0.26671960204839706,
+    "original_t": 39.35489900037646,
+    "original_elapsed": 1.2666708007454872,
+    "original_scalars": {
+      "Phase": 0.26671960204839706,
+      "DesiredYaw": -56.24981689453124,
+      "SmoothedYaw": -59.99878692626953,
+      "WeightF": 0.15631824091519708,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.8436817590848029,
+      "AngleF": -59.99878692626953,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 30.00121307373047
+    }
+  },
+  {
+    "group": "Recorded_FL_back",
+    "yaw": -59.24895477294922,
+    "phase": 0.28338630124926567,
+    "original_t": 39.37156569957733,
+    "original_elapsed": 1.2833374999463558,
+    "original_scalars": {
+      "Phase": 0.28338630124926567,
+      "DesiredYaw": -55.49981307983398,
+      "SmoothedYaw": -59.24895477294922,
+      "WeightF": 0.20050564220066203,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.799494357799338,
+      "AngleF": -59.24895477294922,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 30.75104522705078
+    }
+  },
+  {
+    "group": "Recorded_FL_back",
+    "yaw": -58.49909591674805,
+    "phase": 0.3000530004501343,
+    "original_t": 39.3882323987782,
+    "original_elapsed": 1.3000041991472244,
+    "original_scalars": {
+      "Phase": 0.3000530004501343,
+      "DesiredYaw": -54.749813079833984,
+      "SmoothedYaw": -58.49909591674805,
+      "WeightF": 0.24827825212442156,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.7517217478755784,
+      "AngleF": -58.49909591674805,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 31.500904083251953
+    }
+  },
+  {
+    "group": "Recorded_FL_back",
+    "yaw": -57.74921417236328,
+    "phase": 0.3167197033762932,
+    "original_t": 39.40489910170436,
+    "original_elapsed": 1.3166709020733833,
+    "original_scalars": {
+      "Phase": 0.3167197033762932,
+      "DesiredYaw": -53.99980926513672,
+      "SmoothedYaw": -57.74921417236328,
+      "WeightF": 0.2990036999801511,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.7009963000198489,
+      "AngleF": -57.74921417236328,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 32.25078582763672
+    }
+  },
+  {
+    "group": "Recorded_FL_back",
+    "yaw": -56.99931335449219,
+    "phase": 0.3333864025771618,
+    "original_t": 39.42156580090523,
+    "original_elapsed": 1.333337601274252,
+    "original_scalars": {
+      "Phase": 0.3333864025771618,
+      "DesiredYaw": -53.249809265136726,
+      "SmoothedYaw": -56.99931335449219,
+      "WeightF": 0.3520494391837047,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.6479505608162953,
+      "AngleF": -56.99931335449219,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 33.00068664550781
+    }
+  },
+  {
+    "group": "Recorded_FL_back",
+    "yaw": -56.249393463134766,
+    "phase": 0.3500531017780304,
+    "original_t": 39.438232500106096,
+    "original_elapsed": 1.3500043004751205,
+    "original_scalars": {
+      "Phase": 0.3500531017780304,
+      "DesiredYaw": -52.49980926513672,
+      "SmoothedYaw": -56.249393463134766,
+      "WeightF": 0.4067830610743419,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.5932169389256581,
+      "AngleF": -56.249393463134766,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 33.750606536865234
+    }
+  },
+  {
+    "group": "Recorded_FL_back",
+    "yaw": -55.49946212768555,
+    "phase": 0.366719800978899,
+    "original_t": 39.454899199306965,
+    "original_elapsed": 1.3666709996759892,
+    "original_scalars": {
+      "Phase": 0.366719800978899,
+      "DesiredYaw": -51.74980545043945,
+      "SmoothedYaw": -55.49946212768555,
+      "WeightF": 0.46257148968097617,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.5374285103190238,
+      "AngleF": -55.49946212768555,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 34.50053787231445
+    }
+  },
+  {
+    "group": "Recorded_FL_back",
+    "yaw": -54.74951934814453,
+    "phase": 0.3833865001797676,
+    "original_t": 39.47156589850783,
+    "original_elapsed": 1.3833376988768578,
+    "original_scalars": {
+      "Phase": 0.3833865001797676,
+      "DesiredYaw": -50.99980545043945,
+      "SmoothedYaw": -54.74951934814453,
+      "WeightF": 0.5187821200652594,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.48121787993474063,
+      "AngleF": -54.74951934814453,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 35.25048065185547
+    }
+  },
+  {
+    "group": "Recorded_FL_back",
+    "yaw": -53.99956512451172,
+    "phase": 0.4000532031059265,
+    "original_t": 39.48823260143399,
+    "original_elapsed": 1.4000044018030167,
+    "original_scalars": {
+      "Phase": 0.4000532031059265,
+      "DesiredYaw": -50.24980545043945,
+      "SmoothedYaw": -53.99956512451172,
+      "WeightF": 0.5747822893631467,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.4252177106368533,
+      "AngleF": -53.99956512451172,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 36.00043487548828
+    }
+  },
+  {
+    "group": "Recorded_FL_back",
+    "yaw": -53.249603271484375,
+    "phase": 0.4167199023067951,
+    "original_t": 39.50489930063486,
+    "original_elapsed": 1.4166711010038853,
+    "original_scalars": {
+      "Phase": 0.4167199023067951,
+      "DesiredYaw": -49.499801635742195,
+      "SmoothedYaw": -53.249603271484375,
+      "WeightF": 0.629938999446268,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.37006100055373203,
+      "AngleF": -53.249603271484375,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 36.750396728515625
+    }
+  },
+  {
+    "group": "Recorded_FL_back",
+    "yaw": -52.4996337890625,
+    "phase": 0.4333866015076637,
+    "original_t": 39.52156599983573,
+    "original_elapsed": 1.4333378002047539,
+    "original_scalars": {
+      "Phase": 0.4333866015076637,
+      "DesiredYaw": -48.74980163574219,
+      "SmoothedYaw": -52.4996337890625,
+      "WeightF": 0.6836194989550737,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.3163805010449263,
+      "AngleF": -52.4996337890625,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 37.5003662109375
+    }
+  },
+  {
+    "group": "Recorded_FL_back",
+    "yaw": -51.74966049194336,
+    "phase": 0.45005330070853233,
+    "original_t": 39.5382326990366,
+    "original_elapsed": 1.4500044994056225,
+    "original_scalars": {
+      "Phase": 0.45005330070853233,
+      "DesiredYaw": -47.99979782104492,
+      "SmoothedYaw": -51.74966049194336,
+      "WeightF": 0.7351907420328919,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.2648092579671081,
+      "AngleF": -51.74966049194336,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 38.25033950805664
+    }
+  },
+  {
+    "group": "Recorded_FL_back",
+    "yaw": -50.99968338012695,
+    "phase": 0.46671999990940094,
+    "original_t": 39.55489939823747,
+    "original_elapsed": 1.466671198606491,
+    "original_scalars": {
+      "Phase": 0.46671999990940094,
+      "DesiredYaw": -47.24979782104492,
+      "SmoothedYaw": -50.99968338012695,
+      "WeightF": 0.7840199467512496,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.21598005324875036,
+      "AngleF": -50.99968338012695,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 39.00031661987305
+    }
+  },
+  {
+    "group": "Recorded_FL_back",
+    "yaw": -50.24970245361328,
+    "phase": 0.48338670283555984,
+    "original_t": 39.571566101163626,
+    "original_elapsed": 1.48333790153265,
+    "original_scalars": {
+      "Phase": 0.48338670283555984,
+      "DesiredYaw": -46.49979782104493,
+      "SmoothedYaw": -50.24970245361328,
+      "WeightF": 0.8294743118708328,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.17052568812916724,
+      "AngleF": -50.24970245361328,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 39.75029754638672
+    }
+  },
+  {
+    "group": "Recorded_FL_back",
+    "yaw": -49.499717712402344,
+    "phase": 0.5000534020364285,
+    "original_t": 39.588232800364494,
+    "original_elapsed": 1.5000046007335186,
+    "original_scalars": {
+      "Phase": 0.5000534020364285,
+      "DesiredYaw": -45.749794006347656,
+      "SmoothedYaw": -49.499717712402344,
+      "WeightF": 0.8709210168412409,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.1290789831587591,
+      "AngleF": -49.499717712402344,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 40.500282287597656
+    }
+  },
+  {
+    "group": "Recorded_FL_back",
+    "yaw": -48.749725341796875,
+    "phase": 0.5167202018201351,
+    "original_t": 39.6048996001482,
+    "original_elapsed": 1.5166714005172253,
+    "original_scalars": {
+      "Phase": 0.5167202018201351,
+      "DesiredYaw": -44.999794006347656,
+      "SmoothedYaw": -48.749725341796875,
+      "WeightF": 0.907727396134573,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.09227260386542702,
+      "AngleF": -48.749725341796875,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 41.250274658203125
+    }
+  },
+  {
+    "group": "Recorded_FL_back",
+    "yaw": -47.999732971191406,
+    "phase": 0.5333869010210037,
+    "original_t": 39.62156629934907,
+    "original_elapsed": 1.5333380997180939,
+    "original_scalars": {
+      "Phase": 0.5333869010210037,
+      "DesiredYaw": -44.249786376953125,
+      "SmoothedYaw": -47.999732971191406,
+      "WeightF": 0.9392602134775759,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.060739786522424066,
+      "AngleF": -47.999732971191406,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 42.000267028808594
+    }
+  },
+  {
+    "group": "Recorded_FL_back",
+    "yaw": -47.24974060058594,
+    "phase": 0.5500536002218723,
+    "original_t": 39.63823299854994,
+    "original_elapsed": 1.5500047989189625,
+    "original_scalars": {
+      "Phase": 0.5500536002218723,
+      "DesiredYaw": -43.499786376953125,
+      "SmoothedYaw": -47.24974060058594,
+      "WeightF": 0.9648866756819582,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.035113324318041816,
+      "AngleF": -47.24974060058594,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 42.75025939941406
+    }
+  },
+  {
+    "group": "Recorded_FL_back",
+    "yaw": -46.49974060058594,
+    "phase": 0.566720400005579,
+    "original_t": 39.654899798333645,
+    "original_elapsed": 1.5666715987026691,
+    "original_scalars": {
+      "Phase": 0.566720400005579,
+      "DesiredYaw": -42.74978256225586,
+      "SmoothedYaw": -46.49974060058594,
+      "WeightF": 0.9839741483213394,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.016025851678660552,
+      "AngleF": -46.49974060058594,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 43.50025939941406
+    }
+  },
+  {
+    "group": "Recorded_FL_back",
+    "yaw": -45.7497444152832,
+    "phase": 0.5833871029317379,
+    "original_t": 39.671566501259804,
+    "original_elapsed": 1.583338301628828,
+    "original_scalars": {
+      "Phase": 0.5833871029317379,
+      "DesiredYaw": -41.999778747558594,
+      "SmoothedYaw": -45.7497444152832,
+      "WeightF": 0.9958894858000753,
+      "WeightR": 0.0,
+      "WeightB": 0.0,
+      "WeightL": 0.0041105141999246975,
+      "AngleF": -45.7497444152832,
+      "AngleR": -65.0,
+      "AngleB": 65.0,
+      "AngleL": 44.2502555847168
+    }
+  }
+]

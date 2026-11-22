@@ -1,0 +1,58 @@
+{
+  "map": "/Game/Experiments/Stance_20261022/FourDirection_20261117/L_FourDirectionPreview",
+  "game_mode": "<Object '/Script/ShootGameEditor.ShooterFourDirectionPreviewGameMode' (0x00000213D3368700) Class 'Class'>",
+  "blendspace": "/Game/Experiments/Stance_20261022/FourDirection_20261117/BS_FourDirection_Crouch.BS_FourDirection_Crouch",
+  "skeleton": "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection.SK_FourDirection",
+  "smoothing": [
+    0.20000000298023224,
+    0.20000000298023224
+  ],
+  "samples": [
+    {
+      "asset": "/Game/Experiments/Stance_20261022/FourDirection_20261117/AS_NewCrouch_Forward.AS_NewCrouch_Forward",
+      "point": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "rate": 1.0
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/FourDirection_20261117/AS_NewCrouch_Back.AS_NewCrouch_Back",
+      "point": [
+        -1.0,
+        0.0,
+        0.0
+      ],
+      "rate": 1.0
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/FourDirection_20261117/AS_NewCrouch_Left.AS_NewCrouch_Left",
+      "point": [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      "rate": 1.0
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/FourDirection_20261117/AS_NewCrouch_Right.AS_NewCrouch_Right",
+      "point": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "rate": 1.0
+    }
+  ],
+  "assets": [
+    "/Game/Experiments/Stance_20261022/FourDirection_20261117/ABP_FourDirection.ABP_FourDirection",
+    "/Game/Experiments/Stance_20261022/FourDirection_20261117/AS_NewCrouch_Back.AS_NewCrouch_Back",
+    "/Game/Experiments/Stance_20261022/FourDirection_20261117/AS_NewCrouch_Forward.AS_NewCrouch_Forward",
+    "/Game/Experiments/Stance_20261022/FourDirection_20261117/AS_NewCrouch_Left.AS_NewCrouch_Left",
+    "/Game/Experiments/Stance_20261022/FourDirection_20261117/AS_NewCrouch_Right.AS_NewCrouch_Right",
+    "/Game/Experiments/Stance_20261022/FourDirection_20261117/BS_FourDirection_Crouch.BS_FourDirection_Crouch",
+    "/Game/Experiments/Stance_20261022/FourDirection_20261117/L_FourDirectionPreview.L_FourDirectionPreview",
+    "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection.SK_FourDirection"
+  ]
+}

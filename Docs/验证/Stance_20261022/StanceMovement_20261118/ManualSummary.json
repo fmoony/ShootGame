@@ -1,0 +1,136 @@
+{
+  "frames": 1455,
+  "actual_keyboard_delivery": "Windows PostMessage scoped to project game window; W, W+D, T pause/resume with W held; keys released in finally",
+  "boundary_exclusion_s": {
+    "start": 0.15,
+    "end": 0.25
+  },
+  "stages": [
+    {
+      "stage": "forward",
+      "samples": 25,
+      "duration_s": 0.7666684985160828,
+      "delta_cm": [
+        115.00027477741241,
+        0.0,
+        0.0
+      ],
+      "mean_speed_cm_s": 150.0,
+      "anim_rate_range": [
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "stage": "released",
+      "samples": 8,
+      "duration_s": 0.2333337999880314,
+      "delta_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mean_speed_cm_s": 0.0,
+      "anim_rate_range": [
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "stage": "diagonal",
+      "samples": 24,
+      "duration_s": 0.7500021010637283,
+      "delta_cm": [
+        79.54973573494834,
+        79.54973573494806,
+        0.0
+      ],
+      "mean_speed_cm_s": 150.0000000000002,
+      "anim_rate_range": [
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "stage": "released",
+      "samples": 9,
+      "duration_s": 0.26666729897260666,
+      "delta_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mean_speed_cm_s": 0.0,
+      "anim_rate_range": [
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "stage": "before_pause",
+      "samples": 2,
+      "duration_s": 0.03333339840173721,
+      "delta_cm": [
+        5.000009760260582,
+        0.0,
+        0.0
+      ],
+      "mean_speed_cm_s": 150.0,
+      "anim_rate_range": [
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "stage": "paused_held",
+      "samples": 21,
+      "duration_s": 0.6605805978178978,
+      "delta_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mean_speed_cm_s": 0.0,
+      "anim_rate_range": [
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "stage": "resumed_held",
+      "samples": 22,
+      "duration_s": 0.6500014998018742,
+      "delta_cm": [
+        97.50022497028112,
+        0.0,
+        0.0
+      ],
+      "mean_speed_cm_s": 150.0,
+      "anim_rate_range": [
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "stage": "released_final",
+      "samples": 9,
+      "duration_s": 0.2500007003545761,
+      "delta_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mean_speed_cm_s": 0.0,
+      "anim_rate_range": [
+        0.0,
+        0.0
+      ]
+    }
+  ],
+  "max_camera_relative_offset_error_cm": 2.842170943040401e-14,
+  "camera_relative_offset_cm": [
+    155,
+    620,
+    135
+  ]
+}

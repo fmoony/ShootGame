@@ -1,0 +1,8 @@
+{
+  "pawn": {
+    "returnValue": "{\"PreviewForward\":1,\"PreviewRight\":0}"
+  },
+  "body": {
+    "returnValue": "{\"GlobalAnimRateScale\":0,\"AnimClass\":{\"refPath\":\"/Game/Experiments/Stance_20261022/FourDirection_20261117/ABP_FourDirection.ABP_FourDirection_C\"}}"
+  }
+}

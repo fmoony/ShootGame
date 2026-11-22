@@ -1,0 +1,18 @@
+[
+  {
+    "name": "ForwardRight",
+    "max_cycle_endpoint_distance_cm": 0.02023778566202521
+  },
+  {
+    "name": "BackLeft",
+    "max_cycle_endpoint_distance_cm": 0.00623392463643455
+  },
+  {
+    "name": "ForwardLeft",
+    "max_cycle_endpoint_distance_cm": 0.02023796465512628
+  },
+  {
+    "name": "BackRight",
+    "max_cycle_endpoint_distance_cm": 0.00623333847970139
+  }
+]

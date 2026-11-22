@@ -1,0 +1,58 @@
+[
+  {
+    "direction": "Forward",
+    "asset": "/Game/Experiments/Stance_20261022/FourDirection_20261117/AS_NewCrouch_Forward.AS_NewCrouch_Forward",
+    "before": {
+      "enable_root_motion": "False",
+      "force_root_lock": "False",
+      "root_motion_root_lock": "<RootMotionRootLock.REF_POSE: 0>"
+    },
+    "after": {
+      "enable_root_motion": "False",
+      "force_root_lock": "True",
+      "root_motion_root_lock": "<RootMotionRootLock.ANIM_FIRST_FRAME: 1>"
+    }
+  },
+  {
+    "direction": "Back",
+    "asset": "/Game/Experiments/Stance_20261022/FourDirection_20261117/AS_NewCrouch_Back.AS_NewCrouch_Back",
+    "before": {
+      "enable_root_motion": "False",
+      "force_root_lock": "False",
+      "root_motion_root_lock": "<RootMotionRootLock.REF_POSE: 0>"
+    },
+    "after": {
+      "enable_root_motion": "False",
+      "force_root_lock": "True",
+      "root_motion_root_lock": "<RootMotionRootLock.ANIM_FIRST_FRAME: 1>"
+    }
+  },
+  {
+    "direction": "Left",
+    "asset": "/Game/Experiments/Stance_20261022/FourDirection_20261117/AS_NewCrouch_Left.AS_NewCrouch_Left",
+    "before": {
+      "enable_root_motion": "False",
+      "force_root_lock": "False",
+      "root_motion_root_lock": "<RootMotionRootLock.REF_POSE: 0>"
+    },
+    "after": {
+      "enable_root_motion": "False",
+      "force_root_lock": "True",
+      "root_motion_root_lock": "<RootMotionRootLock.ANIM_FIRST_FRAME: 1>"
+    }
+  },
+  {
+    "direction": "Right",
+    "asset": "/Game/Experiments/Stance_20261022/FourDirection_20261117/AS_NewCrouch_Right.AS_NewCrouch_Right",
+    "before": {
+      "enable_root_motion": "False",
+      "force_root_lock": "False",
+      "root_motion_root_lock": "<RootMotionRootLock.REF_POSE: 0>"
+    },
+    "after": {
+      "enable_root_motion": "False",
+      "force_root_lock": "True",
+      "root_motion_root_lock": "<RootMotionRootLock.ANIM_FIRST_FRAME: 1>"
+    }
+  }
+]

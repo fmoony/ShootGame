@@ -1,0 +1,317 @@
+[
+  {
+    "stage": "FixedA",
+    "index": 0,
+    "elapsed": 0.4034341014921665,
+    "t": 21.51012920215726,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedA/Frame_0000.png"
+  },
+  {
+    "stage": "FixedA",
+    "index": 1,
+    "elapsed": 0.5569661073386669,
+    "t": 21.66366120800376,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedA/Frame_0001.png"
+  },
+  {
+    "stage": "FixedA",
+    "index": 2,
+    "elapsed": 0.711888313293457,
+    "t": 21.81858341395855,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedA/Frame_0002.png"
+  },
+  {
+    "stage": "FixedA",
+    "index": 3,
+    "elapsed": 0.8658210225403309,
+    "t": 21.972516123205423,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedA/Frame_0003.png"
+  },
+  {
+    "stage": "FixedA",
+    "index": 4,
+    "elapsed": 1.0178354158997536,
+    "t": 22.124530516564846,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedA/Frame_0004.png"
+  },
+  {
+    "stage": "FixedA",
+    "index": 5,
+    "elapsed": 1.1757448129355907,
+    "t": 22.282439913600683,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedA/Frame_0005.png"
+  },
+  {
+    "stage": "FixedA",
+    "index": 6,
+    "elapsed": 1.3332226164638996,
+    "t": 22.439917717128992,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedA/Frame_0006.png"
+  },
+  {
+    "stage": "FixedA",
+    "index": 7,
+    "elapsed": 1.48794512078166,
+    "t": 22.594640221446753,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedA/Frame_0007.png"
+  },
+  {
+    "stage": "FixedA",
+    "index": 8,
+    "elapsed": 1.638747826218605,
+    "t": 22.745442926883698,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedA/Frame_0008.png"
+  },
+  {
+    "stage": "FixedA",
+    "index": 9,
+    "elapsed": 1.791513416916132,
+    "t": 22.898208517581224,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedA/Frame_0009.png"
+  },
+  {
+    "stage": "FixedA",
+    "index": 10,
+    "elapsed": 1.9450020119547844,
+    "t": 23.051697112619877,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedA/Frame_0010.png"
+  },
+  {
+    "stage": "FixedA",
+    "index": 11,
+    "elapsed": 2.1016309075057507,
+    "t": 23.208326008170843,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedA/Frame_0011.png"
+  },
+  {
+    "stage": "FixedA",
+    "index": 12,
+    "elapsed": 2.2598487064242363,
+    "t": 23.36654380708933,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedA/Frame_0012.png"
+  },
+  {
+    "stage": "FixedA",
+    "index": 13,
+    "elapsed": 2.415631603449583,
+    "t": 23.522326704114676,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedA/Frame_0013.png"
+  },
+  {
+    "stage": "FixedA",
+    "index": 14,
+    "elapsed": 2.5737906098365784,
+    "t": 23.68048571050167,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedA/Frame_0014.png"
+  },
+  {
+    "stage": "FixedB",
+    "index": 0,
+    "elapsed": 0.4051911011338234,
+    "t": 24.829001616686583,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedB/Frame_0000.png"
+  },
+  {
+    "stage": "FixedB",
+    "index": 1,
+    "elapsed": 0.5568609982728958,
+    "t": 24.980671513825655,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedB/Frame_0001.png"
+  },
+  {
+    "stage": "FixedB",
+    "index": 2,
+    "elapsed": 0.7101336009800434,
+    "t": 25.133944116532803,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedB/Frame_0002.png"
+  },
+  {
+    "stage": "FixedB",
+    "index": 3,
+    "elapsed": 0.8638064041733742,
+    "t": 25.287616919726133,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedB/Frame_0003.png"
+  },
+  {
+    "stage": "FixedB",
+    "index": 4,
+    "elapsed": 1.017632108181715,
+    "t": 25.441442623734474,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedB/Frame_0004.png"
+  },
+  {
+    "stage": "FixedB",
+    "index": 5,
+    "elapsed": 1.1685244143009186,
+    "t": 25.592334929853678,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedB/Frame_0005.png"
+  },
+  {
+    "stage": "FixedB",
+    "index": 6,
+    "elapsed": 1.3213349133729935,
+    "t": 25.745145428925753,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedB/Frame_0006.png"
+  },
+  {
+    "stage": "FixedB",
+    "index": 7,
+    "elapsed": 1.473968017846346,
+    "t": 25.897778533399105,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedB/Frame_0007.png"
+  },
+  {
+    "stage": "FixedB",
+    "index": 8,
+    "elapsed": 1.6256794109940529,
+    "t": 26.049489926546812,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedB/Frame_0008.png"
+  },
+  {
+    "stage": "FixedB",
+    "index": 9,
+    "elapsed": 1.780411209911108,
+    "t": 26.204221725463867,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedB/Frame_0009.png"
+  },
+  {
+    "stage": "FixedB",
+    "index": 10,
+    "elapsed": 1.9368709176778793,
+    "t": 26.36068143323064,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedB/Frame_0010.png"
+  },
+  {
+    "stage": "FixedB",
+    "index": 11,
+    "elapsed": 2.087659914046526,
+    "t": 26.511470429599285,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedB/Frame_0011.png"
+  },
+  {
+    "stage": "FixedB",
+    "index": 12,
+    "elapsed": 2.2470391169190407,
+    "t": 26.6708496324718,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedB/Frame_0012.png"
+  },
+  {
+    "stage": "FixedB",
+    "index": 13,
+    "elapsed": 2.4047078154981136,
+    "t": 26.828518331050873,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedB/Frame_0013.png"
+  },
+  {
+    "stage": "FixedB",
+    "index": 14,
+    "elapsed": 2.5645474195480347,
+    "t": 26.988357935100794,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedB/Frame_0014.png"
+  },
+  {
+    "stage": "FixedC",
+    "index": 0,
+    "elapsed": 0.40409140288829803,
+    "t": 28.147764537483454,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedC/Frame_0000.png"
+  },
+  {
+    "stage": "FixedC",
+    "index": 1,
+    "elapsed": 0.5564797036349773,
+    "t": 28.300152838230133,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedC/Frame_0001.png"
+  },
+  {
+    "stage": "FixedC",
+    "index": 2,
+    "elapsed": 0.7077881097793579,
+    "t": 28.451461244374514,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedC/Frame_0002.png"
+  },
+  {
+    "stage": "FixedC",
+    "index": 3,
+    "elapsed": 0.862213809043169,
+    "t": 28.605886943638325,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedC/Frame_0003.png"
+  },
+  {
+    "stage": "FixedC",
+    "index": 4,
+    "elapsed": 1.0179748013615608,
+    "t": 28.761647935956717,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedC/Frame_0004.png"
+  },
+  {
+    "stage": "FixedC",
+    "index": 5,
+    "elapsed": 1.1688721030950546,
+    "t": 28.91254523769021,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedC/Frame_0005.png"
+  },
+  {
+    "stage": "FixedC",
+    "index": 6,
+    "elapsed": 1.324047103524208,
+    "t": 29.067720238119364,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedC/Frame_0006.png"
+  },
+  {
+    "stage": "FixedC",
+    "index": 7,
+    "elapsed": 1.4787831045687199,
+    "t": 29.222456239163876,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedC/Frame_0007.png"
+  },
+  {
+    "stage": "FixedC",
+    "index": 8,
+    "elapsed": 1.6319661997258663,
+    "t": 29.375639334321022,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedC/Frame_0008.png"
+  },
+  {
+    "stage": "FixedC",
+    "index": 9,
+    "elapsed": 1.7889287024736404,
+    "t": 29.532601837068796,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedC/Frame_0009.png"
+  },
+  {
+    "stage": "FixedC",
+    "index": 10,
+    "elapsed": 1.9411179088056087,
+    "t": 29.684791043400764,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedC/Frame_0010.png"
+  },
+  {
+    "stage": "FixedC",
+    "index": 11,
+    "elapsed": 2.0937230177223682,
+    "t": 29.837396152317524,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedC/Frame_0011.png"
+  },
+  {
+    "stage": "FixedC",
+    "index": 12,
+    "elapsed": 2.249819226562977,
+    "t": 29.993492361158133,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedC/Frame_0012.png"
+  },
+  {
+    "stage": "FixedC",
+    "index": 13,
+    "elapsed": 2.4097445271909237,
+    "t": 30.15341766178608,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedC/Frame_0013.png"
+  },
+  {
+    "stage": "FixedC",
+    "index": 14,
+    "elapsed": 2.5688069351017475,
+    "t": 30.312480069696903,
+    "requested": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/OrientationWarping_20261120_01/NativeFrames/FixedC/Frame_0014.png"
+  }
+]

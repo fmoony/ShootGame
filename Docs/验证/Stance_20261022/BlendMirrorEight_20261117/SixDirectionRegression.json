@@ -1,0 +1,38 @@
+[
+  {
+    "direction": "Forward",
+    "frames": 66,
+    "max_position_cm": 0.0,
+    "phase_error": 0.0
+  },
+  {
+    "direction": "ForwardRight",
+    "frames": 66,
+    "max_position_cm": 0.006027035589739338,
+    "phase_error": 0.0
+  },
+  {
+    "direction": "Right",
+    "frames": 66,
+    "max_position_cm": 0.0,
+    "phase_error": 0.0
+  },
+  {
+    "direction": "Back",
+    "frames": 66,
+    "max_position_cm": 0.0,
+    "phase_error": 0.0
+  },
+  {
+    "direction": "BackLeft",
+    "frames": 66,
+    "max_position_cm": 0.00517250983565468,
+    "phase_error": 0.0
+  },
+  {
+    "direction": "Left",
+    "frames": 66,
+    "max_position_cm": 0.0,
+    "phase_error": 0.0
+  }
+]

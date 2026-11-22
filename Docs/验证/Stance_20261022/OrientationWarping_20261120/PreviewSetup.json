@@ -1,0 +1,31 @@
+{
+  "map": "/Game/Experiments/Stance_20261022/OrientationWarping_20261120/L_OrientationWarping",
+  "switcher": "/Game/Experiments/Stance_20261022/OrientationWarping_20261120/BP_OWPreview.BP_OWPreview",
+  "keys": {
+    "1": "A",
+    "2": "B",
+    "3": "C"
+  },
+  "actors": [
+    [
+      "Animation lab ground",
+      "StaticMeshActor"
+    ],
+    [
+      "DirectionalLight0",
+      "DirectionalLight"
+    ],
+    [
+      "PointLight0",
+      "PointLight"
+    ],
+    [
+      "PlayerStart0",
+      "PlayerStart"
+    ],
+    [
+      "OW A-B-C Switcher",
+      "BP_OWPreview_C"
+    ]
+  ]
+}

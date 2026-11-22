@@ -1,0 +1,50 @@
+[
+  {
+    "asset": "AS_NewCrouch_Forward",
+    "state": {
+      "returnValue": false
+    }
+  },
+  {
+    "asset": "AS_NewCrouch_Back",
+    "state": {
+      "returnValue": false
+    }
+  },
+  {
+    "asset": "AS_NewCrouch_Left",
+    "state": {
+      "returnValue": false
+    }
+  },
+  {
+    "asset": "AS_NewCrouch_Right",
+    "state": {
+      "returnValue": false
+    }
+  },
+  {
+    "asset": "SK_FourDirection",
+    "state": {
+      "returnValue": false
+    }
+  },
+  {
+    "asset": "BS_FourDirection_Crouch",
+    "state": {
+      "returnValue": false
+    }
+  },
+  {
+    "asset": "ABP_FourDirection",
+    "state": {
+      "returnValue": false
+    }
+  },
+  {
+    "asset": "L_FourDirectionPreview",
+    "state": {
+      "returnValue": false
+    }
+  }
+]

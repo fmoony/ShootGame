@@ -1,0 +1,46 @@
+{
+  "indices": [
+    637,
+    638
+  ],
+  "input": [
+    {
+      "index": 637,
+      "group": "FixedYaw_PhaseOnly",
+      "yaw": -55,
+      "phase": 0.372,
+      "weights": {
+        "F": 0.5,
+        "R": 0,
+        "B": 0,
+        "L": 0.5
+      }
+    },
+    {
+      "index": 638,
+      "group": "FixedYaw_PhaseOnly",
+      "yaw": -55,
+      "phase": 0.373,
+      "weights": {
+        "F": 0.5,
+        "R": 0,
+        "B": 0,
+        "L": 0.5
+      }
+    }
+  ],
+  "sources": {
+    "Forward": {
+      "calf_r_deg": 0.33896018806284706,
+      "foot_r_cm": 0.12107588935043846
+    },
+    "Left": {
+      "calf_r_deg": 0.8918753159057168,
+      "foot_r_cm": 0.3884035131174797
+    }
+  },
+  "final_B": {
+    "calf_r_deg": 0.2828862515891678,
+    "foot_r_cm": 0.2025352154081204
+  }
+}

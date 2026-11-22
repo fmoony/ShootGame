@@ -1,0 +1,25 @@
+{
+  "world": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/UEDPIE_0_L_OWLocalMovement.L_OWLocalMovement",
+  "pawn": "ShooterStancePreviewPawn",
+  "anim": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/ABP_OWLocalMovement.ABP_OWLocalMovement_C",
+  "pawn_tick_enabled": true,
+  "location": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "rate": 0.0,
+  "flags": {
+    "bTestOverride": false,
+    "bSnapInput": false,
+    "bManualPhase": false
+  },
+  "keys": {
+    "W": false,
+    "A": false,
+    "S": false,
+    "D": false
+  },
+  "dirty_content": [],
+  "dirty_maps": []
+}

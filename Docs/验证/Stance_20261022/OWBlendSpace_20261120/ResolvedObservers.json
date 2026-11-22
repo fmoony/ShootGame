@@ -1,0 +1,22 @@
+{
+  "A": [
+    {
+      "branch": "AnimGraphNode_OrientationWarping_0",
+      "read_space": "After original CS->LS, native LS->CS readback, Observe Bone, CS->LS passthrough"
+    },
+    {
+      "branch": "AnimGraphNode_OrientationWarping_3",
+      "read_space": "After original CS->LS, native LS->CS readback, Observe Bone, CS->LS passthrough"
+    }
+  ],
+  "B": [
+    {
+      "branch": "AnimGraphNode_OrientationWarping_0",
+      "read_space": "After original CS->LS, native LS->CS readback, Observe Bone, CS->LS passthrough"
+    },
+    {
+      "branch": "AnimGraphNode_OrientationWarping_3",
+      "read_space": "After original CS->LS, native LS->CS readback, Observe Bone, CS->LS passthrough"
+    }
+  ]
+}

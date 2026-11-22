@@ -1,0 +1,28 @@
+{
+  "method": "Continuous nearest-segment fit to independent native B runtime cycle; interpolation approximation, not exact lockstep",
+  "frames": 49,
+  "max_position_cm": {
+    "pelvis": 0.05436385228989943,
+    "calf_l": 0.10407857692229082,
+    "calf_r": 0.1673895764552887,
+    "foot_l": 0.16456168469877935,
+    "foot_r": 0.1724778025682778,
+    "spine_01": 0.0540382156491826,
+    "spine_05": 0.05199332551225636,
+    "head": 0.05215621573469288,
+    "hand_l": 0.0528458074377594,
+    "hand_r": 0.05334114728442902
+  },
+  "max_rotation_deg": {
+    "pelvis": 0.02496102671184767,
+    "calf_l": 0.1859564710136313,
+    "calf_r": 0.5199079211928965,
+    "foot_l": 0.3016705149792333,
+    "foot_r": 1.1811737191690406,
+    "spine_01": 0.018995111225247798,
+    "spine_05": 0.007291720592625145,
+    "head": 0.006974819871074987,
+    "hand_l": 0.0011222990163264426,
+    "hand_r": 0.0012043087859897285
+  }
+}

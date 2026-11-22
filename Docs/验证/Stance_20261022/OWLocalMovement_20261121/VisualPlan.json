@@ -1,0 +1,42 @@
+[
+  {
+    "label": "F",
+    "index": 1555
+  },
+  {
+    "label": "FR",
+    "index": 1694
+  },
+  {
+    "label": "R",
+    "index": 1773
+  },
+  {
+    "label": "BR",
+    "index": 1910
+  },
+  {
+    "label": "B",
+    "index": 2049
+  },
+  {
+    "label": "BL",
+    "index": 2187
+  },
+  {
+    "label": "L",
+    "index": 2326
+  },
+  {
+    "label": "FL",
+    "index": 2462
+  },
+  {
+    "label": "ReverseBefore",
+    "index": 2799
+  },
+  {
+    "label": "ReverseAfter",
+    "index": 2800
+  }
+]

@@ -1,0 +1,15 @@
+{
+  "checked": 2373,
+  "changed": [
+    "Content/Experiments/Stance_20261022/OWLocalMovement_20261121/BP_OWLocalPreview.uasset",
+    "Content/Experiments/Stance_20261022/OWLocalMovement_20261121/L_OWLocalMovement.umap",
+    "Source/ShootGameEditor/Tests/Stance/ShooterStancePreview.cpp",
+    "Source/ShootGameEditor/Tests/Stance/ShooterStancePreview.h",
+    "Docs/_工作区文档/下蹲实验进度.md",
+    "Docs/验证/Stance_20261022/滑铲与下蹲动画实验.md"
+  ],
+  "missing": [],
+  "original_sequences_changed": [],
+  "animgraph_changed": false,
+  "sourceasset_changes": []
+}

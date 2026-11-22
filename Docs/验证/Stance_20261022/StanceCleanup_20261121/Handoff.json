@@ -1,0 +1,27 @@
+{
+  "world": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/UEDPIE_0_L_OWLocalMovement.L_OWLocalMovement",
+  "game_mode": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/BP_OWLocalGameMode.BP_OWLocalGameMode_C",
+  "configured_anim": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/ABP_OWLocalMovement.ABP_OWLocalMovement_C",
+  "actual_anim": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/ABP_OWLocalMovement.ABP_OWLocalMovement_C",
+  "pawn_tick_enabled": true,
+  "location": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "flags": {
+    "bTestOverride": false,
+    "bSnapInput": false,
+    "bManualPhase": false
+  },
+  "old_six_loaded": {
+    "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/AS_BlendMirror_BackLeft": false,
+    "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/AS_BlendMirror_ForwardRight": false,
+    "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/BS_EightDirection_Mirrored": false,
+    "/Game/Experiments/Stance_20261022/FourDirection_20261117/ABP_FourDirection": false,
+    "/Game/Experiments/Stance_20261022/TorsoMirrorHeadHands_20261118/AS_MirrorTorsoKeepHeadHands_BackRight": false,
+    "/Game/Experiments/Stance_20261022/TorsoMirrorHeadHands_20261118/AS_MirrorTorsoKeepHeadHands_ForwardLeft": false
+  },
+  "dirty_content": [],
+  "dirty_maps": []
+}

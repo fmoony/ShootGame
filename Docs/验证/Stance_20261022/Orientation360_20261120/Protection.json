@@ -1,0 +1,21 @@
+{
+  "baseline_files": 2227,
+  "changed": [
+    "Docs/验证/Stance_20261022/滑铲与下蹲动画实验.md",
+    "Docs/_工作区文档/下蹲实验进度.md"
+  ],
+  "missing": [],
+  "expected_changes": [
+    "Docs/_工作区文档/下蹲实验进度.md",
+    "Docs/验证/Stance_20261022/滑铲与下蹲动画实验.md"
+  ],
+  "protected_assets_code_config_source_and_historical_docs_unchanged": true,
+  "new_ue_assets": [
+    "ABP_OW360.uasset",
+    "ABP_OW360_Baseline.uasset",
+    "BP_OW360Preview.uasset",
+    "L_Orientation360.umap"
+  ],
+  "branch": "codex/ue-5.8",
+  "git_actions": "No branch creation, staging, commit or push"
+}

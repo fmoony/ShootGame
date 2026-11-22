@@ -1,0 +1,204 @@
+{
+  "root": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/L_OWLocalMovement",
+  "stance_dependencies": [
+    "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Back",
+    "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Forward",
+    "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Left",
+    "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Right",
+    "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection",
+    "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/ABP_OWLocalMovement",
+    "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/BP_OWLocalGameMode",
+    "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/BP_OWLocalPreview",
+    "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/L_OWLocalMovement"
+  ],
+  "old_intersection": [],
+  "dependencies": {
+    "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/L_OWLocalMovement": [
+      "/Script/NavigationSystem",
+      "/Engine/BasicShapes/Cube",
+      "/Engine/EngineMaterials/WorldGridMaterial",
+      "/Engine/EditorResources/LightIcons/S_LightError",
+      "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/BP_OWLocalPreview",
+      "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/BP_OWLocalGameMode"
+    ],
+    "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/BP_OWLocalGameMode": [
+      "/Script/ShootGameEditor",
+      "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/ABP_OWLocalMovement"
+    ],
+    "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/ABP_OWLocalMovement": [
+      "/Script/AnimGraph",
+      "/Script/AnimGraphRuntime",
+      "/Script/ShootGameEditor",
+      "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection",
+      "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Back",
+      "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Forward",
+      "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Left",
+      "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Right",
+      "/Script/AnimationWarpingEditor",
+      "/Script/AnimationWarpingRuntime"
+    ],
+    "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Right": [
+      "/Script/MovieScene",
+      "/Script/AnimationModifiers",
+      "/ACLPlugin/ACLAnimBoneCompressionSettings",
+      "/ACLPlugin/ACLAnimCurveCompressionSettings",
+      "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple",
+      "/Script/ControlRig",
+      "/Script/AnimationData",
+      "/Engine/Animation/DefaultVariableFrameStrippingSettings",
+      "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection"
+    ],
+    "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection": [
+      "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple",
+      "/Game/Characters/Mannequins/Meshes/SKM_Quinn_Simple",
+      "/Game/Characters/Mannequins/Meshes/SK_Mannequin"
+    ],
+    "/Game/Characters/Mannequins/Meshes/SK_Mannequin": [
+      "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple",
+      "/Game/Characters/Mannequins/Meshes/SKM_Quinn_Simple"
+    ],
+    "/Game/Characters/Mannequins/Meshes/SKM_Quinn_Simple": [
+      "/Game/Characters/Mannequins/Meshes/SK_Mannequin",
+      "/Game/Characters/Mannequins/Rigs/PA_Mannequin",
+      "/Game/Characters/Mannequins/Rigs/CR_Mannequin_Body",
+      "/Game/Characters/Mannequins/Materials/Quinn/MI_Quinn_01",
+      "/Game/Characters/Mannequins/Materials/Quinn/MI_Quinn_02"
+    ],
+    "/Game/Characters/Mannequins/Materials/Quinn/MI_Quinn_02": [
+      "/Script/Engine",
+      "/Script/UnrealEd",
+      "/Game/Characters/Mannequins/Materials/Quinn/MI_Quinn_01",
+      "/Game/Characters/Mannequins/Textures/Quinn/T_Quinn_02_D",
+      "/Game/Characters/Mannequins/Textures/Quinn/T_Quinn_02_MRA",
+      "/Game/Characters/Mannequins/Textures/Quinn/T_Quinn_02_N"
+    ],
+    "/Game/Characters/Mannequins/Textures/Quinn/T_Quinn_02_N": [
+      "/Script/Engine"
+    ],
+    "/Game/Characters/Mannequins/Textures/Quinn/T_Quinn_02_MRA": [
+      "/Script/Engine"
+    ],
+    "/Game/Characters/Mannequins/Textures/Quinn/T_Quinn_02_D": [
+      "/Script/Engine"
+    ],
+    "/Game/Characters/Mannequins/Materials/Quinn/MI_Quinn_01": [
+      "/Script/Engine",
+      "/Script/UnrealEd",
+      "/Game/Characters/Mannequins/Materials/M_Mannequin",
+      "/Game/Characters/Mannequins/Textures/Quinn/T_Quinn_01_D",
+      "/Game/Characters/Mannequins/Textures/Quinn/T_Quinn_01_MRA",
+      "/Game/Characters/Mannequins/Textures/Quinn/T_Quinn_01_N"
+    ],
+    "/Game/Characters/Mannequins/Textures/Quinn/T_Quinn_01_N": [
+      "/Script/Engine"
+    ],
+    "/Game/Characters/Mannequins/Textures/Quinn/T_Quinn_01_MRA": [
+      "/Script/Engine"
+    ],
+    "/Game/Characters/Mannequins/Textures/Quinn/T_Quinn_01_D": [
+      "/Script/Engine"
+    ],
+    "/Game/Characters/Mannequins/Materials/M_Mannequin": [
+      "/Script/Engine",
+      "/Script/UnrealEd",
+      "/Engine/Functions/Engine_MaterialFunctions02/Utility/BreakOutFloat2Components",
+      "/Engine/Functions/Engine_MaterialFunctions01/Opacity/CameraDepthFade",
+      "/Engine/Functions/Engine_MaterialFunctions01/Texturing/ScaleUVsByCenter",
+      "/Game/Characters/Mannequins/Textures/Manny/T_Manny_01_BN",
+      "/Game/Characters/Mannequins/Textures/Manny/T_Manny_01_D",
+      "/Game/Characters/Mannequins/Textures/Manny/T_Manny_01_MRA",
+      "/Game/Characters/Mannequins/Textures/Shared/T_UE_Logo_M"
+    ],
+    "/Game/Characters/Mannequins/Textures/Shared/T_UE_Logo_M": [],
+    "/Game/Characters/Mannequins/Textures/Manny/T_Manny_01_MRA": [
+      "/Script/Engine"
+    ],
+    "/Game/Characters/Mannequins/Textures/Manny/T_Manny_01_D": [
+      "/Script/Engine"
+    ],
+    "/Game/Characters/Mannequins/Textures/Manny/T_Manny_01_BN": [
+      "/Script/Engine"
+    ],
+    "/Game/Characters/Mannequins/Rigs/CR_Mannequin_Body": [
+      "/Script/CoreUObject",
+      "/Script/AnimationCore",
+      "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple",
+      "/Script/ControlRigDeveloper",
+      "/Script/ControlRig",
+      "/Script/RigVM",
+      "/Script/RigVMDeveloper",
+      "/Script/ControlRigSpline",
+      "/ControlRig/Controls/DefaultGizmoLibraryNormalized"
+    ],
+    "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple": [
+      "/Game/Characters/Mannequins/Meshes/SK_Mannequin",
+      "/Game/Characters/Mannequins/Rigs/PA_Mannequin",
+      "/Game/Characters/Mannequins/Materials/Manny/MI_Manny_01_New",
+      "/Game/Characters/Mannequins/Materials/Manny/MI_Manny_02_New",
+      "/Game/Characters/Mannequins/Rigs/CR_Mannequin_Body"
+    ],
+    "/Game/Characters/Mannequins/Materials/Manny/MI_Manny_02_New": [
+      "/Game/Characters/Mannequins/Textures/Shared/T_UE_Logo_M",
+      "/Game/Characters/Mannequins/Materials/Manny/MI_Manny_01_New",
+      "/Game/Characters/Mannequins/Textures/Manny/T_Manny_02_BN",
+      "/Game/Characters/Mannequins/Textures/Manny/T_Manny_02_D",
+      "/Game/Characters/Mannequins/Textures/Manny/T_Manny_02_MRA"
+    ],
+    "/Game/Characters/Mannequins/Textures/Manny/T_Manny_02_MRA": [
+      "/Script/Engine"
+    ],
+    "/Game/Characters/Mannequins/Textures/Manny/T_Manny_02_D": [
+      "/Script/Engine"
+    ],
+    "/Game/Characters/Mannequins/Textures/Manny/T_Manny_02_BN": [
+      "/Script/Engine"
+    ],
+    "/Game/Characters/Mannequins/Materials/Manny/MI_Manny_01_New": [
+      "/Script/Engine",
+      "/Script/UnrealEd",
+      "/Game/Characters/Mannequins/Materials/M_Mannequin",
+      "/Game/Characters/Mannequins/Textures/Manny/T_Manny_01_BN",
+      "/Game/Characters/Mannequins/Textures/Manny/T_Manny_01_D",
+      "/Game/Characters/Mannequins/Textures/Manny/T_Manny_01_MRA"
+    ],
+    "/Game/Characters/Mannequins/Rigs/PA_Mannequin": [
+      "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple"
+    ],
+    "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Left": [
+      "/Script/MovieScene",
+      "/Script/AnimationModifiers",
+      "/ACLPlugin/ACLAnimBoneCompressionSettings",
+      "/ACLPlugin/ACLAnimCurveCompressionSettings",
+      "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple",
+      "/Script/ControlRig",
+      "/Script/AnimationData",
+      "/Engine/Animation/DefaultVariableFrameStrippingSettings",
+      "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection"
+    ],
+    "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Forward": [
+      "/Script/MovieScene",
+      "/Script/AnimationModifiers",
+      "/ACLPlugin/ACLAnimBoneCompressionSettings",
+      "/ACLPlugin/ACLAnimCurveCompressionSettings",
+      "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple",
+      "/Script/ControlRig",
+      "/Script/AnimationData",
+      "/Engine/Animation/DefaultVariableFrameStrippingSettings",
+      "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection"
+    ],
+    "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Back": [
+      "/Script/MovieScene",
+      "/Script/AnimationModifiers",
+      "/ACLPlugin/ACLAnimBoneCompressionSettings",
+      "/ACLPlugin/ACLAnimCurveCompressionSettings",
+      "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple",
+      "/Script/ControlRig",
+      "/Script/AnimationData",
+      "/Engine/Animation/DefaultVariableFrameStrippingSettings",
+      "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection"
+    ],
+    "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/BP_OWLocalPreview": [
+      "/Script/ShootGameEditor"
+    ]
+  }
+}

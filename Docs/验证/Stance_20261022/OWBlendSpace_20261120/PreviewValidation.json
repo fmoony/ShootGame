@@ -1,0 +1,71 @@
+{
+  "state": "Complete",
+  "error": null,
+  "method": "Invoke actual compiled keyboard delegate functions; OS keyboard delivery not claimed",
+  "records": [
+    {
+      "event": "One",
+      "mode": 1,
+      "phase": 0.366719800978899,
+      "yaw": -55.49946212768555,
+      "pose_error_cm": 0.0,
+      "anim_class": "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_A.ABP_BlendSpace_A_C"
+    },
+    {
+      "event": "J",
+      "mode": 1,
+      "phase": 0.366719800978899,
+      "yaw": -55.49946212768555,
+      "pose_error_cm": 0.0,
+      "anim_class": "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_A.ABP_BlendSpace_A_C"
+    },
+    {
+      "event": "K",
+      "mode": 1,
+      "phase": 0.3833865001797676,
+      "yaw": -54.74951934814453,
+      "pose_error_cm": 0.0,
+      "anim_class": "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_A.ABP_BlendSpace_A_C"
+    },
+    {
+      "event": "Two",
+      "mode": 2,
+      "phase": 0.3833865001797676,
+      "yaw": -54.74951934814453,
+      "pose_error_cm": 0.0,
+      "anim_class": "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_B.ABP_BlendSpace_B_C"
+    },
+    {
+      "event": "J",
+      "mode": 2,
+      "phase": 0.366719800978899,
+      "yaw": -55.49946212768555,
+      "pose_error_cm": 0.0,
+      "anim_class": "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_B.ABP_BlendSpace_B_C"
+    },
+    {
+      "event": "K",
+      "mode": 2,
+      "phase": 0.3833865001797676,
+      "yaw": -54.74951934814453,
+      "pose_error_cm": 0.0,
+      "anim_class": "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_B.ABP_BlendSpace_B_C"
+    },
+    {
+      "event": "One",
+      "mode": 1,
+      "phase": 0.3833865001797676,
+      "yaw": -54.74951934814453,
+      "pose_error_cm": 0.0,
+      "anim_class": "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_A.ABP_BlendSpace_A_C"
+    },
+    {
+      "event": "J",
+      "mode": 1,
+      "phase": 0.366719800978899,
+      "yaw": -55.49946212768555,
+      "pose_error_cm": 0.0,
+      "anim_class": "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_A.ABP_BlendSpace_A_C"
+    }
+  ]
+}

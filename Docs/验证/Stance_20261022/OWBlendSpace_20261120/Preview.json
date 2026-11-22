@@ -1,0 +1,14 @@
+{
+  "path": "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/BP_BlendSpacePreview.BP_BlendSpacePreview",
+  "nodes": 66,
+  "controls": {
+    "1": "A Mesh",
+    "2": "B Local",
+    "J": "recorded first frame",
+    "K": "recorded second frame",
+    "Q/E": "Yaw clamped -65..-45, Phase fixed",
+    "R": "Yaw -55 Phase .38",
+    "V": "native view"
+  },
+  "default": "A first frame, stationary"
+}

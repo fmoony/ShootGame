@@ -1,0 +1,14 @@
+{
+  "before_count": 390,
+  "changed": [
+    {
+      "file": "Content\\Experiments\\Stance_20261022\\BlendMirrorEight_20261117\\BS_EightDirection_Mirrored.uasset",
+      "before": "1c56eee7f8013dca139989c845ff124e17cf5e072c3d79bf46cca57d7b5b8f7d",
+      "after": "1d92b3eaae4120c94b047ca3acc6ef252330866be475b317e8cc93289e2d7063"
+    }
+  ],
+  "newAssets": [
+    "AS_LowerMirror_BackRight.uasset",
+    "AS_LowerMirror_ForwardLeft.uasset"
+  ]
+}

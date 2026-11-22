@@ -1,0 +1,78 @@
+{
+  "status": "Passed",
+  "normalization": "mirrored pelvis and legs; retained source chest/arms component rotation",
+  "clips": [
+    {
+      "direction": "ForwardLeft",
+      "asset": "/Game/Experiments/Stance_20261022/KeepUpperHeading_20261118/AS_KeepUpperHeading_ForwardLeft.AS_KeepUpperHeading_ForwardLeft",
+      "skeleton": "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection.SK_FourDirection",
+      "source": [
+        "D:/UE_Projects/_worktrees/ShootGame_UE58/SourceAssets/StanceKeepUpperHeading_20261118/ForwardLeft.fbx"
+      ],
+      "keys": 61,
+      "length": 1,
+      "checks": [
+        {
+          "mode": "<AnimDataEvalType.RAW: 1>",
+          "retarget": false,
+          "bone_frames": 5429,
+          "max_position_cm": 0.00026542972979471947,
+          "max_angle_deg": 0.005648139541217091
+        },
+        {
+          "mode": "<AnimDataEvalType.RAW: 1>",
+          "retarget": true,
+          "bone_frames": 5429,
+          "max_position_cm": 0.0014854421476576897,
+          "max_angle_deg": 0.005648139541217091
+        },
+        {
+          "mode": "<AnimDataEvalType.COMPRESSED: 2>",
+          "retarget": true,
+          "bone_frames": 5429,
+          "max_position_cm": 0.0014854421476576897,
+          "max_angle_deg": 0.005648139541217091
+        }
+      ]
+    },
+    {
+      "direction": "BackRight",
+      "asset": "/Game/Experiments/Stance_20261022/KeepUpperHeading_20261118/AS_KeepUpperHeading_BackRight.AS_KeepUpperHeading_BackRight",
+      "skeleton": "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection.SK_FourDirection",
+      "source": [
+        "D:/UE_Projects/_worktrees/ShootGame_UE58/SourceAssets/StanceKeepUpperHeading_20261118/BackRight.fbx"
+      ],
+      "keys": 61,
+      "length": 1,
+      "checks": [
+        {
+          "mode": "<AnimDataEvalType.RAW: 1>",
+          "retarget": false,
+          "bone_frames": 5429,
+          "max_position_cm": 0.00022610104989807434,
+          "max_angle_deg": 0.005237334542491021
+        },
+        {
+          "mode": "<AnimDataEvalType.RAW: 1>",
+          "retarget": true,
+          "bone_frames": 5429,
+          "max_position_cm": 0.0013655859510347845,
+          "max_angle_deg": 0.005237334542491021
+        },
+        {
+          "mode": "<AnimDataEvalType.COMPRESSED: 2>",
+          "retarget": true,
+          "bone_frames": 5429,
+          "max_position_cm": 0.0013655859510347845,
+          "max_angle_deg": 0.005237334542491021
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "reference_unchanged": true,
+  "saved": [
+    "/Game/Experiments/Stance_20261022/KeepUpperHeading_20261118/AS_KeepUpperHeading_ForwardLeft.AS_KeepUpperHeading_ForwardLeft",
+    "/Game/Experiments/Stance_20261022/KeepUpperHeading_20261118/AS_KeepUpperHeading_BackRight.AS_KeepUpperHeading_BackRight"
+  ]
+}

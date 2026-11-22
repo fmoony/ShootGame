@@ -1,0 +1,40 @@
+{
+  "world": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/L_OWLocalMovement.L_OWLocalMovement",
+  "game_mode": "/Script/ShootGameEditor.ShooterFourDirectionPreviewGameMode",
+  "sources": {
+    "Forward": {
+      "path": "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Forward.AS_RootLockSource_Forward",
+      "length": 1.0,
+      "skeleton": "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection.SK_FourDirection",
+      "root_motion": false,
+      "root_lock": false
+    },
+    "Back": {
+      "path": "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Back.AS_RootLockSource_Back",
+      "length": 1.0,
+      "skeleton": "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection.SK_FourDirection",
+      "root_motion": false,
+      "root_lock": false
+    },
+    "Left": {
+      "path": "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Left.AS_RootLockSource_Left",
+      "length": 1.0,
+      "skeleton": "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection.SK_FourDirection",
+      "root_motion": false,
+      "root_lock": false
+    },
+    "Right": {
+      "path": "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Right.AS_RootLockSource_Right",
+      "length": 1.0,
+      "skeleton": "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection.SK_FourDirection",
+      "root_motion": false,
+      "root_lock": false
+    }
+  },
+  "render": {
+    "r.MotionBlurQuality": 4,
+    "r.AntiAliasingMethod": 4
+  },
+  "max_fps": 0.0,
+  "throttle": true
+}

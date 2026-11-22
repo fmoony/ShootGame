@@ -1,0 +1,24 @@
+{
+  "source_blendspace": "/Game/Experiments/Stance_20261022/FourDirection_20261117/BS_FourDirection_Crouch",
+  "input_forward_right": [
+    0.5,
+    0.5
+  ],
+  "input_back_left": [
+    -0.5,
+    -0.5
+  ],
+  "fps": 60,
+  "keys": 61,
+  "phase_offset": 0,
+  "bones": 89,
+  "method": "native single-node component capture, faithful full-body bake and left-right reflection with bone pairing and reference axes",
+  "hashes": {
+    "NativeBlendPoses.json": "8767dd819f3d7141117f6e0296a7ebc1b622560f11ab9dd1cb8a2b7c4eb49199",
+    "CaptureCheck.json": "87b75eb96a7068c5ed1dbc839722ddd0ffae70f4727e0248a5f30939f190648a",
+    "ForwardRight.fbx": "08a71249ac6d71b49b560b4fac88e49f8d156a1d30b6cf61b1d2966ea7461e9b",
+    "BackLeft.fbx": "e42e84732a45d5789ad00cda7cf7c1c849f65ed9a8f40c07be5e0cf8cf898dc5",
+    "ForwardLeft.fbx": "4341ee300eb1ef352ac070a9df76e0dcdb20fbbc3aa6f1feb5b83a4d298bd417",
+    "BackRight.fbx": "2ae5a042bddbf2552c9333a4e3a296383577735f0d1970f34667f81a8f24799a"
+  }
+}

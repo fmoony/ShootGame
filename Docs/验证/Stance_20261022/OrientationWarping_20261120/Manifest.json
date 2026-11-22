@@ -1,0 +1,126 @@
+{
+  "files": [
+    {
+      "name": "A.png",
+      "bytes": 1735437,
+      "sha256": "09ed664e832b65c6577007b3f3f24faa0334aac417309232348895e46ea5b187"
+    },
+    {
+      "name": "Audit.json",
+      "bytes": 77523,
+      "sha256": "6f0d2e1a2b90052f5e0556af151edd7c737d58b5887a0bd7c9909ae33b980660"
+    },
+    {
+      "name": "B.png",
+      "bytes": 1731817,
+      "sha256": "bee0d04cf9bad8e28db8abcbbfed56c73ac02ec9fbd1ed5cbfb65c00e00c6156"
+    },
+    {
+      "name": "BuildEvidence.json",
+      "bytes": 2069,
+      "sha256": "c657d9929c07dcdee3a538ebf8d8b668b47ca97bbecff8d13846ca4dda4908a7"
+    },
+    {
+      "name": "C.png",
+      "bytes": 1737482,
+      "sha256": "0400b069bdd8353e32423c5c7936982062863a57d5fa977cbe5e2d9167957ffa"
+    },
+    {
+      "name": "CleanAnalysis.json",
+      "bytes": 247095,
+      "sha256": "d0bd9db115e2c6d2dde90c64995fbf60fd99f85de4c14cdcc92782b25fda5334"
+    },
+    {
+      "name": "CleanStatus.json",
+      "bytes": 67,
+      "sha256": "24f789a0a29d8ab7b52345ae21adebdf64df7a00b0f5938280eaaccbfa0382a3"
+    },
+    {
+      "name": "CleanTransitionAnalysis.json",
+      "bytes": 4449,
+      "sha256": "ec9825d727a00b1af30cea2d54413ae16ed567274b9e7ff1dfa22606f76d7ab3"
+    },
+    {
+      "name": "Dirty.json",
+      "bytes": 38,
+      "sha256": "988a6113cf5545e8c832c8edb947cda9bbe94e4f7f3d2108075749c197fb01ce"
+    },
+    {
+      "name": "FinalGraphs.json",
+      "bytes": 25830,
+      "sha256": "5edc1e1d9a42825c049b728e5df96b88e02c33722fc65bd8ecc7261708aeb572"
+    },
+    {
+      "name": "Handoff.json",
+      "bytes": 679,
+      "sha256": "864d0af3efa6e5d5f660acb13df13404bc194d587f4a633a91b1fcab302a264a"
+    },
+    {
+      "name": "NativeShots.json",
+      "bytes": 11293,
+      "sha256": "bc8a26d757db421eaf51f5ad365cd268f14625f65d6e3343d0e2ccd86707ff10"
+    },
+    {
+      "name": "NativeVisual.json",
+      "bytes": 334,
+      "sha256": "830f5ef41febd12cc845d4d3082d6fb1e9eecf06df53b5ae40a8baa42fcaf64e"
+    },
+    {
+      "name": "Native_ABC.gif",
+      "bytes": 6896014,
+      "sha256": "f782eba143c7a9b55214669dc3ee65d56f496dc9afae2515df8f1f1d34d8911f"
+    },
+    {
+      "name": "Native_ABC.png",
+      "bytes": 738085,
+      "sha256": "b32da41477e738d7d4ace0b4aa0b8b33deb0334a2074121b30712ffbc3412627"
+    },
+    {
+      "name": "Native_cycle_contact.png",
+      "bytes": 1865753,
+      "sha256": "ef7ebbf70af2fd32e304461ecdcc40dd763903011b986052d81b2a7cfefcb759"
+    },
+    {
+      "name": "PluginBuild.log",
+      "bytes": 13240,
+      "sha256": "2d306f93f7303db2c9bbeb35c33ed0d81d50185b0ce8adb2dcb055153c1b2f0c"
+    },
+    {
+      "name": "PreviewSetup.json",
+      "bytes": 613,
+      "sha256": "481069f89c266094c02ccaf746e74bb028e1e53be1ae7b13d621bc130d934c9c"
+    },
+    {
+      "name": "Protection.json",
+      "bytes": 569,
+      "sha256": "41873899874abd409a9f7aa0dd91f75f71368a181dd7826ae39dbfa1684b7d4e"
+    },
+    {
+      "name": "Runtime.json.gz",
+      "bytes": 7335752,
+      "sha256": "eebb95a6a35f657551edb88a9855fd37bcfa1c932a945f7a7948217b94a1e5fc"
+    },
+    {
+      "name": "Skeleton.json",
+      "bytes": 70160,
+      "sha256": "01d5462488c4edc53323b8f299aae17a37b8f8ce47970d1e83a8c3077c27cfa7"
+    },
+    {
+      "name": "SourceProtection.json",
+      "bytes": 2022,
+      "sha256": "19e9e6b077793af76bc28ff679cf2beeadbc7777f72945f7305a2c7756eca33b"
+    },
+    {
+      "name": "Sources.json.gz",
+      "bytes": 1337982,
+      "sha256": "25023f475d4da18046628afeec4d0f9d30abde5792a802342a8a28f61b7cdb77"
+    },
+    {
+      "name": "TransitionsSetup.json",
+      "bytes": 152,
+      "sha256": "7d1f94c147de92612b9ad151bd91e742d03848f9f9dfcf6472ab8889a4aafe0f"
+    }
+  ],
+  "runtime_frames": 1327,
+  "visual_source": "UE native viewport Shot; desktop captures discarded"
+}

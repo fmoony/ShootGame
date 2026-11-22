@@ -1,0 +1,229 @@
+{
+  "date": "2026-11-21",
+  "branch": "codex/ue-5.8",
+  "scope": "/Game/Experiments/Stance_20261022",
+  "result": {
+    "before": 21,
+    "deleted_AB_and_exclusive_dependencies": 12,
+    "moved_current_assets": 9,
+    "remaining": 9,
+    "destination": "/Game/Experiments/Stance_20261022",
+    "map": "/Game/Experiments/Stance_20261022/L_OWLocalMovement",
+    "old_subfolders_remaining": false,
+    "redirectors": 0
+  },
+  "remaining": [
+    "/Game/Experiments/Stance_20261022/ABP_OWLocalMovement",
+    "/Game/Experiments/Stance_20261022/AS_RootLockSource_Back",
+    "/Game/Experiments/Stance_20261022/AS_RootLockSource_Forward",
+    "/Game/Experiments/Stance_20261022/AS_RootLockSource_Left",
+    "/Game/Experiments/Stance_20261022/AS_RootLockSource_Right",
+    "/Game/Experiments/Stance_20261022/BP_OWLocalGameMode",
+    "/Game/Experiments/Stance_20261022/BP_OWLocalPreview",
+    "/Game/Experiments/Stance_20261022/L_OWLocalMovement",
+    "/Game/Experiments/Stance_20261022/SK_FourDirection"
+  ],
+  "mapping": {
+    "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Back": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Back",
+    "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Forward": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Forward",
+    "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Left": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Left",
+    "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Right": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Right",
+    "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection": "/Game/Experiments/Stance_20261022/SK_FourDirection",
+    "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/ABP_OWLocalMovement": "/Game/Experiments/Stance_20261022/ABP_OWLocalMovement",
+    "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/BP_OWLocalGameMode": "/Game/Experiments/Stance_20261022/BP_OWLocalGameMode",
+    "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/BP_OWLocalPreview": "/Game/Experiments/Stance_20261022/BP_OWLocalPreview",
+    "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/L_OWLocalMovement": "/Game/Experiments/Stance_20261022/L_OWLocalMovement"
+  },
+  "deleted": [
+    "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/AS_BlendMirror_BackLeft",
+    "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/AS_BlendMirror_ForwardRight",
+    "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/BS_EightDirection_Mirrored",
+    "/Game/Experiments/Stance_20261022/FourDirection_20261117/ABP_FourDirection",
+    "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_A",
+    "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_A_Observed",
+    "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_B",
+    "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_B_Observed",
+    "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/BP_BlendSpacePreview",
+    "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/L_BlendSpaceCompare",
+    "/Game/Experiments/Stance_20261022/TorsoMirrorHeadHands_20261118/AS_MirrorTorsoKeepHeadHands_BackRight",
+    "/Game/Experiments/Stance_20261022/TorsoMirrorHeadHands_20261118/AS_MirrorTorsoKeepHeadHands_ForwardLeft"
+  ],
+  "method": "Removed exactly the audited 12 through UE asset deletion. Moved all 9 with native AssetTools.rename_assets and explicitly saved all 9. Closed the editor, built the changed native default path, then ran ResavePackages -FixupRedirects limited to the physical experiment folder.",
+  "code_change": "Only the experimental native GameMode PreviewAnimClass default string now points directly at /Game/Experiments/Stance_20261022/ABP_OWLocalMovement.ABP_OWLocalMovement_C. Production gameplay and animation algorithms unchanged.",
+  "verification": {
+    "semantic": {
+      "graphs_same_except_paths": true,
+      "skeleton_same_except_path": true,
+      "clips": {
+        "AS_RootLockSource_Back": {
+          "metadata_same": true,
+          "max_position_cm": 0,
+          "max_angle_deg": 0.0000034150945850063755,
+          "samples": 62
+        },
+        "AS_RootLockSource_Forward": {
+          "metadata_same": true,
+          "max_position_cm": 0,
+          "max_angle_deg": 0.000004182619578303746,
+          "samples": 62
+        },
+        "AS_RootLockSource_Left": {
+          "metadata_same": true,
+          "max_position_cm": 0,
+          "max_angle_deg": 0.0000034150945850063755,
+          "samples": 62
+        },
+        "AS_RootLockSource_Right": {
+          "metadata_same": true,
+          "max_position_cm": 0,
+          "max_angle_deg": 0.0000034150945850063755,
+          "samples": 62
+        }
+      },
+      "bone_samples": 22072,
+      "max_position_cm": 0,
+      "max_angle_deg": 0.000004182619578303746,
+      "sample_values_identical": true
+    },
+    "reference_scan": {
+      "remaining": [
+        "/Game/Experiments/Stance_20261022/ABP_OWLocalMovement",
+        "/Game/Experiments/Stance_20261022/AS_RootLockSource_Back",
+        "/Game/Experiments/Stance_20261022/AS_RootLockSource_Forward",
+        "/Game/Experiments/Stance_20261022/AS_RootLockSource_Left",
+        "/Game/Experiments/Stance_20261022/AS_RootLockSource_Right",
+        "/Game/Experiments/Stance_20261022/BP_OWLocalGameMode",
+        "/Game/Experiments/Stance_20261022/BP_OWLocalPreview",
+        "/Game/Experiments/Stance_20261022/L_OWLocalMovement",
+        "/Game/Experiments/Stance_20261022/SK_FourDirection"
+      ],
+      "project_assets_checked": 499,
+      "dangling_old_paths": {},
+      "missing_dependencies": {},
+      "redirectors": [],
+      "removed_empty_folders": [
+        {
+          "path": "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117",
+          "success": true
+        },
+        {
+          "path": "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120",
+          "success": true
+        },
+        {
+          "path": "/Game/Experiments/Stance_20261022/TorsoMirrorHeadHands_20261118",
+          "success": true
+        },
+        {
+          "path": "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117",
+          "success": true
+        },
+        {
+          "path": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121",
+          "success": true
+        },
+        {
+          "path": "/Game/Experiments/Stance_20261022/FourDirection_20261117",
+          "success": true
+        }
+      ],
+      "dirty_content": [],
+      "dirty_maps": []
+    },
+    "runtime_exact_pair": {
+      "state": "Complete",
+      "error": null,
+      "records": [
+        {
+          "input": {
+            "group": "ExactPair",
+            "yaw": -55.49946212768555,
+            "phase": 0.366719800978899,
+            "source": "frame_a"
+          },
+          "anim": "/Game/Experiments/Stance_20261022/ABP_OWLocalMovement.ABP_OWLocalMovement_C",
+          "max_position_error_cm": 0,
+          "bones": 89
+        },
+        {
+          "input": {
+            "group": "ExactPair",
+            "yaw": -54.74951934814453,
+            "phase": 0.3833865001797676,
+            "source": "frame_b"
+          },
+          "anim": "/Game/Experiments/Stance_20261022/ABP_OWLocalMovement.ABP_OWLocalMovement_C",
+          "max_position_error_cm": 0,
+          "bones": 89
+        }
+      ]
+    },
+    "final_handoff": {
+      "world": "/Game/Experiments/Stance_20261022/UEDPIE_0_L_OWLocalMovement.L_OWLocalMovement",
+      "game_mode": "/Game/Experiments/Stance_20261022/BP_OWLocalGameMode.BP_OWLocalGameMode_C",
+      "actual_anim": "/Game/Experiments/Stance_20261022/ABP_OWLocalMovement.ABP_OWLocalMovement_C",
+      "configured_anim": "/Game/Experiments/Stance_20261022/ABP_OWLocalMovement.ABP_OWLocalMovement_C",
+      "native_default_anim": "/Game/Experiments/Stance_20261022/ABP_OWLocalMovement.ABP_OWLocalMovement_C",
+      "tick": true,
+      "flags": {
+        "bTestOverride": false,
+        "bSnapInput": false,
+        "bManualPhase": false
+      },
+      "location": [
+        0,
+        0,
+        0
+      ],
+      "assets": [
+        "/Game/Experiments/Stance_20261022/ABP_OWLocalMovement",
+        "/Game/Experiments/Stance_20261022/AS_RootLockSource_Back",
+        "/Game/Experiments/Stance_20261022/AS_RootLockSource_Forward",
+        "/Game/Experiments/Stance_20261022/AS_RootLockSource_Left",
+        "/Game/Experiments/Stance_20261022/AS_RootLockSource_Right",
+        "/Game/Experiments/Stance_20261022/BP_OWLocalGameMode",
+        "/Game/Experiments/Stance_20261022/BP_OWLocalPreview",
+        "/Game/Experiments/Stance_20261022/L_OWLocalMovement",
+        "/Game/Experiments/Stance_20261022/SK_FourDirection"
+      ],
+      "dirty_content": [],
+      "dirty_maps": []
+    },
+    "fixup_summary": [
+      "[2026.11.21-05.55.23:808][  0]LogContentCommandlet: Display: Cleaning temp file directory",
+      "[2026.11.21-05.55.23:808][  0]LogContentCommandlet: Display: Flushing Async Loading",
+      "[2026.11.21-05.55.23:808][  0]LogContentCommandlet: Display: Deleting unreferenced redirector [D:/UE_Projects/_worktrees/ShootGame_UE58/Content/Experiments/Stance_20261022/OWLocalMovement_20261121/L_OWLocalMovement.umap]",
+      "[2026.11.21-05.55.23:808][  0]LogContentCommandlet: Warning: 'D:/UE_Projects/_worktrees/ShootGame_UE58/Content/Experiments/Stance_20261022/OWLocalMovement_20261121/L_OWLocalMovement.umap' is in an unknown revision control state, attempting to delete from disk...",
+      "[2026.11.21-05.55.23:808][  0]LogContentCommandlet: Display: [REPORT] 0/0 packages were considered for resaving",
+      "[2026.11.21-05.55.23:808][  0]LogContentCommandlet: Display: [REPORT] 0/0 packages were resaved",
+      "[2026.11.21-05.55.23:808][  0]LogContentCommandlet: Display: [REPORT] 1/0 packages were deleted",
+      "[2026.11.21-05.55.23:808][  0]LogInit: Display: LogContentCommandlet: Warning: 'D:/UE_Projects/_worktrees/ShootGame_UE58/Content/Experiments/Stance_20261022/OWLocalMovement_20261121/L_OWLocalMovement.umap' is in an unknown revision control state, attempting to delete from disk...",
+      "[2026.11.21-05.55.23:808][  0]LogInit: Display: Success - 0 error(s), 2 warning(s)"
+    ],
+    "build": "Succeeded with -UsePrecompiled -NoEngineChanges; no engine module rebuild.",
+    "save": "All 9 target packages explicitly saved; no dirty content or maps."
+  },
+  "backup": {
+    "file": "D:\\UE_Projects\\_worktrees\\ShootGame_UE58\\Saved\\StanceConsolidate_20261121_01\\BeforeAssets.zip",
+    "count": 21,
+    "verified_each_asset": true,
+    "source_before": "D:/UE_Projects/_worktrees/ShootGame_UE58/Saved/StanceConsolidate_20261121_01/ShooterStancePreview.Before.cpp"
+  },
+  "limitations": [
+    "Old A/B assets and their exclusive six legacy startup assets are retired; historical verification documents remain immutable.",
+    "Raw FBX/Blender inputs and SourceAssets were not moved or reauthored. Animation import-source paths remain identical.",
+    "Existing foot sinking and quick reverse pose discontinuities were not changed or fixed.",
+    "Historical scripts and reports retain their old paths as evidence; they are not current runnable entrypoints.",
+    "Only paths were canonicalized for semantic comparison. 22072 native raw/compressed bone samples were individually identical. The ~0.0000042-degree angle result is numerical roundoff when comparing identical quaternion components."
+  ],
+  "references": [
+    {
+      "url": "https://dev.epicgames.com/documentation/unreal-engine/asset-redirectors-in-unreal-engine?lang=en-US",
+      "topic": "Official move/rename redirectors and ResavePackages -fixupredirects workflow"
+    },
+    {
+      "local": "E:/UnrealEngine/UE_5.8_Source/Engine/Source/Editor/UnrealEd/Private/Commandlets/ContentCommandlets.cpp",
+      "topic": "Checked exact UE 5.8 PACKAGEFOLDER filtering and redirector cleanup before using the commandlet."
+    }
+  ]
+}

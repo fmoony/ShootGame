@@ -1,0 +1,31 @@
+{
+  "world": "/Game/Experiments/Stance_20261022/UEDPIE_0_L_OWLocalMovement.L_OWLocalMovement",
+  "game_mode": "/Game/Experiments/Stance_20261022/BP_OWLocalGameMode.BP_OWLocalGameMode_C",
+  "actual_anim": "/Game/Experiments/Stance_20261022/ABP_OWLocalMovement.ABP_OWLocalMovement_C",
+  "configured_anim": "/Game/Experiments/Stance_20261022/ABP_OWLocalMovement.ABP_OWLocalMovement_C",
+  "native_default_anim": "/Game/Experiments/Stance_20261022/ABP_OWLocalMovement.ABP_OWLocalMovement_C",
+  "tick": true,
+  "flags": {
+    "bTestOverride": false,
+    "bSnapInput": false,
+    "bManualPhase": false
+  },
+  "location": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "assets": [
+    "/Game/Experiments/Stance_20261022/ABP_OWLocalMovement",
+    "/Game/Experiments/Stance_20261022/AS_RootLockSource_Back",
+    "/Game/Experiments/Stance_20261022/AS_RootLockSource_Forward",
+    "/Game/Experiments/Stance_20261022/AS_RootLockSource_Left",
+    "/Game/Experiments/Stance_20261022/AS_RootLockSource_Right",
+    "/Game/Experiments/Stance_20261022/BP_OWLocalGameMode",
+    "/Game/Experiments/Stance_20261022/BP_OWLocalPreview",
+    "/Game/Experiments/Stance_20261022/L_OWLocalMovement",
+    "/Game/Experiments/Stance_20261022/SK_FourDirection"
+  ],
+  "dirty_content": [],
+  "dirty_maps": []
+}

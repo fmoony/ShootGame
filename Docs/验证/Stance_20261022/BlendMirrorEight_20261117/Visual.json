@@ -1,0 +1,66 @@
+[
+  {
+    "direction": "Forward",
+    "input": {
+      "PreviewForward": 0.9999986290931702,
+      "PreviewRight": 0.0000013510631333701895
+    },
+    "file": "Forward_Eight.png"
+  },
+  {
+    "direction": "ForwardRight",
+    "input": {
+      "PreviewForward": 0.5000001192092896,
+      "PreviewRight": 0.49999988079071045
+    },
+    "file": "ForwardRight_Eight.png"
+  },
+  {
+    "direction": "Right",
+    "input": {
+      "PreviewForward": -0.000001990818873309763,
+      "PreviewRight": 0.9999980330467224
+    },
+    "file": "Right_Eight.png"
+  },
+  {
+    "direction": "BackRight",
+    "input": {
+      "PreviewForward": -0.5000001788139343,
+      "PreviewRight": 0.4999997913837433
+    },
+    "file": "BackRight_Eight.png"
+  },
+  {
+    "direction": "Back",
+    "input": {
+      "PreviewForward": -0.9999973773956299,
+      "PreviewRight": -0.0000026305738174414728
+    },
+    "file": "Back_Eight.png"
+  },
+  {
+    "direction": "BackLeft",
+    "input": {
+      "PreviewForward": -0.499999463558197,
+      "PreviewRight": -0.500000536441803
+    },
+    "file": "BackLeft_Eight.png"
+  },
+  {
+    "direction": "Left",
+    "input": {
+      "PreviewForward": -5.443584996100981e-7,
+      "PreviewRight": -0.999999463558197
+    },
+    "file": "Left_Eight.png"
+  },
+  {
+    "direction": "ForwardLeft",
+    "input": {
+      "PreviewForward": 0.5000008344650269,
+      "PreviewRight": -0.49999916553497314
+    },
+    "file": "ForwardLeft_Eight.png"
+  }
+]

@@ -1,0 +1,20 @@
+{
+  "world": "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/UEDPIE_0_L_BlendSpaceCompare.L_BlendSpaceCompare",
+  "actor": "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/UEDPIE_0_L_BlendSpaceCompare.L_BlendSpaceCompare:PersistentLevel.BP_BlendSpacePreview_C_0",
+  "mode": 1,
+  "yaw": -55.49946212768555,
+  "phase": 0.366719800978899,
+  "anim_class": "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_A.ABP_BlendSpace_A_C",
+  "auto_receive_input": "<AutoReceiveInput.PLAYER0: 1>",
+  "native_scalars": {
+    "Phase": 0.366719800978899,
+    "SmoothedYaw": -55.49946212768555,
+    "WeightF": 0.46257148968097617,
+    "WeightL": 0.5374285103190238
+  },
+  "render_settings": {
+    "r.MotionBlurQuality": 4,
+    "r.AntiAliasingMethod": 4
+  },
+  "max_fps": 0.0
+}

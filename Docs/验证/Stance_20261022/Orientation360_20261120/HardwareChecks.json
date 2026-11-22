@@ -1,0 +1,14 @@
+{
+  "W": {
+    "send": "{\"key\": \"W\", \"window_count\": 1, \"sent\": true, \"foreground\": 132810, \"duration_s\": 0.31199999999989814}\r\n",
+    "read": "{\"pawn\":{\"returnValue\":\"{\\\"PreviewForward\\\":1,\\\"PreviewRight\\\":0}\"},\"root\":{\"returnValue\":\"{\\\"RelativeLocation\\\":{\\\"x\\\":47.500094957649708,\\\"y\\\":0,\\\"z\\\":0}}\"},\"body\":{\"returnValue\":\"{\\\"AnimClass\\\":{\\\"refPath\\\":\\\"/Game/Experiments/Stance_20261022/Orientation360_20261120/ABP_OW360.ABP_OW360_C\\\"},\\\"GlobalAnimRateScale\\\":0}\"}}\n"
+  },
+  "WA": {
+    "send": "{\"key\": \"WA\", \"window_count\": 1, \"sent\": true, \"foreground\": 132810, \"duration_s\": 0.40600000000017644}\r\n",
+    "read": "{\"pawn\":{\"returnValue\":\"{\\\"PreviewForward\\\":0.5,\\\"PreviewRight\\\":-0.5}\"},\"root\":{\"returnValue\":\"{\\\"RelativeLocation\\\":{\\\"x\\\":89.926586623033387,\\\"y\\\":-42.426491665383686,\\\"z\\\":0}}\"},\"body\":{\"returnValue\":\"{\\\"AnimClass\\\":{\\\"refPath\\\":\\\"/Game/Experiments/Stance_20261022/Orientation360_20261120/ABP_OW360.ABP_OW360_C\\\"},\\\"GlobalAnimRateScale\\\":0}\"}}\n"
+  },
+  "SD": {
+    "send": "{\"key\": \"SD\", \"window_count\": 1, \"sent\": true, \"foreground\": 132810, \"duration_s\": 1.0}\r\n",
+    "read": "{\"pawn\":{\"returnValue\":\"{\\\"PreviewForward\\\":-0.5,\\\"PreviewRight\\\":0.5}\"},\"root\":{\"returnValue\":\"{\\\"RelativeLocation\\\":{\\\"x\\\":-16.140862494126857,\\\"y\\\":63.640957451776558,\\\"z\\\":0}}\"},\"body\":{\"returnValue\":\"{\\\"AnimClass\\\":{\\\"refPath\\\":\\\"/Game/Experiments/Stance_20261022/Orientation360_20261120/ABP_OW360.ABP_OW360_C\\\"},\\\"GlobalAnimRateScale\\\":0}\"}}\n"
+  }
+}

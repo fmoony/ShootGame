@@ -1,0 +1,12 @@
+{
+  "baseline": 2332,
+  "changed": [
+    "Docs/_工作区文档/下蹲实验进度.md",
+    "Docs/验证/Stance_20261022/滑铲与下蹲动画实验.md"
+  ],
+  "missing": [],
+  "assets_changed": [],
+  "code_changed": [],
+  "sourceassets_changed": [],
+  "note": "Only expected living index and ignored progress changed. Original animation/Skeleton/A/B/historical assets and reports unchanged."
+}

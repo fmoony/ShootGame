@@ -1,0 +1,39 @@
+{
+  "class": "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/BP_BlendSpacePreview.BP_BlendSpacePreview_C",
+  "found": {
+    "One": [
+      "InpActEvt_One_K2Node_InputKeyEvent_4"
+    ],
+    "Two": [
+      "InpActEvt_Two_K2Node_InputKeyEvent_3"
+    ],
+    "J": [
+      "InpActEvt_J_K2Node_InputKeyEvent_2"
+    ],
+    "K": [
+      "InpActEvt_K_K2Node_InputKeyEvent_1"
+    ],
+    "R": [
+      "InpActEvt_R_K2Node_InputKeyEvent_0"
+    ]
+  },
+  "python_functions": [
+    "create_input_component",
+    "disable_input",
+    "enable_input",
+    "on_input_touch_begin",
+    "on_input_touch_end",
+    "on_input_touch_enter",
+    "on_input_touch_leave",
+    "receive_actor_on_input_touch_begin",
+    "receive_actor_on_input_touch_end",
+    "receive_actor_on_input_touch_enter",
+    "receive_actor_on_input_touch_leave"
+  ],
+  "outer_api": [
+    "ChaosVDAdditionalGTDataRouterComponent",
+    "Function",
+    "ObjectIterator",
+    "PCGOuterIntersectionSettings"
+  ]
+}

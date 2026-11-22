@@ -1,0 +1,399 @@
+{
+  "base": "/Game/Experiments/Stance_20261022",
+  "root": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/L_OWLocalMovement",
+  "assets": {
+    "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/AS_BlendMirror_BackLeft": {
+      "class": "AnimSequence",
+      "deps": [
+        "/Script/MovieScene",
+        "/Script/AnimationModifiers",
+        "/ACLPlugin/ACLAnimBoneCompressionSettings",
+        "/ACLPlugin/ACLAnimCurveCompressionSettings",
+        "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple",
+        "/Script/ControlRig",
+        "/Script/AnimationData",
+        "/Engine/Animation/DefaultVariableFrameStrippingSettings",
+        "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection"
+      ],
+      "refs": [
+        "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/BS_EightDirection_Mirrored"
+      ]
+    },
+    "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/AS_BlendMirror_ForwardRight": {
+      "class": "AnimSequence",
+      "deps": [
+        "/Script/MovieScene",
+        "/Script/AnimationModifiers",
+        "/ACLPlugin/ACLAnimBoneCompressionSettings",
+        "/ACLPlugin/ACLAnimCurveCompressionSettings",
+        "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple",
+        "/Script/ControlRig",
+        "/Script/AnimationData",
+        "/Engine/Animation/DefaultVariableFrameStrippingSettings",
+        "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection"
+      ],
+      "refs": [
+        "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/BS_EightDirection_Mirrored"
+      ]
+    },
+    "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/BS_EightDirection_Mirrored": {
+      "class": "BlendSpace",
+      "deps": [
+        "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection",
+        "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/AS_BlendMirror_BackLeft",
+        "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/AS_BlendMirror_ForwardRight",
+        "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Back",
+        "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Forward",
+        "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Left",
+        "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Right",
+        "/Game/Experiments/Stance_20261022/TorsoMirrorHeadHands_20261118/AS_MirrorTorsoKeepHeadHands_BackRight",
+        "/Game/Experiments/Stance_20261022/TorsoMirrorHeadHands_20261118/AS_MirrorTorsoKeepHeadHands_ForwardLeft"
+      ],
+      "refs": [
+        "/Game/Experiments/Stance_20261022/FourDirection_20261117/ABP_FourDirection"
+      ]
+    },
+    "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Back": {
+      "class": "AnimSequence",
+      "deps": [
+        "/Script/MovieScene",
+        "/Script/AnimationModifiers",
+        "/ACLPlugin/ACLAnimBoneCompressionSettings",
+        "/ACLPlugin/ACLAnimCurveCompressionSettings",
+        "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple",
+        "/Script/ControlRig",
+        "/Script/AnimationData",
+        "/Engine/Animation/DefaultVariableFrameStrippingSettings",
+        "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection"
+      ],
+      "refs": [
+        "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/BS_EightDirection_Mirrored",
+        "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_A",
+        "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_A_Observed",
+        "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_B",
+        "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_B_Observed",
+        "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/ABP_OWLocalMovement"
+      ]
+    },
+    "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Forward": {
+      "class": "AnimSequence",
+      "deps": [
+        "/Script/MovieScene",
+        "/Script/AnimationModifiers",
+        "/ACLPlugin/ACLAnimBoneCompressionSettings",
+        "/ACLPlugin/ACLAnimCurveCompressionSettings",
+        "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple",
+        "/Script/ControlRig",
+        "/Script/AnimationData",
+        "/Engine/Animation/DefaultVariableFrameStrippingSettings",
+        "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection"
+      ],
+      "refs": [
+        "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/BS_EightDirection_Mirrored",
+        "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_A",
+        "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_A_Observed",
+        "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_B",
+        "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_B_Observed",
+        "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/ABP_OWLocalMovement"
+      ]
+    },
+    "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Left": {
+      "class": "AnimSequence",
+      "deps": [
+        "/Script/MovieScene",
+        "/Script/AnimationModifiers",
+        "/ACLPlugin/ACLAnimBoneCompressionSettings",
+        "/ACLPlugin/ACLAnimCurveCompressionSettings",
+        "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple",
+        "/Script/ControlRig",
+        "/Script/AnimationData",
+        "/Engine/Animation/DefaultVariableFrameStrippingSettings",
+        "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection"
+      ],
+      "refs": [
+        "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/BS_EightDirection_Mirrored",
+        "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_A",
+        "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_A_Observed",
+        "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_B",
+        "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_B_Observed",
+        "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/ABP_OWLocalMovement"
+      ]
+    },
+    "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Right": {
+      "class": "AnimSequence",
+      "deps": [
+        "/Script/MovieScene",
+        "/Script/AnimationModifiers",
+        "/ACLPlugin/ACLAnimBoneCompressionSettings",
+        "/ACLPlugin/ACLAnimCurveCompressionSettings",
+        "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple",
+        "/Script/ControlRig",
+        "/Script/AnimationData",
+        "/Engine/Animation/DefaultVariableFrameStrippingSettings",
+        "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection"
+      ],
+      "refs": [
+        "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/BS_EightDirection_Mirrored",
+        "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_A",
+        "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_A_Observed",
+        "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_B",
+        "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_B_Observed",
+        "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/ABP_OWLocalMovement"
+      ]
+    },
+    "/Game/Experiments/Stance_20261022/FourDirection_20261117/ABP_FourDirection": {
+      "class": "AnimBlueprint",
+      "deps": [
+        "/Script/AnimGraph",
+        "/Script/AnimGraphRuntime",
+        "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple",
+        "/Script/ShootGameEditor",
+        "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection",
+        "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/BS_EightDirection_Mirrored"
+      ],
+      "refs": []
+    },
+    "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection": {
+      "class": "Skeleton",
+      "deps": [
+        "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple",
+        "/Game/Characters/Mannequins/Meshes/SKM_Quinn_Simple",
+        "/Game/Characters/Mannequins/Meshes/SK_Mannequin"
+      ],
+      "refs": [
+        "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/AS_BlendMirror_BackLeft",
+        "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/AS_BlendMirror_ForwardRight",
+        "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/BS_EightDirection_Mirrored",
+        "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Back",
+        "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Forward",
+        "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Left",
+        "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Right",
+        "/Game/Experiments/Stance_20261022/TorsoMirrorHeadHands_20261118/AS_MirrorTorsoKeepHeadHands_BackRight",
+        "/Game/Experiments/Stance_20261022/TorsoMirrorHeadHands_20261118/AS_MirrorTorsoKeepHeadHands_ForwardLeft",
+        "/Game/Experiments/Stance_20261022/FourDirection_20261117/ABP_FourDirection",
+        "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_A",
+        "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_A_Observed",
+        "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_B",
+        "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_B_Observed",
+        "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/ABP_OWLocalMovement"
+      ]
+    },
+    "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_A": {
+      "class": "AnimBlueprint",
+      "deps": [
+        "/Script/AnimGraph",
+        "/Script/AnimGraphRuntime",
+        "/Script/ShootGameEditor",
+        "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection",
+        "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Back",
+        "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Forward",
+        "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Left",
+        "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Right",
+        "/Script/AnimationWarpingEditor",
+        "/Script/AnimationWarpingRuntime"
+      ],
+      "refs": [
+        "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/BP_BlendSpacePreview"
+      ]
+    },
+    "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_A_Observed": {
+      "class": "AnimBlueprint",
+      "deps": [
+        "/Script/AnimGraph",
+        "/Script/AnimGraphRuntime",
+        "/Script/ShootGameEditor",
+        "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection",
+        "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Back",
+        "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Forward",
+        "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Left",
+        "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Right",
+        "/Script/AnimationWarpingEditor",
+        "/Script/AnimationWarpingRuntime"
+      ],
+      "refs": []
+    },
+    "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_B": {
+      "class": "AnimBlueprint",
+      "deps": [
+        "/Script/AnimGraph",
+        "/Script/AnimGraphRuntime",
+        "/Script/ShootGameEditor",
+        "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection",
+        "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Back",
+        "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Forward",
+        "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Left",
+        "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Right",
+        "/Script/AnimationWarpingEditor",
+        "/Script/AnimationWarpingRuntime"
+      ],
+      "refs": [
+        "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/BP_BlendSpacePreview"
+      ]
+    },
+    "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_B_Observed": {
+      "class": "AnimBlueprint",
+      "deps": [
+        "/Script/AnimGraph",
+        "/Script/AnimGraphRuntime",
+        "/Script/ShootGameEditor",
+        "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection",
+        "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Back",
+        "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Forward",
+        "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Left",
+        "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Right",
+        "/Script/AnimationWarpingEditor",
+        "/Script/AnimationWarpingRuntime"
+      ],
+      "refs": []
+    },
+    "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/BP_BlendSpacePreview": {
+      "class": "Blueprint",
+      "deps": [
+        "/Script/InputCore",
+        "/Script/ShootGameEditor",
+        "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_A",
+        "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_B"
+      ],
+      "refs": [
+        "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/L_BlendSpaceCompare"
+      ]
+    },
+    "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/L_BlendSpaceCompare": {
+      "class": "World",
+      "deps": [
+        "/Script/NavigationSystem",
+        "/Engine/BasicShapes/Cube",
+        "/Engine/EngineMaterials/WorldGridMaterial",
+        "/Script/ShootGameEditor",
+        "/Engine/EditorResources/LightIcons/S_LightError",
+        "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/BP_BlendSpacePreview"
+      ],
+      "refs": []
+    },
+    "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/ABP_OWLocalMovement": {
+      "class": "AnimBlueprint",
+      "deps": [
+        "/Script/AnimGraph",
+        "/Script/AnimGraphRuntime",
+        "/Script/ShootGameEditor",
+        "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection",
+        "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Back",
+        "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Forward",
+        "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Left",
+        "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Right",
+        "/Script/AnimationWarpingEditor",
+        "/Script/AnimationWarpingRuntime"
+      ],
+      "refs": [
+        "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/BP_OWLocalGameMode"
+      ]
+    },
+    "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/BP_OWLocalGameMode": {
+      "class": "Blueprint",
+      "deps": [
+        "/Script/ShootGameEditor",
+        "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/ABP_OWLocalMovement"
+      ],
+      "refs": [
+        "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/L_OWLocalMovement"
+      ]
+    },
+    "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/BP_OWLocalPreview": {
+      "class": "Blueprint",
+      "deps": [
+        "/Script/ShootGameEditor"
+      ],
+      "refs": [
+        "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/L_OWLocalMovement"
+      ]
+    },
+    "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/L_OWLocalMovement": {
+      "class": "World",
+      "deps": [
+        "/Script/NavigationSystem",
+        "/Engine/BasicShapes/Cube",
+        "/Engine/EngineMaterials/WorldGridMaterial",
+        "/Engine/EditorResources/LightIcons/S_LightError",
+        "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/BP_OWLocalGameMode",
+        "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/BP_OWLocalPreview"
+      ],
+      "refs": []
+    },
+    "/Game/Experiments/Stance_20261022/TorsoMirrorHeadHands_20261118/AS_MirrorTorsoKeepHeadHands_BackRight": {
+      "class": "AnimSequence",
+      "deps": [
+        "/Script/MovieScene",
+        "/Script/AnimationModifiers",
+        "/ACLPlugin/ACLAnimBoneCompressionSettings",
+        "/ACLPlugin/ACLAnimCurveCompressionSettings",
+        "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple",
+        "/Script/ControlRig",
+        "/Script/AnimationData",
+        "/Engine/Animation/DefaultVariableFrameStrippingSettings",
+        "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection"
+      ],
+      "refs": [
+        "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/BS_EightDirection_Mirrored"
+      ]
+    },
+    "/Game/Experiments/Stance_20261022/TorsoMirrorHeadHands_20261118/AS_MirrorTorsoKeepHeadHands_ForwardLeft": {
+      "class": "AnimSequence",
+      "deps": [
+        "/Script/MovieScene",
+        "/Script/AnimationModifiers",
+        "/ACLPlugin/ACLAnimBoneCompressionSettings",
+        "/ACLPlugin/ACLAnimCurveCompressionSettings",
+        "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple",
+        "/Script/ControlRig",
+        "/Script/AnimationData",
+        "/Engine/Animation/DefaultVariableFrameStrippingSettings",
+        "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection"
+      ],
+      "refs": [
+        "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/BS_EightDirection_Mirrored"
+      ]
+    }
+  },
+  "keep": [
+    "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Back",
+    "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Forward",
+    "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Left",
+    "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Right",
+    "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection",
+    "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/ABP_OWLocalMovement",
+    "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/BP_OWLocalGameMode",
+    "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/BP_OWLocalPreview",
+    "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/L_OWLocalMovement"
+  ],
+  "delete": [
+    "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/AS_BlendMirror_BackLeft",
+    "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/AS_BlendMirror_ForwardRight",
+    "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/BS_EightDirection_Mirrored",
+    "/Game/Experiments/Stance_20261022/FourDirection_20261117/ABP_FourDirection",
+    "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_A",
+    "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_A_Observed",
+    "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_B",
+    "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_B_Observed",
+    "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/BP_BlendSpacePreview",
+    "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/L_BlendSpaceCompare",
+    "/Game/Experiments/Stance_20261022/TorsoMirrorHeadHands_20261118/AS_MirrorTorsoKeepHeadHands_BackRight",
+    "/Game/Experiments/Stance_20261022/TorsoMirrorHeadHands_20261118/AS_MirrorTorsoKeepHeadHands_ForwardLeft"
+  ],
+  "moves": {
+    "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Back": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Back",
+    "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Forward": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Forward",
+    "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Left": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Left",
+    "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Right": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Right",
+    "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection": "/Game/Experiments/Stance_20261022/SK_FourDirection",
+    "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/ABP_OWLocalMovement": "/Game/Experiments/Stance_20261022/ABP_OWLocalMovement",
+    "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/BP_OWLocalGameMode": "/Game/Experiments/Stance_20261022/BP_OWLocalGameMode",
+    "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/BP_OWLocalPreview": "/Game/Experiments/Stance_20261022/BP_OWLocalPreview",
+    "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/L_OWLocalMovement": "/Game/Experiments/Stance_20261022/L_OWLocalMovement"
+  },
+  "boundary": {},
+  "dirty_content": [],
+  "dirty_maps": [],
+  "rename_doc": "x.rename_assets(assets_and_names) -> bool\r\nRenames assets using the specified names.\r\n\r\nArgs:\r\n    assets_and_names (Array[AssetRenameData]): \r\n\r\nReturns:\r\n    bool:",
+  "save_doc": "X.save_loaded_assets(assets_to_save, only_if_is_dirty=True) -> bool\r\nSave the packages the assets live in. All objects that live in the package will be saved. Will try to checkout the files.\r\n\r\nArgs:\r\n    assets_to_save (Array[Object]): \r\n    only_if_is_dirty (bool): Only checkout asset that are dirty.\r\n\r\nReturns:\r\n    bool: True if the operation succeeds.",
+  "python_fixup_exposed": false
+}

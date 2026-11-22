@@ -1,0 +1,14 @@
+{
+  "new_assets": [
+    "Content/Experiments/Stance_20261022/OrientationWarping_20261120/ABP_OW_A.uasset",
+    "Content/Experiments/Stance_20261022/OrientationWarping_20261120/ABP_OW_B.uasset",
+    "Content/Experiments/Stance_20261022/OrientationWarping_20261120/ABP_OW_C.uasset",
+    "Content/Experiments/Stance_20261022/OrientationWarping_20261120/BP_OWPreview.uasset",
+    "Content/Experiments/Stance_20261022/OrientationWarping_20261120/L_OrientationWarping.umap"
+  ],
+  "checked": 1243,
+  "changed": [
+    "ShootGame.uproject"
+  ],
+  "missing": []
+}

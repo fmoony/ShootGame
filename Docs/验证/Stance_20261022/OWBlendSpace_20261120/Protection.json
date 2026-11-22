@@ -1,0 +1,19 @@
+{
+  "baseline_files": 2280,
+  "changed": [
+    "Docs/_工作区文档/下蹲实验进度.md",
+    "Docs/验证/Stance_20261022/滑铲与下蹲动画实验.md"
+  ],
+  "missing": [],
+  "all_original_assets_code_config_and_historical_reports_unchanged": true,
+  "new_assets": [
+    "ABP_BlendSpace_A.uasset",
+    "ABP_BlendSpace_A_Observed.uasset",
+    "ABP_BlendSpace_B.uasset",
+    "ABP_BlendSpace_B_Observed.uasset",
+    "BP_BlendSpacePreview.uasset",
+    "L_BlendSpaceCompare.umap"
+  ],
+  "branch": "codex/ue-5.8",
+  "git_actions": "No new branch, staging, commit or history rewrite"
+}

@@ -1,0 +1,10 @@
+[
+  {
+    "name": "ForwardRight",
+    "max_position_to_same_native_runtime_cm": 0.000694663101042169
+  },
+  {
+    "name": "BackLeft",
+    "max_position_to_same_native_runtime_cm": 0.001927049589680077
+  }
+]

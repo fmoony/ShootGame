@@ -1,0 +1,297 @@
+{
+  "date": "2026-11-21",
+  "branch": "codex/ue-5.8",
+  "problem": "Shared Pawn hard-loaded the old four-direction graph during BeginPlay and the new controller replaced it on its first Tick.",
+  "change": "The experimental GameMode now declares an explicit PreviewAnimClass soft class. Pawn loads this class directly in BeginPlay. New BP_OWLocalGameMode configures ABP_OWLocalMovement for the current map. The controller no longer calls SetAnimInstanceClass.",
+  "scope": {
+    "code": [
+      "Source/ShootGameEditor/Tests/Stance/ShooterStancePreview.h",
+      "Source/ShootGameEditor/Tests/Stance/ShooterStancePreview.cpp"
+    ],
+    "modified_assets": [
+      "OWLocalMovement_20261121/BP_OWLocalPreview",
+      "OWLocalMovement_20261121/L_OWLocalMovement"
+    ],
+    "new_asset": "OWLocalMovement_20261121/BP_OWLocalGameMode",
+    "unmodified": "AnimGraph, four source sequences, Skeleton, all historical assets and production Gameplay. No asset deletion.",
+    "legacy": "Native four-direction GameMode retains its explicit original soft-class default; old map behavior was preserved in configuration, but no new full legacy-map visual acceptance is claimed."
+  },
+  "verification": {
+    "build": "ShootGameEditor Win64 Development -UsePrecompiled -NoEngineChanges succeeded; no engine module rebuild.",
+    "startup_log": [
+      "[2026.11.21-05.00.31:944][171]LogStancePreview: Display: STANCE_PREVIEW_INITIAL AnimClass=/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/ABP_OWLocalMovement.ABP_OWLocalMovement_C GameMode=/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/BP_OWLocalGameMode.BP_OWLocalGameMode_C",
+      "[2026.11.21-05.07.03:243][103]LogStancePreview: Display: STANCE_PREVIEW_INITIAL AnimClass=/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/ABP_OWLocalMovement.ABP_OWLocalMovement_C GameMode=/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/BP_OWLocalGameMode.BP_OWLocalGameMode_C"
+    ],
+    "cold_before": {
+      "phase": "BeforePIE",
+      "old_objects": {
+        "/Game/Experiments/Stance_20261022/FourDirection_20261117/ABP_FourDirection": {
+          "package": null,
+          "asset": null,
+          "class": null
+        },
+        "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/BS_EightDirection_Mirrored": {
+          "package": null,
+          "asset": null
+        },
+        "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/AS_BlendMirror_BackLeft": {
+          "package": null,
+          "asset": null
+        },
+        "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/AS_BlendMirror_ForwardRight": {
+          "package": null,
+          "asset": null
+        },
+        "/Game/Experiments/Stance_20261022/TorsoMirrorHeadHands_20261118/AS_MirrorTorsoKeepHeadHands_BackRight": {
+          "package": null,
+          "asset": null
+        },
+        "/Game/Experiments/Stance_20261022/TorsoMirrorHeadHands_20261118/AS_MirrorTorsoKeepHeadHands_ForwardLeft": {
+          "package": null,
+          "asset": null
+        }
+      },
+      "editor_world": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/L_OWLocalMovement.L_OWLocalMovement"
+    },
+    "runtime_at_start": {
+      "phase": "Runtime",
+      "old_objects": {
+        "/Game/Experiments/Stance_20261022/FourDirection_20261117/ABP_FourDirection": {
+          "package": null,
+          "asset": null,
+          "class": null
+        },
+        "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/BS_EightDirection_Mirrored": {
+          "package": null,
+          "asset": null
+        },
+        "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/AS_BlendMirror_BackLeft": {
+          "package": null,
+          "asset": null
+        },
+        "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/AS_BlendMirror_ForwardRight": {
+          "package": null,
+          "asset": null
+        },
+        "/Game/Experiments/Stance_20261022/TorsoMirrorHeadHands_20261118/AS_MirrorTorsoKeepHeadHands_BackRight": {
+          "package": null,
+          "asset": null
+        },
+        "/Game/Experiments/Stance_20261022/TorsoMirrorHeadHands_20261118/AS_MirrorTorsoKeepHeadHands_ForwardLeft": {
+          "package": null,
+          "asset": null
+        }
+      },
+      "editor_world": null,
+      "game_mode": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/BP_OWLocalGameMode.BP_OWLocalGameMode_C",
+      "configured_anim": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/ABP_OWLocalMovement.ABP_OWLocalMovement_C",
+      "actual_anim": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/ABP_OWLocalMovement.ABP_OWLocalMovement_C",
+      "anim_instance": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/UEDPIE_0_L_OWLocalMovement.L_OWLocalMovement:PersistentLevel.ShooterStancePreviewPawn_0.Body.ABP_OWLocalMovement_C_0",
+      "controller_initialized": [
+        true
+      ],
+      "flags": {
+        "bTestOverride": false,
+        "bSnapInput": false,
+        "bManualPhase": false
+      },
+      "tick": true
+    },
+    "movement": {
+      "state": "Passed",
+      "frames": 1263,
+      "method": "Targeted Win32 key messages to verified UE PID 34188 preview HWND",
+      "events": [
+        {
+          "label": "F",
+          "frames": 56,
+          "speed_cm_s": 150,
+          "phase_delta": 0.9166707992553711,
+          "rate": [
+            1,
+            1
+          ]
+        },
+        {
+          "label": "F_stop",
+          "frames": 14,
+          "speed_cm_s": 0,
+          "phase_delta": 0,
+          "rate": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "FL",
+          "frames": 56,
+          "speed_cm_s": 150.00000000000028,
+          "phase_delta": 0.9166695028543472,
+          "rate": [
+            1,
+            1
+          ]
+        },
+        {
+          "label": "FL_stop",
+          "frames": 13,
+          "speed_cm_s": 0,
+          "phase_delta": 0,
+          "rate": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "BR",
+          "frames": 55,
+          "speed_cm_s": 150.00000000000045,
+          "phase_delta": 0.9000018015503883,
+          "rate": [
+            1,
+            1
+          ]
+        },
+        {
+          "label": "BR_stop",
+          "frames": 14,
+          "speed_cm_s": 0,
+          "phase_delta": 0,
+          "rate": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "FinalStop",
+          "frames": 38,
+          "speed_cm_s": 0,
+          "phase_delta": 0,
+          "rate": [
+            0,
+            0
+          ]
+        }
+      ],
+      "instances": [
+        "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/UEDPIE_0_L_OWLocalMovement.L_OWLocalMovement:PersistentLevel.ShooterStancePreviewPawn_0.Body.ABP_OWLocalMovement_C_0"
+      ]
+    },
+    "stance_dependency_count": 9,
+    "old_dependency_intersection": [],
+    "final_handoff": {
+      "phase": "Runtime",
+      "old_objects": {
+        "/Game/Experiments/Stance_20261022/FourDirection_20261117/ABP_FourDirection": {
+          "package": null,
+          "asset": null,
+          "class": null
+        },
+        "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/BS_EightDirection_Mirrored": {
+          "package": null,
+          "asset": null
+        },
+        "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/AS_BlendMirror_BackLeft": {
+          "package": null,
+          "asset": null
+        },
+        "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/AS_BlendMirror_ForwardRight": {
+          "package": null,
+          "asset": null
+        },
+        "/Game/Experiments/Stance_20261022/TorsoMirrorHeadHands_20261118/AS_MirrorTorsoKeepHeadHands_BackRight": {
+          "package": null,
+          "asset": null
+        },
+        "/Game/Experiments/Stance_20261022/TorsoMirrorHeadHands_20261118/AS_MirrorTorsoKeepHeadHands_ForwardLeft": {
+          "package": null,
+          "asset": null
+        }
+      },
+      "editor_world": null,
+      "game_mode": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/BP_OWLocalGameMode.BP_OWLocalGameMode_C",
+      "configured_anim": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/ABP_OWLocalMovement.ABP_OWLocalMovement_C",
+      "actual_anim": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/ABP_OWLocalMovement.ABP_OWLocalMovement_C",
+      "anim_instance": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/UEDPIE_0_L_OWLocalMovement.L_OWLocalMovement:PersistentLevel.ShooterStancePreviewPawn_0.Body.ABP_OWLocalMovement_C_0",
+      "controller_initialized": [
+        true
+      ],
+      "flags": {
+        "bTestOverride": false,
+        "bSnapInput": false,
+        "bManualPhase": false
+      },
+      "tick": true,
+      "location": [
+        0,
+        0,
+        0
+      ],
+      "rate": 0,
+      "dirty_content": [],
+      "dirty_maps": [],
+      "max_fps": 0
+    },
+    "final_runtime": {
+      "phase": "Runtime",
+      "old_objects": {
+        "/Game/Experiments/Stance_20261022/FourDirection_20261117/ABP_FourDirection": {
+          "package": null,
+          "asset": null,
+          "class": null
+        },
+        "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/BS_EightDirection_Mirrored": {
+          "package": null,
+          "asset": null
+        },
+        "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/AS_BlendMirror_BackLeft": {
+          "package": null,
+          "asset": null
+        },
+        "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/AS_BlendMirror_ForwardRight": {
+          "package": null,
+          "asset": null
+        },
+        "/Game/Experiments/Stance_20261022/TorsoMirrorHeadHands_20261118/AS_MirrorTorsoKeepHeadHands_BackRight": {
+          "package": null,
+          "asset": null
+        },
+        "/Game/Experiments/Stance_20261022/TorsoMirrorHeadHands_20261118/AS_MirrorTorsoKeepHeadHands_ForwardLeft": {
+          "package": null,
+          "asset": null
+        }
+      },
+      "editor_world": null,
+      "game_mode": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/BP_OWLocalGameMode.BP_OWLocalGameMode_C",
+      "configured_anim": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/ABP_OWLocalMovement.ABP_OWLocalMovement_C",
+      "actual_anim": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/ABP_OWLocalMovement.ABP_OWLocalMovement_C",
+      "anim_instance": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/UEDPIE_0_L_OWLocalMovement.L_OWLocalMovement:PersistentLevel.ShooterStancePreviewPawn_0.Body.ABP_OWLocalMovement_C_0",
+      "controller_initialized": [
+        true
+      ],
+      "flags": {
+        "bTestOverride": false,
+        "bSnapInput": false,
+        "bManualPhase": false
+      },
+      "tick": true
+    }
+  },
+  "limitations": [
+    "Only startup and dependency initialization were changed. Existing ground penetration and quick reversal pose discontinuities remain.",
+    "Early automated input attempts did not route to the game and are excluded. MovementFrames5/InputDone5 are the complete valid smoke run.",
+    "Removed startup dependencies do not authorize deleting old assets; other old experiments still use them.",
+    "No production gameplay or network verification was needed or performed."
+  ],
+  "references": [
+    {
+      "topic": "Per-map GameMode override",
+      "url": "https://dev.epicgames.com/documentation/unreal-engine/setting-up-a-game-mode-in-unreal-engine?lang=en-US"
+    },
+    {
+      "topic": "Soft class delayed loading; docs API version older, matching signature verified against local UE 5.8.4 SoftObjectPtr.h",
+      "url": "https://dev.epicgames.com/documentation/unreal-engine/API/Runtime/CoreUObject/UObject/TSoftClassPtr?application_version=5.5"
+    }
+  ],
+  "local_engine_reference": "E:/UnrealEngine/UE_5.8_Source/Engine/Source/Runtime/CoreUObject/Public/UObject/SoftObjectPtr.h: TSoftClassPtr FSoftObjectPath assignment and LoadSynchronous const were checked."
+}

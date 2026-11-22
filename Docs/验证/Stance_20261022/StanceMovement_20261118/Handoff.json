@@ -1,0 +1,14 @@
+{
+  "pawn": {
+    "returnValue": "{\"PreviewForward\":1,\"PreviewRight\":0}"
+  },
+  "root": {
+    "returnValue": "{\"RelativeLocation\":{\"x\":0,\"y\":0,\"z\":0},\"RelativeRotation\":{\"pitch\":0,\"yaw\":0,\"roll\":0}}"
+  },
+  "body": {
+    "returnValue": "{\"GlobalAnimRateScale\":0,\"AnimationMode\":\"AnimationBlueprint\",\"AnimClass\":{\"refPath\":\"/Game/Experiments/Stance_20261022/FourDirection_20261117/ABP_FourDirection.ABP_FourDirection_C\"}}"
+  },
+  "throttle": {
+    "returnValue": "{\"bThrottleCPUWhenNotForeground\":true}"
+  }
+}

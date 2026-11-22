@@ -1,0 +1,173 @@
+{
+  "frames": 780,
+  "bone_frames": 69420,
+  "rigid_transform_fit_max_residual_cm": 1.3394161954648504e-06,
+  "max_pose_change_cm": 0.0,
+  "max_vertical_pawn_change_cm": 0.0,
+  "max_pawn_step_cm": 5.000000535483671,
+  "hold": {
+    "-1": {
+      "frames": 30,
+      "max_displacement_cm": 0.0
+    },
+    "8": {
+      "frames": 30,
+      "max_displacement_cm": 0.0
+    }
+  },
+  "directions": [
+    {
+      "direction": "Forward",
+      "frames": 72,
+      "speed_range_cm_s": [
+        149.99700283986616,
+        150.00151316089617
+      ],
+      "max_heading_error_deg": 1.0218430168189725e-06,
+      "start_cm": [
+        95.00000493361672,
+        -2.5521043056642156e-09,
+        0.0
+      ],
+      "end_cm": [
+        450.0000234592157,
+        3.089275324441587e-08,
+        0.0
+      ]
+    },
+    {
+      "direction": "ForwardRight",
+      "frames": 72,
+      "speed_range_cm_s": [
+        149.99700327979042,
+        150.00151150629316
+      ],
+      "max_heading_error_deg": 4.714608193008031e-06,
+      "start_cm": [
+        517.1751711979276,
+        67.17514766748728,
+        0.0
+      ],
+      "end_cm": [
+        768.1980915943175,
+        318.19806823626044,
+        0.0
+      ]
+    },
+    {
+      "direction": "Right",
+      "frames": 72,
+      "speed_range_cm_s": [
+        149.997003413638,
+        150.00151355114323
+      ],
+      "max_heading_error_deg": 4.491790802604658e-06,
+      "start_cm": [
+        768.1980873212503,
+        413.1980731384781,
+        0.0
+      ],
+      "end_cm": [
+        768.1980719361699,
+        768.1980916593286,
+        0.0
+      ]
+    },
+    {
+      "direction": "BackRight",
+      "frames": 72,
+      "speed_range_cm_s": [
+        149.99700227296088,
+        150.0015107423333
+      ],
+      "max_heading_error_deg": 3.6746504671186936e-06,
+      "start_cm": [
+        701.0229241719807,
+        835.3732392277784,
+        0.0
+      ],
+      "end_cm": [
+        450.0000037771337,
+        1086.3961596492409,
+        0.0
+      ]
+    },
+    {
+      "direction": "Back",
+      "frames": 72,
+      "speed_range_cm_s": [
+        149.9970026638928,
+        150.00151413217918
+      ],
+      "max_heading_error_deg": 7.410294253252748e-06,
+      "start_cm": [
+        354.999998908191,
+        1086.3961514383168,
+        0.0
+      ],
+      "end_cm": [
+        -1.9677630938019774e-05,
+        1086.3961202882579,
+        0.0
+      ]
+    },
+    {
+      "direction": "BackLeft",
+      "frames": 72,
+      "speed_range_cm_s": [
+        149.9970028545805,
+        150.0015115398043
+      ],
+      "max_heading_error_deg": 1.127893117772602e-05,
+      "start_cm": [
+        -67.17515743404516,
+        1019.2209628337794,
+        0.0
+      ],
+      "end_cm": [
+        -318.1980403524151,
+        768.198004834456,
+        0.0
+      ]
+    },
+    {
+      "direction": "Left",
+      "frames": 72,
+      "speed_range_cm_s": [
+        149.9970019662316,
+        150.00151293197572
+      ],
+      "max_heading_error_deg": 3.5161283649065574e-06,
+      "start_cm": [
+        -318.1980391861141,
+        673.1979999188657,
+        0.0
+      ],
+      "end_cm": [
+        -318.1980350402683,
+        318.19798147531645,
+        0.0
+      ]
+    },
+    {
+      "direction": "ForwardLeft",
+      "frames": 72,
+      "speed_range_cm_s": [
+        149.99700107860778,
+        150.00151280786093
+      ],
+      "max_heading_error_deg": 2.4491199610208333e-05,
+      "start_cm": [
+        -251.02286322653075,
+        251.02285777917456,
+        0.0
+      ],
+      "end_cm": [
+        0.00014689274753720838,
+        2.7050523993210618e-05,
+        0.0
+      ]
+    }
+  ],
+  "scope": "Actor movement reconstructed from actual component/world bone correspondences; pose evaluation remains entirely native UE."
+}

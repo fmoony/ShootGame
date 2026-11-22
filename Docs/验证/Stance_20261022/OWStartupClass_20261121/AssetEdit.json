@@ -1,0 +1,8 @@
+{
+  "game_mode": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/BP_OWLocalGameMode.BP_OWLocalGameMode",
+  "initial_anim_class": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/ABP_OWLocalMovement.ABP_OWLocalMovement_C",
+  "removed_node": "K2Node_CallFunction_2",
+  "controller_nodes": 12,
+  "world": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/L_OWLocalMovement.L_OWLocalMovement",
+  "default_game_mode": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/BP_OWLocalGameMode.BP_OWLocalGameMode_C"
+}

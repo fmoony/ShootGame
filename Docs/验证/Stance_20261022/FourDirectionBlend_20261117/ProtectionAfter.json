@@ -1,0 +1,18 @@
+{
+  "protected": 642,
+  "changed": [],
+  "expectedSourceEdits": [
+    "Source/ShootGameEditor/Tests/Stance/ShooterStancePreview.cpp",
+    "Source/ShootGameEditor/Tests/Stance/ShooterStancePreview.h"
+  ],
+  "newAssets": [
+    "ABP_FourDirection.uasset",
+    "BS_FourDirection_Crouch.uasset",
+    "L_FourDirectionPreview.umap"
+  ],
+  "layout": {
+    "workingTree": "Passed; 3 last-parameter warnings manually checked within 120-140 column exception",
+    "newReport": "Passed, 0 warnings"
+  },
+  "sourceInclude": "Passed"
+}

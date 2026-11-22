@@ -1,0 +1,312 @@
+{
+  "world": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/L_OWLocalMovement.L_OWLocalMovement",
+  "game_mode": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/BP_OWLocalGameMode.BP_OWLocalGameMode_C",
+  "controller_nodes": [
+    {
+      "name": "K2Node_Event_0",
+      "title": "Event Tick",
+      "pins": [
+        {
+          "name": "OutputDelegate",
+          "links": []
+        },
+        {
+          "name": "then",
+          "links": [
+            "K2Node_DynamicCast_0:execute"
+          ]
+        },
+        {
+          "name": "DeltaSeconds",
+          "links": []
+        }
+      ]
+    },
+    {
+      "name": "K2Node_CallFunction_0",
+      "title": "GetPlayerPawn",
+      "pins": [
+        {
+          "name": "PlayerIndex",
+          "links": []
+        },
+        {
+          "name": "ReturnValue",
+          "links": [
+            "K2Node_DynamicCast_0:Object"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "K2Node_DynamicCast_0",
+      "title": "Cast To ShooterStancePreviewPawn",
+      "pins": [
+        {
+          "name": "execute",
+          "links": [
+            "K2Node_Event_0:then"
+          ]
+        },
+        {
+          "name": "Object",
+          "links": [
+            "K2Node_CallFunction_0:ReturnValue"
+          ]
+        },
+        {
+          "name": "then",
+          "links": [
+            "K2Node_DynamicCast_1:execute"
+          ]
+        },
+        {
+          "name": "CastFailed",
+          "links": []
+        },
+        {
+          "name": "AsShooter Stance Preview Pawn",
+          "links": [
+            "K2Node_CallFunction_1:self",
+            "K2Node_CallFunction_3:PrerequisiteActor"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "K2Node_CallFunction_1",
+      "title": "GetComponentByClass",
+      "pins": [
+        {
+          "name": "self",
+          "links": [
+            "K2Node_DynamicCast_0:AsShooter Stance Preview Pawn"
+          ]
+        },
+        {
+          "name": "ComponentClass",
+          "links": []
+        },
+        {
+          "name": "ReturnValue",
+          "links": [
+            "K2Node_DynamicCast_1:Object"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "K2Node_DynamicCast_1",
+      "title": "Cast To SkeletalMeshComponent",
+      "pins": [
+        {
+          "name": "execute",
+          "links": [
+            "K2Node_DynamicCast_0:then"
+          ]
+        },
+        {
+          "name": "Object",
+          "links": [
+            "K2Node_CallFunction_1:ReturnValue"
+          ]
+        },
+        {
+          "name": "then",
+          "links": [
+            "K2Node_IfThenElse_0:execute"
+          ]
+        },
+        {
+          "name": "CastFailed",
+          "links": []
+        },
+        {
+          "name": "AsSkeletal Mesh Component",
+          "links": [
+            "K2Node_CallFunction_32:self"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "K2Node_IfThenElse_0",
+      "title": "Branch",
+      "pins": [
+        {
+          "name": "execute",
+          "links": [
+            "K2Node_DynamicCast_1:then"
+          ]
+        },
+        {
+          "name": "Condition",
+          "links": [
+            "K2Node_VariableGet_0:bInitialized"
+          ]
+        },
+        {
+          "name": "then",
+          "links": []
+        },
+        {
+          "name": "else",
+          "links": [
+            "K2Node_CallFunction_3:execute"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "K2Node_VariableGet_0",
+      "title": "Get bInitialized",
+      "pins": [
+        {
+          "name": "bInitialized",
+          "links": [
+            "K2Node_IfThenElse_0:Condition"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "K2Node_CallFunction_3",
+      "title": "AddTickPrerequisiteActor",
+      "pins": [
+        {
+          "name": "execute",
+          "links": [
+            "K2Node_IfThenElse_0:else"
+          ]
+        },
+        {
+          "name": "self",
+          "links": []
+        },
+        {
+          "name": "PrerequisiteActor",
+          "links": [
+            "K2Node_DynamicCast_0:AsShooter Stance Preview Pawn"
+          ]
+        },
+        {
+          "name": "then",
+          "links": [
+            "K2Node_CallFunction_32:execute"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "K2Node_Self_1",
+      "title": "Self-Reference",
+      "pins": [
+        {
+          "name": "self",
+          "links": [
+            "K2Node_CallFunction_32:PrerequisiteActor"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "K2Node_CallFunction_32",
+      "title": "AddTickPrerequisiteActor",
+      "pins": [
+        {
+          "name": "execute",
+          "links": [
+            "K2Node_CallFunction_3:then"
+          ]
+        },
+        {
+          "name": "self",
+          "links": [
+            "K2Node_DynamicCast_1:AsSkeletal Mesh Component"
+          ]
+        },
+        {
+          "name": "PrerequisiteActor",
+          "links": [
+            "K2Node_Self_1:self"
+          ]
+        },
+        {
+          "name": "then",
+          "links": [
+            "K2Node_VariableSet_0:execute"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "K2Node_VariableSet_0",
+      "title": "Set bInitialized",
+      "pins": [
+        {
+          "name": "execute",
+          "links": [
+            "K2Node_CallFunction_32:then"
+          ]
+        },
+        {
+          "name": "bInitialized",
+          "links": []
+        },
+        {
+          "name": "then",
+          "links": [
+            "K2Node_CallFunction_33:execute"
+          ]
+        },
+        {
+          "name": "Output_Get",
+          "links": []
+        }
+      ]
+    },
+    {
+      "name": "K2Node_CallFunction_33",
+      "title": "PrintString",
+      "pins": [
+        {
+          "name": "execute",
+          "links": [
+            "K2Node_VariableSet_0:then"
+          ]
+        },
+        {
+          "name": "InString",
+          "links": []
+        },
+        {
+          "name": "bPrintToScreen",
+          "links": []
+        },
+        {
+          "name": "bPrintToLog",
+          "links": []
+        },
+        {
+          "name": "TextColor",
+          "links": []
+        },
+        {
+          "name": "Duration",
+          "links": []
+        },
+        {
+          "name": "Key",
+          "links": []
+        },
+        {
+          "name": "then",
+          "links": []
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "dirty_content": [],
+  "dirty_maps": []
+}

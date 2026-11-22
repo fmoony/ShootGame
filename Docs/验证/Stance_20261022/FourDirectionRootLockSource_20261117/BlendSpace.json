@@ -1,0 +1,143 @@
+{
+  "before": {
+    "path": "/Game/Experiments/Stance_20261022/FourDirection_20261117/BS_FourDirection_Crouch.BS_FourDirection_Crouch",
+    "skeleton": "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection.SK_FourDirection",
+    "smoothing": [
+      0.20000000298023224,
+      0.20000000298023224,
+      0.0
+    ],
+    "samples": [
+      {
+        "asset": "/Game/Experiments/Stance_20261022/FourDirection_20261117/AS_NewCrouch_Forward.AS_NewCrouch_Forward",
+        "point": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "rate": 1.0
+      },
+      {
+        "asset": "/Game/Experiments/Stance_20261022/FourDirection_20261117/AS_NewCrouch_Back.AS_NewCrouch_Back",
+        "point": [
+          -1.0,
+          0.0,
+          0.0
+        ],
+        "rate": 1.0
+      },
+      {
+        "asset": "/Game/Experiments/Stance_20261022/FourDirection_20261117/AS_NewCrouch_Left.AS_NewCrouch_Left",
+        "point": [
+          0.0,
+          -1.0,
+          0.0
+        ],
+        "rate": 1.0
+      },
+      {
+        "asset": "/Game/Experiments/Stance_20261022/FourDirection_20261117/AS_NewCrouch_Right.AS_NewCrouch_Right",
+        "point": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "rate": 1.0
+      }
+    ]
+  },
+  "after": {
+    "path": "/Game/Experiments/Stance_20261022/FourDirection_20261117/BS_FourDirection_Crouch.BS_FourDirection_Crouch",
+    "skeleton": "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection.SK_FourDirection",
+    "smoothing": [
+      0.20000000298023224,
+      0.20000000298023224,
+      0.0
+    ],
+    "samples": [
+      {
+        "asset": "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Forward.AS_RootLockSource_Forward",
+        "point": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "rate": 1.0
+      },
+      {
+        "asset": "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Back.AS_RootLockSource_Back",
+        "point": [
+          -1.0,
+          0.0,
+          0.0
+        ],
+        "rate": 1.0
+      },
+      {
+        "asset": "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Left.AS_RootLockSource_Left",
+        "point": [
+          0.0,
+          -1.0,
+          0.0
+        ],
+        "rate": 1.0
+      },
+      {
+        "asset": "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Right.AS_RootLockSource_Right",
+        "point": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "rate": 1.0
+      }
+    ]
+  },
+  "baseline": {
+    "path": "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/BS_PreviousUERootLock.BS_PreviousUERootLock",
+    "skeleton": "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection.SK_FourDirection",
+    "smoothing": [
+      0.20000000298023224,
+      0.20000000298023224,
+      0.0
+    ],
+    "samples": [
+      {
+        "asset": "/Game/Experiments/Stance_20261022/FourDirection_20261117/AS_NewCrouch_Forward.AS_NewCrouch_Forward",
+        "point": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "rate": 1.0
+      },
+      {
+        "asset": "/Game/Experiments/Stance_20261022/FourDirection_20261117/AS_NewCrouch_Back.AS_NewCrouch_Back",
+        "point": [
+          -1.0,
+          0.0,
+          0.0
+        ],
+        "rate": 1.0
+      },
+      {
+        "asset": "/Game/Experiments/Stance_20261022/FourDirection_20261117/AS_NewCrouch_Left.AS_NewCrouch_Left",
+        "point": [
+          0.0,
+          -1.0,
+          0.0
+        ],
+        "rate": 1.0
+      },
+      {
+        "asset": "/Game/Experiments/Stance_20261022/FourDirection_20261117/AS_NewCrouch_Right.AS_NewCrouch_Right",
+        "point": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "rate": 1.0
+      }
+    ]
+  }
+}

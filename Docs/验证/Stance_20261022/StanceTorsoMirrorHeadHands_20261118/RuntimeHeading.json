@@ -1,0 +1,218 @@
+{
+  "ForwardLeft": {
+    "source": "ForwardRight",
+    "before": [
+      {
+        "phase": 0.690625,
+        "upper_rotation_difference_deg": {
+          "head": 87.16449700813615,
+          "hand_l": 87.17314421436399,
+          "hand_r": 87.17384955957635,
+          "spine_05_to_mirror": 7.886968549298863,
+          "pelvis_to_mirror": 0.005030141319944729
+        }
+      },
+      {
+        "phase": 0.7072916666666667,
+        "upper_rotation_difference_deg": {
+          "head": 86.63471898392646,
+          "hand_l": 86.6424454589136,
+          "hand_r": 86.63898404886723,
+          "spine_05_to_mirror": 7.559313083067951,
+          "pelvis_to_mirror": 0.002231806117765081
+        }
+      },
+      {
+        "phase": 0.7239583333333334,
+        "upper_rotation_difference_deg": {
+          "head": 86.3867705364184,
+          "hand_l": 86.3981888105613,
+          "hand_r": 86.39595817717273,
+          "spine_05_to_mirror": 7.358925454877472,
+          "pelvis_to_mirror": 0.0022956923966761227
+        }
+      },
+      {
+        "phase": 0.740625,
+        "upper_rotation_difference_deg": {
+          "head": 86.37243864071635,
+          "hand_l": 86.38379403106737,
+          "hand_r": 86.38386405480054,
+          "spine_05_to_mirror": 7.224071132851752,
+          "pelvis_to_mirror": 0.0032119177902266123
+        }
+      },
+      {
+        "phase": 0.9114583333333334,
+        "upper_rotation_difference_deg": {
+          "head": 93.10289331468323,
+          "hand_l": 93.10687340779276,
+          "hand_r": 93.10595977672308,
+          "spine_05_to_mirror": 15.233127445231545,
+          "pelvis_to_mirror": 0.007276926904653535
+        }
+      }
+    ],
+    "after": [
+      {
+        "phase": 0.6979166666666666,
+        "upper_rotation_difference_deg": {
+          "head": 0.044630668608018564,
+          "hand_l": 0.004477082196843599,
+          "hand_r": 0.0022614090022858063,
+          "spine_05_to_mirror": 0.002293299585114475,
+          "pelvis_to_mirror": 0.007168826325852867
+        }
+      },
+      {
+        "phase": 0.7145833333333333,
+        "upper_rotation_difference_deg": {
+          "head": 0.037950005377394576,
+          "hand_l": 0.001502663931786368,
+          "hand_r": 0.003205949486034809,
+          "spine_05_to_mirror": 0.0009250305515673996,
+          "pelvis_to_mirror": 0.0031802819639858175
+        }
+      },
+      {
+        "phase": 0.73125,
+        "upper_rotation_difference_deg": {
+          "head": 0.10144559468513893,
+          "hand_l": 0.002236415046856582,
+          "hand_r": 0.003021932755695568,
+          "spine_05_to_mirror": 0.002241408686803848,
+          "pelvis_to_mirror": 0.002932039196528702
+        }
+      },
+      {
+        "phase": 0.7479166666666667,
+        "upper_rotation_difference_deg": {
+          "head": 0.04620405252695191,
+          "hand_l": 0.0037467264793817887,
+          "hand_r": 0.00409291249906267,
+          "spine_05_to_mirror": 0.000774436233377688,
+          "pelvis_to_mirror": 0.004028288277232286
+        }
+      },
+      {
+        "phase": 0.9114583333333334,
+        "upper_rotation_difference_deg": {
+          "head": 0.023751207782059244,
+          "hand_l": 0.0033913518497415683,
+          "hand_r": 0.0028494523729838193,
+          "spine_05_to_mirror": 0.0040336918800883215,
+          "pelvis_to_mirror": 0.012979482456556533
+        }
+      }
+    ],
+    "max_after_deg": 0.10144559468513893
+  },
+  "BackRight": {
+    "source": "BackLeft",
+    "before": [
+      {
+        "phase": 0.028125,
+        "upper_rotation_difference_deg": {
+          "head": 98.51413725125337,
+          "hand_l": 98.51837433099607,
+          "hand_r": 98.51784867909613,
+          "spine_05_to_mirror": 12.270010379323807,
+          "pelvis_to_mirror": 0.03008400849590267
+        }
+      },
+      {
+        "phase": 0.04479166666666667,
+        "upper_rotation_difference_deg": {
+          "head": 97.65304275219368,
+          "hand_l": 97.66054822587445,
+          "hand_r": 97.6603406635265,
+          "spine_05_to_mirror": 10.739617210149424,
+          "pelvis_to_mirror": 0.025549033122422155
+        }
+      },
+      {
+        "phase": 0.06145833333333333,
+        "upper_rotation_difference_deg": {
+          "head": 96.78881338321561,
+          "hand_l": 96.79954056789921,
+          "hand_r": 96.79872884909061,
+          "spine_05_to_mirror": 9.292625883622064,
+          "pelvis_to_mirror": 0.021531151644746824
+        }
+      },
+      {
+        "phase": 0.078125,
+        "upper_rotation_difference_deg": {
+          "head": 95.88313963201612,
+          "hand_l": 95.89386509418581,
+          "hand_r": 95.89282785456743,
+          "spine_05_to_mirror": 7.924485283154484,
+          "pelvis_to_mirror": 0.01996658314345306
+        }
+      },
+      {
+        "phase": 0.24583333333333332,
+        "upper_rotation_difference_deg": {
+          "head": 89.70259953437285,
+          "hand_l": 89.6860498099175,
+          "hand_r": 89.68830319411951,
+          "spine_05_to_mirror": 9.850855314085159,
+          "pelvis_to_mirror": 0.005093410358608933
+        }
+      }
+    ],
+    "after": [
+      {
+        "phase": 0.028125,
+        "upper_rotation_difference_deg": {
+          "head": 0.07535126339884828,
+          "hand_l": 0.007661714469552286,
+          "hand_r": 0.0028039517574804194,
+          "spine_05_to_mirror": 0.015224411617696021,
+          "pelvis_to_mirror": 0.03453978196456647
+        }
+      },
+      {
+        "phase": 0.04479166666666667,
+        "upper_rotation_difference_deg": {
+          "head": 0.019872594827556316,
+          "hand_l": 0.0037917167089268986,
+          "hand_r": 0.0013832471637340935,
+          "spine_05_to_mirror": 0.012661552760061657,
+          "pelvis_to_mirror": 0.031209315394282913
+        }
+      },
+      {
+        "phase": 0.06145833333333333,
+        "upper_rotation_difference_deg": {
+          "head": 0.024059575288412235,
+          "hand_l": 0.0017746157096759868,
+          "hand_r": 0.0034281281819057634,
+          "spine_05_to_mirror": 0.0084951641348257,
+          "pelvis_to_mirror": 0.02745225052627574
+        }
+      },
+      {
+        "phase": 0.078125,
+        "upper_rotation_difference_deg": {
+          "head": 0.04338293209922422,
+          "hand_l": 0.0017658028829173331,
+          "hand_r": 0.00216170294393638,
+          "spine_05_to_mirror": 0.005832437170737812,
+          "pelvis_to_mirror": 0.02610791163175886
+        }
+      },
+      {
+        "phase": 0.23333333333333334,
+        "upper_rotation_difference_deg": {
+          "head": 0.027477551595267907,
+          "hand_l": 0.0025676379042391634,
+          "hand_r": 0.0037736169317710557,
+          "spine_05_to_mirror": 0.0020284051962427543,
+          "pelvis_to_mirror": 0.0005812436807433549
+        }
+      }
+    ],
+    "max_after_deg": 0.07535126339884828
+  }
+}

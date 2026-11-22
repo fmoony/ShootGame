@@ -1,0 +1,51 @@
+{
+  "method": "Targeted Win32 key messages to verified UE PID 34188 preview HWND",
+  "windows": [
+    1181936
+  ],
+  "state": "Complete",
+  "events": [
+    {
+      "label": "F",
+      "keys": "W",
+      "start": 1795237522.7429113,
+      "end": 1795237523.8530374
+    },
+    {
+      "label": "F_stop",
+      "keys": "",
+      "start": 1795237523.8530374,
+      "end": 1795237524.2674105
+    },
+    {
+      "label": "FL",
+      "keys": "WA",
+      "start": 1795237524.2674105,
+      "end": 1795237525.3759027
+    },
+    {
+      "label": "FL_stop",
+      "keys": "",
+      "start": 1795237525.3759027,
+      "end": 1795237525.778125
+    },
+    {
+      "label": "BR",
+      "keys": "SD",
+      "start": 1795237525.778125,
+      "end": 1795237526.8815897
+    },
+    {
+      "label": "BR_stop",
+      "keys": "",
+      "start": 1795237526.8815897,
+      "end": 1795237527.29585
+    },
+    {
+      "label": "FinalStop",
+      "keys": "",
+      "start": 1795237527.29585,
+      "end": 1795237528.1100044
+    }
+  ]
+}

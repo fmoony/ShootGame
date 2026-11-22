@@ -1,0 +1,9 @@
+{
+  "checked": 2402,
+  "expected_deleted": 198,
+  "missing_expected": [],
+  "unexpected_missing": [],
+  "changed": [
+    "Docs/_工作区文档/下蹲实验进度.md"
+  ]
+}

@@ -1,0 +1,2402 @@
+[
+  {
+    "case": "Transition_FL_out",
+    "index": 0,
+    "file": "Transition_FL_out_00.png",
+    "t": 4.7979237996041775,
+    "elapsed": 0.8000131994485855,
+    "yaw": 0.0,
+    "phase": 0.8000131994485855,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_out",
+    "index": 1,
+    "file": "Transition_FL_out_01.png",
+    "t": 4.954347997903824,
+    "elapsed": 0.9564373977482319,
+    "yaw": -3.91304349899292,
+    "phase": 0.9564373977482319,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_out",
+    "index": 2,
+    "file": "Transition_FL_out_02.png",
+    "t": 5.10973159968853,
+    "elapsed": 1.111820999532938,
+    "yaw": -7.82608699798584,
+    "phase": 0.111820999532938,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_out",
+    "index": 3,
+    "file": "Transition_FL_out_03.png",
+    "t": 5.263139504939318,
+    "elapsed": 1.2652289047837257,
+    "yaw": -11.739130020141602,
+    "phase": 0.26522890478372574,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_out",
+    "index": 4,
+    "file": "Transition_FL_out_04.png",
+    "t": 5.416603513062,
+    "elapsed": 1.4186929129064083,
+    "yaw": -15.65217399597168,
+    "phase": 0.4186929129064083,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_out",
+    "index": 5,
+    "file": "Transition_FL_out_05.png",
+    "t": 5.567150305956602,
+    "elapsed": 1.5692397058010101,
+    "yaw": -19.565217971801758,
+    "phase": 0.5692397058010101,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_out",
+    "index": 6,
+    "file": "Transition_FL_out_06.png",
+    "t": 5.716458115726709,
+    "elapsed": 1.7185475155711174,
+    "yaw": -23.478260040283203,
+    "phase": 0.7185475155711174,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_out",
+    "index": 7,
+    "file": "Transition_FL_out_07.png",
+    "t": 5.8683304116129875,
+    "elapsed": 1.8704198114573956,
+    "yaw": -27.39130401611328,
+    "phase": 0.8704198114573956,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_out",
+    "index": 8,
+    "file": "Transition_FL_out_08.png",
+    "t": 6.022804003208876,
+    "elapsed": 2.0248934030532837,
+    "yaw": -31.30434799194336,
+    "phase": 0.02489340305328369,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_out",
+    "index": 9,
+    "file": "Transition_FL_out_09.png",
+    "t": 6.1812573075294495,
+    "elapsed": 2.1833467073738575,
+    "yaw": -35.21739196777344,
+    "phase": 0.1833467073738575,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_out",
+    "index": 10,
+    "file": "Transition_FL_out_10.png",
+    "t": 6.335275012999773,
+    "elapsed": 2.337364412844181,
+    "yaw": -39.130435943603516,
+    "phase": 0.33736441284418106,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_out",
+    "index": 11,
+    "file": "Transition_FL_out_11.png",
+    "t": 6.4842915162444115,
+    "elapsed": 2.4863809160888195,
+    "yaw": -43.043479919433594,
+    "phase": 0.4863809160888195,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_out",
+    "index": 12,
+    "file": "Transition_FL_out_12.png",
+    "t": 6.635421317070723,
+    "elapsed": 2.6375107169151306,
+    "yaw": -46.956520080566406,
+    "phase": 0.6375107169151306,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_out",
+    "index": 13,
+    "file": "Transition_FL_out_13.png",
+    "t": 6.791674509644508,
+    "elapsed": 2.7937639094889164,
+    "yaw": -50.869564056396484,
+    "phase": 0.7937639094889164,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_out",
+    "index": 14,
+    "file": "Transition_FL_out_14.png",
+    "t": 6.947589520365,
+    "elapsed": 2.949678920209408,
+    "yaw": -54.78260803222656,
+    "phase": 0.9496789202094078,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_out",
+    "index": 15,
+    "file": "Transition_FL_out_15.png",
+    "t": 7.109235011041164,
+    "elapsed": 3.1113244108855724,
+    "yaw": -58.69565200805664,
+    "phase": 0.11132441088557243,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_out",
+    "index": 16,
+    "file": "Transition_FL_out_16.png",
+    "t": 7.268010314553976,
+    "elapsed": 3.270099714398384,
+    "yaw": -62.60869598388672,
+    "phase": 0.2700997143983841,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_out",
+    "index": 17,
+    "file": "Transition_FL_out_17.png",
+    "t": 7.42962671816349,
+    "elapsed": 3.4317161180078983,
+    "yaw": -66.52173614501953,
+    "phase": 0.43171611800789833,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_out",
+    "index": 18,
+    "file": "Transition_FL_out_18.png",
+    "t": 7.591107819229364,
+    "elapsed": 3.5931972190737724,
+    "yaw": -70.43478393554688,
+    "phase": 0.5931972190737724,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_out",
+    "index": 19,
+    "file": "Transition_FL_out_19.png",
+    "t": 7.754090420901775,
+    "elapsed": 3.7561798207461834,
+    "yaw": -74.34782409667969,
+    "phase": 0.7561798207461834,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_out",
+    "index": 20,
+    "file": "Transition_FL_out_20.png",
+    "t": 7.917948320508003,
+    "elapsed": 3.9200377203524113,
+    "yaw": -78.26087188720703,
+    "phase": 0.9200377203524113,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_out",
+    "index": 21,
+    "file": "Transition_FL_out_21.png",
+    "t": 8.083847422152758,
+    "elapsed": 4.085936821997166,
+    "yaw": -82.17391204833984,
+    "phase": 0.08593682199716568,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_out",
+    "index": 22,
+    "file": "Transition_FL_out_22.png",
+    "t": 8.24661473184824,
+    "elapsed": 4.248704131692648,
+    "yaw": -86.08695983886719,
+    "phase": 0.24870413169264793,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_out",
+    "index": 23,
+    "file": "Transition_FL_out_23.png",
+    "t": 8.411797132343054,
+    "elapsed": 4.413886532187462,
+    "yaw": -90.0,
+    "phase": 0.41388653218746185,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_back",
+    "index": 0,
+    "file": "Transition_FL_back_00.png",
+    "t": 9.227852329611778,
+    "elapsed": 0.8160551972687244,
+    "yaw": -90.0,
+    "phase": 0.2299417294561863,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_back",
+    "index": 1,
+    "file": "Transition_FL_back_01.png",
+    "t": 9.388528127223253,
+    "elapsed": 0.9767309948801994,
+    "yaw": -86.08695983886719,
+    "phase": 0.3906175270676613,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_back",
+    "index": 2,
+    "file": "Transition_FL_back_02.png",
+    "t": 9.551801525056362,
+    "elapsed": 1.1400043927133083,
+    "yaw": -82.17391204833984,
+    "phase": 0.5538909249007702,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_back",
+    "index": 3,
+    "file": "Transition_FL_back_03.png",
+    "t": 9.709117025136948,
+    "elapsed": 1.2973198927938938,
+    "yaw": -78.26087188720703,
+    "phase": 0.7112064249813557,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_back",
+    "index": 4,
+    "file": "Transition_FL_back_04.png",
+    "t": 9.863387428224087,
+    "elapsed": 1.451590295881033,
+    "yaw": -74.34782409667969,
+    "phase": 0.8654768280684948,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_back",
+    "index": 5,
+    "file": "Transition_FL_back_05.png",
+    "t": 10.017685826867819,
+    "elapsed": 1.605888694524765,
+    "yaw": -70.43478393554688,
+    "phase": 0.019775226712226868,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_back",
+    "index": 6,
+    "file": "Transition_FL_back_06.png",
+    "t": 10.17668192088604,
+    "elapsed": 1.764884788542986,
+    "yaw": -66.52173614501953,
+    "phase": 0.17877132073044777,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_back",
+    "index": 7,
+    "file": "Transition_FL_back_07.png",
+    "t": 10.333523817360401,
+    "elapsed": 1.9217266850173473,
+    "yaw": -62.60869598388672,
+    "phase": 0.3356132172048092,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_back",
+    "index": 8,
+    "file": "Transition_FL_back_08.png",
+    "t": 10.489709414541721,
+    "elapsed": 2.0779122821986675,
+    "yaw": -58.69565200805664,
+    "phase": 0.4917988143861294,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_back",
+    "index": 9,
+    "file": "Transition_FL_back_09.png",
+    "t": 10.646522220224142,
+    "elapsed": 2.2347250878810883,
+    "yaw": -54.78260803222656,
+    "phase": 0.6486116200685501,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_back",
+    "index": 10,
+    "file": "Transition_FL_back_10.png",
+    "t": 10.801622524857521,
+    "elapsed": 2.3898253925144672,
+    "yaw": -50.869564056396484,
+    "phase": 0.8037119247019291,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_back",
+    "index": 11,
+    "file": "Transition_FL_back_11.png",
+    "t": 10.958224825561047,
+    "elapsed": 2.546427693217993,
+    "yaw": -46.956520080566406,
+    "phase": 0.9603142254054546,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_back",
+    "index": 12,
+    "file": "Transition_FL_back_12.png",
+    "t": 11.119735222309828,
+    "elapsed": 2.707938089966774,
+    "yaw": -43.043479919433594,
+    "phase": 0.12182462215423584,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_back",
+    "index": 13,
+    "file": "Transition_FL_back_13.png",
+    "t": 11.279440224170685,
+    "elapsed": 2.867643091827631,
+    "yaw": -39.130435943603516,
+    "phase": 0.28152962401509285,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_back",
+    "index": 14,
+    "file": "Transition_FL_back_14.png",
+    "t": 11.443019229918718,
+    "elapsed": 3.0312220975756645,
+    "yaw": -35.21739196777344,
+    "phase": 0.4451086297631264,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_back",
+    "index": 15,
+    "file": "Transition_FL_back_15.png",
+    "t": 11.60342413932085,
+    "elapsed": 3.1916270069777966,
+    "yaw": -31.30434799194336,
+    "phase": 0.6055135391652584,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_back",
+    "index": 16,
+    "file": "Transition_FL_back_16.png",
+    "t": 11.763091828674078,
+    "elapsed": 3.351294696331024,
+    "yaw": -27.39130401611328,
+    "phase": 0.765181228518486,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_back",
+    "index": 17,
+    "file": "Transition_FL_back_17.png",
+    "t": 11.925543326884508,
+    "elapsed": 3.5137461945414543,
+    "yaw": -23.478260040283203,
+    "phase": 0.9276327267289162,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_back",
+    "index": 18,
+    "file": "Transition_FL_back_18.png",
+    "t": 12.088396929204464,
+    "elapsed": 3.67659979686141,
+    "yaw": -19.565217971801758,
+    "phase": 0.090486329048872,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_back",
+    "index": 19,
+    "file": "Transition_FL_back_19.png",
+    "t": 12.249991338700056,
+    "elapsed": 3.8381942063570023,
+    "yaw": -15.65217399597168,
+    "phase": 0.2520807385444641,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_back",
+    "index": 20,
+    "file": "Transition_FL_back_20.png",
+    "t": 12.428015142679214,
+    "elapsed": 4.016218010336161,
+    "yaw": -11.739130020141602,
+    "phase": 0.4301045425236225,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_back",
+    "index": 21,
+    "file": "Transition_FL_back_21.png",
+    "t": 12.59156734123826,
+    "elapsed": 4.1797702088952065,
+    "yaw": -7.82608699798584,
+    "phase": 0.5936567410826683,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_back",
+    "index": 22,
+    "file": "Transition_FL_back_22.png",
+    "t": 12.756115041673183,
+    "elapsed": 4.34431790933013,
+    "yaw": -3.91304349899292,
+    "phase": 0.7582044415175915,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FL_back",
+    "index": 23,
+    "file": "Transition_FL_back_23.png",
+    "t": 12.921622645109892,
+    "elapsed": 4.509825512766838,
+    "yaw": 0.0,
+    "phase": 0.9237120449542999,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_out",
+    "index": 0,
+    "file": "Transition_FR_out_00.png",
+    "t": 13.736032240092754,
+    "elapsed": 0.8144095949828625,
+    "yaw": 0.0,
+    "phase": 0.7381216399371624,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_out",
+    "index": 1,
+    "file": "Transition_FR_out_01.png",
+    "t": 13.891619935631752,
+    "elapsed": 0.9699972905218601,
+    "yaw": 3.91304349899292,
+    "phase": 0.89370933547616,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_out",
+    "index": 2,
+    "file": "Transition_FR_out_02.png",
+    "t": 14.044702034443617,
+    "elapsed": 1.123079389333725,
+    "yaw": 7.82608699798584,
+    "phase": 0.0467914342880249,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_out",
+    "index": 3,
+    "file": "Transition_FR_out_03.png",
+    "t": 14.198116034269333,
+    "elapsed": 1.276493389159441,
+    "yaw": 11.739130020141602,
+    "phase": 0.20020543411374092,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_out",
+    "index": 4,
+    "file": "Transition_FR_out_04.png",
+    "t": 14.350222531706095,
+    "elapsed": 1.4285998865962029,
+    "yaw": 15.65217399597168,
+    "phase": 0.3523119315505028,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_out",
+    "index": 5,
+    "file": "Transition_FR_out_05.png",
+    "t": 14.503368027508259,
+    "elapsed": 1.581745382398367,
+    "yaw": 19.565217971801758,
+    "phase": 0.5054574273526669,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_out",
+    "index": 6,
+    "file": "Transition_FR_out_06.png",
+    "t": 14.655772026628256,
+    "elapsed": 1.734149381518364,
+    "yaw": 23.478260040283203,
+    "phase": 0.6578614264726639,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_out",
+    "index": 7,
+    "file": "Transition_FR_out_07.png",
+    "t": 14.808857128024101,
+    "elapsed": 1.8872344829142094,
+    "yaw": 27.39130401611328,
+    "phase": 0.8109465278685093,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_out",
+    "index": 8,
+    "file": "Transition_FR_out_08.png",
+    "t": 14.962013024836779,
+    "elapsed": 2.0403903797268867,
+    "yaw": 31.30434799194336,
+    "phase": 0.9641024246811867,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_out",
+    "index": 9,
+    "file": "Transition_FR_out_09.png",
+    "t": 15.115743022412062,
+    "elapsed": 2.19412037730217,
+    "yaw": 35.21739196777344,
+    "phase": 0.11783242225646973,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_out",
+    "index": 10,
+    "file": "Transition_FR_out_10.png",
+    "t": 15.267585024237633,
+    "elapsed": 2.345962379127741,
+    "yaw": 39.130435943603516,
+    "phase": 0.2696744240820408,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_out",
+    "index": 11,
+    "file": "Transition_FR_out_11.png",
+    "t": 15.420980025082827,
+    "elapsed": 2.4993573799729347,
+    "yaw": 43.043479919433594,
+    "phase": 0.42306942492723465,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_out",
+    "index": 12,
+    "file": "Transition_FR_out_12.png",
+    "t": 15.57240143045783,
+    "elapsed": 2.6507787853479385,
+    "yaw": 46.956520080566406,
+    "phase": 0.5744908303022385,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_out",
+    "index": 13,
+    "file": "Transition_FR_out_13.png",
+    "t": 15.7301115244627,
+    "elapsed": 2.808488879352808,
+    "yaw": 50.869564056396484,
+    "phase": 0.7322009243071079,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_out",
+    "index": 14,
+    "file": "Transition_FR_out_14.png",
+    "t": 15.885521922260523,
+    "elapsed": 2.963899277150631,
+    "yaw": 54.78260803222656,
+    "phase": 0.8876113221049309,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_out",
+    "index": 15,
+    "file": "Transition_FR_out_15.png",
+    "t": 16.043385915458202,
+    "elapsed": 3.1217632703483105,
+    "yaw": 58.69565200805664,
+    "phase": 0.0454753153026104,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_out",
+    "index": 16,
+    "file": "Transition_FR_out_16.png",
+    "t": 16.20171731337905,
+    "elapsed": 3.2800946682691574,
+    "yaw": 62.60869598388672,
+    "phase": 0.20380671322345734,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_out",
+    "index": 17,
+    "file": "Transition_FR_out_17.png",
+    "t": 16.360608015209436,
+    "elapsed": 3.4389853700995445,
+    "yaw": 66.52173614501953,
+    "phase": 0.36269741505384445,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_out",
+    "index": 18,
+    "file": "Transition_FR_out_18.png",
+    "t": 16.520084522664547,
+    "elapsed": 3.598461877554655,
+    "yaw": 70.43478393554688,
+    "phase": 0.522173922508955,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_out",
+    "index": 19,
+    "file": "Transition_FR_out_19.png",
+    "t": 16.67731111869216,
+    "elapsed": 3.7556884735822678,
+    "yaw": 74.34782409667969,
+    "phase": 0.6794005185365677,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_out",
+    "index": 20,
+    "file": "Transition_FR_out_20.png",
+    "t": 16.83562171459198,
+    "elapsed": 3.913999069482088,
+    "yaw": 78.26087188720703,
+    "phase": 0.837711114436388,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_out",
+    "index": 21,
+    "file": "Transition_FR_out_21.png",
+    "t": 16.995561812072992,
+    "elapsed": 4.0739391669631,
+    "yaw": 82.17391204833984,
+    "phase": 0.9976512119174004,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_out",
+    "index": 22,
+    "file": "Transition_FR_out_22.png",
+    "t": 17.15408330410719,
+    "elapsed": 4.232460658997297,
+    "yaw": 86.08695983886719,
+    "phase": 0.1561727039515972,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_out",
+    "index": 23,
+    "file": "Transition_FR_out_23.png",
+    "t": 17.314096000045538,
+    "elapsed": 4.392473354935646,
+    "yaw": 90.0,
+    "phase": 0.316185399889946,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_back",
+    "index": 0,
+    "file": "Transition_FR_back_00.png",
+    "t": 18.126614298671484,
+    "elapsed": 0.812518298625946,
+    "yaw": 90.0,
+    "phase": 0.12870369851589203,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_back",
+    "index": 1,
+    "file": "Transition_FR_back_01.png",
+    "t": 18.282231096178293,
+    "elapsed": 0.9681350961327553,
+    "yaw": 86.08695983886719,
+    "phase": 0.28432049602270126,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_back",
+    "index": 2,
+    "file": "Transition_FR_back_02.png",
+    "t": 18.435190595686436,
+    "elapsed": 1.1210945956408978,
+    "yaw": 82.17391204833984,
+    "phase": 0.43727999553084373,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_back",
+    "index": 3,
+    "file": "Transition_FR_back_03.png",
+    "t": 18.58744929358363,
+    "elapsed": 1.2733532935380936,
+    "yaw": 78.26087188720703,
+    "phase": 0.5895386934280396,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_back",
+    "index": 4,
+    "file": "Transition_FR_back_04.png",
+    "t": 18.74110448360443,
+    "elapsed": 1.4270084835588932,
+    "yaw": 74.34782409667969,
+    "phase": 0.7431938834488392,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_back",
+    "index": 5,
+    "file": "Transition_FR_back_05.png",
+    "t": 18.893534682691097,
+    "elapsed": 1.5794386826455593,
+    "yaw": 70.43478393554688,
+    "phase": 0.8956240825355053,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_back",
+    "index": 6,
+    "file": "Transition_FR_back_06.png",
+    "t": 19.0470825843513,
+    "elapsed": 1.7329865843057632,
+    "yaw": 66.52173614501953,
+    "phase": 0.04917198419570923,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_back",
+    "index": 7,
+    "file": "Transition_FR_back_07.png",
+    "t": 19.199937988072634,
+    "elapsed": 1.8858419880270958,
+    "yaw": 62.60869598388672,
+    "phase": 0.20202738791704178,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_back",
+    "index": 8,
+    "file": "Transition_FR_back_08.png",
+    "t": 19.353303980082273,
+    "elapsed": 2.0392079800367355,
+    "yaw": 58.69565200805664,
+    "phase": 0.3553933799266815,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_back",
+    "index": 9,
+    "file": "Transition_FR_back_09.png",
+    "t": 19.50595048442483,
+    "elapsed": 2.1918544843792915,
+    "yaw": 54.78260803222656,
+    "phase": 0.5080398842692375,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_back",
+    "index": 10,
+    "file": "Transition_FR_back_10.png",
+    "t": 19.658546082675457,
+    "elapsed": 2.344450082629919,
+    "yaw": 50.869564056396484,
+    "phase": 0.660635482519865,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_back",
+    "index": 11,
+    "file": "Transition_FR_back_11.png",
+    "t": 19.809428673237562,
+    "elapsed": 2.4953326731920242,
+    "yaw": 46.956520080566406,
+    "phase": 0.8115180730819702,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_back",
+    "index": 12,
+    "file": "Transition_FR_back_12.png",
+    "t": 19.960912883281708,
+    "elapsed": 2.64681688323617,
+    "yaw": 43.043479919433594,
+    "phase": 0.9630022831261158,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_back",
+    "index": 13,
+    "file": "Transition_FR_back_13.png",
+    "t": 20.116050988435745,
+    "elapsed": 2.8019549883902073,
+    "yaw": 39.130435943603516,
+    "phase": 0.11814038828015327,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_back",
+    "index": 14,
+    "file": "Transition_FR_back_14.png",
+    "t": 20.273368392139673,
+    "elapsed": 2.9592723920941353,
+    "yaw": 35.21739196777344,
+    "phase": 0.27545779198408127,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_back",
+    "index": 15,
+    "file": "Transition_FR_back_15.png",
+    "t": 20.428985498845577,
+    "elapsed": 3.1148894988000393,
+    "yaw": 31.30434799194336,
+    "phase": 0.4310748986899853,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_back",
+    "index": 16,
+    "file": "Transition_FR_back_16.png",
+    "t": 20.585436195135117,
+    "elapsed": 3.2713401950895786,
+    "yaw": 27.39130401611328,
+    "phase": 0.5875255949795246,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_back",
+    "index": 17,
+    "file": "Transition_FR_back_17.png",
+    "t": 20.742191188037395,
+    "elapsed": 3.4280951879918575,
+    "yaw": 23.478260040283203,
+    "phase": 0.7442805878818035,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_back",
+    "index": 18,
+    "file": "Transition_FR_back_18.png",
+    "t": 20.899910792708397,
+    "elapsed": 3.585814792662859,
+    "yaw": 19.565217971801758,
+    "phase": 0.902000192552805,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_back",
+    "index": 19,
+    "file": "Transition_FR_back_19.png",
+    "t": 21.05637239292264,
+    "elapsed": 3.742276392877102,
+    "yaw": 15.65217399597168,
+    "phase": 0.05846179276704788,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_back",
+    "index": 20,
+    "file": "Transition_FR_back_20.png",
+    "t": 21.214843790978193,
+    "elapsed": 3.9007477909326553,
+    "yaw": 11.739130020141602,
+    "phase": 0.21693319082260132,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_back",
+    "index": 21,
+    "file": "Transition_FR_back_21.png",
+    "t": 21.37386478483677,
+    "elapsed": 4.059768784791231,
+    "yaw": 7.82608699798584,
+    "phase": 0.37595418468117714,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_back",
+    "index": 22,
+    "file": "Transition_FR_back_22.png",
+    "t": 21.5337149836123,
+    "elapsed": 4.219618983566761,
+    "yaw": 3.91304349899292,
+    "phase": 0.535804383456707,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_FR_back",
+    "index": 23,
+    "file": "Transition_FR_back_23.png",
+    "t": 21.692153982818127,
+    "elapsed": 4.378057982772589,
+    "yaw": 0.0,
+    "phase": 0.6942433826625347,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_out",
+    "index": 0,
+    "file": "Transition_BL_out_00.png",
+    "t": 22.501480974256992,
+    "elapsed": 0.8093269914388657,
+    "yaw": 180.0,
+    "phase": 0.5035703741014004,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_out",
+    "index": 1,
+    "file": "Transition_BL_out_01.png",
+    "t": 22.651840265840292,
+    "elapsed": 0.9596862830221653,
+    "yaw": -176.0869598388672,
+    "phase": 0.6539296656847,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_out",
+    "index": 2,
+    "file": "Transition_BL_out_02.png",
+    "t": 22.804579362273216,
+    "elapsed": 1.1124253794550896,
+    "yaw": -172.17391967773438,
+    "phase": 0.8066687621176243,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_out",
+    "index": 3,
+    "file": "Transition_BL_out_03.png",
+    "t": 22.953893668949604,
+    "elapsed": 1.2617396861314774,
+    "yaw": -168.2608642578125,
+    "phase": 0.9559830687940121,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_out",
+    "index": 4,
+    "file": "Transition_BL_out_04.png",
+    "t": 23.10435116291046,
+    "elapsed": 1.4121971800923347,
+    "yaw": -164.3478240966797,
+    "phase": 0.10644056275486946,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_out",
+    "index": 5,
+    "file": "Transition_BL_out_05.png",
+    "t": 23.25617565587163,
+    "elapsed": 1.564021673053503,
+    "yaw": -160.43478393554688,
+    "phase": 0.25826505571603775,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_out",
+    "index": 6,
+    "file": "Transition_BL_out_06.png",
+    "t": 23.407239861786366,
+    "elapsed": 1.7150858789682388,
+    "yaw": -156.52174377441406,
+    "phase": 0.40932926163077354,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_out",
+    "index": 7,
+    "file": "Transition_BL_out_07.png",
+    "t": 23.557158261537552,
+    "elapsed": 1.8650042787194252,
+    "yaw": -152.6086883544922,
+    "phase": 0.5592476613819599,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_out",
+    "index": 8,
+    "file": "Transition_BL_out_08.png",
+    "t": 23.70823986083269,
+    "elapsed": 2.0160858780145645,
+    "yaw": -148.69564819335938,
+    "phase": 0.7103292606770992,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_out",
+    "index": 9,
+    "file": "Transition_BL_out_09.png",
+    "t": 23.85766526684165,
+    "elapsed": 2.1655112840235233,
+    "yaw": -144.78260803222656,
+    "phase": 0.859754666686058,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_out",
+    "index": 10,
+    "file": "Transition_BL_out_10.png",
+    "t": 24.00865176320076,
+    "elapsed": 2.316497780382633,
+    "yaw": -140.86956787109375,
+    "phase": 0.010741163045167923,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_out",
+    "index": 11,
+    "file": "Transition_BL_out_11.png",
+    "t": 24.158753365278244,
+    "elapsed": 2.4665993824601173,
+    "yaw": -136.95652770996094,
+    "phase": 0.16084276512265205,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_out",
+    "index": 12,
+    "file": "Transition_BL_out_12.png",
+    "t": 24.30859725922346,
+    "elapsed": 2.6164432764053345,
+    "yaw": -133.04347229003906,
+    "phase": 0.3106866590678692,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_out",
+    "index": 13,
+    "file": "Transition_BL_out_13.png",
+    "t": 24.46050065383315,
+    "elapsed": 2.768346671015024,
+    "yaw": -129.13043212890625,
+    "phase": 0.4625900536775589,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_out",
+    "index": 14,
+    "file": "Transition_BL_out_14.png",
+    "t": 24.61359055712819,
+    "elapsed": 2.9214365743100643,
+    "yaw": -125.21739196777344,
+    "phase": 0.615679956972599,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_out",
+    "index": 15,
+    "file": "Transition_BL_out_15.png",
+    "t": 24.768292047083378,
+    "elapsed": 3.076138064265251,
+    "yaw": -121.3043441772461,
+    "phase": 0.7703814469277859,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_out",
+    "index": 16,
+    "file": "Transition_BL_out_16.png",
+    "t": 24.92216584086418,
+    "elapsed": 3.230011858046055,
+    "yaw": -117.39130401611328,
+    "phase": 0.9242552407085896,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_out",
+    "index": 17,
+    "file": "Transition_BL_out_17.png",
+    "t": 25.077482137829065,
+    "elapsed": 3.3853281550109386,
+    "yaw": -113.47826385498047,
+    "phase": 0.07957153767347336,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_out",
+    "index": 18,
+    "file": "Transition_BL_out_18.png",
+    "t": 25.233914740383625,
+    "elapsed": 3.5417607575654984,
+    "yaw": -109.56521606445312,
+    "phase": 0.23600414022803307,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_out",
+    "index": 19,
+    "file": "Transition_BL_out_19.png",
+    "t": 25.38952734693885,
+    "elapsed": 3.697373364120722,
+    "yaw": -105.65217590332031,
+    "phase": 0.39161674678325653,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_out",
+    "index": 20,
+    "file": "Transition_BL_out_20.png",
+    "t": 25.664494555443525,
+    "elapsed": 3.9723405726253986,
+    "yaw": -101.73912811279297,
+    "phase": 0.6665839552879333,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_out",
+    "index": 21,
+    "file": "Transition_BL_out_21.png",
+    "t": 25.824265956878662,
+    "elapsed": 4.132111974060535,
+    "yaw": -97.82608795166016,
+    "phase": 0.8263553567230701,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_out",
+    "index": 22,
+    "file": "Transition_BL_out_22.png",
+    "t": 25.985232654958963,
+    "elapsed": 4.293078672140837,
+    "yaw": -93.91304016113281,
+    "phase": 0.9873220548033714,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_out",
+    "index": 23,
+    "file": "Transition_BL_out_23.png",
+    "t": 26.14731105417013,
+    "elapsed": 4.455157071352005,
+    "yaw": -90.0,
+    "phase": 0.14940045401453972,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_back",
+    "index": 0,
+    "file": "Transition_BL_back_00.png",
+    "t": 26.962808456271887,
+    "elapsed": 0.8154974021017551,
+    "yaw": -90.0,
+    "phase": 0.9648978561162949,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_back",
+    "index": 1,
+    "file": "Transition_BL_back_01.png",
+    "t": 27.118787363171577,
+    "elapsed": 0.9714763090014458,
+    "yaw": -93.91304016113281,
+    "phase": 0.12087676301598549,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_back",
+    "index": 2,
+    "file": "Transition_BL_back_02.png",
+    "t": 27.28212806582451,
+    "elapsed": 1.134817011654377,
+    "yaw": -97.82608795166016,
+    "phase": 0.2842174656689167,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_back",
+    "index": 3,
+    "file": "Transition_BL_back_03.png",
+    "t": 27.434545669704676,
+    "elapsed": 1.287234615534544,
+    "yaw": -101.73912811279297,
+    "phase": 0.4366350695490837,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_back",
+    "index": 4,
+    "file": "Transition_BL_back_04.png",
+    "t": 27.58537896722555,
+    "elapsed": 1.43806791305542,
+    "yaw": -105.65217590332031,
+    "phase": 0.5874683670699596,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_back",
+    "index": 5,
+    "file": "Transition_BL_back_05.png",
+    "t": 27.736087661236525,
+    "elapsed": 1.588776607066393,
+    "yaw": -109.56521606445312,
+    "phase": 0.7381770610809326,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_back",
+    "index": 6,
+    "file": "Transition_BL_back_06.png",
+    "t": 27.894897166639566,
+    "elapsed": 1.7475861124694347,
+    "yaw": -113.47826385498047,
+    "phase": 0.8969865664839745,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_back",
+    "index": 7,
+    "file": "Transition_BL_back_07.png",
+    "t": 28.04918446391821,
+    "elapsed": 1.9018734097480774,
+    "yaw": -117.39130401611328,
+    "phase": 0.05127386376261711,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_back",
+    "index": 8,
+    "file": "Transition_BL_back_08.png",
+    "t": 28.202204164117575,
+    "elapsed": 2.054893109947443,
+    "yaw": -121.3043441772461,
+    "phase": 0.20429356396198273,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_back",
+    "index": 9,
+    "file": "Transition_BL_back_09.png",
+    "t": 28.353995755314827,
+    "elapsed": 2.2066847011446953,
+    "yaw": -125.21739196777344,
+    "phase": 0.356085155159235,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_back",
+    "index": 10,
+    "file": "Transition_BL_back_10.png",
+    "t": 28.505200255662203,
+    "elapsed": 2.357889201492071,
+    "yaw": -129.13043212890625,
+    "phase": 0.5072896555066109,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_back",
+    "index": 11,
+    "file": "Transition_BL_back_11.png",
+    "t": 28.655594147741795,
+    "elapsed": 2.508283093571663,
+    "yaw": -133.04347229003906,
+    "phase": 0.6576835475862026,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_back",
+    "index": 12,
+    "file": "Transition_BL_back_12.png",
+    "t": 28.807590644806623,
+    "elapsed": 2.6602795906364918,
+    "yaw": -136.95652770996094,
+    "phase": 0.8096800446510315,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_back",
+    "index": 13,
+    "file": "Transition_BL_back_13.png",
+    "t": 28.9701127409935,
+    "elapsed": 2.822801686823368,
+    "yaw": -140.86956787109375,
+    "phase": 0.9722021408379078,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_back",
+    "index": 14,
+    "file": "Transition_BL_back_14.png",
+    "t": 29.13291944935918,
+    "elapsed": 2.985608395189047,
+    "yaw": -144.78260803222656,
+    "phase": 0.13500884920358658,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_back",
+    "index": 15,
+    "file": "Transition_BL_back_15.png",
+    "t": 29.297227047383785,
+    "elapsed": 3.1499159932136536,
+    "yaw": -148.69564819335938,
+    "phase": 0.2993164472281933,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_back",
+    "index": 16,
+    "file": "Transition_BL_back_16.png",
+    "t": 29.460183940827847,
+    "elapsed": 3.312872886657715,
+    "yaw": -152.6086883544922,
+    "phase": 0.46227334067225456,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_back",
+    "index": 17,
+    "file": "Transition_BL_back_17.png",
+    "t": 29.61994243785739,
+    "elapsed": 3.4726313836872578,
+    "yaw": -156.52174377441406,
+    "phase": 0.6220318377017975,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_back",
+    "index": 18,
+    "file": "Transition_BL_back_18.png",
+    "t": 29.789314329624176,
+    "elapsed": 3.6420032754540443,
+    "yaw": -160.43478393554688,
+    "phase": 0.7914037294685841,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_back",
+    "index": 19,
+    "file": "Transition_BL_back_19.png",
+    "t": 29.976657431572676,
+    "elapsed": 3.829346377402544,
+    "yaw": -164.3478240966797,
+    "phase": 0.9787468314170837,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_back",
+    "index": 20,
+    "file": "Transition_BL_back_20.png",
+    "t": 30.153543528169394,
+    "elapsed": 4.006232473999262,
+    "yaw": -168.2608642578125,
+    "phase": 0.15563292801380157,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_back",
+    "index": 21,
+    "file": "Transition_BL_back_21.png",
+    "t": 30.317364130169153,
+    "elapsed": 4.1700530759990215,
+    "yaw": -172.17391967773438,
+    "phase": 0.31945353001356125,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_back",
+    "index": 22,
+    "file": "Transition_BL_back_22.png",
+    "t": 30.481393225491047,
+    "elapsed": 4.334082171320915,
+    "yaw": -176.0869598388672,
+    "phase": 0.48348262533545494,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BL_back",
+    "index": 23,
+    "file": "Transition_BL_back_23.png",
+    "t": 30.642864521592855,
+    "elapsed": 4.495553467422724,
+    "yaw": 180.0,
+    "phase": 0.6449539214372635,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_out",
+    "index": 0,
+    "file": "Transition_BR_out_00.png",
+    "t": 31.457444723695517,
+    "elapsed": 0.8145802021026611,
+    "yaw": 180.0,
+    "phase": 0.4595341235399246,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_out",
+    "index": 1,
+    "file": "Transition_BR_out_01.png",
+    "t": 31.616799220442772,
+    "elapsed": 0.9739346988499165,
+    "yaw": 176.0869598388672,
+    "phase": 0.61888862028718,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_out",
+    "index": 2,
+    "file": "Transition_BR_out_02.png",
+    "t": 31.775439523160458,
+    "elapsed": 1.1325750015676022,
+    "yaw": 172.17391967773438,
+    "phase": 0.7775289230048656,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_out",
+    "index": 3,
+    "file": "Transition_BR_out_03.png",
+    "t": 31.934010323137045,
+    "elapsed": 1.2911458015441895,
+    "yaw": 168.2608642578125,
+    "phase": 0.9360997229814529,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_out",
+    "index": 4,
+    "file": "Transition_BR_out_04.png",
+    "t": 32.0913330167532,
+    "elapsed": 1.4484684951603413,
+    "yaw": 164.3478240966797,
+    "phase": 0.09342241659760475,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_out",
+    "index": 5,
+    "file": "Transition_BR_out_05.png",
+    "t": 32.2481637224555,
+    "elapsed": 1.605299200862646,
+    "yaw": 160.43478393554688,
+    "phase": 0.2502531222999096,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_out",
+    "index": 6,
+    "file": "Transition_BR_out_06.png",
+    "t": 32.42018521949649,
+    "elapsed": 1.7773206979036331,
+    "yaw": 156.52174377441406,
+    "phase": 0.4222746193408966,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_out",
+    "index": 7,
+    "file": "Transition_BR_out_07.png",
+    "t": 32.57702201977372,
+    "elapsed": 1.9341574981808662,
+    "yaw": 152.6086883544922,
+    "phase": 0.5791114196181297,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_out",
+    "index": 8,
+    "file": "Transition_BR_out_08.png",
+    "t": 32.73274862021208,
+    "elapsed": 2.0898840986192226,
+    "yaw": 148.69564819335938,
+    "phase": 0.7348380200564861,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_out",
+    "index": 9,
+    "file": "Transition_BR_out_09.png",
+    "t": 32.889609824866056,
+    "elapsed": 2.246745303273201,
+    "yaw": 144.78260803222656,
+    "phase": 0.8916992247104645,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_out",
+    "index": 10,
+    "file": "Transition_BR_out_10.png",
+    "t": 33.04175692796707,
+    "elapsed": 2.398892406374216,
+    "yaw": 140.86956787109375,
+    "phase": 0.04384632781147957,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_out",
+    "index": 11,
+    "file": "Transition_BR_out_11.png",
+    "t": 33.19915033131838,
+    "elapsed": 2.556285809725523,
+    "yaw": 136.95652770996094,
+    "phase": 0.20123973116278648,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_out",
+    "index": 12,
+    "file": "Transition_BR_out_12.png",
+    "t": 33.353106927126646,
+    "elapsed": 2.7102424055337906,
+    "yaw": 133.04347229003906,
+    "phase": 0.3551963269710541,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_out",
+    "index": 13,
+    "file": "Transition_BR_out_13.png",
+    "t": 33.51165692508221,
+    "elapsed": 2.8687924034893513,
+    "yaw": 129.13043212890625,
+    "phase": 0.5137463249266148,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_out",
+    "index": 14,
+    "file": "Transition_BR_out_14.png",
+    "t": 33.66932373121381,
+    "elapsed": 3.0264592096209526,
+    "yaw": 125.21739196777344,
+    "phase": 0.6714131310582161,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_out",
+    "index": 15,
+    "file": "Transition_BR_out_15.png",
+    "t": 33.82891193777323,
+    "elapsed": 3.1860474161803722,
+    "yaw": 121.3043441772461,
+    "phase": 0.8310013376176357,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_out",
+    "index": 16,
+    "file": "Transition_BR_out_16.png",
+    "t": 33.993229027837515,
+    "elapsed": 3.3503645062446594,
+    "yaw": 117.39130401611328,
+    "phase": 0.9953184276819229,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_out",
+    "index": 17,
+    "file": "Transition_BR_out_17.png",
+    "t": 34.15547363832593,
+    "elapsed": 3.512609116733074,
+    "yaw": 113.47826385498047,
+    "phase": 0.15756303817033768,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_out",
+    "index": 18,
+    "file": "Transition_BR_out_18.png",
+    "t": 34.31764832884073,
+    "elapsed": 3.674783807247877,
+    "yaw": 109.56521606445312,
+    "phase": 0.3197377286851406,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_out",
+    "index": 19,
+    "file": "Transition_BR_out_19.png",
+    "t": 34.47938623651862,
+    "elapsed": 3.836521714925766,
+    "yaw": 105.65217590332031,
+    "phase": 0.4814756363630295,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_out",
+    "index": 20,
+    "file": "Transition_BR_out_20.png",
+    "t": 34.64289303123951,
+    "elapsed": 4.000028509646654,
+    "yaw": 101.73912811279297,
+    "phase": 0.6449824310839176,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_out",
+    "index": 21,
+    "file": "Transition_BR_out_21.png",
+    "t": 34.81107293441892,
+    "elapsed": 4.168208412826061,
+    "yaw": 97.82608795166016,
+    "phase": 0.8131623342633247,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_out",
+    "index": 22,
+    "file": "Transition_BR_out_22.png",
+    "t": 34.97481093555689,
+    "elapsed": 4.331946413964033,
+    "yaw": 93.91304016113281,
+    "phase": 0.9769003354012966,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_out",
+    "index": 23,
+    "file": "Transition_BR_out_23.png",
+    "t": 35.13735643029213,
+    "elapsed": 4.494491908699274,
+    "yaw": 90.0,
+    "phase": 0.13944583013653755,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_back",
+    "index": 0,
+    "file": "Transition_BR_back_00.png",
+    "t": 35.95214702561498,
+    "elapsed": 0.8147905953228474,
+    "yaw": 90.0,
+    "phase": 0.9542364254593849,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_back",
+    "index": 1,
+    "file": "Transition_BR_back_01.png",
+    "t": 36.11186742037535,
+    "elapsed": 0.9745109900832176,
+    "yaw": 93.91304016113281,
+    "phase": 0.11395682021975517,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_back",
+    "index": 2,
+    "file": "Transition_BR_back_02.png",
+    "t": 36.26939222216606,
+    "elapsed": 1.1320357918739319,
+    "yaw": 97.82608795166016,
+    "phase": 0.27148162201046944,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_back",
+    "index": 3,
+    "file": "Transition_BR_back_03.png",
+    "t": 36.427431125193834,
+    "elapsed": 1.2900746949017048,
+    "yaw": 101.73912811279297,
+    "phase": 0.42952052503824234,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_back",
+    "index": 4,
+    "file": "Transition_BR_back_04.png",
+    "t": 36.583027727901936,
+    "elapsed": 1.445671297609806,
+    "yaw": 105.65217590332031,
+    "phase": 0.5851171277463436,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_back",
+    "index": 5,
+    "file": "Transition_BR_back_05.png",
+    "t": 36.73657462373376,
+    "elapsed": 1.5992181934416294,
+    "yaw": 109.56521606445312,
+    "phase": 0.738664023578167,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_back",
+    "index": 6,
+    "file": "Transition_BR_back_06.png",
+    "t": 36.895298920571804,
+    "elapsed": 1.7579424902796745,
+    "yaw": 113.47826385498047,
+    "phase": 0.8973883204162121,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_back",
+    "index": 7,
+    "file": "Transition_BR_back_07.png",
+    "t": 37.05314862728119,
+    "elapsed": 1.9157921969890594,
+    "yaw": 117.39130401611328,
+    "phase": 0.055238027125597,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_back",
+    "index": 8,
+    "file": "Transition_BR_back_08.png",
+    "t": 37.20881341770291,
+    "elapsed": 2.0714569874107838,
+    "yaw": 121.3043441772461,
+    "phase": 0.21090281754732132,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_back",
+    "index": 9,
+    "file": "Transition_BR_back_09.png",
+    "t": 37.36452791839838,
+    "elapsed": 2.2271714881062508,
+    "yaw": 125.21739196777344,
+    "phase": 0.3666173182427883,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_back",
+    "index": 10,
+    "file": "Transition_BR_back_10.png",
+    "t": 37.51720532402396,
+    "elapsed": 2.3798488937318325,
+    "yaw": 129.13043212890625,
+    "phase": 0.5192947238683701,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_back",
+    "index": 11,
+    "file": "Transition_BR_back_11.png",
+    "t": 37.675892028957605,
+    "elapsed": 2.538535598665476,
+    "yaw": 133.04347229003906,
+    "phase": 0.6779814288020134,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_back",
+    "index": 12,
+    "file": "Transition_BR_back_12.png",
+    "t": 37.83129343762994,
+    "elapsed": 2.6939370073378086,
+    "yaw": 136.95652770996094,
+    "phase": 0.8333828374743462,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_back",
+    "index": 13,
+    "file": "Transition_BR_back_13.png",
+    "t": 37.99249393492937,
+    "elapsed": 2.8551375046372414,
+    "yaw": 140.86956787109375,
+    "phase": 0.9945833347737789,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_back",
+    "index": 14,
+    "file": "Transition_BR_back_14.png",
+    "t": 38.15229503437877,
+    "elapsed": 3.0149386040866375,
+    "yaw": 144.78260803222656,
+    "phase": 0.15438443422317505,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_back",
+    "index": 15,
+    "file": "Transition_BR_back_15.png",
+    "t": 38.3096821308136,
+    "elapsed": 3.172325700521469,
+    "yaw": 148.69564819335938,
+    "phase": 0.31177153065800667,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_back",
+    "index": 16,
+    "file": "Transition_BR_back_16.png",
+    "t": 38.46774723008275,
+    "elapsed": 3.330390799790621,
+    "yaw": 152.6086883544922,
+    "phase": 0.46983662992715836,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_back",
+    "index": 17,
+    "file": "Transition_BR_back_17.png",
+    "t": 38.62779272347689,
+    "elapsed": 3.4904362931847572,
+    "yaw": 156.52174377441406,
+    "phase": 0.6298821233212948,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_back",
+    "index": 18,
+    "file": "Transition_BR_back_18.png",
+    "t": 38.78554913029075,
+    "elapsed": 3.648192699998617,
+    "yaw": 160.43478393554688,
+    "phase": 0.7876385301351547,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_back",
+    "index": 19,
+    "file": "Transition_BR_back_19.png",
+    "t": 38.94526273012161,
+    "elapsed": 3.807906299829483,
+    "yaw": 164.3478240966797,
+    "phase": 0.9473521299660206,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_back",
+    "index": 20,
+    "file": "Transition_BR_back_20.png",
+    "t": 39.102645326405764,
+    "elapsed": 3.965288896113634,
+    "yaw": 168.2608642578125,
+    "phase": 0.10473472625017166,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_back",
+    "index": 21,
+    "file": "Transition_BR_back_21.png",
+    "t": 39.26173923164606,
+    "elapsed": 4.124382801353931,
+    "yaw": 172.17391967773438,
+    "phase": 0.263828631490469,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_back",
+    "index": 22,
+    "file": "Transition_BR_back_22.png",
+    "t": 39.42131182551384,
+    "elapsed": 4.28395539522171,
+    "yaw": 176.0869598388672,
+    "phase": 0.42340122535824776,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_BR_back",
+    "index": 23,
+    "file": "Transition_BR_back_23.png",
+    "t": 39.585341323167086,
+    "elapsed": 4.447984892874956,
+    "yaw": 180.0,
+    "phase": 0.5874307230114937,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CW",
+    "index": 0,
+    "file": "Transition_Circle_CW_00.png",
+    "t": 40.398649625480175,
+    "elapsed": 0.8133083023130894,
+    "yaw": 0.0,
+    "phase": 0.40073902532458305,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CW",
+    "index": 1,
+    "file": "Transition_Circle_CW_01.png",
+    "t": 40.55664811655879,
+    "elapsed": 0.9713067933917046,
+    "yaw": 15.65217399597168,
+    "phase": 0.5587375164031982,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CW",
+    "index": 2,
+    "file": "Transition_Circle_CW_02.png",
+    "t": 40.71412481740117,
+    "elapsed": 1.128783494234085,
+    "yaw": 31.30434799194336,
+    "phase": 0.7162142172455788,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CW",
+    "index": 3,
+    "file": "Transition_Circle_CW_03.png",
+    "t": 40.86873201280832,
+    "elapsed": 1.2833906896412373,
+    "yaw": 46.956520080566406,
+    "phase": 0.8708214126527309,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CW",
+    "index": 4,
+    "file": "Transition_Circle_CW_04.png",
+    "t": 41.02164551615715,
+    "elapsed": 1.4363041929900646,
+    "yaw": 62.60869598388672,
+    "phase": 0.023734916001558304,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CW",
+    "index": 5,
+    "file": "Transition_Circle_CW_05.png",
+    "t": 41.17953561618924,
+    "elapsed": 1.5941942930221558,
+    "yaw": 78.26087188720703,
+    "phase": 0.18162501603364944,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CW",
+    "index": 6,
+    "file": "Transition_Circle_CW_06.png",
+    "t": 41.33288712054491,
+    "elapsed": 1.7475457973778248,
+    "yaw": 93.91304016113281,
+    "phase": 0.33497652038931847,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CW",
+    "index": 7,
+    "file": "Transition_Circle_CW_07.png",
+    "t": 41.48563562706113,
+    "elapsed": 1.900294303894043,
+    "yaw": 109.56521606445312,
+    "phase": 0.48772502690553665,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CW",
+    "index": 8,
+    "file": "Transition_Circle_CW_08.png",
+    "t": 41.639277029782534,
+    "elapsed": 2.053935706615448,
+    "yaw": 125.21739196777344,
+    "phase": 0.6413664296269417,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CW",
+    "index": 9,
+    "file": "Transition_Circle_CW_09.png",
+    "t": 41.79262153059244,
+    "elapsed": 2.207280207425356,
+    "yaw": 140.86956787109375,
+    "phase": 0.7947109304368496,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CW",
+    "index": 10,
+    "file": "Transition_Circle_CW_10.png",
+    "t": 41.94721503183246,
+    "elapsed": 2.361873708665371,
+    "yaw": 156.52174377441406,
+    "phase": 0.9493044316768646,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CW",
+    "index": 11,
+    "file": "Transition_Circle_CW_11.png",
+    "t": 42.1011602319777,
+    "elapsed": 2.5158189088106155,
+    "yaw": 172.17391967773438,
+    "phase": 0.10324963182210922,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CW",
+    "index": 12,
+    "file": "Transition_Circle_CW_12.png",
+    "t": 42.25498044118285,
+    "elapsed": 2.669639118015766,
+    "yaw": -172.17391967773438,
+    "phase": 0.2570698410272598,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CW",
+    "index": 13,
+    "file": "Transition_Circle_CW_13.png",
+    "t": 42.41310504078865,
+    "elapsed": 2.827763717621565,
+    "yaw": -156.52174377441406,
+    "phase": 0.41519444063305855,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CW",
+    "index": 14,
+    "file": "Transition_Circle_CW_14.png",
+    "t": 42.568005338311195,
+    "elapsed": 2.9826640151441097,
+    "yaw": -140.86956787109375,
+    "phase": 0.5700947381556034,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CW",
+    "index": 15,
+    "file": "Transition_Circle_CW_15.png",
+    "t": 42.724216643720865,
+    "elapsed": 3.1388753205537796,
+    "yaw": -125.21739196777344,
+    "phase": 0.7263060435652733,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CW",
+    "index": 16,
+    "file": "Transition_Circle_CW_16.png",
+    "t": 42.88201434165239,
+    "elapsed": 3.2966730184853077,
+    "yaw": -109.56521606445312,
+    "phase": 0.8841037414968014,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CW",
+    "index": 17,
+    "file": "Transition_Circle_CW_17.png",
+    "t": 43.0373094342649,
+    "elapsed": 3.4519681110978127,
+    "yaw": -93.91304016113281,
+    "phase": 0.039398834109306335,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CW",
+    "index": 18,
+    "file": "Transition_Circle_CW_18.png",
+    "t": 43.196476727724075,
+    "elapsed": 3.6111354045569897,
+    "yaw": -78.26087188720703,
+    "phase": 0.19856612756848335,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CW",
+    "index": 19,
+    "file": "Transition_Circle_CW_19.png",
+    "t": 43.35717313736677,
+    "elapsed": 3.771831814199686,
+    "yaw": -62.60869598388672,
+    "phase": 0.35926253721117973,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CW",
+    "index": 20,
+    "file": "Transition_Circle_CW_20.png",
+    "t": 43.51631474122405,
+    "elapsed": 3.930973418056965,
+    "yaw": -46.956520080566406,
+    "phase": 0.5184041410684586,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CW",
+    "index": 21,
+    "file": "Transition_Circle_CW_21.png",
+    "t": 43.676026448607445,
+    "elapsed": 4.090685125440359,
+    "yaw": -31.30434799194336,
+    "phase": 0.6781158484518528,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CW",
+    "index": 22,
+    "file": "Transition_Circle_CW_22.png",
+    "t": 43.83298685029149,
+    "elapsed": 4.247645527124405,
+    "yaw": -15.65217399597168,
+    "phase": 0.8350762501358986,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CW",
+    "index": 23,
+    "file": "Transition_Circle_CW_23.png",
+    "t": 43.99323835596442,
+    "elapsed": 4.407897032797337,
+    "yaw": 0.0,
+    "phase": 0.9953277558088303,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CCW",
+    "index": 0,
+    "file": "Transition_Circle_CCW_00.png",
+    "t": 44.80658125504851,
+    "elapsed": 0.8133428990840912,
+    "yaw": 0.0,
+    "phase": 0.8086706548929214,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CCW",
+    "index": 1,
+    "file": "Transition_Circle_CCW_01.png",
+    "t": 44.965445563197136,
+    "elapsed": 0.9722072072327137,
+    "yaw": -15.65217399597168,
+    "phase": 0.967534963041544,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CCW",
+    "index": 2,
+    "file": "Transition_Circle_CCW_02.png",
+    "t": 45.12235555425286,
+    "elapsed": 1.1291171982884407,
+    "yaw": -31.30434799194336,
+    "phase": 0.12444495409727097,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CCW",
+    "index": 3,
+    "file": "Transition_Circle_CCW_03.png",
+    "t": 45.28115675970912,
+    "elapsed": 1.2879184037446976,
+    "yaw": -46.956520080566406,
+    "phase": 0.28324615955352783,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CCW",
+    "index": 4,
+    "file": "Transition_Circle_CCW_04.png",
+    "t": 45.43721055984497,
+    "elapsed": 1.4439722038805485,
+    "yaw": -62.60869598388672,
+    "phase": 0.43929995968937874,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CCW",
+    "index": 5,
+    "file": "Transition_Circle_CCW_05.png",
+    "t": 45.592520359903574,
+    "elapsed": 1.5992820039391518,
+    "yaw": -78.26087188720703,
+    "phase": 0.594609759747982,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CCW",
+    "index": 6,
+    "file": "Transition_Circle_CCW_06.png",
+    "t": 45.76599156111479,
+    "elapsed": 1.7727532051503658,
+    "yaw": -93.91304016113281,
+    "phase": 0.7680809609591961,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CCW",
+    "index": 7,
+    "file": "Transition_Circle_CCW_07.png",
+    "t": 45.920423459261656,
+    "elapsed": 1.9271851032972336,
+    "yaw": -109.56521606445312,
+    "phase": 0.9225128591060638,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CCW",
+    "index": 8,
+    "file": "Transition_Circle_CCW_08.png",
+    "t": 46.07490196824074,
+    "elapsed": 2.0816636122763157,
+    "yaw": -125.21739196777344,
+    "phase": 0.07699136808514595,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CCW",
+    "index": 9,
+    "file": "Transition_Circle_CCW_09.png",
+    "t": 46.22745846584439,
+    "elapsed": 2.2342201098799706,
+    "yaw": -140.86956787109375,
+    "phase": 0.2295478656888008,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CCW",
+    "index": 10,
+    "file": "Transition_Circle_CCW_10.png",
+    "t": 46.38535226136446,
+    "elapsed": 2.3921139054000378,
+    "yaw": -156.52174377441406,
+    "phase": 0.387441661208868,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CCW",
+    "index": 11,
+    "file": "Transition_Circle_CCW_11.png",
+    "t": 46.551589265465736,
+    "elapsed": 2.558350909501314,
+    "yaw": -172.17391967773438,
+    "phase": 0.5536786653101444,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CCW",
+    "index": 12,
+    "file": "Transition_Circle_CCW_12.png",
+    "t": 46.717090375721455,
+    "elapsed": 2.7238520197570324,
+    "yaw": 172.17391967773438,
+    "phase": 0.7191797755658627,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CCW",
+    "index": 13,
+    "file": "Transition_Circle_CCW_13.png",
+    "t": 46.87405047938228,
+    "elapsed": 2.8808121234178543,
+    "yaw": 156.52174377441406,
+    "phase": 0.8761398792266846,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CCW",
+    "index": 14,
+    "file": "Transition_Circle_CCW_14.png",
+    "t": 47.03440096974373,
+    "elapsed": 3.0411626137793064,
+    "yaw": 140.86956787109375,
+    "phase": 0.03649036958813667,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CCW",
+    "index": 15,
+    "file": "Transition_Circle_CCW_15.png",
+    "t": 47.194391179829836,
+    "elapsed": 3.2011528238654137,
+    "yaw": 125.21739196777344,
+    "phase": 0.19648057967424393,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CCW",
+    "index": 16,
+    "file": "Transition_Circle_CCW_16.png",
+    "t": 47.35261058062315,
+    "elapsed": 3.3593722246587276,
+    "yaw": 109.56521606445312,
+    "phase": 0.3546999804675579,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CCW",
+    "index": 17,
+    "file": "Transition_Circle_CCW_17.png",
+    "t": 47.51258407533169,
+    "elapsed": 3.5193457193672657,
+    "yaw": 93.91304016113281,
+    "phase": 0.514673475176096,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CCW",
+    "index": 18,
+    "file": "Transition_Circle_CCW_18.png",
+    "t": 47.672108579427004,
+    "elapsed": 3.6788702234625816,
+    "yaw": 78.26087188720703,
+    "phase": 0.6741979792714119,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CCW",
+    "index": 19,
+    "file": "Transition_Circle_CCW_19.png",
+    "t": 47.83414397388697,
+    "elapsed": 3.8409056179225445,
+    "yaw": 62.60869598388672,
+    "phase": 0.8362333737313747,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CCW",
+    "index": 20,
+    "file": "Transition_Circle_CCW_20.png",
+    "t": 47.99731097742915,
+    "elapsed": 4.004072621464729,
+    "yaw": 46.956520080566406,
+    "phase": 0.9994003772735596,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CCW",
+    "index": 21,
+    "file": "Transition_Circle_CCW_21.png",
+    "t": 48.16819877550006,
+    "elapsed": 4.174960419535637,
+    "yaw": 31.30434799194336,
+    "phase": 0.17028817534446716,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CCW",
+    "index": 22,
+    "file": "Transition_Circle_CCW_22.png",
+    "t": 48.333322271704674,
+    "elapsed": 4.3400839157402515,
+    "yaw": 15.65217399597168,
+    "phase": 0.3354116715490818,
+    "mode": "Warp"
+  },
+  {
+    "case": "Transition_Circle_CCW",
+    "index": 23,
+    "file": "Transition_Circle_CCW_23.png",
+    "t": 48.50357877090573,
+    "elapsed": 4.510340414941311,
+    "yaw": 0.0,
+    "phase": 0.5056681707501411,
+    "mode": "Warp"
+  }
+]

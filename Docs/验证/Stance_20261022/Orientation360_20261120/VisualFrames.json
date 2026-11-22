@@ -1,0 +1,2522 @@
+[
+  {
+    "case": "Warp_F",
+    "index": 0,
+    "file": "Warp_F_00.png",
+    "t": 4.799766197800636,
+    "elapsed": 0.8000571988523006,
+    "yaw": 0.0,
+    "phase": 0.8000571988523006,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_F",
+    "index": 1,
+    "file": "Warp_F_01.png",
+    "t": 5.216433003544807,
+    "elapsed": 1.2167240045964718,
+    "yaw": 0.0,
+    "phase": 0.2167240045964718,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_F",
+    "index": 2,
+    "file": "Warp_F_02.png",
+    "t": 5.3887384086847305,
+    "elapsed": 1.3890294097363949,
+    "yaw": 0.0,
+    "phase": 0.3890294097363949,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_F",
+    "index": 3,
+    "file": "Warp_F_03.png",
+    "t": 5.558311197906733,
+    "elapsed": 1.558602198958397,
+    "yaw": 0.0,
+    "phase": 0.5586021989583969,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_F",
+    "index": 4,
+    "file": "Warp_F_04.png",
+    "t": 5.720246192067862,
+    "elapsed": 1.720537193119526,
+    "yaw": 0.0,
+    "phase": 0.7205371931195259,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_F",
+    "index": 5,
+    "file": "Warp_F_05.png",
+    "t": 5.883807584643364,
+    "elapsed": 1.8840985856950283,
+    "yaw": 0.0,
+    "phase": 0.8840985856950283,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_F",
+    "index": 6,
+    "file": "Warp_F_06.png",
+    "t": 6.043345484882593,
+    "elapsed": 2.0436364859342575,
+    "yaw": 0.0,
+    "phase": 0.04363648593425751,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_F",
+    "index": 7,
+    "file": "Warp_F_07.png",
+    "t": 6.201914884150028,
+    "elapsed": 2.2022058852016926,
+    "yaw": 0.0,
+    "phase": 0.20220588520169258,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_F",
+    "index": 8,
+    "file": "Warp_F_08.png",
+    "t": 6.353452380746603,
+    "elapsed": 2.3537433817982674,
+    "yaw": 0.0,
+    "phase": 0.35374338179826736,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_F",
+    "index": 9,
+    "file": "Warp_F_09.png",
+    "t": 6.508729472756386,
+    "elapsed": 2.50902047380805,
+    "yaw": 0.0,
+    "phase": 0.5090204738080502,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_F",
+    "index": 10,
+    "file": "Warp_F_10.png",
+    "t": 6.667404670268297,
+    "elapsed": 2.6676956713199615,
+    "yaw": 0.0,
+    "phase": 0.6676956713199615,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_F",
+    "index": 11,
+    "file": "Warp_F_11.png",
+    "t": 6.825117476284504,
+    "elapsed": 2.8254084773361683,
+    "yaw": 0.0,
+    "phase": 0.8254084773361683,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_FR",
+    "index": 0,
+    "file": "Warp_FR_00.png",
+    "t": 7.630762979388237,
+    "elapsed": 0.8056455031037331,
+    "yaw": 45.0,
+    "phase": 0.6310539804399014,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_FR",
+    "index": 1,
+    "file": "Warp_FR_01.png",
+    "t": 7.7958530858159065,
+    "elapsed": 0.9707356095314026,
+    "yaw": 45.0,
+    "phase": 0.7961440868675709,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_FR",
+    "index": 2,
+    "file": "Warp_FR_02.png",
+    "t": 7.955251283943653,
+    "elapsed": 1.1301338076591492,
+    "yaw": 45.0,
+    "phase": 0.9555422849953175,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_FR",
+    "index": 3,
+    "file": "Warp_FR_03.png",
+    "t": 8.117170687764883,
+    "elapsed": 1.292053211480379,
+    "yaw": 45.0,
+    "phase": 0.1174616888165474,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_FR",
+    "index": 4,
+    "file": "Warp_FR_04.png",
+    "t": 8.272450286895037,
+    "elapsed": 1.4473328106105328,
+    "yaw": 45.0,
+    "phase": 0.27274128794670105,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_FR",
+    "index": 5,
+    "file": "Warp_FR_05.png",
+    "t": 8.430146794766188,
+    "elapsed": 1.6050293184816837,
+    "yaw": 45.0,
+    "phase": 0.430437795817852,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_FR",
+    "index": 6,
+    "file": "Warp_FR_06.png",
+    "t": 8.585000991821289,
+    "elapsed": 1.7598835155367851,
+    "yaw": 45.0,
+    "phase": 0.5852919928729534,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_FR",
+    "index": 7,
+    "file": "Warp_FR_07.png",
+    "t": 8.743423391133547,
+    "elapsed": 1.918305914849043,
+    "yaw": 45.0,
+    "phase": 0.7437143921852112,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_FR",
+    "index": 8,
+    "file": "Warp_FR_08.png",
+    "t": 8.895803295075893,
+    "elapsed": 2.0706858187913895,
+    "yaw": 45.0,
+    "phase": 0.8960942961275578,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_FR",
+    "index": 9,
+    "file": "Warp_FR_09.png",
+    "t": 9.05305890366435,
+    "elapsed": 2.2279414273798466,
+    "yaw": 45.0,
+    "phase": 0.05334990471601486,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_FR",
+    "index": 10,
+    "file": "Warp_FR_10.png",
+    "t": 9.215159699320793,
+    "elapsed": 2.390042223036289,
+    "yaw": 45.0,
+    "phase": 0.2154507003724575,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_FR",
+    "index": 11,
+    "file": "Warp_FR_11.png",
+    "t": 9.37473949790001,
+    "elapsed": 2.549622021615505,
+    "yaw": 45.0,
+    "phase": 0.3750304989516735,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_R",
+    "index": 0,
+    "file": "Warp_R_00.png",
+    "t": 10.181334797292948,
+    "elapsed": 0.8065952993929386,
+    "yaw": 90.0,
+    "phase": 0.18162579834461212,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_R",
+    "index": 1,
+    "file": "Warp_R_01.png",
+    "t": 10.344306193292141,
+    "elapsed": 0.9695666953921318,
+    "yaw": 90.0,
+    "phase": 0.3445971943438053,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_R",
+    "index": 2,
+    "file": "Warp_R_02.png",
+    "t": 10.50800560042262,
+    "elapsed": 1.1332661025226116,
+    "yaw": 90.0,
+    "phase": 0.5082966014742851,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_R",
+    "index": 3,
+    "file": "Warp_R_03.png",
+    "t": 10.666067495942116,
+    "elapsed": 1.2913279980421066,
+    "yaw": 90.0,
+    "phase": 0.6663584969937801,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_R",
+    "index": 4,
+    "file": "Warp_R_04.png",
+    "t": 10.8448187969625,
+    "elapsed": 1.4700792990624905,
+    "yaw": 90.0,
+    "phase": 0.845109798014164,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_R",
+    "index": 5,
+    "file": "Warp_R_05.png",
+    "t": 11.003613486886024,
+    "elapsed": 1.6288739889860153,
+    "yaw": 90.0,
+    "phase": 0.0039044879376888275,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_R",
+    "index": 6,
+    "file": "Warp_R_06.png",
+    "t": 11.160606779158115,
+    "elapsed": 1.7858672812581062,
+    "yaw": 90.0,
+    "phase": 0.16089778020977974,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_R",
+    "index": 7,
+    "file": "Warp_R_07.png",
+    "t": 11.318856582045555,
+    "elapsed": 1.944117084145546,
+    "yaw": 90.0,
+    "phase": 0.31914758309721947,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_R",
+    "index": 8,
+    "file": "Warp_R_08.png",
+    "t": 11.47552778199315,
+    "elapsed": 2.1007882840931416,
+    "yaw": 90.0,
+    "phase": 0.47581878304481506,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_R",
+    "index": 9,
+    "file": "Warp_R_09.png",
+    "t": 11.634041674435139,
+    "elapsed": 2.2593021765351295,
+    "yaw": 90.0,
+    "phase": 0.634332675486803,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_R",
+    "index": 10,
+    "file": "Warp_R_10.png",
+    "t": 11.806589178740978,
+    "elapsed": 2.431849680840969,
+    "yaw": 90.0,
+    "phase": 0.8068801797926426,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_R",
+    "index": 11,
+    "file": "Warp_R_11.png",
+    "t": 11.962970580905676,
+    "elapsed": 2.5882310830056667,
+    "yaw": 90.0,
+    "phase": 0.9632615819573402,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_BR",
+    "index": 0,
+    "file": "Warp_BR_00.png",
+    "t": 12.770129278302193,
+    "elapsed": 0.8071586973965168,
+    "yaw": 135.0,
+    "phase": 0.770420279353857,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_BR",
+    "index": 1,
+    "file": "Warp_BR_01.png",
+    "t": 12.929489273577929,
+    "elapsed": 0.9665186926722527,
+    "yaw": 135.0,
+    "phase": 0.9297802746295929,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_BR",
+    "index": 2,
+    "file": "Warp_BR_02.png",
+    "t": 13.092940278351307,
+    "elapsed": 1.129969697445631,
+    "yaw": 135.0,
+    "phase": 0.09323127940297127,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_BR",
+    "index": 3,
+    "file": "Warp_BR_03.png",
+    "t": 13.253074180334806,
+    "elapsed": 1.2901035994291306,
+    "yaw": 135.0,
+    "phase": 0.2533651813864708,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_BR",
+    "index": 4,
+    "file": "Warp_BR_04.png",
+    "t": 13.411591485142708,
+    "elapsed": 1.448620904237032,
+    "yaw": 135.0,
+    "phase": 0.4118824861943722,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_BR",
+    "index": 5,
+    "file": "Warp_BR_05.png",
+    "t": 13.56821409240365,
+    "elapsed": 1.6052435114979744,
+    "yaw": 135.0,
+    "phase": 0.5685050934553146,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_BR",
+    "index": 6,
+    "file": "Warp_BR_06.png",
+    "t": 13.73486778512597,
+    "elapsed": 1.771897204220295,
+    "yaw": 135.0,
+    "phase": 0.7351587861776352,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_BR",
+    "index": 7,
+    "file": "Warp_BR_07.png",
+    "t": 13.904110588133335,
+    "elapsed": 1.9411400072276592,
+    "yaw": 135.0,
+    "phase": 0.9044015891849995,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_BR",
+    "index": 8,
+    "file": "Warp_BR_08.png",
+    "t": 14.065614279359579,
+    "elapsed": 2.102643698453903,
+    "yaw": 135.0,
+    "phase": 0.06590528041124344,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_BR",
+    "index": 9,
+    "file": "Warp_BR_09.png",
+    "t": 14.23125408962369,
+    "elapsed": 2.2682835087180138,
+    "yaw": 135.0,
+    "phase": 0.231545090675354,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_BR",
+    "index": 10,
+    "file": "Warp_BR_10.png",
+    "t": 14.404214281588793,
+    "elapsed": 2.441243700683117,
+    "yaw": 135.0,
+    "phase": 0.40450528264045715,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_BR",
+    "index": 11,
+    "file": "Warp_BR_11.png",
+    "t": 14.563419379293919,
+    "elapsed": 2.6004487983882427,
+    "yaw": 135.0,
+    "phase": 0.563710380345583,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_B",
+    "index": 0,
+    "file": "Warp_B_00.png",
+    "t": 15.37212048843503,
+    "elapsed": 0.8087011091411114,
+    "yaw": 180.0,
+    "phase": 0.37241148948669434,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_B",
+    "index": 1,
+    "file": "Warp_B_01.png",
+    "t": 15.53189318627119,
+    "elapsed": 0.968473806977272,
+    "yaw": 180.0,
+    "phase": 0.532184187322855,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_B",
+    "index": 2,
+    "file": "Warp_B_02.png",
+    "t": 15.695270292460918,
+    "elapsed": 1.1318509131669998,
+    "yaw": 180.0,
+    "phase": 0.6955612935125828,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_B",
+    "index": 3,
+    "file": "Warp_B_03.png",
+    "t": 15.863477896898985,
+    "elapsed": 1.3000585176050663,
+    "yaw": 180.0,
+    "phase": 0.8637688979506493,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_B",
+    "index": 4,
+    "file": "Warp_B_04.png",
+    "t": 16.022533386945724,
+    "elapsed": 1.4591140076518059,
+    "yaw": 180.0,
+    "phase": 0.02282438799738884,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_B",
+    "index": 5,
+    "file": "Warp_B_05.png",
+    "t": 16.187074191868305,
+    "elapsed": 1.6236548125743866,
+    "yaw": 180.0,
+    "phase": 0.18736519291996956,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_B",
+    "index": 6,
+    "file": "Warp_B_06.png",
+    "t": 16.344948586076498,
+    "elapsed": 1.7815292067825794,
+    "yaw": 180.0,
+    "phase": 0.3452395871281624,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_B",
+    "index": 7,
+    "file": "Warp_B_07.png",
+    "t": 16.501368787139654,
+    "elapsed": 1.9379494078457355,
+    "yaw": 180.0,
+    "phase": 0.5016597881913185,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_B",
+    "index": 8,
+    "file": "Warp_B_08.png",
+    "t": 16.666233081370592,
+    "elapsed": 2.1028137020766735,
+    "yaw": 180.0,
+    "phase": 0.6665240824222565,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_B",
+    "index": 9,
+    "file": "Warp_B_09.png",
+    "t": 16.84769167751074,
+    "elapsed": 2.2842722982168198,
+    "yaw": 180.0,
+    "phase": 0.8479826785624027,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_B",
+    "index": 10,
+    "file": "Warp_B_10.png",
+    "t": 17.004643972963095,
+    "elapsed": 2.441224593669176,
+    "yaw": 180.0,
+    "phase": 0.004934974014759064,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_B",
+    "index": 11,
+    "file": "Warp_B_11.png",
+    "t": 17.161832571029663,
+    "elapsed": 2.5984131917357445,
+    "yaw": 180.0,
+    "phase": 0.16212357208132744,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_BL",
+    "index": 0,
+    "file": "Warp_BL_00.png",
+    "t": 17.967071767896414,
+    "elapsed": 0.8052391968667507,
+    "yaw": -135.0,
+    "phase": 0.9673627689480782,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_BL",
+    "index": 1,
+    "file": "Warp_BL_01.png",
+    "t": 18.124562069773674,
+    "elapsed": 0.9627294987440109,
+    "yaw": -135.0,
+    "phase": 0.12485307082533836,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_BL",
+    "index": 2,
+    "file": "Warp_BL_02.png",
+    "t": 18.283867571502924,
+    "elapsed": 1.1220350004732609,
+    "yaw": -135.0,
+    "phase": 0.2841585725545883,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_BL",
+    "index": 3,
+    "file": "Warp_BL_03.png",
+    "t": 18.442130476236343,
+    "elapsed": 1.2802979052066803,
+    "yaw": -135.0,
+    "phase": 0.44242147728800774,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_BL",
+    "index": 4,
+    "file": "Warp_BL_04.png",
+    "t": 18.597138483077288,
+    "elapsed": 1.4353059120476246,
+    "yaw": -135.0,
+    "phase": 0.597429484128952,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_BL",
+    "index": 5,
+    "file": "Warp_BL_05.png",
+    "t": 18.75980957970023,
+    "elapsed": 1.5979770086705685,
+    "yaw": -135.0,
+    "phase": 0.7601005807518959,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_BL",
+    "index": 6,
+    "file": "Warp_BL_06.png",
+    "t": 18.9154997728765,
+    "elapsed": 1.753667201846838,
+    "yaw": -135.0,
+    "phase": 0.9157907739281654,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_BL",
+    "index": 7,
+    "file": "Warp_BL_07.png",
+    "t": 19.071270167827606,
+    "elapsed": 1.9094375967979431,
+    "yaw": -135.0,
+    "phase": 0.07156116887927055,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_BL",
+    "index": 8,
+    "file": "Warp_BL_08.png",
+    "t": 19.229577772319317,
+    "elapsed": 2.067745201289654,
+    "yaw": -135.0,
+    "phase": 0.22986877337098122,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_BL",
+    "index": 9,
+    "file": "Warp_BL_09.png",
+    "t": 19.386839672923088,
+    "elapsed": 2.225007101893425,
+    "yaw": -135.0,
+    "phase": 0.3871306739747524,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_BL",
+    "index": 10,
+    "file": "Warp_BL_10.png",
+    "t": 19.548180777579546,
+    "elapsed": 2.386348206549883,
+    "yaw": -135.0,
+    "phase": 0.5484717786312103,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_BL",
+    "index": 11,
+    "file": "Warp_BL_11.png",
+    "t": 19.714236684143543,
+    "elapsed": 2.55240411311388,
+    "yaw": -135.0,
+    "phase": 0.7145276851952076,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_L",
+    "index": 0,
+    "file": "Warp_L_00.png",
+    "t": 20.528142385184765,
+    "elapsed": 0.8139057010412216,
+    "yaw": -90.0,
+    "phase": 0.5284333862364292,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_L",
+    "index": 1,
+    "file": "Warp_L_01.png",
+    "t": 20.713885482400656,
+    "elapsed": 0.9996487982571125,
+    "yaw": -90.0,
+    "phase": 0.7141764834523201,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_L",
+    "index": 2,
+    "file": "Warp_L_02.png",
+    "t": 20.877332285046577,
+    "elapsed": 1.1630956009030342,
+    "yaw": -90.0,
+    "phase": 0.8776232860982418,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_L",
+    "index": 3,
+    "file": "Warp_L_03.png",
+    "t": 21.04677528515458,
+    "elapsed": 1.3325386010110378,
+    "yaw": -90.0,
+    "phase": 0.04706628620624542,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_L",
+    "index": 4,
+    "file": "Warp_L_04.png",
+    "t": 21.19987168163061,
+    "elapsed": 1.4856349974870682,
+    "yaw": -90.0,
+    "phase": 0.20016268268227577,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_L",
+    "index": 5,
+    "file": "Warp_L_05.png",
+    "t": 21.35500518605113,
+    "elapsed": 1.640768501907587,
+    "yaw": -90.0,
+    "phase": 0.35529618710279465,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_L",
+    "index": 6,
+    "file": "Warp_L_06.png",
+    "t": 21.512726992368698,
+    "elapsed": 1.7984903082251549,
+    "yaw": -90.0,
+    "phase": 0.5130179934203625,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_L",
+    "index": 7,
+    "file": "Warp_L_07.png",
+    "t": 21.672859389334917,
+    "elapsed": 1.9586227051913738,
+    "yaw": -90.0,
+    "phase": 0.6731503903865814,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_L",
+    "index": 8,
+    "file": "Warp_L_08.png",
+    "t": 21.83160698786378,
+    "elapsed": 2.117370303720236,
+    "yaw": -90.0,
+    "phase": 0.8318979889154434,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_L",
+    "index": 9,
+    "file": "Warp_L_09.png",
+    "t": 21.98808068782091,
+    "elapsed": 2.273844003677368,
+    "yaw": -90.0,
+    "phase": 0.9883716888725758,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_L",
+    "index": 10,
+    "file": "Warp_L_10.png",
+    "t": 22.14349588379264,
+    "elapsed": 2.4292591996490955,
+    "yaw": -90.0,
+    "phase": 0.14378688484430313,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_L",
+    "index": 11,
+    "file": "Warp_L_11.png",
+    "t": 22.29940038919449,
+    "elapsed": 2.5851637050509453,
+    "yaw": -90.0,
+    "phase": 0.2996913902461529,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_FL",
+    "index": 0,
+    "file": "Warp_FL_00.png",
+    "t": 23.10629928484559,
+    "elapsed": 0.8068988956511021,
+    "yaw": -45.0,
+    "phase": 0.10659028589725494,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_FL",
+    "index": 1,
+    "file": "Warp_FL_01.png",
+    "t": 23.267259381711483,
+    "elapsed": 0.9678589925169945,
+    "yaw": -45.0,
+    "phase": 0.26755038276314735,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_FL",
+    "index": 2,
+    "file": "Warp_FL_02.png",
+    "t": 23.423521380871534,
+    "elapsed": 1.1241209916770458,
+    "yaw": -45.0,
+    "phase": 0.4238123819231987,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_FL",
+    "index": 3,
+    "file": "Warp_FL_03.png",
+    "t": 23.581132277846336,
+    "elapsed": 1.2817318886518478,
+    "yaw": -45.0,
+    "phase": 0.5814232788980007,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_FL",
+    "index": 4,
+    "file": "Warp_FL_04.png",
+    "t": 23.74225177243352,
+    "elapsed": 1.4428513832390308,
+    "yaw": -45.0,
+    "phase": 0.7425427734851837,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_FL",
+    "index": 5,
+    "file": "Warp_FL_05.png",
+    "t": 23.937095779925585,
+    "elapsed": 1.6376953907310963,
+    "yaw": -45.0,
+    "phase": 0.9373867809772491,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_FL",
+    "index": 6,
+    "file": "Warp_FL_06.png",
+    "t": 24.12825097888708,
+    "elapsed": 1.8288505896925926,
+    "yaw": -45.0,
+    "phase": 0.1285419799387455,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_FL",
+    "index": 7,
+    "file": "Warp_FL_07.png",
+    "t": 24.298703871667385,
+    "elapsed": 1.9993034824728966,
+    "yaw": -45.0,
+    "phase": 0.29899487271904945,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_FL",
+    "index": 8,
+    "file": "Warp_FL_08.png",
+    "t": 24.461059167981148,
+    "elapsed": 2.1616587787866592,
+    "yaw": -45.0,
+    "phase": 0.4613501690328121,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_FL",
+    "index": 9,
+    "file": "Warp_FL_09.png",
+    "t": 24.623673278838396,
+    "elapsed": 2.3242728896439075,
+    "yaw": -45.0,
+    "phase": 0.6239642798900604,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_FL",
+    "index": 10,
+    "file": "Warp_FL_10.png",
+    "t": 24.777821980416775,
+    "elapsed": 2.4784215912222862,
+    "yaw": -45.0,
+    "phase": 0.7781129814684391,
+    "mode": "Warp"
+  },
+  {
+    "case": "Warp_FL",
+    "index": 11,
+    "file": "Warp_FL_11.png",
+    "t": 24.93227168545127,
+    "elapsed": 2.6328712962567806,
+    "yaw": -45.0,
+    "phase": 0.9325626865029335,
+    "mode": "Warp"
+  },
+  {
+    "case": "Baseline_F",
+    "index": 0,
+    "file": "Baseline_F_00.png",
+    "t": 25.74349807947874,
+    "elapsed": 0.8112263940274715,
+    "yaw": 0.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_F",
+    "index": 1,
+    "file": "Baseline_F_01.png",
+    "t": 25.904928877949715,
+    "elapsed": 0.9726571924984455,
+    "yaw": 0.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_F",
+    "index": 2,
+    "file": "Baseline_F_02.png",
+    "t": 26.060515273362398,
+    "elapsed": 1.128243587911129,
+    "yaw": 0.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_F",
+    "index": 3,
+    "file": "Baseline_F_03.png",
+    "t": 26.21501887589693,
+    "elapsed": 1.2827471904456615,
+    "yaw": 0.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_F",
+    "index": 4,
+    "file": "Baseline_F_04.png",
+    "t": 26.37117028236389,
+    "elapsed": 1.4388985969126225,
+    "yaw": 0.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_F",
+    "index": 5,
+    "file": "Baseline_F_05.png",
+    "t": 26.52858167886734,
+    "elapsed": 1.596309993416071,
+    "yaw": 0.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_F",
+    "index": 6,
+    "file": "Baseline_F_06.png",
+    "t": 26.68264288082719,
+    "elapsed": 1.7503711953759193,
+    "yaw": 0.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_F",
+    "index": 7,
+    "file": "Baseline_F_07.png",
+    "t": 26.843455784022808,
+    "elapsed": 1.911184098571539,
+    "yaw": 0.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_F",
+    "index": 8,
+    "file": "Baseline_F_08.png",
+    "t": 26.99781907722354,
+    "elapsed": 2.06554739177227,
+    "yaw": 0.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_F",
+    "index": 9,
+    "file": "Baseline_F_09.png",
+    "t": 27.15065697580576,
+    "elapsed": 2.2183852903544903,
+    "yaw": 0.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_F",
+    "index": 10,
+    "file": "Baseline_F_10.png",
+    "t": 27.309268474578857,
+    "elapsed": 2.3769967891275883,
+    "yaw": 0.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_F",
+    "index": 11,
+    "file": "Baseline_F_11.png",
+    "t": 27.462191972881556,
+    "elapsed": 2.5299202874302864,
+    "yaw": 0.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_FR",
+    "index": 0,
+    "file": "Baseline_FR_00.png",
+    "t": 28.267239771783352,
+    "elapsed": 0.8050477989017963,
+    "yaw": 45.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_FR",
+    "index": 1,
+    "file": "Baseline_FR_01.png",
+    "t": 28.427031867206097,
+    "elapsed": 0.9648398943245411,
+    "yaw": 45.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_FR",
+    "index": 2,
+    "file": "Baseline_FR_02.png",
+    "t": 28.584565173834562,
+    "elapsed": 1.1223732009530067,
+    "yaw": 45.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_FR",
+    "index": 3,
+    "file": "Baseline_FR_03.png",
+    "t": 28.73936876654625,
+    "elapsed": 1.2771767936646938,
+    "yaw": 45.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_FR",
+    "index": 4,
+    "file": "Baseline_FR_04.png",
+    "t": 28.89450326934457,
+    "elapsed": 1.4323112964630127,
+    "yaw": 45.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_FR",
+    "index": 5,
+    "file": "Baseline_FR_05.png",
+    "t": 29.04824996739626,
+    "elapsed": 1.5860579945147038,
+    "yaw": 45.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_FR",
+    "index": 6,
+    "file": "Baseline_FR_06.png",
+    "t": 29.204145062714815,
+    "elapsed": 1.7419530898332596,
+    "yaw": 45.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_FR",
+    "index": 7,
+    "file": "Baseline_FR_07.png",
+    "t": 29.361150659620762,
+    "elapsed": 1.8989586867392063,
+    "yaw": 45.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_FR",
+    "index": 8,
+    "file": "Baseline_FR_08.png",
+    "t": 29.51695555076003,
+    "elapsed": 2.054763577878475,
+    "yaw": 45.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_FR",
+    "index": 9,
+    "file": "Baseline_FR_09.png",
+    "t": 29.67413754761219,
+    "elapsed": 2.2119455747306347,
+    "yaw": 45.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_FR",
+    "index": 10,
+    "file": "Baseline_FR_10.png",
+    "t": 29.833722550421953,
+    "elapsed": 2.3715305775403976,
+    "yaw": 45.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_FR",
+    "index": 11,
+    "file": "Baseline_FR_11.png",
+    "t": 29.99395265430212,
+    "elapsed": 2.5317606814205647,
+    "yaw": 45.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_R",
+    "index": 0,
+    "file": "Baseline_R_00.png",
+    "t": 30.801945354789495,
+    "elapsed": 0.8079927004873753,
+    "yaw": 90.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_R",
+    "index": 1,
+    "file": "Baseline_R_01.png",
+    "t": 30.957229152321815,
+    "elapsed": 0.9632764980196953,
+    "yaw": 90.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_R",
+    "index": 2,
+    "file": "Baseline_R_02.png",
+    "t": 31.11456935480237,
+    "elapsed": 1.1206167005002499,
+    "yaw": 90.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_R",
+    "index": 3,
+    "file": "Baseline_R_03.png",
+    "t": 31.268726252019405,
+    "elapsed": 1.2747735977172852,
+    "yaw": 90.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_R",
+    "index": 4,
+    "file": "Baseline_R_04.png",
+    "t": 31.421398352831602,
+    "elapsed": 1.4274456985294819,
+    "yaw": 90.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_R",
+    "index": 5,
+    "file": "Baseline_R_05.png",
+    "t": 31.575792953372,
+    "elapsed": 1.5818402990698814,
+    "yaw": 90.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_R",
+    "index": 6,
+    "file": "Baseline_R_06.png",
+    "t": 31.73169355839491,
+    "elapsed": 1.7377409040927887,
+    "yaw": 90.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_R",
+    "index": 7,
+    "file": "Baseline_R_07.png",
+    "t": 31.892835151404142,
+    "elapsed": 1.8988824971020222,
+    "yaw": 90.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_R",
+    "index": 8,
+    "file": "Baseline_R_08.png",
+    "t": 32.049402847886086,
+    "elapsed": 2.0554501935839653,
+    "yaw": 90.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_R",
+    "index": 9,
+    "file": "Baseline_R_09.png",
+    "t": 32.21355264261365,
+    "elapsed": 2.219599988311529,
+    "yaw": 90.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_R",
+    "index": 10,
+    "file": "Baseline_R_10.png",
+    "t": 32.37315344065428,
+    "elapsed": 2.3792007863521576,
+    "yaw": 90.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_R",
+    "index": 11,
+    "file": "Baseline_R_11.png",
+    "t": 32.534962844103575,
+    "elapsed": 2.5410101898014545,
+    "yaw": 90.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_BR",
+    "index": 0,
+    "file": "Baseline_BR_00.png",
+    "t": 33.341885447502136,
+    "elapsed": 0.8069226033985615,
+    "yaw": 135.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_BR",
+    "index": 1,
+    "file": "Baseline_BR_01.png",
+    "t": 33.49696834757924,
+    "elapsed": 0.962005503475666,
+    "yaw": 135.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_BR",
+    "index": 2,
+    "file": "Baseline_BR_02.png",
+    "t": 33.64774585515261,
+    "elapsed": 1.1127830110490322,
+    "yaw": 135.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_BR",
+    "index": 3,
+    "file": "Baseline_BR_03.png",
+    "t": 33.80241006240249,
+    "elapsed": 1.267447218298912,
+    "yaw": 135.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_BR",
+    "index": 4,
+    "file": "Baseline_BR_04.png",
+    "t": 33.95377705991268,
+    "elapsed": 1.4188142158091068,
+    "yaw": 135.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_BR",
+    "index": 5,
+    "file": "Baseline_BR_05.png",
+    "t": 34.1094085611403,
+    "elapsed": 1.574445717036724,
+    "yaw": 135.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_BR",
+    "index": 6,
+    "file": "Baseline_BR_06.png",
+    "t": 34.2615753673017,
+    "elapsed": 1.7266125231981277,
+    "yaw": 135.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_BR",
+    "index": 7,
+    "file": "Baseline_BR_07.png",
+    "t": 34.41287896037102,
+    "elapsed": 1.8779161162674427,
+    "yaw": 135.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_BR",
+    "index": 8,
+    "file": "Baseline_BR_08.png",
+    "t": 34.56309025734663,
+    "elapsed": 2.0281274132430553,
+    "yaw": 135.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_BR",
+    "index": 9,
+    "file": "Baseline_BR_09.png",
+    "t": 34.7178263515234,
+    "elapsed": 2.1828635074198246,
+    "yaw": 135.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_BR",
+    "index": 10,
+    "file": "Baseline_BR_10.png",
+    "t": 34.87018284574151,
+    "elapsed": 2.3352200016379356,
+    "yaw": 135.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_BR",
+    "index": 11,
+    "file": "Baseline_BR_11.png",
+    "t": 35.02438383921981,
+    "elapsed": 2.489420995116234,
+    "yaw": 135.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_B",
+    "index": 0,
+    "file": "Baseline_B_00.png",
+    "t": 35.83092324435711,
+    "elapsed": 0.8065394051373005,
+    "yaw": 180.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_B",
+    "index": 1,
+    "file": "Baseline_B_01.png",
+    "t": 35.98301063850522,
+    "elapsed": 0.9586267992854118,
+    "yaw": 180.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_B",
+    "index": 2,
+    "file": "Baseline_B_02.png",
+    "t": 36.13319104537368,
+    "elapsed": 1.1088072061538696,
+    "yaw": 180.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_B",
+    "index": 3,
+    "file": "Baseline_B_03.png",
+    "t": 36.28651013970375,
+    "elapsed": 1.262126300483942,
+    "yaw": 180.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_B",
+    "index": 4,
+    "file": "Baseline_B_04.png",
+    "t": 36.43673853948712,
+    "elapsed": 1.412354700267315,
+    "yaw": 180.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_B",
+    "index": 5,
+    "file": "Baseline_B_05.png",
+    "t": 36.585748232901096,
+    "elapsed": 1.5613643936812878,
+    "yaw": 180.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_B",
+    "index": 6,
+    "file": "Baseline_B_06.png",
+    "t": 36.73726653680205,
+    "elapsed": 1.7128826975822449,
+    "yaw": 180.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_B",
+    "index": 7,
+    "file": "Baseline_B_07.png",
+    "t": 36.8891850374639,
+    "elapsed": 1.8648011982440948,
+    "yaw": 180.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_B",
+    "index": 8,
+    "file": "Baseline_B_08.png",
+    "t": 37.04220774397254,
+    "elapsed": 2.0178239047527313,
+    "yaw": 180.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_B",
+    "index": 9,
+    "file": "Baseline_B_09.png",
+    "t": 37.1943711489439,
+    "elapsed": 2.1699873097240925,
+    "yaw": 180.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_B",
+    "index": 10,
+    "file": "Baseline_B_10.png",
+    "t": 37.34773914888501,
+    "elapsed": 2.323355309665203,
+    "yaw": 180.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_B",
+    "index": 11,
+    "file": "Baseline_B_11.png",
+    "t": 37.49694765359163,
+    "elapsed": 2.4725638143718243,
+    "yaw": 180.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_BL",
+    "index": 0,
+    "file": "Baseline_BL_00.png",
+    "t": 38.29730545729399,
+    "elapsed": 0.8003578037023544,
+    "yaw": -135.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_BL",
+    "index": 1,
+    "file": "Baseline_BL_01.png",
+    "t": 38.44762326776981,
+    "elapsed": 0.9506756141781807,
+    "yaw": -135.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_BL",
+    "index": 2,
+    "file": "Baseline_BL_02.png",
+    "t": 38.59986146166921,
+    "elapsed": 1.1029138080775738,
+    "yaw": -135.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_BL",
+    "index": 3,
+    "file": "Baseline_BL_03.png",
+    "t": 38.75150916725397,
+    "elapsed": 1.2545615136623383,
+    "yaw": -135.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_BL",
+    "index": 4,
+    "file": "Baseline_BL_04.png",
+    "t": 38.90212286636233,
+    "elapsed": 1.4051752127707005,
+    "yaw": -135.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_BL",
+    "index": 5,
+    "file": "Baseline_BL_05.png",
+    "t": 39.05475875735283,
+    "elapsed": 1.5578111037611961,
+    "yaw": -135.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_BL",
+    "index": 6,
+    "file": "Baseline_BL_06.png",
+    "t": 39.204394452273846,
+    "elapsed": 1.7074467986822128,
+    "yaw": -135.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_BL",
+    "index": 7,
+    "file": "Baseline_BL_07.png",
+    "t": 39.355560552328825,
+    "elapsed": 1.8586128987371922,
+    "yaw": -135.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_BL",
+    "index": 8,
+    "file": "Baseline_BL_08.png",
+    "t": 39.50615484640002,
+    "elapsed": 2.0092071928083897,
+    "yaw": -135.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_BL",
+    "index": 9,
+    "file": "Baseline_BL_09.png",
+    "t": 39.65768875181675,
+    "elapsed": 2.1607410982251167,
+    "yaw": -135.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_BL",
+    "index": 10,
+    "file": "Baseline_BL_10.png",
+    "t": 39.808604154735804,
+    "elapsed": 2.3116565011441708,
+    "yaw": -135.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_BL",
+    "index": 11,
+    "file": "Baseline_BL_11.png",
+    "t": 39.958098255097866,
+    "elapsed": 2.461150601506233,
+    "yaw": -135.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_L",
+    "index": 0,
+    "file": "Baseline_L_00.png",
+    "t": 40.75994274765253,
+    "elapsed": 0.8018444925546646,
+    "yaw": -90.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_L",
+    "index": 1,
+    "file": "Baseline_L_01.png",
+    "t": 40.91023514792323,
+    "elapsed": 0.9521368928253651,
+    "yaw": -90.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_L",
+    "index": 2,
+    "file": "Baseline_L_02.png",
+    "t": 41.06092505156994,
+    "elapsed": 1.1028267964720726,
+    "yaw": -90.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_L",
+    "index": 3,
+    "file": "Baseline_L_03.png",
+    "t": 41.21128775551915,
+    "elapsed": 1.2531895004212856,
+    "yaw": -90.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_L",
+    "index": 4,
+    "file": "Baseline_L_04.png",
+    "t": 41.36316955834627,
+    "elapsed": 1.4050713032484055,
+    "yaw": -90.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_L",
+    "index": 5,
+    "file": "Baseline_L_05.png",
+    "t": 41.5119527541101,
+    "elapsed": 1.5538544990122318,
+    "yaw": -90.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_L",
+    "index": 6,
+    "file": "Baseline_L_06.png",
+    "t": 41.66828045248985,
+    "elapsed": 1.7101821973919868,
+    "yaw": -90.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_L",
+    "index": 7,
+    "file": "Baseline_L_07.png",
+    "t": 41.82632065191865,
+    "elapsed": 1.8682223968207836,
+    "yaw": -90.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_L",
+    "index": 8,
+    "file": "Baseline_L_08.png",
+    "t": 41.98283525556326,
+    "elapsed": 2.024737000465393,
+    "yaw": -90.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_L",
+    "index": 9,
+    "file": "Baseline_L_09.png",
+    "t": 42.140452053397894,
+    "elapsed": 2.182353798300028,
+    "yaw": -90.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_L",
+    "index": 10,
+    "file": "Baseline_L_10.png",
+    "t": 42.29388815537095,
+    "elapsed": 2.3357899002730846,
+    "yaw": -90.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_L",
+    "index": 11,
+    "file": "Baseline_L_11.png",
+    "t": 42.45258506387472,
+    "elapsed": 2.4944868087768555,
+    "yaw": -90.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_FL",
+    "index": 0,
+    "file": "Baseline_FL_00.png",
+    "t": 43.266827657818794,
+    "elapsed": 0.8142425939440727,
+    "yaw": -45.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_FL",
+    "index": 1,
+    "file": "Baseline_FL_01.png",
+    "t": 43.424075961112976,
+    "elapsed": 0.9714908972382545,
+    "yaw": -45.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_FL",
+    "index": 2,
+    "file": "Baseline_FL_02.png",
+    "t": 43.57658215612173,
+    "elapsed": 1.1239970922470093,
+    "yaw": -45.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_FL",
+    "index": 3,
+    "file": "Baseline_FL_03.png",
+    "t": 43.72635045275092,
+    "elapsed": 1.2737653888761997,
+    "yaw": -45.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_FL",
+    "index": 4,
+    "file": "Baseline_FL_04.png",
+    "t": 43.87752304971218,
+    "elapsed": 1.4249379858374596,
+    "yaw": -45.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_FL",
+    "index": 5,
+    "file": "Baseline_FL_05.png",
+    "t": 44.02611235529184,
+    "elapsed": 1.5735272914171219,
+    "yaw": -45.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_FL",
+    "index": 6,
+    "file": "Baseline_FL_06.png",
+    "t": 44.1776905618608,
+    "elapsed": 1.7251054979860783,
+    "yaw": -45.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_FL",
+    "index": 7,
+    "file": "Baseline_FL_07.png",
+    "t": 44.326766058802605,
+    "elapsed": 1.8741809949278831,
+    "yaw": -45.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_FL",
+    "index": 8,
+    "file": "Baseline_FL_08.png",
+    "t": 44.477383855730295,
+    "elapsed": 2.0247987918555737,
+    "yaw": -45.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_FL",
+    "index": 9,
+    "file": "Baseline_FL_09.png",
+    "t": 44.628476954996586,
+    "elapsed": 2.1758918911218643,
+    "yaw": -45.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_FL",
+    "index": 10,
+    "file": "Baseline_FL_10.png",
+    "t": 44.777338456362486,
+    "elapsed": 2.3247533924877644,
+    "yaw": -45.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "Baseline_FL",
+    "index": 11,
+    "file": "Baseline_FL_11.png",
+    "t": 44.927552461624146,
+    "elapsed": 2.474967397749424,
+    "yaw": -45.0,
+    "phase": null,
+    "mode": "Baseline"
+  },
+  {
+    "case": "AcceptedB_FL",
+    "index": 0,
+    "file": "AcceptedB_FL_00.png",
+    "t": 45.74146806821227,
+    "elapsed": 0.8139156065881252,
+    "yaw": -45.0,
+    "phase": null,
+    "mode": "ReferenceB"
+  },
+  {
+    "case": "AcceptedB_FL",
+    "index": 1,
+    "file": "AcceptedB_FL_01.png",
+    "t": 45.893155071884394,
+    "elapsed": 0.9656026102602482,
+    "yaw": -45.0,
+    "phase": null,
+    "mode": "ReferenceB"
+  },
+  {
+    "case": "AcceptedB_FL",
+    "index": 2,
+    "file": "AcceptedB_FL_02.png",
+    "t": 46.04502497240901,
+    "elapsed": 1.1174725107848644,
+    "yaw": -45.0,
+    "phase": null,
+    "mode": "ReferenceB"
+  },
+  {
+    "case": "AcceptedB_FL",
+    "index": 3,
+    "file": "AcceptedB_FL_03.png",
+    "t": 46.19393017888069,
+    "elapsed": 1.266377717256546,
+    "yaw": -45.0,
+    "phase": null,
+    "mode": "ReferenceB"
+  },
+  {
+    "case": "AcceptedB_FL",
+    "index": 4,
+    "file": "AcceptedB_FL_04.png",
+    "t": 46.34572157636285,
+    "elapsed": 1.4181691147387028,
+    "yaw": -45.0,
+    "phase": null,
+    "mode": "ReferenceB"
+  },
+  {
+    "case": "AcceptedB_FL",
+    "index": 5,
+    "file": "AcceptedB_FL_05.png",
+    "t": 46.496031172573566,
+    "elapsed": 1.568478710949421,
+    "yaw": -45.0,
+    "phase": null,
+    "mode": "ReferenceB"
+  },
+  {
+    "case": "AcceptedB_FL",
+    "index": 6,
+    "file": "AcceptedB_FL_06.png",
+    "t": 46.646807070821524,
+    "elapsed": 1.7192546091973782,
+    "yaw": -45.0,
+    "phase": null,
+    "mode": "ReferenceB"
+  },
+  {
+    "case": "AcceptedB_FL",
+    "index": 7,
+    "file": "AcceptedB_FL_07.png",
+    "t": 46.79773537814617,
+    "elapsed": 1.870182916522026,
+    "yaw": -45.0,
+    "phase": null,
+    "mode": "ReferenceB"
+  },
+  {
+    "case": "AcceptedB_FL",
+    "index": 8,
+    "file": "AcceptedB_FL_08.png",
+    "t": 46.94824017956853,
+    "elapsed": 2.0206877179443836,
+    "yaw": -45.0,
+    "phase": null,
+    "mode": "ReferenceB"
+  },
+  {
+    "case": "AcceptedB_FL",
+    "index": 9,
+    "file": "AcceptedB_FL_09.png",
+    "t": 47.098434787243605,
+    "elapsed": 2.170882325619459,
+    "yaw": -45.0,
+    "phase": null,
+    "mode": "ReferenceB"
+  },
+  {
+    "case": "AcceptedB_FL",
+    "index": 10,
+    "file": "AcceptedB_FL_10.png",
+    "t": 47.249042481184006,
+    "elapsed": 2.3214900195598602,
+    "yaw": -45.0,
+    "phase": null,
+    "mode": "ReferenceB"
+  },
+  {
+    "case": "AcceptedB_FL",
+    "index": 11,
+    "file": "AcceptedB_FL_11.png",
+    "t": 47.3988969810307,
+    "elapsed": 2.471344519406557,
+    "yaw": -45.0,
+    "phase": null,
+    "mode": "ReferenceB"
+  },
+  {
+    "case": "FL_Handoff",
+    "index": 0,
+    "file": "FL_Handoff_00.png",
+    "t": 48.214855175465345,
+    "elapsed": 0.8159581944346428,
+    "yaw": -55.0,
+    "phase": 0.8159581944346428,
+    "mode": "Warp"
+  },
+  {
+    "case": "FL_Handoff",
+    "index": 1,
+    "file": "FL_Handoff_01.png",
+    "t": 48.369588170200586,
+    "elapsed": 0.9706911891698837,
+    "yaw": -55.0,
+    "phase": 0.9706911891698837,
+    "mode": "Warp"
+  },
+  {
+    "case": "FL_Handoff",
+    "index": 2,
+    "file": "FL_Handoff_02.png",
+    "t": 48.52023196592927,
+    "elapsed": 1.1213349848985672,
+    "yaw": -55.0,
+    "phase": 0.1213349848985672,
+    "mode": "Warp"
+  },
+  {
+    "case": "FL_Handoff",
+    "index": 3,
+    "file": "FL_Handoff_03.png",
+    "t": 48.673664070665836,
+    "elapsed": 1.2747670896351337,
+    "yaw": -55.0,
+    "phase": 0.27476708963513374,
+    "mode": "Warp"
+  },
+  {
+    "case": "FL_Handoff",
+    "index": 4,
+    "file": "FL_Handoff_04.png",
+    "t": 48.82576296851039,
+    "elapsed": 1.4268659874796867,
+    "yaw": -55.0,
+    "phase": 0.42686598747968674,
+    "mode": "Warp"
+  },
+  {
+    "case": "FL_Handoff",
+    "index": 5,
+    "file": "FL_Handoff_05.png",
+    "t": 48.97926056757569,
+    "elapsed": 1.5803635865449905,
+    "yaw": -55.0,
+    "phase": 0.5803635865449905,
+    "mode": "Warp"
+  },
+  {
+    "case": "FL_Handoff",
+    "index": 6,
+    "file": "FL_Handoff_06.png",
+    "t": 49.13082727044821,
+    "elapsed": 1.7319302894175053,
+    "yaw": -55.0,
+    "phase": 0.7319302894175053,
+    "mode": "Warp"
+  },
+  {
+    "case": "FL_Handoff",
+    "index": 7,
+    "file": "FL_Handoff_07.png",
+    "t": 49.28438217565417,
+    "elapsed": 1.8854851946234703,
+    "yaw": -55.0,
+    "phase": 0.8854851946234703,
+    "mode": "Warp"
+  },
+  {
+    "case": "FL_Handoff",
+    "index": 8,
+    "file": "FL_Handoff_08.png",
+    "t": 49.43552817776799,
+    "elapsed": 2.0366311967372894,
+    "yaw": -55.0,
+    "phase": 0.03663119673728943,
+    "mode": "Warp"
+  },
+  {
+    "case": "FL_Handoff",
+    "index": 9,
+    "file": "FL_Handoff_09.png",
+    "t": 49.58812407404184,
+    "elapsed": 2.189227093011141,
+    "yaw": -55.0,
+    "phase": 0.18922709301114082,
+    "mode": "Warp"
+  },
+  {
+    "case": "FL_Handoff",
+    "index": 10,
+    "file": "FL_Handoff_10.png",
+    "t": 49.7374720685184,
+    "elapsed": 2.3385750874876976,
+    "yaw": -55.0,
+    "phase": 0.3385750874876976,
+    "mode": "Warp"
+  },
+  {
+    "case": "FL_Handoff",
+    "index": 11,
+    "file": "FL_Handoff_11.png",
+    "t": 49.88806176558137,
+    "elapsed": 2.489164784550667,
+    "yaw": -55.0,
+    "phase": 0.4891647845506668,
+    "mode": "Warp"
+  },
+  {
+    "case": "BR_Handoff",
+    "index": 0,
+    "file": "BR_Handoff_00.png",
+    "t": 50.70369616895914,
+    "elapsed": 0.8156344033777714,
+    "yaw": 125.0,
+    "phase": 0.3047991879284382,
+    "mode": "Warp"
+  },
+  {
+    "case": "BR_Handoff",
+    "index": 1,
+    "file": "BR_Handoff_01.png",
+    "t": 50.859235268086195,
+    "elapsed": 0.9711735025048256,
+    "yaw": 125.0,
+    "phase": 0.4603382870554924,
+    "mode": "Warp"
+  },
+  {
+    "case": "BR_Handoff",
+    "index": 2,
+    "file": "BR_Handoff_02.png",
+    "t": 51.02080497890711,
+    "elapsed": 1.132743213325739,
+    "yaw": 125.0,
+    "phase": 0.6219079978764057,
+    "mode": "Warp"
+  },
+  {
+    "case": "BR_Handoff",
+    "index": 3,
+    "file": "BR_Handoff_03.png",
+    "t": 51.1774000748992,
+    "elapsed": 1.2893383093178272,
+    "yaw": 125.0,
+    "phase": 0.778503093868494,
+    "mode": "Warp"
+  },
+  {
+    "case": "BR_Handoff",
+    "index": 4,
+    "file": "BR_Handoff_04.png",
+    "t": 51.33566017076373,
+    "elapsed": 1.4475984051823616,
+    "yaw": 125.0,
+    "phase": 0.9367631897330284,
+    "mode": "Warp"
+  },
+  {
+    "case": "BR_Handoff",
+    "index": 5,
+    "file": "BR_Handoff_05.png",
+    "t": 51.48861517012119,
+    "elapsed": 1.6005534045398235,
+    "yaw": 125.0,
+    "phase": 0.08971818909049034,
+    "mode": "Warp"
+  },
+  {
+    "case": "BR_Handoff",
+    "index": 6,
+    "file": "BR_Handoff_06.png",
+    "t": 51.659683261066675,
+    "elapsed": 1.7716214954853058,
+    "yaw": 125.0,
+    "phase": 0.2607862800359726,
+    "mode": "Warp"
+  },
+  {
+    "case": "BR_Handoff",
+    "index": 7,
+    "file": "BR_Handoff_07.png",
+    "t": 51.815426256507635,
+    "elapsed": 1.9273644909262657,
+    "yaw": 125.0,
+    "phase": 0.4165292754769325,
+    "mode": "Warp"
+  },
+  {
+    "case": "BR_Handoff",
+    "index": 8,
+    "file": "BR_Handoff_08.png",
+    "t": 51.97153525054455,
+    "elapsed": 2.0834734849631786,
+    "yaw": 125.0,
+    "phase": 0.5726382695138454,
+    "mode": "Warp"
+  },
+  {
+    "case": "BR_Handoff",
+    "index": 9,
+    "file": "BR_Handoff_09.png",
+    "t": 52.12329985573888,
+    "elapsed": 2.235238090157509,
+    "yaw": 125.0,
+    "phase": 0.7244028747081757,
+    "mode": "Warp"
+  },
+  {
+    "case": "BR_Handoff",
+    "index": 10,
+    "file": "BR_Handoff_10.png",
+    "t": 52.27941054850817,
+    "elapsed": 2.391348782926798,
+    "yaw": 125.0,
+    "phase": 0.8805135674774647,
+    "mode": "Warp"
+  },
+  {
+    "case": "BR_Handoff",
+    "index": 11,
+    "file": "BR_Handoff_11.png",
+    "t": 52.42941254004836,
+    "elapsed": 2.5413507744669914,
+    "yaw": 125.0,
+    "phase": 0.030515559017658234,
+    "mode": "Warp"
+  },
+  {
+    "case": "FR_Handoff",
+    "index": 0,
+    "file": "FR_Handoff_00.png",
+    "t": 53.230789843946695,
+    "elapsed": 0.8013773038983345,
+    "yaw": 55.0,
+    "phase": 0.8318928629159927,
+    "mode": "Warp"
+  },
+  {
+    "case": "FR_Handoff",
+    "index": 1,
+    "file": "FR_Handoff_01.png",
+    "t": 53.383818946778774,
+    "elapsed": 0.9544064067304134,
+    "yaw": 55.0,
+    "phase": 0.9849219657480717,
+    "mode": "Warp"
+  },
+  {
+    "case": "FR_Handoff",
+    "index": 2,
+    "file": "FR_Handoff_02.png",
+    "t": 53.534623239189386,
+    "elapsed": 1.1052106991410255,
+    "yaw": 55.0,
+    "phase": 0.13572625815868378,
+    "mode": "Warp"
+  },
+  {
+    "case": "FR_Handoff",
+    "index": 3,
+    "file": "FR_Handoff_03.png",
+    "t": 53.68393263593316,
+    "elapsed": 1.2545200958848,
+    "yaw": 55.0,
+    "phase": 0.2850356549024582,
+    "mode": "Warp"
+  },
+  {
+    "case": "FR_Handoff",
+    "index": 4,
+    "file": "FR_Handoff_04.png",
+    "t": 53.83332323282957,
+    "elapsed": 1.40391069278121,
+    "yaw": 55.0,
+    "phase": 0.4344262517988682,
+    "mode": "Warp"
+  },
+  {
+    "case": "FR_Handoff",
+    "index": 5,
+    "file": "FR_Handoff_05.png",
+    "t": 53.98159533366561,
+    "elapsed": 1.5521827936172485,
+    "yaw": 55.0,
+    "phase": 0.5826983526349068,
+    "mode": "Warp"
+  },
+  {
+    "case": "FR_Handoff",
+    "index": 6,
+    "file": "FR_Handoff_06.png",
+    "t": 54.24106964096427,
+    "elapsed": 1.8116571009159088,
+    "yaw": 55.0,
+    "phase": 0.842172659933567,
+    "mode": "Warp"
+  },
+  {
+    "case": "FR_Handoff",
+    "index": 7,
+    "file": "FR_Handoff_07.png",
+    "t": 54.39199514687061,
+    "elapsed": 1.9625826068222523,
+    "yaw": 55.0,
+    "phase": 0.9930981658399105,
+    "mode": "Warp"
+  },
+  {
+    "case": "FR_Handoff",
+    "index": 8,
+    "file": "FR_Handoff_08.png",
+    "t": 54.540879148989916,
+    "elapsed": 2.111466608941555,
+    "yaw": 55.0,
+    "phase": 0.14198216795921326,
+    "mode": "Warp"
+  },
+  {
+    "case": "FR_Handoff",
+    "index": 9,
+    "file": "FR_Handoff_09.png",
+    "t": 54.69013064354658,
+    "elapsed": 2.2607181034982204,
+    "yaw": 55.0,
+    "phase": 0.2912336625158787,
+    "mode": "Warp"
+  },
+  {
+    "case": "FR_Handoff",
+    "index": 10,
+    "file": "FR_Handoff_10.png",
+    "t": 54.84160454198718,
+    "elapsed": 2.41219200193882,
+    "yaw": 55.0,
+    "phase": 0.4427075609564781,
+    "mode": "Warp"
+  },
+  {
+    "case": "FR_Handoff",
+    "index": 11,
+    "file": "FR_Handoff_11.png",
+    "t": 54.99447264149785,
+    "elapsed": 2.5650601014494896,
+    "yaw": 55.0,
+    "phase": 0.5955756604671478,
+    "mode": "Warp"
+  },
+  {
+    "case": "BL_Handoff",
+    "index": 0,
+    "file": "BL_Handoff_00.png",
+    "t": 55.795625038444996,
+    "elapsed": 0.8011523969471455,
+    "yaw": -125.0,
+    "phase": 0.3967280574142933,
+    "mode": "Warp"
+  },
+  {
+    "case": "BL_Handoff",
+    "index": 1,
+    "file": "BL_Handoff_01.png",
+    "t": 55.946778535842896,
+    "elapsed": 0.9523058943450451,
+    "yaw": -125.0,
+    "phase": 0.5478815548121929,
+    "mode": "Warp"
+  },
+  {
+    "case": "BL_Handoff",
+    "index": 2,
+    "file": "BL_Handoff_02.png",
+    "t": 56.098675940185785,
+    "elapsed": 1.1042032986879349,
+    "yaw": -125.0,
+    "phase": 0.6997789591550827,
+    "mode": "Warp"
+  },
+  {
+    "case": "BL_Handoff",
+    "index": 3,
+    "file": "BL_Handoff_03.png",
+    "t": 56.24849144369364,
+    "elapsed": 1.2540188021957874,
+    "yaw": -125.0,
+    "phase": 0.8495944626629353,
+    "mode": "Warp"
+  },
+  {
+    "case": "BL_Handoff",
+    "index": 4,
+    "file": "BL_Handoff_04.png",
+    "t": 56.399780344218016,
+    "elapsed": 1.4053077027201653,
+    "yaw": -125.0,
+    "phase": 0.0008833631873130798,
+    "mode": "Warp"
+  },
+  {
+    "case": "BL_Handoff",
+    "index": 5,
+    "file": "BL_Handoff_05.png",
+    "t": 56.550643146038055,
+    "elapsed": 1.556170504540205,
+    "yaw": -125.0,
+    "phase": 0.15174616500735283,
+    "mode": "Warp"
+  },
+  {
+    "case": "BL_Handoff",
+    "index": 6,
+    "file": "BL_Handoff_06.png",
+    "t": 56.70100944489241,
+    "elapsed": 1.706536803394556,
+    "yaw": -125.0,
+    "phase": 0.3021124638617039,
+    "mode": "Warp"
+  },
+  {
+    "case": "BL_Handoff",
+    "index": 7,
+    "file": "BL_Handoff_07.png",
+    "t": 56.85162093862891,
+    "elapsed": 1.8571482971310616,
+    "yaw": -125.0,
+    "phase": 0.4527239575982094,
+    "mode": "Warp"
+  },
+  {
+    "case": "BL_Handoff",
+    "index": 8,
+    "file": "BL_Handoff_08.png",
+    "t": 56.99980663135648,
+    "elapsed": 2.0053339898586273,
+    "yaw": -125.0,
+    "phase": 0.6009096503257751,
+    "mode": "Warp"
+  },
+  {
+    "case": "BL_Handoff",
+    "index": 9,
+    "file": "BL_Handoff_09.png",
+    "t": 57.150707833468914,
+    "elapsed": 2.1562351919710636,
+    "yaw": -125.0,
+    "phase": 0.7518108524382114,
+    "mode": "Warp"
+  },
+  {
+    "case": "BL_Handoff",
+    "index": 10,
+    "file": "BL_Handoff_10.png",
+    "t": 57.30179203674197,
+    "elapsed": 2.3073193952441216,
+    "yaw": -125.0,
+    "phase": 0.9028950557112694,
+    "mode": "Warp"
+  },
+  {
+    "case": "BL_Handoff",
+    "index": 11,
+    "file": "BL_Handoff_11.png",
+    "t": 57.450828835368156,
+    "elapsed": 2.456356193870306,
+    "yaw": -125.0,
+    "phase": 0.05193185433745384,
+    "mode": "Warp"
+  }
+]

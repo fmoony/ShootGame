@@ -1,0 +1,28 @@
+{
+  "state": "Complete",
+  "error": null,
+  "records": [
+    {
+      "input": {
+        "group": "ExactPair",
+        "yaw": -55.49946212768555,
+        "phase": 0.366719800978899,
+        "source": "frame_a"
+      },
+      "anim": "/Game/Experiments/Stance_20261022/ABP_OWLocalMovement.ABP_OWLocalMovement_C",
+      "max_position_error_cm": 0,
+      "bones": 89
+    },
+    {
+      "input": {
+        "group": "ExactPair",
+        "yaw": -54.74951934814453,
+        "phase": 0.3833865001797676,
+        "source": "frame_b"
+      },
+      "anim": "/Game/Experiments/Stance_20261022/ABP_OWLocalMovement.ABP_OWLocalMovement_C",
+      "max_position_error_cm": 0,
+      "bones": 89
+    }
+  ]
+}

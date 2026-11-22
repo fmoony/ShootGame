@@ -1,0 +1,101 @@
+{
+  "TorsoMirrorHeadHands": {
+    "status": {
+      "status": "Complete",
+      "frames": 495,
+      "native_phase_getter": false
+    },
+    "result": {
+      "FL": {
+        "tap_samples": 3,
+        "tap_start_phase": 0.30015449970960617,
+        "freeze_phase": 0.33348890021443367,
+        "freeze_min_shoe_cm": -19.989,
+        "tap_min_shoe_cm": -19.989,
+        "freeze_range_cm": [
+          -19.989,
+          -19.989
+        ],
+        "body_z_cm": 0.0,
+        "stop_pawn_displacement_cm": 0.0,
+        "stop_pose_displacement_cm": 0.0
+      },
+      "BR": {
+        "tap_samples": 3,
+        "tap_start_phase": 0.6349401995539665,
+        "freeze_phase": 0.668298602104187,
+        "freeze_min_shoe_cm": -20.152,
+        "tap_min_shoe_cm": -20.152,
+        "freeze_range_cm": [
+          -20.152,
+          -20.152
+        ],
+        "body_z_cm": 0.0,
+        "stop_pawn_displacement_cm": 0.0,
+        "stop_pose_displacement_cm": 0.0
+      },
+      "FL_phase2": {
+        "tap_samples": 3,
+        "tap_start_phase": 0.2519064024090767,
+        "freeze_phase": 0.28523990511894226,
+        "freeze_min_shoe_cm": -16.088,
+        "tap_min_shoe_cm": -16.088,
+        "freeze_range_cm": [
+          -16.088,
+          -16.088
+        ],
+        "body_z_cm": 0.0,
+        "stop_pawn_displacement_cm": 0.0,
+        "stop_pose_displacement_cm": 0.0
+      },
+      "BR_phase2": {
+        "tap_samples": 3,
+        "tap_start_phase": 0.5853148028254509,
+        "freeze_phase": 0.6186483018100262,
+        "freeze_min_shoe_cm": -20.603,
+        "tap_min_shoe_cm": -20.603,
+        "freeze_range_cm": [
+          -20.603,
+          -20.603
+        ],
+        "body_z_cm": 0.0,
+        "stop_pawn_displacement_cm": 0.0,
+        "stop_pose_displacement_cm": 0.0
+      },
+      "FL_turn": {
+        "intervals": {
+          "turn_in": {
+            "min_shoe_cm": -20.997,
+            "max_joint_change_per_frame_cm": 26.342,
+            "max_joint_change_frame_phase": 0.3354834020137787,
+            "max_joint_change_frame_seconds": 0.016666699200868607
+          },
+          "turn_out": {
+            "min_shoe_cm": -5.19,
+            "max_joint_change_per_frame_cm": 12.832,
+            "max_joint_change_frame_phase": 0.9450595043599606,
+            "max_joint_change_frame_seconds": 0.016666699200868607
+          }
+        },
+        "stable_diagonal_observed_min_shoe_cm": -4.552
+      },
+      "BR_turn": {
+        "intervals": {
+          "turn_in": {
+            "min_shoe_cm": -19.382,
+            "max_joint_change_per_frame_cm": 28.494,
+            "max_joint_change_frame_phase": 0.6784592010080814,
+            "max_joint_change_frame_seconds": 0.016666699200868607
+          },
+          "turn_out": {
+            "min_shoe_cm": -8.951,
+            "max_joint_change_per_frame_cm": 19.351,
+            "max_joint_change_frame_phase": 0.26674389466643333,
+            "max_joint_change_frame_seconds": 0.016666702926158905
+          }
+        },
+        "stable_diagonal_observed_min_shoe_cm": -4.18
+      }
+    }
+  }
+}

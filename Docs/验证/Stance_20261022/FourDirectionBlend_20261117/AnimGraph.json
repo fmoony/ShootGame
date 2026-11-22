@@ -1,0 +1,183 @@
+{
+  "returnValue": [
+    {
+      "output_pins": [],
+      "input_pins": [
+        {
+          "value": "(LinkID=-1,SourceLinkID=-1)",
+          "connected_pins": [
+            {
+              "direction": "EGPD_Output",
+              "index_id": 0,
+              "node": {
+                "refPath": "/Game/Experiments/Stance_20261022/FourDirection_20261117/ABP_FourDirection.ABP_FourDirection:AnimGraph.AnimGraphNode_BlendSpacePlayer_0"
+              }
+            }
+          ],
+          "pin_id": {
+            "direction": "EGPD_Input",
+            "index_id": 0,
+            "node": {
+              "refPath": "/Game/Experiments/Stance_20261022/FourDirection_20261117/ABP_FourDirection.ABP_FourDirection:AnimGraph.AnimGraphNode_Root_0"
+            }
+          },
+          "type_id": "Pose Link Structure",
+          "name": "Result"
+        }
+      ],
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "node": {
+        "refPath": "/Game/Experiments/Stance_20261022/FourDirection_20261117/ABP_FourDirection.ABP_FourDirection:AnimGraph.AnimGraphNode_Root_0"
+      },
+      "type_id": "Misc.|OutputPose"
+    },
+    {
+      "output_pins": [
+        {
+          "value": "",
+          "connected_pins": [
+            {
+              "direction": "EGPD_Input",
+              "index_id": 0,
+              "node": {
+                "refPath": "/Game/Experiments/Stance_20261022/FourDirection_20261117/ABP_FourDirection.ABP_FourDirection:AnimGraph.AnimGraphNode_Root_0"
+              }
+            }
+          ],
+          "pin_id": {
+            "direction": "EGPD_Output",
+            "index_id": 0,
+            "node": {
+              "refPath": "/Game/Experiments/Stance_20261022/FourDirection_20261117/ABP_FourDirection.ABP_FourDirection:AnimGraph.AnimGraphNode_BlendSpacePlayer_0"
+            }
+          },
+          "type_id": "Pose Link Structure",
+          "name": "Pose"
+        }
+      ],
+      "input_pins": [
+        {
+          "value": "0.000000",
+          "connected_pins": [
+            {
+              "direction": "EGPD_Output",
+              "index_id": 0,
+              "node": {
+                "refPath": "/Game/Experiments/Stance_20261022/FourDirection_20261117/ABP_FourDirection.ABP_FourDirection:AnimGraph.K2Node_VariableGet_0"
+              }
+            }
+          ],
+          "pin_id": {
+            "direction": "EGPD_Input",
+            "index_id": 0,
+            "node": {
+              "refPath": "/Game/Experiments/Stance_20261022/FourDirection_20261117/ABP_FourDirection.ABP_FourDirection:AnimGraph.AnimGraphNode_BlendSpacePlayer_0"
+            }
+          },
+          "type_id": "Float (single-precision)",
+          "name": "X"
+        },
+        {
+          "value": "0.000000",
+          "connected_pins": [
+            {
+              "direction": "EGPD_Output",
+              "index_id": 0,
+              "node": {
+                "refPath": "/Game/Experiments/Stance_20261022/FourDirection_20261117/ABP_FourDirection.ABP_FourDirection:AnimGraph.K2Node_VariableGet_1"
+              }
+            }
+          ],
+          "pin_id": {
+            "direction": "EGPD_Input",
+            "index_id": 1,
+            "node": {
+              "refPath": "/Game/Experiments/Stance_20261022/FourDirection_20261117/ABP_FourDirection.ABP_FourDirection:AnimGraph.AnimGraphNode_BlendSpacePlayer_0"
+            }
+          },
+          "type_id": "Float (single-precision)",
+          "name": "Y"
+        }
+      ],
+      "position": {
+        "x": -400,
+        "y": 0
+      },
+      "node": {
+        "refPath": "/Game/Experiments/Stance_20261022/FourDirection_20261117/ABP_FourDirection.ABP_FourDirection:AnimGraph.AnimGraphNode_BlendSpacePlayer_0"
+      },
+      "type_id": "Animation|BlendSpaces|BlendspacePlayer'BS_FourDirection_Crouch'"
+    },
+    {
+      "output_pins": [
+        {
+          "value": "0.0",
+          "connected_pins": [
+            {
+              "direction": "EGPD_Input",
+              "index_id": 0,
+              "node": {
+                "refPath": "/Game/Experiments/Stance_20261022/FourDirection_20261117/ABP_FourDirection.ABP_FourDirection:AnimGraph.AnimGraphNode_BlendSpacePlayer_0"
+              }
+            }
+          ],
+          "pin_id": {
+            "direction": "EGPD_Output",
+            "index_id": 0,
+            "node": {
+              "refPath": "/Game/Experiments/Stance_20261022/FourDirection_20261117/ABP_FourDirection.ABP_FourDirection:AnimGraph.K2Node_VariableGet_0"
+            }
+          },
+          "type_id": "Float (single-precision)",
+          "name": "Forward"
+        }
+      ],
+      "input_pins": [],
+      "position": {
+        "x": -620,
+        "y": 0
+      },
+      "node": {
+        "refPath": "/Game/Experiments/Stance_20261022/FourDirection_20261117/ABP_FourDirection.ABP_FourDirection:AnimGraph.K2Node_VariableGet_0"
+      },
+      "type_id": "|GetForward"
+    },
+    {
+      "output_pins": [
+        {
+          "value": "0.0",
+          "connected_pins": [
+            {
+              "direction": "EGPD_Input",
+              "index_id": 1,
+              "node": {
+                "refPath": "/Game/Experiments/Stance_20261022/FourDirection_20261117/ABP_FourDirection.ABP_FourDirection:AnimGraph.AnimGraphNode_BlendSpacePlayer_0"
+              }
+            }
+          ],
+          "pin_id": {
+            "direction": "EGPD_Output",
+            "index_id": 0,
+            "node": {
+              "refPath": "/Game/Experiments/Stance_20261022/FourDirection_20261117/ABP_FourDirection.ABP_FourDirection:AnimGraph.K2Node_VariableGet_1"
+            }
+          },
+          "type_id": "Float (single-precision)",
+          "name": "Right"
+        }
+      ],
+      "input_pins": [],
+      "position": {
+        "x": -620,
+        "y": 0
+      },
+      "node": {
+        "refPath": "/Game/Experiments/Stance_20261022/FourDirection_20261117/ABP_FourDirection.ABP_FourDirection:AnimGraph.K2Node_VariableGet_1"
+      },
+      "type_id": "|GetRight"
+    }
+  ]
+}

@@ -1,0 +1,124 @@
+{
+  "Circle_CW": {
+    "max_angle_step": 9.000015258789062,
+    "max_root_step": 18.316363992803186,
+    "max_foot_step": 23.202724983910237,
+    "wrap_events": [
+      {
+        "t": 2.6010816991329193,
+        "dt": 0.016666699200868607,
+        "angle_step": 1.5,
+        "root_quat_step": 2.149335198936869,
+        "max_foot_step": 10.130440017222007
+      },
+      {
+        "t": 6.605277597904205,
+        "dt": 0.016666699200868607,
+        "angle_step": 1.5,
+        "root_quat_step": 2.1546770969184768,
+        "max_foot_step": 10.210343025652236
+      }
+    ]
+  },
+  "Circle_CCW": {
+    "max_angle_step": 1.5013580322265625,
+    "max_root_step": 16.57366398096112,
+    "max_foot_step": 15.758180347948974,
+    "wrap_events": [
+      {
+        "t": 2.600103300064802,
+        "dt": 0.016666702926158905,
+        "angle_step": 1.5,
+        "root_quat_step": 0.9072939400965049,
+        "max_foot_step": 9.394339907321966
+      },
+      {
+        "t": 6.600137297064066,
+        "dt": 0.016666799783706665,
+        "angle_step": 1.5000152587890625,
+        "root_quat_step": 0.9072576019216402,
+        "max_foot_step": 9.395217455416809
+      }
+    ]
+  },
+  "FL_out": {
+    "max_angle_step": 0.7509231567382812,
+    "max_root_step": 9.062688760729868,
+    "max_foot_step": 10.244610223109799,
+    "wrap_events": []
+  },
+  "FL_back": {
+    "max_angle_step": 0.7512626647949219,
+    "max_root_step": 7.292748465022601,
+    "max_foot_step": 61.329813505860784,
+    "wrap_events": []
+  },
+  "FR_out": {
+    "max_angle_step": 2.5315017700195312,
+    "max_root_step": 4.729755265369287,
+    "max_foot_step": 12.447281708803851,
+    "wrap_events": []
+  },
+  "FR_back": {
+    "max_angle_step": 0.750518798828125,
+    "max_root_step": 1.517121733877757,
+    "max_foot_step": 9.88586966489709,
+    "wrap_events": []
+  },
+  "BL_out": {
+    "max_angle_step": 0.7524261474609375,
+    "max_root_step": 2.4823600022517343,
+    "max_foot_step": 10.243463988089339,
+    "wrap_events": [
+      {
+        "t": 0.5666696019470692,
+        "dt": 0.016666699200868607,
+        "angle_step": 0.3891143798828125,
+        "root_quat_step": 1.0981370236963137,
+        "max_foot_step": 4.627019694526397
+      }
+    ]
+  },
+  "BL_back": {
+    "max_angle_step": 0.7500152587890625,
+    "max_root_step": 2.552251793028246,
+    "max_foot_step": 9.711066222545984,
+    "wrap_events": []
+  },
+  "BR_out": {
+    "max_angle_step": 2.0618515014648438,
+    "max_root_step": 7.137038590026092,
+    "max_foot_step": 29.05794649870263,
+    "wrap_events": []
+  },
+  "BR_back": {
+    "max_angle_step": 0.7500152587890625,
+    "max_root_step": 8.654285886319212,
+    "max_foot_step": 10.055639506881134,
+    "wrap_events": []
+  },
+  "F_B": {
+    "max_angle_step": 30.000045776367188,
+    "max_root_step": 77.09355889397051,
+    "max_foot_step": 47.69279717834918,
+    "wrap_events": []
+  },
+  "R_L": {
+    "max_angle_step": 30.000038146972656,
+    "max_root_step": 86.702136426744,
+    "max_foot_step": 61.03309773959209,
+    "wrap_events": []
+  },
+  "FL_BR": {
+    "max_angle_step": 30.000038146972656,
+    "max_root_step": 117.98197731834186,
+    "max_foot_step": 54.421452505563444,
+    "wrap_events": []
+  },
+  "FR_BL": {
+    "max_angle_step": 30.000045776367188,
+    "max_root_step": 101.85900835502997,
+    "max_foot_step": 67.46653176741242,
+    "wrap_events": []
+  }
+}

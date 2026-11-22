@@ -1,0 +1,16 @@
+{
+  "native_screenshot_count": 492,
+  "native_raw_root": "D:\\UE_Projects\\_worktrees\\ShootGame_UE58\\Saved\\Orientation360_20261120_01",
+  "crop": [
+    740,
+    340,
+    1220,
+    760
+  ],
+  "fixed_view": "Native existing view 2, same mesh/ground/camera for all fixed cases",
+  "transition_view": "Native existing view 1",
+  "composition": "Fixed crop, resize, titles only; no pose editing or generated intermediate frames",
+  "gif_duration_ms": 170,
+  "phase_alignment": "None; each case is an independent native cycle, no artificial phase shift",
+  "numerical_source": "RunFrames.json.gz contains no screenshot collection; separate from visual replay"
+}

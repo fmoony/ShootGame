@@ -1,0 +1,80 @@
+{
+  "state": "Passed",
+  "frames": 1263,
+  "method": "Targeted Win32 key messages to verified UE PID 34188 preview HWND",
+  "events": [
+    {
+      "label": "F",
+      "frames": 56,
+      "speed_cm_s": 150,
+      "phase_delta": 0.9166707992553711,
+      "rate": [
+        1,
+        1
+      ]
+    },
+    {
+      "label": "F_stop",
+      "frames": 14,
+      "speed_cm_s": 0,
+      "phase_delta": 0,
+      "rate": [
+        0,
+        0
+      ]
+    },
+    {
+      "label": "FL",
+      "frames": 56,
+      "speed_cm_s": 150.00000000000028,
+      "phase_delta": 0.9166695028543472,
+      "rate": [
+        1,
+        1
+      ]
+    },
+    {
+      "label": "FL_stop",
+      "frames": 13,
+      "speed_cm_s": 0,
+      "phase_delta": 0,
+      "rate": [
+        0,
+        0
+      ]
+    },
+    {
+      "label": "BR",
+      "frames": 55,
+      "speed_cm_s": 150.00000000000045,
+      "phase_delta": 0.9000018015503883,
+      "rate": [
+        1,
+        1
+      ]
+    },
+    {
+      "label": "BR_stop",
+      "frames": 14,
+      "speed_cm_s": 0,
+      "phase_delta": 0,
+      "rate": [
+        0,
+        0
+      ]
+    },
+    {
+      "label": "FinalStop",
+      "frames": 38,
+      "speed_cm_s": 0,
+      "phase_delta": 0,
+      "rate": [
+        0,
+        0
+      ]
+    }
+  ],
+  "instances": [
+    "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/UEDPIE_0_L_OWLocalMovement.L_OWLocalMovement:PersistentLevel.ShooterStancePreviewPawn_0.Body.ABP_OWLocalMovement_C_0"
+  ]
+}

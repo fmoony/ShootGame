@@ -1,0 +1,34 @@
+{
+  "graphs_same_except_paths": true,
+  "skeleton_same_except_path": true,
+  "clips": {
+    "AS_RootLockSource_Back": {
+      "metadata_same": true,
+      "max_position_cm": 0,
+      "max_angle_deg": 0.0000034150945850063755,
+      "samples": 62
+    },
+    "AS_RootLockSource_Forward": {
+      "metadata_same": true,
+      "max_position_cm": 0,
+      "max_angle_deg": 0.000004182619578303746,
+      "samples": 62
+    },
+    "AS_RootLockSource_Left": {
+      "metadata_same": true,
+      "max_position_cm": 0,
+      "max_angle_deg": 0.0000034150945850063755,
+      "samples": 62
+    },
+    "AS_RootLockSource_Right": {
+      "metadata_same": true,
+      "max_position_cm": 0,
+      "max_angle_deg": 0.0000034150945850063755,
+      "samples": 62
+    }
+  },
+  "bone_samples": 22072,
+  "max_position_cm": 0,
+  "max_angle_deg": 0.000004182619578303746,
+  "sample_values_identical": true
+}

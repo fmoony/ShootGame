@@ -1,0 +1,53 @@
+{
+  "phase": "Runtime",
+  "old_objects": {
+    "/Game/Experiments/Stance_20261022/FourDirection_20261117/ABP_FourDirection": {
+      "package": null,
+      "asset": null,
+      "class": null
+    },
+    "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/BS_EightDirection_Mirrored": {
+      "package": null,
+      "asset": null
+    },
+    "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/AS_BlendMirror_BackLeft": {
+      "package": null,
+      "asset": null
+    },
+    "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/AS_BlendMirror_ForwardRight": {
+      "package": null,
+      "asset": null
+    },
+    "/Game/Experiments/Stance_20261022/TorsoMirrorHeadHands_20261118/AS_MirrorTorsoKeepHeadHands_BackRight": {
+      "package": null,
+      "asset": null
+    },
+    "/Game/Experiments/Stance_20261022/TorsoMirrorHeadHands_20261118/AS_MirrorTorsoKeepHeadHands_ForwardLeft": {
+      "package": null,
+      "asset": null
+    }
+  },
+  "editor_world": null,
+  "game_mode": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/BP_OWLocalGameMode.BP_OWLocalGameMode_C",
+  "configured_anim": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/ABP_OWLocalMovement.ABP_OWLocalMovement_C",
+  "actual_anim": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/ABP_OWLocalMovement.ABP_OWLocalMovement_C",
+  "anim_instance": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/UEDPIE_0_L_OWLocalMovement.L_OWLocalMovement:PersistentLevel.ShooterStancePreviewPawn_0.Body.ABP_OWLocalMovement_C_0",
+  "controller_initialized": [
+    true
+  ],
+  "flags": {
+    "bTestOverride": false,
+    "bSnapInput": false,
+    "bManualPhase": false
+  },
+  "tick": true,
+  "location": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "rate": 0.0,
+  "dirty_content": [],
+  "dirty_maps": [],
+  "max_fps": 0.0
+}

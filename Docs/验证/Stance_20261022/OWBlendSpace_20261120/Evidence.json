@@ -1,0 +1,18 @@
+{
+  "native_screenshots": 12,
+  "native_pose_replay_max_error_cm": 0,
+  "camera": "Shared exact native view 2 position [595,220,155], target [15,0,85], FOV 58; verified for each capture",
+  "composition": "Fixed crop [740,340,1220,760] and labels only; no pose edits, no generated frames",
+  "source_inputs": "Full precision recorded values and scan indices from Samples.json.gz",
+  "raw_root": "D:\\UE_Projects\\_worktrees\\ShootGame_UE58\\Saved\\OWBlendSpace_20261120_01",
+  "numerical_and_visual": "Separate runs; screenshot stalls excluded from numerical scans",
+  "render_capture_settings": {
+    "r.MotionBlurQuality": 0,
+    "r.AntiAliasingMethod": 0
+  },
+  "render_settings_restored": {
+    "r.MotionBlurQuality": 4,
+    "r.AntiAliasingMethod": 4
+  },
+  "hidden_observers": "Hidden sampling Pawn components do not cast shadows"
+}

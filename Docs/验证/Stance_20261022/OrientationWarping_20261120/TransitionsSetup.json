@@ -1,0 +1,7 @@
+{
+  "B": "Up=Forward0,Down=FL-45",
+  "C": "Left=Left0,Down=FL+45",
+  "FInterpTo": 10,
+  "node_interp": 0,
+  "no_cross_source_transition": true
+}

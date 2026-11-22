@@ -1,0 +1,12 @@
+{
+  "Baseline_BR.png": "fa666bc739e4d5d8d8ff93399506311916d2d979bb0de6d3e38d55e15c06e434",
+  "Baseline_FL.png": "821bb7292d970ed62d3d9fad680f044228edd2c71fd29441f796af3227bdcae8",
+  "Baseline_frames.json.gz": "d0dbf80bda7e2558f442175f2fcab89f04e83f404484f247b266a4ef3af57df6",
+  "Change.json": "60265b2e32556d471781f8f11041b046d346ac4ca3d701318c5c0e34cb08d3dc",
+  "Compare.json": "cc070f0b8282fecfd608cde9af5976727ab2b8a973651b669ec937cb04339e65",
+  "FinalConfig.json": "3cf8a15a59553f5fd9b09004b5c5575d758ff1d98801ac6a4e103b4463ebcba1",
+  "Protection.json": "9f31d73613e8ab99cae034d9c3c6eec5df1d10f733e5174fd7acca6fe61503e6",
+  "Zero_BR.png": "fe287c74ea26fcd38ab84b0af8d861ac9c41429a94a0797895507df13ae3a931",
+  "Zero_FL.png": "ff1dc20bb391e114afe7356ed297a573f8a9ffd8cd3e1bf4980a5051f3a00da6",
+  "Zero_frames.json.gz": "e3ea9e77a7050ced411f304d5a7c75331e292c1c0975711f9f65f7343ba050fa"
+}

@@ -1,0 +1,41 @@
+{
+  "original_fbxs": [
+    {
+      "direction": "Forward",
+      "original": "D:\\GameResource\\Model\\UETemplate\\Animation\\Crouch\\rootLock\\Walk Crouching Forward.fbx",
+      "copy": "SourceAssets/FourDirectionRootLockSource_20261117/Original/Walk Crouching Forward.fbx",
+      "sha256": "c2d94f359f548c89be304aee288eb3c4f8b8c4571908ab0a2a3939239c84fc5f",
+      "bytes": 369312,
+      "current_sha256": "c2d94f359f548c89be304aee288eb3c4f8b8c4571908ab0a2a3939239c84fc5f",
+      "unchanged": true
+    },
+    {
+      "direction": "Back",
+      "original": "D:\\GameResource\\Model\\UETemplate\\Animation\\Crouch\\rootLock\\Walk Crouching Backward.fbx",
+      "copy": "SourceAssets/FourDirectionRootLockSource_20261117/Original/Walk Crouching Backward.fbx",
+      "sha256": "595e8fea63796a8ef2795a570fea7a4b47c8ae9c1363d19ade8abff4a0272a2b",
+      "bytes": 369312,
+      "current_sha256": "595e8fea63796a8ef2795a570fea7a4b47c8ae9c1363d19ade8abff4a0272a2b",
+      "unchanged": true
+    },
+    {
+      "direction": "Left",
+      "original": "D:\\GameResource\\Model\\UETemplate\\Animation\\Crouch\\rootLock\\Walk Crouching Left.fbx",
+      "copy": "SourceAssets/FourDirectionRootLockSource_20261117/Original/Walk Crouching Left.fbx",
+      "sha256": "f93ee82a024fd76b41a11b3af86f3a7285a30fdd53852ee85c89b85f294c3670",
+      "bytes": 369312,
+      "current_sha256": "f93ee82a024fd76b41a11b3af86f3a7285a30fdd53852ee85c89b85f294c3670",
+      "unchanged": true
+    },
+    {
+      "direction": "Right",
+      "original": "D:\\GameResource\\Model\\UETemplate\\Animation\\Crouch\\rootLock\\Walk Crouching Right.fbx",
+      "copy": "SourceAssets/FourDirectionRootLockSource_20261117/Original/Walk Crouching Right.fbx",
+      "sha256": "5bb874bee60b4428863342626d1da9e296d693de4d37c816146f60356450efb0",
+      "bytes": 369312,
+      "current_sha256": "5bb874bee60b4428863342626d1da9e296d693de4d37c816146f60356450efb0",
+      "unchanged": true
+    }
+  ],
+  "project_only_plugin_entry": true
+}

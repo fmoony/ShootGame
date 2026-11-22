@@ -1,0 +1,5443 @@
+{
+  "blueprints": {
+    "ABP_OW360": {
+      "path": "/Game/Experiments/Stance_20261022/Orientation360_20261120/ABP_OW360.ABP_OW360",
+      "status": "<BlueprintStatus.BS_UP_TO_DATE: 3>",
+      "graphs": {
+        "AnimGraph": [
+          {
+            "name": "AnimGraphNode_Root_0",
+            "type": "AnimGraphNode_Root",
+            "pins": [
+              {
+                "name": "Result",
+                "value": "(LinkID=-1,SourceLinkID=-1)",
+                "links": [
+                  "AnimGraphNode_LayeredBoneBlend_2:Pose"
+                ]
+              }
+            ],
+            "error_msg": "",
+            "settings": "(Result=(LinkID=-1,SourceLinkID=-1),Name=\"\",LayerGroup=\"DefaultSharedGroup\",InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+          },
+          {
+            "name": "AnimGraphNode_SequenceEvaluator_0",
+            "type": "AnimGraphNode_SequenceEvaluator",
+            "pins": [
+              {
+                "name": "ExplicitTime",
+                "value": "0.000000",
+                "links": [
+                  "K2Node_VariableGet_0:Phase"
+                ]
+              },
+              {
+                "name": "Pose",
+                "value": "",
+                "links": [
+                  "AnimGraphNode_LocalToComponentSpace_0:LocalPose"
+                ]
+              }
+            ],
+            "error_msg": "",
+            "settings": "(GroupName=\"\",GroupRole=CanBeLeader,Method=DoNotSync,bIgnoreForRelevancyTest=False,Sequence=\"/Script/Engine.AnimSequence'/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Forward.AS_RootLockSource_Forward'\",ExplicitTime=0.000000,bUseExplicitFrame=False,ExplicitFrame=0,bShouldLoop=True,bTeleportToExplicitTime=True,ReinitializationBehavior=ExplicitTime,StartPosition=0.000000,InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+          },
+          {
+            "name": "K2Node_VariableGet_0",
+            "type": "K2Node_VariableGet",
+            "pins": [
+              {
+                "name": "Phase",
+                "value": "0.0",
+                "links": [
+                  "AnimGraphNode_SequenceEvaluator_0:ExplicitTime"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "AnimGraphNode_LocalToComponentSpace_0",
+            "type": "AnimGraphNode_LocalToComponentSpace",
+            "pins": [
+              {
+                "name": "LocalPose",
+                "value": "(LinkID=-1,SourceLinkID=-1)",
+                "links": [
+                  "AnimGraphNode_SequenceEvaluator_0:Pose"
+                ]
+              },
+              {
+                "name": "ComponentPose",
+                "value": "",
+                "links": [
+                  "AnimGraphNode_OrientationWarping_0:ComponentPose"
+                ]
+              }
+            ],
+            "error_msg": "",
+            "settings": "(LocalPose=(LinkID=-1,SourceLinkID=-1),InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+          },
+          {
+            "name": "AnimGraphNode_OrientationWarping_0",
+            "type": "AnimGraphNode_OrientationWarping",
+            "pins": [
+              {
+                "name": "ComponentPose",
+                "value": "(LinkID=-1,SourceLinkID=-1)",
+                "links": [
+                  "AnimGraphNode_LocalToComponentSpace_0:ComponentPose"
+                ]
+              },
+              {
+                "name": "Alpha",
+                "value": "1.000000",
+                "links": []
+              },
+              {
+                "name": "TargetTime",
+                "value": "0.800000",
+                "links": []
+              },
+              {
+                "name": "OrientationAngle",
+                "value": "0.000000",
+                "links": [
+                  "K2Node_VariableGet_1:AngleF"
+                ]
+              },
+              {
+                "name": "CurrentAnimAsset",
+                "value": "",
+                "links": []
+              },
+              {
+                "name": "CurrentAnimAssetTime",
+                "value": "0.000000",
+                "links": []
+              },
+              {
+                "name": "Pose",
+                "value": "",
+                "links": [
+                  "AnimGraphNode_ComponentToLocalSpace_0:ComponentPose"
+                ]
+              }
+            ],
+            "error_msg": "",
+            "settings": "(Mode=Manual,TargetTime=0.800000,OrientationAngle=0.000000,LocomotionAngle=0.000000,LocomotionDirection=(X=0.000000,Y=0.000000,Z=0.000000),MinRootMotionSpeedThreshold=10.000000,LocomotionAngleDeltaThreshold=90.000000,SpineBones=((BoneName=\"spine_01\"),(BoneName=\"spine_02\"),(BoneName=\"spine_03\"),(BoneName=\"spine_04\"),(BoneName=\"spine_05\")),IKFootRootBone=(BoneName=\"ik_foot_root\"),IKFootBones=((BoneName=\"ik_foot_l\"),(BoneName=\"ik_foot_r\")),RotationAxis=Z,DistributedBoneOrientationAlpha=1.000000,RotationInterpSpeed=0.000000,CounterCompensateInterpSpeed=45.000000,MaxCorrectionDegrees=65.000000,MaxRootMotionDeltaToCompensateDegrees=45.000000,bCounterCompenstateInterpolationByRootMotion=True,bScaleByGlobalBlendWeight=False,bUseManualRootMotionVelocity=False,ManualRootMotionVelocity=(X=0.000000,Y=0.000000,Z=0.000000),WarpingSpace=ComponentTransform,WarpingSpaceTransform=(Rotation=(X=0.000000,Y=0.000000,Z=0.000000,W=1.000000),Translation=(X=0.000000,Y=0.000000,Z=0.000000),Scale3D=(X=1.000000,Y=1.000000,Z=1.000000)),DebugDrawScale=1.000000,bEnableDebugDraw=False,ComponentPose=(LinkID=-1,SourceLinkID=-1),LODThreshold=-1,AlphaInputType=Float,bAlphaBoolEnabled=True,Alpha=1.000000,AlphaScaleBias=(Scale=1.000000,Bias=0.000000),AlphaBoolBlend=(BlendInTime=0.000000,BlendOutTime=0.000000,BlendOption=HermiteCubic,CustomCurve=None),AlphaCurveName=\"\",AlphaScaleBiasClamp=(bMapRange=False,bClampResult=False,bInterpResult=False,InRange=(Min=0.000000,Max=1.000000),OutRange=(Min=0.000000,Max=1.000000),Scale=1.000000,Bias=0.000000,ClampMin=0.000000,ClampMax=1.000000,InterpSpeedIncreasing=10.000000,InterpSpeedDecreasing=10.000000),InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+          },
+          {
+            "name": "AnimGraphNode_ComponentToLocalSpace_0",
+            "type": "AnimGraphNode_ComponentToLocalSpace",
+            "pins": [
+              {
+                "name": "ComponentPose",
+                "value": "(LinkID=-1,SourceLinkID=-1)",
+                "links": [
+                  "AnimGraphNode_OrientationWarping_0:Pose"
+                ]
+              },
+              {
+                "name": "Pose",
+                "value": "",
+                "links": [
+                  "AnimGraphNode_LayeredBoneBlend_0:BasePose"
+                ]
+              }
+            ],
+            "error_msg": "",
+            "settings": "(ComponentPose=(LinkID=-1,SourceLinkID=-1),InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+          },
+          {
+            "name": "K2Node_VariableGet_1",
+            "type": "K2Node_VariableGet",
+            "pins": [
+              {
+                "name": "AngleF",
+                "value": "0.0",
+                "links": [
+                  "AnimGraphNode_OrientationWarping_0:OrientationAngle"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "AnimGraphNode_SequenceEvaluator_1",
+            "type": "AnimGraphNode_SequenceEvaluator",
+            "pins": [
+              {
+                "name": "ExplicitTime",
+                "value": "0.000000",
+                "links": [
+                  "K2Node_VariableGet_2:Phase"
+                ]
+              },
+              {
+                "name": "Pose",
+                "value": "",
+                "links": [
+                  "AnimGraphNode_LocalToComponentSpace_1:LocalPose"
+                ]
+              }
+            ],
+            "error_msg": "",
+            "settings": "(GroupName=\"\",GroupRole=CanBeLeader,Method=DoNotSync,bIgnoreForRelevancyTest=False,Sequence=\"/Script/Engine.AnimSequence'/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Right.AS_RootLockSource_Right'\",ExplicitTime=0.000000,bUseExplicitFrame=False,ExplicitFrame=0,bShouldLoop=True,bTeleportToExplicitTime=True,ReinitializationBehavior=ExplicitTime,StartPosition=0.000000,InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+          },
+          {
+            "name": "K2Node_VariableGet_2",
+            "type": "K2Node_VariableGet",
+            "pins": [
+              {
+                "name": "Phase",
+                "value": "0.0",
+                "links": [
+                  "AnimGraphNode_SequenceEvaluator_1:ExplicitTime"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "AnimGraphNode_LocalToComponentSpace_1",
+            "type": "AnimGraphNode_LocalToComponentSpace",
+            "pins": [
+              {
+                "name": "LocalPose",
+                "value": "(LinkID=-1,SourceLinkID=-1)",
+                "links": [
+                  "AnimGraphNode_SequenceEvaluator_1:Pose"
+                ]
+              },
+              {
+                "name": "ComponentPose",
+                "value": "",
+                "links": [
+                  "AnimGraphNode_OrientationWarping_1:ComponentPose"
+                ]
+              }
+            ],
+            "error_msg": "",
+            "settings": "(LocalPose=(LinkID=-1,SourceLinkID=-1),InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+          },
+          {
+            "name": "AnimGraphNode_OrientationWarping_1",
+            "type": "AnimGraphNode_OrientationWarping",
+            "pins": [
+              {
+                "name": "ComponentPose",
+                "value": "(LinkID=-1,SourceLinkID=-1)",
+                "links": [
+                  "AnimGraphNode_LocalToComponentSpace_1:ComponentPose"
+                ]
+              },
+              {
+                "name": "Alpha",
+                "value": "1.000000",
+                "links": []
+              },
+              {
+                "name": "TargetTime",
+                "value": "0.800000",
+                "links": []
+              },
+              {
+                "name": "OrientationAngle",
+                "value": "0.000000",
+                "links": [
+                  "K2Node_VariableGet_3:AngleR"
+                ]
+              },
+              {
+                "name": "CurrentAnimAsset",
+                "value": "",
+                "links": []
+              },
+              {
+                "name": "CurrentAnimAssetTime",
+                "value": "0.000000",
+                "links": []
+              },
+              {
+                "name": "Pose",
+                "value": "",
+                "links": [
+                  "AnimGraphNode_ComponentToLocalSpace_1:ComponentPose"
+                ]
+              }
+            ],
+            "error_msg": "",
+            "settings": "(Mode=Manual,TargetTime=0.800000,OrientationAngle=0.000000,LocomotionAngle=0.000000,LocomotionDirection=(X=0.000000,Y=0.000000,Z=0.000000),MinRootMotionSpeedThreshold=10.000000,LocomotionAngleDeltaThreshold=90.000000,SpineBones=((BoneName=\"spine_01\"),(BoneName=\"spine_02\"),(BoneName=\"spine_03\"),(BoneName=\"spine_04\"),(BoneName=\"spine_05\")),IKFootRootBone=(BoneName=\"ik_foot_root\"),IKFootBones=((BoneName=\"ik_foot_l\"),(BoneName=\"ik_foot_r\")),RotationAxis=Z,DistributedBoneOrientationAlpha=1.000000,RotationInterpSpeed=0.000000,CounterCompensateInterpSpeed=45.000000,MaxCorrectionDegrees=65.000000,MaxRootMotionDeltaToCompensateDegrees=45.000000,bCounterCompenstateInterpolationByRootMotion=True,bScaleByGlobalBlendWeight=False,bUseManualRootMotionVelocity=False,ManualRootMotionVelocity=(X=0.000000,Y=0.000000,Z=0.000000),WarpingSpace=ComponentTransform,WarpingSpaceTransform=(Rotation=(X=0.000000,Y=0.000000,Z=0.000000,W=1.000000),Translation=(X=0.000000,Y=0.000000,Z=0.000000),Scale3D=(X=1.000000,Y=1.000000,Z=1.000000)),DebugDrawScale=1.000000,bEnableDebugDraw=False,ComponentPose=(LinkID=-1,SourceLinkID=-1),LODThreshold=-1,AlphaInputType=Float,bAlphaBoolEnabled=True,Alpha=1.000000,AlphaScaleBias=(Scale=1.000000,Bias=0.000000),AlphaBoolBlend=(BlendInTime=0.000000,BlendOutTime=0.000000,BlendOption=HermiteCubic,CustomCurve=None),AlphaCurveName=\"\",AlphaScaleBiasClamp=(bMapRange=False,bClampResult=False,bInterpResult=False,InRange=(Min=0.000000,Max=1.000000),OutRange=(Min=0.000000,Max=1.000000),Scale=1.000000,Bias=0.000000,ClampMin=0.000000,ClampMax=1.000000,InterpSpeedIncreasing=10.000000,InterpSpeedDecreasing=10.000000),InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+          },
+          {
+            "name": "AnimGraphNode_ComponentToLocalSpace_1",
+            "type": "AnimGraphNode_ComponentToLocalSpace",
+            "pins": [
+              {
+                "name": "ComponentPose",
+                "value": "(LinkID=-1,SourceLinkID=-1)",
+                "links": [
+                  "AnimGraphNode_OrientationWarping_1:Pose"
+                ]
+              },
+              {
+                "name": "Pose",
+                "value": "",
+                "links": [
+                  "AnimGraphNode_LayeredBoneBlend_0:BlendPoses_0"
+                ]
+              }
+            ],
+            "error_msg": "",
+            "settings": "(ComponentPose=(LinkID=-1,SourceLinkID=-1),InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+          },
+          {
+            "name": "K2Node_VariableGet_3",
+            "type": "K2Node_VariableGet",
+            "pins": [
+              {
+                "name": "AngleR",
+                "value": "0.0",
+                "links": [
+                  "AnimGraphNode_OrientationWarping_1:OrientationAngle"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "AnimGraphNode_SequenceEvaluator_2",
+            "type": "AnimGraphNode_SequenceEvaluator",
+            "pins": [
+              {
+                "name": "ExplicitTime",
+                "value": "0.000000",
+                "links": [
+                  "K2Node_VariableGet_4:Phase"
+                ]
+              },
+              {
+                "name": "Pose",
+                "value": "",
+                "links": [
+                  "AnimGraphNode_LocalToComponentSpace_2:LocalPose"
+                ]
+              }
+            ],
+            "error_msg": "",
+            "settings": "(GroupName=\"\",GroupRole=CanBeLeader,Method=DoNotSync,bIgnoreForRelevancyTest=False,Sequence=\"/Script/Engine.AnimSequence'/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Back.AS_RootLockSource_Back'\",ExplicitTime=0.000000,bUseExplicitFrame=False,ExplicitFrame=0,bShouldLoop=True,bTeleportToExplicitTime=True,ReinitializationBehavior=ExplicitTime,StartPosition=0.000000,InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+          },
+          {
+            "name": "K2Node_VariableGet_4",
+            "type": "K2Node_VariableGet",
+            "pins": [
+              {
+                "name": "Phase",
+                "value": "0.0",
+                "links": [
+                  "AnimGraphNode_SequenceEvaluator_2:ExplicitTime"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "AnimGraphNode_LocalToComponentSpace_2",
+            "type": "AnimGraphNode_LocalToComponentSpace",
+            "pins": [
+              {
+                "name": "LocalPose",
+                "value": "(LinkID=-1,SourceLinkID=-1)",
+                "links": [
+                  "AnimGraphNode_SequenceEvaluator_2:Pose"
+                ]
+              },
+              {
+                "name": "ComponentPose",
+                "value": "",
+                "links": [
+                  "AnimGraphNode_OrientationWarping_2:ComponentPose"
+                ]
+              }
+            ],
+            "error_msg": "",
+            "settings": "(LocalPose=(LinkID=-1,SourceLinkID=-1),InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+          },
+          {
+            "name": "AnimGraphNode_OrientationWarping_2",
+            "type": "AnimGraphNode_OrientationWarping",
+            "pins": [
+              {
+                "name": "ComponentPose",
+                "value": "(LinkID=-1,SourceLinkID=-1)",
+                "links": [
+                  "AnimGraphNode_LocalToComponentSpace_2:ComponentPose"
+                ]
+              },
+              {
+                "name": "Alpha",
+                "value": "1.000000",
+                "links": []
+              },
+              {
+                "name": "TargetTime",
+                "value": "0.800000",
+                "links": []
+              },
+              {
+                "name": "OrientationAngle",
+                "value": "0.000000",
+                "links": [
+                  "K2Node_VariableGet_5:AngleB"
+                ]
+              },
+              {
+                "name": "CurrentAnimAsset",
+                "value": "",
+                "links": []
+              },
+              {
+                "name": "CurrentAnimAssetTime",
+                "value": "0.000000",
+                "links": []
+              },
+              {
+                "name": "Pose",
+                "value": "",
+                "links": [
+                  "AnimGraphNode_ComponentToLocalSpace_2:ComponentPose"
+                ]
+              }
+            ],
+            "error_msg": "",
+            "settings": "(Mode=Manual,TargetTime=0.800000,OrientationAngle=0.000000,LocomotionAngle=0.000000,LocomotionDirection=(X=0.000000,Y=0.000000,Z=0.000000),MinRootMotionSpeedThreshold=10.000000,LocomotionAngleDeltaThreshold=90.000000,SpineBones=((BoneName=\"spine_01\"),(BoneName=\"spine_02\"),(BoneName=\"spine_03\"),(BoneName=\"spine_04\"),(BoneName=\"spine_05\")),IKFootRootBone=(BoneName=\"ik_foot_root\"),IKFootBones=((BoneName=\"ik_foot_l\"),(BoneName=\"ik_foot_r\")),RotationAxis=Z,DistributedBoneOrientationAlpha=1.000000,RotationInterpSpeed=0.000000,CounterCompensateInterpSpeed=45.000000,MaxCorrectionDegrees=65.000000,MaxRootMotionDeltaToCompensateDegrees=45.000000,bCounterCompenstateInterpolationByRootMotion=True,bScaleByGlobalBlendWeight=False,bUseManualRootMotionVelocity=False,ManualRootMotionVelocity=(X=0.000000,Y=0.000000,Z=0.000000),WarpingSpace=ComponentTransform,WarpingSpaceTransform=(Rotation=(X=0.000000,Y=0.000000,Z=0.000000,W=1.000000),Translation=(X=0.000000,Y=0.000000,Z=0.000000),Scale3D=(X=1.000000,Y=1.000000,Z=1.000000)),DebugDrawScale=1.000000,bEnableDebugDraw=False,ComponentPose=(LinkID=-1,SourceLinkID=-1),LODThreshold=-1,AlphaInputType=Float,bAlphaBoolEnabled=True,Alpha=1.000000,AlphaScaleBias=(Scale=1.000000,Bias=0.000000),AlphaBoolBlend=(BlendInTime=0.000000,BlendOutTime=0.000000,BlendOption=HermiteCubic,CustomCurve=None),AlphaCurveName=\"\",AlphaScaleBiasClamp=(bMapRange=False,bClampResult=False,bInterpResult=False,InRange=(Min=0.000000,Max=1.000000),OutRange=(Min=0.000000,Max=1.000000),Scale=1.000000,Bias=0.000000,ClampMin=0.000000,ClampMax=1.000000,InterpSpeedIncreasing=10.000000,InterpSpeedDecreasing=10.000000),InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+          },
+          {
+            "name": "AnimGraphNode_ComponentToLocalSpace_2",
+            "type": "AnimGraphNode_ComponentToLocalSpace",
+            "pins": [
+              {
+                "name": "ComponentPose",
+                "value": "(LinkID=-1,SourceLinkID=-1)",
+                "links": [
+                  "AnimGraphNode_OrientationWarping_2:Pose"
+                ]
+              },
+              {
+                "name": "Pose",
+                "value": "",
+                "links": [
+                  "AnimGraphNode_LayeredBoneBlend_1:BasePose"
+                ]
+              }
+            ],
+            "error_msg": "",
+            "settings": "(ComponentPose=(LinkID=-1,SourceLinkID=-1),InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+          },
+          {
+            "name": "K2Node_VariableGet_5",
+            "type": "K2Node_VariableGet",
+            "pins": [
+              {
+                "name": "AngleB",
+                "value": "0.0",
+                "links": [
+                  "AnimGraphNode_OrientationWarping_2:OrientationAngle"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "AnimGraphNode_SequenceEvaluator_3",
+            "type": "AnimGraphNode_SequenceEvaluator",
+            "pins": [
+              {
+                "name": "ExplicitTime",
+                "value": "0.000000",
+                "links": [
+                  "K2Node_VariableGet_6:Phase"
+                ]
+              },
+              {
+                "name": "Pose",
+                "value": "",
+                "links": [
+                  "AnimGraphNode_LocalToComponentSpace_3:LocalPose"
+                ]
+              }
+            ],
+            "error_msg": "",
+            "settings": "(GroupName=\"\",GroupRole=CanBeLeader,Method=DoNotSync,bIgnoreForRelevancyTest=False,Sequence=\"/Script/Engine.AnimSequence'/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Left.AS_RootLockSource_Left'\",ExplicitTime=0.000000,bUseExplicitFrame=False,ExplicitFrame=0,bShouldLoop=True,bTeleportToExplicitTime=True,ReinitializationBehavior=ExplicitTime,StartPosition=0.000000,InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+          },
+          {
+            "name": "K2Node_VariableGet_6",
+            "type": "K2Node_VariableGet",
+            "pins": [
+              {
+                "name": "Phase",
+                "value": "0.0",
+                "links": [
+                  "AnimGraphNode_SequenceEvaluator_3:ExplicitTime"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "AnimGraphNode_LocalToComponentSpace_3",
+            "type": "AnimGraphNode_LocalToComponentSpace",
+            "pins": [
+              {
+                "name": "LocalPose",
+                "value": "(LinkID=-1,SourceLinkID=-1)",
+                "links": [
+                  "AnimGraphNode_SequenceEvaluator_3:Pose"
+                ]
+              },
+              {
+                "name": "ComponentPose",
+                "value": "",
+                "links": [
+                  "AnimGraphNode_OrientationWarping_3:ComponentPose"
+                ]
+              }
+            ],
+            "error_msg": "",
+            "settings": "(LocalPose=(LinkID=-1,SourceLinkID=-1),InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+          },
+          {
+            "name": "AnimGraphNode_OrientationWarping_3",
+            "type": "AnimGraphNode_OrientationWarping",
+            "pins": [
+              {
+                "name": "ComponentPose",
+                "value": "(LinkID=-1,SourceLinkID=-1)",
+                "links": [
+                  "AnimGraphNode_LocalToComponentSpace_3:ComponentPose"
+                ]
+              },
+              {
+                "name": "Alpha",
+                "value": "1.000000",
+                "links": []
+              },
+              {
+                "name": "TargetTime",
+                "value": "0.800000",
+                "links": []
+              },
+              {
+                "name": "OrientationAngle",
+                "value": "0.000000",
+                "links": [
+                  "K2Node_VariableGet_7:AngleL"
+                ]
+              },
+              {
+                "name": "CurrentAnimAsset",
+                "value": "",
+                "links": []
+              },
+              {
+                "name": "CurrentAnimAssetTime",
+                "value": "0.000000",
+                "links": []
+              },
+              {
+                "name": "Pose",
+                "value": "",
+                "links": [
+                  "AnimGraphNode_ComponentToLocalSpace_3:ComponentPose"
+                ]
+              }
+            ],
+            "error_msg": "",
+            "settings": "(Mode=Manual,TargetTime=0.800000,OrientationAngle=0.000000,LocomotionAngle=0.000000,LocomotionDirection=(X=0.000000,Y=0.000000,Z=0.000000),MinRootMotionSpeedThreshold=10.000000,LocomotionAngleDeltaThreshold=90.000000,SpineBones=((BoneName=\"spine_01\"),(BoneName=\"spine_02\"),(BoneName=\"spine_03\"),(BoneName=\"spine_04\"),(BoneName=\"spine_05\")),IKFootRootBone=(BoneName=\"ik_foot_root\"),IKFootBones=((BoneName=\"ik_foot_l\"),(BoneName=\"ik_foot_r\")),RotationAxis=Z,DistributedBoneOrientationAlpha=1.000000,RotationInterpSpeed=0.000000,CounterCompensateInterpSpeed=45.000000,MaxCorrectionDegrees=65.000000,MaxRootMotionDeltaToCompensateDegrees=45.000000,bCounterCompenstateInterpolationByRootMotion=True,bScaleByGlobalBlendWeight=False,bUseManualRootMotionVelocity=False,ManualRootMotionVelocity=(X=0.000000,Y=0.000000,Z=0.000000),WarpingSpace=ComponentTransform,WarpingSpaceTransform=(Rotation=(X=0.000000,Y=0.000000,Z=0.000000,W=1.000000),Translation=(X=0.000000,Y=0.000000,Z=0.000000),Scale3D=(X=1.000000,Y=1.000000,Z=1.000000)),DebugDrawScale=1.000000,bEnableDebugDraw=False,ComponentPose=(LinkID=-1,SourceLinkID=-1),LODThreshold=-1,AlphaInputType=Float,bAlphaBoolEnabled=True,Alpha=1.000000,AlphaScaleBias=(Scale=1.000000,Bias=0.000000),AlphaBoolBlend=(BlendInTime=0.000000,BlendOutTime=0.000000,BlendOption=HermiteCubic,CustomCurve=None),AlphaCurveName=\"\",AlphaScaleBiasClamp=(bMapRange=False,bClampResult=False,bInterpResult=False,InRange=(Min=0.000000,Max=1.000000),OutRange=(Min=0.000000,Max=1.000000),Scale=1.000000,Bias=0.000000,ClampMin=0.000000,ClampMax=1.000000,InterpSpeedIncreasing=10.000000,InterpSpeedDecreasing=10.000000),InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+          },
+          {
+            "name": "AnimGraphNode_ComponentToLocalSpace_3",
+            "type": "AnimGraphNode_ComponentToLocalSpace",
+            "pins": [
+              {
+                "name": "ComponentPose",
+                "value": "(LinkID=-1,SourceLinkID=-1)",
+                "links": [
+                  "AnimGraphNode_OrientationWarping_3:Pose"
+                ]
+              },
+              {
+                "name": "Pose",
+                "value": "",
+                "links": [
+                  "AnimGraphNode_LayeredBoneBlend_1:BlendPoses_0"
+                ]
+              }
+            ],
+            "error_msg": "",
+            "settings": "(ComponentPose=(LinkID=-1,SourceLinkID=-1),InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+          },
+          {
+            "name": "K2Node_VariableGet_7",
+            "type": "K2Node_VariableGet",
+            "pins": [
+              {
+                "name": "AngleL",
+                "value": "0.0",
+                "links": [
+                  "AnimGraphNode_OrientationWarping_3:OrientationAngle"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "AnimGraphNode_LayeredBoneBlend_0",
+            "type": "AnimGraphNode_LayeredBoneBlend",
+            "pins": [
+              {
+                "name": "BasePose",
+                "value": "(LinkID=-1,SourceLinkID=-1)",
+                "links": [
+                  "AnimGraphNode_ComponentToLocalSpace_0:Pose"
+                ]
+              },
+              {
+                "name": "BlendPoses_0",
+                "value": "(LinkID=-1,SourceLinkID=-1)",
+                "links": [
+                  "AnimGraphNode_ComponentToLocalSpace_1:Pose"
+                ]
+              },
+              {
+                "name": "BlendWeights_0",
+                "value": "1.000000",
+                "links": [
+                  "K2Node_VariableGet_8:MixFR"
+                ]
+              },
+              {
+                "name": "Pose",
+                "value": "",
+                "links": [
+                  "AnimGraphNode_LayeredBoneBlend_2:BasePose"
+                ]
+              }
+            ],
+            "error_msg": "",
+            "settings": "(BasePose=(LinkID=-1,SourceLinkID=-1),BlendPoses=(()),BlendMode=BranchFilter,BlendMasks=,LayerSetup=((BranchFilters=((BoneName=\"root\")))),BlendWeights=(1.000000),PerBoneBlendWeights=,SkeletonGuid=00000000000000000000000000000000,VirtualBoneGuid=00000000000000000000000000000000,LODThreshold=-1,bMeshSpaceRotationBlend=True,bRootSpaceRotationBlend=False,bMeshSpaceScaleBlend=False,CurveBlendOption=Override,bBlendRootMotionBasedOnRootBone=True,bUpdateBasePoseFirst=False,InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+          },
+          {
+            "name": "K2Node_VariableGet_8",
+            "type": "K2Node_VariableGet",
+            "pins": [
+              {
+                "name": "MixFR",
+                "value": "0.0",
+                "links": [
+                  "AnimGraphNode_LayeredBoneBlend_0:BlendWeights_0"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "AnimGraphNode_LayeredBoneBlend_1",
+            "type": "AnimGraphNode_LayeredBoneBlend",
+            "pins": [
+              {
+                "name": "BasePose",
+                "value": "(LinkID=-1,SourceLinkID=-1)",
+                "links": [
+                  "AnimGraphNode_ComponentToLocalSpace_2:Pose"
+                ]
+              },
+              {
+                "name": "BlendPoses_0",
+                "value": "(LinkID=-1,SourceLinkID=-1)",
+                "links": [
+                  "AnimGraphNode_ComponentToLocalSpace_3:Pose"
+                ]
+              },
+              {
+                "name": "BlendWeights_0",
+                "value": "1.000000",
+                "links": [
+                  "K2Node_VariableGet_9:MixBL"
+                ]
+              },
+              {
+                "name": "Pose",
+                "value": "",
+                "links": [
+                  "AnimGraphNode_LayeredBoneBlend_2:BlendPoses_0"
+                ]
+              }
+            ],
+            "error_msg": "",
+            "settings": "(BasePose=(LinkID=-1,SourceLinkID=-1),BlendPoses=(()),BlendMode=BranchFilter,BlendMasks=,LayerSetup=((BranchFilters=((BoneName=\"root\")))),BlendWeights=(1.000000),PerBoneBlendWeights=,SkeletonGuid=00000000000000000000000000000000,VirtualBoneGuid=00000000000000000000000000000000,LODThreshold=-1,bMeshSpaceRotationBlend=True,bRootSpaceRotationBlend=False,bMeshSpaceScaleBlend=False,CurveBlendOption=Override,bBlendRootMotionBasedOnRootBone=True,bUpdateBasePoseFirst=False,InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+          },
+          {
+            "name": "K2Node_VariableGet_9",
+            "type": "K2Node_VariableGet",
+            "pins": [
+              {
+                "name": "MixBL",
+                "value": "0.0",
+                "links": [
+                  "AnimGraphNode_LayeredBoneBlend_1:BlendWeights_0"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "AnimGraphNode_LayeredBoneBlend_2",
+            "type": "AnimGraphNode_LayeredBoneBlend",
+            "pins": [
+              {
+                "name": "BasePose",
+                "value": "(LinkID=-1,SourceLinkID=-1)",
+                "links": [
+                  "AnimGraphNode_LayeredBoneBlend_0:Pose"
+                ]
+              },
+              {
+                "name": "BlendPoses_0",
+                "value": "(LinkID=-1,SourceLinkID=-1)",
+                "links": [
+                  "AnimGraphNode_LayeredBoneBlend_1:Pose"
+                ]
+              },
+              {
+                "name": "BlendWeights_0",
+                "value": "1.000000",
+                "links": [
+                  "K2Node_VariableGet_10:MixGroups"
+                ]
+              },
+              {
+                "name": "Pose",
+                "value": "",
+                "links": [
+                  "AnimGraphNode_Root_0:Result"
+                ]
+              }
+            ],
+            "error_msg": "",
+            "settings": "(BasePose=(LinkID=-1,SourceLinkID=-1),BlendPoses=(()),BlendMode=BranchFilter,BlendMasks=,LayerSetup=((BranchFilters=((BoneName=\"root\")))),BlendWeights=(1.000000),PerBoneBlendWeights=,SkeletonGuid=00000000000000000000000000000000,VirtualBoneGuid=00000000000000000000000000000000,LODThreshold=-1,bMeshSpaceRotationBlend=True,bRootSpaceRotationBlend=False,bMeshSpaceScaleBlend=False,CurveBlendOption=Override,bBlendRootMotionBasedOnRootBone=True,bUpdateBasePoseFirst=False,InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+          },
+          {
+            "name": "K2Node_VariableGet_10",
+            "type": "K2Node_VariableGet",
+            "pins": [
+              {
+                "name": "MixGroups",
+                "value": "0.0",
+                "links": [
+                  "AnimGraphNode_LayeredBoneBlend_2:BlendWeights_0"
+                ]
+              }
+            ],
+            "error_msg": ""
+          }
+        ],
+        "EventGraph": [
+          {
+            "name": "K2Node_Event_1",
+            "type": "K2Node_Event",
+            "pins": [
+              {
+                "name": "OutputDelegate",
+                "value": "",
+                "links": []
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_0:execute"
+                ]
+              },
+              {
+                "name": "DeltaTimeX",
+                "value": "0.0",
+                "links": [
+                  "K2Node_PromotableOperator_0:B",
+                  "K2Node_CallFunction_9:DeltaTime"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableGet_0",
+            "type": "K2Node_VariableGet",
+            "pins": [
+              {
+                "name": "Phase",
+                "value": "0.0",
+                "links": [
+                  "K2Node_PromotableOperator_0:A",
+                  "K2Node_CallFunction_2:A"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_PromotableOperator_0",
+            "type": "K2Node_PromotableOperator",
+            "pins": [
+              {
+                "name": "A",
+                "value": "",
+                "links": [
+                  "K2Node_VariableGet_0:Phase"
+                ]
+              },
+              {
+                "name": "B",
+                "value": "",
+                "links": [
+                  "K2Node_Event_1:DeltaTimeX"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_1:A"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_1",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "A",
+                "value": "0.0",
+                "links": [
+                  "K2Node_PromotableOperator_0:ReturnValue"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_2:B"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableGet_1",
+            "type": "K2Node_VariableGet",
+            "pins": [
+              {
+                "name": "bManualPhase",
+                "value": "false",
+                "links": [
+                  "K2Node_CallFunction_2:bPickA"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_2",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "A",
+                "value": "0.0",
+                "links": [
+                  "K2Node_VariableGet_0:Phase"
+                ]
+              },
+              {
+                "name": "B",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_1:ReturnValue"
+                ]
+              },
+              {
+                "name": "bPickA",
+                "value": "false",
+                "links": [
+                  "K2Node_VariableGet_1:bManualPhase"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "0.0",
+                "links": [
+                  "K2Node_VariableSet_0:Phase"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableSet_0",
+            "type": "K2Node_VariableSet",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_Event_1:then"
+                ]
+              },
+              {
+                "name": "Phase",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_2:ReturnValue"
+                ]
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_0:execute"
+                ]
+              },
+              {
+                "name": "Output_Get",
+                "value": "0.0",
+                "links": []
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_3",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "self",
+                "value": "",
+                "links": []
+              },
+              {
+                "name": "ReturnValue",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_0:Object"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_DynamicCast_0",
+            "type": "K2Node_DynamicCast",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_0:then"
+                ]
+              },
+              {
+                "name": "Object",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_3:ReturnValue"
+                ]
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_1:execute"
+                ]
+              },
+              {
+                "name": "CastFailed",
+                "value": "",
+                "links": []
+              },
+              {
+                "name": "AsShooter Stance Preview Pawn",
+                "value": "",
+                "links": [
+                  "K2Node_VariableGet_2:self",
+                  "K2Node_VariableGet_3:self"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableGet_2",
+            "type": "K2Node_VariableGet",
+            "pins": [
+              {
+                "name": "self",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_0:AsShooter Stance Preview Pawn"
+                ]
+              },
+              {
+                "name": "PreviewForward",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_4:B"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableGet_3",
+            "type": "K2Node_VariableGet",
+            "pins": [
+              {
+                "name": "self",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_0:AsShooter Stance Preview Pawn"
+                ]
+              },
+              {
+                "name": "PreviewRight",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_5:B"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableGet_4",
+            "type": "K2Node_VariableGet",
+            "pins": [
+              {
+                "name": "TestForward",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_4:A"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableGet_5",
+            "type": "K2Node_VariableGet",
+            "pins": [
+              {
+                "name": "bTestOverride",
+                "value": "false",
+                "links": [
+                  "K2Node_CallFunction_4:bPickA",
+                  "K2Node_CallFunction_5:bPickA"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_4",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "A",
+                "value": "0.0",
+                "links": [
+                  "K2Node_VariableGet_4:TestForward"
+                ]
+              },
+              {
+                "name": "B",
+                "value": "0.0",
+                "links": [
+                  "K2Node_VariableGet_2:PreviewForward"
+                ]
+              },
+              {
+                "name": "bPickA",
+                "value": "false",
+                "links": [
+                  "K2Node_VariableGet_5:bTestOverride"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "0.0",
+                "links": [
+                  "K2Node_VariableSet_1:InputForward"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableSet_1",
+            "type": "K2Node_VariableSet",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_0:then"
+                ]
+              },
+              {
+                "name": "InputForward",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_4:ReturnValue"
+                ]
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_2:execute"
+                ]
+              },
+              {
+                "name": "Output_Get",
+                "value": "0.0",
+                "links": []
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableGet_6",
+            "type": "K2Node_VariableGet",
+            "pins": [
+              {
+                "name": "TestRight",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_5:A"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_5",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "A",
+                "value": "0.0",
+                "links": [
+                  "K2Node_VariableGet_6:TestRight"
+                ]
+              },
+              {
+                "name": "B",
+                "value": "0.0",
+                "links": [
+                  "K2Node_VariableGet_3:PreviewRight"
+                ]
+              },
+              {
+                "name": "bPickA",
+                "value": "false",
+                "links": [
+                  "K2Node_VariableGet_5:bTestOverride"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "0.0",
+                "links": [
+                  "K2Node_VariableSet_2:InputRight"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableSet_2",
+            "type": "K2Node_VariableSet",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_1:then"
+                ]
+              },
+              {
+                "name": "InputRight",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_5:ReturnValue"
+                ]
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_3:execute"
+                ]
+              },
+              {
+                "name": "Output_Get",
+                "value": "0.0",
+                "links": []
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableGet_7",
+            "type": "K2Node_VariableGet",
+            "pins": [
+              {
+                "name": "InputRight",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_6:Y"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableGet_8",
+            "type": "K2Node_VariableGet",
+            "pins": [
+              {
+                "name": "InputForward",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_6:X"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_6",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "Y",
+                "value": "0.0",
+                "links": [
+                  "K2Node_VariableGet_7:InputRight"
+                ]
+              },
+              {
+                "name": "X",
+                "value": "0.0",
+                "links": [
+                  "K2Node_VariableGet_8:InputForward"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "0.0",
+                "links": [
+                  "K2Node_VariableSet_3:DesiredYaw"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableSet_3",
+            "type": "K2Node_VariableSet",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_2:then"
+                ]
+              },
+              {
+                "name": "DesiredYaw",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_6:ReturnValue"
+                ]
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_4:execute"
+                ]
+              },
+              {
+                "name": "Output_Get",
+                "value": "0.0",
+                "links": []
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableGet_9",
+            "type": "K2Node_VariableGet",
+            "pins": [
+              {
+                "name": "SmoothedYaw",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_7:Yaw",
+                  "K2Node_CallFunction_12:A",
+                  "K2Node_PromotableOperator_12:A",
+                  "K2Node_PromotableOperator_15:A",
+                  "K2Node_PromotableOperator_16:A",
+                  "K2Node_PromotableOperator_17:A",
+                  "K2Node_PromotableOperator_18:A"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_7",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "Roll",
+                "value": "0.0",
+                "links": []
+              },
+              {
+                "name": "Pitch",
+                "value": "0.0",
+                "links": []
+              },
+              {
+                "name": "Yaw",
+                "value": "0.0",
+                "links": [
+                  "K2Node_VariableGet_9:SmoothedYaw"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "0, 0, 0",
+                "links": [
+                  "K2Node_CallFunction_9:Current"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableGet_10",
+            "type": "K2Node_VariableGet",
+            "pins": [
+              {
+                "name": "DesiredYaw",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_8:Yaw",
+                  "K2Node_CallFunction_11:A"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_8",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "Roll",
+                "value": "0.0",
+                "links": []
+              },
+              {
+                "name": "Pitch",
+                "value": "0.0",
+                "links": []
+              },
+              {
+                "name": "Yaw",
+                "value": "0.0",
+                "links": [
+                  "K2Node_VariableGet_10:DesiredYaw"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "0, 0, 0",
+                "links": [
+                  "K2Node_CallFunction_9:Target"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableGet_11",
+            "type": "K2Node_VariableGet",
+            "pins": [
+              {
+                "name": "TurnSpeed",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_9:InterpSpeed"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_9",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "Current",
+                "value": "0, 0, 0",
+                "links": [
+                  "K2Node_CallFunction_7:ReturnValue"
+                ]
+              },
+              {
+                "name": "Target",
+                "value": "0, 0, 0",
+                "links": [
+                  "K2Node_CallFunction_8:ReturnValue"
+                ]
+              },
+              {
+                "name": "DeltaTime",
+                "value": "0.0",
+                "links": [
+                  "K2Node_Event_1:DeltaTimeX"
+                ]
+              },
+              {
+                "name": "InterpSpeed",
+                "value": "0.0",
+                "links": [
+                  "K2Node_VariableGet_11:TurnSpeed"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "0, 0, 0",
+                "links": [
+                  "K2Node_CallFunction_10:InRot"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_10",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "InRot",
+                "value": "0, 0, 0",
+                "links": [
+                  "K2Node_CallFunction_9:ReturnValue"
+                ]
+              },
+              {
+                "name": "Roll",
+                "value": "0.0",
+                "links": []
+              },
+              {
+                "name": "Pitch",
+                "value": "0.0",
+                "links": []
+              },
+              {
+                "name": "Yaw",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_11:B"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableGet_12",
+            "type": "K2Node_VariableGet",
+            "pins": [
+              {
+                "name": "bSnapInput",
+                "value": "false",
+                "links": [
+                  "K2Node_CallFunction_11:bPickA"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_11",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "A",
+                "value": "0.0",
+                "links": [
+                  "K2Node_VariableGet_10:DesiredYaw"
+                ]
+              },
+              {
+                "name": "B",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_10:Yaw"
+                ]
+              },
+              {
+                "name": "bPickA",
+                "value": "false",
+                "links": [
+                  "K2Node_VariableGet_12:bSnapInput"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "0.0",
+                "links": [
+                  "K2Node_VariableSet_4:SmoothedYaw"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableSet_4",
+            "type": "K2Node_VariableSet",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_3:then"
+                ]
+              },
+              {
+                "name": "SmoothedYaw",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_11:ReturnValue"
+                ]
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_5:execute"
+                ]
+              },
+              {
+                "name": "Output_Get",
+                "value": "0.0",
+                "links": []
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_12",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "A",
+                "value": "0.0",
+                "links": [
+                  "K2Node_VariableGet_9:SmoothedYaw"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_13:Value",
+                  "K2Node_CallFunction_14:Value"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_13",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "Value",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_12:ReturnValue"
+                ]
+              },
+              {
+                "name": "InRangeA",
+                "value": "45",
+                "links": []
+              },
+              {
+                "name": "InRangeB",
+                "value": "65",
+                "links": []
+              },
+              {
+                "name": "OutRangeA",
+                "value": "0.0",
+                "links": []
+              },
+              {
+                "name": "OutRangeB",
+                "value": "1",
+                "links": []
+              },
+              {
+                "name": "ReturnValue",
+                "value": "0.0",
+                "links": [
+                  "K2Node_PromotableOperator_1:A",
+                  "K2Node_PromotableOperator_1:B",
+                  "K2Node_PromotableOperator_2:B"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_PromotableOperator_1",
+            "type": "K2Node_PromotableOperator",
+            "pins": [
+              {
+                "name": "A",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_13:ReturnValue"
+                ]
+              },
+              {
+                "name": "B",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_13:ReturnValue"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "",
+                "links": [
+                  "K2Node_PromotableOperator_4:A"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_PromotableOperator_2",
+            "type": "K2Node_PromotableOperator",
+            "pins": [
+              {
+                "name": "A",
+                "value": "2",
+                "links": []
+              },
+              {
+                "name": "B",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_13:ReturnValue"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "",
+                "links": [
+                  "K2Node_PromotableOperator_3:B"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_PromotableOperator_3",
+            "type": "K2Node_PromotableOperator",
+            "pins": [
+              {
+                "name": "A",
+                "value": "3",
+                "links": []
+              },
+              {
+                "name": "B",
+                "value": "",
+                "links": [
+                  "K2Node_PromotableOperator_2:ReturnValue"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "",
+                "links": [
+                  "K2Node_PromotableOperator_4:B"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_PromotableOperator_4",
+            "type": "K2Node_PromotableOperator",
+            "pins": [
+              {
+                "name": "A",
+                "value": "",
+                "links": [
+                  "K2Node_PromotableOperator_1:ReturnValue"
+                ]
+              },
+              {
+                "name": "B",
+                "value": "",
+                "links": [
+                  "K2Node_PromotableOperator_3:ReturnValue"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "",
+                "links": [
+                  "K2Node_PromotableOperator_5:B"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_PromotableOperator_5",
+            "type": "K2Node_PromotableOperator",
+            "pins": [
+              {
+                "name": "A",
+                "value": "1",
+                "links": []
+              },
+              {
+                "name": "B",
+                "value": "",
+                "links": [
+                  "K2Node_PromotableOperator_4:ReturnValue"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_5:WeightF"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_14",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "Value",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_12:ReturnValue"
+                ]
+              },
+              {
+                "name": "InRangeA",
+                "value": "115",
+                "links": []
+              },
+              {
+                "name": "InRangeB",
+                "value": "135",
+                "links": []
+              },
+              {
+                "name": "OutRangeA",
+                "value": "0.0",
+                "links": []
+              },
+              {
+                "name": "OutRangeB",
+                "value": "1",
+                "links": []
+              },
+              {
+                "name": "ReturnValue",
+                "value": "0.0",
+                "links": [
+                  "K2Node_PromotableOperator_6:A",
+                  "K2Node_PromotableOperator_6:B",
+                  "K2Node_PromotableOperator_7:B"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_PromotableOperator_6",
+            "type": "K2Node_PromotableOperator",
+            "pins": [
+              {
+                "name": "A",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_14:ReturnValue"
+                ]
+              },
+              {
+                "name": "B",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_14:ReturnValue"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "",
+                "links": [
+                  "K2Node_PromotableOperator_9:A"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_PromotableOperator_7",
+            "type": "K2Node_PromotableOperator",
+            "pins": [
+              {
+                "name": "A",
+                "value": "2",
+                "links": []
+              },
+              {
+                "name": "B",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_14:ReturnValue"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "",
+                "links": [
+                  "K2Node_PromotableOperator_8:B"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_PromotableOperator_8",
+            "type": "K2Node_PromotableOperator",
+            "pins": [
+              {
+                "name": "A",
+                "value": "3",
+                "links": []
+              },
+              {
+                "name": "B",
+                "value": "",
+                "links": [
+                  "K2Node_PromotableOperator_7:ReturnValue"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "",
+                "links": [
+                  "K2Node_PromotableOperator_9:B"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_PromotableOperator_9",
+            "type": "K2Node_PromotableOperator",
+            "pins": [
+              {
+                "name": "A",
+                "value": "",
+                "links": [
+                  "K2Node_PromotableOperator_6:ReturnValue"
+                ]
+              },
+              {
+                "name": "B",
+                "value": "",
+                "links": [
+                  "K2Node_PromotableOperator_8:ReturnValue"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_6:WeightB"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableSet_5",
+            "type": "K2Node_VariableSet",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_4:then"
+                ]
+              },
+              {
+                "name": "WeightF",
+                "value": "0.0",
+                "links": [
+                  "K2Node_PromotableOperator_5:ReturnValue"
+                ]
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_6:execute"
+                ]
+              },
+              {
+                "name": "Output_Get",
+                "value": "0.0",
+                "links": []
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableSet_6",
+            "type": "K2Node_VariableSet",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_5:then"
+                ]
+              },
+              {
+                "name": "WeightB",
+                "value": "0.0",
+                "links": [
+                  "K2Node_PromotableOperator_9:ReturnValue"
+                ]
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_7:execute"
+                ]
+              },
+              {
+                "name": "Output_Get",
+                "value": "0.0",
+                "links": []
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableGet_13",
+            "type": "K2Node_VariableGet",
+            "pins": [
+              {
+                "name": "WeightF",
+                "value": "0.0",
+                "links": [
+                  "K2Node_PromotableOperator_10:B",
+                  "K2Node_PromotableOperator_13:A"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_PromotableOperator_10",
+            "type": "K2Node_PromotableOperator",
+            "pins": [
+              {
+                "name": "A",
+                "value": "1",
+                "links": []
+              },
+              {
+                "name": "B",
+                "value": "",
+                "links": [
+                  "K2Node_VariableGet_13:WeightF"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "",
+                "links": [
+                  "K2Node_PromotableOperator_11:A"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableGet_14",
+            "type": "K2Node_VariableGet",
+            "pins": [
+              {
+                "name": "WeightB",
+                "value": "0.0",
+                "links": [
+                  "K2Node_PromotableOperator_11:B",
+                  "K2Node_PromotableOperator_14:A"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_PromotableOperator_11",
+            "type": "K2Node_PromotableOperator",
+            "pins": [
+              {
+                "name": "A",
+                "value": "",
+                "links": [
+                  "K2Node_PromotableOperator_10:ReturnValue"
+                ]
+              },
+              {
+                "name": "B",
+                "value": "",
+                "links": [
+                  "K2Node_VariableGet_14:WeightB"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_15:A",
+                  "K2Node_CallFunction_16:B"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_PromotableOperator_12",
+            "type": "K2Node_PromotableOperator",
+            "pins": [
+              {
+                "name": "A",
+                "value": "",
+                "links": [
+                  "K2Node_VariableGet_9:SmoothedYaw"
+                ]
+              },
+              {
+                "name": "B",
+                "value": "",
+                "links": []
+              },
+              {
+                "name": "ReturnValue",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_15:bPickA",
+                  "K2Node_CallFunction_16:bPickA"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_15",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "A",
+                "value": "0.0",
+                "links": [
+                  "K2Node_PromotableOperator_11:ReturnValue"
+                ]
+              },
+              {
+                "name": "B",
+                "value": "0.0",
+                "links": []
+              },
+              {
+                "name": "bPickA",
+                "value": "false",
+                "links": [
+                  "K2Node_PromotableOperator_12:ReturnValue"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "0.0",
+                "links": [
+                  "K2Node_VariableSet_7:WeightR"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableSet_7",
+            "type": "K2Node_VariableSet",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_6:then"
+                ]
+              },
+              {
+                "name": "WeightR",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_15:ReturnValue"
+                ]
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_8:execute"
+                ]
+              },
+              {
+                "name": "Output_Get",
+                "value": "0.0",
+                "links": []
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_16",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "A",
+                "value": "0.0",
+                "links": []
+              },
+              {
+                "name": "B",
+                "value": "0.0",
+                "links": [
+                  "K2Node_PromotableOperator_11:ReturnValue"
+                ]
+              },
+              {
+                "name": "bPickA",
+                "value": "false",
+                "links": [
+                  "K2Node_PromotableOperator_12:ReturnValue"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "0.0",
+                "links": [
+                  "K2Node_VariableSet_8:WeightL"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableSet_8",
+            "type": "K2Node_VariableSet",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_7:then"
+                ]
+              },
+              {
+                "name": "WeightL",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_16:ReturnValue"
+                ]
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_9:execute"
+                ]
+              },
+              {
+                "name": "Output_Get",
+                "value": "0.0",
+                "links": []
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableGet_15",
+            "type": "K2Node_VariableGet",
+            "pins": [
+              {
+                "name": "WeightR",
+                "value": "0.0",
+                "links": [
+                  "K2Node_PromotableOperator_13:B",
+                  "K2Node_CallFunction_17:A"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_PromotableOperator_13",
+            "type": "K2Node_PromotableOperator",
+            "pins": [
+              {
+                "name": "A",
+                "value": "",
+                "links": [
+                  "K2Node_VariableGet_13:WeightF"
+                ]
+              },
+              {
+                "name": "B",
+                "value": "",
+                "links": [
+                  "K2Node_VariableGet_15:WeightR"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_17:B"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableGet_16",
+            "type": "K2Node_VariableGet",
+            "pins": [
+              {
+                "name": "WeightL",
+                "value": "0.0",
+                "links": [
+                  "K2Node_PromotableOperator_14:B",
+                  "K2Node_CallFunction_18:A"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_PromotableOperator_14",
+            "type": "K2Node_PromotableOperator",
+            "pins": [
+              {
+                "name": "A",
+                "value": "",
+                "links": [
+                  "K2Node_VariableGet_14:WeightB"
+                ]
+              },
+              {
+                "name": "B",
+                "value": "",
+                "links": [
+                  "K2Node_VariableGet_16:WeightL"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_18:B",
+                  "K2Node_VariableSet_11:MixGroups"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_17",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "A",
+                "value": "0.0",
+                "links": [
+                  "K2Node_VariableGet_15:WeightR"
+                ]
+              },
+              {
+                "name": "B",
+                "value": "0.0",
+                "links": [
+                  "K2Node_PromotableOperator_13:ReturnValue"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "0.0",
+                "links": [
+                  "K2Node_VariableSet_9:MixFR"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableSet_9",
+            "type": "K2Node_VariableSet",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_8:then"
+                ]
+              },
+              {
+                "name": "MixFR",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_17:ReturnValue"
+                ]
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_10:execute"
+                ]
+              },
+              {
+                "name": "Output_Get",
+                "value": "0.0",
+                "links": []
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_18",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "A",
+                "value": "0.0",
+                "links": [
+                  "K2Node_VariableGet_16:WeightL"
+                ]
+              },
+              {
+                "name": "B",
+                "value": "0.0",
+                "links": [
+                  "K2Node_PromotableOperator_14:ReturnValue"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "0.0",
+                "links": [
+                  "K2Node_VariableSet_10:MixBL"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableSet_10",
+            "type": "K2Node_VariableSet",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_9:then"
+                ]
+              },
+              {
+                "name": "MixBL",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_18:ReturnValue"
+                ]
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_11:execute"
+                ]
+              },
+              {
+                "name": "Output_Get",
+                "value": "0.0",
+                "links": []
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableSet_11",
+            "type": "K2Node_VariableSet",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_10:then"
+                ]
+              },
+              {
+                "name": "MixGroups",
+                "value": "0.0",
+                "links": [
+                  "K2Node_PromotableOperator_14:ReturnValue"
+                ]
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_12:execute"
+                ]
+              },
+              {
+                "name": "Output_Get",
+                "value": "0.0",
+                "links": []
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_PromotableOperator_15",
+            "type": "K2Node_PromotableOperator",
+            "pins": [
+              {
+                "name": "A",
+                "value": "",
+                "links": [
+                  "K2Node_VariableGet_9:SmoothedYaw"
+                ]
+              },
+              {
+                "name": "B",
+                "value": "",
+                "links": []
+              },
+              {
+                "name": "ReturnValue",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_19:Angle"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_19",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "Angle",
+                "value": "0.0",
+                "links": [
+                  "K2Node_PromotableOperator_15:ReturnValue"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_20:Value"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_20",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "Value",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_19:ReturnValue"
+                ]
+              },
+              {
+                "name": "Min",
+                "value": "-65",
+                "links": []
+              },
+              {
+                "name": "Max",
+                "value": "65",
+                "links": []
+              },
+              {
+                "name": "ReturnValue",
+                "value": "0.0",
+                "links": [
+                  "K2Node_VariableSet_12:AngleF"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableSet_12",
+            "type": "K2Node_VariableSet",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_11:then"
+                ]
+              },
+              {
+                "name": "AngleF",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_20:ReturnValue"
+                ]
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_13:execute"
+                ]
+              },
+              {
+                "name": "Output_Get",
+                "value": "0.0",
+                "links": []
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_PromotableOperator_16",
+            "type": "K2Node_PromotableOperator",
+            "pins": [
+              {
+                "name": "A",
+                "value": "",
+                "links": [
+                  "K2Node_VariableGet_9:SmoothedYaw"
+                ]
+              },
+              {
+                "name": "B",
+                "value": "90",
+                "links": []
+              },
+              {
+                "name": "ReturnValue",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_21:Angle"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_21",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "Angle",
+                "value": "0.0",
+                "links": [
+                  "K2Node_PromotableOperator_16:ReturnValue"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_22:Value"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_22",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "Value",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_21:ReturnValue"
+                ]
+              },
+              {
+                "name": "Min",
+                "value": "-65",
+                "links": []
+              },
+              {
+                "name": "Max",
+                "value": "65",
+                "links": []
+              },
+              {
+                "name": "ReturnValue",
+                "value": "0.0",
+                "links": [
+                  "K2Node_VariableSet_13:AngleR"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableSet_13",
+            "type": "K2Node_VariableSet",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_12:then"
+                ]
+              },
+              {
+                "name": "AngleR",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_22:ReturnValue"
+                ]
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_14:execute"
+                ]
+              },
+              {
+                "name": "Output_Get",
+                "value": "0.0",
+                "links": []
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_PromotableOperator_17",
+            "type": "K2Node_PromotableOperator",
+            "pins": [
+              {
+                "name": "A",
+                "value": "",
+                "links": [
+                  "K2Node_VariableGet_9:SmoothedYaw"
+                ]
+              },
+              {
+                "name": "B",
+                "value": "180",
+                "links": []
+              },
+              {
+                "name": "ReturnValue",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_23:Angle"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_23",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "Angle",
+                "value": "0.0",
+                "links": [
+                  "K2Node_PromotableOperator_17:ReturnValue"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_24:Value"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_24",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "Value",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_23:ReturnValue"
+                ]
+              },
+              {
+                "name": "Min",
+                "value": "-65",
+                "links": []
+              },
+              {
+                "name": "Max",
+                "value": "65",
+                "links": []
+              },
+              {
+                "name": "ReturnValue",
+                "value": "0.0",
+                "links": [
+                  "K2Node_VariableSet_14:AngleB"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableSet_14",
+            "type": "K2Node_VariableSet",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_13:then"
+                ]
+              },
+              {
+                "name": "AngleB",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_24:ReturnValue"
+                ]
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_15:execute"
+                ]
+              },
+              {
+                "name": "Output_Get",
+                "value": "0.0",
+                "links": []
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_PromotableOperator_18",
+            "type": "K2Node_PromotableOperator",
+            "pins": [
+              {
+                "name": "A",
+                "value": "",
+                "links": [
+                  "K2Node_VariableGet_9:SmoothedYaw"
+                ]
+              },
+              {
+                "name": "B",
+                "value": "-90",
+                "links": []
+              },
+              {
+                "name": "ReturnValue",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_25:Angle"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_25",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "Angle",
+                "value": "0.0",
+                "links": [
+                  "K2Node_PromotableOperator_18:ReturnValue"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_26:Value"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_26",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "Value",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_25:ReturnValue"
+                ]
+              },
+              {
+                "name": "Min",
+                "value": "-65",
+                "links": []
+              },
+              {
+                "name": "Max",
+                "value": "65",
+                "links": []
+              },
+              {
+                "name": "ReturnValue",
+                "value": "0.0",
+                "links": [
+                  "K2Node_VariableSet_15:AngleL"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableSet_15",
+            "type": "K2Node_VariableSet",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_14:then"
+                ]
+              },
+              {
+                "name": "AngleL",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_26:ReturnValue"
+                ]
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": []
+              },
+              {
+                "name": "Output_Get",
+                "value": "0.0",
+                "links": []
+              }
+            ],
+            "error_msg": ""
+          }
+        ]
+      },
+      "defaults": {
+        "bTestOverride": "False",
+        "bSnapInput": "False",
+        "bManualPhase": "False",
+        "TurnSpeed": "10.0",
+        "Phase": "0.0"
+      }
+    },
+    "ABP_OW360_Baseline": {
+      "path": "/Game/Experiments/Stance_20261022/Orientation360_20261120/ABP_OW360_Baseline.ABP_OW360_Baseline",
+      "status": "<BlueprintStatus.BS_UP_TO_DATE: 3>",
+      "graphs": {
+        "AnimGraph": [
+          {
+            "name": "AnimGraphNode_Root_0",
+            "type": "AnimGraphNode_Root",
+            "pins": [
+              {
+                "name": "Result",
+                "value": "(LinkID=-1,SourceLinkID=-1)",
+                "links": [
+                  "AnimGraphNode_BlendSpacePlayer_0:Pose"
+                ]
+              }
+            ],
+            "error_msg": "",
+            "settings": "(Result=(LinkID=-1,SourceLinkID=-1),Name=\"\",LayerGroup=\"DefaultSharedGroup\",InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+          },
+          {
+            "name": "AnimGraphNode_BlendSpacePlayer_0",
+            "type": "AnimGraphNode_BlendSpacePlayer",
+            "pins": [
+              {
+                "name": "X",
+                "value": "0.000000",
+                "links": [
+                  "K2Node_VariableGet_0:Forward"
+                ]
+              },
+              {
+                "name": "Y",
+                "value": "0.000000",
+                "links": [
+                  "K2Node_VariableGet_1:Right"
+                ]
+              },
+              {
+                "name": "Pose",
+                "value": "",
+                "links": [
+                  "AnimGraphNode_Root_0:Result"
+                ]
+              }
+            ],
+            "error_msg": "",
+            "settings": "(GroupName=\"\",GroupRole=CanBeLeader,bOverridePositionWhenJoiningSyncGroupAsLeader=False,Method=DoNotSync,bIgnoreForRelevancyTest=False,X=0.000000,Y=0.000000,PlayRate=1.000000,bLoop=True,bResetPlayTimeWhenBlendSpaceChanges=True,StartPosition=0.000000,BlendSpace=\"/Script/Engine.BlendSpace'/Game/Experiments/Stance_20261022/FourDirection_20261117/BS_FourDirection_Crouch.BS_FourDirection_Crouch'\",InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+          },
+          {
+            "name": "K2Node_VariableGet_0",
+            "type": "K2Node_VariableGet",
+            "pins": [
+              {
+                "name": "Forward",
+                "value": "0.0",
+                "links": [
+                  "AnimGraphNode_BlendSpacePlayer_0:X"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableGet_1",
+            "type": "K2Node_VariableGet",
+            "pins": [
+              {
+                "name": "Right",
+                "value": "0.0",
+                "links": [
+                  "AnimGraphNode_BlendSpacePlayer_0:Y"
+                ]
+              }
+            ],
+            "error_msg": ""
+          }
+        ],
+        "EventGraph": [
+          {
+            "name": "K2Node_Event_1",
+            "type": "K2Node_Event",
+            "pins": [
+              {
+                "name": "OutputDelegate",
+                "value": "",
+                "links": []
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_0:execute"
+                ]
+              },
+              {
+                "name": "DeltaTimeX",
+                "value": "0.0",
+                "links": []
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_1",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "self",
+                "value": "",
+                "links": []
+              },
+              {
+                "name": "ReturnValue",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_0:Object"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_DynamicCast_0",
+            "type": "K2Node_DynamicCast",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_Event_1:then"
+                ]
+              },
+              {
+                "name": "Object",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_1:ReturnValue"
+                ]
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_0:execute"
+                ]
+              },
+              {
+                "name": "CastFailed",
+                "value": "",
+                "links": []
+              },
+              {
+                "name": "AsShooter Stance Preview Pawn",
+                "value": "",
+                "links": [
+                  "K2Node_VariableGet_1:self",
+                  "K2Node_VariableGet_3:self"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableGet_0",
+            "type": "K2Node_VariableGet",
+            "pins": [
+              {
+                "name": "bTestOverride",
+                "value": "false",
+                "links": [
+                  "K2Node_CallFunction_2:bPickA",
+                  "K2Node_CallFunction_3:bPickA"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableGet_1",
+            "type": "K2Node_VariableGet",
+            "pins": [
+              {
+                "name": "self",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_0:AsShooter Stance Preview Pawn"
+                ]
+              },
+              {
+                "name": "PreviewForward",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_2:B"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableGet_2",
+            "type": "K2Node_VariableGet",
+            "pins": [
+              {
+                "name": "TestForward",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_2:A"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_2",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "A",
+                "value": "0.0",
+                "links": [
+                  "K2Node_VariableGet_2:TestForward"
+                ]
+              },
+              {
+                "name": "B",
+                "value": "0.0",
+                "links": [
+                  "K2Node_VariableGet_1:PreviewForward"
+                ]
+              },
+              {
+                "name": "bPickA",
+                "value": "false",
+                "links": [
+                  "K2Node_VariableGet_0:bTestOverride"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "0.0",
+                "links": [
+                  "K2Node_VariableSet_0:Forward"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableSet_0",
+            "type": "K2Node_VariableSet",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_0:then"
+                ]
+              },
+              {
+                "name": "Forward",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_2:ReturnValue"
+                ]
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_1:execute"
+                ]
+              },
+              {
+                "name": "Output_Get",
+                "value": "0.0",
+                "links": []
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableGet_3",
+            "type": "K2Node_VariableGet",
+            "pins": [
+              {
+                "name": "self",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_0:AsShooter Stance Preview Pawn"
+                ]
+              },
+              {
+                "name": "PreviewRight",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_3:B"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableGet_4",
+            "type": "K2Node_VariableGet",
+            "pins": [
+              {
+                "name": "TestRight",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_3:A"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_3",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "A",
+                "value": "0.0",
+                "links": [
+                  "K2Node_VariableGet_4:TestRight"
+                ]
+              },
+              {
+                "name": "B",
+                "value": "0.0",
+                "links": [
+                  "K2Node_VariableGet_3:PreviewRight"
+                ]
+              },
+              {
+                "name": "bPickA",
+                "value": "false",
+                "links": [
+                  "K2Node_VariableGet_0:bTestOverride"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "0.0",
+                "links": [
+                  "K2Node_VariableSet_1:Right"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableSet_1",
+            "type": "K2Node_VariableSet",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_0:then"
+                ]
+              },
+              {
+                "name": "Right",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_3:ReturnValue"
+                ]
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": []
+              },
+              {
+                "name": "Output_Get",
+                "value": "0.0",
+                "links": []
+              }
+            ],
+            "error_msg": ""
+          }
+        ]
+      },
+      "defaults": {
+        "bTestOverride": "False"
+      }
+    },
+    "BP_OW360Preview": {
+      "path": "/Game/Experiments/Stance_20261022/Orientation360_20261120/BP_OW360Preview.BP_OW360Preview",
+      "status": "<BlueprintStatus.BS_UP_TO_DATE: 3>",
+      "graphs": {
+        "EventGraph": [
+          {
+            "name": "K2Node_Event_4",
+            "type": "K2Node_Event",
+            "pins": [
+              {
+                "name": "OutputDelegate",
+                "value": "",
+                "links": []
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_2:execute"
+                ]
+              },
+              {
+                "name": "DeltaSeconds",
+                "value": "0.0",
+                "links": [
+                  "K2Node_PromotableOperator_2:B"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_4",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "PlayerIndex",
+                "value": "0",
+                "links": []
+              },
+              {
+                "name": "ReturnValue",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_2:Object"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_DynamicCast_2",
+            "type": "K2Node_DynamicCast",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_Event_4:then"
+                ]
+              },
+              {
+                "name": "Object",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_4:ReturnValue"
+                ]
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_3:execute"
+                ]
+              },
+              {
+                "name": "CastFailed",
+                "value": "",
+                "links": []
+              },
+              {
+                "name": "AsShooter Stance Preview Pawn",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_5:self",
+                  "K2Node_CallFunction_7:PrerequisiteActor",
+                  "K2Node_CallFunction_10:self",
+                  "K2Node_VariableGet_5:self",
+                  "K2Node_VariableGet_6:self"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_5",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "self",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_2:AsShooter Stance Preview Pawn"
+                ]
+              },
+              {
+                "name": "ComponentClass",
+                "value": "/Script/Engine.SkeletalMeshComponent",
+                "links": []
+              },
+              {
+                "name": "ReturnValue",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_3:Object",
+                  "K2Node_DynamicCast_6:Object",
+                  "K2Node_DynamicCast_7:Object",
+                  "K2Node_DynamicCast_8:Object"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_DynamicCast_3",
+            "type": "K2Node_DynamicCast",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_2:then"
+                ]
+              },
+              {
+                "name": "Object",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_5:ReturnValue"
+                ]
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_IfThenElse_1:execute"
+                ]
+              },
+              {
+                "name": "CastFailed",
+                "value": "",
+                "links": []
+              },
+              {
+                "name": "AsSkeletal Mesh Component",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_6:self",
+                  "K2Node_CallFunction_8:self",
+                  "K2Node_VariableSet_3:self",
+                  "K2Node_CallFunction_19:self"
+                ]
+              }
+            ],
+            "error_msg": "'ReturnValue' is already a 'Skeletal Mesh Component', you don't need  Cast To SkeletalMeshComponent ."
+          },
+          {
+            "name": "K2Node_IfThenElse_1",
+            "type": "K2Node_IfThenElse",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_3:then"
+                ]
+              },
+              {
+                "name": "Condition",
+                "value": "true",
+                "links": [
+                  "K2Node_VariableGet_1:bInitialized"
+                ]
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_10:execute"
+                ]
+              },
+              {
+                "name": "else",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_6:execute"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableGet_1",
+            "type": "K2Node_VariableGet",
+            "pins": [
+              {
+                "name": "bInitialized",
+                "value": "false",
+                "links": [
+                  "K2Node_IfThenElse_1:Condition"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_6",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_IfThenElse_1:else"
+                ]
+              },
+              {
+                "name": "self",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_3:AsSkeletal Mesh Component"
+                ]
+              },
+              {
+                "name": "NewClass",
+                "value": "/Game/Experiments/Stance_20261022/Orientation360_20261120/ABP_OW360.ABP_OW360_C",
+                "links": []
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_1:execute"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableSet_1",
+            "type": "K2Node_VariableSet",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_6:then"
+                ]
+              },
+              {
+                "name": "bInitialized",
+                "value": "true",
+                "links": []
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_7:execute"
+                ]
+              },
+              {
+                "name": "Output_Get",
+                "value": "false",
+                "links": []
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_7",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_1:then"
+                ]
+              },
+              {
+                "name": "self",
+                "value": "",
+                "links": []
+              },
+              {
+                "name": "PrerequisiteActor",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_2:AsShooter Stance Preview Pawn"
+                ]
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_8:execute"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_Self_0",
+            "type": "K2Node_Self",
+            "pins": [
+              {
+                "name": "self",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_8:PrerequisiteActor"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_8",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_7:then"
+                ]
+              },
+              {
+                "name": "self",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_3:AsSkeletal Mesh Component"
+                ]
+              },
+              {
+                "name": "PrerequisiteActor",
+                "value": "",
+                "links": [
+                  "K2Node_Self_0:self"
+                ]
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_10:execute"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableGet_2",
+            "type": "K2Node_VariableGet",
+            "pins": [
+              {
+                "name": "bContinuous",
+                "value": "false",
+                "links": [
+                  "K2Node_CallFunction_9:A",
+                  "K2Node_CallFunction_18:bPickA",
+                  "K2Node_IfThenElse_2:Condition",
+                  "K2Node_VariableSet_4:bTestOverride",
+                  "K2Node_VariableSet_7:bTestOverride"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_9",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "A",
+                "value": "false",
+                "links": [
+                  "K2Node_VariableGet_2:bContinuous"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "false",
+                "links": [
+                  "K2Node_CallFunction_10:bEnabled",
+                  "K2Node_VariableSet_14:bContinuous"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_10",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_8:then",
+                  "K2Node_IfThenElse_1:then"
+                ]
+              },
+              {
+                "name": "self",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_2:AsShooter Stance Preview Pawn"
+                ]
+              },
+              {
+                "name": "bEnabled",
+                "value": "false",
+                "links": [
+                  "K2Node_CallFunction_9:ReturnValue"
+                ]
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_2:execute"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_11",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "PlayerIndex",
+                "value": "0",
+                "links": []
+              },
+              {
+                "name": "ReturnValue",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_12:self",
+                  "K2Node_CallFunction_13:self"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_12",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "self",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_11:ReturnValue"
+                ]
+              },
+              {
+                "name": "Key",
+                "value": "E",
+                "links": []
+              },
+              {
+                "name": "ReturnValue",
+                "value": "false",
+                "links": [
+                  "K2Node_CallFunction_14:bPickA"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_13",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "self",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_11:ReturnValue"
+                ]
+              },
+              {
+                "name": "Key",
+                "value": "Q",
+                "links": []
+              },
+              {
+                "name": "ReturnValue",
+                "value": "false",
+                "links": [
+                  "K2Node_CallFunction_15:bPickA"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_14",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "A",
+                "value": "1",
+                "links": []
+              },
+              {
+                "name": "B",
+                "value": "0.0",
+                "links": []
+              },
+              {
+                "name": "bPickA",
+                "value": "false",
+                "links": [
+                  "K2Node_CallFunction_12:ReturnValue"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "0.0",
+                "links": [
+                  "K2Node_PromotableOperator_0:A"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_15",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "A",
+                "value": "1",
+                "links": []
+              },
+              {
+                "name": "B",
+                "value": "0.0",
+                "links": []
+              },
+              {
+                "name": "bPickA",
+                "value": "false",
+                "links": [
+                  "K2Node_CallFunction_13:ReturnValue"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "0.0",
+                "links": [
+                  "K2Node_PromotableOperator_0:B"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_PromotableOperator_0",
+            "type": "K2Node_PromotableOperator",
+            "pins": [
+              {
+                "name": "A",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_14:ReturnValue"
+                ]
+              },
+              {
+                "name": "B",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_15:ReturnValue"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "",
+                "links": [
+                  "K2Node_PromotableOperator_1:A"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableGet_3",
+            "type": "K2Node_VariableGet",
+            "pins": [
+              {
+                "name": "TurnRateDegrees",
+                "value": "0.0",
+                "links": [
+                  "K2Node_PromotableOperator_1:B"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_PromotableOperator_1",
+            "type": "K2Node_PromotableOperator",
+            "pins": [
+              {
+                "name": "A",
+                "value": "",
+                "links": [
+                  "K2Node_PromotableOperator_0:ReturnValue"
+                ]
+              },
+              {
+                "name": "B",
+                "value": "",
+                "links": [
+                  "K2Node_VariableGet_3:TurnRateDegrees"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "",
+                "links": [
+                  "K2Node_PromotableOperator_2:A"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_PromotableOperator_2",
+            "type": "K2Node_PromotableOperator",
+            "pins": [
+              {
+                "name": "A",
+                "value": "",
+                "links": [
+                  "K2Node_PromotableOperator_1:ReturnValue"
+                ]
+              },
+              {
+                "name": "B",
+                "value": "",
+                "links": [
+                  "K2Node_Event_4:DeltaSeconds"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "",
+                "links": [
+                  "K2Node_PromotableOperator_3:B"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableGet_4",
+            "type": "K2Node_VariableGet",
+            "pins": [
+              {
+                "name": "FreeYaw",
+                "value": "0.0",
+                "links": [
+                  "K2Node_PromotableOperator_3:A",
+                  "K2Node_CallFunction_20:A",
+                  "K2Node_CallFunction_21:A"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_PromotableOperator_3",
+            "type": "K2Node_PromotableOperator",
+            "pins": [
+              {
+                "name": "A",
+                "value": "",
+                "links": [
+                  "K2Node_VariableGet_4:FreeYaw"
+                ]
+              },
+              {
+                "name": "B",
+                "value": "",
+                "links": [
+                  "K2Node_PromotableOperator_2:ReturnValue"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_16:Angle"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_16",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "Angle",
+                "value": "0.0",
+                "links": [
+                  "K2Node_PromotableOperator_3:ReturnValue"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_18:A"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableGet_5",
+            "type": "K2Node_VariableGet",
+            "pins": [
+              {
+                "name": "self",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_2:AsShooter Stance Preview Pawn"
+                ]
+              },
+              {
+                "name": "PreviewForward",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_17:X"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableGet_6",
+            "type": "K2Node_VariableGet",
+            "pins": [
+              {
+                "name": "self",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_2:AsShooter Stance Preview Pawn"
+                ]
+              },
+              {
+                "name": "PreviewRight",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_17:Y"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_17",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "Y",
+                "value": "0.0",
+                "links": [
+                  "K2Node_VariableGet_6:PreviewRight"
+                ]
+              },
+              {
+                "name": "X",
+                "value": "0.0",
+                "links": [
+                  "K2Node_VariableGet_5:PreviewForward"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_18:B"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_18",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "A",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_16:ReturnValue"
+                ]
+              },
+              {
+                "name": "B",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_17:ReturnValue"
+                ]
+              },
+              {
+                "name": "bPickA",
+                "value": "false",
+                "links": [
+                  "K2Node_VariableGet_2:bContinuous"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "0.0",
+                "links": [
+                  "K2Node_VariableSet_2:FreeYaw"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableSet_2",
+            "type": "K2Node_VariableSet",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_10:then"
+                ]
+              },
+              {
+                "name": "FreeYaw",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_18:ReturnValue"
+                ]
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_IfThenElse_2:execute"
+                ]
+              },
+              {
+                "name": "Output_Get",
+                "value": "0.0",
+                "links": []
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_IfThenElse_2",
+            "type": "K2Node_IfThenElse",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_2:then"
+                ]
+              },
+              {
+                "name": "Condition",
+                "value": "true",
+                "links": [
+                  "K2Node_VariableGet_2:bContinuous"
+                ]
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_3:execute"
+                ]
+              },
+              {
+                "name": "else",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_4:execute"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableSet_3",
+            "type": "K2Node_VariableSet",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_IfThenElse_2:then"
+                ]
+              },
+              {
+                "name": "GlobalAnimRateScale",
+                "value": "1.0",
+                "links": []
+              },
+              {
+                "name": "self",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_3:AsSkeletal Mesh Component"
+                ]
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_4:execute"
+                ]
+              },
+              {
+                "name": "Output_Get",
+                "value": "0.0",
+                "links": []
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_19",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "self",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_3:AsSkeletal Mesh Component"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_4:Object",
+                  "K2Node_DynamicCast_5:Object"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_DynamicCast_4",
+            "type": "K2Node_DynamicCast",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_3:then",
+                  "K2Node_IfThenElse_2:else"
+                ]
+              },
+              {
+                "name": "Object",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_19:ReturnValue"
+                ]
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_4:execute"
+                ]
+              },
+              {
+                "name": "CastFailed",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_5:execute"
+                ]
+              },
+              {
+                "name": "AsABP OW360",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_4:self",
+                  "K2Node_VariableSet_5:self",
+                  "K2Node_VariableSet_6:self"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_DynamicCast_5",
+            "type": "K2Node_DynamicCast",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_4:CastFailed"
+                ]
+              },
+              {
+                "name": "Object",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_19:ReturnValue"
+                ]
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_7:execute"
+                ]
+              },
+              {
+                "name": "CastFailed",
+                "value": "",
+                "links": []
+              },
+              {
+                "name": "AsABP OW360 Baseline",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_7:self",
+                  "K2Node_VariableSet_8:self",
+                  "K2Node_VariableSet_9:self"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_20",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "A",
+                "value": "0.0",
+                "links": [
+                  "K2Node_VariableGet_4:FreeYaw"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_22:A",
+                  "K2Node_CallFunction_24:A"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_21",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "A",
+                "value": "0.0",
+                "links": [
+                  "K2Node_VariableGet_4:FreeYaw"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_23:A",
+                  "K2Node_CallFunction_25:A"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_22",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "A",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_20:ReturnValue"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "0.0",
+                "links": [
+                  "K2Node_PromotableOperator_4:A"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_23",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "A",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_21:ReturnValue"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "0.0",
+                "links": [
+                  "K2Node_PromotableOperator_4:B"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_PromotableOperator_4",
+            "type": "K2Node_PromotableOperator",
+            "pins": [
+              {
+                "name": "A",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_22:ReturnValue"
+                ]
+              },
+              {
+                "name": "B",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_23:ReturnValue"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_24:B",
+                  "K2Node_CallFunction_25:B"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_24",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "A",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_20:ReturnValue"
+                ]
+              },
+              {
+                "name": "B",
+                "value": "0.0",
+                "links": [
+                  "K2Node_PromotableOperator_4:ReturnValue"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "0.0",
+                "links": [
+                  "K2Node_VariableSet_5:TestForward",
+                  "K2Node_VariableSet_8:TestForward"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_25",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "A",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_21:ReturnValue"
+                ]
+              },
+              {
+                "name": "B",
+                "value": "0.0",
+                "links": [
+                  "K2Node_PromotableOperator_4:ReturnValue"
+                ]
+              },
+              {
+                "name": "ReturnValue",
+                "value": "0.0",
+                "links": [
+                  "K2Node_VariableSet_6:TestRight",
+                  "K2Node_VariableSet_9:TestRight"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableSet_4",
+            "type": "K2Node_VariableSet",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_4:then"
+                ]
+              },
+              {
+                "name": "bTestOverride",
+                "value": "false",
+                "links": [
+                  "K2Node_VariableGet_2:bContinuous"
+                ]
+              },
+              {
+                "name": "self",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_4:AsABP OW360"
+                ]
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_5:execute"
+                ]
+              },
+              {
+                "name": "Output_Get",
+                "value": "false",
+                "links": []
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableSet_5",
+            "type": "K2Node_VariableSet",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_4:then"
+                ]
+              },
+              {
+                "name": "TestForward",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_24:ReturnValue"
+                ]
+              },
+              {
+                "name": "self",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_4:AsABP OW360"
+                ]
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_6:execute"
+                ]
+              },
+              {
+                "name": "Output_Get",
+                "value": "0.0",
+                "links": []
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableSet_6",
+            "type": "K2Node_VariableSet",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_5:then"
+                ]
+              },
+              {
+                "name": "TestRight",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_25:ReturnValue"
+                ]
+              },
+              {
+                "name": "self",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_4:AsABP OW360"
+                ]
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": []
+              },
+              {
+                "name": "Output_Get",
+                "value": "0.0",
+                "links": []
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableSet_7",
+            "type": "K2Node_VariableSet",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_5:then"
+                ]
+              },
+              {
+                "name": "bTestOverride",
+                "value": "false",
+                "links": [
+                  "K2Node_VariableGet_2:bContinuous"
+                ]
+              },
+              {
+                "name": "self",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_5:AsABP OW360 Baseline"
+                ]
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_8:execute"
+                ]
+              },
+              {
+                "name": "Output_Get",
+                "value": "false",
+                "links": []
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableSet_8",
+            "type": "K2Node_VariableSet",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_7:then"
+                ]
+              },
+              {
+                "name": "TestForward",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_24:ReturnValue"
+                ]
+              },
+              {
+                "name": "self",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_5:AsABP OW360 Baseline"
+                ]
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_9:execute"
+                ]
+              },
+              {
+                "name": "Output_Get",
+                "value": "0.0",
+                "links": []
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableSet_9",
+            "type": "K2Node_VariableSet",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_8:then"
+                ]
+              },
+              {
+                "name": "TestRight",
+                "value": "0.0",
+                "links": [
+                  "K2Node_CallFunction_25:ReturnValue"
+                ]
+              },
+              {
+                "name": "self",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_5:AsABP OW360 Baseline"
+                ]
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": []
+              },
+              {
+                "name": "Output_Get",
+                "value": "0.0",
+                "links": []
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_InputKey_0",
+            "type": "K2Node_InputKey",
+            "pins": [
+              {
+                "name": "Pressed",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_6:execute"
+                ]
+              },
+              {
+                "name": "Released",
+                "value": "",
+                "links": []
+              },
+              {
+                "name": "Key",
+                "value": "",
+                "links": []
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_DynamicCast_6",
+            "type": "K2Node_DynamicCast",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_InputKey_0:Pressed"
+                ]
+              },
+              {
+                "name": "Object",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_5:ReturnValue"
+                ]
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_26:execute"
+                ]
+              },
+              {
+                "name": "CastFailed",
+                "value": "",
+                "links": []
+              },
+              {
+                "name": "AsSkeletal Mesh Component",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_26:self"
+                ]
+              }
+            ],
+            "error_msg": "'ReturnValue' is already a 'Skeletal Mesh Component', you don't need  Cast To SkeletalMeshComponent ."
+          },
+          {
+            "name": "K2Node_CallFunction_26",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_6:then"
+                ]
+              },
+              {
+                "name": "self",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_6:AsSkeletal Mesh Component"
+                ]
+              },
+              {
+                "name": "NewClass",
+                "value": "/Game/Experiments/Stance_20261022/Orientation360_20261120/ABP_OW360_Baseline.ABP_OW360_Baseline_C",
+                "links": []
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_10:execute"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableSet_10",
+            "type": "K2Node_VariableSet",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_26:then"
+                ]
+              },
+              {
+                "name": "CurrentMode",
+                "value": "1",
+                "links": []
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_27:execute"
+                ]
+              },
+              {
+                "name": "Output_Get",
+                "value": "0",
+                "links": []
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_27",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_10:then"
+                ]
+              },
+              {
+                "name": "InString",
+                "value": "Mode 1 | 1 Baseline 2 Warping 3 Accepted FL | C Continuous Q/E Turn | WASD Move",
+                "links": []
+              },
+              {
+                "name": "bPrintToScreen",
+                "value": "true",
+                "links": []
+              },
+              {
+                "name": "bPrintToLog",
+                "value": "true",
+                "links": []
+              },
+              {
+                "name": "TextColor",
+                "value": "(R=0.000000,G=0.660000,B=1.000000,A=1.000000)",
+                "links": []
+              },
+              {
+                "name": "Duration",
+                "value": "9999.0",
+                "links": []
+              },
+              {
+                "name": "Key",
+                "value": "OW360_MODE",
+                "links": []
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": []
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_InputKey_1",
+            "type": "K2Node_InputKey",
+            "pins": [
+              {
+                "name": "Pressed",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_7:execute"
+                ]
+              },
+              {
+                "name": "Released",
+                "value": "",
+                "links": []
+              },
+              {
+                "name": "Key",
+                "value": "",
+                "links": []
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_DynamicCast_7",
+            "type": "K2Node_DynamicCast",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_InputKey_1:Pressed"
+                ]
+              },
+              {
+                "name": "Object",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_5:ReturnValue"
+                ]
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_28:execute"
+                ]
+              },
+              {
+                "name": "CastFailed",
+                "value": "",
+                "links": []
+              },
+              {
+                "name": "AsSkeletal Mesh Component",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_28:self"
+                ]
+              }
+            ],
+            "error_msg": "'ReturnValue' is already a 'Skeletal Mesh Component', you don't need  Cast To SkeletalMeshComponent ."
+          },
+          {
+            "name": "K2Node_CallFunction_28",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_7:then"
+                ]
+              },
+              {
+                "name": "self",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_7:AsSkeletal Mesh Component"
+                ]
+              },
+              {
+                "name": "NewClass",
+                "value": "/Game/Experiments/Stance_20261022/Orientation360_20261120/ABP_OW360.ABP_OW360_C",
+                "links": []
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_11:execute"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableSet_11",
+            "type": "K2Node_VariableSet",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_28:then"
+                ]
+              },
+              {
+                "name": "CurrentMode",
+                "value": "2",
+                "links": []
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_29:execute"
+                ]
+              },
+              {
+                "name": "Output_Get",
+                "value": "0",
+                "links": []
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_29",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_11:then"
+                ]
+              },
+              {
+                "name": "InString",
+                "value": "Mode 2 | 1 Baseline 2 Warping 3 Accepted FL | C Continuous Q/E Turn | WASD Move",
+                "links": []
+              },
+              {
+                "name": "bPrintToScreen",
+                "value": "true",
+                "links": []
+              },
+              {
+                "name": "bPrintToLog",
+                "value": "true",
+                "links": []
+              },
+              {
+                "name": "TextColor",
+                "value": "(R=0.000000,G=0.660000,B=1.000000,A=1.000000)",
+                "links": []
+              },
+              {
+                "name": "Duration",
+                "value": "9999.0",
+                "links": []
+              },
+              {
+                "name": "Key",
+                "value": "OW360_MODE",
+                "links": []
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": []
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_InputKey_2",
+            "type": "K2Node_InputKey",
+            "pins": [
+              {
+                "name": "Pressed",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_8:execute"
+                ]
+              },
+              {
+                "name": "Released",
+                "value": "",
+                "links": []
+              },
+              {
+                "name": "Key",
+                "value": "",
+                "links": []
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_DynamicCast_8",
+            "type": "K2Node_DynamicCast",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_InputKey_2:Pressed"
+                ]
+              },
+              {
+                "name": "Object",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_5:ReturnValue"
+                ]
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_30:execute"
+                ]
+              },
+              {
+                "name": "CastFailed",
+                "value": "",
+                "links": []
+              },
+              {
+                "name": "AsSkeletal Mesh Component",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_30:self"
+                ]
+              }
+            ],
+            "error_msg": "'ReturnValue' is already a 'Skeletal Mesh Component', you don't need  Cast To SkeletalMeshComponent ."
+          },
+          {
+            "name": "K2Node_CallFunction_30",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_8:then"
+                ]
+              },
+              {
+                "name": "self",
+                "value": "",
+                "links": [
+                  "K2Node_DynamicCast_8:AsSkeletal Mesh Component"
+                ]
+              },
+              {
+                "name": "NewClass",
+                "value": "/Game/Experiments/Stance_20261022/OrientationWarping_20261120/ABP_OW_B.ABP_OW_B_C",
+                "links": []
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_12:execute"
+                ]
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableSet_12",
+            "type": "K2Node_VariableSet",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_30:then"
+                ]
+              },
+              {
+                "name": "CurrentMode",
+                "value": "3",
+                "links": []
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_13:execute"
+                ]
+              },
+              {
+                "name": "Output_Get",
+                "value": "0",
+                "links": []
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableSet_13",
+            "type": "K2Node_VariableSet",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_12:then"
+                ]
+              },
+              {
+                "name": "bContinuous",
+                "value": "false",
+                "links": []
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": [
+                  "K2Node_CallFunction_31:execute"
+                ]
+              },
+              {
+                "name": "Output_Get",
+                "value": "false",
+                "links": []
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_CallFunction_31",
+            "type": "K2Node_CallFunction",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_13:then"
+                ]
+              },
+              {
+                "name": "InString",
+                "value": "Mode 3 | 1 Baseline 2 Warping 3 Accepted FL | C Continuous Q/E Turn | WASD Move",
+                "links": []
+              },
+              {
+                "name": "bPrintToScreen",
+                "value": "true",
+                "links": []
+              },
+              {
+                "name": "bPrintToLog",
+                "value": "true",
+                "links": []
+              },
+              {
+                "name": "TextColor",
+                "value": "(R=0.000000,G=0.660000,B=1.000000,A=1.000000)",
+                "links": []
+              },
+              {
+                "name": "Duration",
+                "value": "9999.0",
+                "links": []
+              },
+              {
+                "name": "Key",
+                "value": "OW360_MODE",
+                "links": []
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": []
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_InputKey_3",
+            "type": "K2Node_InputKey",
+            "pins": [
+              {
+                "name": "Pressed",
+                "value": "",
+                "links": [
+                  "K2Node_VariableSet_14:execute"
+                ]
+              },
+              {
+                "name": "Released",
+                "value": "",
+                "links": []
+              },
+              {
+                "name": "Key",
+                "value": "",
+                "links": []
+              }
+            ],
+            "error_msg": ""
+          },
+          {
+            "name": "K2Node_VariableSet_14",
+            "type": "K2Node_VariableSet",
+            "pins": [
+              {
+                "name": "execute",
+                "value": "",
+                "links": [
+                  "K2Node_InputKey_3:Pressed"
+                ]
+              },
+              {
+                "name": "bContinuous",
+                "value": "false",
+                "links": [
+                  "K2Node_CallFunction_9:ReturnValue"
+                ]
+              },
+              {
+                "name": "then",
+                "value": "",
+                "links": []
+              },
+              {
+                "name": "Output_Get",
+                "value": "false",
+                "links": []
+              }
+            ],
+            "error_msg": ""
+          }
+        ]
+      },
+      "defaults": {
+        "bContinuous": "False",
+        "bInitialized": "False",
+        "CurrentMode": "2",
+        "TurnRateDegrees": "90.0",
+        "AutoReceiveInput": "<AutoReceiveInput.PLAYER0: 1>"
+      }
+    }
+  },
+  "assets": {
+    "Forward": {
+      "path": "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Forward.AS_RootLockSource_Forward",
+      "skeleton": "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection.SK_FourDirection",
+      "length": 1.0,
+      "root_motion": false,
+      "root_lock": false,
+      "imports": [
+        "D:/UE_Projects/_worktrees/ShootGame_UE58/SourceAssets/FourDirectionRootLockSource_20261117/ImportReady/Forward.fbx"
+      ]
+    },
+    "Back": {
+      "path": "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Back.AS_RootLockSource_Back",
+      "skeleton": "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection.SK_FourDirection",
+      "length": 1.0,
+      "root_motion": false,
+      "root_lock": false,
+      "imports": [
+        "D:/UE_Projects/_worktrees/ShootGame_UE58/SourceAssets/FourDirectionRootLockSource_20261117/ImportReady/Back.fbx"
+      ]
+    },
+    "Left": {
+      "path": "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Left.AS_RootLockSource_Left",
+      "skeleton": "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection.SK_FourDirection",
+      "length": 1.0,
+      "root_motion": false,
+      "root_lock": false,
+      "imports": [
+        "D:/UE_Projects/_worktrees/ShootGame_UE58/SourceAssets/FourDirectionRootLockSource_20261117/ImportReady/Left.fbx"
+      ]
+    },
+    "Right": {
+      "path": "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Right.AS_RootLockSource_Right",
+      "skeleton": "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection.SK_FourDirection",
+      "length": 1.0,
+      "root_motion": false,
+      "root_lock": false,
+      "imports": [
+        "D:/UE_Projects/_worktrees/ShootGame_UE58/SourceAssets/FourDirectionRootLockSource_20261117/ImportReady/Right.fbx"
+      ]
+    }
+  },
+  "map": {
+    "/Game/Experiments/Stance_20261022/Orientation360_20261120/L_Orientation360.L_Orientation360:PersistentLevel.BP_OW360Preview_C_0": {
+      "auto_receive_input": "<AutoReceiveInput.PLAYER0: 1>",
+      "continuous": false,
+      "current_mode": 2,
+      "initialized": false
+    }
+  },
+  "dirty": {
+    "content": [],
+    "maps": []
+  }
+}

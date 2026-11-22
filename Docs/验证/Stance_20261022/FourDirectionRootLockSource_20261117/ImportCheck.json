@@ -1,0 +1,146 @@
+{
+  "status": "Passed",
+  "normalization": "constant default-root reference frame only; retain initial XY, yaw and net travel",
+  "clips": [
+    {
+      "direction": "Forward",
+      "asset": "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Forward.AS_RootLockSource_Forward",
+      "skeleton": "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection.SK_FourDirection",
+      "source": [
+        "D:/UE_Projects/_worktrees/ShootGame_UE58/SourceAssets/FourDirectionRootLockSource_20261117/ImportReady/Forward.fbx"
+      ],
+      "keys": 31,
+      "length": 1.0,
+      "checks": [
+        {
+          "mode": "<AnimDataEvalType.RAW: 1>",
+          "retarget": false,
+          "bone_frames": 2759,
+          "max_position_cm": 0.000376628832750955,
+          "max_angle_deg": 0.0011681820118676623
+        },
+        {
+          "mode": "<AnimDataEvalType.RAW: 1>",
+          "retarget": true,
+          "bone_frames": 2759,
+          "max_position_cm": 0.000376628832750955,
+          "max_angle_deg": 0.0011681820118676623
+        },
+        {
+          "mode": "<AnimDataEvalType.COMPRESSED: 2>",
+          "retarget": true,
+          "bone_frames": 2759,
+          "max_position_cm": 0.000376628832750955,
+          "max_angle_deg": 0.0011681820118676623
+        }
+      ]
+    },
+    {
+      "direction": "Back",
+      "asset": "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Back.AS_RootLockSource_Back",
+      "skeleton": "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection.SK_FourDirection",
+      "source": [
+        "D:/UE_Projects/_worktrees/ShootGame_UE58/SourceAssets/FourDirectionRootLockSource_20261117/ImportReady/Back.fbx"
+      ],
+      "keys": 31,
+      "length": 1.0,
+      "checks": [
+        {
+          "mode": "<AnimDataEvalType.RAW: 1>",
+          "retarget": false,
+          "bone_frames": 2759,
+          "max_position_cm": 0.0004248989227685285,
+          "max_angle_deg": 0.0009515926818195527
+        },
+        {
+          "mode": "<AnimDataEvalType.RAW: 1>",
+          "retarget": true,
+          "bone_frames": 2759,
+          "max_position_cm": 0.0004248989227685285,
+          "max_angle_deg": 0.0009515926818195527
+        },
+        {
+          "mode": "<AnimDataEvalType.COMPRESSED: 2>",
+          "retarget": true,
+          "bone_frames": 2759,
+          "max_position_cm": 0.0004248989227685285,
+          "max_angle_deg": 0.0009515926818195527
+        }
+      ]
+    },
+    {
+      "direction": "Left",
+      "asset": "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Left.AS_RootLockSource_Left",
+      "skeleton": "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection.SK_FourDirection",
+      "source": [
+        "D:/UE_Projects/_worktrees/ShootGame_UE58/SourceAssets/FourDirectionRootLockSource_20261117/ImportReady/Left.fbx"
+      ],
+      "keys": 31,
+      "length": 1.0,
+      "checks": [
+        {
+          "mode": "<AnimDataEvalType.RAW: 1>",
+          "retarget": false,
+          "bone_frames": 2759,
+          "max_position_cm": 0.0004296802738990456,
+          "max_angle_deg": 0.0016919717260449614
+        },
+        {
+          "mode": "<AnimDataEvalType.RAW: 1>",
+          "retarget": true,
+          "bone_frames": 2759,
+          "max_position_cm": 0.00039760516318340704,
+          "max_angle_deg": 0.0016919717260449614
+        },
+        {
+          "mode": "<AnimDataEvalType.COMPRESSED: 2>",
+          "retarget": true,
+          "bone_frames": 2759,
+          "max_position_cm": 0.00039760516318340704,
+          "max_angle_deg": 0.0016919717260449614
+        }
+      ]
+    },
+    {
+      "direction": "Right",
+      "asset": "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Right.AS_RootLockSource_Right",
+      "skeleton": "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection.SK_FourDirection",
+      "source": [
+        "D:/UE_Projects/_worktrees/ShootGame_UE58/SourceAssets/FourDirectionRootLockSource_20261117/ImportReady/Right.fbx"
+      ],
+      "keys": 31,
+      "length": 1.0,
+      "checks": [
+        {
+          "mode": "<AnimDataEvalType.RAW: 1>",
+          "retarget": false,
+          "bone_frames": 2759,
+          "max_position_cm": 0.00043044431525986746,
+          "max_angle_deg": 0.001862627307113816
+        },
+        {
+          "mode": "<AnimDataEvalType.RAW: 1>",
+          "retarget": true,
+          "bone_frames": 2759,
+          "max_position_cm": 0.0003849240608505258,
+          "max_angle_deg": 0.001862627307113816
+        },
+        {
+          "mode": "<AnimDataEvalType.COMPRESSED: 2>",
+          "retarget": true,
+          "bone_frames": 2759,
+          "max_position_cm": 0.0003849240608505258,
+          "max_angle_deg": 0.001862627307113816
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "reference_unchanged": true,
+  "saved": [
+    "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Forward.AS_RootLockSource_Forward",
+    "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Back.AS_RootLockSource_Back",
+    "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Left.AS_RootLockSource_Left",
+    "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Right.AS_RootLockSource_Right"
+  ]
+}

@@ -1,0 +1,133 @@
+{
+  "verified": true,
+  "count": 21,
+  "archive": "D:\\UE_Projects\\_worktrees\\ShootGame_UE58\\Saved\\StanceConsolidate_20261121_01\\BeforeAssets.zip",
+  "files": [
+    {
+      "package": "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/AS_BlendMirror_BackLeft",
+      "file": "Content/Experiments/Stance_20261022/BlendMirrorEight_20261117/AS_BlendMirror_BackLeft.uasset",
+      "sha256": "aba2bdef66fce9a9499290404a93a9c61d017ab067baa4bba6e31996980e3e98",
+      "bytes": 263188
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/AS_BlendMirror_ForwardRight",
+      "file": "Content/Experiments/Stance_20261022/BlendMirrorEight_20261117/AS_BlendMirror_ForwardRight.uasset",
+      "sha256": "fbc4a0d0bdee36a2881c4831aeb7f8179f8cb8315fdf5ee51af35fb2a8862ebf",
+      "bytes": 263173
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/BS_EightDirection_Mirrored",
+      "file": "Content/Experiments/Stance_20261022/BlendMirrorEight_20261117/BS_EightDirection_Mirrored.uasset",
+      "sha256": "c9cc593dab3c3e1424180e954ff182b55faa621330c5339936a1a07724834b7b",
+      "bytes": 19181
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Back",
+      "file": "Content/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Back.uasset",
+      "sha256": "6968381b5439be6036fca204ceddeff3c44becd362c099ae114c569f404f4e61",
+      "bytes": 175602
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Forward",
+      "file": "Content/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Forward.uasset",
+      "sha256": "578f462bbfb1caefccecf8b52e19da668eb8401eb83faec445f48bb6aab3c730",
+      "bytes": 172607
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Left",
+      "file": "Content/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Left.uasset",
+      "sha256": "15cd65191ec6cf2024240fc218c00d05d07005cfddd0ad8147c948f2ae9f520b",
+      "bytes": 171695
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Right",
+      "file": "Content/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Right.uasset",
+      "sha256": "9d695e212a4095824db41e7273cc9953b54e0063974ec234b17297c45762f7c6",
+      "bytes": 173652
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/FourDirection_20261117/ABP_FourDirection",
+      "file": "Content/Experiments/Stance_20261022/FourDirection_20261117/ABP_FourDirection.uasset",
+      "sha256": "f885077beca89db25e9ca05322c2a8833f6795050bbbc59c35d43b4fa9dc5eaa",
+      "bytes": 77820
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection",
+      "file": "Content/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection.uasset",
+      "sha256": "f595d2d562f04b80663acf83e1363ad8b3db9168d1b8d16aaf8552ddaaf194df",
+      "bytes": 153795
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_A",
+      "file": "Content/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_A.uasset",
+      "sha256": "0a713a0a2eeda545398ec72af58a8630651915061b2f10821999575efcff8a93",
+      "bytes": 561724
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_A_Observed",
+      "file": "Content/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_A_Observed.uasset",
+      "sha256": "b8033599ab9e8a8fe5e4753c0014ab2425f5c1af866cb814c122884fefcb7977",
+      "bytes": 707391
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_B",
+      "file": "Content/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_B.uasset",
+      "sha256": "11840cc6165a54601c89df070f9c2715c104c6e8230ac7abcf3a6e2b8dd459d3",
+      "bytes": 561649
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_B_Observed",
+      "file": "Content/Experiments/Stance_20261022/OWBlendSpace_20261120/ABP_BlendSpace_B_Observed.uasset",
+      "sha256": "c2fcb599b164b29d4becd027b21c2630c271dee949f149fa48bfaf62fca4fae6",
+      "bytes": 707380
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/BP_BlendSpacePreview",
+      "file": "Content/Experiments/Stance_20261022/OWBlendSpace_20261120/BP_BlendSpacePreview.uasset",
+      "sha256": "eb36cceaf50522e5af0737ea4aaf53df353bd847267571db95a7b2da82218ddc",
+      "bytes": 214896
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/OWBlendSpace_20261120/L_BlendSpaceCompare",
+      "file": "Content/Experiments/Stance_20261022/OWBlendSpace_20261120/L_BlendSpaceCompare.umap",
+      "sha256": "a76709c783ceeb70dd928ade1c5f2ae2c1b9e7c6f22e3a60135588069ba6c8fb",
+      "bytes": 31672
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/ABP_OWLocalMovement",
+      "file": "Content/Experiments/Stance_20261022/OWLocalMovement_20261121/ABP_OWLocalMovement.uasset",
+      "sha256": "abe69155760081f2865d68712db1e78094cdd5949291c04ecdd5cc6dca7be406",
+      "bytes": 561635
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/BP_OWLocalGameMode",
+      "file": "Content/Experiments/Stance_20261022/OWLocalMovement_20261121/BP_OWLocalGameMode.uasset",
+      "sha256": "ee655912b9c47d827ec1a2ebd8877005dea63f8d0e565df3b833cddfd05bfac8",
+      "bytes": 21960
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/BP_OWLocalPreview",
+      "file": "Content/Experiments/Stance_20261022/OWLocalMovement_20261121/BP_OWLocalPreview.uasset",
+      "sha256": "c4bc39bc6eeac1dcd34c90850e867c14ff9a860672edf93fe422b3553372f3e9",
+      "bytes": 54687
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/L_OWLocalMovement",
+      "file": "Content/Experiments/Stance_20261022/OWLocalMovement_20261121/L_OWLocalMovement.umap",
+      "sha256": "b66b23905b05db66882bd4070ab549302fa5b0e71a3ea0220006a6111b8b67b0",
+      "bytes": 20087
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/TorsoMirrorHeadHands_20261118/AS_MirrorTorsoKeepHeadHands_BackRight",
+      "file": "Content/Experiments/Stance_20261022/TorsoMirrorHeadHands_20261118/AS_MirrorTorsoKeepHeadHands_BackRight.uasset",
+      "sha256": "db07af4f82b0d9959f3a923df9910e20ea1123f9dbe1e64f83029c02bf121a45",
+      "bytes": 267272
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/TorsoMirrorHeadHands_20261118/AS_MirrorTorsoKeepHeadHands_ForwardLeft",
+      "file": "Content/Experiments/Stance_20261022/TorsoMirrorHeadHands_20261118/AS_MirrorTorsoKeepHeadHands_ForwardLeft.uasset",
+      "sha256": "d4cea6202baba69e502ad4995dc336967423e48414949b634f24c296f0814286",
+      "bytes": 265352
+    }
+  ]
+}

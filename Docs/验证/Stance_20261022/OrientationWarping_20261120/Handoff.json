@@ -1,0 +1,20 @@
+{
+  "editor_pid": 32988,
+  "map": "/Game/Experiments/Stance_20261022/OrientationWarping_20261120/L_OrientationWarping",
+  "mode": "B",
+  "actual": {
+    "returnValue": "{\"AnimClass\":{\"refPath\":\"/Game/Experiments/Stance_20261022/OrientationWarping_20261120/ABP_OW_B.ABP_OW_B_C\"},\"GlobalAnimRateScale\":1}"
+  },
+  "visible_window": "window \"ShootGame Preview [NetMode: Standalone 0]  (64-bit/PC D3D SM6)\" [focused] [pos=0,0 size=1920,1032] [ref=w21]",
+  "preview_ref": "i90",
+  "keys": {
+    "One": "A",
+    "Two": "B",
+    "Three": "C",
+    "Up": "B Forward",
+    "Left": "C Left",
+    "Down": "Return FL",
+    "V": "View",
+    "Escape": "Exit"
+  }
+}

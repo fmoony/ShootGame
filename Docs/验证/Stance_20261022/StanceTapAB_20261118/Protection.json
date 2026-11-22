@@ -1,0 +1,20 @@
+{
+  "prior_baseline_file_count": 390,
+  "baseline_backup_created_utc": "2026-11-18T05:18:57.844Z",
+  "changed": [
+    {
+      "file": "Content\\Experiments\\Stance_20261022\\BlendMirrorEight_20261117\\BS_EightDirection_Mirrored.uasset",
+      "before": "43903f3ec3cbac93e23f0dd1afc2a43d0482dc5931c236df9e424f770399c5d4",
+      "after": "1c56eee7f8013dca139989c845ff124e17cf5e072c3d79bf46cca57d7b5b8f7d",
+      "last_write_utc": "2026-11-18T05:24:05.686Z"
+    }
+  ],
+  "preexisting": [
+    {
+      "file": "Content\\Experiments\\Stance_20261022\\FourDirection_20261117\\ABP_FourDirection.uasset",
+      "before": "23fe52cb24279d24d96b9931ca108d6ab1fbfc22013b4e8eb5911f295be3ef22",
+      "after": "f885077beca89db25e9ca05322c2a8833f6795050bbbc59c35d43b4fa9dc5eaa",
+      "last_write_utc": "2026-11-18T04:07:48.707Z"
+    }
+  ]
+}

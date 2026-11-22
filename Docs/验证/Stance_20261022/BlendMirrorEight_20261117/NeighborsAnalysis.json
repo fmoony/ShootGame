@@ -1,0 +1,1342 @@
+{
+  "frames": 248,
+  "bone_frames": 22072,
+  "rows": [
+    {
+      "angle": 22.5,
+      "input": [
+        0.7071067811865475,
+        0.2928932188134525
+      ],
+      "frames": 31,
+      "min_shoe_z_cm": -7.287396678797121,
+      "intersection_frames": 0,
+      "samples": [
+        {
+          "phase": 0.0,
+          "shoe_z_cm": -2.091120614624163,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.03333333333333333,
+          "shoe_z_cm": 0.23396666558179585,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.06666666666666667,
+          "shoe_z_cm": -0.08578022364640381,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.1,
+          "shoe_z_cm": -0.6203363579961656,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.13333333333333333,
+          "shoe_z_cm": -1.2325801833391892,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.16666666666666666,
+          "shoe_z_cm": -1.9289700635136624,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.2,
+          "shoe_z_cm": -2.6380100644571343,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.23333333333333334,
+          "shoe_z_cm": -3.345832918413199,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.26666666666666666,
+          "shoe_z_cm": -4.4636801566192705,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.3,
+          "shoe_z_cm": -6.3599541203408485,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.3333333333333333,
+          "shoe_z_cm": -6.54578600900739,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.36666666666666664,
+          "shoe_z_cm": -6.703086602629462,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.4,
+          "shoe_z_cm": -7.287396678797121,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.43333333333333335,
+          "shoe_z_cm": -5.286964737341007,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.4666666666666667,
+          "shoe_z_cm": -4.233935029053161,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.5,
+          "shoe_z_cm": -2.50055642886553,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.5333333333333333,
+          "shoe_z_cm": -0.9634142122707541,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.5666666666666667,
+          "shoe_z_cm": -0.024296865030399302,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.6,
+          "shoe_z_cm": -0.22676595901455876,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.6333333333333333,
+          "shoe_z_cm": -0.1823759139037506,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.6666666666666666,
+          "shoe_z_cm": -0.6248883759126184,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.7,
+          "shoe_z_cm": -1.3849947869909651,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.7333333333333333,
+          "shoe_z_cm": -2.566020777438486,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.7666666666666667,
+          "shoe_z_cm": -5.201029048360695,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.8,
+          "shoe_z_cm": -5.7629471359072495,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.8333333333333334,
+          "shoe_z_cm": -5.906724152383881,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.8666666666666667,
+          "shoe_z_cm": -4.577922402129386,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.9,
+          "shoe_z_cm": -4.239358649923796,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.9333333333333333,
+          "shoe_z_cm": -3.7439345239244597,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.9666666666666667,
+          "shoe_z_cm": -2.731671668648625,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 1.0,
+          "shoe_z_cm": -2.092833978804407,
+          "shoe_intersection_pairs": 0
+        }
+      ]
+    },
+    {
+      "angle": 67.5,
+      "input": [
+        0.29289321881345254,
+        0.7071067811865475
+      ],
+      "frames": 31,
+      "min_shoe_z_cm": -6.766260167946175,
+      "intersection_frames": 0,
+      "samples": [
+        {
+          "phase": 0.0,
+          "shoe_z_cm": -0.6173860413049455,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.03333333333333333,
+          "shoe_z_cm": 0.1861524053659774,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.06666666666666667,
+          "shoe_z_cm": -0.04588851010213325,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.1,
+          "shoe_z_cm": -0.5080144485481799,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.13333333333333333,
+          "shoe_z_cm": -1.138584622566762,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.16666666666666666,
+          "shoe_z_cm": -1.8484981245124499,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.2,
+          "shoe_z_cm": -2.589329059550075,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.23333333333333334,
+          "shoe_z_cm": -3.3040657569521996,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.26666666666666666,
+          "shoe_z_cm": -4.7746347350761065,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.3,
+          "shoe_z_cm": -6.766260167946175,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.3333333333333333,
+          "shoe_z_cm": -4.588836779077327,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.36666666666666664,
+          "shoe_z_cm": -3.5704242617521906,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.4,
+          "shoe_z_cm": -3.8173662295768835,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.43333333333333335,
+          "shoe_z_cm": -3.0394120358395114,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.4666666666666667,
+          "shoe_z_cm": -2.7348837038022555,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.5,
+          "shoe_z_cm": -1.3641041894393737,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.5333333333333333,
+          "shoe_z_cm": 0.22940377718249627,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.5666666666666667,
+          "shoe_z_cm": -0.00441478550423148,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.6,
+          "shoe_z_cm": -0.2498198541747545,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.6333333333333333,
+          "shoe_z_cm": -0.31297755311756426,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.6666666666666666,
+          "shoe_z_cm": -0.47044425366652154,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.7,
+          "shoe_z_cm": -0.9590895301725852,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.7333333333333333,
+          "shoe_z_cm": -2.5547333840006656,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.7666666666666667,
+          "shoe_z_cm": -6.690007422765263,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.8,
+          "shoe_z_cm": -5.7979195186143,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.8333333333333334,
+          "shoe_z_cm": -4.314081997417492,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.8666666666666667,
+          "shoe_z_cm": -2.6658833322521813,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.9,
+          "shoe_z_cm": -2.000068292289379,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.9333333333333333,
+          "shoe_z_cm": -1.2978956414664324,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.9666666666666667,
+          "shoe_z_cm": 0.3743775062507404,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 1.0,
+          "shoe_z_cm": -0.6203416007081453,
+          "shoe_intersection_pairs": 0
+        }
+      ]
+    },
+    {
+      "angle": 112.5,
+      "input": [
+        -0.2928932188134524,
+        0.7071067811865475
+      ],
+      "frames": 31,
+      "min_shoe_z_cm": -6.323108617105664,
+      "intersection_frames": 0,
+      "samples": [
+        {
+          "phase": 0.0,
+          "shoe_z_cm": 0.46826202406259165,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.03333333333333333,
+          "shoe_z_cm": -1.4624584400291587,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.06666666666666667,
+          "shoe_z_cm": -2.9440644651639563,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.1,
+          "shoe_z_cm": -3.9610913030324912,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.13333333333333333,
+          "shoe_z_cm": -4.562859948685261,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.16666666666666666,
+          "shoe_z_cm": -5.12565767286299,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.2,
+          "shoe_z_cm": -5.427439927368715,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.23333333333333334,
+          "shoe_z_cm": -3.8413459152093106,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.26666666666666666,
+          "shoe_z_cm": -4.169753755087406,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.3,
+          "shoe_z_cm": -6.304200464464871,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.3333333333333333,
+          "shoe_z_cm": -6.323108617105664,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.36666666666666664,
+          "shoe_z_cm": -5.473575981301734,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.4,
+          "shoe_z_cm": -4.369577550281928,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.43333333333333335,
+          "shoe_z_cm": -3.2343746420820394,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.4666666666666667,
+          "shoe_z_cm": -2.171673131591776,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.5,
+          "shoe_z_cm": -2.6919650750987194,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.5333333333333333,
+          "shoe_z_cm": -3.5185024433665912,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.5666666666666667,
+          "shoe_z_cm": -4.324869668825761,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.6,
+          "shoe_z_cm": -5.2713853029301845,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.6333333333333333,
+          "shoe_z_cm": -6.119337627838978,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.6666666666666666,
+          "shoe_z_cm": -5.4004441106313354,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.7,
+          "shoe_z_cm": -3.326022067111728,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.7333333333333333,
+          "shoe_z_cm": -2.8104303893873293,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.7666666666666667,
+          "shoe_z_cm": -5.0303360189065955,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.8,
+          "shoe_z_cm": -4.864329439572226,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.8333333333333334,
+          "shoe_z_cm": -4.1846513263112115,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.8666666666666667,
+          "shoe_z_cm": -3.079585150660856,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.9,
+          "shoe_z_cm": -1.4384472583332206,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.9333333333333333,
+          "shoe_z_cm": 0.9581487425960771,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.9666666666666667,
+          "shoe_z_cm": 3.147995699920922,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 1.0,
+          "shoe_z_cm": 0.4682461251336192,
+          "shoe_intersection_pairs": 0
+        }
+      ]
+    },
+    {
+      "angle": 157.5,
+      "input": [
+        -0.7071067811865475,
+        0.29289321881345254
+      ],
+      "frames": 31,
+      "min_shoe_z_cm": -19.9581780216144,
+      "intersection_frames": 8,
+      "samples": [
+        {
+          "phase": 0.0,
+          "shoe_z_cm": -2.0289186766456653,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.03333333333333333,
+          "shoe_z_cm": -4.385365233916186,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.06666666666666667,
+          "shoe_z_cm": -7.710982386428625,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.1,
+          "shoe_z_cm": -11.339091659015782,
+          "shoe_intersection_pairs": 28
+        },
+        {
+          "phase": 0.13333333333333333,
+          "shoe_z_cm": -14.661328892440388,
+          "shoe_intersection_pairs": 138
+        },
+        {
+          "phase": 0.16666666666666666,
+          "shoe_z_cm": -17.65466847384804,
+          "shoe_intersection_pairs": 130
+        },
+        {
+          "phase": 0.2,
+          "shoe_z_cm": -19.092058705205584,
+          "shoe_intersection_pairs": 128
+        },
+        {
+          "phase": 0.23333333333333334,
+          "shoe_z_cm": -15.293543810280907,
+          "shoe_intersection_pairs": 180
+        },
+        {
+          "phase": 0.26666666666666666,
+          "shoe_z_cm": -10.765566874219198,
+          "shoe_intersection_pairs": 267
+        },
+        {
+          "phase": 0.3,
+          "shoe_z_cm": -7.481867515628295,
+          "shoe_intersection_pairs": 232
+        },
+        {
+          "phase": 0.3333333333333333,
+          "shoe_z_cm": -5.203512293653723,
+          "shoe_intersection_pairs": 144
+        },
+        {
+          "phase": 0.36666666666666664,
+          "shoe_z_cm": -1.3953037598959446,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.4,
+          "shoe_z_cm": 0.370756038135888,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.43333333333333335,
+          "shoe_z_cm": -0.10732277639404925,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.4666666666666667,
+          "shoe_z_cm": -1.985824331015177,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.5,
+          "shoe_z_cm": -5.351602294251443,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.5333333333333333,
+          "shoe_z_cm": -9.19142818876548,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.5666666666666667,
+          "shoe_z_cm": -13.314378153970596,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.6,
+          "shoe_z_cm": -17.443951979443305,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.6333333333333333,
+          "shoe_z_cm": -19.888862031350076,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.6666666666666666,
+          "shoe_z_cm": -19.9581780216144,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.7,
+          "shoe_z_cm": -18.18327329029636,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.7333333333333333,
+          "shoe_z_cm": -16.10379016735544,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.7666666666666667,
+          "shoe_z_cm": -13.965512021691515,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.8,
+          "shoe_z_cm": -10.844458531507412,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.8333333333333334,
+          "shoe_z_cm": -6.32053641334377,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.8666666666666667,
+          "shoe_z_cm": -1.9416772019634227,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.9,
+          "shoe_z_cm": 0.9014814358843987,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.9333333333333333,
+          "shoe_z_cm": 1.1509570582347837,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.9666666666666667,
+          "shoe_z_cm": 0.041098641362263155,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 1.0,
+          "shoe_z_cm": -2.02837931459328,
+          "shoe_intersection_pairs": 0
+        }
+      ]
+    },
+    {
+      "angle": 202.5,
+      "input": [
+        -0.7071067811865476,
+        -0.29289321881345237
+      ],
+      "frames": 31,
+      "min_shoe_z_cm": -6.395147487643024,
+      "intersection_frames": 0,
+      "samples": [
+        {
+          "phase": 0.0,
+          "shoe_z_cm": -1.7728579688531267,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.03333333333333333,
+          "shoe_z_cm": -2.579358008367972,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.06666666666666667,
+          "shoe_z_cm": -3.3777025521989428,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.1,
+          "shoe_z_cm": -3.858897320342442,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.13333333333333333,
+          "shoe_z_cm": -4.501324123462025,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.16666666666666666,
+          "shoe_z_cm": -5.495172122007142,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.2,
+          "shoe_z_cm": -5.828214944642323,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.23333333333333334,
+          "shoe_z_cm": -3.455460116631799,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.26666666666666666,
+          "shoe_z_cm": -2.089674050477866,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.3,
+          "shoe_z_cm": -0.7797681554312654,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.3333333333333333,
+          "shoe_z_cm": 0.2680846837707839,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.36666666666666664,
+          "shoe_z_cm": 0.7723658914385703,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.4,
+          "shoe_z_cm": 0.9104879846328698,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.43333333333333335,
+          "shoe_z_cm": 0.8914643732828086,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.4666666666666667,
+          "shoe_z_cm": -0.811979114461951,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.5,
+          "shoe_z_cm": -2.4523463564086416,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.5333333333333333,
+          "shoe_z_cm": -2.6526812152160186,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.5666666666666667,
+          "shoe_z_cm": -3.6103268971848737,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.6,
+          "shoe_z_cm": -5.334096025308193,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.6333333333333333,
+          "shoe_z_cm": -6.344070175960337,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.6666666666666666,
+          "shoe_z_cm": -6.395147487643024,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.7,
+          "shoe_z_cm": -4.492394407019182,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.7333333333333333,
+          "shoe_z_cm": -3.0360828487603335,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.7666666666666667,
+          "shoe_z_cm": -2.206460895275895,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.8,
+          "shoe_z_cm": -1.5683398234974142,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.8333333333333334,
+          "shoe_z_cm": -0.925211437279041,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.8666666666666667,
+          "shoe_z_cm": -0.27528269695341434,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.9,
+          "shoe_z_cm": 0.3059524595027687,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.9333333333333333,
+          "shoe_z_cm": 0.8026459861306561,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.9666666666666667,
+          "shoe_z_cm": 0.8234515836651672,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 1.0,
+          "shoe_z_cm": -1.772908275045209,
+          "shoe_intersection_pairs": 0
+        }
+      ]
+    },
+    {
+      "angle": 247.5,
+      "input": [
+        -0.2928932188134523,
+        -0.7071067811865477
+      ],
+      "frames": 31,
+      "min_shoe_z_cm": -7.382343972143095,
+      "intersection_frames": 0,
+      "samples": [
+        {
+          "phase": 0.0,
+          "shoe_z_cm": -1.0556949540858058,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.03333333333333333,
+          "shoe_z_cm": -0.7843143823566407,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.06666666666666667,
+          "shoe_z_cm": -1.1019851659515139,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.1,
+          "shoe_z_cm": -1.4843429586713253,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.13333333333333333,
+          "shoe_z_cm": -2.627116508354767,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.16666666666666666,
+          "shoe_z_cm": -5.026515444535294,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.2,
+          "shoe_z_cm": -7.382343972143095,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.23333333333333334,
+          "shoe_z_cm": -4.521517589539428,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.26666666666666666,
+          "shoe_z_cm": -2.7465054105926012,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.3,
+          "shoe_z_cm": -1.1936771509107835,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.3333333333333333,
+          "shoe_z_cm": 0.1058121655157483,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.36666666666666664,
+          "shoe_z_cm": 0.864582296645256,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.4,
+          "shoe_z_cm": 1.2400570106928703,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.43333333333333335,
+          "shoe_z_cm": 1.015110119797521,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.4666666666666667,
+          "shoe_z_cm": 0.3289033910014947,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.5,
+          "shoe_z_cm": -0.9914395064035952,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.5333333333333333,
+          "shoe_z_cm": -0.5102523614427161,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.5666666666666667,
+          "shoe_z_cm": -0.8520138815389524,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.6,
+          "shoe_z_cm": -1.684802682492652,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.6333333333333333,
+          "shoe_z_cm": -3.1768301610755465,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.6666666666666666,
+          "shoe_z_cm": -5.750610063883859,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.7,
+          "shoe_z_cm": -4.2826903874202555,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.7333333333333333,
+          "shoe_z_cm": -2.7955649508398954,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.7666666666666667,
+          "shoe_z_cm": -2.054044748403732,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.8,
+          "shoe_z_cm": -1.4228053561010565,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.8333333333333334,
+          "shoe_z_cm": -0.7884223630139411,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.8666666666666667,
+          "shoe_z_cm": -0.1788113823029691,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.9,
+          "shoe_z_cm": 0.3681908523216879,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.9333333333333333,
+          "shoe_z_cm": 0.843745434623908,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.9666666666666667,
+          "shoe_z_cm": 0.8210243142313556,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 1.0,
+          "shoe_z_cm": -1.055693557684867,
+          "shoe_intersection_pairs": 0
+        }
+      ]
+    },
+    {
+      "angle": 292.5,
+      "input": [
+        0.29289321881345265,
+        -0.7071067811865474
+      ],
+      "frames": 31,
+      "min_shoe_z_cm": -10.499160489270253,
+      "intersection_frames": 0,
+      "samples": [
+        {
+          "phase": 0.0,
+          "shoe_z_cm": 2.092051667156407,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.03333333333333333,
+          "shoe_z_cm": 0.3342006184846422,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.06666666666666667,
+          "shoe_z_cm": -0.7799388434415557,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.1,
+          "shoe_z_cm": -1.7901643119985438,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.13333333333333333,
+          "shoe_z_cm": -3.049160471554986,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.16666666666666666,
+          "shoe_z_cm": -4.551833371654907,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.2,
+          "shoe_z_cm": -5.708096942406505,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.23333333333333334,
+          "shoe_z_cm": -4.203087338063872,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.26666666666666666,
+          "shoe_z_cm": -4.463273749753459,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.3,
+          "shoe_z_cm": -6.506920692175908,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.3333333333333333,
+          "shoe_z_cm": -8.086724969398166,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.36666666666666664,
+          "shoe_z_cm": -10.490747878894748,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.4,
+          "shoe_z_cm": -10.499160489270253,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.43333333333333335,
+          "shoe_z_cm": -8.460893400629942,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.4666666666666667,
+          "shoe_z_cm": -6.102554285408409,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.5,
+          "shoe_z_cm": -3.155005816943942,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.5333333333333333,
+          "shoe_z_cm": -0.5738832982925026,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.5666666666666667,
+          "shoe_z_cm": -0.41749206485298096,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.6,
+          "shoe_z_cm": -0.772275213242545,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.6333333333333333,
+          "shoe_z_cm": -2.322050849141533,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.6666666666666666,
+          "shoe_z_cm": -4.083772257546375,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.7,
+          "shoe_z_cm": -2.815956687441075,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.7333333333333333,
+          "shoe_z_cm": -2.6254469918568137,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.7666666666666667,
+          "shoe_z_cm": -4.82510316712899,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.8,
+          "shoe_z_cm": -5.651124170525834,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.8333333333333334,
+          "shoe_z_cm": -6.741952738740201,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.8666666666666667,
+          "shoe_z_cm": -6.605151984163079,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.9,
+          "shoe_z_cm": -5.309840117091503,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.9333333333333333,
+          "shoe_z_cm": -2.762792866169553,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.9666666666666667,
+          "shoe_z_cm": 0.984568747029674,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 1.0,
+          "shoe_z_cm": 2.0907671746512957,
+          "shoe_intersection_pairs": 0
+        }
+      ]
+    },
+    {
+      "angle": 337.5,
+      "input": [
+        0.7071067811865477,
+        -0.29289321881345237
+      ],
+      "frames": 31,
+      "min_shoe_z_cm": -21.12305035977833,
+      "intersection_frames": 0,
+      "samples": [
+        {
+          "phase": 0.0,
+          "shoe_z_cm": -1.4988813910696495,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.03333333333333333,
+          "shoe_z_cm": 0.3984659119449194,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.06666666666666667,
+          "shoe_z_cm": 0.9336323500580055,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.1,
+          "shoe_z_cm": 0.4226429844083071,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.13333333333333333,
+          "shoe_z_cm": -1.7197214087144466,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.16666666666666666,
+          "shoe_z_cm": -5.964333327954988,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.2,
+          "shoe_z_cm": -11.577864728715753,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.23333333333333334,
+          "shoe_z_cm": -14.080672245175961,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.26666666666666666,
+          "shoe_z_cm": -17.402086892282455,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.3,
+          "shoe_z_cm": -19.848209450264875,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.3333333333333333,
+          "shoe_z_cm": -21.12305035977833,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.36666666666666664,
+          "shoe_z_cm": -21.01577336382387,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.4,
+          "shoe_z_cm": -18.800352437518125,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.43333333333333335,
+          "shoe_z_cm": -13.43388805419673,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.4666666666666667,
+          "shoe_z_cm": -8.292144727129546,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.5,
+          "shoe_z_cm": -3.853808062360567,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.5333333333333333,
+          "shoe_z_cm": -1.4405624510194102,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.5666666666666667,
+          "shoe_z_cm": -0.591621539034243,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.6,
+          "shoe_z_cm": -1.0617688739044924,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.6333333333333333,
+          "shoe_z_cm": -3.629639617653979,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.6666666666666666,
+          "shoe_z_cm": -7.544859824851215,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.7,
+          "shoe_z_cm": -12.029877206603977,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.7333333333333333,
+          "shoe_z_cm": -14.345964358621853,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.7666666666666667,
+          "shoe_z_cm": -20.368028184995495,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.8,
+          "shoe_z_cm": -21.030843365491968,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.8333333333333334,
+          "shoe_z_cm": -19.887756974791404,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.8666666666666667,
+          "shoe_z_cm": -16.71316518926119,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.9,
+          "shoe_z_cm": -12.65461989000712,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.9333333333333333,
+          "shoe_z_cm": -8.128322306620486,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 0.9666666666666667,
+          "shoe_z_cm": -4.043136512693756,
+          "shoe_intersection_pairs": 0
+        },
+        {
+          "phase": 1.0,
+          "shoe_z_cm": -1.4991783816501005,
+          "shoe_intersection_pairs": 0
+        }
+      ]
+    }
+  ]
+}

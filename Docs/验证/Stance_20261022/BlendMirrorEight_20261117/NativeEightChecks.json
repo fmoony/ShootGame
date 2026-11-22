@@ -1,0 +1,50 @@
+[
+  {
+    "direction": "Forward",
+    "asset": "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Forward",
+    "frames": 66,
+    "max_position_cm": 0.00014608841846882952
+  },
+  {
+    "direction": "ForwardRight",
+    "asset": "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/AS_BlendMirror_ForwardRight",
+    "frames": 66,
+    "max_position_cm": 0.00012785475142203188
+  },
+  {
+    "direction": "Right",
+    "asset": "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Right",
+    "frames": 66,
+    "max_position_cm": 0.00012334638989661058
+  },
+  {
+    "direction": "BackRight",
+    "asset": "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/AS_BlendMirror_BackRight",
+    "frames": 66,
+    "max_position_cm": 0.00010562819115500677
+  },
+  {
+    "direction": "Back",
+    "asset": "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Back",
+    "frames": 66,
+    "max_position_cm": 0.00012831342858636284
+  },
+  {
+    "direction": "BackLeft",
+    "asset": "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/AS_BlendMirror_BackLeft",
+    "frames": 66,
+    "max_position_cm": 0.00012110618132202445
+  },
+  {
+    "direction": "Left",
+    "asset": "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Left",
+    "frames": 66,
+    "max_position_cm": 0.0001260354993429758
+  },
+  {
+    "direction": "ForwardLeft",
+    "asset": "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/AS_BlendMirror_ForwardLeft",
+    "frames": 66,
+    "max_position_cm": 0.00010551580392088933
+  }
+]

@@ -1,0 +1,108 @@
+{
+  "retained_mirror": [
+    "ball_l",
+    "ball_r",
+    "calf_l",
+    "calf_r",
+    "calf_twist_01_l",
+    "calf_twist_01_r",
+    "calf_twist_02_l",
+    "calf_twist_02_r",
+    "center_of_mass",
+    "foot_l",
+    "foot_r",
+    "ik_foot_l",
+    "ik_foot_r",
+    "ik_foot_root",
+    "ik_hand_gun",
+    "ik_hand_l",
+    "ik_hand_r",
+    "ik_hand_root",
+    "interaction",
+    "pelvis",
+    "root",
+    "spine_01",
+    "spine_02",
+    "spine_03",
+    "spine_04",
+    "spine_05",
+    "thigh_l",
+    "thigh_r",
+    "thigh_twist_01_l",
+    "thigh_twist_01_r",
+    "thigh_twist_02_l",
+    "thigh_twist_02_r"
+  ],
+  "fixed_source_component": [
+    "hand_l",
+    "hand_r",
+    "head"
+  ],
+  "source_weight": {
+    "neck_01": 0.3333333333333333,
+    "neck_02": 0.6666666666666666,
+    "head": 1.0,
+    "clavicle_l": 0.2,
+    "upperarm_l": 0.55,
+    "lowerarm_l": 0.85,
+    "hand_l": 1.0,
+    "clavicle_r": 0.2,
+    "upperarm_r": 0.55,
+    "lowerarm_r": 0.85,
+    "hand_r": 1.0
+  },
+  "clips": [
+    {
+      "direction": "ForwardLeft",
+      "source": "ForwardRight",
+      "torso_and_lower_identical": true,
+      "local_pos_error_cm": 1.1494273195258281e-05,
+      "fixed_component_angle_deg": 0,
+      "local_turn_from_mirror_deg": {
+        "neck_01": 26.059367760323514,
+        "neck_02": 25.25421253480015,
+        "head": 25.15814019909593,
+        "clavicle_l": 16.276503193440632,
+        "upperarm_l": 14.419768554602527,
+        "lowerarm_l": 72.19509907865188,
+        "hand_l": 47.917882194079375,
+        "clavicle_r": 16.27650382058091,
+        "upperarm_r": 14.419778423002835,
+        "lowerarm_r": 72.19508383917379,
+        "hand_r": 47.91788985434919
+      },
+      "hand_position_shift_from_mirror_cm": {
+        "hand_l": 16.36698098427943,
+        "hand_r": 22.18595370424991
+      },
+      "bake_position_cm": 3.2606737131650464e-05,
+      "bake_rotation_deg": 0.00016211810464536333
+    },
+    {
+      "direction": "BackRight",
+      "source": "BackLeft",
+      "torso_and_lower_identical": true,
+      "local_pos_error_cm": 1.188630247835364e-05,
+      "fixed_component_angle_deg": 0,
+      "local_turn_from_mirror_deg": {
+        "neck_01": 28.985509379382282,
+        "neck_02": 27.57583141197422,
+        "head": 27.966574489283175,
+        "clavicle_l": 19.009293357377736,
+        "upperarm_l": 13.1129816759146,
+        "lowerarm_l": 76.69370760828468,
+        "hand_l": 44.88120774194768,
+        "clavicle_r": 19.009302825406923,
+        "upperarm_r": 13.11297991053879,
+        "lowerarm_r": 76.69368332721363,
+        "hand_r": 44.881231624611736
+      },
+      "hand_position_shift_from_mirror_cm": {
+        "hand_l": 19.0779795723136,
+        "hand_r": 26.42659773033986
+      },
+      "bake_position_cm": 3.411968959808029e-05,
+      "bake_rotation_deg": 0.00020575059198295144
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "space": "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/BS_EightDirection_Mirrored.BS_EightDirection_Mirrored",
+  "active_anim_bp": "/Game/Experiments/Stance_20261022/FourDirection_20261117/ABP_FourDirection.ABP_FourDirection",
+  "backup_anim_bp": "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/ABP_BeforeEightDirection.ABP_BeforeEightDirection",
+  "node": "/Game/Experiments/Stance_20261022/FourDirection_20261117/ABP_FourDirection.ABP_FourDirection:AnimGraph.AnimGraphNode_BlendSpacePlayer_0",
+  "samples": [
+    {
+      "asset": "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Forward.AS_RootLockSource_Forward",
+      "point": [
+        1.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Back.AS_RootLockSource_Back",
+      "point": [
+        -1.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Left.AS_RootLockSource_Left",
+      "point": [
+        0.0,
+        -1.0,
+        0.0
+      ]
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Right.AS_RootLockSource_Right",
+      "point": [
+        0.0,
+        1.0,
+        0.0
+      ]
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/AS_BlendMirror_ForwardRight.AS_BlendMirror_ForwardRight",
+      "point": [
+        0.5,
+        0.5,
+        0.0
+      ]
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/AS_BlendMirror_BackLeft.AS_BlendMirror_BackLeft",
+      "point": [
+        -0.5,
+        -0.5,
+        0.0
+      ]
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/AS_BlendMirror_ForwardLeft.AS_BlendMirror_ForwardLeft",
+      "point": [
+        0.5,
+        -0.5,
+        0.0
+      ]
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/AS_BlendMirror_BackRight.AS_BlendMirror_BackRight",
+      "point": [
+        -0.5,
+        0.5,
+        0.0
+      ]
+    }
+  ]
+}

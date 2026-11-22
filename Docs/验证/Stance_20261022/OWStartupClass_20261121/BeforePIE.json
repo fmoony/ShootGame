@@ -1,0 +1,31 @@
+{
+  "phase": "BeforePIE",
+  "old_objects": {
+    "/Game/Experiments/Stance_20261022/FourDirection_20261117/ABP_FourDirection": {
+      "package": null,
+      "asset": null,
+      "class": null
+    },
+    "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/BS_EightDirection_Mirrored": {
+      "package": null,
+      "asset": null
+    },
+    "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/AS_BlendMirror_BackLeft": {
+      "package": null,
+      "asset": null
+    },
+    "/Game/Experiments/Stance_20261022/BlendMirrorEight_20261117/AS_BlendMirror_ForwardRight": {
+      "package": null,
+      "asset": null
+    },
+    "/Game/Experiments/Stance_20261022/TorsoMirrorHeadHands_20261118/AS_MirrorTorsoKeepHeadHands_BackRight": {
+      "package": null,
+      "asset": null
+    },
+    "/Game/Experiments/Stance_20261022/TorsoMirrorHeadHands_20261118/AS_MirrorTorsoKeepHeadHands_ForwardLeft": {
+      "package": null,
+      "asset": null
+    }
+  },
+  "editor_world": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/L_OWLocalMovement.L_OWLocalMovement"
+}

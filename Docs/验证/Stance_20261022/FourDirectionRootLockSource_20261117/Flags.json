@@ -1,0 +1,30 @@
+[
+  {
+    "direction": "Forward",
+    "skeleton": "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection.SK_FourDirection",
+    "enable_root_motion": false,
+    "force_root_lock": false,
+    "root_motion_root_lock": "<RootMotionRootLock.REF_POSE: 0>"
+  },
+  {
+    "direction": "Back",
+    "skeleton": "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection.SK_FourDirection",
+    "enable_root_motion": false,
+    "force_root_lock": false,
+    "root_motion_root_lock": "<RootMotionRootLock.REF_POSE: 0>"
+  },
+  {
+    "direction": "Left",
+    "skeleton": "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection.SK_FourDirection",
+    "enable_root_motion": false,
+    "force_root_lock": false,
+    "root_motion_root_lock": "<RootMotionRootLock.REF_POSE: 0>"
+  },
+  {
+    "direction": "Right",
+    "skeleton": "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection.SK_FourDirection",
+    "enable_root_motion": false,
+    "force_root_lock": false,
+    "root_motion_root_lock": "<RootMotionRootLock.REF_POSE: 0>"
+  }
+]

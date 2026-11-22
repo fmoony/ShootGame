@@ -1,0 +1,146 @@
+{
+  "0": {
+    "frames": 61,
+    "weights": [
+      1,
+      0,
+      0,
+      0
+    ],
+    "min_shoe_cm": -7.391141543772832,
+    "shoe_intersection_frames": 0,
+    "min_foot_distance_cm": 19.246553958989374
+  },
+  "45": {
+    "frames": 61,
+    "weights": [
+      1,
+      0,
+      0,
+      0
+    ],
+    "min_shoe_cm": -7.391141554150133,
+    "shoe_intersection_frames": 0,
+    "min_foot_distance_cm": 19.246553958989377
+  },
+  "90": {
+    "frames": 61,
+    "weights": [
+      0,
+      1,
+      0,
+      0
+    ],
+    "min_shoe_cm": -5.412501526519741,
+    "shoe_intersection_frames": 0,
+    "min_foot_distance_cm": 21.830150461033696
+  },
+  "135": {
+    "frames": 61,
+    "weights": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "min_shoe_cm": -6.418032040588195,
+    "shoe_intersection_frames": 0,
+    "min_foot_distance_cm": 18.80791549586148
+  },
+  "180": {
+    "frames": 61,
+    "weights": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "min_shoe_cm": -6.418032177012955,
+    "shoe_intersection_frames": 0,
+    "min_foot_distance_cm": 18.8079154958615
+  },
+  "-135": {
+    "frames": 61,
+    "weights": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "min_shoe_cm": -6.4180321696334985,
+    "shoe_intersection_frames": 0,
+    "min_foot_distance_cm": 18.807915495861533
+  },
+  "-90": {
+    "frames": 61,
+    "weights": [
+      0,
+      0,
+      0,
+      1
+    ],
+    "min_shoe_cm": -6.076854507308102,
+    "shoe_intersection_frames": 0,
+    "min_foot_distance_cm": 21.196831932920997
+  },
+  "-45": {
+    "frames": 61,
+    "weights": [
+      1,
+      0,
+      0,
+      0
+    ],
+    "min_shoe_cm": -7.391141548028566,
+    "shoe_intersection_frames": 0,
+    "min_foot_distance_cm": 19.24655395898938
+  },
+  "55": {
+    "frames": 61,
+    "weights": [
+      0.5,
+      0.5,
+      0,
+      0
+    ],
+    "min_shoe_cm": -5.582726032934882,
+    "shoe_intersection_frames": 0,
+    "min_foot_distance_cm": 22.58859779113251
+  },
+  "-55": {
+    "frames": 61,
+    "weights": [
+      0.5,
+      0,
+      0,
+      0.5
+    ],
+    "min_shoe_cm": -2.924762028068181,
+    "shoe_intersection_frames": 2,
+    "min_foot_distance_cm": 8.116969042792102
+  },
+  "125": {
+    "frames": 61,
+    "weights": [
+      0,
+      0.5,
+      0.5,
+      0
+    ],
+    "min_shoe_cm": -3.1958726977311436,
+    "shoe_intersection_frames": 2,
+    "min_foot_distance_cm": 9.887968173088991
+  },
+  "-125": {
+    "frames": 61,
+    "weights": [
+      0,
+      0,
+      0.5,
+      0.5
+    ],
+    "min_shoe_cm": -5.953992062754287,
+    "shoe_intersection_frames": 0,
+    "min_foot_distance_cm": 20.866409301462767
+  }
+}

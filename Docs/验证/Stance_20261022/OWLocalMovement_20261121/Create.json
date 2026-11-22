@@ -1,0 +1,29 @@
+{
+  "anim": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/ABP_OWLocalMovement",
+  "preview": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/BP_OWLocalPreview",
+  "map": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/L_OWLocalMovement",
+  "controller_nodes": 13,
+  "world": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/L_OWLocalMovement.L_OWLocalMovement",
+  "actors": [
+    [
+      "Animation lab ground",
+      "StaticMeshActor"
+    ],
+    [
+      "DirectionalLight0",
+      "DirectionalLight"
+    ],
+    [
+      "PointLight0",
+      "PointLight"
+    ],
+    [
+      "PlayerStart0",
+      "PlayerStart"
+    ],
+    [
+      "Local Space Crouch - WASD Move",
+      "BP_OWLocalPreview_C"
+    ]
+  ]
+}

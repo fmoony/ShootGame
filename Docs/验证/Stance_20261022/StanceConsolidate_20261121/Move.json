@@ -1,0 +1,59 @@
+{
+  "success": true,
+  "mapping": {
+    "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Back": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Back",
+    "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Forward": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Forward",
+    "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Left": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Left",
+    "/Game/Experiments/Stance_20261022/FourDirectionRootLockSource_20261117/AS_RootLockSource_Right": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Right",
+    "/Game/Experiments/Stance_20261022/FourDirection_20261117/SK_FourDirection": "/Game/Experiments/Stance_20261022/SK_FourDirection",
+    "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/ABP_OWLocalMovement": "/Game/Experiments/Stance_20261022/ABP_OWLocalMovement",
+    "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/BP_OWLocalGameMode": "/Game/Experiments/Stance_20261022/BP_OWLocalGameMode",
+    "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/BP_OWLocalPreview": "/Game/Experiments/Stance_20261022/BP_OWLocalPreview",
+    "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/L_OWLocalMovement": "/Game/Experiments/Stance_20261022/L_OWLocalMovement"
+  },
+  "saved_all_targets": true,
+  "assets": [
+    {
+      "path": "/Game/Experiments/Stance_20261022/L_OWLocalMovement",
+      "class": "World"
+    },
+    {
+      "path": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Back",
+      "class": "AnimSequence"
+    },
+    {
+      "path": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Forward",
+      "class": "AnimSequence"
+    },
+    {
+      "path": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Left",
+      "class": "AnimSequence"
+    },
+    {
+      "path": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Right",
+      "class": "AnimSequence"
+    },
+    {
+      "path": "/Game/Experiments/Stance_20261022/SK_FourDirection",
+      "class": "Skeleton"
+    },
+    {
+      "path": "/Game/Experiments/Stance_20261022/ABP_OWLocalMovement",
+      "class": "AnimBlueprint"
+    },
+    {
+      "path": "/Game/Experiments/Stance_20261022/BP_OWLocalGameMode",
+      "class": "Blueprint"
+    },
+    {
+      "path": "/Game/Experiments/Stance_20261022/BP_OWLocalPreview",
+      "class": "Blueprint"
+    },
+    {
+      "path": "/Game/Experiments/Stance_20261022/OWLocalMovement_20261121/L_OWLocalMovement",
+      "class": "ObjectRedirector"
+    }
+  ],
+  "dirty_content": [],
+  "dirty_maps": []
+}
