@@ -1,0 +1,14 @@
+{
+  "count": 1,
+  "windows": [
+    {
+      "pid": 37244,
+      "title": "ShootGame - Unreal Editor",
+      "visible": true,
+      "minimized": false
+    }
+  ],
+  "open_asset": "/Game/Experiments/Stance_20261022/SourceBaked/AS_SourceBaked_CrouchIdle",
+  "asset_check": "官方 MCP GetOpenAssets",
+  "checked_at": "2026-11-15T20:23:55.1426895+08:00"
+}

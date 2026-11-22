@@ -1,0 +1,9 @@
+{
+  "files": {
+    "Source/ShootGameEditor/Tests/Stance/ShooterStancePreview.cpp": "3b6e9e5266246212128b78590abd3477198f1b9d98ac31957eab33d5ce272f0e",
+    "Scripts/Animation/Stance/analyze_view.py": "ab8a28b6cd0917f5c893120b569a1f0446a79d896a372d4fb79af3c42fc49d18",
+    "Scripts/Animation/Stance/analyze_pitch.py": "9b13e8577c29458f5a63f2ce3bb392f7ed6b6c214512e7fe284406d1e4dd905c",
+    "Scripts/Animation/Stance/export_production_pitch.py": "5a5d6e76b62477b65008ca45340ddf2074ab09f0263492797dcf99c77c4c7868",
+    "Saved/StancePitch_20261115/Unclamped.csv": "705f96c04c9205ff4a23c3741c5a3ba00c5b52fe742ce14ad4be143c5a500a85"
+  }
+}

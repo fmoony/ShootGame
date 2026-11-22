@@ -1,0 +1,117 @@
+[
+  {
+    "source": "CrouchIdle",
+    "removed_parent_yaw_deg": 37.769599914550795,
+    "original_travel_angle_deg": 48.73313016852617,
+    "current_travel_angle_deg": 10.963530253975373,
+    "expected_direction_deg": null,
+    "current_direction_error_deg": null,
+    "full_source_error_deg": null,
+    "body_facing": {
+      "pelvis": {
+        "original_full_yaw_deg": 40.64953605069992,
+        "current_normalized_yaw_deg": 2.8799361361491203
+      },
+      "spine_05": {
+        "original_full_yaw_deg": 27.92226104817104,
+        "current_normalized_yaw_deg": -9.847338866379772
+      },
+      "head": {
+        "original_full_yaw_deg": 7.692855116133499,
+        "current_normalized_yaw_deg": -30.0767447984173
+      }
+    }
+  },
+  {
+    "source": "CrouchLeft",
+    "removed_parent_yaw_deg": 36.90689849853516,
+    "original_travel_angle_deg": -89.99998806441059,
+    "current_travel_angle_deg": -126.90688656294576,
+    "expected_direction_deg": -90,
+    "current_direction_error_deg": -36.90688656294577,
+    "full_source_error_deg": 1.1935589412814807e-05,
+    "body_facing": {
+      "pelvis": {
+        "original_full_yaw_deg": 39.449306520632085,
+        "current_normalized_yaw_deg": 2.5424080220969243
+      },
+      "spine_05": {
+        "original_full_yaw_deg": 51.51350875456684,
+        "current_normalized_yaw_deg": 14.606610256031669
+      },
+      "head": {
+        "original_full_yaw_deg": 12.885645755906161,
+        "current_normalized_yaw_deg": -24.02125274262901
+      }
+    }
+  },
+  {
+    "source": "CrouchRight",
+    "removed_parent_yaw_deg": 42.16787338256835,
+    "original_travel_angle_deg": 90.00001543323125,
+    "current_travel_angle_deg": 47.83214205066289,
+    "expected_direction_deg": 90,
+    "current_direction_error_deg": -42.167857949337105,
+    "full_source_error_deg": 1.5433231254746715e-05,
+    "body_facing": {
+      "pelvis": {
+        "original_full_yaw_deg": 42.11331707508068,
+        "current_normalized_yaw_deg": -0.05455630748767032
+      },
+      "spine_05": {
+        "original_full_yaw_deg": 20.957995415083964,
+        "current_normalized_yaw_deg": -21.20987796748439
+      },
+      "head": {
+        "original_full_yaw_deg": 22.96486845593529,
+        "current_normalized_yaw_deg": -19.203004926633074
+      }
+    }
+  },
+  {
+    "source": "CrouchBack",
+    "removed_parent_yaw_deg": 26.30105400085448,
+    "original_travel_angle_deg": -179.9997887766336,
+    "current_travel_angle_deg": 153.69915722251193,
+    "expected_direction_deg": 180,
+    "current_direction_error_deg": -26.30084277748807,
+    "full_source_error_deg": 0.00021122336636381078,
+    "body_facing": {
+      "pelvis": {
+        "original_full_yaw_deg": 26.274424470740755,
+        "current_normalized_yaw_deg": -0.026629530113722443
+      },
+      "spine_05": {
+        "original_full_yaw_deg": 36.21706828238165,
+        "current_normalized_yaw_deg": 9.91601428152717
+      },
+      "head": {
+        "original_full_yaw_deg": 29.930704528559353,
+        "current_normalized_yaw_deg": 3.6296505277048774
+      }
+    }
+  },
+  {
+    "source": "CrouchForwardLeft",
+    "removed_parent_yaw_deg": -4.054141998291016,
+    "original_travel_angle_deg": -44.99987779325183,
+    "current_travel_angle_deg": -40.94573579496081,
+    "expected_direction_deg": -45,
+    "current_direction_error_deg": 4.054264205039203,
+    "full_source_error_deg": 0.00012220674818763655,
+    "body_facing": {
+      "pelvis": {
+        "original_full_yaw_deg": -4.395630345666301,
+        "current_normalized_yaw_deg": -0.34148834737528516
+      },
+      "spine_05": {
+        "original_full_yaw_deg": 22.578460980411194,
+        "current_normalized_yaw_deg": 26.63260297870222
+      },
+      "head": {
+        "original_full_yaw_deg": 8.515921945783905,
+        "current_normalized_yaw_deg": 12.570063944074924
+      }
+    }
+  }
+]

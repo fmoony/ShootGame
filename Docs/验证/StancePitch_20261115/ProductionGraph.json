@@ -1,0 +1,165 @@
+{
+  "aim_offset": {
+    "source": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_RotationOffsetBlendSpace_0",
+    "properties": {
+      "Node": {
+        "basePose": {
+          "linkId": -1,
+          "sourceLinkId": -1
+        },
+        "bApplyAdditiveInRootSpace": false,
+        "lODThreshold": -1,
+        "alpha": 1,
+        "alphaScaleBias": {
+          "scale": 1,
+          "bias": 0
+        },
+        "alphaBoolBlend": {
+          "blendInTime": 0,
+          "blendOutTime": 0,
+          "blendOption": "Linear",
+          "customCurve": "None"
+        },
+        "alphaCurveName": "None",
+        "alphaScaleBiasClamp": {
+          "bMapRange": false,
+          "bClampResult": false,
+          "bInterpResult": false,
+          "inRange": {
+            "min": 0,
+            "max": 1
+          },
+          "outRange": {
+            "min": 0,
+            "max": 1
+          },
+          "scale": 1,
+          "bias": 0,
+          "clampMin": 0,
+          "clampMax": 1,
+          "interpSpeedIncreasing": 10,
+          "interpSpeedDecreasing": 10
+        },
+        "alphaInputType": "Float",
+        "bAlphaBoolEnabled": false,
+        "groupName": "None",
+        "groupRole": "CanBeLeader",
+        "bOverridePositionWhenJoiningSyncGroupAsLeader": false,
+        "method": "DoNotSync",
+        "bIgnoreForRelevancyTest": false,
+        "x": 0,
+        "y": 0,
+        "playRate": 1,
+        "bLoop": true,
+        "bResetPlayTimeWhenBlendSpaceChanges": true,
+        "startPosition": 0,
+        "blendSpace": "None",
+        "initialUpdateFunction": {
+          "className": "None",
+          "functionName": "None"
+        },
+        "becomeRelevantFunction": {
+          "className": "None",
+          "functionName": "None"
+        },
+        "updateFunction": {
+          "className": "None",
+          "functionName": "None"
+        }
+      }
+    }
+  },
+  "aim_ik": {
+    "source": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_ShooterAimIK_0",
+    "properties": {
+      "Node": {
+        "handBone": {
+          "boneName": "hand_r"
+        },
+        "aimDirectionWorld": {
+          "x": 1,
+          "y": 0,
+          "z": 0
+        },
+        "aimTargetWorld": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "bUseAimTargetWorld": false,
+        "handToMuzzle": {
+          "location": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "rotation": {
+            "pitch": 0,
+            "yaw": 0,
+            "roll": 0
+          },
+          "scale": {
+            "x": 1,
+            "y": 1,
+            "z": 1
+          }
+        },
+        "maxCorrectionAngle": 0,
+        "minimumTargetDistanceFromMuzzle": 50,
+        "componentPose": {
+          "linkId": -1,
+          "sourceLinkId": -1
+        },
+        "lODThreshold": -1,
+        "alphaInputType": "Float",
+        "bAlphaBoolEnabled": true,
+        "alpha": 1,
+        "alphaScaleBias": {
+          "scale": 1,
+          "bias": 0
+        },
+        "alphaBoolBlend": {
+          "blendInTime": 0,
+          "blendOutTime": 0,
+          "blendOption": "Linear",
+          "customCurve": "None"
+        },
+        "alphaCurveName": "None",
+        "alphaScaleBiasClamp": {
+          "bMapRange": false,
+          "bClampResult": false,
+          "bInterpResult": false,
+          "inRange": {
+            "min": 0,
+            "max": 1
+          },
+          "outRange": {
+            "min": 0,
+            "max": 1
+          },
+          "scale": 1,
+          "bias": 0,
+          "clampMin": 0,
+          "clampMax": 1,
+          "interpSpeedIncreasing": 10,
+          "interpSpeedDecreasing": 10
+        },
+        "initialUpdateFunction": {
+          "className": "None",
+          "functionName": "None"
+        },
+        "becomeRelevantFunction": {
+          "className": "None",
+          "functionName": "None"
+        },
+        "updateFunction": {
+          "className": "None",
+          "functionName": "None"
+        }
+      }
+    }
+  },
+  "pie": {
+    "returnValue": false
+  }
+}

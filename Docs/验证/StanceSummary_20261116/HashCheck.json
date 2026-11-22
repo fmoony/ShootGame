@@ -1,0 +1,21 @@
+{
+  "protected": 308,
+  "changed": [],
+  "mirror_assets": [
+    {
+      "path": "Content/Experiments/Stance_20261022/Mirrored/AS_Mirrored_CrouchBackRight.uasset",
+      "unchanged": true,
+      "sha256": "3ca0913867ee712bff2b73cfe4ef98f7a962c2f304769e640652c72850aea891"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/Mirrored/AS_Mirrored_CrouchForwardLeft.uasset",
+      "unchanged": true,
+      "sha256": "78d1eb7bfc048718aa0fc3f39eb2d3003fff5d194f0acb3c9907c9bd5f0a2bab"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/SourceLayer/BS_SourceLayer_Lower.uasset",
+      "unchanged": false,
+      "sha256": "ed7f3948c39abc9f1f865abbf2bff2d0229c6ab1086ed969b7870d17c7498235"
+    }
+  ]
+}

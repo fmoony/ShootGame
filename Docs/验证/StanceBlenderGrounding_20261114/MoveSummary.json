@@ -1,0 +1,103 @@
+{
+  "scope": "Move",
+  "MoveCapture": {
+    "frames": 1059,
+    "cases": [
+      {
+        "case": 0,
+        "frames": 108,
+        "duration_s": 3.9334000000000002,
+        "maximum_fp_pose_delta_cm_or_rad": 1e-07,
+        "maximum_grip_error_cm": 0.0,
+        "maximum_walking_idle_weight": 0.0,
+        "maximum_tp_shoulder_step_deg": 14.50089,
+        "settled_direction_error": 0.0,
+        "unwanted_forward_drift_cm": 0.0
+      },
+      {
+        "case": 1,
+        "frames": 119,
+        "duration_s": 3.9765000000000006,
+        "maximum_fp_pose_delta_cm_or_rad": 1e-07,
+        "maximum_grip_error_cm": 0.0,
+        "maximum_walking_idle_weight": 0.0,
+        "maximum_tp_shoulder_step_deg": 18.1165,
+        "settled_direction_error": 0.0,
+        "unwanted_forward_drift_cm": 0.0
+      },
+      {
+        "case": 2,
+        "frames": 118,
+        "duration_s": 3.940200000000001,
+        "maximum_fp_pose_delta_cm_or_rad": 1e-07,
+        "maximum_grip_error_cm": 0.0,
+        "maximum_walking_idle_weight": 0.0,
+        "maximum_tp_shoulder_step_deg": 21.19891,
+        "settled_direction_error": 0.0,
+        "unwanted_forward_drift_cm": 0.0
+      },
+      {
+        "case": 3,
+        "frames": 119,
+        "duration_s": 3.975200000000001,
+        "maximum_fp_pose_delta_cm_or_rad": 1e-07,
+        "maximum_grip_error_cm": 0.0,
+        "maximum_walking_idle_weight": 0.0,
+        "maximum_tp_shoulder_step_deg": 22.88123,
+        "settled_direction_error": 0.0,
+        "unwanted_forward_drift_cm": 0.0
+      },
+      {
+        "case": 4,
+        "frames": 119,
+        "duration_s": 3.9754000000000005,
+        "maximum_fp_pose_delta_cm_or_rad": 1e-07,
+        "maximum_grip_error_cm": 0.0,
+        "maximum_walking_idle_weight": 0.0,
+        "maximum_tp_shoulder_step_deg": 17.57207,
+        "settled_direction_error": 0.0
+      },
+      {
+        "case": 5,
+        "frames": 119,
+        "duration_s": 3.9764000000000017,
+        "maximum_fp_pose_delta_cm_or_rad": 1e-07,
+        "maximum_grip_error_cm": 0.0,
+        "maximum_walking_idle_weight": 0.0,
+        "maximum_tp_shoulder_step_deg": 5.90966,
+        "settled_direction_error": 0.0
+      },
+      {
+        "case": 6,
+        "frames": 118,
+        "duration_s": 3.9464000000000006,
+        "maximum_fp_pose_delta_cm_or_rad": 1e-07,
+        "maximum_grip_error_cm": 0.0,
+        "maximum_walking_idle_weight": 0.0,
+        "maximum_tp_shoulder_step_deg": 18.14725
+      },
+      {
+        "case": 7,
+        "frames": 119,
+        "duration_s": 3.971899999999998,
+        "maximum_fp_pose_delta_cm_or_rad": 1e-07,
+        "maximum_grip_error_cm": 0.0,
+        "maximum_walking_idle_weight": 0.0,
+        "maximum_tp_shoulder_step_deg": 19.68979
+      },
+      {
+        "case": 8,
+        "frames": 119,
+        "duration_s": 3.973400000000005,
+        "maximum_fp_pose_delta_cm_or_rad": 1e-07,
+        "maximum_grip_error_cm": 0.0,
+        "maximum_walking_idle_weight": 0.0,
+        "maximum_tp_shoulder_step_deg": 21.80775
+      }
+    ]
+  },
+  "fp_comparison_tolerance_cm_or_rad": 1e-06,
+  "status": "Passed",
+  "errors": [],
+  "boundary": "仅验证脚本输入与骨骼采样；不替代人工键鼠与生产网络验收。持枪切换包含预期肩臂变化。"
+}

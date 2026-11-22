@@ -1,0 +1,127 @@
+{
+  "status": "Passed",
+  "measurement": "actual Actor XY reconstructed from final Body world/component pelvis; mesh yaw=-90 and actor yaw=0 in fixed capture",
+  "max_velocity_error_cm_s": 0.053549169756022356,
+  "cases": [
+    {
+      "case": 0,
+      "asset": "CrouchIdle",
+      "frames": 413,
+      "max_velocity_error_cm_s": 0,
+      "expected_actor_velocity_cm_s": [
+        0,
+        0
+      ]
+    },
+    {
+      "case": 1,
+      "asset": "CrouchIdle",
+      "frames": 414,
+      "max_velocity_error_cm_s": 0,
+      "expected_actor_velocity_cm_s": [
+        0,
+        0
+      ]
+    },
+    {
+      "case": 4,
+      "asset": "CrouchForwardRight",
+      "frames": 131,
+      "max_velocity_error_cm_s": 0.00832944558345932,
+      "expected_actor_velocity_cm_s": [
+        145.46884918212888,
+        145.46884918212888
+      ]
+    },
+    {
+      "case": 6,
+      "asset": "CrouchRight",
+      "frames": 131,
+      "max_velocity_error_cm_s": 0.0048970024043548535,
+      "expected_actor_velocity_cm_s": [
+        0,
+        121.2624740600586
+      ]
+    },
+    {
+      "case": 10,
+      "asset": "CrouchBack",
+      "frames": 131,
+      "max_velocity_error_cm_s": 0.008334400837412659,
+      "expected_actor_velocity_cm_s": [
+        -205.7237548828125,
+        0
+      ]
+    },
+    {
+      "case": 14,
+      "asset": "CrouchLeft",
+      "frames": 131,
+      "max_velocity_error_cm_s": 0.005600962618018457,
+      "expected_actor_velocity_cm_s": [
+        0,
+        -137.34097290039062
+      ]
+    },
+    {
+      "case": 16,
+      "asset": "CrouchForwardLeft",
+      "frames": 131,
+      "max_velocity_error_cm_s": 0.008329877765188886,
+      "expected_actor_velocity_cm_s": [
+        145.46884918212888,
+        -145.46884918212888
+      ]
+    },
+    {
+      "case": 20,
+      "asset": "CrouchForwardRight",
+      "frames": 131,
+      "max_velocity_error_cm_s": 0.05350147913779322,
+      "expected_actor_velocity_cm_s": [
+        145.46884918212888,
+        145.46884918212888
+      ]
+    },
+    {
+      "case": 22,
+      "asset": "CrouchRight",
+      "frames": 131,
+      "max_velocity_error_cm_s": 0.03159408886634196,
+      "expected_actor_velocity_cm_s": [
+        0,
+        121.2624740600586
+      ]
+    },
+    {
+      "case": 26,
+      "asset": "CrouchBack",
+      "frames": 131,
+      "max_velocity_error_cm_s": 0.053549169756022356,
+      "expected_actor_velocity_cm_s": [
+        -205.7237548828125,
+        0
+      ]
+    },
+    {
+      "case": 30,
+      "asset": "CrouchLeft",
+      "frames": 131,
+      "max_velocity_error_cm_s": 0.03577230286996761,
+      "expected_actor_velocity_cm_s": [
+        0,
+        -137.34097290039062
+      ]
+    },
+    {
+      "case": 32,
+      "asset": "CrouchForwardLeft",
+      "frames": 131,
+      "max_velocity_error_cm_s": 0.05350147913779322,
+      "expected_actor_velocity_cm_s": [
+        145.46884918212888,
+        -145.46884918212888
+      ]
+    }
+  ]
+}

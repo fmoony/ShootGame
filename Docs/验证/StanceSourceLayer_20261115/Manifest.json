@@ -1,0 +1,367 @@
+{
+  "status": "Passed",
+  "scope": "实验默认下半身来源替换；接地和自然度未通过",
+  "protected_existing_files": 142,
+  "files": [
+    {
+      "path": "Content/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchBack.uasset",
+      "bytes": 175596,
+      "sha256": "0a15810a6db611b0ee2e0917ae8d9daebb7914131a4559846c6a76ee2d2192df"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchForwardLeft.uasset",
+      "bytes": 175638,
+      "sha256": "a9e843974112877aef40453eb668acdbe24f587d982040abef57e1e7e2d18527"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchForwardRight.uasset",
+      "bytes": 175644,
+      "sha256": "1f381e73d3d5ae928e4f4f6d52114030e458e635f604d606f0da4755ec53d451"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchIdle.uasset",
+      "bytes": 922160,
+      "sha256": "6d27d96fb7fa66ae812c3d998b6944746742cc4a0e91aecd20525d3666b880a2"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchLeft.uasset",
+      "bytes": 260972,
+      "sha256": "a6c1097321e6dfed2914b6206162464df3165fa30c1cec055cae7441c53e4b6e"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchRight.uasset",
+      "bytes": 254066,
+      "sha256": "dc1e388019a8d4f8be1839c3e322bf16c95f942f93f99e5f3b62f14ce4fabe81"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/SourceLayer/BS_SourceLayer_Lower.uasset",
+      "bytes": 11235,
+      "sha256": "0e69b6379a9d3d27555735c705fbb68035c94604880a568d2e550677fce355eb"
+    },
+    {
+      "path": "Docs/开发记录/2026-11-15-2100-新来源下半身替换实验分层.md",
+      "bytes": 3846,
+      "sha256": "38d8d93e0e9b2d9a2120c2e06e91e1fa823626549c25b7ce8ac5a8c4485d6104"
+    },
+    {
+      "path": "Docs/滑铲与下蹲动画实验.md",
+      "bytes": 11798,
+      "sha256": "4984a3ef82a31e9a47b43f5b75b63592278274ded891434d49b03b3a48e9f1fe"
+    },
+    {
+      "path": "Docs/验证/StanceSourceLayer_20261115/After.csv.gz",
+      "bytes": 4601249,
+      "sha256": "0ba752a16dbe59e09d26e3ddcc8f02f41920132c7cd71110d3a959871b98b545"
+    },
+    {
+      "path": "Docs/验证/StanceSourceLayer_20261115/After.log",
+      "bytes": 198996,
+      "sha256": "e07a8586910193051efb86002a6a410d5f903e64f98f6865fe4a89eccecd3aa8"
+    },
+    {
+      "path": "Docs/验证/StanceSourceLayer_20261115/After.summary.json",
+      "bytes": 17584,
+      "sha256": "2e7271579830e3f4e5594bf53b9236f93c836fe0f9fb534cbc0b389ba206a2dc"
+    },
+    {
+      "path": "Docs/验证/StanceSourceLayer_20261115/AfterView.csv.gz",
+      "bytes": 6913529,
+      "sha256": "187fb532bd0115a1b65f8e0adc37f7c466530691316e8753c1a8a31e18242cb1"
+    },
+    {
+      "path": "Docs/验证/StanceSourceLayer_20261115/AfterView.log",
+      "bytes": 199887,
+      "sha256": "0dbd92f39be3a050106007f8995989bf7c1be59ba12e4974ea07edf31995690a"
+    },
+    {
+      "path": "Docs/验证/StanceSourceLayer_20261115/AfterView.summary.json",
+      "bytes": 124666,
+      "sha256": "dbf463d6d3b3cf85757b640fd1fbb7f5d4ae7ec22e803c7ac6f9427b6a83ae67"
+    },
+    {
+      "path": "Docs/验证/StanceSourceLayer_20261115/BakeSummary.json",
+      "bytes": 1163,
+      "sha256": "6c3830159e8bf78ff485f41c1a6ded9df0856cfd1566d4e2a72f9faee8944b34"
+    },
+    {
+      "path": "Docs/验证/StanceSourceLayer_20261115/BakeV3.log",
+      "bytes": 3417,
+      "sha256": "83fc39361c425683c984aee5868830ee6c70858ca917b0ef2de4be7792960ebd"
+    },
+    {
+      "path": "Docs/验证/StanceSourceLayer_20261115/Before.csv.gz",
+      "bytes": 4299065,
+      "sha256": "4b75a5a7b52522947a2420223cda2fc82ae2dc014b236ee2f5e7fa8a9fb9ad88"
+    },
+    {
+      "path": "Docs/验证/StanceSourceLayer_20261115/Before.log",
+      "bytes": 197631,
+      "sha256": "fa7f4435a2d0ffba49953aa671013cbd2292ab9c06956fcb38d702688feae21b"
+    },
+    {
+      "path": "Docs/验证/StanceSourceLayer_20261115/Before.summary.json",
+      "bytes": 17662,
+      "sha256": "12bdcc045bb550dbd8c9af4cf1d4ea32e0dc90600e12b5c5c327287635e5411f"
+    },
+    {
+      "path": "Docs/验证/StanceSourceLayer_20261115/BeforeView.csv.gz",
+      "bytes": 4190599,
+      "sha256": "1aa7fb20b97f074e6001f7252520235063ef2e0bc49d4439a6dc7d88034e2acd"
+    },
+    {
+      "path": "Docs/验证/StanceSourceLayer_20261115/BlendSpace.log",
+      "bytes": 229514,
+      "sha256": "6e9f97345412318c23162ed8f22470dd5fff84fb3537fa58a34799ad3ffedaed"
+    },
+    {
+      "path": "Docs/验证/StanceSourceLayer_20261115/BuildDelivery.log",
+      "bytes": 5261,
+      "sha256": "30736ea7abb47dae416e28d963ef9a6e31a82016a96610b00490225422453bd1"
+    },
+    {
+      "path": "Docs/验证/StanceSourceLayer_20261115/Checks.json",
+      "bytes": 4925,
+      "sha256": "a8268ac56a8f1e606c8b05ecc47e9b9fcb3361571a96a580b729b21bfc0dc0f3"
+    },
+    {
+      "path": "Docs/验证/StanceSourceLayer_20261115/FailedScale.Probe.json",
+      "bytes": 2059,
+      "sha256": "bd603d4ae8233e8a671c06be7fe18e604d7b01a918b9f8f8ca50bf6b3843d8de"
+    },
+    {
+      "path": "Docs/验证/StanceSourceLayer_20261115/FailedScale.Probe.log",
+      "bytes": 239726,
+      "sha256": "0fb634035abf3e3ebb9bc38e7feffb83da542cf264bedf4e53af3e57dfb20955"
+    },
+    {
+      "path": "Docs/验证/StanceSourceLayer_20261115/FixtureChangeAudit.json",
+      "bytes": 1065,
+      "sha256": "4109294178ca80247044b1666f804d86ebfa4a511e9eaf3def0eb39ee5d0e557"
+    },
+    {
+      "path": "Docs/验证/StanceSourceLayer_20261115/Import.json",
+      "bytes": 8669,
+      "sha256": "e0bfc38d694b4dcdb709304b1283d71b393da21d8f8da31c68ada13ec1965b0e"
+    },
+    {
+      "path": "Docs/验证/StanceSourceLayer_20261115/Import.log",
+      "bytes": 283850,
+      "sha256": "b9bcee24d9089bf358b3e020827fbfab616d327f4235d683463d7c245e20cef1"
+    },
+    {
+      "path": "Docs/验证/StanceSourceLayer_20261115/LayerRuntime.json",
+      "bytes": 653,
+      "sha256": "ca9c71a5ad0a07eefec8f67d8352521664c896612f3e7c9962a1410d45cbc1d8"
+    },
+    {
+      "path": "Docs/验证/StanceSourceLayer_20261115/LayerRuntime.log",
+      "bytes": 683,
+      "sha256": "4aa3651b50425e233da4c1f9333fe91776cc081d1064333573b20753d6dc9912"
+    },
+    {
+      "path": "Docs/验证/StanceSourceLayer_20261115/MovementMatch.json",
+      "bytes": 3042,
+      "sha256": "f4e0dc2e9a787a15dbecb9754acd9bffffaffd3990538e17b2f0ed2218ee1bcc"
+    },
+    {
+      "path": "Docs/验证/StanceSourceLayer_20261115/Probe.json",
+      "bytes": 1543,
+      "sha256": "86b234a03fd7b769bbc8b249aab2b5556e49a64c0148c62986aaa08d29a14217"
+    },
+    {
+      "path": "Docs/验证/StanceSourceLayer_20261115/Probe.log",
+      "bytes": 237864,
+      "sha256": "8b7e0334ca0326e86ff8efc5911b6743b852eb585e2b329aca618023fe1d5f70"
+    },
+    {
+      "path": "Docs/验证/StanceSourceLayer_20261115/Protection.json",
+      "bytes": 38016,
+      "sha256": "5e1da44aaa2f45b12abf70d61d5a082c3fb0ec1c9a880224fe1fe927099331c8"
+    },
+    {
+      "path": "Docs/验证/StanceSourceLayer_20261115/PythonChecks.log",
+      "bytes": 390,
+      "sha256": "da9a81c74442747ac1903f928bd63d545cd1be01607ff673320aa508b29bb92e"
+    },
+    {
+      "path": "Docs/验证/StanceSourceLayer_20261115/README.md",
+      "bytes": 9118,
+      "sha256": "f97debaf8c95e13a4a9877d3fa160ac2807bbbece65a29db2fc25015eaa6dc87"
+    },
+    {
+      "path": "Docs/验证/StanceSourceLayer_20261115/RawBones.csv.gz",
+      "bytes": 2063753,
+      "sha256": "8d3e475075a146259d0292bccea23ae219f184a54d656660373ee631938485d5"
+    },
+    {
+      "path": "Docs/验证/StanceSourceLayer_20261115/Review.png",
+      "bytes": 459900,
+      "sha256": "61dbec50b1f18583012f1fb7ac7d71a941a012f7f7cf57398ffe8b9d784ad8ab"
+    },
+    {
+      "path": "Docs/验证/StanceSourceLayer_20261115/ReviewWindow.json",
+      "bytes": 525,
+      "sha256": "78e0769e39eee395093444d3b24e61fd95fa2533daed1b62b498a313a4c5b8b1"
+    },
+    {
+      "path": "Docs/验证/StanceSourceLayer_20261115/RuntimeInput.json",
+      "bytes": 705,
+      "sha256": "f5233338a759507b0410b2f7ca223b0fb69103e6b90bc71841115a0cd0187ad1"
+    },
+    {
+      "path": "Docs/验证/StanceSourceLayer_20261115/RuntimeInput.log",
+      "bytes": 229594,
+      "sha256": "970a6f52c66292d4745dd9d11b569850c54a892c6c0c1cb3662ad56ab5b17ff0"
+    },
+    {
+      "path": "Docs/验证/StanceSourceLayer_20261115/UnmatchedSpeed.csv.gz",
+      "bytes": 4557646,
+      "sha256": "170c9cc0b9ce42ddf0ecf74983476e8b2b5ae65fe7b7a18f5a9e4738baac91f2"
+    },
+    {
+      "path": "Docs/验证/StanceSourceLayer_20261115/UnmatchedSpeed.summary.json",
+      "bytes": 17600,
+      "sha256": "397906519987455a393434a882b11634d8f9ea5fc14e99e2aadc94f251832bd5"
+    },
+    {
+      "path": "Docs/验证/StanceSourceLayer_20261115/Verify.json",
+      "bytes": 3195,
+      "sha256": "e05dcc102051b11472472c52db3a1f218ebff140b181e06dae8ef9551d923bb4"
+    },
+    {
+      "path": "Docs/验证/StanceSourceLayer_20261115/Verify.log",
+      "bytes": 229574,
+      "sha256": "c55666294391411def9a46f26770d7761f8d8b7f9f998d6f499ffca0b8925563"
+    },
+    {
+      "path": "Docs/验证/StanceSourceLayer_20261115/ViewAnalysis.log",
+      "bytes": 1213,
+      "sha256": "17b04a472161c163652c59a8238f19d39311f7072eff0963d364c92476284714"
+    },
+    {
+      "path": "Scripts/Animation/Stance/Run.ps1",
+      "bytes": 7625,
+      "sha256": "d512c6173b683c9d3542d04ffe2205b00b6fd76ac4b1a7e2886d01a45b2347df"
+    },
+    {
+      "path": "Scripts/Animation/Stance/analyze_layer_runtime.py",
+      "bytes": 4964,
+      "sha256": "520d38ebdd758dff9b421e1f397f2be88718c99ab9d546d6111cfa5797be60a6"
+    },
+    {
+      "path": "Scripts/Animation/Stance/analyze_view.py",
+      "bytes": 9837,
+      "sha256": "49bddc025e900bcf709877590b32517abe141bc692b7679a1598a7be18c250de"
+    },
+    {
+      "path": "Scripts/Animation/Stance/bake_layer_source.py",
+      "bytes": 6995,
+      "sha256": "e9c49cb7811ad225df6a5ece5e4ebff771198e0e0e141cf05f22402bd56f909f"
+    },
+    {
+      "path": "Scripts/Animation/Stance/import_layer_source.py",
+      "bytes": 6682,
+      "sha256": "d71764c5f3e991e680d0126fee3d5af86fe159320592396ae3a8a9eb8f8a3cef"
+    },
+    {
+      "path": "Scripts/Animation/Stance/verify_layer_runtime.py",
+      "bytes": 3575,
+      "sha256": "1d7a8f53bfd3e9970de27bb2fe32ce9b5e40c047fb83157348c122698a849ecd"
+    },
+    {
+      "path": "Scripts/Animation/Stance/verify_layer_source.py",
+      "bytes": 5801,
+      "sha256": "ef8655526fd02e52a696972be41e437a2adbb48c480c295dde9b79c46a15f668"
+    },
+    {
+      "path": "Source/ShootGameEditor/Tests/Stance/ShooterStancePreview.cpp",
+      "bytes": 78397,
+      "sha256": "d678ae315cd11e9bd769fa4b93ab875f6dd9a2d66a317cf790d61e1cdaf3b095"
+    },
+    {
+      "path": "Source/ShootGameEditor/Tests/Stance/ShooterStancePreview.h",
+      "bytes": 4389,
+      "sha256": "de1b17a2869dd8021dfe8c35b7998cbfe22b214f4aa004d33be240c6c584966b"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/LayerPlayback/BakeSummary.json",
+      "bytes": 1163,
+      "sha256": "6c3830159e8bf78ff485f41c1a6ded9df0856cfd1566d4e2a72f9faee8944b34"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/LayerPlayback/CrouchBack.blend",
+      "bytes": 5575178,
+      "sha256": "e4597cb66f2cb743a8421b134c313096ef8f31841494f343edf8a991d8fe4d7f"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/LayerPlayback/CrouchBack.fbx",
+      "bytes": 773420,
+      "sha256": "ff6d481d71a5e4979877f8846b2607f35507ed937af317ee7e229d40cf4dddbc"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/LayerPlayback/CrouchForwardLeft.blend",
+      "bytes": 5575178,
+      "sha256": "9bd1c1d6fa20a9557559c96bee132777a08d911ce71f9bac44029137030d2abc"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/LayerPlayback/CrouchForwardLeft.fbx",
+      "bytes": 773420,
+      "sha256": "e00aacdb06bac40fefaa333483608a242fec463a9aea4dd686f8d67d743b0553"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/LayerPlayback/CrouchForwardRight.blend",
+      "bytes": 5575178,
+      "sha256": "162d3d2062bf2b42946e15efa919535c4bf0a4caf7ac8256ab348683ac4c5aa1"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/LayerPlayback/CrouchForwardRight.fbx",
+      "bytes": 773420,
+      "sha256": "83f1033d5fa36d4f22f7ecb548d79898a818954364d17804a20eaea64fb731d1"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/LayerPlayback/CrouchIdle.blend",
+      "bytes": 32523986,
+      "sha256": "c23a405006110c22764d597f3359ecf37b42483974a48b4cd167b36cb66484e2"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/LayerPlayback/CrouchIdle.fbx",
+      "bytes": 1703276,
+      "sha256": "fdca06a68a32c531c7323e9a23e54e5fd5e4929d958da03c7dc6625ada3d5d38"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/LayerPlayback/CrouchLeft.blend",
+      "bytes": 7110434,
+      "sha256": "c91c24739868caff2ac0bc80e6358a45a6a0c623a9309dd31b1ba8ecf44179a6"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/LayerPlayback/CrouchLeft.fbx",
+      "bytes": 790364,
+      "sha256": "2f1b01dfcfd573ea0724d7cc3f694211d6490311953f868883922ff803ef4136"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/LayerPlayback/CrouchRight.blend",
+      "bytes": 6952826,
+      "sha256": "7a26d6fb368a4e95e5f5c6a0232537aaada385d42cb2bf7ac865af6b7d800034"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/LayerPlayback/CrouchRight.fbx",
+      "bytes": 783356,
+      "sha256": "c02b57867c0d7d4007154816e1958165da300957ecad60884ec1274e690e6ada"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/LayerPlayback/Expected.json",
+      "bytes": 5808993,
+      "sha256": "bd0ea71f9121377b23c6ff3934a0db86c1a5960e80134f72d740832627dac2b3"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/LayerPlayback/README.md",
+      "bytes": 2578,
+      "sha256": "1864092b3c069321725a1c33b28d7a6219880863cb9f975b1db71332d27f528f"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/README.md",
+      "bytes": 3880,
+      "sha256": "402f27b02deaae8a5f6b66833853c5c59bde3f37d0ec33b1bbf7e82cdb0b8673"
+    }
+  ]
+}

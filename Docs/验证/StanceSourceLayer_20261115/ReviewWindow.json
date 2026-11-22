@@ -1,0 +1,17 @@
+{
+  "count": 1,
+  "windows": [
+    {
+      "pid": 36484,
+      "path": "E:\\UnrealEngine\\UE_5.8_Source\\Engine\\Binaries\\Win64\\UnrealEditor.exe",
+      "title": "ShootGame - Unreal Editor",
+      "visible": true,
+      "minimized": false
+    }
+  ],
+  "map": "/Game/Experiments/Stance_20261022/L_StancePreview",
+  "pie_running": true,
+  "pie_check": "官方 MCP IsPIERunning=true",
+  "content_browser": "/Game/Experiments/Stance_20261022/SourceLayer",
+  "checked_at": "2026-11-15T21:10:54.9721182+08:00"
+}

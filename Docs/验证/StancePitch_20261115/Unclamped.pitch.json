@@ -1,0 +1,1273 @@
+{
+  "source": "D:\\UE_Projects\\_worktrees\\ShootGame_UE58\\Saved\\StancePitch_20261115\\Unclamped.csv",
+  "sample_frames": 2160,
+  "maximum_pitch_error_deg": 3.879079315538547e-06,
+  "minimum_measured_pitch_deg": -89.99999949018185,
+  "maximum_measured_pitch_deg": 89.99999949018185,
+  "profiles": [
+    {
+      "case": 0,
+      "ready": "Aim",
+      "pitch": -90.0,
+      "deltas": {
+        "spine_01": {
+          "local_angle_deg": 10.800000798967888,
+          "component_angle_deg": 10.800000798967753
+        },
+        "spine_02": {
+          "local_angle_deg": 14.399999286731159,
+          "component_angle_deg": 25.200000085698896
+        },
+        "spine_03": {
+          "local_angle_deg": 17.999999150434626,
+          "component_angle_deg": 43.19999923613381
+        },
+        "spine_04": {
+          "local_angle_deg": 21.600001167211804,
+          "component_angle_deg": 64.80000040334559
+        },
+        "spine_05": {
+          "local_angle_deg": 25.200000317313727,
+          "component_angle_deg": 90.00000072065933
+        },
+        "neck_01": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 89.9999997339345
+        },
+        "neck_02": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 89.99999965802962
+        },
+        "head": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 89.99999959881546
+        },
+        "clavicle_l": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 89.99999934251369
+        },
+        "clavicle_r": {
+          "local_angle_deg": 2.4148365394514667e-06,
+          "component_angle_deg": 90.00000035602419
+        },
+        "upperarm_l": {
+          "local_angle_deg": 13.707222548905891,
+          "component_angle_deg": 77.84789649320514
+        },
+        "upperarm_r": {
+          "local_angle_deg": 2.4148365394514667e-06,
+          "component_angle_deg": 90.00000015909315
+        },
+        "lowerarm_l": {
+          "local_angle_deg": 19.455146775470958,
+          "component_angle_deg": 90.33947280115729
+        },
+        "lowerarm_r": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 89.99999981468137
+        },
+        "hand_l": {
+          "local_angle_deg": 13.970106035614394,
+          "component_angle_deg": 89.99999977890245
+        },
+        "hand_r": {
+          "local_angle_deg": 1.7075472925031877e-06,
+          "component_angle_deg": 90.00000025370376
+        }
+      }
+    },
+    {
+      "case": 1,
+      "ready": "Aim",
+      "pitch": -85.0,
+      "deltas": {
+        "spine_01": {
+          "local_angle_deg": 10.199999914064762,
+          "component_angle_deg": 10.199999914064618
+        },
+        "spine_02": {
+          "local_angle_deg": 13.599999291000007,
+          "component_angle_deg": 23.799999205064516
+        },
+        "spine_03": {
+          "local_angle_deg": 16.99999870014845,
+          "component_angle_deg": 40.79999790521317
+        },
+        "spine_04": {
+          "local_angle_deg": 20.40000015445231,
+          "component_angle_deg": 61.19999805966558
+        },
+        "spine_05": {
+          "local_angle_deg": 23.79999909692939,
+          "component_angle_deg": 84.99999715659492
+        },
+        "neck_01": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 84.99999698623886
+        },
+        "neck_02": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 84.9999962064531
+        },
+        "head": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 84.99999578776159
+        },
+        "clavicle_l": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 84.99999659896345
+        },
+        "clavicle_r": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 84.99999703158254
+        },
+        "upperarm_l": {
+          "local_angle_deg": 12.849933828404726,
+          "component_angle_deg": 73.6590317495662
+        },
+        "upperarm_r": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 84.99999628362654
+        },
+        "lowerarm_l": {
+          "local_angle_deg": 18.227212143098036,
+          "component_angle_deg": 85.28539619280957
+        },
+        "lowerarm_r": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 84.9999963331735
+        },
+        "hand_l": {
+          "local_angle_deg": 13.096228565201018,
+          "component_angle_deg": 84.99999685976178
+        },
+        "hand_r": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 84.9999974996231
+        }
+      }
+    },
+    {
+      "case": 2,
+      "ready": "Aim",
+      "pitch": -30.0,
+      "deltas": {
+        "spine_01": {
+          "local_angle_deg": 3.600000482422706,
+          "component_angle_deg": 3.600000482422301
+        },
+        "spine_02": {
+          "local_angle_deg": 4.799999134318238,
+          "component_angle_deg": 8.39999961674068
+        },
+        "spine_03": {
+          "local_angle_deg": 5.999999753659792,
+          "component_angle_deg": 14.399999370400558
+        },
+        "spine_04": {
+          "local_angle_deg": 7.199999923460253,
+          "component_angle_deg": 21.59999929386101
+        },
+        "spine_05": {
+          "local_angle_deg": 8.399999951201007,
+          "component_angle_deg": 29.99999924506225
+        },
+        "neck_01": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 29.999999318126605
+        },
+        "neck_02": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 29.99999824898126
+        },
+        "head": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 29.99999835111955
+        },
+        "clavicle_l": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 29.999999227168747
+        },
+        "clavicle_r": {
+          "local_angle_deg": 2.4148365394514667e-06,
+          "component_angle_deg": 29.999999777759527
+        },
+        "upperarm_l": {
+          "local_angle_deg": 3.7429520958450406,
+          "component_angle_deg": 26.8527331184898
+        },
+        "upperarm_r": {
+          "local_angle_deg": 2.4148365394514667e-06,
+          "component_angle_deg": 29.999998635903765
+        },
+        "lowerarm_l": {
+          "local_angle_deg": 5.290689980494464,
+          "component_angle_deg": 29.92548485807137
+        },
+        "lowerarm_r": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 29.99999851921027
+        },
+        "hand_l": {
+          "local_angle_deg": 3.814409492988446,
+          "component_angle_deg": 29.999999283499395
+        },
+        "hand_r": {
+          "local_angle_deg": 2.4148365394514667e-06,
+          "component_angle_deg": 29.999998805703154
+        }
+      }
+    },
+    {
+      "case": 3,
+      "ready": "Aim",
+      "pitch": 0.0,
+      "deltas": {
+        "spine_01": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0
+        },
+        "spine_02": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0
+        },
+        "spine_03": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0
+        },
+        "spine_04": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0
+        },
+        "spine_05": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0
+        },
+        "neck_01": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0
+        },
+        "neck_02": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0
+        },
+        "head": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0
+        },
+        "clavicle_l": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0
+        },
+        "clavicle_r": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0
+        },
+        "upperarm_l": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0
+        },
+        "upperarm_r": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0
+        },
+        "lowerarm_l": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0
+        },
+        "lowerarm_r": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0
+        },
+        "hand_l": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0
+        },
+        "hand_r": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0
+        }
+      }
+    },
+    {
+      "case": 4,
+      "ready": "Aim",
+      "pitch": 30.0,
+      "deltas": {
+        "spine_01": {
+          "local_angle_deg": 3.5999992907445115,
+          "component_angle_deg": 3.599999290744917
+        },
+        "spine_02": {
+          "local_angle_deg": 4.799999403988648,
+          "component_angle_deg": 8.399998694733279
+        },
+        "spine_03": {
+          "local_angle_deg": 6.0000006956356335,
+          "component_angle_deg": 14.399999390368945
+        },
+        "spine_04": {
+          "local_angle_deg": 7.199998932089432,
+          "component_angle_deg": 21.599998322458344
+        },
+        "spine_05": {
+          "local_angle_deg": 8.400000317897064,
+          "component_angle_deg": 29.99999864035552
+        },
+        "neck_01": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 29.999998540937515
+        },
+        "neck_02": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 29.999999289351045
+        },
+        "head": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 29.99999896248707
+        },
+        "clavicle_l": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 29.999998461129945
+        },
+        "clavicle_r": {
+          "local_angle_deg": 2.4148365394514667e-06,
+          "component_angle_deg": 29.999998355685204
+        },
+        "upperarm_l": {
+          "local_angle_deg": 2.1058902742269177,
+          "component_angle_deg": 28.27201988639074
+        },
+        "upperarm_r": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 29.999998689957614
+        },
+        "lowerarm_l": {
+          "local_angle_deg": 2.9784839565456065,
+          "component_angle_deg": 29.843674380539486
+        },
+        "lowerarm_r": {
+          "local_angle_deg": 2.4148365394514667e-06,
+          "component_angle_deg": 29.999998723668867
+        },
+        "hand_l": {
+          "local_angle_deg": 2.146083992691006,
+          "component_angle_deg": 29.999999123782857
+        },
+        "hand_r": {
+          "local_angle_deg": 1.7075472925031877e-06,
+          "component_angle_deg": 29.99999879037125
+        }
+      }
+    },
+    {
+      "case": 5,
+      "ready": "Aim",
+      "pitch": 85.0,
+      "deltas": {
+        "spine_01": {
+          "local_angle_deg": 10.199999664007745,
+          "component_angle_deg": 10.199999664007887
+        },
+        "spine_02": {
+          "local_angle_deg": 13.599998211342117,
+          "component_angle_deg": 23.79999787535013
+        },
+        "spine_03": {
+          "local_angle_deg": 17.0000003416639,
+          "component_angle_deg": 40.79999821701414
+        },
+        "spine_04": {
+          "local_angle_deg": 20.39999943723422,
+          "component_angle_deg": 61.19999765424844
+        },
+        "spine_05": {
+          "local_angle_deg": 23.799998672435247,
+          "component_angle_deg": 84.99999632668369
+        },
+        "neck_01": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 84.99999609298052
+        },
+        "neck_02": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 84.99999714338101
+        },
+        "head": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 84.99999736657695
+        },
+        "clavicle_l": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 84.99999666968564
+        },
+        "clavicle_r": {
+          "local_angle_deg": 2.4148365394514667e-06,
+          "component_angle_deg": 84.99999606126724
+        },
+        "upperarm_l": {
+          "local_angle_deg": 1.003706194540108,
+          "component_angle_deg": 85.85086908295939
+        },
+        "upperarm_r": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 84.99999657770793
+        },
+        "lowerarm_l": {
+          "local_angle_deg": 1.418754404821311,
+          "component_angle_deg": 85.10090048549351
+        },
+        "lowerarm_r": {
+          "local_angle_deg": 2.4148365394514667e-06,
+          "component_angle_deg": 84.99999710984272
+        },
+        "hand_l": {
+          "local_angle_deg": 1.02286253573346,
+          "component_angle_deg": 84.99999730028235
+        },
+        "hand_r": {
+          "local_angle_deg": 2.4148365394514667e-06,
+          "component_angle_deg": 84.99999669341094
+        }
+      }
+    },
+    {
+      "case": 6,
+      "ready": "Aim",
+      "pitch": 90.0,
+      "deltas": {
+        "spine_01": {
+          "local_angle_deg": 10.800000318778757,
+          "component_angle_deg": 10.800000318778892
+        },
+        "spine_02": {
+          "local_angle_deg": 14.399998344116243,
+          "component_angle_deg": 25.19999866289503
+        },
+        "spine_03": {
+          "local_angle_deg": 18.000000787878385,
+          "component_angle_deg": 43.19999945077343
+        },
+        "spine_04": {
+          "local_angle_deg": 21.600000036548632,
+          "component_angle_deg": 64.79999948732208
+        },
+        "spine_05": {
+          "local_angle_deg": 25.199999792018648,
+          "component_angle_deg": 89.99999927934067
+        },
+        "neck_01": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 90.00000026606551
+        },
+        "neck_02": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 90.00000034197036
+        },
+        "head": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 90.00000040118452
+        },
+        "clavicle_l": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 90.0000006574863
+        },
+        "clavicle_r": {
+          "local_angle_deg": 2.4148365394514667e-06,
+          "component_angle_deg": 89.99999964397578
+        },
+        "upperarm_l": {
+          "local_angle_deg": 1.885457854318973,
+          "component_angle_deg": 91.60764741254428
+        },
+        "upperarm_r": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 89.99999984090684
+        },
+        "lowerarm_l": {
+          "local_angle_deg": 2.664977716255264,
+          "component_angle_deg": 90.18869860896484
+        },
+        "lowerarm_r": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 90.00000018531861
+        },
+        "hand_l": {
+          "local_angle_deg": 1.9214439119273767,
+          "component_angle_deg": 89.9999996022115
+        },
+        "hand_r": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 89.99999974629624
+        }
+      }
+    },
+    {
+      "case": 7,
+      "ready": "LowReady",
+      "pitch": -90.0,
+      "deltas": {
+        "spine_01": {
+          "local_angle_deg": 10.800000169501782,
+          "component_angle_deg": 10.800000169501917
+        },
+        "spine_02": {
+          "local_angle_deg": 14.399999436233934,
+          "component_angle_deg": 25.199999605735798
+        },
+        "spine_03": {
+          "local_angle_deg": 18.00000023940751,
+          "component_angle_deg": 43.199999845143374
+        },
+        "spine_04": {
+          "local_angle_deg": 21.60000025757455,
+          "component_angle_deg": 64.80000010271786
+        },
+        "spine_05": {
+          "local_angle_deg": 25.20000029813113,
+          "component_angle_deg": 90.00000040084896
+        },
+        "neck_01": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 90.00000048443735
+        },
+        "neck_02": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 89.99999999669217
+        },
+        "head": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 90.00000037269585
+        },
+        "clavicle_l": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 90.00000051743383
+        },
+        "clavicle_r": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 89.99999918973616
+        },
+        "upperarm_l": {
+          "local_angle_deg": 15.263182630934304,
+          "component_angle_deg": 82.54028048785086
+        },
+        "upperarm_r": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 89.99999983295534
+        },
+        "lowerarm_l": {
+          "local_angle_deg": 20.52074732236867,
+          "component_angle_deg": 99.73312179741886
+        },
+        "lowerarm_r": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 90.00000017820655
+        },
+        "hand_l": {
+          "local_angle_deg": 15.556252737230338,
+          "component_angle_deg": 89.99999906269632
+        },
+        "hand_r": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 89.99999984097101
+        }
+      }
+    },
+    {
+      "case": 8,
+      "ready": "LowReady",
+      "pitch": -85.0,
+      "deltas": {
+        "spine_01": {
+          "local_angle_deg": 10.199999309186612,
+          "component_angle_deg": 10.199999309186612
+        },
+        "spine_02": {
+          "local_angle_deg": 13.599999823162591,
+          "component_angle_deg": 23.799999132349377
+        },
+        "spine_03": {
+          "local_angle_deg": 16.999999753229805,
+          "component_angle_deg": 40.79999888557921
+        },
+        "spine_04": {
+          "local_angle_deg": 20.399998940658662,
+          "component_angle_deg": 61.19999782623789
+        },
+        "spine_05": {
+          "local_angle_deg": 23.799999363620376,
+          "component_angle_deg": 84.99999718985826
+        },
+        "neck_01": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 84.99999668324756
+        },
+        "neck_02": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 84.99999624524273
+        },
+        "head": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 84.99999719788448
+        },
+        "clavicle_l": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 84.99999668710775
+        },
+        "clavicle_r": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 84.99999620795744
+        },
+        "upperarm_l": {
+          "local_angle_deg": 14.477392414992403,
+          "component_angle_deg": 78.01222746968804
+        },
+        "upperarm_r": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 84.9999976073978
+        },
+        "lowerarm_l": {
+          "local_angle_deg": 19.44604924917915,
+          "component_angle_deg": 94.20051700819795
+        },
+        "lowerarm_r": {
+          "local_angle_deg": 2.4148365394514667e-06,
+          "component_angle_deg": 84.99999615007228
+        },
+        "hand_l": {
+          "local_angle_deg": 14.755204623991133,
+          "component_angle_deg": 84.99999636901356
+        },
+        "hand_r": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 84.99999621357607
+        }
+      }
+    },
+    {
+      "case": 9,
+      "ready": "LowReady",
+      "pitch": -30.0,
+      "deltas": {
+        "spine_01": {
+          "local_angle_deg": 3.5999990711446697,
+          "component_angle_deg": 3.5999990711450742
+        },
+        "spine_02": {
+          "local_angle_deg": 4.8000007315984945,
+          "component_angle_deg": 8.399999802743267
+        },
+        "spine_03": {
+          "local_angle_deg": 6.000000561739628,
+          "component_angle_deg": 14.400000364482878
+        },
+        "spine_04": {
+          "local_angle_deg": 7.1999984721574934,
+          "component_angle_deg": 21.59999883664078
+        },
+        "spine_05": {
+          "local_angle_deg": 8.399999664752778,
+          "component_angle_deg": 29.99999850139359
+        },
+        "neck_01": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 29.99999938802902
+        },
+        "neck_02": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 29.999999300965115
+        },
+        "head": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 29.999999330877678
+        },
+        "clavicle_l": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 29.999998381750167
+        },
+        "clavicle_r": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 29.99999787304404
+        },
+        "upperarm_l": {
+          "local_angle_deg": 4.254722059669529,
+          "component_angle_deg": 28.18435259333992
+        },
+        "upperarm_r": {
+          "local_angle_deg": 1.7075472925031877e-06,
+          "component_angle_deg": 29.999999125828683
+        },
+        "lowerarm_l": {
+          "local_angle_deg": 5.666324707069581,
+          "component_angle_deg": 32.50213035902087
+        },
+        "lowerarm_r": {
+          "local_angle_deg": 2.4148365394514667e-06,
+          "component_angle_deg": 29.999999309049564
+        },
+        "hand_l": {
+          "local_angle_deg": 4.335959425919272,
+          "component_angle_deg": 29.99999770156109
+        },
+        "hand_r": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 29.9999989360411
+        }
+      }
+    },
+    {
+      "case": 10,
+      "ready": "LowReady",
+      "pitch": 0.0,
+      "deltas": {
+        "spine_01": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0
+        },
+        "spine_02": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0
+        },
+        "spine_03": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0
+        },
+        "spine_04": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0
+        },
+        "spine_05": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0
+        },
+        "neck_01": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0
+        },
+        "neck_02": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0
+        },
+        "head": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0
+        },
+        "clavicle_l": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0
+        },
+        "clavicle_r": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0
+        },
+        "upperarm_l": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0
+        },
+        "upperarm_r": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0
+        },
+        "lowerarm_l": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0
+        },
+        "lowerarm_r": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0
+        },
+        "hand_l": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0
+        },
+        "hand_r": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0
+        }
+      }
+    },
+    {
+      "case": 11,
+      "ready": "LowReady",
+      "pitch": 30.0,
+      "deltas": {
+        "spine_01": {
+          "local_angle_deg": 3.5999999847137034,
+          "component_angle_deg": 3.5999999847137034
+        },
+        "spine_02": {
+          "local_angle_deg": 4.799998754601324,
+          "component_angle_deg": 8.399998739314956
+        },
+        "spine_03": {
+          "local_angle_deg": 6.000000074489646,
+          "component_angle_deg": 14.399998813804974
+        },
+        "spine_04": {
+          "local_angle_deg": 7.199999712420262,
+          "component_angle_deg": 21.599998526225146
+        },
+        "spine_05": {
+          "local_angle_deg": 8.399999041083063,
+          "component_angle_deg": 29.999997567308437
+        },
+        "neck_01": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 29.999997954787965
+        },
+        "neck_02": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 29.99999873916745
+        },
+        "head": {
+          "local_angle_deg": 2.4148365394514667e-06,
+          "component_angle_deg": 29.999998673924864
+        },
+        "clavicle_l": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 29.99999848416962
+        },
+        "clavicle_r": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 29.99999938322777
+        },
+        "upperarm_l": {
+          "local_angle_deg": 2.2580214913427543,
+          "component_angle_deg": 29.055880632697583
+        },
+        "upperarm_r": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 29.999997967975386
+        },
+        "lowerarm_l": {
+          "local_angle_deg": 3.001272986598094,
+          "component_angle_deg": 31.20383199763726
+        },
+        "lowerarm_r": {
+          "local_angle_deg": 2.4148365394514667e-06,
+          "component_angle_deg": 29.999998249446612
+        },
+        "hand_l": {
+          "local_angle_deg": 2.301119349104729,
+          "component_angle_deg": 29.999999571371756
+        },
+        "hand_r": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 29.999998342366588
+        }
+      }
+    },
+    {
+      "case": 12,
+      "ready": "LowReady",
+      "pitch": 85.0,
+      "deltas": {
+        "spine_01": {
+          "local_angle_deg": 10.199999793843386,
+          "component_angle_deg": 10.199999793843528
+        },
+        "spine_02": {
+          "local_angle_deg": 13.599998907512083,
+          "component_angle_deg": 23.799998701355495
+        },
+        "spine_03": {
+          "local_angle_deg": 16.9999993482311,
+          "component_angle_deg": 40.799998049586534
+        },
+        "spine_04": {
+          "local_angle_deg": 20.399999128409757,
+          "component_angle_deg": 61.199997177996266
+        },
+        "spine_05": {
+          "local_angle_deg": 23.799998942924315,
+          "component_angle_deg": 84.99999612092068
+        },
+        "neck_01": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 84.99999592833917
+        },
+        "neck_02": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 84.9999967178458
+        },
+        "head": {
+          "local_angle_deg": 2.4148365394514667e-06,
+          "component_angle_deg": 84.99999676531509
+        },
+        "clavicle_l": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 84.99999699461986
+        },
+        "clavicle_r": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 84.99999618625938
+        },
+        "upperarm_l": {
+          "local_angle_deg": 1.0813031885676203,
+          "component_angle_deg": 84.51256853906773
+        },
+        "upperarm_r": {
+          "local_angle_deg": 2.4148365394514667e-06,
+          "component_angle_deg": 84.9999965247244
+        },
+        "lowerarm_l": {
+          "local_angle_deg": 1.4374476864072083,
+          "component_angle_deg": 85.55768857432358
+        },
+        "lowerarm_r": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 84.99999699068741
+        },
+        "hand_l": {
+          "local_angle_deg": 1.1019369124406813,
+          "component_angle_deg": 84.9999973291624
+        },
+        "hand_r": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 84.99999717486502
+        }
+      }
+    },
+    {
+      "case": 13,
+      "ready": "LowReady",
+      "pitch": 90.0,
+      "deltas": {
+        "spine_01": {
+          "local_angle_deg": 10.800000798334809,
+          "component_angle_deg": 10.800000798334809
+        },
+        "spine_02": {
+          "local_angle_deg": 14.39999749926251,
+          "component_angle_deg": 25.19999829759733
+        },
+        "spine_03": {
+          "local_angle_deg": 18.000000832992946,
+          "component_angle_deg": 43.19999913059029
+        },
+        "spine_04": {
+          "local_angle_deg": 21.600000711066993,
+          "component_angle_deg": 64.79999984165721
+        },
+        "spine_05": {
+          "local_angle_deg": 25.19999975749374,
+          "component_angle_deg": 89.99999959915101
+        },
+        "neck_01": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 89.99999951556268
+        },
+        "neck_02": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 90.00000000330779
+        },
+        "head": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 89.99999962730412
+        },
+        "clavicle_l": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 89.99999948256614
+        },
+        "clavicle_r": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 90.00000014006483
+        },
+        "upperarm_l": {
+          "local_angle_deg": 0.6400833635652824,
+          "component_angle_deg": 89.70872260980278
+        },
+        "upperarm_r": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 89.99999913749933
+        },
+        "lowerarm_l": {
+          "local_angle_deg": 0.8509745873437738,
+          "component_angle_deg": 90.33048655946355
+        },
+        "lowerarm_r": {
+          "local_angle_deg": 2.4148365394514667e-06,
+          "component_angle_deg": 89.99999982179351
+        },
+        "hand_l": {
+          "local_angle_deg": 0.6522984474234783,
+          "component_angle_deg": 90.00000093730368
+        },
+        "hand_r": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 90.00000015902896
+        }
+      }
+    }
+  ],
+  "errors": [],
+  "production_reference": {
+    "source": "D:\\UE_Projects\\_worktrees\\ShootGame_UE58\\Saved\\StancePitch_20261115\\ProductionAO.json",
+    "aim_offset": "/Game/Characters/Mannequins/Anims/Rifle/AIM/AO_Rifle.AO_Rifle",
+    "deltas": {
+      "Down": {
+        "pelvis": {
+          "local_angle_deg": 15.368932986865362,
+          "component_angle_deg": 15.368932986865362,
+          "mesh_forward_pitch_delta_deg": -15.368932986794524
+        },
+        "spine_01": {
+          "local_angle_deg": 4.882997376486755,
+          "component_angle_deg": 11.852340836900416,
+          "mesh_forward_pitch_delta_deg": -11.482428625389417
+        },
+        "spine_02": {
+          "local_angle_deg": 7.809817518873768,
+          "component_angle_deg": 19.49701944064979,
+          "mesh_forward_pitch_delta_deg": -19.1022530771537
+        },
+        "spine_03": {
+          "local_angle_deg": 7.811981069486933,
+          "component_angle_deg": 27.274484812723742,
+          "mesh_forward_pitch_delta_deg": -26.686677941100328
+        },
+        "spine_04": {
+          "local_angle_deg": 7.817307617352701,
+          "component_angle_deg": 35.08822344034567,
+          "mesh_forward_pitch_delta_deg": -34.21001119954982
+        },
+        "spine_05": {
+          "local_angle_deg": 7.833142523624368,
+          "component_angle_deg": 42.91659864743293,
+          "mesh_forward_pitch_delta_deg": -41.653591556029475
+        },
+        "neck_01": {
+          "local_angle_deg": 12.385763706973481,
+          "component_angle_deg": 54.83072019718146,
+          "mesh_forward_pitch_delta_deg": -52.917906831778815
+        },
+        "neck_02": {
+          "local_angle_deg": 2.7213855196481482,
+          "component_angle_deg": 54.0311376915743,
+          "mesh_forward_pitch_delta_deg": -52.92439430678829
+        },
+        "head": {
+          "local_angle_deg": 3.037912793652071,
+          "component_angle_deg": 53.00762961351419,
+          "mesh_forward_pitch_delta_deg": -52.27209918191349
+        },
+        "clavicle_l": {
+          "local_angle_deg": 6.310998696625175e-05,
+          "component_angle_deg": 42.91664038796789,
+          "mesh_forward_pitch_delta_deg": -41.65361606065104
+        },
+        "clavicle_r": {
+          "local_angle_deg": 6.402733139156957e-05,
+          "component_angle_deg": 42.91660627668808,
+          "mesh_forward_pitch_delta_deg": -41.653580287130275
+        },
+        "upperarm_l": {
+          "local_angle_deg": 67.28377586019812,
+          "component_angle_deg": 104.49379728229817,
+          "mesh_forward_pitch_delta_deg": -82.2813070160532
+        },
+        "upperarm_r": {
+          "local_angle_deg": 37.24148831502174,
+          "component_angle_deg": 78.39521446957272,
+          "mesh_forward_pitch_delta_deg": -78.28307872103711
+        },
+        "lowerarm_l": {
+          "local_angle_deg": 51.87184572245755,
+          "component_angle_deg": 114.07665776885277,
+          "mesh_forward_pitch_delta_deg": -66.12163667792561
+        },
+        "lowerarm_r": {
+          "local_angle_deg": 0.05961417899609228,
+          "component_angle_deg": 78.44764051993413,
+          "mesh_forward_pitch_delta_deg": -78.33250292617281
+        },
+        "hand_l": {
+          "local_angle_deg": 23.009143524503326,
+          "component_angle_deg": 94.44154320900323,
+          "mesh_forward_pitch_delta_deg": -77.5341670744898
+        },
+        "hand_r": {
+          "local_angle_deg": 10.109113069604348,
+          "component_angle_deg": 87.23775472189953,
+          "mesh_forward_pitch_delta_deg": -86.49880416018871
+        }
+      },
+      "Center": {
+        "pelvis": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0,
+          "mesh_forward_pitch_delta_deg": 0.0
+        },
+        "spine_01": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0,
+          "mesh_forward_pitch_delta_deg": 0.0
+        },
+        "spine_02": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0,
+          "mesh_forward_pitch_delta_deg": 0.0
+        },
+        "spine_03": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0,
+          "mesh_forward_pitch_delta_deg": 0.0
+        },
+        "spine_04": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0,
+          "mesh_forward_pitch_delta_deg": 0.0
+        },
+        "spine_05": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0,
+          "mesh_forward_pitch_delta_deg": 0.0
+        },
+        "neck_01": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0,
+          "mesh_forward_pitch_delta_deg": 0.0
+        },
+        "neck_02": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0,
+          "mesh_forward_pitch_delta_deg": 0.0
+        },
+        "head": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0,
+          "mesh_forward_pitch_delta_deg": 0.0
+        },
+        "clavicle_l": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0,
+          "mesh_forward_pitch_delta_deg": 0.0
+        },
+        "clavicle_r": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0,
+          "mesh_forward_pitch_delta_deg": 0.0
+        },
+        "upperarm_l": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0,
+          "mesh_forward_pitch_delta_deg": 0.0
+        },
+        "upperarm_r": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0,
+          "mesh_forward_pitch_delta_deg": 0.0
+        },
+        "lowerarm_l": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0,
+          "mesh_forward_pitch_delta_deg": 0.0
+        },
+        "lowerarm_r": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0,
+          "mesh_forward_pitch_delta_deg": 0.0
+        },
+        "hand_l": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0,
+          "mesh_forward_pitch_delta_deg": 0.0
+        },
+        "hand_r": {
+          "local_angle_deg": 0.0,
+          "component_angle_deg": 0.0,
+          "mesh_forward_pitch_delta_deg": 0.0
+        }
+      },
+      "Up": {
+        "pelvis": {
+          "local_angle_deg": 3.9040247074105516,
+          "component_angle_deg": 3.9040247074105516,
+          "mesh_forward_pitch_delta_deg": 3.9040247071424794
+        },
+        "spine_01": {
+          "local_angle_deg": 15.534370245209844,
+          "component_angle_deg": 19.09373579236483,
+          "mesh_forward_pitch_delta_deg": 17.70989512970171
+        },
+        "spine_02": {
+          "local_angle_deg": 3.1865525656278173,
+          "component_angle_deg": 17.839717069626143,
+          "mesh_forward_pitch_delta_deg": 17.406932952790807
+        },
+        "spine_03": {
+          "local_angle_deg": 3.1468855618865703,
+          "component_angle_deg": 17.10484632473084,
+          "mesh_forward_pitch_delta_deg": 17.08513117330538
+        },
+        "spine_04": {
+          "local_angle_deg": 3.1133607253958377,
+          "component_angle_deg": 16.93100028155181,
+          "mesh_forward_pitch_delta_deg": 16.740505030981275
+        },
+        "spine_05": {
+          "local_angle_deg": 3.090396026056726,
+          "component_angle_deg": 17.307498487557964,
+          "mesh_forward_pitch_delta_deg": 16.36088233118764
+        },
+        "neck_01": {
+          "local_angle_deg": 30.011397645025763,
+          "component_angle_deg": 46.11715606445989,
+          "mesh_forward_pitch_delta_deg": 46.09398431394758
+        },
+        "neck_02": {
+          "local_angle_deg": 7.287161173484021,
+          "component_angle_deg": 50.40903739220053,
+          "mesh_forward_pitch_delta_deg": 49.593739948066734
+        },
+        "head": {
+          "local_angle_deg": 37.945876429099634,
+          "component_angle_deg": 87.25909693622579,
+          "mesh_forward_pitch_delta_deg": 76.52972455412247
+        },
+        "clavicle_l": {
+          "local_angle_deg": 41.548556908883185,
+          "component_angle_deg": 57.69671335140605,
+          "mesh_forward_pitch_delta_deg": 43.144812882468244
+        },
+        "clavicle_r": {
+          "local_angle_deg": 2.666735848858577,
+          "component_angle_deg": 16.655915701000936,
+          "mesh_forward_pitch_delta_deg": 16.405770126633737
+        },
+        "upperarm_l": {
+          "local_angle_deg": 46.58904293302792,
+          "component_angle_deg": 66.3416524279796,
+          "mesh_forward_pitch_delta_deg": 59.23228734889428
+        },
+        "upperarm_r": {
+          "local_angle_deg": 51.19842322679883,
+          "component_angle_deg": 67.61807404225493,
+          "mesh_forward_pitch_delta_deg": 67.46484665189251
+        },
+        "lowerarm_l": {
+          "local_angle_deg": 36.80733908666624,
+          "component_angle_deg": 93.75076453899607,
+          "mesh_forward_pitch_delta_deg": 84.8374940069913
+        },
+        "lowerarm_r": {
+          "local_angle_deg": 1.8984415054751587,
+          "component_angle_deg": 65.89920513828358,
+          "mesh_forward_pitch_delta_deg": 65.80091486502039
+        },
+        "hand_l": {
+          "local_angle_deg": 26.948476742579842,
+          "component_angle_deg": 90.85695346327343,
+          "mesh_forward_pitch_delta_deg": 87.68537200478512
+        },
+        "hand_r": {
+          "local_angle_deg": 25.41314245189751,
+          "component_angle_deg": 90.85692899983458,
+          "mesh_forward_pitch_delta_deg": 87.68539815983063
+        }
+      }
+    },
+    "boundary": "原生压缩资源端点求值；不是完整生产 AnimBP 或联机运行"
+  },
+  "status": "Passed"
+}

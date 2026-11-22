@@ -1,0 +1,838 @@
+{
+  "status": "Passed",
+  "clips": [
+    {
+      "name": "CrouchIdle_Aim",
+      "keys": 202,
+      "duration_s": 6.699999809265137,
+      "lowest_contact_cm": 0.19997990142119448,
+      "support_plane_error_cm": 5.352814896680824e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.0005400438741703984
+    },
+    {
+      "name": "CrouchIdle_LowReady",
+      "keys": 202,
+      "duration_s": 6.699999809265137,
+      "lowest_contact_cm": 0.19997990142119448,
+      "support_plane_error_cm": 5.352814896680824e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00036682284290272184
+    },
+    {
+      "name": "DuckWalk_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19989032802012296,
+      "support_plane_error_cm": 0.00010967197987704624,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.0001553492049158125
+    },
+    {
+      "name": "DuckWalk_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19989032802012296,
+      "support_plane_error_cm": 0.00010967197987704624,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.0001553492049158125
+    },
+    {
+      "name": "DuckDirection_01_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19990472433975803,
+      "support_plane_error_cm": 9.527566024197798e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.0001716818261029591
+    },
+    {
+      "name": "DuckDirection_01_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19990472433975803,
+      "support_plane_error_cm": 9.527566024197798e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.0001716818261029591
+    },
+    {
+      "name": "DuckDirection_02_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19982133458337437,
+      "support_plane_error_cm": 0.00017866541662564517,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00015705054316398053
+    },
+    {
+      "name": "DuckDirection_02_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19982133458337437,
+      "support_plane_error_cm": 0.00017866541662564517,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00014818693828707376
+    },
+    {
+      "name": "DuckDirection_03_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.1999335208368489,
+      "support_plane_error_cm": 6.647916315111191e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00025796280176342375
+    },
+    {
+      "name": "DuckDirection_03_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.1999335208368489,
+      "support_plane_error_cm": 6.647916315111191e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00023632224608783115
+    },
+    {
+      "name": "DuckForwardRight_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.1999310005313255,
+      "support_plane_error_cm": 6.899946867450213e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.0005877422366414333
+    },
+    {
+      "name": "DuckForwardRight_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.1999310005313255,
+      "support_plane_error_cm": 6.899946867450213e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.0003745666041487938
+    },
+    {
+      "name": "DuckDirection_05_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19992998074673451,
+      "support_plane_error_cm": 7.00192532654964e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00020805503876430864
+    },
+    {
+      "name": "DuckDirection_05_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19992998074673451,
+      "support_plane_error_cm": 7.00192532654964e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00020805503876430864
+    },
+    {
+      "name": "DuckDirection_06_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.1998892304951898,
+      "support_plane_error_cm": 0.0001107695048102042,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.0003121177886276314
+    },
+    {
+      "name": "DuckDirection_06_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.1998892304951898,
+      "support_plane_error_cm": 0.0001107695048102042,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.0003121177886276314
+    },
+    {
+      "name": "DuckDirection_07_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19989599438005357,
+      "support_plane_error_cm": 0.00010400561994644564,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00024502759109536665
+    },
+    {
+      "name": "DuckDirection_07_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19989599438005357,
+      "support_plane_error_cm": 0.00010400561994644564,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00024502759109536665
+    },
+    {
+      "name": "DuckDirection_09_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19993480509460326,
+      "support_plane_error_cm": 6.519490539674822e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.0002927916507091853
+    },
+    {
+      "name": "DuckDirection_09_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19993480509460326,
+      "support_plane_error_cm": 6.519490539674822e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.0002927916507091853
+    },
+    {
+      "name": "DuckDirection_10_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19991634807485426,
+      "support_plane_error_cm": 8.36519251457557e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00021129875150371688
+    },
+    {
+      "name": "DuckDirection_10_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19991634807485426,
+      "support_plane_error_cm": 8.36519251457557e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00013507807711762648
+    },
+    {
+      "name": "DuckDirection_11_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19995072785264512,
+      "support_plane_error_cm": 8.463350599646757e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.0001897382785241638
+    },
+    {
+      "name": "DuckDirection_11_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19995072785264512,
+      "support_plane_error_cm": 8.463350599646757e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00018776515202304246
+    },
+    {
+      "name": "DuckBackRight_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19993874759493657,
+      "support_plane_error_cm": 6.125240506343888e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00026549113090951166
+    },
+    {
+      "name": "DuckBackRight_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19993874759493657,
+      "support_plane_error_cm": 6.125240506343888e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00038600084710755517
+    },
+    {
+      "name": "DuckDirection_13_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19992017782072757,
+      "support_plane_error_cm": 7.98221792724374e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00017775985097433014
+    },
+    {
+      "name": "DuckDirection_13_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19992017782072757,
+      "support_plane_error_cm": 7.98221792724374e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.0001906434522976967
+    },
+    {
+      "name": "DuckDirection_14_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19991236369584975,
+      "support_plane_error_cm": 9.854685034155208e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00019588477412132077
+    },
+    {
+      "name": "DuckDirection_14_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19991236369584975,
+      "support_plane_error_cm": 9.854685034155208e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00019588477412132077
+    },
+    {
+      "name": "DuckDirection_15_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19992053189744396,
+      "support_plane_error_cm": 7.94681025560462e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00018646621766304494
+    },
+    {
+      "name": "DuckDirection_15_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19992053189744396,
+      "support_plane_error_cm": 7.94681025560462e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00016563968022190577
+    },
+    {
+      "name": "DuckBack_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19995518209062269,
+      "support_plane_error_cm": 6.367933507717138e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.0002304085764311173
+    },
+    {
+      "name": "DuckBack_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19995518209062269,
+      "support_plane_error_cm": 6.367933507717138e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.0001828314720372893
+    },
+    {
+      "name": "DuckDirection_17_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.1999306669746268,
+      "support_plane_error_cm": 6.933302537320829e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00021321402200836866
+    },
+    {
+      "name": "DuckDirection_17_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.1999306669746268,
+      "support_plane_error_cm": 6.933302537320829e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00014603642523838237
+    },
+    {
+      "name": "DuckDirection_18_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19992016159786274,
+      "support_plane_error_cm": 7.983840213726667e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00020949449282967113
+    },
+    {
+      "name": "DuckDirection_18_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19992016159786274,
+      "support_plane_error_cm": 7.983840213726667e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00015790473983350888
+    },
+    {
+      "name": "DuckDirection_19_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19994254767505915,
+      "support_plane_error_cm": 7.42179197025794e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00016460892018281653
+    },
+    {
+      "name": "DuckDirection_19_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19994254767505915,
+      "support_plane_error_cm": 7.42179197025794e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00016529246508565018
+    },
+    {
+      "name": "DuckBackLeft_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.1999650986504875,
+      "support_plane_error_cm": 6.978034667176614e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.0005877422366414333
+    },
+    {
+      "name": "DuckBackLeft_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.1999650986504875,
+      "support_plane_error_cm": 6.978034667176614e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.0003745666041487938
+    },
+    {
+      "name": "DuckDirection_21_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19996494811269017,
+      "support_plane_error_cm": 4.584997584727857e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.0002604580544020003
+    },
+    {
+      "name": "DuckDirection_21_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19996494811269017,
+      "support_plane_error_cm": 4.584997584727857e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.0003761408181743174
+    },
+    {
+      "name": "DuckDirection_22_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19987882923585687,
+      "support_plane_error_cm": 0.00012117076414314143,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.0013594352368249372
+    },
+    {
+      "name": "DuckDirection_22_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19987882923585687,
+      "support_plane_error_cm": 0.00012117076414314143,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.0011371467014698428
+    },
+    {
+      "name": "DuckDirection_23_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.199843747596951,
+      "support_plane_error_cm": 0.00015625240304900645,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.0004204768671473674
+    },
+    {
+      "name": "DuckDirection_23_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.199843747596951,
+      "support_plane_error_cm": 0.00015625240304900645,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.0004204768671473674
+    },
+    {
+      "name": "DuckDirection_25_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19989129917684956,
+      "support_plane_error_cm": 0.00010870082315045382,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00019191276215100464
+    },
+    {
+      "name": "DuckDirection_25_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19989129917684956,
+      "support_plane_error_cm": 0.00010870082315045382,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00017588829422681223
+    },
+    {
+      "name": "DuckDirection_26_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.1999518176125079,
+      "support_plane_error_cm": 4.9756081170915234e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00026382252684807356
+    },
+    {
+      "name": "DuckDirection_26_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.1999518176125079,
+      "support_plane_error_cm": 4.9756081170915234e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.0001982133752488471
+    },
+    {
+      "name": "DuckDirection_27_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19993503092148046,
+      "support_plane_error_cm": 6.496907851955003e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00019957516928864784
+    },
+    {
+      "name": "DuckDirection_27_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19993503092148046,
+      "support_plane_error_cm": 6.496907851955003e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00016051942825037735
+    },
+    {
+      "name": "DuckForwardLeft_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19994129834649854,
+      "support_plane_error_cm": 5.87016535014695e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.0002540532839135519
+    },
+    {
+      "name": "DuckForwardLeft_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19994129834649854,
+      "support_plane_error_cm": 5.87016535014695e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.0003654329636768041
+    },
+    {
+      "name": "DuckDirection_29_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19993890988959429,
+      "support_plane_error_cm": 6.109011040572598e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00025345926492295406
+    },
+    {
+      "name": "DuckDirection_29_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19993890988959429,
+      "support_plane_error_cm": 6.109011040572598e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00027826574626505657
+    },
+    {
+      "name": "DuckDirection_30_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19994111801778836,
+      "support_plane_error_cm": 5.888198221165597e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00016181926482962194
+    },
+    {
+      "name": "DuckDirection_30_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19994111801778836,
+      "support_plane_error_cm": 5.888198221165597e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00016181926482962194
+    },
+    {
+      "name": "DuckDirection_31_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19994213350929968,
+      "support_plane_error_cm": 5.786649070033123e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00015795325948875203
+    },
+    {
+      "name": "DuckDirection_31_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19994213350929968,
+      "support_plane_error_cm": 5.786649070033123e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00012706941192793677
+    },
+    {
+      "name": "DuckMid_15_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.1999244558751414,
+      "support_plane_error_cm": 0.00010468308312744368,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.000360307344110017
+    },
+    {
+      "name": "DuckMid_15_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.1999244558751414,
+      "support_plane_error_cm": 0.00010468308312744368,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.000360307344110017
+    },
+    {
+      "name": "DuckMid_17_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19997170799807407,
+      "support_plane_error_cm": 7.630011647313806e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00033646145347213346
+    },
+    {
+      "name": "DuckMid_17_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19997170799807407,
+      "support_plane_error_cm": 7.630011647313806e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00033646145347213346
+    },
+    {
+      "name": "DuckMid_19_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.1999412530360445,
+      "support_plane_error_cm": 5.874696395552492e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.0001944036661647318
+    },
+    {
+      "name": "DuckMid_19_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.1999412530360445,
+      "support_plane_error_cm": 5.874696395552492e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00013730883647160256
+    },
+    {
+      "name": "DuckMid_21_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19984015929801302,
+      "support_plane_error_cm": 0.000140424153729779,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00019392522861606722
+    },
+    {
+      "name": "DuckMid_21_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19984015929801302,
+      "support_plane_error_cm": 0.000140424153729779,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00019392522861606722
+    },
+    {
+      "name": "DuckMid_27_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19992056968513872,
+      "support_plane_error_cm": 7.382120279936233e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00019540659157422078
+    },
+    {
+      "name": "DuckMid_27_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19992056968513872,
+      "support_plane_error_cm": 7.382120279936233e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.0001616151655914514
+    },
+    {
+      "name": "DuckMid_29_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19991140040544408,
+      "support_plane_error_cm": 8.859959455592703e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.0002089419636482442
+    },
+    {
+      "name": "DuckMid_29_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19991140040544408,
+      "support_plane_error_cm": 8.859959455592703e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.0002089419636482442
+    },
+    {
+      "name": "DuckMid_31_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19994797944337073,
+      "support_plane_error_cm": 5.2020556629284176e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00022965214740991343
+    },
+    {
+      "name": "DuckMid_31_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19994797944337073,
+      "support_plane_error_cm": 5.2020556629284176e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00017133664333265043
+    },
+    {
+      "name": "DuckMid_45_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.1998877449907397,
+      "support_plane_error_cm": 0.00011225500926032028,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00044077164949559957
+    },
+    {
+      "name": "DuckMid_45_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.1998877449907397,
+      "support_plane_error_cm": 0.00011225500926032028,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00037088793385655944
+    },
+    {
+      "name": "DuckMid_47_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19985439449545872,
+      "support_plane_error_cm": 0.00014560550454129073,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00040900496953847227
+    },
+    {
+      "name": "DuckMid_47_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19985439449545872,
+      "support_plane_error_cm": 0.00014560550454129073,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00040900496953847227
+    },
+    {
+      "name": "DuckMid_49_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19992257278348013,
+      "support_plane_error_cm": 7.742721651987639e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.0003418466294290423
+    },
+    {
+      "name": "DuckMid_49_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19992257278348013,
+      "support_plane_error_cm": 7.742721651987639e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.0003418466294290423
+    },
+    {
+      "name": "DuckMid_51_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.1999292381878668,
+      "support_plane_error_cm": 7.07618121332243e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00019636725313303742
+    },
+    {
+      "name": "DuckMid_51_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.1999292381878668,
+      "support_plane_error_cm": 7.07618121332243e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00015294622865935485
+    },
+    {
+      "name": "DuckMid_53_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.1999222567314618,
+      "support_plane_error_cm": 7.774326853821067e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00024715306317919756
+    },
+    {
+      "name": "DuckMid_53_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.1999222567314618,
+      "support_plane_error_cm": 7.774326853821067e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00016412278832280701
+    },
+    {
+      "name": "DuckRight_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.1999071683804008,
+      "support_plane_error_cm": 9.28316195992207e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.0003787129105275042
+    },
+    {
+      "name": "DuckRight_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.1999071683804008,
+      "support_plane_error_cm": 9.28316195992207e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.0003787129105275042
+    },
+    {
+      "name": "DuckLeft_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19986136076193262,
+      "support_plane_error_cm": 0.0001386392380673951,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.0003797197392360156
+    },
+    {
+      "name": "DuckLeft_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19986136076193262,
+      "support_plane_error_cm": 0.0001386392380673951,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.0003797197392360156
+    },
+    {
+      "name": "DuckMid_55_Aim",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19995045383806698,
+      "support_plane_error_cm": 6.559348927764885e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00017922035289502118
+    },
+    {
+      "name": "DuckMid_55_LowReady",
+      "keys": 61,
+      "duration_s": 1.0,
+      "lowest_contact_cm": 0.19995045383806698,
+      "support_plane_error_cm": 6.559348927764885e-05,
+      "loop_seam_cm": 0.0,
+      "roundtrip_cm": 0.00017462512555469422
+    }
+  ],
+  "errors": [],
+  "max_roundtrip_position_cm": 0.0013594352368249372,
+  "max_compression_cm": 0,
+  "max_protected_local_position_cm": 4.79845155301697e-05,
+  "max_protected_angle_deg": 0.0006227984690889898
+}

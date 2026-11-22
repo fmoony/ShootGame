@@ -1,0 +1,213 @@
+{
+  "clips": [
+    "AS_DuckWalk_Aim",
+    "AS_DuckWalk_LowReady",
+    "AS_DuckDirection_01_Aim",
+    "AS_DuckDirection_01_LowReady",
+    "AS_DuckDirection_02_Aim",
+    "AS_DuckDirection_02_LowReady",
+    "AS_DuckDirection_03_Aim",
+    "AS_DuckDirection_03_LowReady",
+    "AS_DuckForwardRight_Aim",
+    "AS_DuckForwardRight_LowReady",
+    "AS_DuckDirection_05_Aim",
+    "AS_DuckDirection_05_LowReady",
+    "AS_DuckDirection_06_Aim",
+    "AS_DuckDirection_06_LowReady",
+    "AS_DuckDirection_07_Aim",
+    "AS_DuckDirection_07_LowReady",
+    "AS_DuckDirection_09_Aim",
+    "AS_DuckDirection_09_LowReady",
+    "AS_DuckDirection_10_Aim",
+    "AS_DuckDirection_10_LowReady",
+    "AS_DuckDirection_11_Aim",
+    "AS_DuckDirection_11_LowReady",
+    "AS_DuckBackRight_Aim",
+    "AS_DuckBackRight_LowReady",
+    "AS_DuckDirection_13_Aim",
+    "AS_DuckDirection_13_LowReady",
+    "AS_DuckDirection_14_Aim",
+    "AS_DuckDirection_14_LowReady",
+    "AS_DuckDirection_15_Aim",
+    "AS_DuckDirection_15_LowReady",
+    "AS_DuckBack_Aim",
+    "AS_DuckBack_LowReady",
+    "AS_DuckDirection_17_Aim",
+    "AS_DuckDirection_17_LowReady",
+    "AS_DuckDirection_18_Aim",
+    "AS_DuckDirection_18_LowReady",
+    "AS_DuckDirection_19_Aim",
+    "AS_DuckDirection_19_LowReady",
+    "AS_DuckBackLeft_Aim",
+    "AS_DuckBackLeft_LowReady",
+    "AS_DuckDirection_21_Aim",
+    "AS_DuckDirection_21_LowReady",
+    "AS_DuckDirection_22_Aim",
+    "AS_DuckDirection_22_LowReady",
+    "AS_DuckDirection_23_Aim",
+    "AS_DuckDirection_23_LowReady",
+    "AS_DuckDirection_25_Aim",
+    "AS_DuckDirection_25_LowReady",
+    "AS_DuckDirection_26_Aim",
+    "AS_DuckDirection_26_LowReady",
+    "AS_DuckDirection_27_Aim",
+    "AS_DuckDirection_27_LowReady",
+    "AS_DuckForwardLeft_Aim",
+    "AS_DuckForwardLeft_LowReady",
+    "AS_DuckDirection_29_Aim",
+    "AS_DuckDirection_29_LowReady",
+    "AS_DuckDirection_30_Aim",
+    "AS_DuckDirection_30_LowReady",
+    "AS_DuckDirection_31_Aim",
+    "AS_DuckDirection_31_LowReady",
+    "AS_DuckMid_15_Aim",
+    "AS_DuckMid_15_LowReady",
+    "AS_DuckMid_17_Aim",
+    "AS_DuckMid_17_LowReady",
+    "AS_DuckMid_19_Aim",
+    "AS_DuckMid_19_LowReady",
+    "AS_DuckMid_21_Aim",
+    "AS_DuckMid_21_LowReady",
+    "AS_DuckMid_27_Aim",
+    "AS_DuckMid_27_LowReady",
+    "AS_DuckMid_29_Aim",
+    "AS_DuckMid_29_LowReady",
+    "AS_DuckMid_31_Aim",
+    "AS_DuckMid_31_LowReady",
+    "AS_DuckMid_45_Aim",
+    "AS_DuckMid_45_LowReady",
+    "AS_DuckMid_47_Aim",
+    "AS_DuckMid_47_LowReady",
+    "AS_DuckMid_49_Aim",
+    "AS_DuckMid_49_LowReady",
+    "AS_DuckMid_51_Aim",
+    "AS_DuckMid_51_LowReady",
+    "AS_DuckMid_53_Aim",
+    "AS_DuckMid_53_LowReady",
+    "AS_DuckRight_Aim",
+    "AS_DuckRight_LowReady",
+    "AS_DuckLeft_Aim",
+    "AS_DuckLeft_LowReady"
+  ],
+  "maximum_bridge_position_cm": 0.0001126466603106186,
+  "maximum_bridge_angle_deg": 0.0013179433627610554,
+  "maximum_protected_local_position_cm": 0.00011848995616198316,
+  "maximum_protected_local_angle_deg": 0.00032902092463831754,
+  "maximum_support_height_error_cm": 9.42230224609264e-05,
+  "minimum_reach_margin_cm": 16.535783808852486,
+  "native_contact_phases": {
+    "Fwd": {
+      "l": {
+        "strike": 0.8083333333333333,
+        "off": 1.1166666666666667,
+        "support": 0.30833333333333335,
+        "peak": 17.793173138300578
+      },
+      "r": {
+        "strike": 0.30833333333333335,
+        "off": 0.65,
+        "support": 0.3416666666666667,
+        "peak": 19.349443181355795
+      }
+    },
+    "Fwd_Right": {
+      "l": {
+        "strike": 0.8083333333333333,
+        "off": 1.1166666666666667,
+        "support": 0.30833333333333335,
+        "peak": 17.79353435834249
+      },
+      "r": {
+        "strike": 0.30833333333333335,
+        "off": 0.65,
+        "support": 0.3416666666666667,
+        "peak": 19.348915926615398
+      }
+    },
+    "Right": {
+      "l": {
+        "strike": 0.30833333333333335,
+        "off": 0.675,
+        "support": 0.36666666666666664,
+        "peak": 17.622667471567787
+      },
+      "r": {
+        "strike": 0.825,
+        "off": 1.1333333333333333,
+        "support": 0.30833333333333335,
+        "peak": 18.0678040822347
+      }
+    },
+    "Bwd_Right": {
+      "l": {
+        "strike": 0.9083333333333333,
+        "off": 1.1916666666666667,
+        "support": 0.2833333333333333,
+        "peak": 14.196644973754882
+      },
+      "r": {
+        "strike": 0.4166666666666667,
+        "off": 0.725,
+        "support": 0.30833333333333335,
+        "peak": 16.872854487101236
+      }
+    },
+    "Bwd": {
+      "l": {
+        "strike": 0.8416666666666667,
+        "off": 1.15,
+        "support": 0.30833333333333335,
+        "peak": 15.611510848999023
+      },
+      "r": {
+        "strike": 0.36666666666666664,
+        "off": 0.65,
+        "support": 0.2833333333333333,
+        "peak": 16.833223025004067
+      }
+    },
+    "Bwd_Left": {
+      "l": {
+        "strike": 0.9083333333333333,
+        "off": 1.1916666666666667,
+        "support": 0.2833333333333333,
+        "peak": 14.19663569132487
+      },
+      "r": {
+        "strike": 0.4166666666666667,
+        "off": 0.725,
+        "support": 0.30833333333333335,
+        "peak": 16.872858428955077
+      }
+    },
+    "Left": {
+      "l": {
+        "strike": 0.075,
+        "off": 0.325,
+        "support": 0.25,
+        "peak": 16.373096466064453
+      },
+      "r": {
+        "strike": 0.5916666666666667,
+        "off": 0.9916666666666667,
+        "support": 0.4,
+        "peak": 17.760217475891114
+      }
+    },
+    "Fwd_Left": {
+      "l": {
+        "strike": 0.8083333333333333,
+        "off": 1.1166666666666667,
+        "support": 0.30833333333333335,
+        "peak": 17.793519163131712
+      },
+      "r": {
+        "strike": 0.30833333333333335,
+        "off": 0.65,
+        "support": 0.3416666666666667,
+        "peak": 19.34889974594116
+      }
+    }
+  },
+  "status": "Passed"
+}

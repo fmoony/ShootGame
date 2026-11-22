@@ -1,0 +1,243 @@
+{
+  "date": "2026-11-16",
+  "status": "AssetAndRuntimeChecksPassed",
+  "layout": "Eight movement directions plus original idle; one BackRight sample",
+  "scope": "32 unit-circle directions; flat floor skeletal points; subjective gait and skin contact pending",
+  "files": [
+    {
+      "path": "SourceAssets/StanceCrouch/EightWay/AuthorSummary.json",
+      "bytes": 653287,
+      "sha256": "d2b04b2332d489cfc935448e352e8b67367ec764e45418e86f62aad97c9b03fc"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/EightWay/BakeSummary.json",
+      "bytes": 590,
+      "sha256": "9c62b723ab3b2aaf0b4e5f8229241bf05cd81fa129f83585533f102131cc845e"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/EightWay/CrouchBackLeft.blend",
+      "bytes": 9712513,
+      "sha256": "76078e1aec2540a36ba29597f3352961a925528077d53a24e51c35d5227751aa"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/EightWay/CrouchBackLeft.fbx",
+      "bytes": 919964,
+      "sha256": "6d3c15bc7e6b4c21254505120ad11c63d460b178f1dc40eb42dc8b656dfd6888"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/EightWay/CrouchBackRight.blend",
+      "bytes": 9712513,
+      "sha256": "47c962e7d460f8d8ffa5900ef04e73d6c72c361d5617785c757f47d5d2d24120"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/EightWay/CrouchBackRight.fbx",
+      "bytes": 920428,
+      "sha256": "d49545f5944d8ba37b354028656a507d8934a41ee78bdc076b75df4802dbf5fe"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/EightWay/CrouchForward.blend",
+      "bytes": 9712513,
+      "sha256": "c7f2023e79b01fda0fb031919273367e12122a8203b80a1af5e82d1b9c9abbe5"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/EightWay/CrouchForward.fbx",
+      "bytes": 913500,
+      "sha256": "a8b2050fcf7450dfadfc0cd13b9deabab00354d7134184d6440fae94faeaf88d"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/EightWay/CrouchForwardLeft.blend",
+      "bytes": 9712513,
+      "sha256": "777cf8df8cc118ced40701539f045ed752e56697cf3c5f369e04032209e6f955"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/EightWay/CrouchForwardLeft.fbx",
+      "bytes": 920812,
+      "sha256": "2b79ed7dd6e57ee6d56ee69070ed25c9354936c534deb487812d376e76b27afe"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/EightWay/CrouchForwardRight.blend",
+      "bytes": 9712513,
+      "sha256": "f86bb02855011a0ded294f0f7d25d52b60cd24be8261ff49f56b393e5e91ba3b"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/EightWay/CrouchForwardRight.fbx",
+      "bytes": 919772,
+      "sha256": "a768e44a95907d00c51340bd405c63ccfb925e461e1b849c2d796ea785146461"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/EightWay/Expected.json",
+      "bytes": 4802686,
+      "sha256": "a2702dc6ee4e5183a7c03c92d0ec7f6cbd2bd3878ba067da412c22b4cb77a709"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/EightWay/Quality.json",
+      "bytes": 1368,
+      "sha256": "798be56002714f556b4a39f2c6172a72e6135e54d8d21a9085ee372bcf3c5b60"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/EightWay/README.md",
+      "bytes": 2208,
+      "sha256": "ede668d26a3954e39f5fa17434c36c850306ea67469599316c20f70caa023d13"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/EightWay/AS_EightWay_CrouchBackLeft.uasset",
+      "bytes": 620944,
+      "sha256": "b1534f5e919aa7fb237d2684f13af9f172c3398a70878ef7e1b81a641b03958b"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/EightWay/AS_EightWay_CrouchBackRight.uasset",
+      "bytes": 622912,
+      "sha256": "2fbe41c8aa38e82f49e7b941007ca942113d503a3f848bf7f1cf7c957e084645"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/EightWay/AS_EightWay_CrouchForward.uasset",
+      "bytes": 497944,
+      "sha256": "f894acc1360475cf8684775cc689fb1dd2556a2a4b6c4e5c3dc4deff18969930"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/EightWay/AS_EightWay_CrouchForwardLeft.uasset",
+      "bytes": 613184,
+      "sha256": "59751ff190af4b2d11e87aa2b5646b24fe138f62fd7cf916a523c5250261d7bb"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/EightWay/AS_EightWay_CrouchForwardRight.uasset",
+      "bytes": 601488,
+      "sha256": "b4d563c24a96a2eea813a79dee391791059b62bbe524e19aadfec7f6e88efe1c"
+    },
+    {
+      "path": "Docs/验证/StanceEightWay_20261116/AuthorQuality.json",
+      "bytes": 1368,
+      "sha256": "798be56002714f556b4a39f2c6172a72e6135e54d8d21a9085ee372bcf3c5b60"
+    },
+    {
+      "path": "Docs/验证/StanceEightWay_20261116/AuthorSummary.json",
+      "bytes": 653287,
+      "sha256": "d2b04b2332d489cfc935448e352e8b67367ec764e45418e86f62aad97c9b03fc"
+    },
+    {
+      "path": "Docs/验证/StanceEightWay_20261116/BakeSummary.json",
+      "bytes": 590,
+      "sha256": "9c62b723ab3b2aaf0b4e5f8229241bf05cd81fa129f83585533f102131cc845e"
+    },
+    {
+      "path": "Docs/验证/StanceEightWay_20261116/BlendSpaceAfter.json",
+      "bytes": 2981,
+      "sha256": "54230360af1fdc39822b90ca89cb7a45fc03eea95531ba1fc398d7d30d05b34f"
+    },
+    {
+      "path": "Docs/验证/StanceEightWay_20261116/BlendSpaceBefore.json",
+      "bytes": 3062,
+      "sha256": "524b4ba5bdb2fb90bc0a29d785a56b16b38d233c3319138aa0975286a8b02742"
+    },
+    {
+      "path": "Docs/验证/StanceEightWay_20261116/Final32.csv.gz",
+      "bytes": 25851421,
+      "sha256": "5187bfe375936adc0c75f83540b08b47e23bd0f64b9b5136985280a9bda937d2"
+    },
+    {
+      "path": "Docs/验证/StanceEightWay_20261116/Final32.eightway.json",
+      "bytes": 28432,
+      "sha256": "31052169ae64d3daef36679713e451d972bf5ef0d52956f0b226e1d5d7f3939b"
+    },
+    {
+      "path": "Docs/验证/StanceEightWay_20261116/Final8.csv.gz",
+      "bytes": 8315332,
+      "sha256": "58285b8b8a95435159f515846b33f0b067a54714e6f2b1f19ea8f10b9ce913b4"
+    },
+    {
+      "path": "Docs/验证/StanceEightWay_20261116/Final8.eightway.json",
+      "bytes": 7746,
+      "sha256": "f114acb930696a784be186f66fc274b55d93e86e58d1931a15df0a74f20c5298"
+    },
+    {
+      "path": "Docs/验证/StanceEightWay_20261116/FinalLayerComparison.json",
+      "bytes": 10598,
+      "sha256": "31391953686fa57d5a8009c208ba5f0d1aaa165a4d674d64b440c3634fec542e"
+    },
+    {
+      "path": "Docs/验证/StanceEightWay_20261116/FinalRaw8.csv.gz",
+      "bytes": 8296339,
+      "sha256": "a8ddfc1294028c06b653725834ccff46f1f038d341e3e02b6f5933ba68a62a4f"
+    },
+    {
+      "path": "Docs/验证/StanceEightWay_20261116/Import.json",
+      "bytes": 7218,
+      "sha256": "48220ddeaaf19a379a8e83c298dcc2350245c5daba71ca56ac08ee924030c4d7"
+    },
+    {
+      "path": "Docs/验证/StanceEightWay_20261116/Protection.json",
+      "bytes": 77318,
+      "sha256": "9c2c52b8dc89be6fc6f3b550f6bfeb0e6ffb76d3e9a78d3bb73d25d0d7006ad6"
+    },
+    {
+      "path": "Docs/验证/StanceEightWay_20261116/README.md",
+      "bytes": 5887,
+      "sha256": "0a0e4df25bc864ee36b46d55a06eee5231f5cf0e6d78a496a9a8ee4403070a47"
+    },
+    {
+      "path": "Docs/验证/StanceEightWay_20261116/Review.png",
+      "bytes": 784735,
+      "sha256": "6ec2cb1dc5316d16504843d8e276cc9c01e39cd5b4ed16dcb400259ccec19e73"
+    },
+    {
+      "path": "Docs/验证/StanceEightWay_20261116/VerifyEightWay.json",
+      "bytes": 3346,
+      "sha256": "1f7b0264658fe0217d82b180e78bf26d61496a2b8065abf91a9bb4a535f725dc"
+    },
+    {
+      "path": "Docs/验证/StanceEightWay_20261116/VerifyNative.json",
+      "bytes": 7081,
+      "sha256": "63ce9a8af670cd1468ab0371713ed42d13d56125087115c03f51759de17be474"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/SourceLayer/BS_SourceLayer_Lower.uasset",
+      "bytes": 20460,
+      "sha256": "349782862db8af32cbdfb9f3d9971e97927f2cf047d1a23025bb77a4e5f603d5"
+    },
+    {
+      "path": "Scripts/Animation/Stance/Run.ps1",
+      "bytes": 2826,
+      "sha256": "b40d66f7232f3b6e121e3168d109109d1fc50b6e74a88ed9cf8e9964ec9ca4e3"
+    },
+    {
+      "path": "Scripts/Animation/Stance/stance_author_math.py",
+      "bytes": 10192,
+      "sha256": "0fc45ca3286efb98a1adace3dfcb84a943af670bf116465e1768aaf854acf2f6"
+    },
+    {
+      "path": "Scripts/Animation/Stance/author_eight_way.py",
+      "bytes": 3259,
+      "sha256": "2d75cf7ffd8e68a1f0096a0ace8ebec265bbc26178446b3f2f4e28cad708a3af"
+    },
+    {
+      "path": "Scripts/Animation/Stance/bake_eight_way.py",
+      "bytes": 4688,
+      "sha256": "84a9fa3aa21277878ddd601c0ceeec035ccc1051ca2185c8448c8314aa50b7df"
+    },
+    {
+      "path": "Scripts/Animation/Stance/import_eight_way.py",
+      "bytes": 7151,
+      "sha256": "f870b2bbbfe82e0e73e47b91ecc52e51d08d18b2b32858dfcd9deb0eda8b1850"
+    },
+    {
+      "path": "Scripts/Animation/Stance/verify_eight_way.py",
+      "bytes": 6046,
+      "sha256": "8f4875856fb6b9103c172215ed88b2241e14d2220857d92f7790e75ba0cedc7e"
+    },
+    {
+      "path": "Scripts/Animation/Stance/verify_native_graph.py",
+      "bytes": 3462,
+      "sha256": "b9f63581f304b198ded752a956caaa9e15840c6ebd543d3432bfa0c9e3d2b1c2"
+    },
+    {
+      "path": "Scripts/Animation/Stance/analyze_eight_way.py",
+      "bytes": 4343,
+      "sha256": "4d0484c5f92fc2f636f78fbf22693fc06cb6677a17d169915de7c2fdddbe6db9"
+    },
+    {
+      "path": "Scripts/Animation/Stance/analyze_authored_motion.py",
+      "bytes": 1970,
+      "sha256": "f9187f8117e7a89a118ee8e008f7d34ec3ef0aea8f05f245d5475a67a28ce600"
+    }
+  ]
+}

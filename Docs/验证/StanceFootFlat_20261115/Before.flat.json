@@ -1,0 +1,2399 @@
+{
+  "source": "D:\\UE_Projects\\_worktrees\\ShootGame_UE58\\Saved\\StanceLayer_20261114\\Lower.csv",
+  "frames": 43808,
+  "cases": [
+    {
+      "case": 0,
+      "frames": 443,
+      "flat_samples": 0,
+      "sole_height_abs_p99_cm": 0,
+      "sole_height_gap_p99_cm": 0,
+      "sole_normal_tilt_p99_deg": 0,
+      "sole_forefoot_slip_p95_cm_s": 0
+    },
+    {
+      "case": 1,
+      "frames": 445,
+      "flat_samples": 0,
+      "sole_height_abs_p99_cm": 0,
+      "sole_height_gap_p99_cm": 0,
+      "sole_normal_tilt_p99_deg": 0,
+      "sole_forefoot_slip_p95_cm_s": 0
+    },
+    {
+      "case": 2,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.295477350544711,
+      "sole_height_gap_p99_cm": 13.606673752041692,
+      "sole_normal_tilt_p99_deg": 46.99946276343501,
+      "sole_forefoot_slip_p95_cm_s": 0.0051704405267542575
+    },
+    {
+      "case": 3,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.401924088290372,
+      "sole_height_gap_p99_cm": 13.726953985751965,
+      "sole_normal_tilt_p99_deg": 47.63273444440004,
+      "sole_forefoot_slip_p95_cm_s": 0.9786596555336364
+    },
+    {
+      "case": 4,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.50953603658889,
+      "sole_height_gap_p99_cm": 13.834702132961045,
+      "sole_normal_tilt_p99_deg": 48.21514962635814,
+      "sole_forefoot_slip_p95_cm_s": 1.3027472549670676
+    },
+    {
+      "case": 5,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.615504571503237,
+      "sole_height_gap_p99_cm": 13.929471263265027,
+      "sole_normal_tilt_p99_deg": 48.74618121536909,
+      "sole_forefoot_slip_p95_cm_s": 0.9731261234539869
+    },
+    {
+      "case": 6,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.719361283897797,
+      "sole_height_gap_p99_cm": 14.01109782290918,
+      "sole_normal_tilt_p99_deg": 49.22647892023101,
+      "sole_forefoot_slip_p95_cm_s": 0.005725211130921551
+    },
+    {
+      "case": 7,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.857933914801487,
+      "sole_height_gap_p99_cm": 14.15272239797287,
+      "sole_normal_tilt_p99_deg": 49.90345719651893,
+      "sole_forefoot_slip_p95_cm_s": 1.0994365306297076
+    },
+    {
+      "case": 8,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.995079919327022,
+      "sole_height_gap_p99_cm": 14.286450889211022,
+      "sole_normal_tilt_p99_deg": 50.54334113226288,
+      "sole_forefoot_slip_p95_cm_s": 1.4725006892635488
+    },
+    {
+      "case": 9,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 14.129869521687304,
+      "sole_height_gap_p99_cm": 14.411844817533055,
+      "sole_normal_tilt_p99_deg": 51.1449666955275,
+      "sole_forefoot_slip_p95_cm_s": 1.1056558592658465
+    },
+    {
+      "case": 10,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 14.261732041399922,
+      "sole_height_gap_p99_cm": 14.52862462272708,
+      "sole_normal_tilt_p99_deg": 51.7079148244436,
+      "sole_forefoot_slip_p95_cm_s": 0.006017429417446596
+    },
+    {
+      "case": 11,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 14.42630297263534,
+      "sole_height_gap_p99_cm": 14.689184715652296,
+      "sole_normal_tilt_p99_deg": 52.416578826570046,
+      "sole_forefoot_slip_p95_cm_s": 1.020074464432998
+    },
+    {
+      "case": 12,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 14.58877475123208,
+      "sole_height_gap_p99_cm": 14.845413891580135,
+      "sole_normal_tilt_p99_deg": 53.09901063653036,
+      "sole_forefoot_slip_p95_cm_s": 1.3756585223915652
+    },
+    {
+      "case": 13,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 14.748074699362743,
+      "sole_height_gap_p99_cm": 14.996749543238497,
+      "sole_normal_tilt_p99_deg": 53.75332416981923,
+      "sole_forefoot_slip_p95_cm_s": 1.0402895256785198
+    },
+    {
+      "case": 14,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 14.903563355098182,
+      "sole_height_gap_p99_cm": 15.14273723592122,
+      "sole_normal_tilt_p99_deg": 54.37795452444244,
+      "sole_forefoot_slip_p95_cm_s": 0.007789554673738079
+    },
+    {
+      "case": 15,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.088951723985431,
+      "sole_height_gap_p99_cm": 15.320557708649051,
+      "sole_normal_tilt_p99_deg": 55.11493381676139,
+      "sole_forefoot_slip_p95_cm_s": 0.8045502950594384
+    },
+    {
+      "case": 16,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.271472956363898,
+      "sole_height_gap_p99_cm": 15.495251501737783,
+      "sole_normal_tilt_p99_deg": 55.82907136744424,
+      "sole_forefoot_slip_p95_cm_s": 1.0871641956269573
+    },
+    {
+      "case": 17,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.449928158269817,
+      "sole_height_gap_p99_cm": 15.666160271852343,
+      "sole_normal_tilt_p99_deg": 56.517630301667964,
+      "sole_forefoot_slip_p95_cm_s": 0.8248449237007375
+    },
+    {
+      "case": 18,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.623640007322171,
+      "sole_height_gap_p99_cm": 15.83267184251041,
+      "sole_normal_tilt_p99_deg": 57.17823926232483,
+      "sole_forefoot_slip_p95_cm_s": 0.00808880539964079
+    },
+    {
+      "case": 19,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 14.721732602270617,
+      "sole_height_gap_p99_cm": 15.090709520244333,
+      "sole_normal_tilt_p99_deg": 53.89283757595915,
+      "sole_forefoot_slip_p95_cm_s": 1.364723899065311
+    },
+    {
+      "case": 20,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.816409271815203,
+      "sole_height_gap_p99_cm": 14.260736760863088,
+      "sole_normal_tilt_p99_deg": 50.59602633463072,
+      "sole_forefoot_slip_p95_cm_s": 1.8174713814088894
+    },
+    {
+      "case": 21,
+      "frames": 161,
+      "flat_samples": 161,
+      "sole_height_abs_p99_cm": 12.912384500284597,
+      "sole_height_gap_p99_cm": 13.347141771642798,
+      "sole_normal_tilt_p99_deg": 47.31462013549065,
+      "sole_forefoot_slip_p95_cm_s": 1.3576369501297427
+    },
+    {
+      "case": 22,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 12.01523738035663,
+      "sole_height_gap_p99_cm": 12.3558407264031,
+      "sole_normal_tilt_p99_deg": 44.07279466771775,
+      "sole_forefoot_slip_p95_cm_s": 0.005973192520585095
+    },
+    {
+      "case": 23,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 11.015630028023264,
+      "sole_height_gap_p99_cm": 11.533169447812904,
+      "sole_normal_tilt_p99_deg": 40.727132466281915,
+      "sole_forefoot_slip_p95_cm_s": 1.3203197379363087
+    },
+    {
+      "case": 24,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 10.028957214343123,
+      "sole_height_gap_p99_cm": 10.620877932618068,
+      "sole_normal_tilt_p99_deg": 37.36708213794084,
+      "sole_forefoot_slip_p95_cm_s": 1.7598214488770088
+    },
+    {
+      "case": 25,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 9.05897675164809,
+      "sole_height_gap_p99_cm": 9.625761258037702,
+      "sole_normal_tilt_p99_deg": 34.01455929505315,
+      "sole_forefoot_slip_p95_cm_s": 1.3115462075152375
+    },
+    {
+      "case": 26,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 8.109716530008786,
+      "sole_height_gap_p99_cm": 8.55583925384134,
+      "sole_normal_tilt_p99_deg": 30.69759263047653,
+      "sole_forefoot_slip_p95_cm_s": 0.005211037020659412
+    },
+    {
+      "case": 27,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 7.112350556131936,
+      "sole_height_gap_p99_cm": 7.750336674139139,
+      "sole_normal_tilt_p99_deg": 27.35781029380496,
+      "sole_forefoot_slip_p95_cm_s": 2.506845083057847
+    },
+    {
+      "case": 28,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 6.149698485024756,
+      "sole_height_gap_p99_cm": 6.859519904305278,
+      "sole_normal_tilt_p99_deg": 23.985706432178713,
+      "sole_forefoot_slip_p95_cm_s": 3.305654643614915
+    },
+    {
+      "case": 29,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 5.224742357208517,
+      "sole_height_gap_p99_cm": 5.892189823695028,
+      "sole_normal_tilt_p99_deg": 20.607718439715818,
+      "sole_forefoot_slip_p95_cm_s": 2.4453018978475045
+    },
+    {
+      "case": 30,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 4.340097929120883,
+      "sole_height_gap_p99_cm": 4.857267951702249,
+      "sole_normal_tilt_p99_deg": 17.25067650345845,
+      "sole_forefoot_slip_p95_cm_s": 0.0061444044306376445
+    },
+    {
+      "case": 31,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 3.4650613121528764,
+      "sole_height_gap_p99_cm": 4.057248684763295,
+      "sole_normal_tilt_p99_deg": 13.959794955967554,
+      "sole_forefoot_slip_p95_cm_s": 1.0009329286521378
+    },
+    {
+      "case": 32,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 2.646705402776014,
+      "sole_height_gap_p99_cm": 3.184615755663957,
+      "sole_normal_tilt_p99_deg": 10.659692650188262,
+      "sole_forefoot_slip_p95_cm_s": 0.005531998387033183
+    },
+    {
+      "case": 33,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 2.3583682916260083,
+      "sole_height_gap_p99_cm": 2.4720758524043287,
+      "sole_normal_tilt_p99_deg": 9.348480223232249,
+      "sole_forefoot_slip_p95_cm_s": 1.2316586122637425
+    },
+    {
+      "case": 34,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 3.480710830266439,
+      "sole_height_gap_p99_cm": 3.280669435270937,
+      "sole_normal_tilt_p99_deg": 10.874250592419216,
+      "sole_forefoot_slip_p95_cm_s": 0.007184247560924375
+    },
+    {
+      "case": 35,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 2.500320842721025,
+      "sole_height_gap_p99_cm": 2.396030507942278,
+      "sole_normal_tilt_p99_deg": 10.72415788082385,
+      "sole_forefoot_slip_p95_cm_s": 1.892632999790654
+    },
+    {
+      "case": 36,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 2.3901993050992365,
+      "sole_height_gap_p99_cm": 2.9319201505438297,
+      "sole_normal_tilt_p99_deg": 11.052543910251142,
+      "sole_forefoot_slip_p95_cm_s": 0.007024473492327547
+    },
+    {
+      "case": 37,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 2.995662987552338,
+      "sole_height_gap_p99_cm": 3.698666073948047,
+      "sole_normal_tilt_p99_deg": 12.771190257969382,
+      "sole_forefoot_slip_p95_cm_s": 1.3782159796451856
+    },
+    {
+      "case": 38,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 3.7095269437339873,
+      "sole_height_gap_p99_cm": 4.239955967234673,
+      "sole_normal_tilt_p99_deg": 14.601995640919577,
+      "sole_forefoot_slip_p95_cm_s": 0.006475368637879878
+    },
+    {
+      "case": 39,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 4.351408399245599,
+      "sole_height_gap_p99_cm": 5.058854954535816,
+      "sole_normal_tilt_p99_deg": 17.490133772914728,
+      "sole_forefoot_slip_p95_cm_s": 1.2328602290317123
+    },
+    {
+      "case": 40,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 5.108670486084925,
+      "sole_height_gap_p99_cm": 5.62319794277505,
+      "sole_normal_tilt_p99_deg": 20.064513481905802,
+      "sole_forefoot_slip_p95_cm_s": 0.004545551957604317
+    },
+    {
+      "case": 41,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 5.80000566609943,
+      "sole_height_gap_p99_cm": 6.467775435861318,
+      "sole_normal_tilt_p99_deg": 23.51477407861354,
+      "sole_forefoot_slip_p95_cm_s": 1.0636789590036853
+    },
+    {
+      "case": 42,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 6.581945322112544,
+      "sole_height_gap_p99_cm": 7.07579132630799,
+      "sole_normal_tilt_p99_deg": 26.505360912072522,
+      "sole_forefoot_slip_p95_cm_s": 0.003556583843843464
+    },
+    {
+      "case": 43,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 7.327755454978318,
+      "sole_height_gap_p99_cm": 7.935177322417809,
+      "sole_normal_tilt_p99_deg": 30.28737927422924,
+      "sole_forefoot_slip_p95_cm_s": 0.928189321232539
+    },
+    {
+      "case": 44,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 8.119213874197454,
+      "sole_height_gap_p99_cm": 8.587356526491213,
+      "sole_normal_tilt_p99_deg": 33.55653387604363,
+      "sole_forefoot_slip_p95_cm_s": 0.0031700209201050125
+    },
+    {
+      "case": 45,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 9.35883689763666,
+      "sole_height_gap_p99_cm": 9.787865419558825,
+      "sole_normal_tilt_p99_deg": 37.580961714625765,
+      "sole_forefoot_slip_p95_cm_s": 0.7438823711983126
+    },
+    {
+      "case": 46,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 10.669472772397507,
+      "sole_height_gap_p99_cm": 11.035998818212724,
+      "sole_normal_tilt_p99_deg": 41.06526947469787,
+      "sole_forefoot_slip_p95_cm_s": 0.003521735905997257
+    },
+    {
+      "case": 47,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 12.076447442295281,
+      "sole_height_gap_p99_cm": 12.483083167051621,
+      "sole_normal_tilt_p99_deg": 46.035393659655746,
+      "sole_forefoot_slip_p95_cm_s": 2.838081277288999
+    },
+    {
+      "case": 48,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.40723092373539,
+      "sole_height_gap_p99_cm": 13.784869184288677,
+      "sole_normal_tilt_p99_deg": 50.42872651603413,
+      "sole_forefoot_slip_p95_cm_s": 3.690825741657813
+    },
+    {
+      "case": 49,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 14.602177299923468,
+      "sole_height_gap_p99_cm": 14.907039181034953,
+      "sole_normal_tilt_p99_deg": 54.15692159420834,
+      "sole_forefoot_slip_p95_cm_s": 2.6921021718943576
+    },
+    {
+      "case": 50,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.625474868402655,
+      "sole_height_gap_p99_cm": 15.832709734328864,
+      "sole_normal_tilt_p99_deg": 57.17822780900345,
+      "sole_forefoot_slip_p95_cm_s": 0.003278985339356631
+    },
+    {
+      "case": 51,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.629979665143654,
+      "sole_height_gap_p99_cm": 15.846057487320103,
+      "sole_normal_tilt_p99_deg": 57.065177360451784,
+      "sole_forefoot_slip_p95_cm_s": 0.9884909233665928
+    },
+    {
+      "case": 52,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.634791088892966,
+      "sole_height_gap_p99_cm": 15.855065261152202,
+      "sole_normal_tilt_p99_deg": 56.94353925832823,
+      "sole_forefoot_slip_p95_cm_s": 1.2945982044176076
+    },
+    {
+      "case": 53,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.64004396925106,
+      "sole_height_gap_p99_cm": 15.859407073842261,
+      "sole_normal_tilt_p99_deg": 56.811316391116755,
+      "sole_forefoot_slip_p95_cm_s": 0.9488568233918423
+    },
+    {
+      "case": 54,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.645951942282917,
+      "sole_height_gap_p99_cm": 15.858854382691716,
+      "sole_normal_tilt_p99_deg": 56.66674932043355,
+      "sole_forefoot_slip_p95_cm_s": 0.0032894964503433996
+    },
+    {
+      "case": 55,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.65460851154538,
+      "sole_height_gap_p99_cm": 15.870486677991115,
+      "sole_normal_tilt_p99_deg": 56.631968423608825,
+      "sole_forefoot_slip_p95_cm_s": 0.4646312166609105
+    },
+    {
+      "case": 56,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.662178858746616,
+      "sole_height_gap_p99_cm": 15.876020367903527,
+      "sole_normal_tilt_p99_deg": 56.58013991677506,
+      "sole_forefoot_slip_p95_cm_s": 0.0037816363478658114
+    },
+    {
+      "case": 57,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.671444116611525,
+      "sole_height_gap_p99_cm": 15.88688730488181,
+      "sole_normal_tilt_p99_deg": 56.59363617126594,
+      "sole_forefoot_slip_p95_cm_s": 0.5999148243213813
+    },
+    {
+      "case": 58,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.676845010176944,
+      "sole_height_gap_p99_cm": 15.890612564865062,
+      "sole_normal_tilt_p99_deg": 56.58525058061117,
+      "sole_forefoot_slip_p95_cm_s": 0.003982971969116655
+    },
+    {
+      "case": 59,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.684498684018445,
+      "sole_height_gap_p99_cm": 15.983603131522324,
+      "sole_normal_tilt_p99_deg": 56.63877349400447,
+      "sole_forefoot_slip_p95_cm_s": 0.8155689875722414
+    },
+    {
+      "case": 60,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.858191676306339,
+      "sole_height_gap_p99_cm": 16.13832601273472,
+      "sole_normal_tilt_p99_deg": 56.66513332319424,
+      "sole_forefoot_slip_p95_cm_s": 0.004776275809819301
+    },
+    {
+      "case": 61,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 16.129489823158167,
+      "sole_height_gap_p99_cm": 16.469920551744863,
+      "sole_normal_tilt_p99_deg": 56.75019235978764,
+      "sole_forefoot_slip_p95_cm_s": 0.885490918763068
+    },
+    {
+      "case": 62,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 16.350764060169833,
+      "sole_height_gap_p99_cm": 16.60843760779766,
+      "sole_normal_tilt_p99_deg": 56.802363268286186,
+      "sole_forefoot_slip_p95_cm_s": 0.0045274452617420765
+    },
+    {
+      "case": 63,
+      "frames": 163,
+      "flat_samples": 163,
+      "sole_height_abs_p99_cm": 16.59595572233262,
+      "sole_height_gap_p99_cm": 16.878992571295974,
+      "sole_normal_tilt_p99_deg": 56.91034742529654,
+      "sole_forefoot_slip_p95_cm_s": 0.8314101588959728
+    },
+    {
+      "case": 64,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 16.78396171007098,
+      "sole_height_gap_p99_cm": 17.017225824373494,
+      "sole_normal_tilt_p99_deg": 56.97939233735551,
+      "sole_forefoot_slip_p95_cm_s": 0.005368517234981495
+    },
+    {
+      "case": 65,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 16.997146469427488,
+      "sole_height_gap_p99_cm": 17.233481474350118,
+      "sole_normal_tilt_p99_deg": 57.1017502135651,
+      "sole_forefoot_slip_p95_cm_s": 0.761563202421155
+    },
+    {
+      "case": 66,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 17.14590931806831,
+      "sole_height_gap_p99_cm": 17.35309951668674,
+      "sole_normal_tilt_p99_deg": 57.17883534591777,
+      "sole_forefoot_slip_p95_cm_s": 0.005067339829583338
+    },
+    {
+      "case": 67,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 17.041965316145852,
+      "sole_height_gap_p99_cm": 17.287885298425525,
+      "sole_normal_tilt_p99_deg": 56.2547515654986,
+      "sole_forefoot_slip_p95_cm_s": 1.0240616478117561
+    },
+    {
+      "case": 68,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 16.922164574969578,
+      "sole_height_gap_p99_cm": 17.188722851496625,
+      "sole_normal_tilt_p99_deg": 55.27657047165463,
+      "sole_forefoot_slip_p95_cm_s": 1.3649758719848035
+    },
+    {
+      "case": 69,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 16.7882577509293,
+      "sole_height_gap_p99_cm": 17.055307686170472,
+      "sole_normal_tilt_p99_deg": 54.39622284306931,
+      "sole_forefoot_slip_p95_cm_s": 1.0119665416950576
+    },
+    {
+      "case": 70,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 16.641918103823613,
+      "sole_height_gap_p99_cm": 16.88793023089323,
+      "sole_normal_tilt_p99_deg": 53.571022277016226,
+      "sole_forefoot_slip_p95_cm_s": 0.0064317615950396775
+    },
+    {
+      "case": 71,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 16.524983661083,
+      "sole_height_gap_p99_cm": 16.799962746473536,
+      "sole_normal_tilt_p99_deg": 53.29089905261639,
+      "sole_forefoot_slip_p95_cm_s": 1.205088287408813
+    },
+    {
+      "case": 72,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 16.39929893941639,
+      "sole_height_gap_p99_cm": 16.68650993245246,
+      "sole_normal_tilt_p99_deg": 53.05630514851955,
+      "sole_forefoot_slip_p95_cm_s": 1.5942827014317
+    },
+    {
+      "case": 73,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 16.266611577136644,
+      "sole_height_gap_p99_cm": 16.54770102071836,
+      "sole_normal_tilt_p99_deg": 52.87332331569922,
+      "sole_forefoot_slip_p95_cm_s": 1.1822348747399198
+    },
+    {
+      "case": 74,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 16.129008731708552,
+      "sole_height_gap_p99_cm": 16.384070408723964,
+      "sole_normal_tilt_p99_deg": 52.747321072816945,
+      "sole_forefoot_slip_p95_cm_s": 0.005929991244504817
+    },
+    {
+      "case": 75,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 16.036084815611893,
+      "sole_height_gap_p99_cm": 16.313930002036223,
+      "sole_normal_tilt_p99_deg": 53.05649142090908,
+      "sole_forefoot_slip_p95_cm_s": 1.0414646535759071
+    },
+    {
+      "case": 76,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.942233483591728,
+      "sole_height_gap_p99_cm": 16.226124053331034,
+      "sole_normal_tilt_p99_deg": 53.40474451224576,
+      "sole_forefoot_slip_p95_cm_s": 1.3900464357858078
+    },
+    {
+      "case": 77,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.84913458190768,
+      "sole_height_gap_p99_cm": 16.120937108287045,
+      "sole_normal_tilt_p99_deg": 53.792829791862765,
+      "sole_forefoot_slip_p95_cm_s": 1.0422175438833425
+    },
+    {
+      "case": 78,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.758710736673047,
+      "sole_height_gap_p99_cm": 15.998921430808478,
+      "sole_normal_tilt_p99_deg": 54.22093502562811,
+      "sole_forefoot_slip_p95_cm_s": 0.006900259460810338
+    },
+    {
+      "case": 79,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.713120242233643,
+      "sole_height_gap_p99_cm": 15.973378149015982,
+      "sole_normal_tilt_p99_deg": 54.929251442714175,
+      "sole_forefoot_slip_p95_cm_s": 0.7969474404528571
+    },
+    {
+      "case": 80,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.674330347027762,
+      "sole_height_gap_p99_cm": 15.93698053910415,
+      "sole_normal_tilt_p99_deg": 55.66004969600641,
+      "sole_forefoot_slip_p95_cm_s": 1.058886325177055
+    },
+    {
+      "case": 81,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.643889633134,
+      "sole_height_gap_p99_cm": 15.889948730082974,
+      "sole_normal_tilt_p99_deg": 56.410662168700114,
+      "sole_forefoot_slip_p95_cm_s": 0.7904901493805004
+    },
+    {
+      "case": 82,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.623474622702066,
+      "sole_height_gap_p99_cm": 15.832667227612532,
+      "sole_normal_tilt_p99_deg": 57.178233141915236,
+      "sole_forefoot_slip_p95_cm_s": 0.00846129898334131
+    },
+    {
+      "case": 83,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 14.931624382218091,
+      "sole_height_gap_p99_cm": 15.29348616294176,
+      "sole_normal_tilt_p99_deg": 54.50931580884517,
+      "sole_forefoot_slip_p95_cm_s": 0.7046094480998232
+    },
+    {
+      "case": 84,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 14.244335308993149,
+      "sole_height_gap_p99_cm": 14.673519600933346,
+      "sole_normal_tilt_p99_deg": 51.84565687271766,
+      "sole_forefoot_slip_p95_cm_s": 0.9338715915228635
+    },
+    {
+      "case": 85,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.56774727868348,
+      "sole_height_gap_p99_cm": 13.980795299781569,
+      "sole_normal_tilt_p99_deg": 49.22522936095877,
+      "sole_forefoot_slip_p95_cm_s": 0.6940100583036558
+    },
+    {
+      "case": 86,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.079877035613796,
+      "sole_height_gap_p99_cm": 13.43448661208929,
+      "sole_normal_tilt_p99_deg": 46.68519081424003,
+      "sole_forefoot_slip_p95_cm_s": 0.007733958361498266
+    },
+    {
+      "case": 87,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.047620837267749,
+      "sole_height_gap_p99_cm": 13.457069160231244,
+      "sole_normal_tilt_p99_deg": 43.76665086024359,
+      "sole_forefoot_slip_p95_cm_s": 1.0832251480534474
+    },
+    {
+      "case": 88,
+      "frames": 163,
+      "flat_samples": 163,
+      "sole_height_abs_p99_cm": 13.042868646914481,
+      "sole_height_gap_p99_cm": 13.469355895234388,
+      "sole_normal_tilt_p99_deg": 42.3705106353096,
+      "sole_forefoot_slip_p95_cm_s": 1.4452555915302254
+    },
+    {
+      "case": 89,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.0628867262641,
+      "sole_height_gap_p99_cm": 13.470636507336405,
+      "sole_normal_tilt_p99_deg": 42.33990945644577,
+      "sole_forefoot_slip_p95_cm_s": 1.079308424998941
+    },
+    {
+      "case": 90,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.104649991270204,
+      "sole_height_gap_p99_cm": 13.460504115402124,
+      "sole_normal_tilt_p99_deg": 42.26792055141381,
+      "sole_forefoot_slip_p95_cm_s": 0.02149288094856807
+    },
+    {
+      "case": 91,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.077912530896668,
+      "sole_height_gap_p99_cm": 13.447543501295096,
+      "sole_normal_tilt_p99_deg": 42.201771961373744,
+      "sole_forefoot_slip_p95_cm_s": 0.4796677534634757
+    },
+    {
+      "case": 92,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.06198405892422,
+      "sole_height_gap_p99_cm": 13.41956996600784,
+      "sole_normal_tilt_p99_deg": 42.093128060783435,
+      "sole_forefoot_slip_p95_cm_s": 0.013577960985488297
+    },
+    {
+      "case": 93,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.021653195720095,
+      "sole_height_gap_p99_cm": 13.389458918631764,
+      "sole_normal_tilt_p99_deg": 41.97369156907295,
+      "sole_forefoot_slip_p95_cm_s": 0.662864833999996
+    },
+    {
+      "case": 94,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 12.977844427069256,
+      "sole_height_gap_p99_cm": 13.338101735026717,
+      "sole_normal_tilt_p99_deg": 41.7959732046854,
+      "sole_forefoot_slip_p95_cm_s": 0.007278818163591461
+    },
+    {
+      "case": 95,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 12.926455239899148,
+      "sole_height_gap_p99_cm": 13.291861683770504,
+      "sole_normal_tilt_p99_deg": 41.628371738467514,
+      "sole_forefoot_slip_p95_cm_s": 1.9912965165568077
+    },
+    {
+      "case": 96,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 12.849009020055282,
+      "sole_height_gap_p99_cm": 13.213055226629635,
+      "sole_normal_tilt_p99_deg": 41.36062494666697,
+      "sole_forefoot_slip_p95_cm_s": 0.00446923071641992
+    },
+    {
+      "case": 97,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 12.79385724134789,
+      "sole_height_gap_p99_cm": 13.156727461449773,
+      "sole_normal_tilt_p99_deg": 41.17032289303317,
+      "sole_forefoot_slip_p95_cm_s": 3.647984693476257
+    },
+    {
+      "case": 98,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 12.672886107554199,
+      "sole_height_gap_p99_cm": 13.04190123222397,
+      "sole_normal_tilt_p99_deg": 40.772803063528436,
+      "sole_forefoot_slip_p95_cm_s": 0.005338118327093732
+    },
+    {
+      "case": 99,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 12.820791863351,
+      "sole_height_gap_p99_cm": 13.175168861561884,
+      "sole_normal_tilt_p99_deg": 41.18591211783698,
+      "sole_forefoot_slip_p95_cm_s": 3.1792858513117843
+    },
+    {
+      "case": 100,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 12.89915390122677,
+      "sole_height_gap_p99_cm": 13.262268855022532,
+      "sole_normal_tilt_p99_deg": 41.457205182683985,
+      "sole_forefoot_slip_p95_cm_s": 0.00477928484498285
+    },
+    {
+      "case": 101,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.014250771801164,
+      "sole_height_gap_p99_cm": 13.371991613140384,
+      "sole_normal_tilt_p99_deg": 41.87768225320638,
+      "sole_forefoot_slip_p95_cm_s": 2.4134812343389567
+    },
+    {
+      "case": 102,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.08684518778001,
+      "sole_height_gap_p99_cm": 13.443582964644907,
+      "sole_normal_tilt_p99_deg": 42.18715097367535,
+      "sole_forefoot_slip_p95_cm_s": 0.005110519767375444
+    },
+    {
+      "case": 103,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.194172805887018,
+      "sole_height_gap_p99_cm": 13.550655055610882,
+      "sole_normal_tilt_p99_deg": 42.70410125540088,
+      "sole_forefoot_slip_p95_cm_s": 1.3391311799143346
+    },
+    {
+      "case": 104,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.280387229673526,
+      "sole_height_gap_p99_cm": 13.628601136583482,
+      "sole_normal_tilt_p99_deg": 43.144750116271936,
+      "sole_forefoot_slip_p95_cm_s": 0.004673844526711617
+    },
+    {
+      "case": 105,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.399703056734863,
+      "sole_height_gap_p99_cm": 13.755350773298776,
+      "sole_normal_tilt_p99_deg": 43.864954083203585,
+      "sole_forefoot_slip_p95_cm_s": 0.7580100520772408
+    },
+    {
+      "case": 106,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.525486037229108,
+      "sole_height_gap_p99_cm": 13.86116588591261,
+      "sole_normal_tilt_p99_deg": 44.52476795618784,
+      "sole_forefoot_slip_p95_cm_s": 0.006999521925124243
+    },
+    {
+      "case": 107,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.67758532940438,
+      "sole_height_gap_p99_cm": 14.027991648950806,
+      "sole_normal_tilt_p99_deg": 45.54227527743726,
+      "sole_forefoot_slip_p95_cm_s": 0.6018060987054485
+    },
+    {
+      "case": 108,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.862579130675943,
+      "sole_height_gap_p99_cm": 14.179725044516713,
+      "sole_normal_tilt_p99_deg": 46.508435526193885,
+      "sole_forefoot_slip_p95_cm_s": 0.006186798489449181
+    },
+    {
+      "case": 109,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 14.074214638473844,
+      "sole_height_gap_p99_cm": 14.40195015989531,
+      "sole_normal_tilt_p99_deg": 47.89726351588384,
+      "sole_forefoot_slip_p95_cm_s": 0.4484232855078207
+    },
+    {
+      "case": 110,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 14.320502049756694,
+      "sole_height_gap_p99_cm": 14.611103220637183,
+      "sole_normal_tilt_p99_deg": 49.23572848773667,
+      "sole_forefoot_slip_p95_cm_s": 0.004529217128416598
+    },
+    {
+      "case": 111,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 14.632362456008135,
+      "sole_height_gap_p99_cm": 14.948772367500421,
+      "sole_normal_tilt_p99_deg": 51.30146261923497,
+      "sole_forefoot_slip_p95_cm_s": 1.1849399679428625
+    },
+    {
+      "case": 112,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 14.964257200577366,
+      "sole_height_gap_p99_cm": 15.266231099759876,
+      "sole_normal_tilt_p99_deg": 53.33594136187257,
+      "sole_forefoot_slip_p95_cm_s": 1.6338317164984781
+    },
+    {
+      "case": 113,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.299942355107193,
+      "sole_height_gap_p99_cm": 15.56143890965086,
+      "sole_normal_tilt_p99_deg": 55.304000581804154,
+      "sole_forefoot_slip_p95_cm_s": 1.2572727945584703
+    },
+    {
+      "case": 114,
+      "frames": 163,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.625482695983186,
+      "sole_height_gap_p99_cm": 15.832714499865922,
+      "sole_normal_tilt_p99_deg": 57.17824628935918,
+      "sole_forefoot_slip_p95_cm_s": 0.003668303023058359
+    },
+    {
+      "case": 115,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.451943037648206,
+      "sole_height_gap_p99_cm": 15.666202412834012,
+      "sole_normal_tilt_p99_deg": 56.5176605945027,
+      "sole_forefoot_slip_p95_cm_s": 0.6732738558436714
+    },
+    {
+      "case": 116,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.273487214943131,
+      "sole_height_gap_p99_cm": 15.495292852837606,
+      "sole_normal_tilt_p99_deg": 55.8290968346862,
+      "sole_forefoot_slip_p95_cm_s": 0.8922523977880852
+    },
+    {
+      "case": 117,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.090964414824734,
+      "sole_height_gap_p99_cm": 15.320600250287788,
+      "sole_normal_tilt_p99_deg": 55.11496188071198,
+      "sole_forefoot_slip_p95_cm_s": 0.6628308988931337
+    },
+    {
+      "case": 118,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 14.905479131984944,
+      "sole_height_gap_p99_cm": 15.142781161684933,
+      "sole_normal_tilt_p99_deg": 54.37795726089446,
+      "sole_forefoot_slip_p95_cm_s": 0.0035911368928263103
+    },
+    {
+      "case": 119,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 14.75009355984329,
+      "sole_height_gap_p99_cm": 14.996841031233782,
+      "sole_normal_tilt_p99_deg": 53.75338476353789,
+      "sole_forefoot_slip_p95_cm_s": 0.8422476125773591
+    },
+    {
+      "case": 120,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 14.590802992775577,
+      "sole_height_gap_p99_cm": 14.84552370073755,
+      "sole_normal_tilt_p99_deg": 53.09915385704848,
+      "sole_forefoot_slip_p95_cm_s": 1.1168962245540972
+    },
+    {
+      "case": 121,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 14.428338229383407,
+      "sole_height_gap_p99_cm": 14.689279529849822,
+      "sole_normal_tilt_p99_deg": 52.41667788241439,
+      "sole_forefoot_slip_p95_cm_s": 0.8311990144108474
+    },
+    {
+      "case": 122,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 14.263689428961676,
+      "sole_height_gap_p99_cm": 14.528662992450561,
+      "sole_normal_tilt_p99_deg": 51.70790993201061,
+      "sole_forefoot_slip_p95_cm_s": 0.004166266915668853
+    },
+    {
+      "case": 123,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 14.13192773167357,
+      "sole_height_gap_p99_cm": 14.412602751777486,
+      "sole_normal_tilt_p99_deg": 51.14682126656803,
+      "sole_forefoot_slip_p95_cm_s": 0.9114045977518572
+    },
+    {
+      "case": 124,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.997155788684191,
+      "sole_height_gap_p99_cm": 14.287462511390386,
+      "sole_normal_tilt_p99_deg": 50.546013640455115,
+      "sole_forefoot_slip_p95_cm_s": 1.2120925035444894
+    },
+    {
+      "case": 125,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.860024814066872,
+      "sole_height_gap_p99_cm": 14.153489594422844,
+      "sole_normal_tilt_p99_deg": 49.90558068059527,
+      "sole_forefoot_slip_p95_cm_s": 0.9057640061434841
+    },
+    {
+      "case": 126,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.721371180054,
+      "sole_height_gap_p99_cm": 14.01113252951781,
+      "sole_normal_tilt_p99_deg": 49.226477148832764,
+      "sole_forefoot_slip_p95_cm_s": 0.004245199017699357
+    },
+    {
+      "case": 127,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.617619709977138,
+      "sole_height_gap_p99_cm": 13.931672436519758,
+      "sole_normal_tilt_p99_deg": 48.75275892801204,
+      "sole_forefoot_slip_p95_cm_s": 0.8450680715929124
+    },
+    {
+      "case": 128,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.511658785081519,
+      "sole_height_gap_p99_cm": 13.837638758086822,
+      "sole_normal_tilt_p99_deg": 48.2243171780322,
+      "sole_forefoot_slip_p95_cm_s": 1.1251717761131073
+    },
+    {
+      "case": 129,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.404054084307187,
+      "sole_height_gap_p99_cm": 13.729163720160772,
+      "sole_normal_tilt_p99_deg": 47.639867903744786,
+      "sole_forefoot_slip_p95_cm_s": 0.8418080610100537
+    },
+    {
+      "case": 130,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.295477350544711,
+      "sole_height_gap_p99_cm": 13.606673752041692,
+      "sole_normal_tilt_p99_deg": 46.99946276343501,
+      "sole_forefoot_slip_p95_cm_s": 0.005171681705542389
+    },
+    {
+      "case": 131,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.401924088290372,
+      "sole_height_gap_p99_cm": 13.726953985751965,
+      "sole_normal_tilt_p99_deg": 47.63273444440004,
+      "sole_forefoot_slip_p95_cm_s": 0.9788358530354727
+    },
+    {
+      "case": 132,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.50953603658889,
+      "sole_height_gap_p99_cm": 13.834702132961045,
+      "sole_normal_tilt_p99_deg": 48.21514962635814,
+      "sole_forefoot_slip_p95_cm_s": 1.3030599831087724
+    },
+    {
+      "case": 133,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.615504571503237,
+      "sole_height_gap_p99_cm": 13.929471263265027,
+      "sole_normal_tilt_p99_deg": 48.74618121536909,
+      "sole_forefoot_slip_p95_cm_s": 0.9733597251162217
+    },
+    {
+      "case": 134,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.719361283897797,
+      "sole_height_gap_p99_cm": 14.01109782290918,
+      "sole_normal_tilt_p99_deg": 49.22647892023101,
+      "sole_forefoot_slip_p95_cm_s": 0.005726241895695648
+    },
+    {
+      "case": 135,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.857933914801487,
+      "sole_height_gap_p99_cm": 14.15272239797287,
+      "sole_normal_tilt_p99_deg": 49.90345719651893,
+      "sole_forefoot_slip_p95_cm_s": 1.0997004693001577
+    },
+    {
+      "case": 136,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.995079919327022,
+      "sole_height_gap_p99_cm": 14.286450889211022,
+      "sole_normal_tilt_p99_deg": 50.54334113226288,
+      "sole_forefoot_slip_p95_cm_s": 1.4728541884090962
+    },
+    {
+      "case": 137,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 14.129869521687304,
+      "sole_height_gap_p99_cm": 14.411844817533055,
+      "sole_normal_tilt_p99_deg": 51.1449666955275,
+      "sole_forefoot_slip_p95_cm_s": 1.1059212750638188
+    },
+    {
+      "case": 138,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 14.261732041399922,
+      "sole_height_gap_p99_cm": 14.52862462272708,
+      "sole_normal_tilt_p99_deg": 51.7079148244436,
+      "sole_forefoot_slip_p95_cm_s": 0.006018873918298456
+    },
+    {
+      "case": 139,
+      "frames": 163,
+      "flat_samples": 163,
+      "sole_height_abs_p99_cm": 14.42630297263534,
+      "sole_height_gap_p99_cm": 14.689184715652296,
+      "sole_normal_tilt_p99_deg": 52.416578826570046,
+      "sole_forefoot_slip_p95_cm_s": 1.02025811824084
+    },
+    {
+      "case": 140,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 14.58877475123208,
+      "sole_height_gap_p99_cm": 14.845413891580135,
+      "sole_normal_tilt_p99_deg": 53.09901063653036,
+      "sole_forefoot_slip_p95_cm_s": 1.3759061954142084
+    },
+    {
+      "case": 141,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 14.748074699362743,
+      "sole_height_gap_p99_cm": 14.996749543238497,
+      "sole_normal_tilt_p99_deg": 53.75332416981923,
+      "sole_forefoot_slip_p95_cm_s": 1.0404768189980864
+    },
+    {
+      "case": 142,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 14.903563355098182,
+      "sole_height_gap_p99_cm": 15.14273723592122,
+      "sole_normal_tilt_p99_deg": 54.37795452444244,
+      "sole_forefoot_slip_p95_cm_s": 0.007791424690466382
+    },
+    {
+      "case": 143,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.088951723985431,
+      "sole_height_gap_p99_cm": 15.320557708649051,
+      "sole_normal_tilt_p99_deg": 55.11493381676139,
+      "sole_forefoot_slip_p95_cm_s": 0.8047434296173094
+    },
+    {
+      "case": 144,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.271472956363898,
+      "sole_height_gap_p99_cm": 15.495251501737783,
+      "sole_normal_tilt_p99_deg": 55.82907136744424,
+      "sole_forefoot_slip_p95_cm_s": 1.0873934724529841
+    },
+    {
+      "case": 145,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.449928158269817,
+      "sole_height_gap_p99_cm": 15.666160271852343,
+      "sole_normal_tilt_p99_deg": 56.517630301667964,
+      "sole_forefoot_slip_p95_cm_s": 0.8250237672727025
+    },
+    {
+      "case": 146,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.623640007322171,
+      "sole_height_gap_p99_cm": 15.83267184251041,
+      "sole_normal_tilt_p99_deg": 57.17823926232483,
+      "sole_forefoot_slip_p95_cm_s": 0.008091232720911409
+    },
+    {
+      "case": 147,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 14.721732602270617,
+      "sole_height_gap_p99_cm": 15.090709520244333,
+      "sole_normal_tilt_p99_deg": 53.89283757595915,
+      "sole_forefoot_slip_p95_cm_s": 1.364969603422645
+    },
+    {
+      "case": 148,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.816409271815203,
+      "sole_height_gap_p99_cm": 14.260736760863088,
+      "sole_normal_tilt_p99_deg": 50.59602633463072,
+      "sole_forefoot_slip_p95_cm_s": 1.8182282361822935
+    },
+    {
+      "case": 149,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 12.912384500284597,
+      "sole_height_gap_p99_cm": 13.347141771642798,
+      "sole_normal_tilt_p99_deg": 47.31462013549065,
+      "sole_forefoot_slip_p95_cm_s": 1.3582072831229313
+    },
+    {
+      "case": 150,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 12.01523738035663,
+      "sole_height_gap_p99_cm": 12.3558407264031,
+      "sole_normal_tilt_p99_deg": 44.07279466771775,
+      "sole_forefoot_slip_p95_cm_s": 0.005975701813492033
+    },
+    {
+      "case": 151,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 11.015630028023264,
+      "sole_height_gap_p99_cm": 11.533169447812904,
+      "sole_normal_tilt_p99_deg": 40.727132466281915,
+      "sole_forefoot_slip_p95_cm_s": 1.3209454386062425
+    },
+    {
+      "case": 152,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 10.028957214343123,
+      "sole_height_gap_p99_cm": 10.620877932618068,
+      "sole_normal_tilt_p99_deg": 37.36708213794084,
+      "sole_forefoot_slip_p95_cm_s": 1.7606663997535787
+    },
+    {
+      "case": 153,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 9.05897675164809,
+      "sole_height_gap_p99_cm": 9.625761258037702,
+      "sole_normal_tilt_p99_deg": 34.01455929505315,
+      "sole_forefoot_slip_p95_cm_s": 1.3121759260166725
+    },
+    {
+      "case": 154,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 8.109716530008786,
+      "sole_height_gap_p99_cm": 8.55583925384134,
+      "sole_normal_tilt_p99_deg": 30.69759263047653,
+      "sole_forefoot_slip_p95_cm_s": 0.005213226137817225
+    },
+    {
+      "case": 155,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 7.112350556131936,
+      "sole_height_gap_p99_cm": 7.750336674139139,
+      "sole_normal_tilt_p99_deg": 27.35781029380496,
+      "sole_forefoot_slip_p95_cm_s": 2.5079610089862165
+    },
+    {
+      "case": 156,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 6.149698485024756,
+      "sole_height_gap_p99_cm": 6.859519904305278,
+      "sole_normal_tilt_p99_deg": 23.985706432178713,
+      "sole_forefoot_slip_p95_cm_s": 3.307135926941848
+    },
+    {
+      "case": 157,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 5.224742357208517,
+      "sole_height_gap_p99_cm": 5.892189823695028,
+      "sole_normal_tilt_p99_deg": 20.607718439715818,
+      "sole_forefoot_slip_p95_cm_s": 2.446475971498215
+    },
+    {
+      "case": 158,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 4.340097929120883,
+      "sole_height_gap_p99_cm": 4.857267951702249,
+      "sole_normal_tilt_p99_deg": 17.25067650345845,
+      "sole_forefoot_slip_p95_cm_s": 0.006146985648370377
+    },
+    {
+      "case": 159,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 3.4650613121528764,
+      "sole_height_gap_p99_cm": 4.057248684763295,
+      "sole_normal_tilt_p99_deg": 13.959794955967554,
+      "sole_forefoot_slip_p95_cm_s": 1.0013534129893715
+    },
+    {
+      "case": 160,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 2.646705402776014,
+      "sole_height_gap_p99_cm": 3.184615755663957,
+      "sole_normal_tilt_p99_deg": 10.659692650188262,
+      "sole_forefoot_slip_p95_cm_s": 0.005534322337623718
+    },
+    {
+      "case": 161,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 2.3583682916260083,
+      "sole_height_gap_p99_cm": 2.4720758524043287,
+      "sole_normal_tilt_p99_deg": 9.348480223232249,
+      "sole_forefoot_slip_p95_cm_s": 1.2321817986921089
+    },
+    {
+      "case": 162,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 3.480710830266439,
+      "sole_height_gap_p99_cm": 3.280669435270937,
+      "sole_normal_tilt_p99_deg": 10.874250592419216,
+      "sole_forefoot_slip_p95_cm_s": 0.0071872656088751465
+    },
+    {
+      "case": 163,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 2.500320842721025,
+      "sole_height_gap_p99_cm": 2.396030507942278,
+      "sole_normal_tilt_p99_deg": 10.72415788082385,
+      "sole_forefoot_slip_p95_cm_s": 1.8935417180661465
+    },
+    {
+      "case": 164,
+      "frames": 163,
+      "flat_samples": 163,
+      "sole_height_abs_p99_cm": 2.3901993050992365,
+      "sole_height_gap_p99_cm": 2.9319201505438297,
+      "sole_normal_tilt_p99_deg": 11.052543910251142,
+      "sole_forefoot_slip_p95_cm_s": 0.007027424420379059
+    },
+    {
+      "case": 165,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 2.995662987552338,
+      "sole_height_gap_p99_cm": 3.698666073948047,
+      "sole_normal_tilt_p99_deg": 12.771190257969382,
+      "sole_forefoot_slip_p95_cm_s": 1.3787949577315295
+    },
+    {
+      "case": 166,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 3.7095269437339873,
+      "sole_height_gap_p99_cm": 4.239955967234673,
+      "sole_normal_tilt_p99_deg": 14.601995640919577,
+      "sole_forefoot_slip_p95_cm_s": 0.006478088891162166
+    },
+    {
+      "case": 167,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 4.351408399245599,
+      "sole_height_gap_p99_cm": 5.058854954535816,
+      "sole_normal_tilt_p99_deg": 17.490133772914728,
+      "sole_forefoot_slip_p95_cm_s": 1.233498895132401
+    },
+    {
+      "case": 168,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 5.108670486084925,
+      "sole_height_gap_p99_cm": 5.62319794277505,
+      "sole_normal_tilt_p99_deg": 20.064513481905802,
+      "sole_forefoot_slip_p95_cm_s": 0.004547461509530867
+    },
+    {
+      "case": 169,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 5.80000566609943,
+      "sole_height_gap_p99_cm": 6.467775435861318,
+      "sole_normal_tilt_p99_deg": 23.51477407861354,
+      "sole_forefoot_slip_p95_cm_s": 1.0641896679021166
+    },
+    {
+      "case": 170,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 6.581945322112544,
+      "sole_height_gap_p99_cm": 7.07579132630799,
+      "sole_normal_tilt_p99_deg": 26.505360912072522,
+      "sole_forefoot_slip_p95_cm_s": 0.0035582914822290122
+    },
+    {
+      "case": 171,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 7.327755454978318,
+      "sole_height_gap_p99_cm": 7.935177322417809,
+      "sole_normal_tilt_p99_deg": 30.28737927422924,
+      "sole_forefoot_slip_p95_cm_s": 0.928634976890773
+    },
+    {
+      "case": 172,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 8.119213874197454,
+      "sole_height_gap_p99_cm": 8.587356526491213,
+      "sole_normal_tilt_p99_deg": 33.55653387604363,
+      "sole_forefoot_slip_p95_cm_s": 0.003170211174631006
+    },
+    {
+      "case": 173,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 9.35883689763666,
+      "sole_height_gap_p99_cm": 9.787865419558825,
+      "sole_normal_tilt_p99_deg": 37.580961714625765,
+      "sole_forefoot_slip_p95_cm_s": 0.7438823711983126
+    },
+    {
+      "case": 174,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 10.669472772397507,
+      "sole_height_gap_p99_cm": 11.035998818212724,
+      "sole_normal_tilt_p99_deg": 41.06526947469787,
+      "sole_forefoot_slip_p95_cm_s": 0.003521735905997257
+    },
+    {
+      "case": 175,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 12.076447442295281,
+      "sole_height_gap_p99_cm": 12.483083167051621,
+      "sole_normal_tilt_p99_deg": 46.035393659655746,
+      "sole_forefoot_slip_p95_cm_s": 2.838020387887965
+    },
+    {
+      "case": 176,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.40723092373539,
+      "sole_height_gap_p99_cm": 13.784869184288677,
+      "sole_normal_tilt_p99_deg": 50.42872651603413,
+      "sole_forefoot_slip_p95_cm_s": 3.690825741657813
+    },
+    {
+      "case": 177,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 14.602177299923468,
+      "sole_height_gap_p99_cm": 14.907039181034953,
+      "sole_normal_tilt_p99_deg": 54.15692159420834,
+      "sole_forefoot_slip_p95_cm_s": 2.692263743264247
+    },
+    {
+      "case": 178,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.625474868402655,
+      "sole_height_gap_p99_cm": 15.832709734328864,
+      "sole_normal_tilt_p99_deg": 57.17822780900345,
+      "sole_forefoot_slip_p95_cm_s": 0.003279182133578878
+    },
+    {
+      "case": 179,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.629979665143654,
+      "sole_height_gap_p99_cm": 15.846057487320103,
+      "sole_normal_tilt_p99_deg": 57.065177360451784,
+      "sole_forefoot_slip_p95_cm_s": 0.9884316008603893
+    },
+    {
+      "case": 180,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.634791088892966,
+      "sole_height_gap_p99_cm": 15.855065261152202,
+      "sole_normal_tilt_p99_deg": 56.94353925832823,
+      "sole_forefoot_slip_p95_cm_s": 1.2946060545497318
+    },
+    {
+      "case": 181,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.64004396925106,
+      "sole_height_gap_p99_cm": 15.859407073842261,
+      "sole_normal_tilt_p99_deg": 56.811316391116755,
+      "sole_forefoot_slip_p95_cm_s": 0.9489137707463613
+    },
+    {
+      "case": 182,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.645951942282917,
+      "sole_height_gap_p99_cm": 15.858854382691716,
+      "sole_normal_tilt_p99_deg": 56.66674932043355,
+      "sole_forefoot_slip_p95_cm_s": 0.0032894964503433996
+    },
+    {
+      "case": 183,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.65460851154538,
+      "sole_height_gap_p99_cm": 15.870486677991115,
+      "sole_normal_tilt_p99_deg": 56.631968423608825,
+      "sole_forefoot_slip_p95_cm_s": 0.46465910234183044
+    },
+    {
+      "case": 184,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.662178858746616,
+      "sole_height_gap_p99_cm": 15.876020367903527,
+      "sole_normal_tilt_p99_deg": 56.58013991677506,
+      "sole_forefoot_slip_p95_cm_s": 0.0037816363478658114
+    },
+    {
+      "case": 185,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.671444116611525,
+      "sole_height_gap_p99_cm": 15.88688730488181,
+      "sole_normal_tilt_p99_deg": 56.59363617126594,
+      "sole_forefoot_slip_p95_cm_s": 0.5999148243213813
+    },
+    {
+      "case": 186,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.676845010176944,
+      "sole_height_gap_p99_cm": 15.890612564865062,
+      "sole_normal_tilt_p99_deg": 56.58525058061117,
+      "sole_forefoot_slip_p95_cm_s": 0.003982971968943268
+    },
+    {
+      "case": 187,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.684498684018445,
+      "sole_height_gap_p99_cm": 15.983603131522324,
+      "sole_normal_tilt_p99_deg": 56.63877349400447,
+      "sole_forefoot_slip_p95_cm_s": 0.8156179354167686
+    },
+    {
+      "case": 188,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.858191676306339,
+      "sole_height_gap_p99_cm": 16.13832601273472,
+      "sole_normal_tilt_p99_deg": 56.66513332319424,
+      "sole_forefoot_slip_p95_cm_s": 0.004776275809819301
+    },
+    {
+      "case": 189,
+      "frames": 163,
+      "flat_samples": 163,
+      "sole_height_abs_p99_cm": 16.129489823158167,
+      "sole_height_gap_p99_cm": 16.469920551744863,
+      "sole_normal_tilt_p99_deg": 56.75019235978764,
+      "sole_forefoot_slip_p95_cm_s": 0.885490918763068
+    },
+    {
+      "case": 190,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 16.350764060169833,
+      "sole_height_gap_p99_cm": 16.60843760779766,
+      "sole_normal_tilt_p99_deg": 56.802363268286186,
+      "sole_forefoot_slip_p95_cm_s": 0.0045274452617420765
+    },
+    {
+      "case": 191,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 16.59595572233262,
+      "sole_height_gap_p99_cm": 16.878992571295974,
+      "sole_normal_tilt_p99_deg": 56.91034742529654,
+      "sole_forefoot_slip_p95_cm_s": 0.8314443954351585
+    },
+    {
+      "case": 192,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 16.78396171007098,
+      "sole_height_gap_p99_cm": 17.017225824373494,
+      "sole_normal_tilt_p99_deg": 56.97939233735551,
+      "sole_forefoot_slip_p95_cm_s": 0.005368517234981495
+    },
+    {
+      "case": 193,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 16.997146469427488,
+      "sole_height_gap_p99_cm": 17.233481474350118,
+      "sole_normal_tilt_p99_deg": 57.1017502135651,
+      "sole_forefoot_slip_p95_cm_s": 0.7616089090110301
+    },
+    {
+      "case": 194,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 17.14590931806831,
+      "sole_height_gap_p99_cm": 17.35309951668674,
+      "sole_normal_tilt_p99_deg": 57.17883534591777,
+      "sole_forefoot_slip_p95_cm_s": 0.005067339829583338
+    },
+    {
+      "case": 195,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 17.041965316145852,
+      "sole_height_gap_p99_cm": 17.287885298425525,
+      "sole_normal_tilt_p99_deg": 56.2547515654986,
+      "sole_forefoot_slip_p95_cm_s": 1.0240001905924543
+    },
+    {
+      "case": 196,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 16.922164574969578,
+      "sole_height_gap_p99_cm": 17.188722851496625,
+      "sole_normal_tilt_p99_deg": 55.27657047165463,
+      "sole_forefoot_slip_p95_cm_s": 1.3649758719848035
+    },
+    {
+      "case": 197,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 16.7882577509293,
+      "sole_height_gap_p99_cm": 17.055307686170472,
+      "sole_normal_tilt_p99_deg": 54.39622284306931,
+      "sole_forefoot_slip_p95_cm_s": 1.0120143039988914
+    },
+    {
+      "case": 198,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 16.641918103823613,
+      "sole_height_gap_p99_cm": 16.88793023089323,
+      "sole_normal_tilt_p99_deg": 53.571022277016226,
+      "sole_forefoot_slip_p95_cm_s": 0.0064317615950396775
+    },
+    {
+      "case": 199,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 16.524983661083,
+      "sole_height_gap_p99_cm": 16.799962746473536,
+      "sole_normal_tilt_p99_deg": 53.29089905261639,
+      "sole_forefoot_slip_p95_cm_s": 1.205088287408813
+    },
+    {
+      "case": 200,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 16.39929893941639,
+      "sole_height_gap_p99_cm": 16.68650993245246,
+      "sole_normal_tilt_p99_deg": 53.05630514851955,
+      "sole_forefoot_slip_p95_cm_s": 1.59422803882272
+    },
+    {
+      "case": 201,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 16.266611577136644,
+      "sole_height_gap_p99_cm": 16.54770102071836,
+      "sole_normal_tilt_p99_deg": 52.87332331569922,
+      "sole_forefoot_slip_p95_cm_s": 1.182305828699334
+    },
+    {
+      "case": 202,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 16.129008731708552,
+      "sole_height_gap_p99_cm": 16.384070408723964,
+      "sole_normal_tilt_p99_deg": 52.747321072816945,
+      "sole_forefoot_slip_p95_cm_s": 0.005929991244504817
+    },
+    {
+      "case": 203,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 16.036084815611893,
+      "sole_height_gap_p99_cm": 16.313930002036223,
+      "sole_normal_tilt_p99_deg": 53.05649142090908,
+      "sole_forefoot_slip_p95_cm_s": 1.0415271589564705
+    },
+    {
+      "case": 204,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.942233483591728,
+      "sole_height_gap_p99_cm": 16.226124053331034,
+      "sole_normal_tilt_p99_deg": 53.40474451224576,
+      "sole_forefoot_slip_p95_cm_s": 1.3900464357858078
+    },
+    {
+      "case": 205,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.84913458190768,
+      "sole_height_gap_p99_cm": 16.120937108287045,
+      "sole_normal_tilt_p99_deg": 53.792829791862765,
+      "sole_forefoot_slip_p95_cm_s": 1.0422175438851202
+    },
+    {
+      "case": 206,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.758710736673047,
+      "sole_height_gap_p99_cm": 15.998921430808478,
+      "sole_normal_tilt_p99_deg": 54.22093502562811,
+      "sole_forefoot_slip_p95_cm_s": 0.006900259460810338
+    },
+    {
+      "case": 207,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.713120242233643,
+      "sole_height_gap_p99_cm": 15.973378149015982,
+      "sole_normal_tilt_p99_deg": 54.929251442714175,
+      "sole_forefoot_slip_p95_cm_s": 0.7969474404528571
+    },
+    {
+      "case": 208,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.674330347027762,
+      "sole_height_gap_p99_cm": 15.93698053910415,
+      "sole_normal_tilt_p99_deg": 55.66004969600641,
+      "sole_forefoot_slip_p95_cm_s": 1.058827027140093
+    },
+    {
+      "case": 209,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.643889633134,
+      "sole_height_gap_p99_cm": 15.889948730082974,
+      "sole_normal_tilt_p99_deg": 56.410662168700114,
+      "sole_forefoot_slip_p95_cm_s": 0.7904507245269198
+    },
+    {
+      "case": 210,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.623474622702066,
+      "sole_height_gap_p99_cm": 15.832667227612532,
+      "sole_normal_tilt_p99_deg": 57.178233141915236,
+      "sole_forefoot_slip_p95_cm_s": 0.00846129898334131
+    },
+    {
+      "case": 211,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 14.931624382218091,
+      "sole_height_gap_p99_cm": 15.29348616294176,
+      "sole_normal_tilt_p99_deg": 54.50931580884517,
+      "sole_forefoot_slip_p95_cm_s": 0.7046517365073566
+    },
+    {
+      "case": 212,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 14.244335308993149,
+      "sole_height_gap_p99_cm": 14.673519600933346,
+      "sole_normal_tilt_p99_deg": 51.84565687271766,
+      "sole_forefoot_slip_p95_cm_s": 0.9339232526231429
+    },
+    {
+      "case": 213,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.56774727868348,
+      "sole_height_gap_p99_cm": 13.980795299781569,
+      "sole_normal_tilt_p99_deg": 49.22522936095877,
+      "sole_forefoot_slip_p95_cm_s": 0.6940100582989207
+    },
+    {
+      "case": 214,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.079877035613796,
+      "sole_height_gap_p99_cm": 13.43448661208929,
+      "sole_normal_tilt_p99_deg": 46.68519081424003,
+      "sole_forefoot_slip_p95_cm_s": 0.007733958361498266
+    },
+    {
+      "case": 215,
+      "frames": 163,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.047620837267749,
+      "sole_height_gap_p99_cm": 13.457069160231244,
+      "sole_normal_tilt_p99_deg": 43.76665086024359,
+      "sole_forefoot_slip_p95_cm_s": 1.08316014024301
+    },
+    {
+      "case": 216,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.042868646914481,
+      "sole_height_gap_p99_cm": 13.469355895234388,
+      "sole_normal_tilt_p99_deg": 42.3705106353096,
+      "sole_forefoot_slip_p95_cm_s": 1.4452555915302254
+    },
+    {
+      "case": 217,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.0628867262641,
+      "sole_height_gap_p99_cm": 13.470636507336405,
+      "sole_normal_tilt_p99_deg": 42.33990945644577,
+      "sole_forefoot_slip_p95_cm_s": 1.0793054852039516
+    },
+    {
+      "case": 218,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.104649991270204,
+      "sole_height_gap_p99_cm": 13.460504115402124,
+      "sole_normal_tilt_p99_deg": 42.26792055141381,
+      "sole_forefoot_slip_p95_cm_s": 0.02149288094856807
+    },
+    {
+      "case": 219,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.077912530896668,
+      "sole_height_gap_p99_cm": 13.447543501295096,
+      "sole_normal_tilt_p99_deg": 42.201771961373744,
+      "sole_forefoot_slip_p95_cm_s": 0.4796677534634757
+    },
+    {
+      "case": 220,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.06198405892422,
+      "sole_height_gap_p99_cm": 13.41956996600784,
+      "sole_normal_tilt_p99_deg": 42.093128060783435,
+      "sole_forefoot_slip_p95_cm_s": 0.013577960985488297
+    },
+    {
+      "case": 221,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.021653195720095,
+      "sole_height_gap_p99_cm": 13.389458918631764,
+      "sole_normal_tilt_p99_deg": 41.97369156907295,
+      "sole_forefoot_slip_p95_cm_s": 0.662864833999996
+    },
+    {
+      "case": 222,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 12.977844427069256,
+      "sole_height_gap_p99_cm": 13.338101735026717,
+      "sole_normal_tilt_p99_deg": 41.7959732046854,
+      "sole_forefoot_slip_p95_cm_s": 0.007279255014998568
+    },
+    {
+      "case": 223,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 12.926455239899148,
+      "sole_height_gap_p99_cm": 13.291861683770504,
+      "sole_normal_tilt_p99_deg": 41.628371738467514,
+      "sole_forefoot_slip_p95_cm_s": 1.9912965165568077
+    },
+    {
+      "case": 224,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 12.849009020055282,
+      "sole_height_gap_p99_cm": 13.213055226629635,
+      "sole_normal_tilt_p99_deg": 41.36062494666697,
+      "sole_forefoot_slip_p95_cm_s": 0.00446923071641992
+    },
+    {
+      "case": 225,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 12.79385724134789,
+      "sole_height_gap_p99_cm": 13.156727461449773,
+      "sole_normal_tilt_p99_deg": 41.17032289303317,
+      "sole_forefoot_slip_p95_cm_s": 3.6477657662063194
+    },
+    {
+      "case": 226,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 12.672886107554199,
+      "sole_height_gap_p99_cm": 13.04190123222397,
+      "sole_normal_tilt_p99_deg": 40.772803063528436,
+      "sole_forefoot_slip_p95_cm_s": 0.005338118327093732
+    },
+    {
+      "case": 227,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 12.820791863351,
+      "sole_height_gap_p99_cm": 13.175168861561884,
+      "sole_normal_tilt_p99_deg": 41.18591211783698,
+      "sole_forefoot_slip_p95_cm_s": 3.1792858513117843
+    },
+    {
+      "case": 228,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 12.89915390122677,
+      "sole_height_gap_p99_cm": 13.262268855022532,
+      "sole_normal_tilt_p99_deg": 41.457205182683985,
+      "sole_forefoot_slip_p95_cm_s": 0.00477928484498285
+    },
+    {
+      "case": 229,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.014250771801164,
+      "sole_height_gap_p99_cm": 13.371991613140384,
+      "sole_normal_tilt_p99_deg": 41.87768225320638,
+      "sole_forefoot_slip_p95_cm_s": 2.4134812343389567
+    },
+    {
+      "case": 230,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.08684518778001,
+      "sole_height_gap_p99_cm": 13.443582964644907,
+      "sole_normal_tilt_p99_deg": 42.18715097367535,
+      "sole_forefoot_slip_p95_cm_s": 0.005110519767375444
+    },
+    {
+      "case": 231,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.194172805887018,
+      "sole_height_gap_p99_cm": 13.550655055610882,
+      "sole_normal_tilt_p99_deg": 42.70410125540088,
+      "sole_forefoot_slip_p95_cm_s": 1.3391311799143346
+    },
+    {
+      "case": 232,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.280387229673526,
+      "sole_height_gap_p99_cm": 13.628601136583482,
+      "sole_normal_tilt_p99_deg": 43.144750116271936,
+      "sole_forefoot_slip_p95_cm_s": 0.004673844526711617
+    },
+    {
+      "case": 233,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.399703056734863,
+      "sole_height_gap_p99_cm": 13.755350773298776,
+      "sole_normal_tilt_p99_deg": 43.864954083203585,
+      "sole_forefoot_slip_p95_cm_s": 0.7580100520772408
+    },
+    {
+      "case": 234,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.525486037229108,
+      "sole_height_gap_p99_cm": 13.86116588591261,
+      "sole_normal_tilt_p99_deg": 44.52476795618784,
+      "sole_forefoot_slip_p95_cm_s": 0.006999521925124243
+    },
+    {
+      "case": 235,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.67758532940438,
+      "sole_height_gap_p99_cm": 14.027991648950806,
+      "sole_normal_tilt_p99_deg": 45.54227527743726,
+      "sole_forefoot_slip_p95_cm_s": 0.6018060987054485
+    },
+    {
+      "case": 236,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.862579130675943,
+      "sole_height_gap_p99_cm": 14.179725044516713,
+      "sole_normal_tilt_p99_deg": 46.508435526193885,
+      "sole_forefoot_slip_p95_cm_s": 0.006186798489449181
+    },
+    {
+      "case": 237,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 14.074214638473844,
+      "sole_height_gap_p99_cm": 14.40195015989531,
+      "sole_normal_tilt_p99_deg": 47.89726351588384,
+      "sole_forefoot_slip_p95_cm_s": 0.4484232855078207
+    },
+    {
+      "case": 238,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 14.320502049756694,
+      "sole_height_gap_p99_cm": 14.611103220637183,
+      "sole_normal_tilt_p99_deg": 49.23572848773667,
+      "sole_forefoot_slip_p95_cm_s": 0.004529217128416598
+    },
+    {
+      "case": 239,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 14.632362456008135,
+      "sole_height_gap_p99_cm": 14.948772367500421,
+      "sole_normal_tilt_p99_deg": 51.30146261923497,
+      "sole_forefoot_slip_p95_cm_s": 1.1849399679428625
+    },
+    {
+      "case": 240,
+      "frames": 163,
+      "flat_samples": 163,
+      "sole_height_abs_p99_cm": 14.964257200577366,
+      "sole_height_gap_p99_cm": 15.266231099759876,
+      "sole_normal_tilt_p99_deg": 53.33594136187257,
+      "sole_forefoot_slip_p95_cm_s": 1.6338317164984781
+    },
+    {
+      "case": 241,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.299942355107193,
+      "sole_height_gap_p99_cm": 15.56143890965086,
+      "sole_normal_tilt_p99_deg": 55.304000581804154,
+      "sole_forefoot_slip_p95_cm_s": 1.2573482520540522
+    },
+    {
+      "case": 242,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.625482695983186,
+      "sole_height_gap_p99_cm": 15.832714499865922,
+      "sole_normal_tilt_p99_deg": 57.17824628935918,
+      "sole_forefoot_slip_p95_cm_s": 0.003668523182883938
+    },
+    {
+      "case": 243,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.451943037648206,
+      "sole_height_gap_p99_cm": 15.666202412834012,
+      "sole_normal_tilt_p99_deg": 56.5176605945027,
+      "sole_forefoot_slip_p95_cm_s": 0.6732738558413746
+    },
+    {
+      "case": 244,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.273487214943131,
+      "sole_height_gap_p99_cm": 15.495292852837606,
+      "sole_normal_tilt_p99_deg": 55.8290968346862,
+      "sole_forefoot_slip_p95_cm_s": 0.8922523977880852
+    },
+    {
+      "case": 245,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 15.090964414824734,
+      "sole_height_gap_p99_cm": 15.320600250287788,
+      "sole_normal_tilt_p99_deg": 55.11496188071198,
+      "sole_forefoot_slip_p95_cm_s": 0.6628308988931337
+    },
+    {
+      "case": 246,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 14.905479131984944,
+      "sole_height_gap_p99_cm": 15.142781161684933,
+      "sole_normal_tilt_p99_deg": 54.37795726089446,
+      "sole_forefoot_slip_p95_cm_s": 0.0035911368928263103
+    },
+    {
+      "case": 247,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 14.75009355984329,
+      "sole_height_gap_p99_cm": 14.996841031233782,
+      "sole_normal_tilt_p99_deg": 53.75338476353789,
+      "sole_forefoot_slip_p95_cm_s": 0.8422476125773591
+    },
+    {
+      "case": 248,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 14.590802992775577,
+      "sole_height_gap_p99_cm": 14.84552370073755,
+      "sole_normal_tilt_p99_deg": 53.09915385704848,
+      "sole_forefoot_slip_p95_cm_s": 1.1168962245540972
+    },
+    {
+      "case": 249,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 14.428338229383407,
+      "sole_height_gap_p99_cm": 14.689279529849822,
+      "sole_normal_tilt_p99_deg": 52.41667788241439,
+      "sole_forefoot_slip_p95_cm_s": 0.8311990144108474
+    },
+    {
+      "case": 250,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 14.263689428961676,
+      "sole_height_gap_p99_cm": 14.528662992450561,
+      "sole_normal_tilt_p99_deg": 51.70790993201061,
+      "sole_forefoot_slip_p95_cm_s": 0.004166266915668853
+    },
+    {
+      "case": 251,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 14.13192773167357,
+      "sole_height_gap_p99_cm": 14.412602751777486,
+      "sole_normal_tilt_p99_deg": 51.14682126656803,
+      "sole_forefoot_slip_p95_cm_s": 0.9114045977518572
+    },
+    {
+      "case": 252,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.997155788684191,
+      "sole_height_gap_p99_cm": 14.287462511390386,
+      "sole_normal_tilt_p99_deg": 50.546013640455115,
+      "sole_forefoot_slip_p95_cm_s": 1.2120925035444894
+    },
+    {
+      "case": 253,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.860024814066872,
+      "sole_height_gap_p99_cm": 14.153489594422844,
+      "sole_normal_tilt_p99_deg": 49.90558068059527,
+      "sole_forefoot_slip_p95_cm_s": 0.9057640061434841
+    },
+    {
+      "case": 254,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.721371180054,
+      "sole_height_gap_p99_cm": 14.01113252951781,
+      "sole_normal_tilt_p99_deg": 49.226477148832764,
+      "sole_forefoot_slip_p95_cm_s": 0.004245199017699357
+    },
+    {
+      "case": 255,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.617619709977138,
+      "sole_height_gap_p99_cm": 13.931672436519758,
+      "sole_normal_tilt_p99_deg": 48.75275892801204,
+      "sole_forefoot_slip_p95_cm_s": 0.8450680715929124
+    },
+    {
+      "case": 256,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.511658785081519,
+      "sole_height_gap_p99_cm": 13.837638758086822,
+      "sole_normal_tilt_p99_deg": 48.2243171780322,
+      "sole_forefoot_slip_p95_cm_s": 1.1251717761131073
+    },
+    {
+      "case": 257,
+      "frames": 162,
+      "flat_samples": 162,
+      "sole_height_abs_p99_cm": 13.404054084307187,
+      "sole_height_gap_p99_cm": 13.729163720160772,
+      "sole_normal_tilt_p99_deg": 47.639867903744786,
+      "sole_forefoot_slip_p95_cm_s": 0.8418080610100537
+    },
+    {
+      "case": 258,
+      "frames": 240,
+      "flat_samples": 0,
+      "sole_height_abs_p99_cm": 0,
+      "sole_height_gap_p99_cm": 0,
+      "sole_normal_tilt_p99_deg": 0,
+      "sole_forefoot_slip_p95_cm_s": 0
+    },
+    {
+      "case": 259,
+      "frames": 240,
+      "flat_samples": 0,
+      "sole_height_abs_p99_cm": 0,
+      "sole_height_gap_p99_cm": 0,
+      "sole_normal_tilt_p99_deg": 0,
+      "sole_forefoot_slip_p95_cm_s": 0
+    },
+    {
+      "case": 260,
+      "frames": 240,
+      "flat_samples": 0,
+      "sole_height_abs_p99_cm": 0,
+      "sole_height_gap_p99_cm": 0,
+      "sole_normal_tilt_p99_deg": 0,
+      "sole_forefoot_slip_p95_cm_s": 0
+    },
+    {
+      "case": 261,
+      "frames": 240,
+      "flat_samples": 0,
+      "sole_height_abs_p99_cm": 0,
+      "sole_height_gap_p99_cm": 0,
+      "sole_normal_tilt_p99_deg": 0,
+      "sole_forefoot_slip_p95_cm_s": 0
+    },
+    {
+      "case": 262,
+      "frames": 240,
+      "flat_samples": 0,
+      "sole_height_abs_p99_cm": 0,
+      "sole_height_gap_p99_cm": 0,
+      "sole_normal_tilt_p99_deg": 0,
+      "sole_forefoot_slip_p95_cm_s": 0
+    },
+    {
+      "case": 263,
+      "frames": 241,
+      "flat_samples": 0,
+      "sole_height_abs_p99_cm": 0,
+      "sole_height_gap_p99_cm": 0,
+      "sole_normal_tilt_p99_deg": 0,
+      "sole_forefoot_slip_p95_cm_s": 0
+    }
+  ],
+  "errors": [
+    "sole_height_abs_p99_cm 超过 1.0",
+    "sole_height_gap_p99_cm 超过 0.6",
+    "sole_normal_tilt_p99_deg 超过 2.0",
+    "稳定移动鞋底参考点穿地超过 0.5 cm"
+  ],
+  "marker_reconstruction_error_max_cm": 1.5668290349209589e-06,
+  "max_leg_length_error_cm": 1.3757761365695842e-06,
+  "including_transitions_lowest_sole_cm": -3.4561409066698427,
+  "stable_walk_lowest_sole_cm": -1.0370535296177312,
+  "stable_walk_double_air_frames": 0,
+  "measurement": "实际 foot 变换重建参考鞋底平面；不是逐顶点碰撞或地面 Trace",
+  "maximum_case_sole_height_abs_p99_cm": 17.14590931806831,
+  "maximum_case_sole_height_gap_p99_cm": 17.35309951668674,
+  "maximum_case_sole_normal_tilt_p99_deg": 57.17883534591777,
+  "maximum_case_sole_forefoot_slip_p95_cm_s": 3.690825741657813,
+  "status": "Failed"
+}

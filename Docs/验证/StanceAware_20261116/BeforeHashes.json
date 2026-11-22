@@ -1,0 +1,2482 @@
+[
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_CrouchIdle_Aim.uasset",
+    "sha256": "5ef12f2f3ce49284251602255fda2f6e1923ae33050920fcf10ffdc09da8b2a6"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_CrouchIdle_LowReady.uasset",
+    "sha256": "64f581898e631f02d6931ae3ada8bdeb9876893b12dd071b3347f25c155e1be9"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckBackLeft_Aim.uasset",
+    "sha256": "8877cb735dc486e66e50120f46850abf763d3bf77892e82cebd0bbc469c39a9f"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckBackLeft_LowReady.uasset",
+    "sha256": "8e74f07dd098e8ec50370a014956a0d75d50734d6313e78c9f593537e28ac189"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckBackRight_Aim.uasset",
+    "sha256": "97257d86e543484d8df9ba10446bf1470a78f718bd758ad0ebae5b3f45e9e611"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckBackRight_LowReady.uasset",
+    "sha256": "837305d8c769821d66f855f7ce9d9deea093c67157415cbb6d0e0ce4a1b23aae"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckBack_Aim.uasset",
+    "sha256": "b62b3a8048fd24e9dd0246510d683f2871cfb7726722f90656b19b41b0bdfc3b"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckBack_LowReady.uasset",
+    "sha256": "f53f10236175c3b9cbe8cd8f32d7b7ba68b65126d245dae489ef80e732b85e61"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_01_Aim.uasset",
+    "sha256": "e9e8b2f74e038144e08dfa16910fa8278dc3fc2372ee6b6f863404217ba7116b"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_01_LowReady.uasset",
+    "sha256": "212ab3ee7f3b3f744d8ce8bdbcffe520b64b32eb6742e4c9150f27875e16414b"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_02_Aim.uasset",
+    "sha256": "ece305524d72c734fbae1ed0c06ed644715d1a97fc5c349f92f716a48854a8fb"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_02_LowReady.uasset",
+    "sha256": "91e81c54c357fe2bfe30644150e2485ef6521813c5f7a7ff818586d3f512a5b6"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_03_Aim.uasset",
+    "sha256": "c81b6ec8a81c456466ab35e05ccf0f9d83c2689a1b71f8278322c00c352df7c5"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_03_LowReady.uasset",
+    "sha256": "f3274e22a3be0fac3e6901aeefa9bd0acd18bee56e3c6affc9b32c7e20043f12"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_05_Aim.uasset",
+    "sha256": "0b4425ae937e648e0037c9e2f548fe5a34cde370a70f8997345d603f24253b9d"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_05_LowReady.uasset",
+    "sha256": "a7ac40f2a033960b92e6e056a85ef01675851a513b8f770dc1d929b45570bbb4"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_06_Aim.uasset",
+    "sha256": "db36e7ab170a6bda67c3304c66c51511d7242fe7a410b5b9fee60ef9d8a84e27"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_06_LowReady.uasset",
+    "sha256": "053c959a894f90ac10e569e50aaeefccc5421c8003c31392c492768dca26e8ee"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_07_Aim.uasset",
+    "sha256": "1c464617ce3f6d4e59b40805fc7d43877c8038e943e5b376123ecb26729f79fb"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_07_LowReady.uasset",
+    "sha256": "dc7ab00b58d23bb2f84d182a0b36c9ea6657b5b56d2367e8b9271743177ce40d"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_09_Aim.uasset",
+    "sha256": "7ddd782153c5f8f4056437897cf3cd7bbfbaa787cff0050e5bb171fc288b8720"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_09_LowReady.uasset",
+    "sha256": "aab9a0bf58a791a2dc77c18c1bc1f09eb493a8e6e854ec49e32a9379bdf5300f"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_10_Aim.uasset",
+    "sha256": "3da3a2b48d6eb5d84213fc4305342bf43c58895d006785b92475a16f10929e08"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_10_LowReady.uasset",
+    "sha256": "1fb34e2cb22d2f21186249d050490215facbd94218ba73313cc2e2166f23b621"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_11_Aim.uasset",
+    "sha256": "0f84c74ad421efaf89b57d3dd642aa5a411654de35bb530faef3de94fd44c027"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_11_LowReady.uasset",
+    "sha256": "c5ea458a575550c01157d8d3abb5540a3b55b257aab3950ee3c7dbbcb4e439ac"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_13_Aim.uasset",
+    "sha256": "e3225cfd5f88adcfbb41a69e15145d618cd4b6e6df8995ad4315dd3342e5be08"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_13_LowReady.uasset",
+    "sha256": "cd1e32f258a496bce6c47eb48140a4f58acfd8ae422d3da292e1f21f0c19914c"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_14_Aim.uasset",
+    "sha256": "ea18df54e455dd069c0b14488cc1c2671def90a0cb1ad80bce6461d91d5d50d5"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_14_LowReady.uasset",
+    "sha256": "23c4eefae314a4d70a8d81057cd023396708940ada00e16eacb44f3299134e7b"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_15_Aim.uasset",
+    "sha256": "7551d55fbc37ea0b0a29ba7f83d9a6ce3d465a0544148b2369029f8afc83c1c4"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_15_LowReady.uasset",
+    "sha256": "432a67e58c2a4d855b183ef59246c83f6547fb51ea442af0d8f0bdffca9e92ca"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_17_Aim.uasset",
+    "sha256": "453f3f935965743495d4b2bccc2966a4262517671b01d6d3a169e5cc7e718124"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_17_LowReady.uasset",
+    "sha256": "e2c584813309da1da7e319aec1e038a55ae4e13ee008f79baa4f3be50252cebd"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_18_Aim.uasset",
+    "sha256": "9c41d9b062e33e1e8f2179f56d4725867b8c919210051735fbfefe6424582674"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_18_LowReady.uasset",
+    "sha256": "44d5a15aa97d23ac99b2ab7d83bafe4f0a5fcec8ab2f9770cc89512e289eeff5"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_19_Aim.uasset",
+    "sha256": "bf5d52338450d34f8e072b97009a09d743ed53ab3ed67cd48731cb57220dcf01"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_19_LowReady.uasset",
+    "sha256": "b76502a620234953c26f0b6b9a6caf01315c312c8fbbe36e3cd6dd7cd5d5faa3"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_21_Aim.uasset",
+    "sha256": "6edaa645648918ae96f18309e16e9e55145eecad8be4538b2123e1371b94301e"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_21_LowReady.uasset",
+    "sha256": "c626f752535f03ff604bfa7f8396929e575852a73c0e97ae96963c363d58c820"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_22_Aim.uasset",
+    "sha256": "03f9454ecfabd67319c6f227474d4833359c5bc8715ffb20b1c541190c671030"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_22_LowReady.uasset",
+    "sha256": "a2b950dcbe8d2d741aa2e2ee3c2ab8ec918d28f1a108b25b56f5b95a21ee1c36"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_23_Aim.uasset",
+    "sha256": "7165c3fd421c8dd3b54b73b6ddd0446c81bce63a47d14efca89f874edf251d13"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_23_LowReady.uasset",
+    "sha256": "005ff5b63ec5fedbb58cb1979a00939037fff15a93f342d4e39aad6d6eea12e3"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_25_Aim.uasset",
+    "sha256": "061e53aa4be3b4f1e2b7fd1ceed5d273f216790041e39a6d70a4359300b15e65"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_25_LowReady.uasset",
+    "sha256": "f01df25ae2ac37fdb5e51e057b43ddf6f7b63abfcc668f25622e0c57810858d4"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_26_Aim.uasset",
+    "sha256": "ae38527ab52c5b022c5116630f29e74bf01b71211bd06916523e3b013007eeec"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_26_LowReady.uasset",
+    "sha256": "d5d32c65cfc54f86b358cab212a937b75713b60acc98773ae4ecebdeac984a88"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_27_Aim.uasset",
+    "sha256": "864886b08221f429d45d8e9965b708c7a23935f067b962531e2d4d375f1fe19a"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_27_LowReady.uasset",
+    "sha256": "690dd0e4e643cb7632b82840c318f4f1c32f30012d467fe1f45c424bc07c832c"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_29_Aim.uasset",
+    "sha256": "bd587c716e89c529f09226f12cc9db003be23791c7b43d7c637a98a230fe6f2f"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_29_LowReady.uasset",
+    "sha256": "5704877fdc5ed8e08ad73019333538adcf40fd001e1afa4e3fa0a96bdf758537"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_30_Aim.uasset",
+    "sha256": "696db0c8525cb1a09cb66b351bf2ce070536d2a104e8a1fe101431c45918b68e"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_30_LowReady.uasset",
+    "sha256": "699790691cf56f13ed97d59c15411eb0f5f400d88c23d951b7fa6b528a599ef8"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_31_Aim.uasset",
+    "sha256": "fae6860c7d6c903d05f340911c0d794380c77424837eb37cba9c67bf95964e9c"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckDirection_31_LowReady.uasset",
+    "sha256": "efdd136a0da17a4a0afe626f2c1ac51b3adb04e88d22fb4d7f5da573e595e757"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckForwardLeft_Aim.uasset",
+    "sha256": "f87ff1c1334910a54ae9e36808c69decf95e0fdb3845c24e2f8d1934a03eeaf1"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckForwardLeft_LowReady.uasset",
+    "sha256": "0f253cfe62bd3ca47cf68d724a53a3a82237d8df7cf6a44082e8b4673d51ac8f"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckForwardRight_Aim.uasset",
+    "sha256": "0ed052c4ae48dbea97480ea122b98ef3d39ad757083de4035befb541ca987c8f"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckForwardRight_LowReady.uasset",
+    "sha256": "fe808ecc233ad0d68456d2a6f11b4962f3bf964f4e519ee3a0d962614c32067a"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckLeft_Aim.uasset",
+    "sha256": "8b8bab75f5415b62f9d6623cbcfd4a0d24e2451d02a3aea7e4bae4b6517548cc"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckLeft_LowReady.uasset",
+    "sha256": "8ae26921dab50f4cc166063b474f36eaae8646b7a3be2a515a787533148cdae1"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckMid_15_Aim.uasset",
+    "sha256": "98a6a15c3b3faef35c8a04f4caf86977ed398d32c002fdc6780dc32137467c33"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckMid_15_LowReady.uasset",
+    "sha256": "2d4118fa15dc6a36dd9dad3215febaaffb4c8ddc47e3d51d504d8108ab40d691"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckMid_17_Aim.uasset",
+    "sha256": "a3d559ce6459be66c50c3a75cd378ed9a1cc2efaa03196c527104ff05c18e0e1"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckMid_17_LowReady.uasset",
+    "sha256": "ab58072d9d714524794e75690a6df774e4e27c17cc3d61e11679503fea398437"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckMid_19_Aim.uasset",
+    "sha256": "fde262835daf33609330565a3213b9530394492b8f9f132231c1d79faba3aed0"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckMid_19_LowReady.uasset",
+    "sha256": "ffda7bce7da6fcd31be918bb6ad863fd071567cd594e0ec265d1d83920e96820"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckMid_21_Aim.uasset",
+    "sha256": "65c87e0ae9a74ea749fd6a1a36f8ecab95208b3cecc5e0bd8b40f4eeda215e3b"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckMid_21_LowReady.uasset",
+    "sha256": "c3a18178cd68c1704607e805bf1b778b6313ff86253ff6c876094285dc31c9df"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckMid_27_Aim.uasset",
+    "sha256": "e78c604f4ba39b39825d66505933e6dd8cbbe9b78099e3ffd51dc73a1d4ade63"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckMid_27_LowReady.uasset",
+    "sha256": "04b57fa38d5ee581d1ad994ed1bac8cf19b9d52b213c41690b7815f52877d110"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckMid_29_Aim.uasset",
+    "sha256": "51d4cabac6e430843933ec37ba616e1a339af544dfbf687581c4b9934cff2a45"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckMid_29_LowReady.uasset",
+    "sha256": "2248b759900da7d326a3f85f749fbca45916f7bb96f3b3fcf50c648153ae8d57"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckMid_31_Aim.uasset",
+    "sha256": "bb176add56128940f00e334290503e4f6905160ea08a53e5f7874e2a84a074ee"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckMid_31_LowReady.uasset",
+    "sha256": "1b5c57766e917420e59a4d00bd8ed17c20903e730db22f1d14f01e41831c077d"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckMid_45_Aim.uasset",
+    "sha256": "cab1a257a375172c77f500e7f1766486dd84670b96b0f8509dbb1798e3375e02"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckMid_45_LowReady.uasset",
+    "sha256": "9c29fa263c78a136656d8fd96858ceed208df07c63cd32cd77fada89b777ee6e"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckMid_47_Aim.uasset",
+    "sha256": "4e2c9580a71b745498c5d07fadc891a70c37a22ff4888ff00ac4d5bbc089e8d6"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckMid_47_LowReady.uasset",
+    "sha256": "5b5b1c7095acf2cea56c2c5e3e977a61ab27d3e8e637a90545ceb92158a48956"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckMid_49_Aim.uasset",
+    "sha256": "0843fc7cadd32e7ff1943e7364516838efb02e01efadffc221aee6e2e5554b9a"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckMid_49_LowReady.uasset",
+    "sha256": "8ac8e939afc89e0805974a7182d398a3312262be6c38b03aa1986cca82111e3b"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckMid_51_Aim.uasset",
+    "sha256": "a0d83710f516aaa812848ff5bca8b8302b5665af37d029e0dbe5bbad8346109a"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckMid_51_LowReady.uasset",
+    "sha256": "a942ca9f5e2558487d7a32afa6931f13d4c10e0840512115f884b617be6c0a50"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckMid_53_Aim.uasset",
+    "sha256": "ec5eae51726db922c0bf1e10d0de9885d11aabd354bc78574576d72e2c3a75e9"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckMid_53_LowReady.uasset",
+    "sha256": "b9fd0371c5db722b648b990b3f0861619bb04563125495cdb7432d06186918ae"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckMid_55_Aim.uasset",
+    "sha256": "010f09753ed99433d18d0d348527c67bda0790dd9681db2903cbdbb2c42fb8bb"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckMid_55_LowReady.uasset",
+    "sha256": "7c8f10412fb89def58335b7d931b3e6ad1375b478032fff7b8d4686031cee47d"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckRight_Aim.uasset",
+    "sha256": "cb4028a0bf085b2fcf6e3d610de3c3ab92db5d770dfce5aa2ab2a1e372cea3b6"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckRight_LowReady.uasset",
+    "sha256": "0a7b38ee8ad231632916dc5a723ae4582486378223b37b4599183c646389dba6"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckWalk_Aim.uasset",
+    "sha256": "cea4302460ac4f6c27b99394c79c54f7515aa49d8bb95af36707e375e02e4538"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_DuckWalk_LowReady.uasset",
+    "sha256": "9443bae92ec0dd4b3bed095a29c4863a7c5f2309138fbcdc0a4dcdf3996c74de"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_Slide_Aim.uasset",
+    "sha256": "041639dc01c0956904c0a8461dbbb970d5484d8020fe6418f41d95703da86d43"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_Slide_LowReady.uasset",
+    "sha256": "e16dc5c3abd6b07f6d2bf393304ae5dae89426de33a4a0bd7e968ec991129374"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_Stand_Aim.uasset",
+    "sha256": "6715a425c9e57b230b72f31b742b4e1586049d7abc3139a98083943f24c63d03"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/AS_Stand_LowReady.uasset",
+    "sha256": "cc50f3e5fd5af6da5d6d8d4ee162409dd34592827d16dc7a07fa5d91194e7a69"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/BackRight/AS_BackRight_CrouchBackRight.uasset",
+    "sha256": "f6316f09da80e86670bca588fdd15160cb1336e72b288b2c0c2e23da1ff6d95a"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/BackRight/AS_BackRight_CrouchBackRight112.uasset",
+    "sha256": "c5a5bcaca57b10f010de4199fb538896f9854cc475ad05dc970de2d2549755fb"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/BackRight/AS_BackRight_CrouchBackRight157.uasset",
+    "sha256": "b31218e60a34a6c61b84a9d3fd23e52da373fa8edca0caccee6e0f7a301fb6d4"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/BS_Duck_Aim.uasset",
+    "sha256": "7c2aef1383ef3abeabf570205be8f0635fca60354961ea6a72600e5d26b64b6e"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/BS_Duck_LowReady.uasset",
+    "sha256": "7975b6f9bcd8dc6ff691e3939bba3c047beb6edafc5ec084d74594ef2e44cd1c"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/EightWay/AS_EightWay_CrouchBackLeft.uasset",
+    "sha256": "b1534f5e919aa7fb237d2684f13af9f172c3398a70878ef7e1b81a641b03958b"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/EightWay/AS_EightWay_CrouchBackRight.uasset",
+    "sha256": "2fbe41c8aa38e82f49e7b941007ca942113d503a3f848bf7f1cf7c957e084645"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/EightWay/AS_EightWay_CrouchForward.uasset",
+    "sha256": "f894acc1360475cf8684775cc689fb1dd2556a2a4b6c4e5c3dc4deff18969930"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/EightWay/AS_EightWay_CrouchForwardLeft.uasset",
+    "sha256": "59751ff190af4b2d11e87aa2b5646b24fe138f62fd7cf916a523c5250261d7bb"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/EightWay/AS_EightWay_CrouchForwardRight.uasset",
+    "sha256": "b4d563c24a96a2eea813a79dee391791059b62bbe524e19aadfec7f6e88efe1c"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/L_StancePreview.umap",
+    "sha256": "e004fd76fb00532ac116ff088cd50a10a546966f7c2863215610bf290eb115e8"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/Mirrored/AS_Mirrored_CrouchBackRight.uasset",
+    "sha256": "3ca0913867ee712bff2b73cfe4ef98f7a962c2f304769e640652c72850aea891"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/Mirrored/AS_Mirrored_CrouchForwardLeft.uasset",
+    "sha256": "78d1eb7bfc048718aa0fc3f39eb2d3003fff5d194f0acb3c9907c9bd5f0a2bab"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/NativeGraph/ABP_StanceNative_FP.uasset",
+    "sha256": "aa88a7c89c372cc1be07ed15f60d9ad87e31bac58984f8a58504d42f48d96817"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/NativeGraph/ABP_StanceNative_TP.uasset",
+    "sha256": "54ab0b874ac7d03df60d2de48f485235ec1e1665aa2c5b21b58467c6c84d720c"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/SKM_FP_Arms.uasset",
+    "sha256": "8b698f9e790265210029784eb82609161d23b118c19f15a62af7da9ecc5ad6bf"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/SKM_FP_Legs.uasset",
+    "sha256": "8d115ad27aff6ea5af450340449b1057a5e2859f7309a2e310c28e93269bb938"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/Source/AS_Source_CrouchBack.uasset",
+    "sha256": "af07077ee146b99289c2ce0706310d384d3c01faed00d8895431bf912aa8f1cf"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/Source/AS_Source_CrouchForwardLeft.uasset",
+    "sha256": "e356e0874ab01a81499cf571c872ceacc0e25e8911ea9e94c718e043c9b4f086"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/Source/AS_Source_CrouchIdle.uasset",
+    "sha256": "254574b2cd2eef657c478d1b82070699bd1b8e39497ad36a18e87a7a17a0d1a4"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/Source/AS_Source_CrouchLeft.uasset",
+    "sha256": "ca2dfd0366122387707eb2f5320e43aadc13a4b8b6da7d0dae8ecc1ded2c6e4e"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/Source/AS_Source_CrouchRight.uasset",
+    "sha256": "21a9b4664fef05c75e274238fe6b372e20f461bd75a77b839b73a52958d33463"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/Source/SK_CrouchImport.uasset",
+    "sha256": "43c028aaf6d29076fc53cf2f40ba715ad7598b44d23fd4142dcd43f56a9e0242"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/SourceBaked/AS_SourceBaked_CrouchBack.uasset",
+    "sha256": "a8093acff26f7307e163409fa1d03a6690a3bcad13567bfa529af6d1399d08bc"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/SourceBaked/AS_SourceBaked_CrouchForwardLeft.uasset",
+    "sha256": "828f1724af0735940213eab8a6cb12dd6588bb10a42cad39166fc7e5bad1a70d"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/SourceBaked/AS_SourceBaked_CrouchIdle.uasset",
+    "sha256": "3bc5327cc7a3f6b26627a69fb4e10fa894050f6c23f2d9fb22a40c70342a3931"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/SourceBaked/AS_SourceBaked_CrouchLeft.uasset",
+    "sha256": "2a2b52be5ff6d3d8771e9213a9b4ea092fb9d51ebc945ad588a56278cb247ebd"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/SourceBaked/AS_SourceBaked_CrouchRight.uasset",
+    "sha256": "b3022f075894bed4bd862d67b1d94c5c28934b63568a63035d2e8283b9718002"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchBack.uasset",
+    "sha256": "0a15810a6db611b0ee2e0917ae8d9daebb7914131a4559846c6a76ee2d2192df"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchForwardLeft.uasset",
+    "sha256": "a9e843974112877aef40453eb668acdbe24f587d982040abef57e1e7e2d18527"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchForwardRight.uasset",
+    "sha256": "1f381e73d3d5ae928e4f4f6d52114030e458e635f604d606f0da4755ec53d451"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchIdle.uasset",
+    "sha256": "6d27d96fb7fa66ae812c3d998b6944746742cc4a0e91aecd20525d3666b880a2"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchLeft.uasset",
+    "sha256": "a6c1097321e6dfed2914b6206162464df3165fa30c1cec055cae7441c53e4b6e"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchRight.uasset",
+    "sha256": "dc1e388019a8d4f8be1839c3e322bf16c95f942f93f99e5f3b62f14ce4fabe81"
+  },
+  {
+    "path": "Content/Experiments/Stance_20261022/SourceLayer/BS_SourceLayer_Lower.uasset",
+    "sha256": "ed7f3948c39abc9f1f865abbf2bff2d0229c6ab1086ed969b7870d17c7498235"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Death/MM_Death_Back_01.uasset",
+    "sha256": "fdee63c4a4dc23076dda04b32eb8505bcd41fb791e574a264026c43e700bf923"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Death/MM_Death_Front_01.uasset",
+    "sha256": "c9daa694dda4639b106a29401712b03376344b301b6161955a92ba64ea60ae6d"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Death/MM_Death_Front_02.uasset",
+    "sha256": "dda4f9d6a4c8fc3bf79458d4d2f490965ff01401256e90fdf98a938a58c61986"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Death/MM_Death_Front_03.uasset",
+    "sha256": "bf3a411d465002756eb1a19cdb2bef63b75a57a9fab7ce121ee71941e010d2cc"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Death/MM_Death_Left_01.uasset",
+    "sha256": "712a25024fe931bd518fff6c935b82bc0ee2070a77caef63edd0d6fc7ff66508"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Death/MM_Death_Right_01.uasset",
+    "sha256": "7968e7e1bc3d8e33c3f0d8479e6753d011ced0e05a831eb7f10e28ceb536b9a4"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Pistol/Aim/AO_Pistol.uasset",
+    "sha256": "fd6ea3aa207bf09303a8ca5757e490f56f67339ad4ce44c000c1fb34a7b7812d"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Pistol/Aim/MF_Pistol_Idle_ADS1.uasset",
+    "sha256": "4d7113f1799219db01d8394c2984d5afd2957de07d66cfa463c9c33822e11d89"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Pistol/Aim/MF_Pistol_Idle_ADS_AO_CD.uasset",
+    "sha256": "2898b38d8ef305d1d2e285f519be72cde7e2b0106bb85657fda47e35dc27b15d"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Pistol/Aim/MF_Pistol_Idle_ADS_AO_CU.uasset",
+    "sha256": "e5c5855b58743d51bf1abe11b470749f50ae6074fac734da446d1c4a9b076650"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Pistol/Jog/MF_Pistol_Jog_Bwd.uasset",
+    "sha256": "f93aacabf40a36d906896e5c5998e4a63445749efa25c973092b9ae82ef1477f"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Pistol/Jog/MF_Pistol_Jog_Bwd_Left.uasset",
+    "sha256": "dc8a45c6259a8a51808ff3de4688302a65ce4988a05a5b0f70fbced01001ea6b"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Pistol/Jog/MF_Pistol_Jog_Bwd_Right.uasset",
+    "sha256": "e6f80eb946a12e3056a53d67b8134f5e9bd028eb66333a8a665c13d6cf14d1ee"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Pistol/Jog/MF_Pistol_Jog_Fwd.uasset",
+    "sha256": "caba32a2584600031bca7cec76875e50eb80e4c1d6fea3e249f2532388d4f221"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Pistol/Jog/MF_Pistol_Jog_Fwd_Left.uasset",
+    "sha256": "8ed2295bbfbbe7800395b2fc2023e082f6c9b2b7127dd6ceb5c7ec055486c39b"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Pistol/Jog/MF_Pistol_Jog_Fwd_Right.uasset",
+    "sha256": "d80c0c9bb0a8fae52095506f7f83c42bdd11b4d62ebfe57b1d9c7f40e8a9478a"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Pistol/Jog/MF_Pistol_Jog_Left.uasset",
+    "sha256": "4d8fcf3a8b6e581f4d06bc4fe2b307e1dcdcc7432cc114173c201a0115cad2c9"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Pistol/Jog/MF_Pistol_Jog_Right.uasset",
+    "sha256": "017f902b0a80b4fff2115c5c39f640b7622ad562a0ec137d25aae61d511d0b53"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Pistol/Jump/MM_Pistol_Jump_Fall_Loop.uasset",
+    "sha256": "7b01836fa36515fcb523644e82f2f130289a69a14314b6b939d5a580b3c5950e"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Pistol/Jump/MM_Pistol_Jump_RecoveryAdditive.uasset",
+    "sha256": "e9935321b5ee3fe9445cfa2a6c9f0d0391d888fbb9db71b1eaf76b3bc5345d6d"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Pistol/Jump/MM_Pistol_Jump_Start.uasset",
+    "sha256": "58c1e69b2690611740c465f92e3763fd9747b9a6e75fe6a7629b16c5fcc37e7a"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Pistol/MF_Pistol_Idle_ADS.uasset",
+    "sha256": "766a02544f06604946d8c47c47c6bb877e14208904306188bc1f5b174fd7715b"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Pistol/MM_Pistol_DryFire.uasset",
+    "sha256": "64b3c6dc7357f8a1b380057ef76e1cbb984d69e7d0732eaefd70befe2be7b67f"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Pistol/MM_Pistol_Equip.uasset",
+    "sha256": "7f5a1ed2c1b72a9bb27b417cb0d5315440af2b22b7b846254fbce50e2fbb3d17"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Pistol/MM_Pistol_Fire.uasset",
+    "sha256": "ebd8467dbb3de5ba0e1b2eac0092352e270b37e616bc443872341cde2f5c22d8"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Pistol/MM_Pistol_Fire_Montage.uasset",
+    "sha256": "2eabacc1911be6c5b0dff7cf8a5c29c0506a25ffa6f3e7fa5946e76f992e38ee"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Pistol/MM_Pistol_Reload.uasset",
+    "sha256": "f071597dc24d0f31b293bd5d243e92b035cc6cbde7fb1d820d5c09ffae0493e6"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Pistol/PistolAim.uasset",
+    "sha256": "47b842ffe023df1d1d5ec38eef26ee5400fe33fbc03124a035d900b46c9d1fcd"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Pistol/Walk/MF_Pistol_Walk_Bwd.uasset",
+    "sha256": "704dd7e116a755b086a8d685321f23e332bba6cb77dd6ae95542d38c462feb9b"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Pistol/Walk/MF_Pistol_Walk_Bwd_Left.uasset",
+    "sha256": "fff084ed3ca270a8d926f810f078a69347507851744cf399f3142c97e36e2fa6"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Pistol/Walk/MF_Pistol_Walk_Bwd_Right.uasset",
+    "sha256": "26a82255db90c0dc4e8c01d52a55f73b5f5a532ef161812faf63be65869f3504"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Pistol/Walk/MF_Pistol_Walk_Fwd.uasset",
+    "sha256": "7ac6171e3b841b09fff67dc4162b0c70f99f3107f549a20a213d5e05405dc69e"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Pistol/Walk/MF_Pistol_Walk_Fwd_Left.uasset",
+    "sha256": "bdd682c2a45cf6a73a34df6499f8bb4ccf8b68a42b8888c47b8532bfecb200d1"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Pistol/Walk/MF_Pistol_Walk_Fwd_Right.uasset",
+    "sha256": "b9b42e230d6fdf9f4f836592507c3f8a17dfd76d7b054b78b633a11722f94100"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Pistol/Walk/MF_Pistol_Walk_Left.uasset",
+    "sha256": "bc5f5b9f355e755023d1aa153070a073156f6d902b08e7cf78463f5e0bc8f629"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Pistol/Walk/MF_Pistol_Walk_Right.uasset",
+    "sha256": "e72f68c9a306ec44f7bc4f37e3533f2918ee19d99a1d8e60986036f2a4405d68"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/AIM/AO_Rifle.uasset",
+    "sha256": "b08ccf872547562e3f2b708c26ac9c2f194756b5c04848c6f1636d1357d4c931"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/AIM/MM_Rifle_Idle_ADS_AO_CC.uasset",
+    "sha256": "ca7d95ae0f4213298504e8e3420374f9f77cd0589f5ea6cc7d18fb795ad88695"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/AIM/MM_Rifle_Idle_ADS_AO_CD.uasset",
+    "sha256": "09b2c98aa7778b6a970b0d90882555cf920c03d761f1e50bb3feaf0e3c9a6fef"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/AIM/MM_Rifle_Idle_ADS_AO_CD_Fixed.uasset",
+    "sha256": "003c353194f3e4df9f6003eb4d3d62cc73c83fa392941fb43c259cc4691305e4"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/AIM/MM_Rifle_Idle_ADS_AO_CU.uasset",
+    "sha256": "60969c39ff3c1bd1e30e7c728a9dbe49c236857659b1ae8d20ae7605d8152324"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/FP_Rifle_Shoot_Montage.uasset",
+    "sha256": "b7e138882f885d7e053040cb0c9bbf4e132e97711a64bdc1604b3f0f642bd495"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/GrabRifleAndPutBack.uasset",
+    "sha256": "47113f68c7cdba02b041da5697143784d6d2189ba4b87c5aee6b78c9bf4dfb70"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/HitReact/MM_HitReact_Back_Med_01.uasset",
+    "sha256": "ecb41ae9339d797408a7b9c0270dc1f917b680a21f1c189ac0e3890f41185e0b"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/HitReact/MM_HitReact_Front_Hvy_01.uasset",
+    "sha256": "e5caf5938c73d131c9254c1af09cb7fd4335516c9a406be77c17ad5e1f2cdebe"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/HitReact/MM_HitReact_Front_Lgt_01.uasset",
+    "sha256": "ae8728f698434dd1e63978d5d92c5984d086d7ee39ce618598122b6fa87dc820"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/HitReact/MM_HitReact_Front_Lgt_02.uasset",
+    "sha256": "dcb6c068d81d5be1d84c88895805eb29c2f3f345668a10884836f00759b0647b"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/HitReact/MM_HitReact_Front_Lgt_03.uasset",
+    "sha256": "3949df1228e6c14047477538424f9440216915a0637da33cf6c7298400128073"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/HitReact/MM_HitReact_Front_Lgt_04.uasset",
+    "sha256": "e0ed26de9c333968631cc040e82aebac289a2fd655a1f348a3b09ce3b40f1ef5"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/HitReact/MM_HitReact_Front_Med_01.uasset",
+    "sha256": "cca3c893d68d8270a9eec9eb7572f7ed6bfcfdf6ce6345dc8b2860d6135dbe00"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/HitReact/MM_HitReact_Front_Med_02.uasset",
+    "sha256": "3acb6956f9eb6512e386b575c4c3e390f7d0280b037ca52e0eef813fb1f729d6"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/Jog/MF_Rifle_Jog_Bwd.uasset",
+    "sha256": "0fd489f5c8d4d63e84f8a25c2db46c3ae54eae828212b2a32622726e593b5d3c"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/Jog/MF_Rifle_Jog_Bwd_Left.uasset",
+    "sha256": "c3939c4aa298e6be0834256ef6f642cff0465a40d676ec7e464aaf504b44f729"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/Jog/MF_Rifle_Jog_Bwd_Right.uasset",
+    "sha256": "907cb106c1c466aac0b38753b7551af73a09c082a652c82c43df5418eb33b089"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/Jog/MF_Rifle_Jog_Fwd.uasset",
+    "sha256": "287d39883a65ccf6f89d91c7ca13b23184f04ae6eb5cc3867dd7ef7cfb35ec1c"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/Jog/MF_Rifle_Jog_Fwd_Left.uasset",
+    "sha256": "4103ea6388d484e8f71cd30b955c3c954750d922a0c030bf3d902bdb3e02c13d"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/Jog/MF_Rifle_Jog_Fwd_Right.uasset",
+    "sha256": "2ca8d8ec88d086d4cb6027a2eefdde258142587bca40e98dee021abe9c8824f8"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/Jog/MF_Rifle_Jog_Left.uasset",
+    "sha256": "4feaf1bd5b370e28f5dce611b28d955bbf84bbeb72b7e22972a0e143022621a7"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/Jog/MF_Rifle_Jog_Right.uasset",
+    "sha256": "e3c5cae5448dbb8c4e3bda5406202a8e55b08247695082270e1fef3dbdd6e533"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/Jump/MM_Rifle_Jump_Apex.uasset",
+    "sha256": "39acbd6bcfc5ec2795ee2497bb353fbe954766bda545c3318c3cd6ee5f1ee008"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/Jump/MM_Rifle_Jump_Fall_Land.uasset",
+    "sha256": "ce74e83b9b88fa3722951c1c6b2cc36ae7159b8141f5347e5b47d760cee41c42"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/Jump/MM_Rifle_Jump_Fall_Loop.uasset",
+    "sha256": "d17c0a4fe1d9bb970b3208909e1c35b7183568c7968a0d6d0de391cca216b472"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/Jump/MM_Rifle_Jump_RecoveryAdditive.uasset",
+    "sha256": "9d663743ac0fd361303751c55688a34053fbed145aaa88a004abd7b02533d5e5"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/Jump/MM_Rifle_Jump_Start.uasset",
+    "sha256": "925f27182be45054a1bbb5d458cb53d38773b356dd61e18b82fa9a72880dc8e7"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/Jump/MM_Rifle_Jump_Start_Loop.uasset",
+    "sha256": "c2da3d291df2070e1aaa62a45e445a7979948489b9e811e0d17f94b3e627d14e"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/LS_FP_Reload_Edit.uasset",
+    "sha256": "0f39b6bd894597e57b02273bbb5204fff2e4f7386d074120e208d29b93c82f92"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/MF_Rifle_Idle_ADS.uasset",
+    "sha256": "cfa32b19207a25546bb5bc2dde8454dc633cc27c3de45747e941756e23da5d4d"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/MM_FP_Rifle_Reload.uasset",
+    "sha256": "29eef1a3c16c056f88a87eb8e2001d39426761afa7ac5eaabcfae166adb4caa2"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/MM_Rifle_AimToLowReady.uasset",
+    "sha256": "0217eb0803e96178d5b7924421b2ec6148b1edcb94f70fee66df89647eae6056"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/MM_Rifle_AimToLowReady_Compact.uasset",
+    "sha256": "1b7d86542708f3d066b235e27509a68043bf7805cbe8227d0e64f7dd7ea51382"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/MM_Rifle_AimToLowReady_CorrectedGrip.uasset",
+    "sha256": "9234a479b7cb4ab9791491af09b2339569482d8d4fa4bb72f1b82c1eb79ccc97"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/MM_Rifle_AimToLowReady_Down30.uasset",
+    "sha256": "2e969eddeb60224fcd5b94a877c0f828151fda7a7b0b25d4b4a798dd2b94f461"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/MM_Rifle_AimToLowReady_Down60.uasset",
+    "sha256": "14c268c115e158aee971389bb472e0eb2793920c32738e6ddeed447d20be4843"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/MM_Rifle_AimToLowReady_Relaxed.uasset",
+    "sha256": "7fd43748b180c264a23f4db7ba25836471a1f683dc123194a67da3bbb4f69450"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/MM_Rifle_Draw.uasset",
+    "sha256": "e985c3c4c3687ea55a0e37a061d4cebcaa8c9acd0fc823a0c0e5417067339feb"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/MM_Rifle_DryFire.uasset",
+    "sha256": "131e01f0a31f999e7fd09ef190b314314c851f39101412161dabdb00d2dda801"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/MM_Rifle_Equip.uasset",
+    "sha256": "136b19498b8bac4119dde48236d22127e8463c0becff775069e0b6399b7939d6"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/MM_Rifle_Fire.uasset",
+    "sha256": "1c5b983bd6c09431c83866f772ccf13871ad9626426c86cc08a0c87c150555f7"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/MM_Rifle_Holster.uasset",
+    "sha256": "10eb81e22b36712b8789fbe26249da9409ef7ffa3740beb7deb9e824653dafaf"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/MM_Rifle_LowReady.uasset",
+    "sha256": "6b778021cda160cb078dc75405c0845b5e014691a390046083bb67df544652f3"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/MM_Rifle_LowReady_Compact.uasset",
+    "sha256": "786b4dba780d8ab8c788b4de1f0bfc9adfb61845591e89a3c361791c4cd5e338"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/MM_Rifle_LowReady_Relaxed.uasset",
+    "sha256": "0fb160d2828b74b381c1b5d67b425b290349f3d855beedf527edb8e6b4ee94e5"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/MM_Rifle_Reload.uasset",
+    "sha256": "8e59c2db897a408f9634366f2808b8f80812a7fbfae247753be9ed7a698801db"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/MM_Rifle_Sprint_Compact_Additive.uasset",
+    "sha256": "fb825746318f77d12b57e1bd4d62dbb7d5262b5dcbc30d2346f71e72e3252356"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/PutBackRifleBehindShoulder.uasset",
+    "sha256": "8e632184b72782283e26102789f9c69b41d036212538180637573cfd6c4d462f"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/RifleAimToDown.uasset",
+    "sha256": "59ecf99ac460d9ae11ab4906e5ddeaaef26c9fa4e461bb459132a08affbc6307"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/RifleIdle.uasset",
+    "sha256": "ddce1fe2d5d5c97406a1f355e40dbb5f220883f28e3fad8d2c9416c8f732b909"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/Walk/MF_Rifle_Walk_Bwd.uasset",
+    "sha256": "e1400dc7a7bfca224e0aa7796e5c230236ad634c808b2a1540cbad8903fa897b"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/Walk/MF_Rifle_Walk_Bwd_Left.uasset",
+    "sha256": "8d535eb181e756f56974efae068f34da050747fd8836fe2bb5f0c693f51325c2"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/Walk/MF_Rifle_Walk_Bwd_Right.uasset",
+    "sha256": "6e0bd9b3ba2e982ac9ffd60a643dab78cf886d194a26af518170a02dc4f3eac0"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/Walk/MF_Rifle_Walk_Fwd.uasset",
+    "sha256": "540a6a77c48027e13be84d483c6afd18d82fb115b7532334597ebefe2249ecd0"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/Walk/MF_Rifle_Walk_Fwd_Left.uasset",
+    "sha256": "f7797a7841cb86c3dc9e68dcdf968e538c9a7335abb1b0d9db95e0983b2226d7"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/Walk/MF_Rifle_Walk_Fwd_Right.uasset",
+    "sha256": "787c7b69a054c6f2850503c016a2ef2fade7ad0941375c8e521c3534bf695d12"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/Walk/MF_Rifle_Walk_Left.uasset",
+    "sha256": "a99d18722e504801616e1c0c495711c43c2d82c4465f7f388cdae8a45502bd1e"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Rifle/Walk/MF_Rifle_Walk_Right.uasset",
+    "sha256": "2c2c12d6a959d69c96962ca340bdfe984942df621ee2ff7e7e955662ddaee52a"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Unarmed/ABP_Unarmed.uasset",
+    "sha256": "60ae8c970189979d9e070beb0fd8675f4afb2b04d8aaa8d11a0f03c5b7ebf4b2"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Unarmed/Attack/MM_Attack_01.uasset",
+    "sha256": "f796113f17c91eca7e48ef57bbadc4fc36245a86b127e75a34ca4771500639ed"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Unarmed/Attack/MM_Attack_02.uasset",
+    "sha256": "fb3c74b8e32fb5a88c6d659cae8717294af85d4eaa7f684b2a36c36d245559dc"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Unarmed/Attack/MM_Attack_03.uasset",
+    "sha256": "1c66016fc3bd386453ac7fb1229a5f0644c6bd5f98ead29f6e6a1be80632ba1f"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Unarmed/Attack/MM_ChargedAttack.uasset",
+    "sha256": "5d9b0fc6892519095cb6930aba5c0dd063acf647612a06e0f2f7e19c463223ee"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Unarmed/BS_Idle_Walk_Run.uasset",
+    "sha256": "bc71af8768b569695d4bcb69c79867f998e085693f5e8230854d228de359f5bb"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Unarmed/Jog/MF_Unarmed_Jog_Bwd.uasset",
+    "sha256": "82a65792f0643c53f94d1228fea8ea83067ddead566f4ea6ed298cfcd4c35950"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Unarmed/Jog/MF_Unarmed_Jog_Bwd_Left.uasset",
+    "sha256": "cb18235ff1ef879746ff06dad9c4d91417e446a2ce66193b8bb1a1e2698db665"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Unarmed/Jog/MF_Unarmed_Jog_Bwd_Right.uasset",
+    "sha256": "69b9c68ae14ca561b564f917cf081b7c4a48dc0e6cc19e9e30e4bf537e5bdb03"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Unarmed/Jog/MF_Unarmed_Jog_Fwd.uasset",
+    "sha256": "b4fd37a07cafbf77515d8cb7a9490b41b6558e11a609f1c21834c89eb2fccb8b"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Unarmed/Jog/MF_Unarmed_Jog_Fwd_Left.uasset",
+    "sha256": "61de5ab06f9fe0d05d70c91536802be95fa3451e22ceb1797922a8bf1c11ae57"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Unarmed/Jog/MF_Unarmed_Jog_Fwd_Right.uasset",
+    "sha256": "c94fc06356185346594da3be8d4fb9127d2aeae1a36ba246ff2f22d1bbda54c0"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Unarmed/Jog/MF_Unarmed_Jog_Left.uasset",
+    "sha256": "57015024c01b75ea4d7f3663536050c2850c5a92f6220525b406df0284f962ab"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Unarmed/Jog/MF_Unarmed_Jog_Right.uasset",
+    "sha256": "a95f81fd651b6baa2d70903573bd41486c50725aa1e85907634d83589c421071"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Unarmed/Jump/MM_Dash.uasset",
+    "sha256": "8a1c964403b7b1d9d9f5e0dd8c20c1ae809606c5e8021b2983edfc65ac0a66f0"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Unarmed/Jump/MM_Fall_Loop.uasset",
+    "sha256": "408be742c63adffe8c6c1d22442e99ea34a7618cd33c6e78e0eed3d7db877433"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Unarmed/Jump/MM_Jump.uasset",
+    "sha256": "252cbf69b07b797d3c3c6177d3ae9df17e9873f4872c4fa040c0d441dc3b3cef"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Unarmed/Jump/MM_Land.uasset",
+    "sha256": "d5d7ce70ba010757393a3d56c1abaa19f4b2fd6b626a0d6fe91e307ff12e0f67"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Unarmed/Jump/MM_WallJump.uasset",
+    "sha256": "e29af6dc13219cb813097e596c143d964a18c118caca138015574009e50859c0"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Unarmed/MM_Idle.uasset",
+    "sha256": "11ee7fdeb84db89c1a66785b43b9bfc1415782122b8ac229517f4c5125d9cb0d"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Unarmed/Walk/MF_Unarmed_Walk_Bwd.uasset",
+    "sha256": "4b781fb6b7d7a1b0141d5b9d1f02382e8ef5103714ae609d7d0754e729db10fe"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Unarmed/Walk/MF_Unarmed_Walk_Bwd_Left.uasset",
+    "sha256": "add1959027d2aed25ab0e3d1f6161bacb8e10202e4a5f5f46db75522e2e14fe8"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Unarmed/Walk/MF_Unarmed_Walk_Bwd_Right.uasset",
+    "sha256": "336049291efd5c770c9c8308b730014fa613709b97130d2a0bfc13b205009839"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Unarmed/Walk/MF_Unarmed_Walk_Fwd.uasset",
+    "sha256": "8578b2ee94f8cf3575a7c73ec39e6455f7b67971f01a806ac52b23cb0aa5aeb6"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Unarmed/Walk/MF_Unarmed_Walk_Fwd_Left.uasset",
+    "sha256": "22e9dd6e67aebf656f28787f05c8c532778b4035081365b5e70850714cd4d376"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Unarmed/Walk/MF_Unarmed_Walk_Fwd_Right.uasset",
+    "sha256": "732150c3ea18738dcb0a760b4c6c850f4958bf75034044b14a1bb0b5b0be6720"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Unarmed/Walk/MF_Unarmed_Walk_Left.uasset",
+    "sha256": "1c1bb17ea4e8f4348916f30ce3e1ea4c98b998f69c3a16d5273992234f43569e"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Anims/Unarmed/Walk/MF_Unarmed_Walk_Right.uasset",
+    "sha256": "62f48923f121913b1844f2c6c46c11e5fd4892bea4454fce257fc62095dcc1a5"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Materials/Manny/MI_Manny_01_New.uasset",
+    "sha256": "36a6887490e7bf034eb90f911d4d64911d1c4bd9b6baaac982905ab4568648b0"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Materials/Manny/MI_Manny_02_New.uasset",
+    "sha256": "d6dfc2b3c7661bbd3e2a25783fe3321c703d4eb2220bea8b1d8f6094b301b432"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Materials/M_Mannequin.uasset",
+    "sha256": "f9c571bf9bebf26ffd95c744ff51600483de0265ea0bc7cf7db0a49bdaa683a0"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Materials/Quinn/MI_Quinn_01.uasset",
+    "sha256": "62a3050ef24b823f9fe84ac5d9c477099494982d35dafcc3d8078f32b0d4a865"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Materials/Quinn/MI_Quinn_02.uasset",
+    "sha256": "6aec77489fdfab0e1ea299de60fbd4f332face4495bbbd20b97fb0308bb9c5b4"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Meshes/SKM_Manny_Simple.uasset",
+    "sha256": "9c1c63fdf7078ef68285d954815117b1b7a5d8efe702ed6de243ff1b8e8ee942"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Meshes/SKM_Quinn_Simple.uasset",
+    "sha256": "418965fcb441051189c7c62aeff4c79230c711990242f0dbcc0592a82e78ff85"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Meshes/SK_Mannequin.uasset",
+    "sha256": "ea0f1cc4f2d21093395784d5e9b5d1c4645f3445b4936891a18af5c4045c8d40"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Rigs/CR_Mannequin_Body.uasset",
+    "sha256": "57f84458a160c35b77f0442d2af41054e41e021ebbb496c2c76dea76d1d89580"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Rigs/CR_Mannequin_FootIK.uasset",
+    "sha256": "aa01be065d2efa2dfd3b258f60b94b09fcd5d351356d16bb52578ef5bcbfb5c5"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Rigs/CR_Mannequin_Procedural.uasset",
+    "sha256": "057818dd3e0e16ff90c147e25a8fc5ab309c49c4c60360477cf4742e767d151e"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Rigs/CtrlRig_FPWarp.uasset",
+    "sha256": "a5b63eeecdcc530df06a6dba3618bb27d03e32c91e77aae523ee5631bfbed948"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Rigs/Ctrl_HandAdjusment.uasset",
+    "sha256": "9cba0663787d4a3ef3f42b5aeb36f184b34f4ff0acdc86b873c868bb06d76a4a"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Rigs/Ctrl_HandAdjusment1.uasset",
+    "sha256": "63a11e99ecca48b7a94947e9100229b0c19426e55037f2d636fa303138b3fd8e"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Rigs/Ctrl_HandAdjusment_Pistol.uasset",
+    "sha256": "d66e841dce27fba3a9b0816951343f0af462c4b870fb178f5f4caa9cf9da8270"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Rigs/PA_Mannequin.uasset",
+    "sha256": "c0ceaf003947088ff076555b81a46e5ccb11149c94025eb2a9e74263fbaa0d67"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Textures/Manny/T_Manny_01_BN.uasset",
+    "sha256": "2f623209571ecbd8185b5b463786be033c3284190b4fc7b249e8d1d2ed995fd8"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Textures/Manny/T_Manny_01_D.uasset",
+    "sha256": "6ae0f4f9908c30ecc9aedf1ebb442e4983e526a7832ec791542064c7853f9999"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Textures/Manny/T_Manny_01_MRA.uasset",
+    "sha256": "3e42e888aed8aefff68da7d7dda4f177c5647b19473e4e913f61375c1319abd8"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Textures/Manny/T_Manny_02_BN.uasset",
+    "sha256": "c9575d21c9e2872b3358c0efb9e202535ce2efce94c338b9d3bd04cb9831e353"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Textures/Manny/T_Manny_02_D.uasset",
+    "sha256": "474728713232c6833f55c041548f555bc62c5c49e74082a5d16e68a5ce488cfe"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Textures/Manny/T_Manny_02_MRA.uasset",
+    "sha256": "6697972eaf2dfe201923dba6a302f024b0ef4c4e46b4ecf578178717098e8277"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Textures/Manny/T_Manny_02_N.uasset",
+    "sha256": "61a9db73f72fe2d7d8821b33a79f57f3f11df9da9455822392b84b199c78e8df"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Textures/Quinn/T_Quinn_01_D.uasset",
+    "sha256": "04e5ed207b7df0d2ad1bbc668916bcf170545fc2a72875e49ec99c6e2667002f"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Textures/Quinn/T_Quinn_01_MRA.uasset",
+    "sha256": "0988d4d9f25597224910e1043591cb2a089a8607a4fe4a63cbc68f3eb2ab473e"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Textures/Quinn/T_Quinn_01_N.uasset",
+    "sha256": "10fbe9ac3e18e0a890d19756d3470ca372a1aeaffefbe9a22d6b0e6182293551"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Textures/Quinn/T_Quinn_02_D.uasset",
+    "sha256": "f0ccb2f465894c6f9ff4dd142351ed33186c5f861283a75f3e08d1531a253c49"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Textures/Quinn/T_Quinn_02_MRA.uasset",
+    "sha256": "9f7e495cbe0430aed7084b5508f87186f98346eb04f003734c9b378891da7887"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Textures/Quinn/T_Quinn_02_N.uasset",
+    "sha256": "0bc26466e9fdc954cc276bb6ac1350e22c3dabbe1b54b6bf78ed5ae2e339d9fc"
+  },
+  {
+    "path": "Content/Characters/Mannequins/Textures/Shared/T_UE_Logo_M.uasset",
+    "sha256": "34e6fa3414c04a86b7a5287e5569ea9d6e53c319d6e7dbfc8b09dab5b70611a6"
+  },
+  {
+    "path": "Content/Shooter/Animation/FirstPerson/ABP_FP_AWP.uasset",
+    "sha256": "879a0a8221b728d90ae30b3335555de6f4017b211fbe3ff52fde19a9e421c720"
+  },
+  {
+    "path": "Content/Shooter/Animation/FirstPerson/ABP_FP_Copy.uasset",
+    "sha256": "8e803bba89fbbb4eadb93e3b767e07a24a7b1ca26b283487e1582d6ea27c2d4d"
+  },
+  {
+    "path": "Content/Shooter/Animation/FirstPerson/ABP_FP_GrenadeLauncher.uasset",
+    "sha256": "9b490db7e3a56556819a4962e15285655e9d290fde4fa2df65504c4032d03a4f"
+  },
+  {
+    "path": "Content/Shooter/Animation/FirstPerson/ABP_FP_Pistol.uasset",
+    "sha256": "51669fa3816728dd89f0b06d9b90bff3bc26d77842d87fbf38575e68f36e31b7"
+  },
+  {
+    "path": "Content/Shooter/Animation/FirstPerson/ABP_FP_Player.uasset",
+    "sha256": "a946e1476cc0b83c2e45d41a99dc0de156c00e566566186dc87848672da24bc2"
+  },
+  {
+    "path": "Content/Shooter/Animation/FirstPerson/ABP_FP_Rifle.uasset",
+    "sha256": "f54674f22522ebdd84a25159e68b5baf37c775c69afa9f8c8738f0c09ee3738b"
+  },
+  {
+    "path": "Content/Shooter/Animation/FirstPerson/ABP_FP_Weapon.uasset",
+    "sha256": "d106633bdcd37981aa6db556e746ed2ca694397039702193c8338b307433a61e"
+  },
+  {
+    "path": "Content/Shooter/Animation/ThirdPerson/ABP_TP_AWP.uasset",
+    "sha256": "723f25cde802018da3865b0ad752250058a188cefd92ea98dfbd32374f5e6acb"
+  },
+  {
+    "path": "Content/Shooter/Animation/ThirdPerson/ABP_TP_GrenadeLauncher.uasset",
+    "sha256": "b88dec14db4bcde704bd106e2d4fb9116b89bc541e8be11e71f1c54f9687e5cb"
+  },
+  {
+    "path": "Content/Shooter/Animation/ThirdPerson/ABP_TP_Pistol.uasset",
+    "sha256": "0a93f26b6096c6dfb1a831ebb071912266cf2317918a1abf0a8fdf3d2b7265bf"
+  },
+  {
+    "path": "Content/Shooter/Animation/ThirdPerson/ABP_TP_Player.uasset",
+    "sha256": "703a674bbcbb2b1587f9539038e2325cca7d404afd5c4e0cb675d7c6307d8e60"
+  },
+  {
+    "path": "Content/Shooter/Animation/ThirdPerson/ABP_TP_Rifle.uasset",
+    "sha256": "2aa28c3e9ebe92e6e7bed8a2aef3812df0f49fcb1c01f0f157d48b198f159873"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BackRight/BakeSummary.json",
+    "sha256": "f6e49339975fa18e766b0445d2745364f4715a98eb1fa9586349fe65d6691134"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BackRight/CrouchBackRight.blend",
+    "sha256": "91042d576a9a0eb30b68b27bb60630047f8bf3c89b20bd9334ca0cef88d81517"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BackRight/CrouchBackRight.fbx",
+    "sha256": "8f948ecc25a5123e91e5a0497c0505a592fbf0aeda0d9c3b983ff2e0a98114f8"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BackRight/CrouchBackRight112.blend",
+    "sha256": "41efaf5978520eb918f0aaab74c8ab82d8768d0cfb957aa69501ad289b7fb626"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BackRight/CrouchBackRight112.fbx",
+    "sha256": "dddce1616381b7df2eca4b1489f3a2984a36ee7a5d8b49b608b693ab1071af71"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BackRight/CrouchBackRight157.blend",
+    "sha256": "86f542211024f2226fa5e26a3796d925f4bc461f6f3b4fbd82a3201f0d2052bf"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BackRight/CrouchBackRight157.fbx",
+    "sha256": "3ea0dc3efa43715907ba55c0c4ec7ee92089d05b1d61ec414500f6268c9688e1"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BackRight/Expected.json",
+    "sha256": "c9618b8286a7f2db4c5c7463d197447b98bf0c333ea72eae4dfa53aab4b6a03e"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BackRight/README.md",
+    "sha256": "73068d30f36abe1fa9dc5afef74d595c000d43b33e093c2acbad9871bccdd4f4"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_CrouchIdle_Aim.fbx",
+    "sha256": "5097581927b7a2c443b997807e57da529fe72fbf2ced4db6676bc314bc9b65fa"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_CrouchIdle_LowReady.fbx",
+    "sha256": "060ed7a81dad1af9beb6bd9f44adec85f4f82ab40c8c854fc2ba5cb82a448bf0"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckBackLeft_Aim.fbx",
+    "sha256": "54b4d7438661d772d36fc810e9f51cf91807d07c6e3d477eacc435fa59ad9a74"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckBackLeft_LowReady.fbx",
+    "sha256": "03660572dbf8143964821767cb2f3cb3d62b96c2a3a86a638cd843c60d66dccc"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckBackRight_Aim.fbx",
+    "sha256": "62e4948833065c5a2dc2b48ed35fa73c4c5bae9cb6d5503a7791e4e413fc6c1b"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckBackRight_LowReady.fbx",
+    "sha256": "29d72a58d3c3cd97766a3b8c9a54e462fdb120cbee2adf933777c74be1292b40"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckBack_Aim.fbx",
+    "sha256": "5938765e330d6d98680294c387e9166703093df836df873976a6cc6fb2b516f4"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckBack_LowReady.fbx",
+    "sha256": "d9818669b4861c703e0a350e3405f40347d3e211b9c883f26ea3105796ddeab7"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_01_Aim.fbx",
+    "sha256": "8830d5a7e11b4153b5e0d3638a4aa8ae67e5668eff49f3414963d37b0aa433a4"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_01_LowReady.fbx",
+    "sha256": "73e23034e552f29f0b5649ae14e6219eabac82c44bc21fa1ce919f04a3527301"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_02_Aim.fbx",
+    "sha256": "7c5810d96793839f5eb58e0af5ce62617786dee2a7f7c6d1cd3644330eae26b0"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_02_LowReady.fbx",
+    "sha256": "47affce2865f0a65fea32bd7167202789bc5f442c148f2a95bf26ff6376277bb"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_03_Aim.fbx",
+    "sha256": "ea7c1d1e08a2d3157828e281529151a117f671632bc218abf117e8bba2d10098"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_03_LowReady.fbx",
+    "sha256": "788208e440494afef88cc534008d76911ae13aaa5100b1aabddfb54968926999"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_05_Aim.fbx",
+    "sha256": "435ed630ede512f3b9db14f03f88cc921d470ed2a10d6b910be1be49dc434dfa"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_05_LowReady.fbx",
+    "sha256": "812b80ae8fa4bbc7495e5d2688cd15523bfa958cba616db3d09a95f16db8cf75"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_06_Aim.fbx",
+    "sha256": "35455280957d1282de18d634c4d9d76a136b09b8df15390edc17a2b39e0cbe69"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_06_LowReady.fbx",
+    "sha256": "581f84cc039084245ae531054d797814300b931d194acde979ebac8f32ff67ed"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_07_Aim.fbx",
+    "sha256": "b16848a2222d0db2c940e905b44711ffc42196fe05c19f642d73b919e1364124"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_07_LowReady.fbx",
+    "sha256": "8823e33bba0c29a0a8497e72d3ba05d5786b23c5282aa1bcbd25189bfaddd3e7"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_09_Aim.fbx",
+    "sha256": "fdad103a84b5244fc07588b7bc8c341159f5cd5790f48f8076052f1f7b9a83f1"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_09_LowReady.fbx",
+    "sha256": "cde70ab2da7d29aafe5ffa7ef7286028a6e30c20058a110904e07b44e1231a52"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_10_Aim.fbx",
+    "sha256": "85339059211e91897aeb2700cebc60c528123b6c31ad26426aaa2dd38273c7b0"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_10_LowReady.fbx",
+    "sha256": "cf909c9b516c93a2cfcdf40ad706b80d4764cee8a3690a60436c5f6b963a3626"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_11_Aim.fbx",
+    "sha256": "2a71e6a05a9f247a4fbd5bb57f31e098c4b976cf50159acc121e39263362bf6b"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_11_LowReady.fbx",
+    "sha256": "8072b94d3a026a7033319380b2694abca6070d2fa747432cc63f132f01edd216"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_13_Aim.fbx",
+    "sha256": "6edb2f8afb1307b329ef6305b29faa2e2130f8540cf28cdf0e38d03194c6da6a"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_13_LowReady.fbx",
+    "sha256": "ac7c47d8349fb3187b27be20a8e800fa43ee99fc19c5296272e1a0052ad7bd5e"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_14_Aim.fbx",
+    "sha256": "c6ed6eeef0b559281517591eb3db6570834fec73ef909c50805102c81485f910"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_14_LowReady.fbx",
+    "sha256": "0381e431e245ce30980c1bcd21124eee994c14a0ee2b7219ff1cdc9c3d7a093d"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_15_Aim.fbx",
+    "sha256": "d24f94d0a92474f593c0f490fb1c6aed047b0b73e2917b76d482acc42184e384"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_15_LowReady.fbx",
+    "sha256": "70fdb0894c6a028a92d931c385c6de6248ddffe9dbfd9fb9f4ce6a47a5472b9c"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_17_Aim.fbx",
+    "sha256": "8437fd068f597262155673d41604739c90d2192c2572752ff025e3bd66c50f81"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_17_LowReady.fbx",
+    "sha256": "8b9cb0243d5ace45451a06e24d5f5c57d713c2b3b3b2b4f98e81fcd9dead9bd5"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_18_Aim.fbx",
+    "sha256": "f8039cf9be89226fcc5bdb52814bd81b0011edb33b066154a26c04f001c0a50e"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_18_LowReady.fbx",
+    "sha256": "2f19336fdad6df7fef4ca91aa28c7bb76e938f9570fc1073ce0ec7661787a273"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_19_Aim.fbx",
+    "sha256": "6db441de99363f28a5a787b2e721eae58c665c611b45b943bb320a7c373e4743"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_19_LowReady.fbx",
+    "sha256": "95ce5073f409dacdcc4e80805fa58fcbf6f007b21a0454b6008b6dd9bac5337e"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_21_Aim.fbx",
+    "sha256": "b282d474459a901cd9773b299cd8752249c98af1938df766acc6680d25a6c4a5"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_21_LowReady.fbx",
+    "sha256": "74266165383d3353f0da1f03b108a9742b635ea75a922b8a4de2e2972224f67a"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_22_Aim.fbx",
+    "sha256": "3f1372f522bdad52a28cfd03729cc11d7776cf695665b858f5b38cdc30c97e44"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_22_LowReady.fbx",
+    "sha256": "c2147e6f0b0040dbbc190b17f7d260d165c16e919750b93ebdb2c7a6032c9c18"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_23_Aim.fbx",
+    "sha256": "bc864f2c96c79d581f4170820cab6f677a68afca7434b5e29e6d36ae50074f19"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_23_LowReady.fbx",
+    "sha256": "e30a8adb044c17ed4fc98604b72d0123a549c3a773307cfe7fadf6c09d1339f5"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_25_Aim.fbx",
+    "sha256": "ee0df94e2bba364267f64cb388c6a731cd7d4e7c35b4f9598e045acd7bce42bf"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_25_LowReady.fbx",
+    "sha256": "b37945322ba5decea374de015b70fb55690d27bc5c277b5605b0b068eeb70fcb"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_26_Aim.fbx",
+    "sha256": "37d83f8585e7be16cb8849ebd3795a91ee3ffaf4bf3e021aa2c195da877312b9"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_26_LowReady.fbx",
+    "sha256": "6a611b3d27f11255a77b5c88115f1081ec9b2e427cf20fa0336a9165b951979b"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_27_Aim.fbx",
+    "sha256": "c50b9965d2983440e6a359939f3adba251064675ce5dce5c95bbf5d40cb7e00a"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_27_LowReady.fbx",
+    "sha256": "15c52618adf01bd1d37f478c6da72d0c9848695d4a6bc8997e3298152d206b76"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_29_Aim.fbx",
+    "sha256": "d7cd1254cf8073f13a0c027f35ef681b6d455263982ed8d77d230455b59041d5"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_29_LowReady.fbx",
+    "sha256": "ff1e0b9d65f599c0aad070788bc237952105f921fda750e33575f45f1d1fe3cc"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_30_Aim.fbx",
+    "sha256": "7064acfc9a5bfac17f1c246da91dfd6d31bb604f11a439eecd3bca4de6847fa2"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_30_LowReady.fbx",
+    "sha256": "03fc80d4e45f8c40135876d20faf060465d28b1e53f0647432cbb64e4aee861a"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_31_Aim.fbx",
+    "sha256": "bd2b82a1febaf3cc0edcc94e6a0cb77b2f0bb2f1d9a105165fe4d026c2048d61"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_31_LowReady.fbx",
+    "sha256": "c14b8dbfaf7cc3430986764d7adfae4810b80bfbd1dda4aa13d694546cfaf201"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckForwardLeft_Aim.fbx",
+    "sha256": "1acb6572282c144a0ce5bf7e80f299c37cd4aeabd5d2ade436677a879e7ff4ff"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckForwardLeft_LowReady.fbx",
+    "sha256": "f0ac9d3e6d17087de961781b36045038c6fae6fb8a420d4416a7bea3e8fdd4f5"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckForwardRight_Aim.fbx",
+    "sha256": "9c273df9026b2427630f520a651d0c5adb2aab8748533fd4616017b3642c9746"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckForwardRight_LowReady.fbx",
+    "sha256": "831d9766faf1724f9635a9d44ddddbcb492553e099dba788b60da4ccc49b6ca4"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckLeft_Aim.fbx",
+    "sha256": "3f42b2ab322b60dfaa6fa670d12477398d8aff81d066c0a7fd264a98ad3c8367"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckLeft_LowReady.fbx",
+    "sha256": "7983404b5394d1a155ac9532d5c054bf34b2add4c44e34f4508f848821f7f530"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_15_Aim.fbx",
+    "sha256": "0515adfe4ab27462fde21f5b80ad4fb01f7aed2e3cb94c5b189c3b9f80804cc8"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_15_LowReady.fbx",
+    "sha256": "c5d6037852c5a026f7c7eae3687af48fbd4ff59a64326c9a8edbfca29d140a8e"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_17_Aim.fbx",
+    "sha256": "b330d8e47cb502d763a1338995bfebaace2256b4917f14da606b5dc93cad4724"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_17_LowReady.fbx",
+    "sha256": "ca3e3b6ffe39ae9cfa739ea78d8c8d94a6de50f03ddfb8238f111f04cd7deb17"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_19_Aim.fbx",
+    "sha256": "ba1f23b6523496665a441b9001c1b1065fd53072687114a4835455cb181668de"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_19_LowReady.fbx",
+    "sha256": "c662efa7e9a9dd813dc68f497429753c408c84863b999300f52d17e577d63ce5"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_21_Aim.fbx",
+    "sha256": "fc7541bc41264253659da707f4d4d38d4e2dcd07e9ee4cd0d099a5ba662df082"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_21_LowReady.fbx",
+    "sha256": "19251bf3a3e1c392a040a218a2ad71692e8d63211e3c7da578d35743eb7d5717"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_27_Aim.fbx",
+    "sha256": "24d5cfd901210a0bf1b2272a104fe30bcd07c3bcbd3634c61990bb38040033f2"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_27_LowReady.fbx",
+    "sha256": "3cf590799adddb9b3beebd24159e2921f63d6a6420f562d6b614348816feea9e"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_29_Aim.fbx",
+    "sha256": "8bf6b0be3ea9819b078c1b350f8b5738307c62e950adc41437cf5a0b82aee1c3"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_29_LowReady.fbx",
+    "sha256": "c189b5317bb8582ebb2c0c37f6c7a533ac61cf557729e5468d995e3a33a30a6d"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_31_Aim.fbx",
+    "sha256": "b75f61f305e316823e731c2b0802fc34efcffa76b1cd10d72519d450193a3b68"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_31_LowReady.fbx",
+    "sha256": "d3d8ad1b5560892a93cb9b51af251e782364845a607981735b74f8020c4268a6"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_45_Aim.fbx",
+    "sha256": "b1600f88d566790b00ed3f5b5c3d2cac7282784ad3beb49c9e3545d56496d859"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_45_LowReady.fbx",
+    "sha256": "528fce4b58e460969cec98657625e37401323ac5f77e598df2a2fd0239fe799f"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_47_Aim.fbx",
+    "sha256": "d30d3ee26ef64bbbf73dca18c1e805edeb57f60592c2847522b66dc10468e59c"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_47_LowReady.fbx",
+    "sha256": "a5f765775ac05a14d407f87c0e2f703a3d4b8fb1eff1dd993d97560aa1cf39d2"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_49_Aim.fbx",
+    "sha256": "f713a3d54c153921c27dc0f3104e4ce042433bf0c0e91a410050b4706d2f2152"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_49_LowReady.fbx",
+    "sha256": "68d7f9d8e030fa7e39e3e7b861c820ab3358d6f332c59d73399b4c325e955a3a"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_51_Aim.fbx",
+    "sha256": "6890ca4bf69b49daf7f431910d3717d6c5af893e4d434f50f82b8c33783fc459"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_51_LowReady.fbx",
+    "sha256": "cc6b35d560ab28c58fcf3ebf2b3dbfa9a080d453e7785c6165f9153791ea4da8"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_53_Aim.fbx",
+    "sha256": "1f3d1ed5504e12e6f26848f7522fbbd4c5165d2083a23ebf4bae0121704207fa"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_53_LowReady.fbx",
+    "sha256": "db76f159c07095c417cd5f47ebc64a9e898191ddbcc7f91385107bbbce7474ff"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_55_Aim.fbx",
+    "sha256": "4879da1ca736c74df7af2e4a46bf7759f30d59e6ecbf73847d11c8d2586ffb99"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_55_LowReady.fbx",
+    "sha256": "ea35a5f38a487c21a48dac526e40d972b8071bbeb1315d15ebf6afd21de70b9f"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckRight_Aim.fbx",
+    "sha256": "f10af63566307237fb61923815ba0a79f2ac54970e930fdd766ac40f7a64fe2b"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckRight_LowReady.fbx",
+    "sha256": "840469498c07e887dab0c3bf2d46b66ea6aa8a09d87648536ae1758b92f19a96"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckWalk_Aim.fbx",
+    "sha256": "a65303ead8459ce28513fda84c88e249355569ea9d5d3e524205add057d988f2"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckWalk_LowReady.fbx",
+    "sha256": "7ac2d4fb8c225c848bdff60706c100e5edad584955391a1c9afaef4c44eb37c9"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/Authored.json",
+    "sha256": "18126910e34bab9cea4c342b137be31972e78a89d1c4e31ad6fb9435868f5964"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/FlatFeetSummary.json",
+    "sha256": "77a8c33b0f4247b9f5c7053d29bd94286f237c9ec6a9d9a384d56e3234876c9e"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/NativeGaitSummary.json",
+    "sha256": "571525ec1ed87d946f1056964f5e4c798871fe05705e81a428354041198ab11e"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGrounded/StanceGrounded.blend",
+    "sha256": "404ec38eb3f0adb3994972b4c93a1545bbb23e65eb174fab386e5ef791fd537f"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/BlenderGroundingSeed.json.gz",
+    "sha256": "2990841b93fce0d5d5564d0876d2b8a69ac3aa069c28afad1dab0bef3f9396d9"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/CrouchBack.fbx",
+    "sha256": "5cea1844f84fff1c24b1aec3b14a37632b7940cb6692ac44e8c8ac9d72bf6278"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/CrouchForwardLeft.fbx",
+    "sha256": "a920a9a3313588dee457c24964259b99ac4706663d5a873fe2f2d1927761b8cb"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/CrouchIdle.fbx",
+    "sha256": "d8c0859e2c76c99da0b8f5b942fe802d0a56b1a6dd3f438253c0c24274de40e5"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/CrouchLeft.fbx",
+    "sha256": "502d1f9ed6a74c372dd220067c4502839c8a58db8cf194217ca649c688da0ee6"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/CrouchRight.fbx",
+    "sha256": "53d66093a9f6cd4fbc1d2a0cc8fc7c2c784c155badcc79d9dceb385aeb9aaea4"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/EightWay/AuthorSummary.json",
+    "sha256": "d2b04b2332d489cfc935448e352e8b67367ec764e45418e86f62aad97c9b03fc"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/EightWay/BakeSummary.json",
+    "sha256": "9c62b723ab3b2aaf0b4e5f8229241bf05cd81fa129f83585533f102131cc845e"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/EightWay/CrouchBackLeft.blend",
+    "sha256": "76078e1aec2540a36ba29597f3352961a925528077d53a24e51c35d5227751aa"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/EightWay/CrouchBackLeft.fbx",
+    "sha256": "6d3c15bc7e6b4c21254505120ad11c63d460b178f1dc40eb42dc8b656dfd6888"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/EightWay/CrouchBackRight.blend",
+    "sha256": "47c962e7d460f8d8ffa5900ef04e73d6c72c361d5617785c757f47d5d2d24120"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/EightWay/CrouchBackRight.fbx",
+    "sha256": "d49545f5944d8ba37b354028656a507d8934a41ee78bdc076b75df4802dbf5fe"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/EightWay/CrouchForward.blend",
+    "sha256": "c7f2023e79b01fda0fb031919273367e12122a8203b80a1af5e82d1b9c9abbe5"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/EightWay/CrouchForward.fbx",
+    "sha256": "a8b2050fcf7450dfadfc0cd13b9deabab00354d7134184d6440fae94faeaf88d"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/EightWay/CrouchForwardLeft.blend",
+    "sha256": "777cf8df8cc118ced40701539f045ed752e56697cf3c5f369e04032209e6f955"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/EightWay/CrouchForwardLeft.fbx",
+    "sha256": "2b79ed7dd6e57ee6d56ee69070ed25c9354936c534deb487812d376e76b27afe"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/EightWay/CrouchForwardRight.blend",
+    "sha256": "f86bb02855011a0ded294f0f7d25d52b60cd24be8261ff49f56b393e5e91ba3b"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/EightWay/CrouchForwardRight.fbx",
+    "sha256": "a768e44a95907d00c51340bd405c63ccfb925e461e1b849c2d796ea785146461"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/EightWay/Expected.json",
+    "sha256": "a2702dc6ee4e5183a7c03c92d0ec7f6cbd2bd3878ba067da412c22b4cb77a709"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/EightWay/Quality.json",
+    "sha256": "798be56002714f556b4a39f2c6172a72e6135e54d8d21a9085ee372bcf3c5b60"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/EightWay/README.md",
+    "sha256": "ede668d26a3954e39f5fa17434c36c850306ea67469599316c20f70caa023d13"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/LayerPlayback/BakeSummary.json",
+    "sha256": "6c3830159e8bf78ff485f41c1a6ded9df0856cfd1566d4e2a72f9faee8944b34"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/LayerPlayback/CrouchBack.blend",
+    "sha256": "e4597cb66f2cb743a8421b134c313096ef8f31841494f343edf8a991d8fe4d7f"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/LayerPlayback/CrouchBack.fbx",
+    "sha256": "ff6d481d71a5e4979877f8846b2607f35507ed937af317ee7e229d40cf4dddbc"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/LayerPlayback/CrouchForwardLeft.blend",
+    "sha256": "9bd1c1d6fa20a9557559c96bee132777a08d911ce71f9bac44029137030d2abc"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/LayerPlayback/CrouchForwardLeft.fbx",
+    "sha256": "e00aacdb06bac40fefaa333483608a242fec463a9aea4dd686f8d67d743b0553"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/LayerPlayback/CrouchForwardRight.blend",
+    "sha256": "162d3d2062bf2b42946e15efa919535c4bf0a4caf7ac8256ab348683ac4c5aa1"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/LayerPlayback/CrouchForwardRight.fbx",
+    "sha256": "83f1033d5fa36d4f22f7ecb548d79898a818954364d17804a20eaea64fb731d1"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/LayerPlayback/CrouchIdle.blend",
+    "sha256": "c23a405006110c22764d597f3359ecf37b42483974a48b4cd167b36cb66484e2"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/LayerPlayback/CrouchIdle.fbx",
+    "sha256": "fdca06a68a32c531c7323e9a23e54e5fd5e4929d958da03c7dc6625ada3d5d38"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/LayerPlayback/CrouchLeft.blend",
+    "sha256": "c91c24739868caff2ac0bc80e6358a45a6a0c623a9309dd31b1ba8ecf44179a6"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/LayerPlayback/CrouchLeft.fbx",
+    "sha256": "2f1b01dfcfd573ea0724d7cc3f694211d6490311953f868883922ff803ef4136"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/LayerPlayback/CrouchRight.blend",
+    "sha256": "7a26d6fb368a4e95e5f5c6a0232537aaada385d42cb2bf7ac865af6b7d800034"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/LayerPlayback/CrouchRight.fbx",
+    "sha256": "c02b57867c0d7d4007154816e1958165da300957ecad60884ec1274e690e6ada"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/LayerPlayback/Expected.json",
+    "sha256": "bd0ea71f9121377b23c6ff3934a0db86c1a5960e80134f72d740832627dac2b3"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/LayerPlayback/README.md",
+    "sha256": "1864092b3c069321725a1c33b28d7a6219880863cb9f975b1db71332d27f528f"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/Manifest.json",
+    "sha256": "93d3fea802637a1ed6cd765e6fe0841af52d00471552a01c00c1bac68bf39f6d"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/Mirrored/CrouchBackRight.blend",
+    "sha256": "1fc27367c74d922dda334cd91442704411a0053bd59498593d7ed87c8a9646a6"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/Mirrored/CrouchBackRight.fbx",
+    "sha256": "89bbbb1e8533f89d95dd95e332fa9026d375e46ab7a606cbe5297691340fa51a"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/Mirrored/CrouchForwardLeft.blend",
+    "sha256": "b9233d018a7a86ce6fb96080389078e5196352a9ed3bfb1fbcd8169c70d2270b"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/Mirrored/CrouchForwardLeft.fbx",
+    "sha256": "1aa14150209bc28fb948d751645bde2509fa2f8af9966a8dcf3770d4429d1f4e"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/Mirrored/Expected.json",
+    "sha256": "6be57570d50ce21fb3d5a983c0ca60a97589ab7d5fc9d50203a4e7392dd34d0b"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/Mirrored/MirrorSummary.json",
+    "sha256": "99948ce86f59f1914ba023833fd87418def546f3706140f5ce505727bb975e87"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/Mirrored/README.md",
+    "sha256": "00f7e6712e10876809f9909e685e76d18ca6ff4d9a8f26eb604f59ad45e1e67e"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/NativeGaitReference.json.gz",
+    "sha256": "82f9f389cbe96d92adb65ef4d22bead4ed5f19be6bc1ca3f7fb07786813f3f82"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/ParentBaked/BakeSummary.json",
+    "sha256": "3d15fc896f89ec68eeff220bb709eab61911adb3d1acb8dabe76d3966bd4738e"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/ParentBaked/CrouchBack.blend",
+    "sha256": "519bf5292155b633e43ae5fcb61dc3a971c8eef30ea094974591d0a578556797"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/ParentBaked/CrouchBack.fbx",
+    "sha256": "dff8b9be100babb2748061592ba3ee21a387de8e0cfad8bd801b7e63c30f3fa3"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/ParentBaked/CrouchForwardLeft.blend",
+    "sha256": "1c1bcdab2a5e2a64b111bfefad1069fe14807ba18437e1366b21b9dbc7665729"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/ParentBaked/CrouchForwardLeft.fbx",
+    "sha256": "a4b79abed5ce080502ee5dc385f59104c097ae9921027fe89e392294b969f8a4"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/ParentBaked/CrouchIdle.blend",
+    "sha256": "f8c7359357daa1ab92e5fed9b180826ef04b3d7cbcdf3fbfa12d503910ddbcab"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/ParentBaked/CrouchIdle.fbx",
+    "sha256": "fc3d18c3d3b94b72686358ca2db70b870eb79e2d0e41ac953eb2b39de8e62988"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/ParentBaked/CrouchLeft.blend",
+    "sha256": "04a9ca5e3a97ff051ef3cb9ab3efa99df00ce082ae480e67583563f75ce75cfd"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/ParentBaked/CrouchLeft.fbx",
+    "sha256": "735d32dbd9519b3cbc3c84c8fa23fea50c607142435965a97a3b1d62d702671b"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/ParentBaked/CrouchRight.blend",
+    "sha256": "7f829d3c513fb6176c2c3d606e16895ad9e1f77a177665f6e8f45cee5bc80ae3"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/ParentBaked/CrouchRight.fbx",
+    "sha256": "152078cf7db6f41e4a6c0b9b03d34c89b1aa14e08d9aef93e295f8ba93682e98"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/ParentBaked/Expected.json",
+    "sha256": "48182e92b1ae210eca40ed801e52a56abe33643cf58fa5ffc974b34be001820f"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/ParentBaked/README.md",
+    "sha256": "055487f43a1cf2cfc241e525236c3dd64c7fb3247ca783a4e2e9af0482dec604"
+  },
+  {
+    "path": "SourceAssets/StanceCrouch/README.md",
+    "sha256": "0233e7ba4f0a2b43a57c1a84b901f8a7cdbb08dbd3a54704b83f6d207b9850e5"
+  },
+  {
+    "path": "Source/ShootGame/AbilitySystem/Abilities/ShooterGameplayAbility_Equip.cpp",
+    "sha256": "59215866573d925c37bbdca93317c39c359d7a83301e594ed266045dcbc62cb0"
+  },
+  {
+    "path": "Source/ShootGame/AbilitySystem/Abilities/ShooterGameplayAbility_Equip.h",
+    "sha256": "76283f640579f7dc3b22fd44c89df1c0f6c60465408296ae52d08a464f615581"
+  },
+  {
+    "path": "Source/ShootGame/AbilitySystem/Abilities/ShooterGameplayAbility_Fire.cpp",
+    "sha256": "7911d77bf45f211687ace53570771d1fb568f70c3c9fd24f474dfb4320cce88b"
+  },
+  {
+    "path": "Source/ShootGame/AbilitySystem/Abilities/ShooterGameplayAbility_Fire.h",
+    "sha256": "1d74e5ca52528036bb789e62363a1bfcf8e9a537e5eb4053095c4f11b91f0638"
+  },
+  {
+    "path": "Source/ShootGame/AbilitySystem/Abilities/ShooterGameplayAbility_Reload.cpp",
+    "sha256": "b72a822f72241fcb7d0559e8731d4522104e495b073113a8d18b229d3cd9c2ce"
+  },
+  {
+    "path": "Source/ShootGame/AbilitySystem/Abilities/ShooterGameplayAbility_Reload.h",
+    "sha256": "620e17436a3d033b870ff69af7d907a02f73cc05d39f212d9f3d0d2253163b30"
+  },
+  {
+    "path": "Source/ShootGame/AbilitySystem/ShooterAbilitySystemComponent.cpp",
+    "sha256": "5ba715f7b5b06304ea9ed5256f1a3148f67c39578f63c2d1088694e40b21987c"
+  },
+  {
+    "path": "Source/ShootGame/AbilitySystem/ShooterAbilitySystemComponent.h",
+    "sha256": "f45783340e240bc11294e48402eb60c88f51582912e51fe67e6b45b10737df9a"
+  },
+  {
+    "path": "Source/ShootGame/AbilitySystem/ShooterAttributeSet.cpp",
+    "sha256": "e4a7c9f49d33b072d222a8d9e6a434dc1a0539b369a390f398368ccca2dc9acf"
+  },
+  {
+    "path": "Source/ShootGame/AbilitySystem/ShooterAttributeSet.h",
+    "sha256": "4d68d941cef3d16d9216de30a851262751f83078dbe508d9bf570422fae83237"
+  },
+  {
+    "path": "Source/ShootGame/AbilitySystem/ShooterGameplayAbility.cpp",
+    "sha256": "cf4bd5e8c2962a10339effef1ccb4328aa8d30d66a5febcd6b47e463511ccd9c"
+  },
+  {
+    "path": "Source/ShootGame/AbilitySystem/ShooterGameplayAbility.h",
+    "sha256": "c7790f6593a6f2e902c49bfa88bdcaf4565f2c694873fa075c46c9f6efb816b4"
+  },
+  {
+    "path": "Source/ShootGame/AbilitySystem/ShooterGameplayEffectStatics.cpp",
+    "sha256": "bf69ea126fc5182b03de3b51070335569cd76849b5bffdcef4fc13fae7bb5058"
+  },
+  {
+    "path": "Source/ShootGame/AbilitySystem/ShooterGameplayEffectStatics.h",
+    "sha256": "db468ecc0aadc010afd4e5fa649d8d8ae4a94b37883309dadde5371e64f2659b"
+  },
+  {
+    "path": "Source/ShootGame/AbilitySystem/ShooterGameplayTags.cpp",
+    "sha256": "217c3c5bea1c29e26f3679047c33e2775abd2f3ae15968c3880f2436e77e35d5"
+  },
+  {
+    "path": "Source/ShootGame/AbilitySystem/ShooterGameplayTags.h",
+    "sha256": "17389d763ab041b7a9881fbb5627c9db42b4ae0ad778f9f1ca8d73d0a928898b"
+  },
+  {
+    "path": "Source/ShootGame/AI/EnvQueryContext_Target.cpp",
+    "sha256": "133260fe07c100db90076b18b0c725ee20c76e7cc6cabae9d9731fe6994f5bff"
+  },
+  {
+    "path": "Source/ShootGame/AI/EnvQueryContext_Target.h",
+    "sha256": "795054c41e98c04107e0b1b8f1fdc2a59dad85586c476389cd92d9519a23d51c"
+  },
+  {
+    "path": "Source/ShootGame/AI/ShooterAIController.cpp",
+    "sha256": "eac0e4e6855e76a684c7225111356e8b98bba748f753be1cd8e2559f14dbfbe8"
+  },
+  {
+    "path": "Source/ShootGame/AI/ShooterAIController.h",
+    "sha256": "91af9a71b13b9909a6955d81ad252961b07aeb182bd731291e5791a48667fb69"
+  },
+  {
+    "path": "Source/ShootGame/AI/ShooterNPC.cpp",
+    "sha256": "bda7a5551c637810330025ff763f18b822f5a50c6a85e0680a405eae6fc2cbe9"
+  },
+  {
+    "path": "Source/ShootGame/AI/ShooterNPC.h",
+    "sha256": "1d03a2a157f11b3567f5f7717862e67042c5ba36e7ac1ae8214dd2929f14ea9f"
+  },
+  {
+    "path": "Source/ShootGame/AI/ShooterStateTreeUtility.cpp",
+    "sha256": "bdaab072e9a969b5efe798cb52ab11e0f1a318ccf775ed10127642932378b4c9"
+  },
+  {
+    "path": "Source/ShootGame/AI/ShooterStateTreeUtility.h",
+    "sha256": "95924a1aee4e989425ea3490c2552b7cf314ea5b2354cdccacce24f0bf956a58"
+  },
+  {
+    "path": "Source/ShootGame/Characters/Aim/ShooterAimMath.cpp",
+    "sha256": "490aae45d3e6bfa7bfcf70a0400ab8cf70f0a458183c2339ac5c93e2e844f970"
+  },
+  {
+    "path": "Source/ShootGame/Characters/Aim/ShooterAimMath.h",
+    "sha256": "d8c44a6ed01e163302d4f3bca7e1b9c23300dd241b4dab2de5ca4a9cc6ad74fe"
+  },
+  {
+    "path": "Source/ShootGame/Characters/Aim/ShooterAimPresentationComponent.cpp",
+    "sha256": "ed0cc09ed19315f1cf1d2093f1e5ae2aadf06df3f72ef95f8c45aaa5f45567ee"
+  },
+  {
+    "path": "Source/ShootGame/Characters/Aim/ShooterAimPresentationComponent.h",
+    "sha256": "3aa7380e8a874a89cee9a44e04749fbebaf6b3e48fc6ae665e8a60b3aae6a269"
+  },
+  {
+    "path": "Source/ShootGame/Characters/Animation/AnimNodes/AnimNode_ShooterAimIK.cpp",
+    "sha256": "d435fa285503279fac78b0595c33560d20fd6a9d4a77d92bfb2e9b58843a0700"
+  },
+  {
+    "path": "Source/ShootGame/Characters/Animation/AnimNodes/AnimNode_ShooterAimIK.h",
+    "sha256": "dbc977360e1eb4e78bfccde91effa069cf9259f1559f607cdf206be803dea866"
+  },
+  {
+    "path": "Source/ShootGame/Characters/Animation/AnimNodes/AnimNode_ShooterLeftHandIK.cpp",
+    "sha256": "7c206d0aa35fee3356b1a203ab2f8bf65fd16d400e09920ffef6364663b95330"
+  },
+  {
+    "path": "Source/ShootGame/Characters/Animation/AnimNodes/AnimNode_ShooterLeftHandIK.h",
+    "sha256": "fc57ca1d52a41773692a782b32a97fcdbf8c840f0b08bf341ae33f356211aecf"
+  },
+  {
+    "path": "Source/ShootGame/Characters/Animation/AnimNodes/AnimNode_ShooterRifleHeadPose.cpp",
+    "sha256": "1be8e3fd21ecfab5a5401b573a625c630fd2eff35814d692a55170b851a00354"
+  },
+  {
+    "path": "Source/ShootGame/Characters/Animation/AnimNodes/AnimNode_ShooterRifleHeadPose.h",
+    "sha256": "a937397af29dc7f4b247e8e306ae6e5f86c3f6a6f160985ff831a3322936f99b"
+  },
+  {
+    "path": "Source/ShootGame/Characters/Animation/AnimNodes/AnimNode_ShooterRifleReadyLayer.cpp",
+    "sha256": "e970aae43dd7615ca2281be92300ce0d70571eb3ab7ab8e40cd8677af3c932ad"
+  },
+  {
+    "path": "Source/ShootGame/Characters/Animation/AnimNodes/AnimNode_ShooterRifleReadyLayer.h",
+    "sha256": "c545f7b6cd97013153e50136124e3f39172d611d72eea3d6c04c67a0c7ee3661"
+  },
+  {
+    "path": "Source/ShootGame/Characters/Animation/AnimNodes/ShooterAimIKMath.cpp",
+    "sha256": "41ee847575ea1e359ff40901e70d41e2fc0a48cc579906d7fc5afb50bebcf6a9"
+  },
+  {
+    "path": "Source/ShootGame/Characters/Animation/AnimNodes/ShooterAimIKMath.h",
+    "sha256": "ca15564cec6fe6f4cd36c7c7be1f9b1d994becc6009735d273d3207b3a6d42a6"
+  },
+  {
+    "path": "Source/ShootGame/Characters/Animation/AnimNodes/ShooterLeftHandIKMath.cpp",
+    "sha256": "0fd2cf506660da16a5eb41b4dc630280e0d82a5d9692e238aa18977f4ce623a0"
+  },
+  {
+    "path": "Source/ShootGame/Characters/Animation/AnimNodes/ShooterLeftHandIKMath.h",
+    "sha256": "3cec77d9ee5767ce5a98d49f4e1948e83184b5bb69f511311d8422126d449eaf"
+  },
+  {
+    "path": "Source/ShootGame/Characters/Animation/ShooterAnimInstanceBase.cpp",
+    "sha256": "6d418b5f86573bcffedcadc7113291ca59cbed6ae137a656a345d5a85a53e2dc"
+  },
+  {
+    "path": "Source/ShootGame/Characters/Animation/ShooterAnimInstanceBase.h",
+    "sha256": "e04b41b5e3e8c166bb3ab4b999680075ce1ce7539d5106c176114ad971ddf74f"
+  },
+  {
+    "path": "Source/ShootGame/Characters/Animation/ShooterAnimNotify_Footstep.cpp",
+    "sha256": "d4b67a100ccadaa672730c2dd6f9ec8b188656f126d7f6fff6b7793832741989"
+  },
+  {
+    "path": "Source/ShootGame/Characters/Animation/ShooterAnimNotify_Footstep.h",
+    "sha256": "be28c17d334bd4b07c14f545ff92e5bc083f44bf0cb1a4cbc9b6435867288cba"
+  },
+  {
+    "path": "Source/ShootGame/Characters/Animation/ShooterFirstPersonAnimInstance.cpp",
+    "sha256": "7101fc86b2a5bcf52057fdf7b92e3574303f3e32f9a3d9f2c91714f26193d9d7"
+  },
+  {
+    "path": "Source/ShootGame/Characters/Animation/ShooterFirstPersonAnimInstance.h",
+    "sha256": "bf80dc5704beef7dc88f17a6319e8e1ac69192b53a63bce1920e43df182afd0a"
+  },
+  {
+    "path": "Source/ShootGame/Characters/Animation/ShooterThirdPersonAnimInstance.cpp",
+    "sha256": "ebeeec3ce4b9a46fb1bef554fa5bb64ce851ff809f34f8447bd49e0822a6acd2"
+  },
+  {
+    "path": "Source/ShootGame/Characters/Animation/ShooterThirdPersonAnimInstance.h",
+    "sha256": "b3f8a17db6d69fc7c8abe44e7ee6d3e892d110bcd241b870379d78ab342db61e"
+  },
+  {
+    "path": "Source/ShootGame/Characters/Audio/ShooterFootstepSoundSet.h",
+    "sha256": "9960b7460bade923b9fad67ff7a4ec732025d589b6db347dffd1d0285c84cf6c"
+  },
+  {
+    "path": "Source/ShootGame/Characters/Equipment/ShooterEquipmentComponent.cpp",
+    "sha256": "69a39681dfb1470a4666cf4288d4636dd6c849cba0794ad2d116d24c3aa2cf1a"
+  },
+  {
+    "path": "Source/ShootGame/Characters/Equipment/ShooterEquipmentComponent.h",
+    "sha256": "d0d65782ad016845a5a0cfb82984a2c3ee3f23a56d27f2fbf73d027114f00af9"
+  },
+  {
+    "path": "Source/ShootGame/Characters/Movement/ShooterCharacterMovementComponent.cpp",
+    "sha256": "887a9e48550dbc3504dc30dda24f39eefb4f3ce06f431183e203f56e31a7ce6b"
+  },
+  {
+    "path": "Source/ShootGame/Characters/Movement/ShooterCharacterMovementComponent.h",
+    "sha256": "b090adb47364b4e0cb04be51f42f6d2d8c2b5639d2e9a83e6ed37be7b03b7d23"
+  },
+  {
+    "path": "Source/ShootGame/Characters/ShooterCharacter.cpp",
+    "sha256": "cf9f46260dcb605de0170623d4ec5c1f86ca24473070945cc82931208cd223a3"
+  },
+  {
+    "path": "Source/ShootGame/Characters/ShooterCharacter.h",
+    "sha256": "479d3a7df03a2c7d5fb5a6a56a6e9ece7d485046e41e2e33d63f83fe577786e4"
+  },
+  {
+    "path": "Source/ShootGame/GameFramework/GameMode/ShooterGameMode.cpp",
+    "sha256": "3435fcf636dfa6001543613de0bce54b52b193b028455821e7ce5b2eceb75fd7"
+  },
+  {
+    "path": "Source/ShootGame/GameFramework/GameMode/ShooterGameMode.h",
+    "sha256": "b40c17d1d123da228c6658a666a9e3d4fb108eaa63359820eeda6587536026ef"
+  },
+  {
+    "path": "Source/ShootGame/GameFramework/GameState/ShooterGameState.cpp",
+    "sha256": "1d0febd5034ec05a50fceb49619dc81c505be794bbf318543d21cc84cf3c24a1"
+  },
+  {
+    "path": "Source/ShootGame/GameFramework/GameState/ShooterGameState.h",
+    "sha256": "f1584586e0f5b42816a079547104576d8916a085ca51960e5a61667b382044c5"
+  },
+  {
+    "path": "Source/ShootGame/GameFramework/PlayerController/ShooterCameraManager.cpp",
+    "sha256": "efc204ef241a73c5a18afbf0e59e29dbd13d7eb971976bc9baa4b0c8a7eae859"
+  },
+  {
+    "path": "Source/ShootGame/GameFramework/PlayerController/ShooterCameraManager.h",
+    "sha256": "c8429460c173be4ed468a8b068c9b3b39b234554d2bfa57a35704cc79a4ca0bb"
+  },
+  {
+    "path": "Source/ShootGame/GameFramework/PlayerController/ShooterPlayerController.cpp",
+    "sha256": "bd1d28ef6b38ed8c8505120dcec0b6c59c39120881cfb08ede53b684ee13009b"
+  },
+  {
+    "path": "Source/ShootGame/GameFramework/PlayerController/ShooterPlayerController.h",
+    "sha256": "3e3ae737c55cd4003a90fe9cf3be2e977afc38fd1d536c6799fa205fa7bf36bb"
+  },
+  {
+    "path": "Source/ShootGame/GameFramework/PlayerState/ShooterPlayerState.cpp",
+    "sha256": "4d477a258c502d88a2e1e884156d0ff5e2c08f2e42906003a942d15f112778ff"
+  },
+  {
+    "path": "Source/ShootGame/GameFramework/PlayerState/ShooterPlayerState.h",
+    "sha256": "a25fa9f2664d7a483e3bec8f454880ab501898b3dcdf9402874965b6f325266a"
+  },
+  {
+    "path": "Source/ShootGame/Inventory/ShooterInventoryComponent.cpp",
+    "sha256": "09a24787c1bfc48cbd3b2726add77780234e64f3e9d0a2f3583e4948f115144d"
+  },
+  {
+    "path": "Source/ShootGame/Inventory/ShooterInventoryComponent.h",
+    "sha256": "ac564dcf131979071ed37936cd806cb18fe2ef4aa9aa1d39f074664f2d00e36a"
+  },
+  {
+    "path": "Source/ShootGame/Inventory/ShooterInventoryTypes.cpp",
+    "sha256": "1645c567f7b0863ddaa1d6f6347654e7852780bbc4833f5c01e2cc2e54f28535"
+  },
+  {
+    "path": "Source/ShootGame/Inventory/ShooterInventoryTypes.h",
+    "sha256": "42575e3d43ed511302203efde0bc0d7b83c58b31621a9592ab14c44e684cdd58"
+  },
+  {
+    "path": "Source/ShootGame/ShootGame.Build.cs",
+    "sha256": "c3ffb595bb97f518c5c18d1813f8c01829eb792b798a291668373d81dcfcca9d"
+  },
+  {
+    "path": "Source/ShootGame/ShootGame.cpp",
+    "sha256": "a2e4ec9702fc9f57ab61ee0f2797ad4d13fc431a84456760bed85d913f61d97b"
+  },
+  {
+    "path": "Source/ShootGame/ShootGame.h",
+    "sha256": "853b1a28c9e3a2de73e01ef65f33230ea69b60fbe82e9796e19125592d959e6f"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Ability/ShooterAbilityEquipBehaviorAutomationTests.cpp",
+    "sha256": "3201ec7b8ea0606cb1e66c132318f5f88b42fb5adbd71cf5b1147b1fd25bf47b"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Ability/ShooterAbilityFireAutomationTests.cpp",
+    "sha256": "352a0fff2bd9612538b7c2098d9d1043f7bb0d5af384a13b1be091372329ba88"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Ability/ShooterAbilityFireBehaviorAutomationTests.cpp",
+    "sha256": "7a492f870c303ec7b7151c7ba730544d47e07d5622984d3da2dfcfb4386eef5d"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Ability/ShooterAbilityFireCancellationAutomationTests.cpp",
+    "sha256": "0bf80fad652226f2b783ab65024b3b9185a5f116046dc46d70bb8b7aa4ac2b3f"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Ability/ShooterAbilityFirePredictionAutomationTests.cpp",
+    "sha256": "7af8345b5a896f2aa88d8c2a52cad750fdffd7c8ae2f92b2318c93f09dab0f30"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Ability/ShooterAbilityInputBufferAutomationTests.cpp",
+    "sha256": "0a442f36066ba2c6d6c6b08e39e8188bd9f7ac79c7e476480495f3060e063afb"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Ability/ShooterAbilityInputLifecycleAutomationTests.cpp",
+    "sha256": "479cf80a9600c7038d9d1ca59f51542368be806ed9dce68730866de24d571b97"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Ability/ShooterAbilityReloadBehaviorAutomationTests.cpp",
+    "sha256": "1c6b12ff025e569f83cb2f741a6173355e386284b10cbfaebf6764668d6adad6"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Ability/ShooterAbilityReloadEquipAutomationTests.cpp",
+    "sha256": "f490ad3acae8a58db29a477c9cfdb6801f17100b828014ae5a68bd5e938a1a57"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Ability/ShooterFireInputLifecycleAutomationTests.cpp",
+    "sha256": "54f953a2e79849663099b833b31f17c678ae90f5cc67470b8fd34926c91ec59f"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Ability/ShooterGASAutomationTests.cpp",
+    "sha256": "6aaa7230b5abe2992caf66a6d587a21d7710de6a9b091c0195cb0ac91e4f86cf"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Ability/ShooterInputBufferTestTypes.h",
+    "sha256": "38723b6210ee0fbd426ff2360dd0996b2ef4cb9db4eb30ce23bbe6b2a650b000"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Aim/ShooterAimMathAutomationTests.cpp",
+    "sha256": "d6ae69f6baad53d14ba52b2570e7581b3f03e4d84c95d56fc146b9529a307a9b"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Aim/ShooterAimPresentationAutomationTests.cpp",
+    "sha256": "25299095d151bf6a44d997465fdec2d58d6aa1873184ca96c2f08234445f555a"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Aim/ShooterAimPresentationInputResolutionAutomationTests.cpp",
+    "sha256": "9868c1cae98b7e93f17f0ec4560f10df89c5aa59b76d2e8b04c4c57da93673f7"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Aim/ShooterAimPresentationTestHarness.h",
+    "sha256": "0a3ed86213b31495e065ab4dc7eddbb2a23bed9d8cf14002a919c969520477ba"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Animation/ShooterAimIKMathAutomationTests.cpp",
+    "sha256": "ea04e95b7bf518c20c4c0eb74e018015ca87e1a2afa5d89fc5908b8fa31fa129"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Animation/ShooterAnimInstanceHierarchyAutomationTests.cpp",
+    "sha256": "c387135f67aeb5888ef51bf5e18df5783359bf5c46be4423e8a012e6d3b25ef1"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Animation/ShooterFirstPersonCapture.cpp",
+    "sha256": "0e4d54e8a6d28673ededf0ba0525cd035a7528b32e13f3f2eff52fa671998222"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Animation/ShooterIKBindingAutomationTests.cpp",
+    "sha256": "7a0adaf8f3546e5025eb9e3b8b237c9364af484cc0f10cff8a73df1749357f06"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Animation/ShooterIKBindingTestHarness.h",
+    "sha256": "c49ee13d9014010d3deaf9cc6a9bf908ddd3a8accee38f17b71e6398a17490bf"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Animation/ShooterLeftHandIKAutomationTests.cpp",
+    "sha256": "6c2f3b28de5bc039ae1a36fb68360f603a566a0c3d40aee0a9beef6f4f68d7ef"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Animation/ShooterReloadIdentityAutomationTests.cpp",
+    "sha256": "93b2efc1b10aaf351b96b0bd8ab5aec1386cde6862218d6cc5c1a5df972016d6"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Architecture/ShooterArchitectureBaselineAutomationTests.cpp",
+    "sha256": "c4891d184472fb20e04a66a2e24b024710cbe969ab880a31e544698ebda295a5"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Architecture/ShooterArchitectureTestTypes.h",
+    "sha256": "1e12d7899552763585ada051c254eba87a0e4e9953cbf5f1205aa975adbeab16"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Audio/ShooterFootstepAutomationTests.cpp",
+    "sha256": "6944ea5706a909337096831be67116585b9266363caef2174a6e42ae23ad9f99"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Audio/ShooterFootstepNetworkProbe.cpp",
+    "sha256": "60a90e56f3e643345133de211317396a99165e93aa3212f7ddf2ae4f63fa4de3"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Equipment/ShooterAmmoHudRefreshAutomationTests.cpp",
+    "sha256": "453b4961d7faa0e0cdcd5a32f16c47470bd98ea06e4b07ca3202311dc3a0ccde"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Equipment/ShooterEquipmentLogicalEventAutomationTests.cpp",
+    "sha256": "281a9c33069290d1cad6525a64863f5b93e40c6ac0732216de259caceb7dd233"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Equipment/ShooterWeaponPresentationBaselineAutomationTests.cpp",
+    "sha256": "bfcfe4a9b21d92db1af1533366e6d0d8c10f5743dbd1c2aa2baa080e7690a562"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Equipment/ShooterWeaponPresentationIdempotenceAutomationTests.cpp",
+    "sha256": "4bbfeec6abd4fc50b98aff63211e1a95d772ae4b89f9878dedcb83ab57d9aac0"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Equipment/ShooterWeaponPresentationTestTypes.h",
+    "sha256": "e471c1073f1262e3cff6d877a644db1be2fd1da2ef46199abb12024567a2e4a8"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Inventory/ShooterInventoryAutomationTests.cpp",
+    "sha256": "e591ba79defbfd645ad7b74a8bd2dbb583a075ccdadd16006efb47f97a99dd8f"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Inventory/ShooterInventoryLifecycleAutomationTests.cpp",
+    "sha256": "3af6bc0913aedeb93466a42d71dab3cc9536542c58ee048f9a27d1e325928b3e"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Inventory/ShooterInventoryReloadAutomationTests.cpp",
+    "sha256": "685415e52cde3ed5395486bc7598beb840e4df325adcee14ed005b9ec10a18f3"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Inventory/ShooterInventoryReserveDeclarationAutomationTests.cpp",
+    "sha256": "1cb0ef210a68c3f83246d4c2a955ec5686f3558dea6d8a7cebe177e88dfec624"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Inventory/ShooterInventoryReserveTestTypes.h",
+    "sha256": "d8d5195a58da76401160c3c5ae508631e756d97a50e6e2c936bedaf17c4b3402"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Inventory/ShooterInventoryWeaponRowGrantAutomationTests.cpp",
+    "sha256": "ae4aa4681f8c3cc5875cda712e6e5fc6d0fc469e06ac00b93a3eea2bd796061e"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Network/ShooterAmmoPredictionNetworkTests.cpp",
+    "sha256": "aaec5bd6acbe092db62eff76703acf4c581523c9542e7d40b886923af1a01312"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Network/ShooterNetworkObservationTypes.h",
+    "sha256": "d8392a40144fbd88ab0429b45b9eb8ff616ea24d40f71a984d62a5868b97931b"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Network/ShooterNetworkTestCoordinator.cpp",
+    "sha256": "688e309fad6dc00d1e77366f3b79a0ace166ac70bef4491c8494bd6bd6c9d02c"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Network/ShooterNetworkTestCoordinator.h",
+    "sha256": "3653452aea425efb987be7aa61bdf8a9e054b57e87c796387babf675ccdd90ee"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Network/ShooterOwnerSingleShotReadinessAutomationTests.cpp",
+    "sha256": "1e930acaabe37e5a8e0e9ba8e8ea38a68c2061609cc583c6ccc3f50bb5948957"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Network/ShooterReloadIdentityNetworkTests.cpp",
+    "sha256": "75bf5716e7171ad79a6e17c05587ad917f0e5311f43d15c270bdf837a3eaafbf"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Network/ShooterRemoteBatchAutomationTests.cpp",
+    "sha256": "1c399f1960d48bc9f432cca2550f5bee08d0007a8d8836043a989bc15ca1519f"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Network/ShooterRemoteBatchCoordinatorAutomationTests.cpp",
+    "sha256": "6b63819fff6bcc1ff4051c66706a370f02b56abda9ae58d1343c655424c845f4"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Network/ShooterRemoteBatchForTest.h",
+    "sha256": "442003a6f541de5365f36db86bb12d531181c6b5ea943e7ab453002316b0d849"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Network/ShooterSprintAutomationTests.cpp",
+    "sha256": "d0bafa03aa08537c4457d76ace92c3eaaee11197ededa703ff30d380df9927c7"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Network/ShooterStrictWeaponNetworkTest.cpp",
+    "sha256": "9304361bc2e623fdc8238849407adf20cbbf987f4a48e221e729b04ed4b05f42"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Pickup/ShooterPickupRespawnGateAutomationTests.cpp",
+    "sha256": "9838a26b349789ca40b48f46eda7aa5bf68d690bdf13ae3d6250ca90c1fcdcff"
+  },
+  {
+    "path": "Source/ShootGame/Tests/ShooterTestWorld.h",
+    "sha256": "c9419f1caffeaf125dff6336d45ba4ae261f6511b2c463b73a4baaac8ce85c4b"
+  },
+  {
+    "path": "Source/ShootGame/Tests/UI/ShooterBulletCounterReserveAutomationTests.cpp",
+    "sha256": "64d7dd1e32cbd257051b25e13bfb81779b537737a4d1a5763013c34aea6d54dc"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Weapon/ShooterProjectileFireBehaviorAutomationTests.cpp",
+    "sha256": "d15de850e4e0de8d7f43a5648cfb90f02124fdd1154622f138c2eb1a4c688aeb"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Weapon/ShooterWeaponAutomationTests.cpp",
+    "sha256": "c2fe1356a57d73c11ab369b4c1140694108218453e2b7d872d0c93ace7965093"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Weapon/ShooterWeaponLifecycleAutomationTests.cpp",
+    "sha256": "043b29150e5138be7ef4f56ff438aefee2b1b3757fff8a712cab3cdb0fe29bb1"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Weapon/ShooterWeaponMagazinePresentationAutomationTests.cpp",
+    "sha256": "2f29f44a1bc312639f6342de69e9ffd7c8d544c44a518a42b72a2e86e196f19b"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Weapon/ShooterWeaponPoolIntegrationAutomationTests.cpp",
+    "sha256": "b4da67a78f725a170d3a51bb1725bb688b65084355ff4f140c677c875aaebf10"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Weapon/ShooterWeaponRowCompletenessAutomationTests.cpp",
+    "sha256": "b5568567f989eae2bc8bb7d06aeedf0892c8fc5e4d289780be21f9383df396f3"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Weapon/ShooterWeaponRuntimeSubsystemAutomationTests.cpp",
+    "sha256": "ecd1f1a47258c28019dec07e52f5ad097652bb728628333a3388434b91b974ab"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Weapon/ShooterWeaponRuntimeTestTypes.h",
+    "sha256": "7d732564ea691390fda2091a8d99ab4274e91399c387490812340b7e1568490e"
+  },
+  {
+    "path": "Source/ShootGame/Tests/Weapon/ShooterWeaponTestTableTypes.h",
+    "sha256": "453c6b1d1775632dd05ec987987d1a056e164a3d92c07ee4e8df72ad06e9a0cb"
+  },
+  {
+    "path": "Source/ShootGame/UI/ShooterBulletCounterUI.cpp",
+    "sha256": "6eee872655081ffe9e1bf8e3ce9b09b2612665f95a83111ca8d23b44beb6a08a"
+  },
+  {
+    "path": "Source/ShootGame/UI/ShooterBulletCounterUI.h",
+    "sha256": "eb1f0dcfa26c769468aaa23e5c2231397c3c01376d2ed4c152871a8c6fe13b9b"
+  },
+  {
+    "path": "Source/ShootGame/UI/ShooterUI.cpp",
+    "sha256": "f7c16b8859f4341b891f91931a20602abd9330be29b96f973626225cd89c9997"
+  },
+  {
+    "path": "Source/ShootGame/UI/ShooterUI.h",
+    "sha256": "5e77dd0b541b8bcc279993f184a41224401badd9326e73482de83bb98f26177f"
+  },
+  {
+    "path": "Source/ShootGame/Weapons/Animation/ShooterAnimNotify_WeaponMagazine.cpp",
+    "sha256": "918777f44f50729391f50ed743a969718f2ea35a56bc8b0bb0639c590f01c8e6"
+  },
+  {
+    "path": "Source/ShootGame/Weapons/Animation/ShooterAnimNotify_WeaponMagazine.h",
+    "sha256": "48ec68520bcfca1e63621fa2b55d76bb2ef4184f106fbcbcb622ee734091a74e"
+  },
+  {
+    "path": "Source/ShootGame/Weapons/Animation/ShooterAnimNotify_WeaponSound.cpp",
+    "sha256": "bf97a4cf5ca7c26f04cbceaed09081be0d479c90cb3f3af73b74d128b051b9ea"
+  },
+  {
+    "path": "Source/ShootGame/Weapons/Animation/ShooterAnimNotify_WeaponSound.h",
+    "sha256": "86756b6a84eb229a0e0e26973c3f6c5d6cc461bc2f5fbf2d1d73c53e4aee9a7f"
+  },
+  {
+    "path": "Source/ShootGame/Weapons/Data/ShooterWeaponConfigRow.h",
+    "sha256": "ebd1ca0f53437b81908be86635e1bfeed4da5b30369bebd346973cf4bd6fb5b9"
+  },
+  {
+    "path": "Source/ShootGame/Weapons/Data/ShooterWeaponTable.cpp",
+    "sha256": "4d856c036597d8287763e14659cd589ee80d7ba2d6697f09d4fa32b222b5a57e"
+  },
+  {
+    "path": "Source/ShootGame/Weapons/Data/ShooterWeaponTable.h",
+    "sha256": "0760326c96aa27b8c446838f816ebc06587caac0a52eb4ec5e58bd4008cc9fa8"
+  },
+  {
+    "path": "Source/ShootGame/Weapons/Firing/ShooterWeaponFireBehavior.cpp",
+    "sha256": "bc60fd57f240b4faffe2f9aab383418e53b935d9332a8aa496df91edcdc12fbd"
+  },
+  {
+    "path": "Source/ShootGame/Weapons/Firing/ShooterWeaponFireBehavior.h",
+    "sha256": "28f8ad1a731db1fd6e62f9a50be25f37b1638dc7b73aba93e33c8e56b8b69de2"
+  },
+  {
+    "path": "Source/ShootGame/Weapons/Interfaces/ShooterWeaponHolder.cpp",
+    "sha256": "f22a853a56cedb88e199a17a7f68a487515eb4b4eb04e6d31d816607f0cf919a"
+  },
+  {
+    "path": "Source/ShootGame/Weapons/Interfaces/ShooterWeaponHolder.h",
+    "sha256": "14570bc04dbd5722ff9fe9d991fc0a99ae58eb9337d86bcd111652e95333dae3"
+  },
+  {
+    "path": "Source/ShootGame/Weapons/Pickup/ShooterPickup.cpp",
+    "sha256": "ab5376fd2d1092950556ae98b78550dc972d4591a7caaca71b6a801531701fdb"
+  },
+  {
+    "path": "Source/ShootGame/Weapons/Pickup/ShooterPickup.h",
+    "sha256": "89395e131a32e94c808856def6411fa35729d226e43ccd838d5ede93d41d0796"
+  },
+  {
+    "path": "Source/ShootGame/Weapons/Projectile/ShooterProjectile.cpp",
+    "sha256": "0d5d9be51d7c91f583f536530bbb28e9f0c0a1945cf0b91874d09c08e2e0329d"
+  },
+  {
+    "path": "Source/ShootGame/Weapons/Projectile/ShooterProjectile.h",
+    "sha256": "98e46a83495429c487149b0dd46598f0a7265d4204df833ba9cefae55fa0d394"
+  },
+  {
+    "path": "Source/ShootGame/Weapons/Projectile/ShooterProjectileFireBehavior.cpp",
+    "sha256": "67a51d15e5d4801f26d5ae73a290efd5c1e7f030cf5603cb8a8c67e8fedcd56c"
+  },
+  {
+    "path": "Source/ShootGame/Weapons/Projectile/ShooterProjectileFireBehavior.h",
+    "sha256": "8a6e9a7b5be49d41f2282961d9dd2b55d6b5cc2f2db90f975728ba81a210662a"
+  },
+  {
+    "path": "Source/ShootGame/Weapons/ShooterAmmoDisplayState.cpp",
+    "sha256": "d6afdea52b1720570741a886c6c7170b9f9ea4c13ac4b7e9c4d7e76dff4eb2c0"
+  },
+  {
+    "path": "Source/ShootGame/Weapons/ShooterAmmoDisplayState.h",
+    "sha256": "3d7176f2b4859407b0cb48a70cbda6db6c6cfee4dc28c1a5f19681b632f4f7fc"
+  },
+  {
+    "path": "Source/ShootGame/Weapons/ShooterWeapon.cpp",
+    "sha256": "9ec91ce136454a057819bb1afb937aa019adbe5b81212e30da116269e1d39b29"
+  },
+  {
+    "path": "Source/ShootGame/Weapons/ShooterWeapon.h",
+    "sha256": "2bce40075f0c1d41be3714ec7fb65807809b9b2770b14df58712c13b90af9af1"
+  },
+  {
+    "path": "Source/ShootGame/Weapons/Subsystems/ShooterWeaponRuntimeSubsystem.cpp",
+    "sha256": "c8bef67a14d2a8f2e08d3ebf5068340e98a1683441999f0b478451a90c628263"
+  },
+  {
+    "path": "Source/ShootGame/Weapons/Subsystems/ShooterWeaponRuntimeSubsystem.h",
+    "sha256": "3f7cc19dcc3989699b365eb105cf5ce9a058109064bd8cbfd019b78c287bfc4c"
+  }
+]

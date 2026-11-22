@@ -1,0 +1,256 @@
+{
+  "mode": "Commit",
+  "status": "Passed",
+  "clips": [
+    {
+      "name": "CrouchForward",
+      "path": "/Game/Experiments/Stance_20261022/EightWay/AS_EightWay_CrouchForward.AS_EightWay_CrouchForward",
+      "keys": 61,
+      "duration_s": 1,
+      "checks": [
+        {
+          "retarget": false,
+          "max_position_cm": 0.00021989275875025334,
+          "max_angle_deg": 0.004035816473020059,
+          "worst": [
+            47,
+            "ball_r",
+            "position",
+            [
+              -15.683898980815705,
+              59.05004479606892,
+              3.0967300029825244
+            ],
+            [
+              -15.683683353230002,
+              59.05007707419102,
+              3.096701442652206
+            ]
+          ]
+        },
+        {
+          "retarget": true,
+          "max_position_cm": 0.0011591172395803875,
+          "max_angle_deg": 0.004035816473020059,
+          "worst": [
+            49,
+            "ball_r",
+            "position",
+            [
+              -14.877875207767003,
+              55.687109066506764,
+              1.2401659854336087
+            ],
+            [
+              -14.876815513170886,
+              55.687578652815176,
+              1.2401565600951994
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CrouchForwardRight",
+      "path": "/Game/Experiments/Stance_20261022/EightWay/AS_EightWay_CrouchForwardRight.AS_EightWay_CrouchForwardRight",
+      "keys": 61,
+      "duration_s": 1,
+      "checks": [
+        {
+          "retarget": false,
+          "max_position_cm": 0.0002531280597528399,
+          "max_angle_deg": 0.0036720930577848476,
+          "worst": [
+            22,
+            "index_03_l",
+            "position",
+            [
+              -11.5458134358315,
+              84.78843522919387,
+              102.32108537618349
+            ],
+            [
+              -11.545928500478675,
+              84.78851794374478,
+              102.32129511946627
+            ]
+          ]
+        },
+        {
+          "retarget": true,
+          "max_position_cm": 0.0010962049221322986,
+          "max_angle_deg": 0.0036720930577848476,
+          "worst": [
+            49,
+            "ball_r",
+            "position",
+            [
+              -36.846594143462816,
+              30.38831940320623,
+              0.6500103242926718
+            ],
+            [
+              -36.845960468302565,
+              30.389212691288975,
+              0.6499638762161792
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CrouchBackRight",
+      "path": "/Game/Experiments/Stance_20261022/EightWay/AS_EightWay_CrouchBackRight.AS_EightWay_CrouchBackRight",
+      "keys": 61,
+      "duration_s": 1,
+      "checks": [
+        {
+          "retarget": false,
+          "max_position_cm": 0.00026217662972592926,
+          "max_angle_deg": 0.003238911155204992,
+          "worst": [
+            5,
+            "ball_r",
+            "position",
+            [
+              -20.76582418936281,
+              25.639702562208566,
+              0.6498372315099932
+            ],
+            [
+              -20.76568075173448,
+              25.639921959594393,
+              0.6498424294947425
+            ]
+          ]
+        },
+        {
+          "retarget": true,
+          "max_position_cm": 0.000818961093154795,
+          "max_angle_deg": 0.003238911155204992,
+          "worst": [
+            12,
+            "ball_r",
+            "position",
+            [
+              -18.16104585007118,
+              38.97006666198078,
+              2.400773001143639
+            ],
+            [
+              -18.161574004723885,
+              38.969442557034924,
+              2.4007256413349003
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CrouchBackLeft",
+      "path": "/Game/Experiments/Stance_20261022/EightWay/AS_EightWay_CrouchBackLeft.AS_EightWay_CrouchBackLeft",
+      "keys": 61,
+      "duration_s": 1,
+      "checks": [
+        {
+          "retarget": false,
+          "max_position_cm": 0.00035891598439548024,
+          "max_angle_deg": 0.007584136225232717,
+          "worst": [
+            14,
+            "ball_r",
+            "position",
+            [
+              -38.1693299237719,
+              43.9326250103104,
+              1.8245003426745043
+            ],
+            [
+              -38.16904365016593,
+              43.9328410971427,
+              1.8244871295261138
+            ]
+          ]
+        },
+        {
+          "retarget": true,
+          "max_position_cm": 0.0021886289200873845,
+          "max_angle_deg": 0.007584136225232717,
+          "worst": [
+            12,
+            "ball_r",
+            "position",
+            [
+              -36.82283760863099,
+              42.07269869684072,
+              0.8565659124147169
+            ],
+            [
+              -36.82138556051317,
+              42.07433626388452,
+              0.8565711076468396
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CrouchForwardLeft",
+      "path": "/Game/Experiments/Stance_20261022/EightWay/AS_EightWay_CrouchForwardLeft.AS_EightWay_CrouchForwardLeft",
+      "keys": 61,
+      "duration_s": 1,
+      "checks": [
+        {
+          "retarget": false,
+          "max_position_cm": 0.0004364918485228528,
+          "max_angle_deg": 0.002609857422826334,
+          "worst": [
+            5,
+            "index_03_l",
+            "position",
+            [
+              -11.43574239986656,
+              87.22539579280702,
+              108.90974006937044
+            ],
+            [
+              -11.436123423207132,
+              87.22540864687892,
+              108.90995262788145
+            ]
+          ]
+        },
+        {
+          "retarget": true,
+          "max_position_cm": 0.0006432312986359457,
+          "max_angle_deg": 0.002609857422826334,
+          "worst": [
+            50,
+            "ball_r",
+            "position",
+            [
+              -13.85020196050558,
+              32.993774555394744,
+              1.4866714675943005
+            ],
+            [
+              -13.85051966360109,
+              32.993215342939266,
+              1.486661840741986
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "source": "D:\\UE_Projects\\_worktrees\\ShootGame_UE58\\SourceAssets\\StanceCrouch\\EightWay",
+  "formal_reference_unchanged": true,
+  "saved_assets": [
+    "/Game/Experiments/Stance_20261022/EightWay/AS_EightWay_CrouchForward.AS_EightWay_CrouchForward",
+    "/Game/Experiments/Stance_20261022/EightWay/AS_EightWay_CrouchForwardRight.AS_EightWay_CrouchForwardRight",
+    "/Game/Experiments/Stance_20261022/EightWay/AS_EightWay_CrouchBackRight.AS_EightWay_CrouchBackRight",
+    "/Game/Experiments/Stance_20261022/EightWay/AS_EightWay_CrouchBackLeft.AS_EightWay_CrouchBackLeft",
+    "/Game/Experiments/Stance_20261022/EightWay/AS_EightWay_CrouchForwardLeft.AS_EightWay_CrouchForwardLeft"
+  ]
+}

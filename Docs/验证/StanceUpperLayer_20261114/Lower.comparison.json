@@ -1,0 +1,12 @@
+{
+  "baseline": "D:\\UE_Projects\\_worktrees\\ShootGame_UE58\\Docs\\验证\\StanceBlenderGrounding_20261114\\RuntimeFinal.csv.gz",
+  "current": "D:\\UE_Projects\\_worktrees\\ShootGame_UE58\\Saved\\StanceLayer_20261114\\Lower.csv",
+  "rows": 613312,
+  "frames": 43808,
+  "lower_rows": 481888,
+  "position_max_cm": 0,
+  "angle_max_deg": 0,
+  "cases": 264,
+  "status": "Passed",
+  "boundary": "仅证明下肢与既有运行一致，不代表脚掌平贴、穿地或脚滑通过"
+}

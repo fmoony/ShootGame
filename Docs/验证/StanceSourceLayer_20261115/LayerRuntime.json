@@ -1,0 +1,20 @@
+{
+  "status": "Passed",
+  "frames": 2160,
+  "cases": 108,
+  "lower_sampled_bone_frames": 16220,
+  "lower_layer_position_max_cm": 0,
+  "lower_layer_angle_max_deg": 0,
+  "lower_body_position_max_cm": 0,
+  "lower_body_angle_max_deg": 0,
+  "upper_camera_position_delta_max_cm": 0,
+  "upper_camera_angle_delta_max_deg": 0,
+  "stand_position_delta_max_cm": 0,
+  "stand_angle_delta_max_deg": 0,
+  "baseline_shared_lower_camera_change_cm": 7.1414284282973655e-06,
+  "errors": [],
+  "baseline_shared_lower_names": [
+    "pelvis"
+  ],
+  "input_verification": "新腿部输入匹配由 RuntimeInput.json 单独核对；旧 View 未采双腿"
+}

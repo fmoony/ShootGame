@@ -1,0 +1,237 @@
+{
+  "status": "Passed",
+  "blueprints": [
+    {
+      "asset": "/Game/Experiments/Stance_20261022/NativeGraph/ABP_StanceNative_TP.ABP_StanceNative_TP",
+      "parent": "Engine.AnimInstance",
+      "status": "/Game/Experiments/Stance_20261022/NativeGraph/ABP_StanceNative_TP.ABP_StanceNative_TP_C",
+      "nodes": [
+        {
+          "graph": "AnimGraph",
+          "class": "AnimGraphNode_Root",
+          "name": "AnimGraphNode_Root_0"
+        },
+        {
+          "graph": "AnimGraph",
+          "class": "AnimGraphNode_SequencePlayer",
+          "name": "AnimGraphNode_SequencePlayer_0"
+        },
+        {
+          "graph": "AnimGraph",
+          "class": "AnimGraphNode_SequencePlayer",
+          "name": "AnimGraphNode_SequencePlayer_1"
+        },
+        {
+          "graph": "AnimGraph",
+          "class": "AnimGraphNode_BlendSpacePlayer",
+          "name": "AnimGraphNode_BlendSpacePlayer_0"
+        },
+        {
+          "graph": "AnimGraph",
+          "class": "K2Node_VariableGet",
+          "name": "K2Node_VariableGet_0"
+        },
+        {
+          "graph": "AnimGraph",
+          "class": "K2Node_VariableGet",
+          "name": "K2Node_VariableGet_1"
+        },
+        {
+          "graph": "AnimGraph",
+          "class": "AnimGraphNode_SequencePlayer",
+          "name": "AnimGraphNode_SequencePlayer_2"
+        },
+        {
+          "graph": "AnimGraph",
+          "class": "AnimGraphNode_BlendListByInt",
+          "name": "AnimGraphNode_BlendListByInt_0"
+        },
+        {
+          "graph": "AnimGraph",
+          "class": "K2Node_VariableGet",
+          "name": "K2Node_VariableGet_2"
+        },
+        {
+          "graph": "AnimGraph",
+          "class": "AnimGraphNode_SaveCachedPose",
+          "name": "AnimGraphNode_SaveCachedPose_0"
+        },
+        {
+          "graph": "AnimGraph",
+          "class": "AnimGraphNode_UseCachedPose",
+          "name": "AnimGraphNode_UseCachedPose_0"
+        },
+        {
+          "graph": "AnimGraph",
+          "class": "AnimGraphNode_UseCachedPose",
+          "name": "AnimGraphNode_UseCachedPose_1"
+        },
+        {
+          "graph": "AnimGraph",
+          "class": "AnimGraphNode_SequencePlayer",
+          "name": "AnimGraphNode_SequencePlayer_3"
+        },
+        {
+          "graph": "AnimGraph",
+          "class": "AnimGraphNode_SequencePlayer",
+          "name": "AnimGraphNode_SequencePlayer_4"
+        },
+        {
+          "graph": "AnimGraph",
+          "class": "AnimGraphNode_BlendListByBool",
+          "name": "AnimGraphNode_BlendListByBool_0"
+        },
+        {
+          "graph": "AnimGraph",
+          "class": "K2Node_VariableGet",
+          "name": "K2Node_VariableGet_3"
+        },
+        {
+          "graph": "AnimGraph",
+          "class": "AnimGraphNode_RotationOffsetBlendSpace",
+          "name": "AnimGraphNode_RotationOffsetBlendSpace_0"
+        },
+        {
+          "graph": "AnimGraph",
+          "class": "K2Node_VariableGet",
+          "name": "K2Node_VariableGet_4"
+        },
+        {
+          "graph": "AnimGraph",
+          "class": "K2Node_VariableGet",
+          "name": "K2Node_VariableGet_5"
+        },
+        {
+          "graph": "AnimGraph",
+          "class": "AnimGraphNode_LayeredBoneBlend",
+          "name": "AnimGraphNode_LayeredBoneBlend_0"
+        },
+        {
+          "graph": "AnimGraph",
+          "class": "AnimGraphNode_BlendListByBool",
+          "name": "AnimGraphNode_BlendListByBool_1"
+        },
+        {
+          "graph": "AnimGraph",
+          "class": "K2Node_VariableGet",
+          "name": "K2Node_VariableGet_6"
+        },
+        {
+          "graph": "AnimGraph",
+          "class": "K2Node_CallFunction",
+          "name": "K2Node_CallFunction_0"
+        },
+        {
+          "graph": "EventGraph",
+          "class": "K2Node_Event",
+          "name": "K2Node_Event_1"
+        },
+        {
+          "graph": "EventGraph",
+          "class": "K2Node_CallFunction",
+          "name": "K2Node_CallFunction_0"
+        },
+        {
+          "graph": "EventGraph",
+          "class": "K2Node_DynamicCast",
+          "name": "K2Node_DynamicCast_0"
+        },
+        {
+          "graph": "EventGraph",
+          "class": "K2Node_VariableGet",
+          "name": "K2Node_VariableGet_0"
+        },
+        {
+          "graph": "EventGraph",
+          "class": "K2Node_VariableSet",
+          "name": "K2Node_VariableSet_0"
+        },
+        {
+          "graph": "EventGraph",
+          "class": "K2Node_VariableGet",
+          "name": "K2Node_VariableGet_1"
+        },
+        {
+          "graph": "EventGraph",
+          "class": "K2Node_VariableSet",
+          "name": "K2Node_VariableSet_1"
+        },
+        {
+          "graph": "EventGraph",
+          "class": "K2Node_VariableGet",
+          "name": "K2Node_VariableGet_2"
+        },
+        {
+          "graph": "EventGraph",
+          "class": "K2Node_VariableSet",
+          "name": "K2Node_VariableSet_2"
+        },
+        {
+          "graph": "EventGraph",
+          "class": "K2Node_VariableGet",
+          "name": "K2Node_VariableGet_3"
+        },
+        {
+          "graph": "EventGraph",
+          "class": "K2Node_VariableSet",
+          "name": "K2Node_VariableSet_3"
+        },
+        {
+          "graph": "EventGraph",
+          "class": "K2Node_VariableGet",
+          "name": "K2Node_VariableGet_4"
+        },
+        {
+          "graph": "EventGraph",
+          "class": "K2Node_VariableSet",
+          "name": "K2Node_VariableSet_4"
+        },
+        {
+          "graph": "EventGraph",
+          "class": "K2Node_VariableGet",
+          "name": "K2Node_VariableGet_5"
+        },
+        {
+          "graph": "EventGraph",
+          "class": "K2Node_VariableSet",
+          "name": "K2Node_VariableSet_5"
+        },
+        {
+          "graph": "EventGraph",
+          "class": "K2Node_VariableGet",
+          "name": "K2Node_VariableGet_6"
+        },
+        {
+          "graph": "EventGraph",
+          "class": "K2Node_VariableSet",
+          "name": "K2Node_VariableSet_6"
+        }
+      ]
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/NativeGraph/ABP_StanceNative_FP.ABP_StanceNative_FP",
+      "parent": "Engine.AnimInstance",
+      "status": "/Game/Experiments/Stance_20261022/NativeGraph/ABP_StanceNative_FP.ABP_StanceNative_FP_C",
+      "nodes": [
+        {
+          "graph": "AnimGraph",
+          "class": "AnimGraphNode_Root",
+          "name": "AnimGraphNode_Root_0"
+        },
+        {
+          "graph": "AnimGraph",
+          "class": "AnimGraphNode_CopyPoseFromMesh",
+          "name": "AnimGraphNode_CopyPoseFromMesh_0"
+        },
+        {
+          "graph": "EventGraph",
+          "class": "K2Node_Event",
+          "name": "K2Node_Event_0"
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "custom_cpp_pose_processing_removed": true,
+  "protected_files": 288
+}

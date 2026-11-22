@@ -1,0 +1,55 @@
+{
+  "assertions_changed": false,
+  "gameplay_changed": false,
+  "intermittent_listen_notify_issue_resolved": false,
+  "runs": [
+    {
+      "run": "initial_after_toe_fix",
+      "report": "20261109_161009_39902dbc_ShootGame",
+      "discovered": 201,
+      "succeeded": 137,
+      "succeededWithWarnings": 64,
+      "failed": 0,
+      "notRun": 0,
+      "failures": []
+    },
+    {
+      "run": "accepted_first",
+      "report": "20261109_171019_747bf845_ShootGame",
+      "discovered": 201,
+      "succeeded": 137,
+      "succeededWithWarnings": 63,
+      "failed": 1,
+      "notRun": 0,
+      "failures": [
+        {
+          "test": "ShootGame.Animation.TPPlayer.PIE.ListenOwnerObserver",
+          "errors": [
+            "Expected 'Every view receives ReloadRecovery notify' to be 2, but it was 0.",
+            "Expected 'Every view detaches magazine via sequence notify' to be 2, but it was 0."
+          ]
+        }
+      ]
+    },
+    {
+      "run": "listen_isolated_recheck",
+      "report": "20261109_171657_8b31e207_ShootGame.Animation.TPPlayer.PIE.ListenOwnerObserver",
+      "discovered": 1,
+      "succeeded": 0,
+      "succeededWithWarnings": 1,
+      "failed": 0,
+      "notRun": 0,
+      "failures": []
+    },
+    {
+      "run": "accepted_full_repeat",
+      "report": "20261109_171753_a926c0b7_ShootGame",
+      "discovered": 201,
+      "succeeded": 137,
+      "succeededWithWarnings": 64,
+      "failed": 0,
+      "notRun": 0,
+      "failures": []
+    }
+  ]
+}

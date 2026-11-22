@@ -1,0 +1,38 @@
+{
+  "status": "Passed",
+  "max_position_cm": 0.01303978017328681,
+  "max_angle_deg": 0.014485153080331305,
+  "sampled_frames": 359,
+  "sampled_bone_frames": 3231,
+  "cases": [
+    0,
+    1,
+    4,
+    6,
+    10,
+    14,
+    16,
+    20,
+    22,
+    26,
+    30,
+    32
+  ],
+  "worst": {
+    "case": 16,
+    "time": 53.599354,
+    "bone": "foot_r",
+    "asset": "/Game/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchForwardLeft.AS_SourceLayer_CrouchForwardLeft",
+    "actual": [
+      -1.233524,
+      17.448296,
+      8.66438
+    ],
+    "expected": [
+      -1.2232459203587673,
+      17.44030759556182,
+      8.663616887696215
+    ]
+  },
+  "errors": []
+}

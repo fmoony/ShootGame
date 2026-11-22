@@ -1,0 +1,109 @@
+{
+  "mode": "Commit",
+  "status": "Passed",
+  "clips": [
+    {
+      "name": "CrouchForwardLeft",
+      "path": "/Game/Experiments/Stance_20261022/Mirrored/AS_Mirrored_CrouchForwardLeft.AS_Mirrored_CrouchForwardLeft",
+      "keys": 61,
+      "duration_s": 1,
+      "checks": [
+        {
+          "retarget": false,
+          "max_position_cm": 0.00037450316008546045,
+          "max_angle_deg": 0.0024348714321291037,
+          "worst": [
+            17,
+            "ball_r",
+            "position",
+            [
+              9.04861968433979,
+              52.81024993329106,
+              1.239486056961912
+            ],
+            [
+              9.048989295959473,
+              52.81020736694336,
+              1.239443302154541
+            ]
+          ]
+        },
+        {
+          "retarget": true,
+          "max_position_cm": 0.0006063364709174175,
+          "max_angle_deg": 0.0024348714321291037,
+          "worst": [
+            49,
+            "ball_l",
+            "position",
+            [
+              36.846158728040585,
+              30.388641225759955,
+              0.649955621605323
+            ],
+            [
+              36.8459587097168,
+              30.38921356201172,
+              0.6499638557434082
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CrouchBackRight",
+      "path": "/Game/Experiments/Stance_20261022/Mirrored/AS_Mirrored_CrouchBackRight.AS_Mirrored_CrouchBackRight",
+      "keys": 61,
+      "duration_s": 1,
+      "checks": [
+        {
+          "retarget": false,
+          "max_position_cm": 0.0003091786002565276,
+          "max_angle_deg": 0.047580598645525274,
+          "worst": [
+            43,
+            "ball_r",
+            "position",
+            [
+              23.469781587648537,
+              59.04540047503879,
+              1.3141105733099323
+            ],
+            [
+              23.470067977905273,
+              59.045284271240234,
+              1.3141188621520996
+            ]
+          ]
+        },
+        {
+          "retarget": true,
+          "max_position_cm": 0.0031960973118269082,
+          "max_angle_deg": 0.047580598645525274,
+          "worst": [
+            41,
+            "ball_r",
+            "position",
+            [
+              21.190580745153998,
+              55.83096930265303,
+              0.7441302592330503
+            ],
+            [
+              21.19373893737793,
+              55.83047866821289,
+              0.7441419959068298
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "source": "D:\\UE_Projects\\_worktrees\\ShootGame_UE58\\SourceAssets\\StanceCrouch\\Mirrored",
+  "formal_reference_unchanged": true,
+  "saved_assets": [
+    "/Game/Experiments/Stance_20261022/Mirrored/AS_Mirrored_CrouchForwardLeft.AS_Mirrored_CrouchForwardLeft",
+    "/Game/Experiments/Stance_20261022/Mirrored/AS_Mirrored_CrouchBackRight.AS_Mirrored_CrouchBackRight"
+  ]
+}

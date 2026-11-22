@@ -1,0 +1,70 @@
+{
+  "status": "Measured",
+  "directions": [
+    {
+      "direction": "前",
+      "min_ball_cm": -3.827895,
+      "bad_frames": 62,
+      "stable_frames": 136
+    },
+    {
+      "direction": "右前",
+      "min_ball_cm": 0.48887,
+      "bad_frames": 0,
+      "stable_frames": 136
+    },
+    {
+      "direction": "右",
+      "min_ball_cm": 0.548712,
+      "bad_frames": 0,
+      "stable_frames": 136
+    },
+    {
+      "direction": "右后",
+      "min_ball_cm": -16.392841,
+      "bad_frames": 98,
+      "stable_frames": 136
+    },
+    {
+      "direction": "后",
+      "min_ball_cm": 0.224129,
+      "bad_frames": 0,
+      "stable_frames": 136
+    },
+    {
+      "direction": "左后",
+      "min_ball_cm": -7.043309,
+      "bad_frames": 64,
+      "stable_frames": 136
+    },
+    {
+      "direction": "左",
+      "min_ball_cm": 0.583354,
+      "bad_frames": 0,
+      "stable_frames": 136
+    },
+    {
+      "direction": "左前",
+      "min_ball_cm": 0.37139,
+      "bad_frames": 0,
+      "stable_frames": 136
+    }
+  ],
+  "idle_pelvis_range_cm": [
+    38.870476,
+    39.118071
+  ],
+  "idle_right_knee_range_cm": [
+    5.822574,
+    5.951964
+  ],
+  "idle_left_knee_range_cm": [
+    47.001258,
+    47.161728
+  ],
+  "walk_pelvis_range_cm": [
+    63.188319,
+    75.426473
+  ],
+  "claim": "原生链路仍复现接触问题；idle 是单膝跪姿，不能当作同高度半蹲 locomotion idle"
+}

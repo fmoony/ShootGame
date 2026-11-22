@@ -1,0 +1,58 @@
+{
+  "status": "Passed",
+  "max_step_deg": 12.976703114236813,
+  "max_step_position_cm": 5.382058050404123,
+  "clips": [
+    {
+      "name": "CrouchForward",
+      "max_step_deg": 8.263664671994665,
+      "max_step_position_cm": 5.191651759465345,
+      "worst": [
+        32,
+        "foot_r",
+        8.263664671994665
+      ]
+    },
+    {
+      "name": "CrouchForwardRight",
+      "max_step_deg": 6.788725135066366,
+      "max_step_position_cm": 5.1185313845568405,
+      "worst": [
+        30,
+        "foot_r",
+        6.788725135066366
+      ]
+    },
+    {
+      "name": "CrouchBackRight",
+      "max_step_deg": 12.976703114236813,
+      "max_step_position_cm": 4.802267695091545,
+      "worst": [
+        12,
+        "thigh_l",
+        12.976703114236813
+      ]
+    },
+    {
+      "name": "CrouchBackLeft",
+      "max_step_deg": 11.693098724406884,
+      "max_step_position_cm": 5.382058050404123,
+      "worst": [
+        38,
+        "foot_r",
+        11.693098724406884
+      ]
+    },
+    {
+      "name": "CrouchForwardLeft",
+      "max_step_deg": 8.158721434546058,
+      "max_step_position_cm": 4.241355107022978,
+      "worst": [
+        37,
+        "foot_r",
+        8.158721434546058
+      ]
+    }
+  ],
+  "criterion": "60 FPS 腿骨单帧旋转制作门禁；不等价于自然度人工验收"
+}

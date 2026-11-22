@@ -1,0 +1,17 @@
+{
+  "count": 1,
+  "windows": [
+    {
+      "pid": 37548,
+      "path": "E:\\UnrealEngine\\UE_5.8_Source\\Engine\\Binaries\\Win64\\UnrealEditor.exe",
+      "title": "ShootGame Preview [NetMode: Standalone 0]  (64-bit/PC D3D SM6)",
+      "visible": true,
+      "minimized": false
+    }
+  ],
+  "map": "/Game/Experiments/Stance_20261022/L_StancePreview",
+  "pie_running": true,
+  "pie_check": "官方 MCP IsPIERunning=true，真实原生节点读取通过",
+  "view": "侧面，可见单膝跪姿 idle",
+  "checked_at": "2026-11-15T22:25:09.8287242+08:00"
+}

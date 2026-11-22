@@ -1,0 +1,115 @@
+{
+  "status": "Passed",
+  "clips": [
+    {
+      "target": "/Game/Experiments/Stance_20261022/Mirrored/AS_Mirrored_CrouchForwardLeft.AS_Mirrored_CrouchForwardLeft",
+      "source": "/Game/Experiments/Stance_20261022/EightWay/AS_EightWay_CrouchForwardRight.AS_EightWay_CrouchForwardRight",
+      "keys": 61,
+      "fps": 60,
+      "phase_offset_cycles": 0
+    },
+    {
+      "target": "/Game/Experiments/Stance_20261022/Mirrored/AS_Mirrored_CrouchBackRight.AS_Mirrored_CrouchBackRight",
+      "source": "/Game/Experiments/Stance_20261022/EightWay/AS_EightWay_CrouchBackLeft.AS_EightWay_CrouchBackLeft",
+      "keys": 61,
+      "fps": 60,
+      "phase_offset_cycles": 0
+    }
+  ],
+  "max_raw_position_cm": 0.0031960973118269082,
+  "max_raw_angle_deg": 0.047580598645525274,
+  "max_compressed_position_cm": 0.0031960973118269082,
+  "max_compressed_angle_deg": 0.047580598645525274,
+  "loop_position_cm": 0,
+  "loop_angle_deg": 4.638749512560077e-05,
+  "ik_marker_cm": 0.00024211171873856968,
+  "native_source_mirror_height_error_cm": 0.0002454438405692372,
+  "bone_frames": 10858,
+  "samples": [
+    {
+      "asset": "/Game/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchIdle.AS_SourceLayer_CrouchIdle",
+      "point": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/Mirrored/AS_Mirrored_CrouchForwardLeft.AS_Mirrored_CrouchForwardLeft",
+      "point": [
+        0.7071067690849304,
+        -0.7071067690849304,
+        0.0
+      ]
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchLeft.AS_SourceLayer_CrouchLeft",
+      "point": [
+        0.0,
+        -1.0,
+        0.0
+      ]
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchRight.AS_SourceLayer_CrouchRight",
+      "point": [
+        0.0,
+        1.0,
+        0.0
+      ]
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchBack.AS_SourceLayer_CrouchBack",
+      "point": [
+        -1.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/EightWay/AS_EightWay_CrouchForwardRight.AS_EightWay_CrouchForwardRight",
+      "point": [
+        0.7071067690849304,
+        0.7071067690849304,
+        0.0
+      ]
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/Mirrored/AS_Mirrored_CrouchBackRight.AS_Mirrored_CrouchBackRight",
+      "point": [
+        -0.7071067811865476,
+        0.7071067811865476,
+        0.0
+      ]
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/EightWay/AS_EightWay_CrouchBackLeft.AS_EightWay_CrouchBackLeft",
+      "point": [
+        -0.7071067811865476,
+        -0.7071067811865476,
+        0.0
+      ]
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/EightWay/AS_EightWay_CrouchForward.AS_EightWay_CrouchForward",
+      "point": [
+        1.0,
+        0.0,
+        0.0
+      ]
+    }
+  ],
+  "unchanged_legacy_files": 306,
+  "authorized_fixture_changes": [
+    {
+      "path": "Source/ShootGameEditor/Tests/Stance/ShooterStancePreview.cpp",
+      "before": "c7e71f4e3168915f2196afd759aa2f47bb82d79258843fa6631d0c380a204c76",
+      "after": "69224ea26499e001eef8073747d5b9573a9e9a5c95d2ca56ac6718bebf4e83a7"
+    },
+    {
+      "path": "Source/ShootGameEditor/Tests/Stance/ShooterStancePreview.h",
+      "before": "a50fdf0b8e697bf73b8e9ac93a7853eeab70686d326ffe12decc08c0e75111f0",
+      "after": "bcf6a761250016d54c7b2c34065190f4baed3bab329ca8e8cc4ef044558d9217"
+    }
+  ]
+}

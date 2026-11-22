@@ -1,0 +1,15 @@
+{
+  "status": "Passed",
+  "frames": 43808,
+  "protected_rows": 175232,
+  "protected_bones": [
+    "pelvis",
+    "head",
+    "hand_l",
+    "hand_r"
+  ],
+  "maximum_component_position_difference_cm": 0,
+  "maximum_world_position_difference_cm": 0,
+  "maximum_rotation_difference_deg": 0,
+  "idle_authored_tracks_equal": true
+}

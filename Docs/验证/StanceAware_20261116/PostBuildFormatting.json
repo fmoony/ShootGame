@@ -1,0 +1,9 @@
+{
+  "compiled_cpp_sha256": "69224ea26499e001eef8073747d5b9573a9e9a5c95d2ca56ac6718bebf4e83a7",
+  "current_cpp_sha256": "b326241e902f8f5d5502fcc1833e88f000dd167e0e90f28ff267ecbd60951eef",
+  "reversed_formatting_matches_compiled_sha256": true,
+  "non_whitespace_content_identical": true,
+  "changed_regions": 4,
+  "layout_parser_warnings": 9,
+  "manual_review": "Lambda arguments, templates, string format parameters and initializer lists inspected; no width above 140."
+}

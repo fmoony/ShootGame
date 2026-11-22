@@ -1,0 +1,80 @@
+[
+  {
+    "clip": "CrouchIdle_Aim",
+    "shoulder_joint": {
+      "l": {
+        "max_joint_displacement_cm": 17.722429498399578,
+        "first_joint_displacement_cm": 16.996197224551384
+      },
+      "r": {
+        "max_joint_displacement_cm": 16.15943443154328,
+        "first_joint_displacement_cm": 16.063121085866992
+      }
+    }
+  },
+  {
+    "clip": "CrouchIdle_LowReady",
+    "shoulder_joint": {
+      "l": {
+        "max_joint_displacement_cm": 6.372891650599846,
+        "first_joint_displacement_cm": 6.2662853587709835
+      },
+      "r": {
+        "max_joint_displacement_cm": 6.729632112150854,
+        "first_joint_displacement_cm": 5.8708110353137
+      }
+    }
+  },
+  {
+    "clip": "DuckLeft_Aim",
+    "shoulder_joint": {
+      "l": {
+        "max_joint_displacement_cm": 19.062893832587754,
+        "first_joint_displacement_cm": 18.059688039406346
+      },
+      "r": {
+        "max_joint_displacement_cm": 23.436843907995783,
+        "first_joint_displacement_cm": 22.672846967055076
+      }
+    }
+  },
+  {
+    "clip": "DuckLeft_LowReady",
+    "shoulder_joint": {
+      "l": {
+        "max_joint_displacement_cm": 3.2933430823835566,
+        "first_joint_displacement_cm": 2.3581309610148677
+      },
+      "r": {
+        "max_joint_displacement_cm": 3.7209212547695345,
+        "first_joint_displacement_cm": 2.310437598958819
+      }
+    }
+  },
+  {
+    "clip": "DuckRight_Aim",
+    "shoulder_joint": {
+      "l": {
+        "max_joint_displacement_cm": 11.263414158388564,
+        "first_joint_displacement_cm": 10.670023843571315
+      },
+      "r": {
+        "max_joint_displacement_cm": 22.23477220454381,
+        "first_joint_displacement_cm": 21.552007976235608
+      }
+    }
+  },
+  {
+    "clip": "DuckRight_LowReady",
+    "shoulder_joint": {
+      "l": {
+        "max_joint_displacement_cm": 7.525803524389874,
+        "first_joint_displacement_cm": 7.078853662975742
+      },
+      "r": {
+        "max_joint_displacement_cm": 3.0060231641743074,
+        "first_joint_displacement_cm": 2.6435047742945876
+      }
+    }
+  }
+]

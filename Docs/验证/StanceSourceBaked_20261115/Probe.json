@@ -1,0 +1,58 @@
+{
+  "mode": "Probe",
+  "status": "Passed",
+  "clips": [
+    {
+      "name": "CrouchIdle",
+      "path": "/Game/Experiments/Stance_20261022/SourceBakedProbe/AS_SourceBaked_CrouchIdle.AS_SourceBaked_CrouchIdle",
+      "keys": 202,
+      "duration_s": 6.7,
+      "checks": [
+        {
+          "retarget": false,
+          "max_position_cm": 0.0026152572392513116,
+          "max_angle_deg": 0.0027073020969645978,
+          "worst": [
+            19,
+            "index_02_l",
+            "position",
+            [
+              -15.325563443596149,
+              74.37098467670734,
+              89.06170728001862
+            ],
+            [
+              -15.328138540491697,
+              74.37054242520837,
+              89.06159387800075
+            ]
+          ]
+        },
+        {
+          "retarget": true,
+          "max_position_cm": 0.0026152572392513116,
+          "max_angle_deg": 0.0027073020969645978,
+          "worst": [
+            19,
+            "index_02_l",
+            "position",
+            [
+              -15.325563443596149,
+              74.37098467670734,
+              89.06170728001862
+            ],
+            [
+              -15.328138540491697,
+              74.37054242520837,
+              89.06159387800075
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "source": "D:\\UE_Projects\\_worktrees\\ShootGame_UE58\\Saved\\StanceSourceBaked_20261115\\CandidateV2",
+  "formal_reference_unchanged": true,
+  "probe_cleanup": true
+}

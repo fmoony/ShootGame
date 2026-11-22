@@ -1,0 +1,86 @@
+{
+  "original_fbx_up_axis": "Y positive",
+  "source_frames": 202,
+  "crosscheck_bones": 6,
+  "maximum_position_difference_when_animated_parent_is_removed_cm": 9.3329363454339e-05,
+  "first_frame_crosscheck": {
+    "pelvis": {
+      "without_animated_parent_converted_to_ue": [
+        1.0658141036401503e-14,
+        2.2808999999999955,
+        95.89680000000006
+      ],
+      "previous_imported_ue": [
+        -3.4314998759166215e-17,
+        2.2808661460876465,
+        95.89678192138672
+      ]
+    },
+    "head": {
+      "without_animated_parent_converted_to_ue": [
+        7.0912749457550195,
+        50.99169084664698,
+        132.54081062956908
+      ],
+      "previous_imported_ue": [
+        7.091268195996986,
+        50.99163882238349,
+        132.5408287959567
+      ]
+    },
+    "foot_l": {
+      "without_animated_parent_converted_to_ue": [
+        19.042055571304985,
+        5.062876883421215,
+        55.78920327982724
+      ],
+      "previous_imported_ue": [
+        19.04205410665768,
+        5.062870284388445,
+        55.78917624439317
+      ]
+    },
+    "foot_r": {
+      "without_animated_parent_converted_to_ue": [
+        -19.9012048088478,
+        -18.424691002679324,
+        81.45803269145992
+      ],
+      "previous_imported_ue": [
+        -19.90121217944762,
+        -18.424717131691395,
+        81.45800710749664
+      ]
+    },
+    "ball_l": {
+      "without_animated_parent_converted_to_ue": [
+        22.454172106032782,
+        12.93121561526914,
+        41.36515177949147
+      ],
+      "previous_imported_ue": [
+        22.454173857577093,
+        12.931184017219348,
+        41.36510629224618
+      ]
+    },
+    "ball_r": {
+      "without_animated_parent_converted_to_ue": [
+        -25.81135022841574,
+        -18.18874183649026,
+        65.75385921940051
+      ],
+      "previous_imported_ue": [
+        -25.81130707701185,
+        -18.188782079160752,
+        65.75380174038321
+      ]
+    }
+  },
+  "conclusion": "The imported skeleton-space positions match original FBX with the animated parent omitted. This establishes parent transform omission. The same omitted rotation affects inherited head orientation; final gaze still requires visual verification.",
+  "missing_parent_rotation_difference_from_default_deg": [
+    50.9247549388962,
+    51.38424998559615
+  ],
+  "head_gaze_angle_not_measured": true
+}

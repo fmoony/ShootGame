@@ -1,0 +1,415 @@
+{
+  "source": "D:\\UE_Projects\\_worktrees\\ShootGame_UE58\\Saved\\StanceGrounding_20261114\\RuntimeBefore.csv",
+  "frames": 7511,
+  "cases": [
+    {
+      "case": 0,
+      "frames": 443,
+      "duration_s": 7.366708,
+      "lowest_contact_cm": -0.417166,
+      "no_foot_within_1cm_frames": 0,
+      "expected_support_abs_height_p99_cm": 0.416776,
+      "support_slip_p95_cm_s": 0.0791999861174142,
+      "support_slip_max_cm_s": 0.21389972757778933
+    },
+    {
+      "case": 1,
+      "frames": 445,
+      "duration_s": 7.399904,
+      "lowest_contact_cm": -0.417166,
+      "no_foot_within_1cm_frames": 0,
+      "expected_support_abs_height_p99_cm": 0.416776,
+      "support_slip_p95_cm_s": 0.07919998611740998,
+      "support_slip_max_cm_s": 0.21389972757778933
+    },
+    {
+      "case": 2,
+      "frames": 162,
+      "duration_s": 2.683292999999999,
+      "lowest_contact_cm": -1.276476,
+      "no_foot_within_1cm_frames": 0,
+      "expected_support_abs_height_p99_cm": 6.525234,
+      "support_slip_p95_cm_s": 148.987899283244,
+      "support_slip_max_cm_s": 148.99097611283645
+    },
+    {
+      "case": 3,
+      "frames": 162,
+      "duration_s": 2.6832920000000016,
+      "lowest_contact_cm": -1.233159,
+      "no_foot_within_1cm_frames": 14,
+      "expected_support_abs_height_p99_cm": 7.890811,
+      "support_slip_p95_cm_s": 137.75899402834497,
+      "support_slip_max_cm_s": 140.13807612944217
+    },
+    {
+      "case": 4,
+      "frames": 162,
+      "duration_s": 2.6832920000000016,
+      "lowest_contact_cm": -3.400121,
+      "no_foot_within_1cm_frames": 0,
+      "expected_support_abs_height_p99_cm": 9.035228,
+      "support_slip_p95_cm_s": 156.63700120936886,
+      "support_slip_max_cm_s": 156.8084506987862
+    },
+    {
+      "case": 5,
+      "frames": 162,
+      "duration_s": 2.6832920000000016,
+      "lowest_contact_cm": -2.047609,
+      "no_foot_within_1cm_frames": 0,
+      "expected_support_abs_height_p99_cm": 4.608746,
+      "support_slip_p95_cm_s": 104.19210121664663,
+      "support_slip_max_cm_s": 125.01666858668354
+    },
+    {
+      "case": 6,
+      "frames": 162,
+      "duration_s": 2.683292999999999,
+      "lowest_contact_cm": -0.804086,
+      "no_foot_within_1cm_frames": 0,
+      "expected_support_abs_height_p99_cm": 1.507919,
+      "support_slip_p95_cm_s": 73.86245526711534,
+      "support_slip_max_cm_s": 75.00417416580524
+    },
+    {
+      "case": 7,
+      "frames": 162,
+      "duration_s": 2.683292999999999,
+      "lowest_contact_cm": -2.339289,
+      "no_foot_within_1cm_frames": 6,
+      "expected_support_abs_height_p99_cm": 5.123382,
+      "support_slip_p95_cm_s": 108.15816599659395,
+      "support_slip_max_cm_s": 108.9267400138002
+    },
+    {
+      "case": 8,
+      "frames": 162,
+      "duration_s": 2.6832920000000016,
+      "lowest_contact_cm": -3.401947,
+      "no_foot_within_1cm_frames": 0,
+      "expected_support_abs_height_p99_cm": 4.07815,
+      "support_slip_p95_cm_s": 247.56619857519036,
+      "support_slip_max_cm_s": 365.9107405279811
+    },
+    {
+      "case": 9,
+      "frames": 162,
+      "duration_s": 2.6832920000000016,
+      "lowest_contact_cm": -1.607899,
+      "no_foot_within_1cm_frames": 0,
+      "expected_support_abs_height_p99_cm": 2.567747,
+      "support_slip_p95_cm_s": 217.06589936837656,
+      "support_slip_max_cm_s": 324.7117251702673
+    },
+    {
+      "case": 10,
+      "frames": 162,
+      "duration_s": 2.6832920000000016,
+      "lowest_contact_cm": -0.950815,
+      "no_foot_within_1cm_frames": 0,
+      "expected_support_abs_height_p99_cm": 2.198364,
+      "support_slip_p95_cm_s": 230.15564218985935,
+      "support_slip_max_cm_s": 230.3416953260219
+    },
+    {
+      "case": 11,
+      "frames": 162,
+      "duration_s": 2.683292999999999,
+      "lowest_contact_cm": -1.777751,
+      "no_foot_within_1cm_frames": 0,
+      "expected_support_abs_height_p99_cm": 1.123845,
+      "support_slip_p95_cm_s": 183.19618831147383,
+      "support_slip_max_cm_s": 311.87748305610853
+    },
+    {
+      "case": 12,
+      "frames": 162,
+      "duration_s": 2.683292999999999,
+      "lowest_contact_cm": -3.400098,
+      "no_foot_within_1cm_frames": 0,
+      "expected_support_abs_height_p99_cm": 3.792824,
+      "support_slip_p95_cm_s": 250.4198232507374,
+      "support_slip_max_cm_s": 365.9264851055909
+    },
+    {
+      "case": 13,
+      "frames": 162,
+      "duration_s": 2.6832920000000016,
+      "lowest_contact_cm": -1.757023,
+      "no_foot_within_1cm_frames": 0,
+      "expected_support_abs_height_p99_cm": 3.592106,
+      "support_slip_p95_cm_s": 128.68360135849562,
+      "support_slip_max_cm_s": 133.70766421932785
+    },
+    {
+      "case": 14,
+      "frames": 162,
+      "duration_s": 2.6832920000000016,
+      "lowest_contact_cm": -1.373699,
+      "no_foot_within_1cm_frames": 0,
+      "expected_support_abs_height_p99_cm": 4.397631,
+      "support_slip_p95_cm_s": 100.61204929739276,
+      "support_slip_max_cm_s": 107.43074627117775
+    },
+    {
+      "case": 15,
+      "frames": 162,
+      "duration_s": 2.6832920000000016,
+      "lowest_contact_cm": -2.215686,
+      "no_foot_within_1cm_frames": 2,
+      "expected_support_abs_height_p99_cm": 8.573961,
+      "support_slip_p95_cm_s": 369.7396323709417,
+      "support_slip_max_cm_s": 412.0602850489317
+    },
+    {
+      "case": 16,
+      "frames": 162,
+      "duration_s": 2.683293000000006,
+      "lowest_contact_cm": -3.401968,
+      "no_foot_within_1cm_frames": 0,
+      "expected_support_abs_height_p99_cm": 8.007354,
+      "support_slip_p95_cm_s": 156.64134097887305,
+      "support_slip_max_cm_s": 156.8132376815484
+    },
+    {
+      "case": 17,
+      "frames": 162,
+      "duration_s": 2.683292999999999,
+      "lowest_contact_cm": -1.235119,
+      "no_foot_within_1cm_frames": 14,
+      "expected_support_abs_height_p99_cm": 7.222362,
+      "support_slip_p95_cm_s": 137.76481870974624,
+      "support_slip_max_cm_s": 140.14060463745176
+    },
+    {
+      "case": 18,
+      "frames": 162,
+      "duration_s": 2.6832919999999945,
+      "lowest_contact_cm": -1.276476,
+      "no_foot_within_1cm_frames": 0,
+      "expected_support_abs_height_p99_cm": 6.525234,
+      "support_slip_p95_cm_s": 148.99072868523712,
+      "support_slip_max_cm_s": 148.99097611283645
+    },
+    {
+      "case": 19,
+      "frames": 162,
+      "duration_s": 2.6832919999999945,
+      "lowest_contact_cm": -1.233159,
+      "no_foot_within_1cm_frames": 14,
+      "expected_support_abs_height_p99_cm": 7.890811,
+      "support_slip_p95_cm_s": 137.75381715138843,
+      "support_slip_max_cm_s": 140.14105509505507
+    },
+    {
+      "case": 20,
+      "frames": 162,
+      "duration_s": 2.683768999999991,
+      "lowest_contact_cm": -3.400121,
+      "no_foot_within_1cm_frames": 0,
+      "expected_support_abs_height_p99_cm": 9.035228,
+      "support_slip_p95_cm_s": 156.59941584624613,
+      "support_slip_max_cm_s": 156.77082419584698
+    },
+    {
+      "case": 21,
+      "frames": 161,
+      "duration_s": 2.6672360000000026,
+      "lowest_contact_cm": -2.047609,
+      "no_foot_within_1cm_frames": 0,
+      "expected_support_abs_height_p99_cm": 4.608746,
+      "support_slip_p95_cm_s": 103.6825874185502,
+      "support_slip_max_cm_s": 124.98669755944414
+    },
+    {
+      "case": 22,
+      "frames": 162,
+      "duration_s": 2.6839059999999932,
+      "lowest_contact_cm": -0.804086,
+      "no_foot_within_1cm_frames": 0,
+      "expected_support_abs_height_p99_cm": 1.507919,
+      "support_slip_p95_cm_s": 73.84916268367029,
+      "support_slip_max_cm_s": 74.99067611403589
+    },
+    {
+      "case": 23,
+      "frames": 162,
+      "duration_s": 2.683907000000005,
+      "lowest_contact_cm": -2.339289,
+      "no_foot_within_1cm_frames": 6,
+      "expected_support_abs_height_p99_cm": 5.123382,
+      "support_slip_p95_cm_s": 108.13693505245786,
+      "support_slip_max_cm_s": 108.90337005375534
+    },
+    {
+      "case": 24,
+      "frames": 162,
+      "duration_s": 2.683907000000005,
+      "lowest_contact_cm": -3.401947,
+      "no_foot_within_1cm_frames": 0,
+      "expected_support_abs_height_p99_cm": 4.07815,
+      "support_slip_p95_cm_s": 247.50679456848363,
+      "support_slip_max_cm_s": 365.84488976469305
+    },
+    {
+      "case": 25,
+      "frames": 162,
+      "duration_s": 2.6839069999999907,
+      "lowest_contact_cm": -1.607899,
+      "no_foot_within_1cm_frames": 0,
+      "expected_support_abs_height_p99_cm": 2.567747,
+      "support_slip_p95_cm_s": 217.01381396955438,
+      "support_slip_max_cm_s": 324.63388655165585
+    },
+    {
+      "case": 26,
+      "frames": 162,
+      "duration_s": 2.6839059999999932,
+      "lowest_contact_cm": -0.950815,
+      "no_foot_within_1cm_frames": 0,
+      "expected_support_abs_height_p99_cm": 2.198364,
+      "support_slip_p95_cm_s": 230.1004191937541,
+      "support_slip_max_cm_s": 230.28642437327738
+    },
+    {
+      "case": 27,
+      "frames": 162,
+      "duration_s": 2.6839060000000075,
+      "lowest_contact_cm": -1.777751,
+      "no_foot_within_1cm_frames": 0,
+      "expected_support_abs_height_p99_cm": 1.123845,
+      "support_slip_p95_cm_s": 183.15889931577158,
+      "support_slip_max_cm_s": 311.8030445260942
+    },
+    {
+      "case": 28,
+      "frames": 162,
+      "duration_s": 2.683907000000005,
+      "lowest_contact_cm": -3.400098,
+      "no_foot_within_1cm_frames": 0,
+      "expected_support_abs_height_p99_cm": 3.792824,
+      "support_slip_p95_cm_s": 250.37475669608375,
+      "support_slip_max_cm_s": 365.8386803100345
+    },
+    {
+      "case": 29,
+      "frames": 162,
+      "duration_s": 2.6839069999999907,
+      "lowest_contact_cm": -1.757023,
+      "no_foot_within_1cm_frames": 0,
+      "expected_support_abs_height_p99_cm": 3.592106,
+      "support_slip_p95_cm_s": 128.65779771757587,
+      "support_slip_max_cm_s": 133.6756594869254
+    },
+    {
+      "case": 30,
+      "frames": 162,
+      "duration_s": 2.6839059999999932,
+      "lowest_contact_cm": -1.373699,
+      "no_foot_within_1cm_frames": 0,
+      "expected_support_abs_height_p99_cm": 4.397631,
+      "support_slip_p95_cm_s": 100.58889650841802,
+      "support_slip_max_cm_s": 107.40528330768957
+    },
+    {
+      "case": 31,
+      "frames": 162,
+      "duration_s": 2.6839060000000075,
+      "lowest_contact_cm": -2.215686,
+      "no_foot_within_1cm_frames": 2,
+      "expected_support_abs_height_p99_cm": 8.573961,
+      "support_slip_p95_cm_s": 369.6509126033502,
+      "support_slip_max_cm_s": 411.96502538674474
+    },
+    {
+      "case": 32,
+      "frames": 162,
+      "duration_s": 2.683907000000005,
+      "lowest_contact_cm": -3.401968,
+      "no_foot_within_1cm_frames": 0,
+      "expected_support_abs_height_p99_cm": 8.007354,
+      "support_slip_p95_cm_s": 156.6037545742804,
+      "support_slip_max_cm_s": 156.77561002999644
+    },
+    {
+      "case": 33,
+      "frames": 162,
+      "duration_s": 2.6839069999999907,
+      "lowest_contact_cm": -1.235119,
+      "no_foot_within_1cm_frames": 14,
+      "expected_support_abs_height_p99_cm": 7.222362,
+      "support_slip_p95_cm_s": 137.73176176472836,
+      "support_slip_max_cm_s": 140.10697761770817
+    },
+    {
+      "case": 34,
+      "frames": 240,
+      "duration_s": 3.984183999999999,
+      "lowest_contact_cm": 0,
+      "no_foot_within_1cm_frames": 0,
+      "expected_support_abs_height_p99_cm": 0,
+      "support_slip_p95_cm_s": 0,
+      "support_slip_max_cm_s": 0
+    },
+    {
+      "case": 35,
+      "frames": 240,
+      "duration_s": 3.984183999999999,
+      "lowest_contact_cm": 0,
+      "no_foot_within_1cm_frames": 0,
+      "expected_support_abs_height_p99_cm": 0,
+      "support_slip_p95_cm_s": 0,
+      "support_slip_max_cm_s": 0
+    },
+    {
+      "case": 36,
+      "frames": 240,
+      "duration_s": 3.984183999999999,
+      "lowest_contact_cm": 0,
+      "no_foot_within_1cm_frames": 0,
+      "expected_support_abs_height_p99_cm": 0,
+      "support_slip_p95_cm_s": 0,
+      "support_slip_max_cm_s": 0
+    },
+    {
+      "case": 37,
+      "frames": 240,
+      "duration_s": 3.9841840000000133,
+      "lowest_contact_cm": 0,
+      "no_foot_within_1cm_frames": 0,
+      "expected_support_abs_height_p99_cm": 0,
+      "support_slip_p95_cm_s": 0,
+      "support_slip_max_cm_s": 0
+    },
+    {
+      "case": 38,
+      "frames": 240,
+      "duration_s": 3.984183999999999,
+      "lowest_contact_cm": 0,
+      "no_foot_within_1cm_frames": 0,
+      "expected_support_abs_height_p99_cm": 0,
+      "support_slip_p95_cm_s": 0,
+      "support_slip_max_cm_s": 0
+    },
+    {
+      "case": 39,
+      "frames": 240,
+      "duration_s": 3.984183999999999,
+      "lowest_contact_cm": 0,
+      "no_foot_within_1cm_frames": 0,
+      "expected_support_abs_height_p99_cm": 0,
+      "support_slip_p95_cm_s": 0,
+      "support_slip_max_cm_s": 0
+    }
+  ],
+  "errors": [],
+  "measurement": "final Body world/component bones; heel is a reference-pose marker, not a traced floor",
+  "stable_lowest_contact_cm": -3.401968,
+  "no_foot_within_1cm_frames": 72,
+  "expected_support_abs_height_p99_cm": 6.530955,
+  "support_slip_p95_cm_s": 159.0694239211166,
+  "support_slip_max_cm_s": 412.0602850489317,
+  "max_leg_length_error_cm": 0.0000012910102142882351,
+  "status": "Measured"
+}

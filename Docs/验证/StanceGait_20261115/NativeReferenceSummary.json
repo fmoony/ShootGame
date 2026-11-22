@@ -1,0 +1,69 @@
+{
+  "reference": "native RAW evaluated; original root motion cancels in relative measurements",
+  "clips": [
+    {
+      "name": "Fwd",
+      "path": "/Game/Characters/Mannequins/Anims/Rifle/Walk/MF_Rifle_Walk_Fwd",
+      "duration": 1.5333333015441895,
+      "keys": 47,
+      "knee_opening_p95_deg": 28.164140702595713,
+      "mean_feet_center_offset_distance_cm": 10.225872176172672
+    },
+    {
+      "name": "Fwd_Right",
+      "path": "/Game/Characters/Mannequins/Anims/Rifle/Walk/MF_Rifle_Walk_Fwd_Right",
+      "duration": 1.5333333015441895,
+      "keys": 47,
+      "knee_opening_p95_deg": 28.167977929239136,
+      "mean_feet_center_offset_distance_cm": 10.22704713283903
+    },
+    {
+      "name": "Right",
+      "path": "/Game/Characters/Mannequins/Anims/Rifle/Walk/MF_Rifle_Walk_Right",
+      "duration": 1.5,
+      "keys": 46,
+      "knee_opening_p95_deg": 36.803684069803985,
+      "mean_feet_center_offset_distance_cm": 10.551736048387724
+    },
+    {
+      "name": "Bwd_Right",
+      "path": "/Game/Characters/Mannequins/Anims/Rifle/Walk/MF_Rifle_Walk_Bwd_Right",
+      "duration": 1.1333333253860474,
+      "keys": 35,
+      "knee_opening_p95_deg": 8.731933151262362,
+      "mean_feet_center_offset_distance_cm": 20.363334237620794
+    },
+    {
+      "name": "Bwd",
+      "path": "/Game/Characters/Mannequins/Anims/Rifle/Walk/MF_Rifle_Walk_Bwd",
+      "duration": 1.2000000476837158,
+      "keys": 37,
+      "knee_opening_p95_deg": 8.774012838681957,
+      "mean_feet_center_offset_distance_cm": 20.002016457286164
+    },
+    {
+      "name": "Bwd_Left",
+      "path": "/Game/Characters/Mannequins/Anims/Rifle/Walk/MF_Rifle_Walk_Bwd_Left",
+      "duration": 1.1333333253860474,
+      "keys": 35,
+      "knee_opening_p95_deg": 8.73191065564152,
+      "mean_feet_center_offset_distance_cm": 20.363292438974582
+    },
+    {
+      "name": "Left",
+      "path": "/Game/Characters/Mannequins/Anims/Rifle/Walk/MF_Rifle_Walk_Left",
+      "duration": 1.2333333492279053,
+      "keys": 38,
+      "knee_opening_p95_deg": 11.645504357192825,
+      "mean_feet_center_offset_distance_cm": 13.1326774704518
+    },
+    {
+      "name": "Fwd_Left",
+      "path": "/Game/Characters/Mannequins/Anims/Rifle/Walk/MF_Rifle_Walk_Fwd_Left",
+      "duration": 1.5333333015441895,
+      "keys": 47,
+      "knee_opening_p95_deg": 28.168028570548742,
+      "mean_feet_center_offset_distance_cm": 10.227061100421492
+    }
+  ]
+}

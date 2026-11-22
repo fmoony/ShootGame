@@ -1,0 +1,33 @@
+{
+  "status": "Passed",
+  "blender": "4.5.8 LTS",
+  "max_position_cm": 3.219495106272228e-05,
+  "max_angle_deg": 0.00029091514843613593,
+  "clips": [
+    {
+      "name": "CrouchAO_m90",
+      "keys": 61,
+      "fps": 60
+    },
+    {
+      "name": "CrouchAO_m45",
+      "keys": 61,
+      "fps": 60
+    },
+    {
+      "name": "CrouchAO_zero",
+      "keys": 61,
+      "fps": 60
+    },
+    {
+      "name": "CrouchAO_p45",
+      "keys": 61,
+      "fps": 60
+    },
+    {
+      "name": "CrouchAO_p90",
+      "keys": 61,
+      "fps": 60
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "status": "Passed",
+  "frames": 2591,
+  "cases": 60,
+  "images": 60,
+  "intermediate_direction_blends": [
+    {
+      "case": 16,
+      "samples": 2,
+      "maximum_weight": 0.5
+    },
+    {
+      "case": 17,
+      "samples": 2,
+      "maximum_weight": 0.5
+    },
+    {
+      "case": 18,
+      "samples": 2,
+      "maximum_weight": 0.5
+    },
+    {
+      "case": 19,
+      "samples": 2,
+      "maximum_weight": 0.5
+    }
+  ],
+  "minimum_blended_toe_cm": 0.0,
+  "maximum_slide_turn_deg_s": 65.10510510508338,
+  "source_camera_upper_bound_cm": 133.63987771208394,
+  "idle_camera_mean_cm": 96.14369105691061,
+  "moving_camera_mean_cm": 123.36260223642168,
+  "errors": [],
+  "visual_boundary": "蒙皮穿插与自然度仍须结合真实截图和交互检查"
+}

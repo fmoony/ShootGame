@@ -1,0 +1,108 @@
+{
+  "status": "Passed",
+  "blender": "4.5.8 LTS",
+  "max_position_cm": 3.145679951185349e-05,
+  "max_angle_deg": 0.0003034249559079996,
+  "clips": [
+    {
+      "name": "CrouchForward",
+      "keys": 61,
+      "fps": 60
+    },
+    {
+      "name": "CrouchForwardRight",
+      "keys": 61,
+      "fps": 60
+    },
+    {
+      "name": "CrouchRight",
+      "keys": 61,
+      "fps": 60
+    },
+    {
+      "name": "CrouchBackRight",
+      "keys": 61,
+      "fps": 60
+    },
+    {
+      "name": "CrouchBack",
+      "keys": 61,
+      "fps": 60
+    },
+    {
+      "name": "CrouchBackLeft",
+      "keys": 61,
+      "fps": 60
+    },
+    {
+      "name": "CrouchLeft",
+      "keys": 61,
+      "fps": 60
+    },
+    {
+      "name": "CrouchForwardLeft",
+      "keys": 61,
+      "fps": 60
+    },
+    {
+      "name": "CrouchIdle",
+      "keys": 61,
+      "fps": 60
+    },
+    {
+      "name": "Stance_0",
+      "keys": 61,
+      "fps": 60
+    },
+    {
+      "name": "Stance_1",
+      "keys": 61,
+      "fps": 60
+    },
+    {
+      "name": "Stance_2",
+      "keys": 61,
+      "fps": 60
+    },
+    {
+      "name": "Stance_3",
+      "keys": 61,
+      "fps": 60
+    },
+    {
+      "name": "Stance_4",
+      "keys": 61,
+      "fps": 60
+    },
+    {
+      "name": "Stance_5",
+      "keys": 61,
+      "fps": 60
+    },
+    {
+      "name": "Stance_6",
+      "keys": 61,
+      "fps": 60
+    },
+    {
+      "name": "Stance_7",
+      "keys": 61,
+      "fps": 60
+    },
+    {
+      "name": "Stance_8",
+      "keys": 61,
+      "fps": 60
+    },
+    {
+      "name": "CrouchADS",
+      "keys": 61,
+      "fps": 60
+    },
+    {
+      "name": "CrouchLowReady",
+      "keys": 61,
+      "fps": 60
+    }
+  ]
+}

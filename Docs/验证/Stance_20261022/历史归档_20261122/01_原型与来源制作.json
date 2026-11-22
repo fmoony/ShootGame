@@ -1,0 +1,2037 @@
+{
+  "theme": "原型与来源制作",
+  "files": [
+    {
+      "file": "Docs/开发记录/2026-10-22-1546-滑铲与下蹲隔离动画原型.md",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 3980,
+      "reason": "历史正文或结构化结论",
+      "sha256": "aa19f91e1f2502327ed67e8e2bc13e7bfa57748f346c97de1c5878a1bd64997c"
+    },
+    {
+      "file": "Docs/开发记录/2026-10-22-1636-八向深蹲与滑铲FP修正.md",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 4804,
+      "reason": "历史正文或结构化结论",
+      "sha256": "c8021372f6c8fefd2ed6fc45983aedac91b133a150040918c3fb68ed32f90ce4"
+    },
+    {
+      "file": "Docs/开发记录/2026-11-09-1206-下蹲实验迁移UE58.md",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 5538,
+      "reason": "历史正文或结构化结论",
+      "sha256": "b16e5d9711081170c9fecd55f6de017c0e7e1d6e8327ae735fa891b6b23d7feb"
+    },
+    {
+      "file": "Docs/开发记录/2026-11-09-1510-来源下蹲与半蹲八向替换.md",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 7118,
+      "reason": "历史正文或结构化结论",
+      "sha256": "1c29b56fcc26a240d77e206088e4e0760d64bd556467e035e299346f2cfc05da"
+    },
+    {
+      "file": "Docs/开发记录/2026-11-09-1735-下蹲接地低头与分层分析.md",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 7074,
+      "reason": "历史正文或结构化结论",
+      "sha256": "8c40c23cdcfbbc16f811129850944943a893a5188d05097757bdaeebebf4f485"
+    },
+    {
+      "file": "Docs/开发记录/2026-11-09-1753-下蹲父动画与持枪头颈修复.md",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 4801,
+      "reason": "历史正文或结构化结论",
+      "sha256": "0187b33cdb6319900cc99eddf4ef5820c0c5f9c58e12a30b87eb887847796773"
+    },
+    {
+      "file": "Docs/开发记录/2026-11-14-1412-编辑器启动被应用控制策略阻止.md",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 5181,
+      "reason": "历史正文或结构化结论",
+      "sha256": "af0a42bab5de98284d3514408020369fbfa738c076fd13143c8e19e74d99eea5"
+    },
+    {
+      "file": "Docs/开发记录/2026-11-14-1505-第三人称肩关节与横移方向修复.md",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 7178,
+      "reason": "历史正文或结构化结论",
+      "sha256": "9bd13d5fd410dea4da9425b9fb269077bd07253b3774f3baeb286b090524a5f5"
+    },
+    {
+      "file": "Docs/开发记录/2026-11-14-2007-Blender下蹲接地与骨骼运行验证.md",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 5205,
+      "reason": "历史正文或结构化结论",
+      "sha256": "bdc7b027e586cf901238f15762040508ffcea633ace230adb1b7913d1ac84260"
+    },
+    {
+      "file": "Docs/开发记录/2026-11-14-2118-恢复实验第一人称基线并定位运行偏差.md",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 3821,
+      "reason": "历史正文或结构化结论",
+      "sha256": "01f3bf56fe8999adc1a17f6d4e845c375f875d5dfd2385052c8ca88b301dce41"
+    },
+    {
+      "file": "Docs/开发记录/2026-11-15-1433-下蹲完整上身分层与骨骼验证.md",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 3555,
+      "reason": "历史正文或结构化结论",
+      "sha256": "c2e5d7591a5b2c236d37c3e70c85fcec5efe491b576ed5b99808e888194a1a67"
+    },
+    {
+      "file": "Docs/开发记录/2026-11-15-1505-取消俯仰裁剪并定位生产姿态差异.md",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 3296,
+      "reason": "历史正文或结构化结论",
+      "sha256": "1eb3cb93279680d29f994dea869856492b9b9c4294f4d22de762d576d9389e1d"
+    },
+    {
+      "file": "Docs/开发记录/2026-11-15-1600-Blender脚掌平贴与运行验证.md",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 3218,
+      "reason": "历史正文或结构化结论",
+      "sha256": "094b4667ab6cba7def41d16c4eabae341a89d632bfcd3a6050dd41449256bcc5"
+    },
+    {
+      "file": "Docs/开发记录/2026-11-15-1725-原生行走参考与下蹲步态修订.md",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 3191,
+      "reason": "历史正文或结构化结论",
+      "sha256": "2a5e8b7b3a7d873d575b0868c02d15feae1bc933cd8c036267aadf82e7756c9b"
+    },
+    {
+      "file": "Docs/开发记录/2026-11-15-2024-原始下蹲父层烘焙与生产骨架导入.md",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 2825,
+      "reason": "历史正文或结构化结论",
+      "sha256": "4c3e2c6dab1c4b63ddc234f9426794cbfa0ef35bda98589fc8406f135c48cfb5"
+    },
+    {
+      "file": "Docs/开发记录/2026-11-15-2100-新来源下半身替换实验分层.md",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 3846,
+      "reason": "历史正文或结构化结论",
+      "sha256": "38d8d93e0e9b2d9a2120c2e06e91e1fa823626549c25b7ce8ac5a8c4485d6104"
+    },
+    {
+      "file": "Docs/开发记录/2026-11-15-2215-实验原生动画图替代手工骨骼处理.md",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 4026,
+      "reason": "历史正文或结构化结论",
+      "sha256": "b4b8f93646be4574f380ef3ea0050dc73b0ca154ffff698e45d6d2acf6b094da"
+    },
+    {
+      "file": "Docs/开发记录/2026-11-16-1035-实验俯仰与右后方向资源修复.md",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 2689,
+      "reason": "历史正文或结构化结论",
+      "sha256": "d8fcc6c856b4916d7408207db2257bbee73a79bb3c448e9c7ed7cf61a968c40f"
+    },
+    {
+      "file": "Docs/开发记录/2026-11-16-1155-八向斜向资源制作与单点右后.md",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 2610,
+      "reason": "历史正文或结构化结论",
+      "sha256": "27cf35d28db60af195cf14dcd3a6b61adf2bec65a1711b9f3a564c2d0359dce7"
+    },
+    {
+      "file": "Docs/开发记录/2026-11-16-1306-实验左前右后直接镜像.md",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 2116,
+      "reason": "历史正文或结构化结论",
+      "sha256": "f35b7ff5c20a3bb9283040bb2922e182ee5e77a9b4ce2de01af4eac8a5c49dde"
+    },
+    {
+      "file": "Docs/开发记录/2026-11-16-1339-实验方向混合体验.md",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 1394,
+      "reason": "历史正文或结构化结论",
+      "sha256": "370ebb1977fc97ee219dfa030ff5f7efc9d5a3f615cffeabcc867a3b44aecfeb"
+    },
+    {
+      "file": "Docs/开发记录/2026-11-16-2046-下蹲实验现状总结.md",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 1705,
+      "reason": "历史正文或结构化结论",
+      "sha256": "fe7293f8451ba9548b5509860e3f27fdbd17b9b54f95a78b9c41a070cdc92510"
+    },
+    {
+      "file": "Docs/开发记录/2026-11-16-2321-StanceAware身体与持枪实验.md",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 4223,
+      "reason": "历史正文或结构化结论",
+      "sha256": "7389f99900298c41d6015d0e064d9104dca37293f6bdd0dbe1d3a4ccffca3cbd"
+    },
+    {
+      "file": "Docs/验证/StanceAware_20261116/AssetAuditAfter.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 201067,
+      "reason": "历史正文或结构化结论",
+      "sha256": "52983574eb2f713317c34f5b92cdd05e2086491a2241bdfe3245a4b1eb20c00d"
+    },
+    {
+      "file": "Docs/验证/StanceAware_20261116/AssetAuditBefore.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 153920,
+      "reason": "历史正文或结构化结论",
+      "sha256": "4056586b2802382c66fbf07fa5e7a61d82fe14a3c6c55c219b626f99c017b75e"
+    },
+    {
+      "file": "Docs/验证/StanceAware_20261116/Authoring/AimAuthorSummary.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 1166,
+      "reason": "历史正文或结构化结论",
+      "sha256": "3cbc3c3d5b70d3ab0e057bef8b660d8e0591c75405aceca1cd5fecca926bba84"
+    },
+    {
+      "file": "Docs/验证/StanceAware_20261116/Authoring/AimBakeSummary.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 574,
+      "reason": "历史正文或结构化结论",
+      "sha256": "642a7981eded2e845b153405095c3c6c044c8d5a73e20d86e61b922b6051a022"
+    },
+    {
+      "file": "Docs/验证/StanceAware_20261116/Authoring/AuthorSummary.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 727,
+      "reason": "历史正文或结构化结论",
+      "sha256": "9204a809cfef87455feab4b8d3f0b5e9383bf8939ebe8bccaba2234c05da5884"
+    },
+    {
+      "file": "Docs/验证/StanceAware_20261116/Authoring/BakeSummary.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 1775,
+      "reason": "历史正文或结构化结论",
+      "sha256": "a6f92e21f71ef9082d7250c7487617a4167957965b7b0427b216cfcb47967dcb"
+    },
+    {
+      "file": "Docs/验证/StanceAware_20261116/Authoring/WeaponAuthorSummary.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 593,
+      "reason": "历史正文或结构化结论",
+      "sha256": "ecb8c0f055fee473019aa6c3a311633ad413e939849147dffde2c9046ecca048"
+    },
+    {
+      "file": "Docs/验证/StanceAware_20261116/Authoring/WeaponBakeSummary.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 327,
+      "reason": "历史正文或结构化结论",
+      "sha256": "89fc10f8ef5892cf55a83f9b3b7d55cfe5bef8877c8adc9fac1ec7c57e419d28"
+    },
+    {
+      "file": "Docs/验证/StanceAware_20261116/BeforeHashes.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 109055,
+      "reason": "历史正文或结构化结论",
+      "sha256": "1c7866ac182a2936b42735283900c20381116738229bf71f3ff8cf7236d18a83"
+    },
+    {
+      "file": "Docs/验证/StanceAware_20261116/BeforeSkin.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 46821,
+      "reason": "历史正文或结构化结论",
+      "sha256": "11883c50f06e3ab7cfadb2cbaa03a12b6ad39069bec10057532e6d2020e51c17"
+    },
+    {
+      "file": "Docs/验证/StanceAware_20261116/Current32.eightway.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 28568,
+      "reason": "历史正文或结构化结论",
+      "sha256": "f25dba4302a87fb8f1841bf75d45aa96200401c0848dacf6681ba2be8da3a6f2"
+    },
+    {
+      "file": "Docs/验证/StanceAware_20261116/CurrentLowerComparison.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 140,
+      "reason": "历史正文或结构化结论",
+      "sha256": "f2a00e7abfcceb9caeba05ab05b10fe80f412089d57e3e7b74613e8da6d1541c"
+    },
+    {
+      "file": "Docs/验证/StanceAware_20261116/CurrentSkin.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 55903,
+      "reason": "历史正文或结构化结论",
+      "sha256": "b1cfd92144c5994228a1884d5a3d5e94a55814e0d7fed0ce8cc88751286889be"
+    },
+    {
+      "file": "Docs/验证/StanceAware_20261116/CurrentTransitionSkin.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 44577,
+      "reason": "历史正文或结构化结论",
+      "sha256": "a46c1e7175a29180d1554df2a8d1b94f65b01fa0cf33d4bdd49c8431b6b6763a"
+    },
+    {
+      "file": "Docs/验证/StanceAware_20261116/FinalPresentation.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 17902,
+      "reason": "历史正文或结构化结论",
+      "sha256": "ba788d5924dd326a7fd6be17a00cdc5dff6572f510a59c38d509d8867f50253f"
+    },
+    {
+      "file": "Docs/验证/StanceAware_20261116/Images/CrouchFP.png",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 1734525,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "5fdc347bed030b069ef4e54168710b965939bb3a560239b40b14b4d3c0dd709f"
+    },
+    {
+      "file": "Docs/验证/StanceAware_20261116/Images/CrouchSide.png",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 1828365,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "070a1fb6ab12ae882702e15e1caf89ae60d27bd5dc7332758a11bc803183b6b7"
+    },
+    {
+      "file": "Docs/验证/StanceAware_20261116/Images/LowReadySide.png",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 1893332,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "3e8ac7cbd99a4a16dc09c2816282d75f06e432a310352f94e11171c1e2289110"
+    },
+    {
+      "file": "Docs/验证/StanceAware_20261116/Images/StandFP.png",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 1464417,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "dfc649903bb3c0365404ea3992a67d51ad22dfc74398c2129627f0ac378b0fd3"
+    },
+    {
+      "file": "Docs/验证/StanceAware_20261116/Images/StandSide.png",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 1900670,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "1dcb53c8215db46762190fc557d5bd6bdbd0aa83dcb7db65b185d500c2978942"
+    },
+    {
+      "file": "Docs/验证/StanceAware_20261116/LegacyMirrorResources.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 3659,
+      "reason": "历史正文或结构化结论",
+      "sha256": "03afffaf5581633e79046850bd00e4e5bbb4d449d0679e652de8f5cb8e60268d"
+    },
+    {
+      "file": "Docs/验证/StanceAware_20261116/Manifest.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 43445,
+      "reason": "历史正文或结构化结论",
+      "sha256": "ce590082de2eb2e6fc6df8dfb967bba779ade9f96448c5c36f23015aa1562a59"
+    },
+    {
+      "file": "Docs/验证/StanceAware_20261116/PostBuildFormatting.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 480,
+      "reason": "历史正文或结构化结论",
+      "sha256": "3850b5bf326079974d287c019b3b3766ced6e8bd1aa1773811288a0b8ab731e7"
+    },
+    {
+      "file": "Docs/验证/StanceAware_20261116/README.md",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 15721,
+      "reason": "历史正文或结构化结论",
+      "sha256": "ab1b0538a4f5792992cc1cdea3a2b90ee8d9da2474957c99151cb1a0fd0c1635"
+    },
+    {
+      "file": "Docs/验证/StanceAware_20261116/SourceSurvey.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 7706,
+      "reason": "历史正文或结构化结论",
+      "sha256": "363720d399c97b10c1d17acd1615354ac6263c6a24025cf84ebea8c4ad829d66"
+    },
+    {
+      "file": "Docs/验证/StanceAware_20261116/VerifyAssets.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 15016,
+      "reason": "历史正文或结构化结论",
+      "sha256": "cd8f6efe1e9db8ee1cec1684a6503cbc98db63b5ec22e95ad66cf9456176b1e5"
+    },
+    {
+      "file": "Docs/验证/StanceAware_20261116/VisibleSession.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 639,
+      "reason": "历史正文或结构化结论",
+      "sha256": "6642a7547ba404ebd22088139e43d480f9cc000314159cce8cbcc25c4a4cf499"
+    },
+    {
+      "file": "Docs/验证/StanceAware_20261116/VisualWalkSamples.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 1219,
+      "reason": "历史正文或结构化结论",
+      "sha256": "a04a48695e479310dadb32d3b4ee7c1f36a4ab86662cddb5e07a0c306c41b0de"
+    },
+    {
+      "file": "Docs/验证/StanceBlenderGrounding_20261114/BlendReadback.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 154,
+      "reason": "历史正文或结构化结论",
+      "sha256": "bd909d63454ec1cf22b551adc8e5d757d25537777b2486010ed161afcd549f90"
+    },
+    {
+      "file": "Docs/验证/StanceBlenderGrounding_20261114/Idle.png",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 937099,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "528682ab7696d434d613e3e2a4dcbafaabb096c11cd0c1fee8efa345341b728f"
+    },
+    {
+      "file": "Docs/验证/StanceBlenderGrounding_20261114/MoveSummary.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 3352,
+      "reason": "历史正文或结构化结论",
+      "sha256": "6195f43c77e401a01278d4efe5830621d98ef964f3b50d252be16fa785a10dcb"
+    },
+    {
+      "file": "Docs/验证/StanceBlenderGrounding_20261114/Moving.png",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 913462,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "bc219c84eb0b4d7d00808e2c7e17ab4d97f682697073d2529fe7f06ef56db741"
+    },
+    {
+      "file": "Docs/验证/StanceBlenderGrounding_20261114/Protection.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 6070,
+      "reason": "历史正文或结构化结论",
+      "sha256": "f063dac546e604eddc4659e3d90912b088abcd364297a916af3780ff08d3ab42"
+    },
+    {
+      "file": "Docs/验证/StanceBlenderGrounding_20261114/README.md",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 2140,
+      "reason": "历史正文或结构化结论",
+      "sha256": "b83af63c0f30ad86c20b14ae3b2c9420a151c4d7ea080b9f550a07c867adca6d"
+    },
+    {
+      "file": "Docs/验证/StanceBlenderGrounding_20261114/RuntimeBefore.summary.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 13544,
+      "reason": "历史正文或结构化结论",
+      "sha256": "8df00fdc5f0b26073fae6637b387987aaedb508e62ff6cac73e71f5feb5b3dac"
+    },
+    {
+      "file": "Docs/验证/StanceBlenderGrounding_20261114/RuntimeFinal.summary.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 114102,
+      "reason": "历史正文或结构化结论",
+      "sha256": "a85d88b27259744c937d1e73b2c063944a92d9a977b3c71936f10cc38012a53f"
+    },
+    {
+      "file": "Docs/验证/StanceBlenderGrounding_20261114/Validation.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 571,
+      "reason": "历史正文或结构化结论",
+      "sha256": "cd4ba8058d15d46fb5950a890d66d3ef3b9b986af5e50e3a01f7a84f2470a2aa"
+    },
+    {
+      "file": "Docs/验证/StanceBlenderGrounding_20261114/VerifyBlender.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 24983,
+      "reason": "历史正文或结构化结论",
+      "sha256": "e096430178b1b3b5c21118c5ce007a4f82b05ecb49512ec286a40a528dfbe343"
+    },
+    {
+      "file": "Docs/验证/StanceCrouchResources_20261109/AutomationSummary.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 1535,
+      "reason": "历史正文或结构化结论",
+      "sha256": "28fe62d0b44d67dce14845e2960c8dd9d1c5d6d2368b9fbb84809291c1054ce3"
+    },
+    {
+      "file": "Docs/验证/StanceCrouchResources_20261109/Bake.csv",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 823,
+      "reason": "历史正文或结构化结论",
+      "sha256": "4936bea19745c2bb164bea3f7aebc4df1a24baa1bfd1f1a238664fde40919e28"
+    },
+    {
+      "file": "Docs/验证/StanceCrouchResources_20261109/Import.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 942,
+      "reason": "历史正文或结构化结论",
+      "sha256": "beb20073577675c01bd202a40b07cdf209d9480c68e2191dfd446a199f47d2ab"
+    },
+    {
+      "file": "Docs/验证/StanceCrouchResources_20261109/InputEvents.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 1085,
+      "reason": "历史正文或结构化结论",
+      "sha256": "600860c2b4b2983b2e4d9a4e9853bc82a1fd85c3057d1abb625b5f062c3fef7f"
+    },
+    {
+      "file": "Docs/验证/StanceCrouchResources_20261109/Moving.png",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 878737,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "28b4d3eb949454fddad6e334a9bffc94013816df42fcca809e88d93d3957fa86"
+    },
+    {
+      "file": "Docs/验证/StanceCrouchResources_20261109/RuntimeSummary.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 795,
+      "reason": "历史正文或结构化结论",
+      "sha256": "f924de21263945b72445c812cbc106800d444249658f8509d5c8ceb70a924c8e"
+    },
+    {
+      "file": "Docs/验证/StanceCrouchResources_20261109/Verify.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 9495,
+      "reason": "历史正文或结构化结论",
+      "sha256": "a14a3df7843bc3498781d202f4299812a92eee6f696fb218eaf63cae81238bf2"
+    },
+    {
+      "file": "Docs/验证/StanceCrouchVisualAnalysis_20261109/ExistingEvidence.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 2455,
+      "reason": "历史正文或结构化结论",
+      "sha256": "8db4851e7be6eaae152c0bdf6b5fe4d43f80107a2024502a35fc2cc04adc0a42"
+    },
+    {
+      "file": "Docs/验证/StanceCrouchVisualAnalysis_20261109/OriginalFBXHeights.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 1216,
+      "reason": "历史正文或结构化结论",
+      "sha256": "71f7a3cf3800a4218733ed1e5e33735c73aea5a604eeb7ae546bf01783905080"
+    },
+    {
+      "file": "Docs/验证/StanceCrouchVisualAnalysis_20261109/ParentTransformCrosscheck.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 2435,
+      "reason": "历史正文或结构化结论",
+      "sha256": "776796f0e7fd18b00ab5b1809043db192d4f78103f87edc6de33ec1930b7a302"
+    },
+    {
+      "file": "Docs/验证/StanceEightWay_20261116/AuthorQuality.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 1368,
+      "reason": "历史正文或结构化结论",
+      "sha256": "798be56002714f556b4a39f2c6172a72e6135e54d8d21a9085ee372bcf3c5b60"
+    },
+    {
+      "file": "Docs/验证/StanceEightWay_20261116/AuthorSummary.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 653287,
+      "reason": "历史正文或结构化结论",
+      "sha256": "d2b04b2332d489cfc935448e352e8b67367ec764e45418e86f62aad97c9b03fc"
+    },
+    {
+      "file": "Docs/验证/StanceEightWay_20261116/BakeSummary.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 590,
+      "reason": "历史正文或结构化结论",
+      "sha256": "9c62b723ab3b2aaf0b4e5f8229241bf05cd81fa129f83585533f102131cc845e"
+    },
+    {
+      "file": "Docs/验证/StanceEightWay_20261116/BlendSpaceAfter.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 2981,
+      "reason": "历史正文或结构化结论",
+      "sha256": "54230360af1fdc39822b90ca89cb7a45fc03eea95531ba1fc398d7d30d05b34f"
+    },
+    {
+      "file": "Docs/验证/StanceEightWay_20261116/BlendSpaceBefore.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 3062,
+      "reason": "历史正文或结构化结论",
+      "sha256": "524b4ba5bdb2fb90bc0a29d785a56b16b38d233c3319138aa0975286a8b02742"
+    },
+    {
+      "file": "Docs/验证/StanceEightWay_20261116/Final32.eightway.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 28432,
+      "reason": "历史正文或结构化结论",
+      "sha256": "31052169ae64d3daef36679713e451d972bf5ef0d52956f0b226e1d5d7f3939b"
+    },
+    {
+      "file": "Docs/验证/StanceEightWay_20261116/Final8.eightway.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 7746,
+      "reason": "历史正文或结构化结论",
+      "sha256": "f114acb930696a784be186f66fc274b55d93e86e58d1931a15df0a74f20c5298"
+    },
+    {
+      "file": "Docs/验证/StanceEightWay_20261116/FinalLayerComparison.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 10598,
+      "reason": "历史正文或结构化结论",
+      "sha256": "31391953686fa57d5a8009c208ba5f0d1aaa165a4d674d64b440c3634fec542e"
+    },
+    {
+      "file": "Docs/验证/StanceEightWay_20261116/Import.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 7218,
+      "reason": "历史正文或结构化结论",
+      "sha256": "48220ddeaaf19a379a8e83c298dcc2350245c5daba71ca56ac08ee924030c4d7"
+    },
+    {
+      "file": "Docs/验证/StanceEightWay_20261116/Manifest.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 9483,
+      "reason": "历史正文或结构化结论",
+      "sha256": "03d44b248169990351f8dc5e53aa24ef18fce99a3a43a419ef6044212cf13d3e"
+    },
+    {
+      "file": "Docs/验证/StanceEightWay_20261116/Protection.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 77318,
+      "reason": "历史正文或结构化结论",
+      "sha256": "9c2c52b8dc89be6fc6f3b550f6bfeb0e6ffb76d3e9a78d3bb73d25d0d7006ad6"
+    },
+    {
+      "file": "Docs/验证/StanceEightWay_20261116/README.md",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 5887,
+      "reason": "历史正文或结构化结论",
+      "sha256": "0a0e4df25bc864ee36b46d55a06eee5231f5cf0e6d78a496a9a8ee4403070a47"
+    },
+    {
+      "file": "Docs/验证/StanceEightWay_20261116/Review.png",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 784735,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "6ec2cb1dc5316d16504843d8e276cc9c01e39cd5b4ed16dcb400259ccec19e73"
+    },
+    {
+      "file": "Docs/验证/StanceEightWay_20261116/VerifyEightWay.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 3346,
+      "reason": "历史正文或结构化结论",
+      "sha256": "1f7b0264658fe0217d82b180e78bf26d61496a2b8065abf91a9bb4a535f725dc"
+    },
+    {
+      "file": "Docs/验证/StanceEightWay_20261116/VerifyNative.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 7081,
+      "reason": "历史正文或结构化结论",
+      "sha256": "63ce9a8af670cd1468ab0371713ed42d13d56125087115c03f51759de17be474"
+    },
+    {
+      "file": "Docs/验证/StanceFirstPerson_20261114/Before.summary.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 123162,
+      "reason": "历史正文或结构化结论",
+      "sha256": "84314072b2221f31cde1157a9a252f2d9ce81fca64699e88f97ca4279f6d936e"
+    },
+    {
+      "file": "Docs/验证/StanceFirstPerson_20261114/FormalGraph.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 8249,
+      "reason": "历史正文或结构化结论",
+      "sha256": "af541bec28f278518060f03e4cd28857b3b69f5d879da952305f8d23d5784f46"
+    },
+    {
+      "file": "Docs/验证/StanceFirstPerson_20261114/Images/003.png",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 812282,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "445d0a6217001ca1d9def9f2f7bcd0e85802344a6e526df3d3c279bb8cf806c8"
+    },
+    {
+      "file": "Docs/验证/StanceFirstPerson_20261114/Images/045.png",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 744880,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "42864c2d7d17b4aaf18c8e5f9ad64d2d048433067d6a3a134ed2a69fd92dd3ef"
+    },
+    {
+      "file": "Docs/验证/StanceFirstPerson_20261114/Manifest.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 810,
+      "reason": "历史正文或结构化结论",
+      "sha256": "9d61c6bf2dc34703f01a338a7ad35018eb4beb62e87aed5b1d0f756b4822cf8f"
+    },
+    {
+      "file": "Docs/验证/StanceFirstPerson_20261114/ProductionView.summary.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 122921,
+      "reason": "历史正文或结构化结论",
+      "sha256": "011fbb864e5d887cef04133687bdfab78cacbcb96b8e95c57f6f0e4c6ffba841"
+    },
+    {
+      "file": "Docs/验证/StanceFirstPerson_20261114/Protection.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 6297,
+      "reason": "历史正文或结构化结论",
+      "sha256": "8cdbdcd7826facbf90392332c584dc874af2c811768b2497104d25583be3f346"
+    },
+    {
+      "file": "Docs/验证/StanceFirstPerson_20261114/README.md",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 7491,
+      "reason": "历史正文或结构化结论",
+      "sha256": "5571b1c5f47b43dee4d4e7d9e59651c65895121c0877222e7663f318f7184e8f"
+    },
+    {
+      "file": "Docs/验证/StanceFootFlat_20261115/AssetChanges.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 26975,
+      "reason": "历史正文或结构化结论",
+      "sha256": "22be923220efc851e2e57a9d009baf93a41b3b1c640fc92e10e8539f1b9a25da"
+    },
+    {
+      "file": "Docs/验证/StanceFootFlat_20261115/Baseline.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 186,
+      "reason": "历史正文或结构化结论",
+      "sha256": "344f810f60bc97218da5779d5055ab160aeae1735ee5a8f22f5130e847acbc97"
+    },
+    {
+      "file": "Docs/验证/StanceFootFlat_20261115/Before.flat.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 80066,
+      "reason": "历史正文或结构化结论",
+      "sha256": "9d13b47e92e31f19126789af2862bdbe5ce57d5d36141f0123c643fee22521e3"
+    },
+    {
+      "file": "Docs/验证/StanceFootFlat_20261115/BeforeAssets.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 12949,
+      "reason": "历史正文或结构化结论",
+      "sha256": "4910c0599fcec44869fa803e024a0e2062a5b11c10469159fb495e66ab591645"
+    },
+    {
+      "file": "Docs/验证/StanceFootFlat_20261115/BlendReadback.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 173,
+      "reason": "历史正文或结构化结论",
+      "sha256": "773adf110ab8d287e7a61eb968d975852be5b902006f9986258a2be217ce5072"
+    },
+    {
+      "file": "Docs/验证/StanceFootFlat_20261115/FlatFeetSummary.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 3402,
+      "reason": "历史正文或结构化结论",
+      "sha256": "77a8c33b0f4247b9f5c7053d29bd94286f237c9ec6a9d9a384d56e3234876c9e"
+    },
+    {
+      "file": "Docs/验证/StanceFootFlat_20261115/Images/00_DuckWalk_View2_Aim.png",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 925126,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "d2e34c416acccc91df52808ca43681faf11b60e154fafe1e515d2152007ccbc6"
+    },
+    {
+      "file": "Docs/验证/StanceFootFlat_20261115/Images/07_CrouchIdle_View2_Aim.png",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 934602,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "2a16ff8bc10525208cebf8c60c25f5ef9133ae763b630f80ea3970fc96fec901"
+    },
+    {
+      "file": "Docs/验证/StanceFootFlat_20261115/Manifest.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 25184,
+      "reason": "历史正文或结构化结论",
+      "sha256": "6a5304ec13bd76417ef332cc17534a0a72cb9891c1dcf1f863a4f6037fcaf08c"
+    },
+    {
+      "file": "Docs/验证/StanceFootFlat_20261115/MoveCapture.csv",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 121281,
+      "reason": "历史正文或结构化结论",
+      "sha256": "b3c715eb866419bd442f2f0d0ec0aeb0fbfc543e47a132ea5ad88eae605c6845"
+    },
+    {
+      "file": "Docs/验证/StanceFootFlat_20261115/MoveSummary.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 3288,
+      "reason": "历史正文或结构化结论",
+      "sha256": "5db6a5e82b5072eed0dac02c31a1ab83faf4bcfe41626631f9bab5215a5212bd"
+    },
+    {
+      "file": "Docs/验证/StanceFootFlat_20261115/Protection.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 6091,
+      "reason": "历史正文或结构化结论",
+      "sha256": "095e1bc106f5af50d3419f3295aa9b353ed3e9dbb55206ea07bcf2a9fd13d585"
+    },
+    {
+      "file": "Docs/验证/StanceFootFlat_20261115/README.md",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 7965,
+      "reason": "历史正文或结构化结论",
+      "sha256": "8fe6667843666e5e9d28f8862799717372cddf1adffdafe7f99e29ec7c894e96"
+    },
+    {
+      "file": "Docs/验证/StanceFootFlat_20261115/ReviewWindow.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 133,
+      "reason": "历史正文或结构化结论",
+      "sha256": "c069970c887a90f3afec8f384a9063a0d0c34d0eedfa2b6129b24967fdd66c5f"
+    },
+    {
+      "file": "Docs/验证/StanceFootFlat_20261115/Runtime.flat.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 81398,
+      "reason": "历史正文或结构化结论",
+      "sha256": "0f4f3db415e5cda722ac1367b28c7672c7f51a7042b23cdde7ae7700a78d4ae4"
+    },
+    {
+      "file": "Docs/验证/StanceFootFlat_20261115/Runtime.summary.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 113979,
+      "reason": "历史正文或结构化结论",
+      "sha256": "5fa817fb7ee95dab0bd8e01452c2f5ce18e8a62ed9e83a4998c6777eefaab87f"
+    },
+    {
+      "file": "Docs/验证/StanceFootFlat_20261115/UpperProtection.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 340,
+      "reason": "历史正文或结构化结论",
+      "sha256": "92ff705fe3add7330c1d307d4085ecea0d3327a74957bf30f385871b0ceab98a"
+    },
+    {
+      "file": "Docs/验证/StanceFootFlat_20261115/VerifyBlender.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 25240,
+      "reason": "历史正文或结构化结论",
+      "sha256": "212f1a9a00ff3f6185e7c8c996d89aaf10c988134d6253c3ca08c94600d4c3ec"
+    },
+    {
+      "file": "Docs/验证/StanceGait_20261115/AssetChanges.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 28495,
+      "reason": "历史正文或结构化结论",
+      "sha256": "8df395304e7df7753c6b03781e6cb76aa0053aca63d8529f04b2b486caf0f6e4"
+    },
+    {
+      "file": "Docs/验证/StanceGait_20261115/Before.gait.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 107620,
+      "reason": "历史正文或结构化结论",
+      "sha256": "056ec2dd3ec6cd94609d17d3aa2aba4683d061d1344ebaf6ea6d3d0487b6789e"
+    },
+    {
+      "file": "Docs/验证/StanceGait_20261115/BlendReadback.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 173,
+      "reason": "历史正文或结构化结论",
+      "sha256": "ffd2c7b1a52c2af03059110cce26b1b54527ecfbc73f2b11662a5e2380eafdbe"
+    },
+    {
+      "file": "Docs/验证/StanceGait_20261115/ExtraDirectionSummary.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 3314,
+      "reason": "历史正文或结构化结论",
+      "sha256": "571525ec1ed87d946f1056964f5e4c798871fe05705e81a428354041198ab11e"
+    },
+    {
+      "file": "Docs/验证/StanceGait_20261115/FixtureChangeAudit.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 508,
+      "reason": "历史正文或结构化结论",
+      "sha256": "50b43b4d0d6c74ee2a115aaa7112b894989790d2600e846966d24a4176813aea"
+    },
+    {
+      "file": "Docs/验证/StanceGait_20261115/Images/00_DuckWalk_View2_Aim.png",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 925707,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "decbf5c3c9cb97dfa32049d39e7d777f8bbde14f1b94adcba34b9d5db5b06c1e"
+    },
+    {
+      "file": "Docs/验证/StanceGait_20261115/Images/07_CrouchIdle_View2_Aim.png",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 933543,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "7280631cb4df40982d552a9b9139b295759c3b00291f0d5ec8af0854f502d0a8"
+    },
+    {
+      "file": "Docs/验证/StanceGait_20261115/Manifest.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 30285,
+      "reason": "历史正文或结构化结论",
+      "sha256": "5a0477f377657ac60b7bd0d34546b6e03609d7f13c2d416d155ff40b5598614c"
+    },
+    {
+      "file": "Docs/验证/StanceGait_20261115/MoveCapture.csv",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 121293,
+      "reason": "历史正文或结构化结论",
+      "sha256": "8805caec3083b66dc00306810496064026a4f285ce0d20ffd1724780b1f2ff95"
+    },
+    {
+      "file": "Docs/验证/StanceGait_20261115/MoveSummary.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 3278,
+      "reason": "历史正文或结构化结论",
+      "sha256": "240ed50ff8beae100fac9aaffa13dadf3452d21931485b90782869373b3150a5"
+    },
+    {
+      "file": "Docs/验证/StanceGait_20261115/NativeGaitSummary.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 6070,
+      "reason": "历史正文或结构化结论",
+      "sha256": "8e5332a76808b955dddae5840ce8796024e927c506514f26aca022fcab92bda0"
+    },
+    {
+      "file": "Docs/验证/StanceGait_20261115/NativeReferenceSummary.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 2483,
+      "reason": "历史正文或结构化结论",
+      "sha256": "92d2724374c7bfe663225b95bee24349bf36b03ac2f4718b16f151f39f02f181"
+    },
+    {
+      "file": "Docs/验证/StanceGait_20261115/Protection.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 8532,
+      "reason": "历史正文或结构化结论",
+      "sha256": "9be86275c4a122f799ffedbfc8079f01404e5c29b2abe97cc6614ba4344b33d2"
+    },
+    {
+      "file": "Docs/验证/StanceGait_20261115/README.md",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 8502,
+      "reason": "历史正文或结构化结论",
+      "sha256": "e2ab10b76e85302fd07f155dbbffc8965898bbf6588e7d3b939e148669f68215"
+    },
+    {
+      "file": "Docs/验证/StanceGait_20261115/ReviewWindow.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 134,
+      "reason": "历史正文或结构化结论",
+      "sha256": "a80dd1582e1e2d2e0deb9da1d2b316bbdbd6f114fafc5ada825ab0fa39b6e2ee"
+    },
+    {
+      "file": "Docs/验证/StanceGait_20261115/Runtime.flat.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 96790,
+      "reason": "历史正文或结构化结论",
+      "sha256": "ce9b33803212821b9edd6b151946598a5521b494cfba86e1e940dab2f9462593"
+    },
+    {
+      "file": "Docs/验证/StanceGait_20261115/Runtime.gait.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 107630,
+      "reason": "历史正文或结构化结论",
+      "sha256": "2177ecded9b4c9c66176b9bb7cabb827c409cbcb0af55774a92cd6981f6cd9a6"
+    },
+    {
+      "file": "Docs/验证/StanceGait_20261115/Runtime.summary.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 114151,
+      "reason": "历史正文或结构化结论",
+      "sha256": "be2db573b93e861fb795b072c6635e02ac05d56c2c1b3d77a757207a050ada6c"
+    },
+    {
+      "file": "Docs/验证/StanceGait_20261115/Ultra.flat.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 190186,
+      "reason": "历史正文或结构化结论",
+      "sha256": "09373a30266373afe2acff43a7a10bad407404b54a535a89b8ee490c4692bb48"
+    },
+    {
+      "file": "Docs/验证/StanceGait_20261115/Ultra.gait.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 215035,
+      "reason": "历史正文或结构化结论",
+      "sha256": "23b0f19403ff72b378abb648d456a9e06df7764fa13792575114acc754652752"
+    },
+    {
+      "file": "Docs/验证/StanceGait_20261115/UpperDifference.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 1346,
+      "reason": "历史正文或结构化结论",
+      "sha256": "173281f7d7e7e19d139a9fb2f55520bcd6d4c4d59901ac14fc51412d86e58eba"
+    },
+    {
+      "file": "Docs/验证/StanceGait_20261115/V2Failed.flat.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 81449,
+      "reason": "历史正文或结构化结论",
+      "sha256": "5a353bb8246d9c3ad784de477f04f789baeded0a65aba7b3cebea154ddc1c3b1"
+    },
+    {
+      "file": "Docs/验证/StanceGait_20261115/V3Failed.flat.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 81666,
+      "reason": "历史正文或结构化结论",
+      "sha256": "29a32db6aafdb635d2acaa2ec9f169e2ee37d4b34dc2aed80a8d4723990620bb"
+    },
+    {
+      "file": "Docs/验证/StanceGait_20261115/VerifyBlender.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 25784,
+      "reason": "历史正文或结构化结论",
+      "sha256": "c8f54b2236afe291306f80bfab582faa364381ae7957e64b32862a19005b5eff"
+    },
+    {
+      "file": "Docs/验证/StanceMirror_20261116/BlendSpaceAfter.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 2981,
+      "reason": "历史正文或结构化结论",
+      "sha256": "d3211f99a98c98d714b9c6d08b4613b2776e92eba9b2b9f66cdea4028d5040ad"
+    },
+    {
+      "file": "Docs/验证/StanceMirror_20261116/BlendSpaceBefore.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 2981,
+      "reason": "历史正文或结构化结论",
+      "sha256": "54230360af1fdc39822b90ca89cb7a45fc03eea95531ba1fc398d7d30d05b34f"
+    },
+    {
+      "file": "Docs/验证/StanceMirror_20261116/Full32.eightway.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 43704,
+      "reason": "历史正文或结构化结论",
+      "sha256": "4c9f2bc361d75c01a6e41cd819686c37882831f04344f6a632f082c900f64a16"
+    },
+    {
+      "file": "Docs/验证/StanceMirror_20261116/Import.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 3030,
+      "reason": "历史正文或结构化结论",
+      "sha256": "33b67b70181bb72033d72b052cf7ce4be5924eb228b2db922dab545eab8567f1"
+    },
+    {
+      "file": "Docs/验证/StanceMirror_20261116/Manifest.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 6237,
+      "reason": "历史正文或结构化结论",
+      "sha256": "7f69b00622d50881a045f70538b1f5d60028e037b6789c71ebcfe0deeab494f7"
+    },
+    {
+      "file": "Docs/验证/StanceMirror_20261116/MirrorSummary.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 929,
+      "reason": "历史正文或结构化结论",
+      "sha256": "99948ce86f59f1914ba023833fd87418def546f3706140f5ce505727bb975e87"
+    },
+    {
+      "file": "Docs/验证/StanceMirror_20261116/PhaseProbe.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 246,
+      "reason": "历史正文或结构化结论",
+      "sha256": "996744c3f5602152e5d4aa4187ec326e85cc7b59ea52a3486244d3f5c118b3fd"
+    },
+    {
+      "file": "Docs/验证/StanceMirror_20261116/Protection.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 82572,
+      "reason": "历史正文或结构化结论",
+      "sha256": "1f68fdffba9bc8c82f0d778fa369c7ecf7788fc04dfcca18a77852107baa9ad2"
+    },
+    {
+      "file": "Docs/验证/StanceMirror_20261116/README.md",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 4883,
+      "reason": "历史正文或结构化结论",
+      "sha256": "a0e3f316cda5df1d621f3081972d66b3699d82bf9767aaff359d25ccfe05a392"
+    },
+    {
+      "file": "Docs/验证/StanceMirror_20261116/Review.png",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 852164,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "af1225fb98cf0d8f28a9b5f599c454f8df8f7116f7c705d95134dead29373d05"
+    },
+    {
+      "file": "Docs/验证/StanceMirror_20261116/SkeletonReference.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 31375,
+      "reason": "历史正文或结构化结论",
+      "sha256": "1ce6601453db17d754e0f1b0a1f3a6f8d982d7972b6369564dbef7a672a41d2a"
+    },
+    {
+      "file": "Docs/验证/StanceMirror_20261116/SkinAudit.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 3140,
+      "reason": "历史正文或结构化结论",
+      "sha256": "a56cf9a1746a463cddb2ce16e28bdc724a0b48c2bde92303ed69a77dbfc5981d"
+    },
+    {
+      "file": "Docs/验证/StanceMirror_20261116/VerifyMirrored.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 3065,
+      "reason": "历史正文或结构化结论",
+      "sha256": "13defe2e6d7d62c455bd1cf74a378e36f3aaa2d6885ab4d438dc81582c1a6937"
+    },
+    {
+      "file": "Docs/验证/StanceMirror_20261116/VerifyNative.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 7081,
+      "reason": "历史正文或结构化结论",
+      "sha256": "51ef38472a2b55df73bae7583152cd104cbb96bc7b01d70ba5e21980d504dd63"
+    },
+    {
+      "file": "Docs/验证/StanceNativeGraph_20261115/Checks.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 3599,
+      "reason": "历史正文或结构化结论",
+      "sha256": "4f4bcf9b6e3faba11cb82e6404f009b6e148cb8ca5b61625df283921c6b3b0d8"
+    },
+    {
+      "file": "Docs/验证/StanceNativeGraph_20261115/EditorGraphAudit.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 7682,
+      "reason": "历史正文或结构化结论",
+      "sha256": "256b03ef33d66c4b037ed1d0073309fb84fd9e9dcc83b359dcb122fa89fc91c3"
+    },
+    {
+      "file": "Docs/验证/StanceNativeGraph_20261115/Findings.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 1466,
+      "reason": "历史正文或结构化结论",
+      "sha256": "2a1b6a14ed9126d8ed74ac6410fe1dacdbc35bae9c0d5d0cb4a869573a54703d"
+    },
+    {
+      "file": "Docs/验证/StanceNativeGraph_20261115/GraphLinks.csv",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 4439,
+      "reason": "历史正文或结构化结论",
+      "sha256": "ca0eaebf63b6bb52cdc821e71eb4ffc7bc0ecbc8ef6c9523ae35e8734c166301"
+    },
+    {
+      "file": "Docs/验证/StanceNativeGraph_20261115/GraphNodes.csv",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 10703,
+      "reason": "历史正文或结构化结论",
+      "sha256": "4a0aa94173330bae64ae5bb0e99eee36729f69d2681aca872942da22df325cc4"
+    },
+    {
+      "file": "Docs/验证/StanceNativeGraph_20261115/Layered.native.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 10625,
+      "reason": "历史正文或结构化结论",
+      "sha256": "df069117a8c9d5886fe7fa8290efb4aea3b2ac2e33d10d3102f66fa8e3ecd368"
+    },
+    {
+      "file": "Docs/验证/StanceNativeGraph_20261115/Manifest.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 7178,
+      "reason": "历史正文或结构化结论",
+      "sha256": "24e5a09cd367c575eb8bccf3181161ae272e399d4cc98cc9321a41eba7224c53"
+    },
+    {
+      "file": "Docs/验证/StanceNativeGraph_20261115/Protection.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 46521,
+      "reason": "历史正文或结构化结论",
+      "sha256": "a95640ed0a87a1225126b83ee8c716be816b95bfb60d880693e43b0a73b9db3d"
+    },
+    {
+      "file": "Docs/验证/StanceNativeGraph_20261115/README.md",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 9311,
+      "reason": "历史正文或结构化结论",
+      "sha256": "86bd084dc8c7d8ea6e4def4a9c1c7c0761f74e5f459587682d92142e66b1b55b"
+    },
+    {
+      "file": "Docs/验证/StanceNativeGraph_20261115/Review.png",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 486751,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "10be538e996766da0101638edc0a33a17309690e95bc46a8476ea1104acb0a81"
+    },
+    {
+      "file": "Docs/验证/StanceNativeGraph_20261115/ReviewSide.png",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 493790,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "bd588bea2bc4604d1b6b73e65a65b7a4d549d0ef13bc9d051998a95f950c68a9"
+    },
+    {
+      "file": "Docs/验证/StanceNativeGraph_20261115/ReviewWindow.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 571,
+      "reason": "历史正文或结构化结论",
+      "sha256": "e1d70df039d22427ffb38cf382c07a810d385811499286746cfd543976fe66c9"
+    },
+    {
+      "file": "Docs/验证/StanceNativeGraph_20261115/Verify.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 6939,
+      "reason": "历史正文或结构化结论",
+      "sha256": "a0c259be431ee70906d2c0307ce8cea2bbef5f5fbea631586bb7f1dad3530bb6"
+    },
+    {
+      "file": "Docs/验证/StanceParentFix_20261109/Aim.png",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 903145,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "b983f21d8e1cf90c0ea2fc28484f0b69f4084012de44163cc3b838e4aad28c2c"
+    },
+    {
+      "file": "Docs/验证/StanceParentFix_20261109/IdleVisualSummary.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 3473,
+      "reason": "历史正文或结构化结论",
+      "sha256": "76dd2db99aca60d74fb6155365fc9bd0c6c7d7a590c7c16dc17d685e57482a6c"
+    },
+    {
+      "file": "Docs/验证/StanceParentFix_20261109/LowReadyFront.png",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 931725,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "236690cc95006c32da71c425fa89f1085bf8379eba41c08a436183efc5e5a861"
+    },
+    {
+      "file": "Docs/验证/StanceParentFix_20261109/ParentMotionCrosscheck.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 1192,
+      "reason": "历史正文或结构化结论",
+      "sha256": "2d34d6aaea35fcc50fbfc4d21ee3b69c746ae7583401ddd141d13406bda1a1c9"
+    },
+    {
+      "file": "Docs/验证/StanceParentFix_20261109/Preservation.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 311,
+      "reason": "历史正文或结构化结论",
+      "sha256": "b367d939c48ce1edb216dbffc582eb6d10d10f7b68f21d182a707e9126caca31"
+    },
+    {
+      "file": "Docs/验证/StanceParentFix_20261109/Verify.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 9494,
+      "reason": "历史正文或结构化结论",
+      "sha256": "c97a66cd7f3eb3c757c89ad2a04cf75888f8ce62186dd4e39dfccef63dfc4bef"
+    },
+    {
+      "file": "Docs/验证/StancePitchBackRight_20261116/BakeSummary.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 455,
+      "reason": "历史正文或结构化结论",
+      "sha256": "f6e49339975fa18e766b0445d2745364f4715a98eb1fa9586349fe65d6691134"
+    },
+    {
+      "file": "Docs/验证/StancePitchBackRight_20261116/BlendSpaceFinal.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 3030,
+      "reason": "历史正文或结构化结论",
+      "sha256": "f39222ca174a4f5419d0d90701988beb0d6d1593d293ce4a235d8fdc5ae87f0c"
+    },
+    {
+      "file": "Docs/验证/StancePitchBackRight_20261116/ExtraRuntime.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 1667,
+      "reason": "历史正文或结构化结论",
+      "sha256": "1f7aeef74b65012785d0c80991d672b3ca04619bf632850d288dfdc978fef2d6"
+    },
+    {
+      "file": "Docs/验证/StancePitchBackRight_20261116/Import.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 4454,
+      "reason": "历史正文或结构化结论",
+      "sha256": "ecabd5e5716e9c0e88245b1577a7c02585201573e5b3c3c4e32e586ec626e85a"
+    },
+    {
+      "file": "Docs/验证/StancePitchBackRight_20261116/LayerComparison.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 10615,
+      "reason": "历史正文或结构化结论",
+      "sha256": "614aaca578b121062c8475270e6e70db84165f858f8014680803edbf697596f9"
+    },
+    {
+      "file": "Docs/验证/StancePitchBackRight_20261116/Manifest.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 8250,
+      "reason": "历史正文或结构化结论",
+      "sha256": "f68b2e0ca8456a3807105edec1a76a8b31386151afa6b32cfc28da13437f636b"
+    },
+    {
+      "file": "Docs/验证/StancePitchBackRight_20261116/Pitch8.contact.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 7187,
+      "reason": "历史正文或结构化结论",
+      "sha256": "be84fca5c84456f6aacab1f808e72be85c46f426b505c984e0d35c23b89a4fa2"
+    },
+    {
+      "file": "Docs/验证/StancePitchBackRight_20261116/PitchAfterReload.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 1917,
+      "reason": "历史正文或结构化结论",
+      "sha256": "2c7805155cbb1a8027698291365dc610497389c8c8a82f189a8ff80aad7ea41f"
+    },
+    {
+      "file": "Docs/验证/StancePitchBackRight_20261116/PitchNodesAfter.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 7011,
+      "reason": "历史正文或结构化结论",
+      "sha256": "b1d5acf5093f8ac68b4df63c51f16a604e07ad1aa84818fc942199d651013975"
+    },
+    {
+      "file": "Docs/验证/StancePitchBackRight_20261116/Protection.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 73338,
+      "reason": "历史正文或结构化结论",
+      "sha256": "51f709a747e84f33549837f4d23311a4483dfdf2de0f61531e98f4fdda3b5c29"
+    },
+    {
+      "file": "Docs/验证/StancePitchBackRight_20261116/README.md",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 6084,
+      "reason": "历史正文或结构化结论",
+      "sha256": "aa928567acf0ec7a1d0efcb5828f58df55187288c84eec57b57a80f68c3fe4b2"
+    },
+    {
+      "file": "Docs/验证/StancePitchBackRight_20261116/ReviewFP.png",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 764533,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "b1558a791bdeb1c57910da1140c02b3cc9c7cd32a3b0c99980da163d06e45196"
+    },
+    {
+      "file": "Docs/验证/StancePitchBackRight_20261116/Sector32.contact.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 33764,
+      "reason": "历史正文或结构化结论",
+      "sha256": "1111ae04db6182359afd643a8847a234dd46a3588efff223e51363c178246a81"
+    },
+    {
+      "file": "Docs/验证/StancePitchBackRight_20261116/VerifyBackRight.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 2876,
+      "reason": "历史正文或结构化结论",
+      "sha256": "278ea67112ae2327cbde289f86509a0e176e5498c64ba59d663e73026c40a489"
+    },
+    {
+      "file": "Docs/验证/StancePitchBackRight_20261116/VerifyNative.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 7081,
+      "reason": "历史正文或结构化结论",
+      "sha256": "4b011871deeffb66ed408d3cb3638edb816ce618f9a9f6dcd88eeda7c239a09e"
+    },
+    {
+      "file": "Docs/验证/StancePitch_20261115/AimOffset.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 1529,
+      "reason": "历史正文或结构化结论",
+      "sha256": "b5d6769c3d690f762e47e3319da2b9f5e73b5983ea582be55dbbc0ca39821c90"
+    },
+    {
+      "file": "Docs/验证/StancePitch_20261115/Manifest.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 641,
+      "reason": "历史正文或结构化结论",
+      "sha256": "9b5825d3bc49a70b944c039ad3a5bc0b1f408318888e2eacf0bcc002dcc9bff8"
+    },
+    {
+      "file": "Docs/验证/StancePitch_20261115/ProductionAO.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 44924,
+      "reason": "历史正文或结构化结论",
+      "sha256": "2a32653b3425fd607c894d7aafea8dc1cb9b7826372da25d2c2e2a25e2ef8e8f"
+    },
+    {
+      "file": "Docs/验证/StancePitch_20261115/ProductionGraph.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 4292,
+      "reason": "历史正文或结构化结论",
+      "sha256": "5177ae1d91fb37847a97702f9908b857cceb2cdc1087eacadc06bfd0ff7868a3"
+    },
+    {
+      "file": "Docs/验证/StancePitch_20261115/Protection.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 6091,
+      "reason": "历史正文或结构化结论",
+      "sha256": "095e1bc106f5af50d3419f3295aa9b353ed3e9dbb55206ea07bcf2a9fd13d585"
+    },
+    {
+      "file": "Docs/验证/StancePitch_20261115/README.md",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 6090,
+      "reason": "历史正文或结构化结论",
+      "sha256": "201e5b3aa318ec3f66449cbca17013b5b4d63b837ec8f099190279f3a3b106f9"
+    },
+    {
+      "file": "Docs/验证/StancePitch_20261115/RifleRow.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 3170,
+      "reason": "历史正文或结构化结论",
+      "sha256": "e39e1f5d88e1d1f55eb4fb6969da9f3d4fed2b8bbafe05de1366fa20a340aa34"
+    },
+    {
+      "file": "Docs/验证/StancePitch_20261115/Unclamped.pitch.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 40475,
+      "reason": "历史正文或结构化结论",
+      "sha256": "bdeb694ea5357e864d198de61cfd87f5cb4b14007567b765b64c62919e865d8b"
+    },
+    {
+      "file": "Docs/验证/StancePitch_20261115/Unclamped.summary.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 124671,
+      "reason": "历史正文或结构化结论",
+      "sha256": "e9dccfd515581f68a131eaf1920fc371b6d23e77148e2e2cbc363dd056d67b4b"
+    },
+    {
+      "file": "Docs/验证/StanceShoulderDirection_20261114/ChestYawReachDiagnosis.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 245,
+      "reason": "历史正文或结构化结论",
+      "sha256": "d1ca69ce45f82edcad108f738198a11c9209e480645ab36fdd4a666f9375f0e0"
+    },
+    {
+      "file": "Docs/验证/StanceShoulderDirection_20261114/DirectionDiagnosis.Before.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 3945,
+      "reason": "历史正文或结构化结论",
+      "sha256": "497314e069b2af9b0cabb2aa8b2f23ac4cd03cefd635a44cfedb0db4f03eb50c"
+    },
+    {
+      "file": "Docs/验证/StanceShoulderDirection_20261114/IdleVisualSummary.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 3495,
+      "reason": "历史正文或结构化结论",
+      "sha256": "5721bef6936f29e804a265f399f6a8e1eeaf2853b5c8d14bc73a99692d195659"
+    },
+    {
+      "file": "Docs/验证/StanceShoulderDirection_20261114/MoveLeft.png",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 913452,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "98be81812ba7dd3b552fdbfc43d60d57cb49d62258d50cd3ad5d5774713f9be7"
+    },
+    {
+      "file": "Docs/验证/StanceShoulderDirection_20261114/MoveRight.png",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 903659,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "e10f8cd5e282ff8b93407b12af54cca0a9cb81098efa5cd98835f59f10303606"
+    },
+    {
+      "file": "Docs/验证/StanceShoulderDirection_20261114/NearFoldDiagnosis.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 6012,
+      "reason": "历史正文或结构化结论",
+      "sha256": "2543029eb485446466daa72bfd761071d2489ec5668ca63fa7fddd737a2dad0f"
+    },
+    {
+      "file": "Docs/验证/StanceShoulderDirection_20261114/Preservation.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 3613,
+      "reason": "历史正文或结构化结论",
+      "sha256": "a2b7618bb1b49546d4c9d41c50efa1cf68dcc44360fc9d4b59e73cf704670384"
+    },
+    {
+      "file": "Docs/验证/StanceShoulderDirection_20261114/ShoulderJoint.Before.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 2132,
+      "reason": "历史正文或结构化结论",
+      "sha256": "390b23a6fc97ab948f819adcf19598524d2cf81cd5563f6ff6bbc96bc4742bb6"
+    },
+    {
+      "file": "Docs/验证/StanceShoulderDirection_20261114/TargetedSummary.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 5079,
+      "reason": "历史正文或结构化结论",
+      "sha256": "0bcdefc763b0d446f88b3304e725e227668c32d0b4e56396578c3b2e2406304a"
+    },
+    {
+      "file": "Docs/验证/StanceShoulderDirection_20261114/Verify.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 9693,
+      "reason": "历史正文或结构化结论",
+      "sha256": "b44bb0843d4b516bbc08491a5517e06ff56629e70731578c66266de068e40214"
+    },
+    {
+      "file": "Docs/验证/StanceSourceBaked_20261115/BakeSummary.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 593,
+      "reason": "历史正文或结构化结论",
+      "sha256": "3d15fc896f89ec68eeff220bb709eab61911adb3d1acb8dabe76d3966bd4738e"
+    },
+    {
+      "file": "Docs/验证/StanceSourceBaked_20261115/Checks.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 281,
+      "reason": "历史正文或结构化结论",
+      "sha256": "bd765966e4c39485df9e55cce88dec52915ce00663724b7b122cd620ae9e7d90"
+    },
+    {
+      "file": "Docs/验证/StanceSourceBaked_20261115/Import.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 7275,
+      "reason": "历史正文或结构化结论",
+      "sha256": "299a194b584d59e649dcd8e0e7154f1443f493f6231056354b312c830663f892"
+    },
+    {
+      "file": "Docs/验证/StanceSourceBaked_20261115/Manifest.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 9251,
+      "reason": "历史正文或结构化结论",
+      "sha256": "a4591cddbbb37aed17d6fb76953c0982c837851d513c0c4f02da0efb742b8b45"
+    },
+    {
+      "file": "Docs/验证/StanceSourceBaked_20261115/Preview.png",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 358064,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "fbc4b1b85711d8003303686699b4c4f3e65d2a4487673640dcbbdb4ef9109505"
+    },
+    {
+      "file": "Docs/验证/StanceSourceBaked_20261115/Probe.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 1550,
+      "reason": "历史正文或结构化结论",
+      "sha256": "eeb5d1b47f49d1f17a253c288afaf3f6796017a5e0bc0f87c846c4771162e2ef"
+    },
+    {
+      "file": "Docs/验证/StanceSourceBaked_20261115/Protection.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 33256,
+      "reason": "历史正文或结构化结论",
+      "sha256": "0a4208f4e7bda4aea5f53cb2fd5ba13ba3bb72a370a2cc5e4e4e6a92fe42ef2a"
+    },
+    {
+      "file": "Docs/验证/StanceSourceBaked_20261115/README.md",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 5599,
+      "reason": "历史正文或结构化结论",
+      "sha256": "fa7b67ee03f51e71235a9d5982d449afcb6f0948824595d29acf5450d1e4f973"
+    },
+    {
+      "file": "Docs/验证/StanceSourceBaked_20261115/RawBones.csv.gz",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 1886294,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "77864e6495022ad9de6c8618ee763d08302d84a38633359f50db0fdacf6dc0bc"
+    },
+    {
+      "file": "Docs/验证/StanceSourceBaked_20261115/ReviewWindow.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 364,
+      "reason": "历史正文或结构化结论",
+      "sha256": "431662eadd7be2eae973740f59b7f45ec429e9199ec27c559e35da473cec79b0"
+    },
+    {
+      "file": "Docs/验证/StanceSourceBaked_20261115/Verify.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 3556,
+      "reason": "历史正文或结构化结论",
+      "sha256": "6c763e6e1e4bb126cce961c48d370fe71752d62109908166d82ac56b983e35e8"
+    },
+    {
+      "file": "Docs/验证/StanceSourceLayer_20261115/After.summary.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 17584,
+      "reason": "历史正文或结构化结论",
+      "sha256": "2e7271579830e3f4e5594bf53b9236f93c836fe0f9fb534cbc0b389ba206a2dc"
+    },
+    {
+      "file": "Docs/验证/StanceSourceLayer_20261115/AfterView.summary.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 124666,
+      "reason": "历史正文或结构化结论",
+      "sha256": "dbf463d6d3b3cf85757b640fd1fbb7f5d4ae7ec22e803c7ac6f9427b6a83ae67"
+    },
+    {
+      "file": "Docs/验证/StanceSourceLayer_20261115/BakeSummary.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 1163,
+      "reason": "历史正文或结构化结论",
+      "sha256": "6c3830159e8bf78ff485f41c1a6ded9df0856cfd1566d4e2a72f9faee8944b34"
+    },
+    {
+      "file": "Docs/验证/StanceSourceLayer_20261115/Before.summary.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 17662,
+      "reason": "历史正文或结构化结论",
+      "sha256": "12bdcc045bb550dbd8c9af4cf1d4ea32e0dc90600e12b5c5c327287635e5411f"
+    },
+    {
+      "file": "Docs/验证/StanceSourceLayer_20261115/Checks.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 4925,
+      "reason": "历史正文或结构化结论",
+      "sha256": "a8268ac56a8f1e606c8b05ecc47e9b9fcb3361571a96a580b729b21bfc0dc0f3"
+    },
+    {
+      "file": "Docs/验证/StanceSourceLayer_20261115/FailedScale.Probe.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 2059,
+      "reason": "历史正文或结构化结论",
+      "sha256": "bd603d4ae8233e8a671c06be7fe18e604d7b01a918b9f8f8ca50bf6b3843d8de"
+    },
+    {
+      "file": "Docs/验证/StanceSourceLayer_20261115/FixtureChangeAudit.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 1065,
+      "reason": "历史正文或结构化结论",
+      "sha256": "4109294178ca80247044b1666f804d86ebfa4a511e9eaf3def0eb39ee5d0e557"
+    },
+    {
+      "file": "Docs/验证/StanceSourceLayer_20261115/Import.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 8669,
+      "reason": "历史正文或结构化结论",
+      "sha256": "e0bfc38d694b4dcdb709304b1283d71b393da21d8f8da31c68ada13ec1965b0e"
+    },
+    {
+      "file": "Docs/验证/StanceSourceLayer_20261115/LayerRuntime.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 653,
+      "reason": "历史正文或结构化结论",
+      "sha256": "ca9c71a5ad0a07eefec8f67d8352521664c896612f3e7c9962a1410d45cbc1d8"
+    },
+    {
+      "file": "Docs/验证/StanceSourceLayer_20261115/Manifest.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 14377,
+      "reason": "历史正文或结构化结论",
+      "sha256": "284411ad8d9af27b6d042ed275fe0e0886efd8fb618fe94717288cbcc822beca"
+    },
+    {
+      "file": "Docs/验证/StanceSourceLayer_20261115/MovementMatch.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 3042,
+      "reason": "历史正文或结构化结论",
+      "sha256": "f4e0dc2e9a787a15dbecb9754acd9bffffaffd3990538e17b2f0ed2218ee1bcc"
+    },
+    {
+      "file": "Docs/验证/StanceSourceLayer_20261115/Probe.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 1543,
+      "reason": "历史正文或结构化结论",
+      "sha256": "86b234a03fd7b769bbc8b249aab2b5556e49a64c0148c62986aaa08d29a14217"
+    },
+    {
+      "file": "Docs/验证/StanceSourceLayer_20261115/Protection.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 38016,
+      "reason": "历史正文或结构化结论",
+      "sha256": "5e1da44aaa2f45b12abf70d61d5a082c3fb0ec1c9a880224fe1fe927099331c8"
+    },
+    {
+      "file": "Docs/验证/StanceSourceLayer_20261115/README.md",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 9118,
+      "reason": "历史正文或结构化结论",
+      "sha256": "f97debaf8c95e13a4a9877d3fa160ac2807bbbece65a29db2fc25015eaa6dc87"
+    },
+    {
+      "file": "Docs/验证/StanceSourceLayer_20261115/Review.png",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 459900,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "61dbec50b1f18583012f1fb7ac7d71a941a012f7f7cf57398ffe8b9d784ad8ab"
+    },
+    {
+      "file": "Docs/验证/StanceSourceLayer_20261115/ReviewWindow.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 525,
+      "reason": "历史正文或结构化结论",
+      "sha256": "78e0769e39eee395093444d3b24e61fd95fa2533daed1b62b498a313a4c5b8b1"
+    },
+    {
+      "file": "Docs/验证/StanceSourceLayer_20261115/RuntimeInput.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 705,
+      "reason": "历史正文或结构化结论",
+      "sha256": "f5233338a759507b0410b2f7ca223b0fb69103e6b90bc71841115a0cd0187ad1"
+    },
+    {
+      "file": "Docs/验证/StanceSourceLayer_20261115/UnmatchedSpeed.summary.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 17600,
+      "reason": "历史正文或结构化结论",
+      "sha256": "397906519987455a393434a882b11634d8f9ea5fc14e99e2aadc94f251832bd5"
+    },
+    {
+      "file": "Docs/验证/StanceSourceLayer_20261115/Verify.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 3195,
+      "reason": "历史正文或结构化结论",
+      "sha256": "e05dcc102051b11472472c52db3a1f218ebff140b181e06dae8ef9551d923bb4"
+    },
+    {
+      "file": "Docs/验证/StanceSummary_20261116/AssetAudit.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 153922,
+      "reason": "历史正文或结构化结论",
+      "sha256": "d3c498e4e55ab4f090ff7792382b26db0d6eaef5bc3483d737e0f46e928f5380"
+    },
+    {
+      "file": "Docs/验证/StanceSummary_20261116/HashCheck.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 739,
+      "reason": "历史正文或结构化结论",
+      "sha256": "8f890daa37a0439d3ffb6849edceb0f2980a9109b05b02ce6be080d854d8606c"
+    },
+    {
+      "file": "Docs/验证/StanceSummary_20261116/README.md",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 12490,
+      "reason": "历史正文或结构化结论",
+      "sha256": "2953309a69a7bccd4080b2df5ee6d8e138f033c3b867544ae964858afd9b1dc3"
+    },
+    {
+      "file": "Docs/验证/StanceUE58_20261109/AssetDependencies.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 12301,
+      "reason": "历史正文或结构化结论",
+      "sha256": "c671877c4a1eb538cc67a265e0bec391a718c19fe3899a8f5eb8e8602cab9efd"
+    },
+    {
+      "file": "Docs/验证/StanceUE58_20261109/AutomationSummary.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 231,
+      "reason": "历史正文或结构化结论",
+      "sha256": "ad043e06d593a049b19741d63175e5fcb7f46f48363eb55f1690411cc67fb42c"
+    },
+    {
+      "file": "Docs/验证/StanceUE58_20261109/Preview.png",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 942583,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "2f22902a012309df1b62dfed9837b84238b669b697742bfada85340fbad1bda8"
+    },
+    {
+      "file": "Docs/验证/StanceUE58_20261109/RuntimeSummary.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 650,
+      "reason": "历史正文或结构化结论",
+      "sha256": "359b7d3b1da52d76905330ad83fc403db06fe8a7863840bfd061bd7ca35eb3d3"
+    },
+    {
+      "file": "Docs/验证/StanceUE58_20261109/Verify.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 16629,
+      "reason": "历史正文或结构化结论",
+      "sha256": "50d3d7a8df3f4e7b2a1da22813fc730e994ec73a49308c4f7b19d9ea4da702f4"
+    },
+    {
+      "file": "Docs/验证/StanceUpperLayer_20261114/External/00_CrouchIdle_View1_Aim.png",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 904903,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "dd3055621526e035c224e3c468c7cb6ac53768969444cb5b358c83b27e948f04"
+    },
+    {
+      "file": "Docs/验证/StanceUpperLayer_20261114/External/01_CrouchIdle_View2_Aim.png",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 934297,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "c220022fb6a424be732d6b02bfdfa85a6baaaa1d74a627753e753a0c3a270dd9"
+    },
+    {
+      "file": "Docs/验证/StanceUpperLayer_20261114/External/Runtime.csv",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 26848,
+      "reason": "历史正文或结构化结论",
+      "sha256": "11459051828d177d17550bbd54a04958d7870ee214eb7c3fa9cc96fe8ffd096e"
+    },
+    {
+      "file": "Docs/验证/StanceUpperLayer_20261114/FormalLayer.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 1461,
+      "reason": "历史正文或结构化结论",
+      "sha256": "bb4994f5875e960becca6bd2f43d28d51014db262df37caf38df748bafcf9bfc"
+    },
+    {
+      "file": "Docs/验证/StanceUpperLayer_20261114/Layer.summary.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 124870,
+      "reason": "历史正文或结构化结论",
+      "sha256": "fea81e37d6051ac14190c8423e63e6ceda6497f40d7db2acade955df4594af8b"
+    },
+    {
+      "file": "Docs/验证/StanceUpperLayer_20261114/Lower.comparison.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 480,
+      "reason": "历史正文或结构化结论",
+      "sha256": "ef1cca7e5397e40449a36952dca9e9252fdcd7c40d29c534404c1b00efdab361"
+    },
+    {
+      "file": "Docs/验证/StanceUpperLayer_20261114/Manifest.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 614,
+      "reason": "历史正文或结构化结论",
+      "sha256": "2ef39f9c4c3b77af089d2150b1be3d1117b4fd7de3c417f5bce22190b884b59b"
+    },
+    {
+      "file": "Docs/验证/StanceUpperLayer_20261114/Protection.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 5961,
+      "reason": "历史正文或结构化结论",
+      "sha256": "d81c8ba1fbb3a2f7372121dc44cdb1797a496021107400eec9f3a4f51cc4838f"
+    },
+    {
+      "file": "Docs/验证/StanceUpperLayer_20261114/README.md",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 5864,
+      "reason": "历史正文或结构化结论",
+      "sha256": "550c0cd2ad328044421cc64efd45c31603206fce8d4ffd1b0013007de9a76381"
+    },
+    {
+      "file": "Docs/验证/StanceV2_20261022/Preview.png",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 1369014,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "daaa37afff5d8c2e74944b9801ec63299e768f5bb771a1ae5c732e3b480bf484"
+    },
+    {
+      "file": "Docs/验证/StanceV2_20261022/Runtime.csv",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 193721,
+      "reason": "历史正文或结构化结论",
+      "sha256": "c30d4104b3dde439311d0c0615c2753a920e9827efdde820b53a22e6762619a7"
+    },
+    {
+      "file": "Docs/验证/StanceV2_20261022/RuntimeSummary.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 652,
+      "reason": "历史正文或结构化结论",
+      "sha256": "4ad5ccf242d09075e9ebc99e2daac04b67ebc7d707e0d8ef79b43bcc147873a2"
+    },
+    {
+      "file": "Docs/验证/StanceV2_20261022/Verify.json",
+      "action": "keep",
+      "theme": "原型与来源制作",
+      "bytes": 16631,
+      "reason": "历史正文或结构化结论",
+      "sha256": "7f25040992fa057d803dcd8272463e15edbbac73543b0bcb4536d6b3ea405af9"
+    }
+  ]
+}

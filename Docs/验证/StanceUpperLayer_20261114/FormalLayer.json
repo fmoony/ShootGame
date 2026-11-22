@@ -1,0 +1,57 @@
+{
+  "source": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_LayeredBoneBlend_1",
+  "properties": {
+    "Node": {
+      "basePose": {
+        "linkId": -1,
+        "sourceLinkId": -1
+      },
+      "blendPoses": [
+        {
+          "linkId": -1,
+          "sourceLinkId": -1
+        }
+      ],
+      "blendMode": "BranchFilter",
+      "blendMasks": [],
+      "layerSetup": [
+        {
+          "branchFilters": [
+            {
+              "boneName": "Spine_01",
+              "blendDepth": 1
+            }
+          ]
+        }
+      ],
+      "blendWeights": [
+        1
+      ],
+      "perBoneBlendWeights": [],
+      "skeletonGuid": "00000000-0000-0000-0000-000000000000",
+      "virtualBoneGuid": "00000000-0000-0000-0000-000000000000",
+      "lODThreshold": -1,
+      "bMeshSpaceRotationBlend": true,
+      "bRootSpaceRotationBlend": false,
+      "bMeshSpaceScaleBlend": false,
+      "curveBlendOption": "Override",
+      "bBlendRootMotionBasedOnRootBone": true,
+      "bUpdateBasePoseFirst": false,
+      "initialUpdateFunction": {
+        "className": "None",
+        "functionName": "None"
+      },
+      "becomeRelevantFunction": {
+        "className": "None",
+        "functionName": "None"
+      },
+      "updateFunction": {
+        "className": "None",
+        "functionName": "None"
+      }
+    }
+  },
+  "pie": {
+    "returnValue": false
+  }
+}

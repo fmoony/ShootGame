@@ -1,0 +1,12 @@
+{
+  "time": "2026-11-16T15:49:59.583Z",
+  "pawn": "/Game/Experiments/Stance_20261022/UEDPIE_0_L_StancePreview.L_StancePreview:PersistentLevel.ShooterStancePreviewPawn_0",
+  "properties": {
+    "returnValue": "{\"previewPitch\":-23.841259002685547,\"previewYaw\":0,\"bPreviewLowerOnly\":false,\"previewMode\":1,\"previewCrouchAlpha\":1,\"previewForward\":0,\"previewRight\":0,\"bPreviewLowReady\":false}"
+  },
+  "body": {
+    "returnValue": "{\"animClass\":{\"refPath\":\"/Game/Experiments/Stance_20261022/StanceAware_20261116/Refined/ABP_StanceAware_TP.ABP_StanceAware_TP_C\"}}"
+  },
+  "pie": true,
+  "screenshot": "Images/Handoff.png"
+}

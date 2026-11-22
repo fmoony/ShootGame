@@ -1,0 +1,33 @@
+{
+  "status": "Passed",
+  "blender": "4.5.8 LTS",
+  "max_position_cm": 3.6439844464383696e-05,
+  "max_angle_deg": 0.0008632964636865319,
+  "clips": [
+    {
+      "name": "CrouchForward",
+      "keys": 61,
+      "fps": 60
+    },
+    {
+      "name": "CrouchForwardRight",
+      "keys": 61,
+      "fps": 60
+    },
+    {
+      "name": "CrouchBackRight",
+      "keys": 61,
+      "fps": 60
+    },
+    {
+      "name": "CrouchBackLeft",
+      "keys": 61,
+      "fps": 60
+    },
+    {
+      "name": "CrouchForwardLeft",
+      "keys": 61,
+      "fps": 60
+    }
+  ]
+}

@@ -1,0 +1,124 @@
+{
+  "status": "Passed",
+  "real_index_unchanged": true,
+  "checks": [
+    {
+      "name": "git",
+      "args": [
+        "diff",
+        "--cached",
+        "--name-only"
+      ],
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "name": "git",
+      "args": [
+        "read-tree",
+        "HEAD"
+      ],
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "name": "git",
+      "args": [
+        "add",
+        "-f",
+        "--",
+        "Docs/验证/StanceSourceLayer_20261115/README.md",
+        "Docs/开发记录/2026-11-15-2100-新来源下半身替换实验分层.md",
+        "Docs/滑铲与下蹲动画实验.md",
+        "SourceAssets/StanceCrouch/README.md",
+        "SourceAssets/StanceCrouch/LayerPlayback/README.md",
+        "Source/ShootGameEditor/Tests/Stance/ShooterStancePreview.cpp",
+        "Source/ShootGameEditor/Tests/Stance/ShooterStancePreview.h",
+        "Scripts/Animation/Stance/Run.ps1",
+        "Scripts/Animation/Stance/bake_layer_source.py",
+        "Scripts/Animation/Stance/import_layer_source.py",
+        "Scripts/Animation/Stance/verify_layer_source.py",
+        "Scripts/Animation/Stance/verify_layer_runtime.py",
+        "Scripts/Animation/Stance/analyze_layer_runtime.py",
+        "Scripts/Animation/Stance/analyze_view.py"
+      ],
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "name": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "Scripts/Development/CheckTextLayout.ps1",
+        "-Scope",
+        "Staged"
+      ],
+      "exit_code": 0,
+      "output": "Scripts/Animation/Stance/Run.ps1:4: unable to verify last-parameter boundary\nSource/ShootGameEditor/Tests/Stance/ShooterStancePreview.cpp:653: angle brackets make parameter boundaries uncertain\nSource/ShootGameEditor/Tests/Stance/ShooterStancePreview.cpp:1372: unable to verify last-parameter boundary\nSource/ShootGameEditor/Tests/Stance/ShooterStancePreview.cpp:1493: angle brackets make parameter boundaries uncertain\nLayout warnings require manual confirmation.\nText layout check passed. Scope=Staged Files=8 Warnings=4\n"
+    },
+    {
+      "name": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "Scripts/Development/CheckSourceIncludePaths.ps1"
+      ],
+      "exit_code": 0,
+      "output": "Source include path check passed. Files=159 Headers=62\n"
+    },
+    {
+      "name": "git",
+      "args": [
+        "diff",
+        "--cached",
+        "--check"
+      ],
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "name": "git",
+      "args": [
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "name": "E:/UnrealEngine/UE_5.8_Source/Engine/Binaries/ThirdParty/Python3/Win64/python.exe",
+      "args": [
+        "-c",
+        "import ast,pathlib\npaths=[\"Scripts/Animation/Stance/bake_layer_source.py\",\"Scripts/Animation/Stance/import_layer_source.py\",\"Scripts/Animation/Stance/verify_layer_source.py\",\"Scripts/Animation/Stance/verify_layer_runtime.py\",\"Scripts/Animation/Stance/analyze_layer_runtime.py\",\"Scripts/Animation/Stance/analyze_view.py\"]\nfor name in paths:\n b=pathlib.Path(name).read_bytes()\n assert b.endswith(b\"\\r\\n\") and not b.endswith(b\"\\r\\n\\r\\n\"),name\n assert b\"\\n\" not in b.replace(b\"\\r\\n\",b\"\"),name\n ast.parse(b.decode(\"utf8\"),filename=name)\n print(\"AST/CRLF Passed:\",name)\n"
+      ],
+      "exit_code": 0,
+      "output": "AST/CRLF Passed: Scripts/Animation/Stance/bake_layer_source.py\r\nAST/CRLF Passed: Scripts/Animation/Stance/import_layer_source.py\r\nAST/CRLF Passed: Scripts/Animation/Stance/verify_layer_source.py\r\nAST/CRLF Passed: Scripts/Animation/Stance/verify_layer_runtime.py\r\nAST/CRLF Passed: Scripts/Animation/Stance/analyze_layer_runtime.py\r\nAST/CRLF Passed: Scripts/Animation/Stance/analyze_view.py\r\n"
+    },
+    {
+      "name": "powershell",
+      "args": [
+        "-NoProfile",
+        "-Command",
+        "$parseTokens=$null; $parseErrors=$null; [System.Management.Automation.Language.Parser]::ParseInput([IO.File]::ReadAllText((Join-Path $PWD 'Scripts/Animation/Stance/Run.ps1'),[Text.Encoding]::UTF8),[ref]$parseTokens,[ref]$parseErrors) | Out-Null; if($parseErrors.Count){$parseErrors | Format-List;exit 1}; 'PowerShell AST Passed'"
+      ],
+      "exit_code": 0,
+      "output": "PowerShell AST Passed\r\n"
+    },
+    {
+      "name": "git",
+      "args": [
+        "diff",
+        "--cached",
+        "--name-only"
+      ],
+      "exit_code": 0,
+      "output": ""
+    }
+  ],
+  "manual_layout_warnings": "四处为既有 ValidateSet 枚举尾参数、模板及条件尾参数边界；人工核对通过。PowerShell AST 显式按 UTF-8 读取。"
+}

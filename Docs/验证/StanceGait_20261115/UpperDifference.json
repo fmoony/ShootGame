@@ -1,0 +1,49 @@
+{
+  "status": "Measured",
+  "frames": 43808,
+  "protected_rows": 175232,
+  "protected_bones": [
+    "pelvis",
+    "head",
+    "hand_l",
+    "hand_r"
+  ],
+  "maximum_component_position_difference_cm": 0.006820270009318766,
+  "maximum_world_position_difference_cm": 0.006821259561107245,
+  "maximum_rotation_difference_deg": 0.00988387728459328,
+  "idle_authored_tracks_equal": true,
+  "case_differences": [
+    {
+      "case": 111,
+      "position_cm": 0.0043306282454228665,
+      "angle_deg": 0.00988387728459328
+    },
+    {
+      "case": 113,
+      "position_cm": 0.0043090317938042,
+      "angle_deg": 0.009856595445737484
+    },
+    {
+      "case": 239,
+      "position_cm": 0.004330628245424576,
+      "angle_deg": 0.00988387728459328
+    },
+    {
+      "case": 241,
+      "position_cm": 0.0043090317938042,
+      "angle_deg": 0.009856595445737484
+    },
+    {
+      "case": 258,
+      "position_cm": 0.006821259561107245,
+      "angle_deg": 0.00591623420042389
+    },
+    {
+      "case": 259,
+      "position_cm": 0.0040368776300501626,
+      "angle_deg": 0.00555091531904743
+    }
+  ],
+  "strict_identity_passed": false,
+  "boundary": "新增方向改变局部三角混合，运行姿态有微小差异；报告实测，不标为完全一致。源局部轨道保护见 VerifyBlender。"
+}

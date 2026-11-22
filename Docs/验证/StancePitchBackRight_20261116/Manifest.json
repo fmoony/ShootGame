@@ -1,0 +1,208 @@
+{
+  "date": "2026-11-16",
+  "status": "ScopedPassed",
+  "known_limit": "101.25 degree boundary, forward and back-left contacts remain; no sole/sliding/network acceptance",
+  "build_evidence": "BuildV2.log; final C++ differs only by wrapping two existing statements",
+  "files": [
+    {
+      "path": "Docs/验证/StancePitchBackRight_20261116/BakeSummary.json",
+      "bytes": 455,
+      "sha256": "f6e49339975fa18e766b0445d2745364f4715a98eb1fa9586349fe65d6691134"
+    },
+    {
+      "path": "Docs/验证/StancePitchBackRight_20261116/BlendSpaceFinal.json",
+      "bytes": 3030,
+      "sha256": "f39222ca174a4f5419d0d90701988beb0d6d1593d293ce4a235d8fdc5ae87f0c"
+    },
+    {
+      "path": "Docs/验证/StancePitchBackRight_20261116/Build.log",
+      "bytes": 5260,
+      "sha256": "2382c6439a63ba4ecc3c456a1ff89fed898b2eb2ddb20cd065d432dad797622b"
+    },
+    {
+      "path": "Docs/验证/StancePitchBackRight_20261116/ExtraRuntime.json",
+      "bytes": 1667,
+      "sha256": "1f7aeef74b65012785d0c80991d672b3ca04619bf632850d288dfdc978fef2d6"
+    },
+    {
+      "path": "Docs/验证/StancePitchBackRight_20261116/Import.json",
+      "bytes": 4454,
+      "sha256": "ecabd5e5716e9c0e88245b1577a7c02585201573e5b3c3c4e32e586ec626e85a"
+    },
+    {
+      "path": "Docs/验证/StancePitchBackRight_20261116/LayerComparison.json",
+      "bytes": 10615,
+      "sha256": "614aaca578b121062c8475270e6e70db84165f858f8014680803edbf697596f9"
+    },
+    {
+      "path": "Docs/验证/StancePitchBackRight_20261116/Pitch8.contact.json",
+      "bytes": 7187,
+      "sha256": "be84fca5c84456f6aacab1f808e72be85c46f426b505c984e0d35c23b89a4fa2"
+    },
+    {
+      "path": "Docs/验证/StancePitchBackRight_20261116/Pitch8.csv.gz",
+      "bytes": 8310068,
+      "sha256": "6e856f4296ef33c6ea848561809e1617b1ca0283e5ceec355b1f24cf0f7c6a5f"
+    },
+    {
+      "path": "Docs/验证/StancePitchBackRight_20261116/PitchAfterReload.json",
+      "bytes": 1917,
+      "sha256": "2c7805155cbb1a8027698291365dc610497389c8c8a82f189a8ff80aad7ea41f"
+    },
+    {
+      "path": "Docs/验证/StancePitchBackRight_20261116/PitchNodesAfter.json",
+      "bytes": 7011,
+      "sha256": "b1d5acf5093f8ac68b4df63c51f16a604e07ad1aa84818fc942199d651013975"
+    },
+    {
+      "path": "Docs/验证/StancePitchBackRight_20261116/Protection.json",
+      "bytes": 73338,
+      "sha256": "51f709a747e84f33549837f4d23311a4483dfdf2de0f61531e98f4fdda3b5c29"
+    },
+    {
+      "path": "Docs/验证/StancePitchBackRight_20261116/Raw8.csv.gz",
+      "bytes": 8274438,
+      "sha256": "7556a4263fa1e8342ef8e36c587d50174b2ab44394c9c4c2ee911fc5695c4402"
+    },
+    {
+      "path": "Docs/验证/StancePitchBackRight_20261116/README.md",
+      "bytes": 6084,
+      "sha256": "aa928567acf0ec7a1d0efcb5828f58df55187288c84eec57b57a80f68c3fe4b2"
+    },
+    {
+      "path": "Docs/验证/StancePitchBackRight_20261116/ReviewFP.png",
+      "bytes": 764533,
+      "sha256": "b1558a791bdeb1c57910da1140c02b3cc9c7cd32a3b0c99980da163d06e45196"
+    },
+    {
+      "path": "Docs/验证/StancePitchBackRight_20261116/Sector32.contact.json",
+      "bytes": 33764,
+      "sha256": "1111ae04db6182359afd643a8847a234dd46a3588efff223e51363c178246a81"
+    },
+    {
+      "path": "Docs/验证/StancePitchBackRight_20261116/Sector32.csv.gz",
+      "bytes": 25813539,
+      "sha256": "8725440128baf265070ab4955bb3b7602010dd6d9f30f3f22a9439f2b30ed093"
+    },
+    {
+      "path": "Docs/验证/StancePitchBackRight_20261116/VerifyBackRight.json",
+      "bytes": 2876,
+      "sha256": "278ea67112ae2327cbde289f86509a0e176e5498c64ba59d663e73026c40a489"
+    },
+    {
+      "path": "Docs/验证/StancePitchBackRight_20261116/VerifyNative.json",
+      "bytes": 7081,
+      "sha256": "4b011871deeffb66ed408d3cb3638edb816ce618f9a9f6dcd88eeda7c239a09e"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/BackRight/BakeSummary.json",
+      "bytes": 455,
+      "sha256": "f6e49339975fa18e766b0445d2745364f4715a98eb1fa9586349fe65d6691134"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/BackRight/CrouchBackRight.blend",
+      "bytes": 7790113,
+      "sha256": "91042d576a9a0eb30b68b27bb60630047f8bf3c89b20bd9334ca0cef88d81517"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/BackRight/CrouchBackRight.fbx",
+      "bytes": 773420,
+      "sha256": "8f948ecc25a5123e91e5a0497c0505a592fbf0aeda0d9c3b983ff2e0a98114f8"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/BackRight/CrouchBackRight112.blend",
+      "bytes": 7790113,
+      "sha256": "41efaf5978520eb918f0aaab74c8ab82d8768d0cfb957aa69501ad289b7fb626"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/BackRight/CrouchBackRight112.fbx",
+      "bytes": 773420,
+      "sha256": "dddce1616381b7df2eca4b1489f3a2984a36ee7a5d8b49b608b693ab1071af71"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/BackRight/CrouchBackRight157.blend",
+      "bytes": 7790113,
+      "sha256": "86f542211024f2226fa5e26a3796d925f4bc461f6f3b4fbd82a3201f0d2052bf"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/BackRight/CrouchBackRight157.fbx",
+      "bytes": 773420,
+      "sha256": "3ea0dc3efa43715907ba55c0c4ec7ee92089d05b1d61ec414500f6268c9688e1"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/BackRight/Expected.json",
+      "bytes": 1486189,
+      "sha256": "c9618b8286a7f2db4c5c7463d197447b98bf0c333ea72eae4dfa53aab4b6a03e"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/BackRight/README.md",
+      "bytes": 1058,
+      "sha256": "73068d30f36abe1fa9dc5afef74d595c000d43b33e093c2acbad9871bccdd4f4"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/NativeGraph/ABP_StanceNative_TP.uasset",
+      "bytes": 277500,
+      "sha256": "c86877b8ced78e52856ee6ca4e79d4357050218cbb1ec32f002230f6639f33a6"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/SourceLayer/BS_SourceLayer_Lower.uasset",
+      "bytes": 20505,
+      "sha256": "650adc0b71714f9df4e1bb37ea7a6dcc7b9b91050d0369fd80581c39b6f95933"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/BackRight/AS_BackRight_CrouchBackRight.uasset",
+      "bytes": 173622,
+      "sha256": "f6316f09da80e86670bca588fdd15160cb1336e72b288b2c0c2e23da1ff6d95a"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/BackRight/AS_BackRight_CrouchBackRight112.uasset",
+      "bytes": 175624,
+      "sha256": "c5a5bcaca57b10f010de4199fb538896f9854cc475ad05dc970de2d2549755fb"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/BackRight/AS_BackRight_CrouchBackRight157.uasset",
+      "bytes": 173640,
+      "sha256": "b31218e60a34a6c61b84a9d3fd23e52da373fa8edca0caccee6e0f7a301fb6d4"
+    },
+    {
+      "path": "Source/ShootGameEditor/Tests/Stance/ShooterStancePreview.cpp",
+      "bytes": 32134,
+      "sha256": "c7e71f4e3168915f2196afd759aa2f47bb82d79258843fa6631d0c380a204c76"
+    },
+    {
+      "path": "Source/ShootGameEditor/Tests/Stance/ShooterStancePreview.h",
+      "bytes": 3147,
+      "sha256": "a50fdf0b8e697bf73b8e9ac93a7853eeab70686d326ffe12decc08c0e75111f0"
+    },
+    {
+      "path": "Scripts/Animation/Stance/Run.ps1",
+      "bytes": 2841,
+      "sha256": "8bdc50879107f1394981f4bc2e6999b58faa722028a9ce4a6879a33b64140ede"
+    },
+    {
+      "path": "Scripts/Animation/Stance/bake_back_right.py",
+      "bytes": 5521,
+      "sha256": "cadc48283398400ba554bf9b4d99dc4ca6fd0bbb2123f480fea1efe9726fe8de"
+    },
+    {
+      "path": "Scripts/Animation/Stance/import_back_right.py",
+      "bytes": 6677,
+      "sha256": "2c3d4c8a4390132137c2726467f079508c158fcebf9678baa646943bebeab42b"
+    },
+    {
+      "path": "Scripts/Animation/Stance/verify_back_right.py",
+      "bytes": 4733,
+      "sha256": "ff5411692741684d24a066cea8749ce8fa93cad61800e9d8d5db73fd59efe80d"
+    },
+    {
+      "path": "Scripts/Animation/Stance/analyze_pitch_back_right.py",
+      "bytes": 4028,
+      "sha256": "5aac8d3930677767194bcfca84e364021d683489192d85839b2e64dfe4de5f82"
+    },
+    {
+      "path": "Scripts/Animation/Stance/verify_native_graph.py",
+      "bytes": 3474,
+      "sha256": "7710ea11032b14aba3e0938db4606c9a26f63fc6ce00e00e9d7c580852398e41"
+    }
+  ]
+}

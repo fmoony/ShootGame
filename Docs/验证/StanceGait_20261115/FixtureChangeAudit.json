@@ -1,0 +1,12 @@
+{
+  "status": "Passed",
+  "file": "Source/ShootGameEditor/Tests/Stance/ShooterStancePreview.cpp",
+  "reconstructed_before_sha256": "3b6e9e5266246212128b78590abd3477198f1b9d98ac31957eab33d5ce272f0e",
+  "expected_before_sha256": "3b6e9e5266246212128b78590abd3477198f1b9d98ac31957eab33d5ce272f0e",
+  "allowed_changes": [
+    "新增 DuckMid_55 资源登记",
+    "按方向数计算导入数量",
+    "有界只读方向采样参数"
+  ],
+  "pose_evaluation_and_runtime_grounding_unchanged": true
+}

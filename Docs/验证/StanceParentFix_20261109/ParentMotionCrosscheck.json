@@ -1,0 +1,47 @@
+[
+  {
+    "name": "CrouchIdle",
+    "frames": 202,
+    "corrected_right_minus_left_height_cm": [
+      -0.39320597223670006,
+      -0.38893411836090763
+    ],
+    "original_fbx_height_difference_error_cm": 2.577258669145266e-05
+  },
+  {
+    "name": "CrouchLeft",
+    "frames": 38,
+    "corrected_right_minus_left_height_cm": [
+      -6.206061138762244,
+      8.600892482868645
+    ],
+    "original_fbx_height_difference_error_cm": 4.236521567069218e-05
+  },
+  {
+    "name": "CrouchRight",
+    "frames": 37,
+    "corrected_right_minus_left_height_cm": [
+      -8.28586598675976,
+      13.132231996261233
+    ],
+    "original_fbx_height_difference_error_cm": 4.7042459186741326e-05
+  },
+  {
+    "name": "CrouchBack",
+    "frames": 31,
+    "corrected_right_minus_left_height_cm": [
+      -14.513117711239648,
+      11.079585542947509
+    ],
+    "original_fbx_height_difference_error_cm": 5.748185361120761e-05
+  },
+  {
+    "name": "CrouchForwardLeft",
+    "frames": 31,
+    "corrected_right_minus_left_height_cm": [
+      -15.263067289414629,
+      8.758857536241209
+    ],
+    "original_fbx_height_difference_error_cm": 3.3599457047728265e-05
+  }
+]

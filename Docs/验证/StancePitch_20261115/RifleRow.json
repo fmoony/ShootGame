@@ -1,0 +1,73 @@
+{
+  "Rifle": {
+    "weaponActorClass": "/Script/Engine.BlueprintGeneratedClass'/Game/Shooter/Blueprints/Weapons/BP_ShooterWeapon_Rifle.BP_ShooterWeapon_Rifle_C'",
+    "initialPoolSize": 2,
+    "magazineSize": 40,
+    "initialReserveAmmo": -1,
+    "bFullAuto": true,
+    "refireRate": 0.2,
+    "aimVariance": 30,
+    "shotLoudness": 1,
+    "shotNoiseRange": 3000,
+    "shotNoiseTag": "Shot",
+    "reloadDuration": 2.5,
+    "equipDuration": 0.5,
+    "fireBehaviorClass": "/Script/CoreUObject.Class'/Script/ShootGame.ShooterProjectileFireBehavior'",
+    "projectileClass": "/Script/Engine.BlueprintGeneratedClass'/Game/Shooter/Blueprints/Weapons/BP_ShooterProjectile_Bullet.BP_ShooterProjectile_Bullet_C'",
+    "muzzleOffset": 10,
+    "muzzleSocketName": "Muzzle",
+    "leftHandGripSocketName": "LeftHandGrip",
+    "firstPersonMesh": "/Game/Weapons/Rifle/Meshes/SKM_Rifle.SKM_Rifle",
+    "thirdPersonMesh": "/Game/Weapons/Rifle/Meshes/SKM_Rifle.SKM_Rifle",
+    "magazineMesh": "/Game/Weapons/Rifle/Meshes/SM_Rifle_Magazine.SM_Rifle_Magazine",
+    "firstPersonMagazineGripTransform": {
+      "Rotation": {
+        "X": 0.664801,
+        "Y": 0.678769,
+        "Z": 0.271554,
+        "W": 0.153526
+      },
+      "Translation": {
+        "X": 10.77,
+        "Y": -2.59,
+        "Z": -5.4
+      },
+      "Scale3D": {
+        "X": 1,
+        "Y": 1,
+        "Z": 1
+      }
+    },
+    "thirdPersonMagazineGripTransform": {
+      "Rotation": {
+        "X": 0.664801,
+        "Y": 0.678769,
+        "Z": 0.271554,
+        "W": 0.153526
+      },
+      "Translation": {
+        "X": 10.77,
+        "Y": -2.59,
+        "Z": -5.4
+      },
+      "Scale3D": {
+        "X": 1,
+        "Y": 1,
+        "Z": 1
+      }
+    },
+    "pickupMesh": "/Game/Weapons/Rifle/Meshes/SM_Rifle.SM_Rifle",
+    "thirdPersonHoldSequence": "/Script/Engine.AnimSequence'/Game/Characters/Mannequins/Anims/Rifle/MF_Rifle_Idle_ADS.MF_Rifle_Idle_ADS'",
+    "thirdPersonAimOffset": "/Script/Engine.AimOffsetBlendSpace'/Game/Characters/Mannequins/Anims/Rifle/AIM/AO_Rifle.AO_Rifle'",
+    "thirdPersonReloadSequence": "/Script/Engine.AnimSequence'/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_Reload.MM_Rifle_Reload'",
+    "thirdPersonMinimumAimTargetDistanceFromMuzzle": 100,
+    "firingMontage": "/Script/Engine.AnimMontage'/Game/Characters/Mannequins/Anims/Rifle/FP_Rifle_Shoot_Montage.FP_Rifle_Shoot_Montage'",
+    "muzzleFlash": "/Script/Niagara.NiagaraSystem'/Game/Shooter/FX/NS_MuzzleFlash_Simple.NS_MuzzleFlash_Simple'",
+    "fireSound": "/Script/Engine.SoundWave'/Game/Weapons/_PublicAudio/FirstPersonTemplateWeaponFire03.FirstPersonTemplateWeaponFire03'",
+    "reloadMagazineOutSound": "/Script/Engine.SoundWave'/Game/Weapons/_PublicAudio/melbeebelbee-gun-magazine-out-384504.melbeebelbee-gun-magazine-out-384504'",
+    "reloadMagazineInSound": "/Script/Engine.SoundWave'/Game/Weapons/_PublicAudio/melbeebelbee-gun-mag-in-384505.melbeebelbee-gun-mag-in-384505'",
+    "reloadCockingSound": "/Script/Engine.SoundWave'/Game/Weapons/_PublicAudio/SW_Cock.SW_Cock'",
+    "firingRecoil": -0.5,
+    "firstPersonCompositionDrop": 0
+  }
+}

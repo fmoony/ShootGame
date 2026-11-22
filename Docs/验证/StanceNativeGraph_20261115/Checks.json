@@ -1,0 +1,120 @@
+{
+  "status": "Passed",
+  "checks": [
+    {
+      "cmd": "git",
+      "args": [
+        "diff",
+        "--cached",
+        "--name-only"
+      ],
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "cmd": "git",
+      "args": [
+        "read-tree",
+        "HEAD"
+      ],
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "cmd": "git",
+      "args": [
+        "add",
+        "-f",
+        "--",
+        "Docs/滑铲与下蹲动画实验.md",
+        "Docs/验证/StanceNativeGraph_20261115/README.md",
+        "Docs/开发记录/2026-11-15-2215-实验原生动画图替代手工骨骼处理.md",
+        "SourceAssets/StanceCrouch/README.md",
+        "Source/ShootGameEditor/Tests/Stance/ShooterStancePreview.cpp",
+        "Source/ShootGameEditor/Tests/Stance/ShooterStancePreview.h",
+        "Scripts/Animation/Stance/Run.ps1",
+        "Scripts/Animation/Stance/verify_native_graph.py",
+        "Scripts/Animation/Stance/analyze_native_graph.py"
+      ],
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "cmd": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "Scripts/Development/CheckTextLayout.ps1",
+        "-Scope",
+        "Staged"
+      ],
+      "exit_code": 0,
+      "output": "Text layout check passed. Scope=Staged Files=7 Warnings=0\n"
+    },
+    {
+      "cmd": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "Scripts/Development/CheckSourceIncludePaths.ps1"
+      ],
+      "exit_code": 0,
+      "output": "Source include path check passed. Files=159 Headers=62\n"
+    },
+    {
+      "cmd": "git",
+      "args": [
+        "diff",
+        "--cached",
+        "--check"
+      ],
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "cmd": "git",
+      "args": [
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "cmd": "E:/UnrealEngine/UE_5.8_Source/Engine/Binaries/ThirdParty/Python3/Win64/python.exe",
+      "args": [
+        "-c",
+        "import ast,pathlib\npaths=[\"Scripts/Animation/Stance/verify_native_graph.py\",\"Scripts/Animation/Stance/analyze_native_graph.py\"]\nfor name in paths:\n b=pathlib.Path(name).read_bytes()\n assert b.endswith(b\"\\r\\n\") and not b.endswith(b\"\\r\\n\\r\\n\"),name\n assert b\"\\n\" not in b.replace(b\"\\r\\n\",b\"\"),name\n ast.parse(b.decode(\"utf8\"),filename=name)\n print(\"AST/CRLF Passed:\",name)\n"
+      ],
+      "exit_code": 0,
+      "output": "AST/CRLF Passed: Scripts/Animation/Stance/verify_native_graph.py\r\nAST/CRLF Passed: Scripts/Animation/Stance/analyze_native_graph.py\r\n"
+    },
+    {
+      "cmd": "powershell",
+      "args": [
+        "-NoProfile",
+        "-Command",
+        "$nativeTokens=$null; $nativeErrors=$null; [System.Management.Automation.Language.Parser]::ParseInput([IO.File]::ReadAllText((Join-Path $PWD 'Scripts/Animation/Stance/Run.ps1'),[Text.Encoding]::UTF8),[ref]$nativeTokens,[ref]$nativeErrors) | Out-Null; if($nativeErrors.Count){$nativeErrors | Format-List;exit 1}; 'PowerShell AST Passed'"
+      ],
+      "exit_code": 0,
+      "output": "PowerShell AST Passed\r\n"
+    },
+    {
+      "cmd": "git",
+      "args": [
+        "diff",
+        "--cached",
+        "--name-only"
+      ],
+      "exit_code": 0,
+      "output": ""
+    }
+  ],
+  "real_index_unchanged": true,
+  "cpp_file_lifecycle_changed": false,
+  "vs_refresh_required": false
+}

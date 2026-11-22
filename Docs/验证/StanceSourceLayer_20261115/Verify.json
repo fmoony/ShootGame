@@ -1,0 +1,105 @@
+{
+  "status": "Passed",
+  "clips": [
+    {
+      "name": "CrouchIdle",
+      "asset": "/Game/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchIdle",
+      "keys": 202,
+      "duration_s": 6.7,
+      "remaining_root_xy_travel_cm": 0.01257362773105084
+    },
+    {
+      "name": "CrouchLeft",
+      "asset": "/Game/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchLeft",
+      "keys": 38,
+      "duration_s": 1.2333333333333334,
+      "remaining_root_xy_travel_cm": 2.0503997802734375e-05
+    },
+    {
+      "name": "CrouchRight",
+      "asset": "/Game/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchRight",
+      "keys": 37,
+      "duration_s": 1.2,
+      "remaining_root_xy_travel_cm": 5.245208740234375e-06
+    },
+    {
+      "name": "CrouchBack",
+      "asset": "/Game/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchBack",
+      "keys": 31,
+      "duration_s": 1.0,
+      "remaining_root_xy_travel_cm": 1.7881393432617188e-05
+    },
+    {
+      "name": "CrouchForwardLeft",
+      "asset": "/Game/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchForwardLeft",
+      "keys": 31,
+      "duration_s": 1.0,
+      "remaining_root_xy_travel_cm": 1.5158370561129614e-05
+    },
+    {
+      "name": "CrouchForwardRight",
+      "asset": "/Game/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchForwardRight",
+      "keys": 31,
+      "duration_s": 1.0,
+      "remaining_root_xy_travel_cm": 0.0
+    }
+  ],
+  "errors": [],
+  "sampled_bone_frames": 32930,
+  "max_raw_position_cm": 0.002437763332092914,
+  "max_raw_angle_deg": 0.009121984059755032,
+  "max_compressed_position_cm": 0.002437763332092914,
+  "max_compressed_angle_deg": 0.009121984059755032,
+  "nonroot_position_max_cm": 0.0006262732042978844,
+  "nonroot_angle_max_deg": 0.002462981746471867,
+  "blend_samples": [
+    {
+      "asset": "/Game/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchIdle.AS_SourceLayer_CrouchIdle",
+      "point": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchForwardLeft.AS_SourceLayer_CrouchForwardLeft",
+      "point": [
+        0.7071067690849304,
+        -0.7071067690849304,
+        0.0
+      ]
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchLeft.AS_SourceLayer_CrouchLeft",
+      "point": [
+        0.0,
+        -1.0,
+        0.0
+      ]
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchRight.AS_SourceLayer_CrouchRight",
+      "point": [
+        0.0,
+        1.0,
+        0.0
+      ]
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchBack.AS_SourceLayer_CrouchBack",
+      "point": [
+        -1.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchForwardRight.AS_SourceLayer_CrouchForwardRight",
+      "point": [
+        0.7071067690849304,
+        0.7071067690849304,
+        0.0
+      ]
+    }
+  ]
+}

@@ -1,0 +1,103 @@
+{
+  "status": "Passed",
+  "clips": [
+    {
+      "name": "CrouchIdle",
+      "asset": "/Game/Experiments/Stance_20261022/SourceBaked/AS_SourceBaked_CrouchIdle",
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin",
+      "keys": 202,
+      "duration_s": 6.7,
+      "import_file": "D:/UE_Projects/_worktrees/ShootGame_UE58/SourceAssets/StanceCrouch/ParentBaked/CrouchIdle.fbx",
+      "root_p_min": [
+        -27.512243270874023,
+        44.99972152709961,
+        -42.42739486694336
+      ],
+      "root_p_max": [
+        -27.20016860961914,
+        46.021697998046875,
+        -41.75449752807617
+      ]
+    },
+    {
+      "name": "CrouchLeft",
+      "asset": "/Game/Experiments/Stance_20261022/SourceBaked/AS_SourceBaked_CrouchLeft",
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin",
+      "keys": 38,
+      "duration_s": 1.2333333333333334,
+      "import_file": "D:/UE_Projects/_worktrees/ShootGame_UE58/SourceAssets/StanceCrouch/ParentBaked/CrouchLeft.fbx",
+      "root_p_min": [
+        1.7497304677963257,
+        -33.527320861816406,
+        -24.749923706054688
+      ],
+      "root_p_max": [
+        139.0906982421875,
+        -21.310190200805664,
+        -14.603354454040527
+      ]
+    },
+    {
+      "name": "CrouchRight",
+      "asset": "/Game/Experiments/Stance_20261022/SourceBaked/AS_SourceBaked_CrouchRight",
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin",
+      "keys": 37,
+      "duration_s": 1.2,
+      "import_file": "D:/UE_Projects/_worktrees/ShootGame_UE58/SourceAssets/StanceCrouch/ParentBaked/CrouchRight.fbx",
+      "root_p_min": [
+        -114.30301666259766,
+        -1.7388018369674683,
+        -30.870208740234375
+      ],
+      "root_p_max": [
+        6.959451675415039,
+        13.538858413696289,
+        -21.28101348876953
+      ]
+    },
+    {
+      "name": "CrouchBack",
+      "asset": "/Game/Experiments/Stance_20261022/SourceBaked/AS_SourceBaked_CrouchBack",
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin",
+      "keys": 31,
+      "duration_s": 1.0,
+      "import_file": "D:/UE_Projects/_worktrees/ShootGame_UE58/SourceAssets/StanceCrouch/ParentBaked/CrouchBack.fbx",
+      "root_p_min": [
+        -15.873696327209473,
+        -206.4169921875,
+        -32.03578186035156
+      ],
+      "root_p_max": [
+        -0.6968134045600891,
+        -0.6932412981987,
+        -26.753108978271484
+      ]
+    },
+    {
+      "name": "CrouchForwardLeft",
+      "asset": "/Game/Experiments/Stance_20261022/SourceBaked/AS_SourceBaked_CrouchForwardLeft",
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin",
+      "keys": 31,
+      "duration_s": 1.0,
+      "import_file": "D:/UE_Projects/_worktrees/ShootGame_UE58/SourceAssets/StanceCrouch/ParentBaked/CrouchForwardLeft.fbx",
+      "root_p_min": [
+        -0.4701855480670929,
+        18.775163650512695,
+        -30.54286766052246
+      ],
+      "root_p_max": [
+        144.99835205078125,
+        164.24432373046875,
+        -25.767728805541992
+      ]
+    }
+  ],
+  "errors": [],
+  "nonroot_local_position_max_cm": 0.0026469528834464407,
+  "nonroot_local_angle_max_deg": 0.009603729019841939,
+  "max_raw_position_cm": 0.0026152572394653305,
+  "max_raw_angle_deg": 0.009556794856061989,
+  "max_compressed_position_cm": 0.0026152572394653305,
+  "max_compressed_angle_deg": 0.009556794856061989,
+  "sampled_bone_frames": 30171
+}

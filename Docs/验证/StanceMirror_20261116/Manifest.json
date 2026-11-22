@@ -1,0 +1,163 @@
+{
+  "date": "2026-11-16",
+  "status": "MirrorFidelityPassed_ContactQualityFailed",
+  "operations": "reflection and bone pairing only; no IK, optimization, smoothing, height correction or time offset",
+  "protected_unchanged": 308,
+  "files": [
+    {
+      "path": "SourceAssets/StanceCrouch/Mirrored/CrouchBackRight.blend",
+      "bytes": 13849848,
+      "sha256": "1fc27367c74d922dda334cd91442704411a0053bd59498593d7ed87c8a9646a6"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/Mirrored/CrouchBackRight.fbx",
+      "bytes": 920620,
+      "sha256": "89bbbb1e8533f89d95dd95e332fa9026d375e46ab7a606cbe5297691340fa51a"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/Mirrored/CrouchForwardLeft.blend",
+      "bytes": 13849848,
+      "sha256": "b9233d018a7a86ce6fb96080389078e5196352a9ed3bfb1fbcd8169c70d2270b"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/Mirrored/CrouchForwardLeft.fbx",
+      "bytes": 919996,
+      "sha256": "1aa14150209bc28fb948d751645bde2509fa2f8af9966a8dcf3770d4429d1f4e"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/Mirrored/Expected.json",
+      "bytes": 4928087,
+      "sha256": "6be57570d50ce21fb3d5a983c0ca60a97589ab7d5fc9d50203a4e7392dd34d0b"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/Mirrored/MirrorSummary.json",
+      "bytes": 929,
+      "sha256": "99948ce86f59f1914ba023833fd87418def546f3706140f5ce505727bb975e87"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/Mirrored/README.md",
+      "bytes": 1201,
+      "sha256": "00f7e6712e10876809f9909e685e76d18ca6ff4d9a8f26eb604f59ad45e1e67e"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/Mirrored/AS_Mirrored_CrouchBackRight.uasset",
+      "bytes": 387084,
+      "sha256": "3ca0913867ee712bff2b73cfe4ef98f7a962c2f304769e640652c72850aea891"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/Mirrored/AS_Mirrored_CrouchForwardLeft.uasset",
+      "bytes": 381240,
+      "sha256": "78d1eb7bfc048718aa0fc3f39eb2d3003fff5d194f0acb3c9907c9bd5f0a2bab"
+    },
+    {
+      "path": "Docs/验证/StanceMirror_20261116/BlendSpaceAfter.json",
+      "bytes": 2981,
+      "sha256": "d3211f99a98c98d714b9c6d08b4613b2776e92eba9b2b9f66cdea4028d5040ad"
+    },
+    {
+      "path": "Docs/验证/StanceMirror_20261116/BlendSpaceBefore.json",
+      "bytes": 2981,
+      "sha256": "54230360af1fdc39822b90ca89cb7a45fc03eea95531ba1fc398d7d30d05b34f"
+    },
+    {
+      "path": "Docs/验证/StanceMirror_20261116/Full32.csv.gz",
+      "bytes": 25865206,
+      "sha256": "1fbdb82f8bb51503a75e18896d296765b8b4c39f36603fe2c0ea5195df56aeb8"
+    },
+    {
+      "path": "Docs/验证/StanceMirror_20261116/Full32.eightway.json",
+      "bytes": 43704,
+      "sha256": "4c9f2bc361d75c01a6e41cd819686c37882831f04344f6a632f082c900f64a16"
+    },
+    {
+      "path": "Docs/验证/StanceMirror_20261116/Import.json",
+      "bytes": 3030,
+      "sha256": "33b67b70181bb72033d72b052cf7ce4be5924eb228b2db922dab545eab8567f1"
+    },
+    {
+      "path": "Docs/验证/StanceMirror_20261116/MeshReference.json.gz",
+      "bytes": 2884303,
+      "sha256": "a96abe602bdb92dae917441278d661d733f11437a7d9a7dcd4dff577d56c234b"
+    },
+    {
+      "path": "Docs/验证/StanceMirror_20261116/MirrorSummary.json",
+      "bytes": 929,
+      "sha256": "99948ce86f59f1914ba023833fd87418def546f3706140f5ce505727bb975e87"
+    },
+    {
+      "path": "Docs/验证/StanceMirror_20261116/PhaseProbe.json",
+      "bytes": 246,
+      "sha256": "996744c3f5602152e5d4aa4187ec326e85cc7b59ea52a3486244d3f5c118b3fd"
+    },
+    {
+      "path": "Docs/验证/StanceMirror_20261116/Protection.json",
+      "bytes": 82572,
+      "sha256": "1f68fdffba9bc8c82f0d778fa369c7ecf7788fc04dfcca18a77852107baa9ad2"
+    },
+    {
+      "path": "Docs/验证/StanceMirror_20261116/README.md",
+      "bytes": 4883,
+      "sha256": "a0e3f316cda5df1d621f3081972d66b3699d82bf9767aaff359d25ccfe05a392"
+    },
+    {
+      "path": "Docs/验证/StanceMirror_20261116/Review.png",
+      "bytes": 852164,
+      "sha256": "af1225fb98cf0d8f28a9b5f599c454f8df8f7116f7c705d95134dead29373d05"
+    },
+    {
+      "path": "Docs/验证/StanceMirror_20261116/SkeletonReference.json",
+      "bytes": 31375,
+      "sha256": "1ce6601453db17d754e0f1b0a1f3a6f8d982d7972b6369564dbef7a672a41d2a"
+    },
+    {
+      "path": "Docs/验证/StanceMirror_20261116/SkinAudit.json",
+      "bytes": 3140,
+      "sha256": "a56cf9a1746a463cddb2ce16e28bdc724a0b48c2bde92303ed69a77dbfc5981d"
+    },
+    {
+      "path": "Docs/验证/StanceMirror_20261116/SkinAudit.py",
+      "bytes": 4722,
+      "sha256": "18d3134f448f470201e08aa288b4c7ba114cd4bfc2958aa665a919583891403e"
+    },
+    {
+      "path": "Docs/验证/StanceMirror_20261116/VerifyMirrored.json",
+      "bytes": 3065,
+      "sha256": "13defe2e6d7d62c455bd1cf74a378e36f3aaa2d6885ab4d438dc81582c1a6937"
+    },
+    {
+      "path": "Docs/验证/StanceMirror_20261116/VerifyNative.json",
+      "bytes": 7081,
+      "sha256": "51ef38472a2b55df73bae7583152cd104cbb96bc7b01d70ba5e21980d504dd63"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/SourceLayer/BS_SourceLayer_Lower.uasset",
+      "bytes": 20442,
+      "sha256": "0d01fa685468e0e3d1851f6e4813883f590b6e1a2e1113cd5c4e3a8642ff6a8d"
+    },
+    {
+      "path": "Scripts/Animation/Stance/mirror_stance.py",
+      "bytes": 7213,
+      "sha256": "9ebf5daac8601f60c50508c7c2d5185da19c33ffd2631d0527fe1fc313685c87"
+    },
+    {
+      "path": "Scripts/Animation/Stance/import_mirrored.py",
+      "bytes": 6689,
+      "sha256": "c492c619c6b4df8dbcc9873bb8865279a42cd9eaf280d30d0fc27d7f3f854ed0"
+    },
+    {
+      "path": "Scripts/Animation/Stance/verify_mirrored.py",
+      "bytes": 5949,
+      "sha256": "5736ecf5eb6e0acd708434229851056a0bc56e52ab0784a1d64ac8b320c0a9ad"
+    },
+    {
+      "path": "Scripts/Animation/Stance/verify_native_graph.py",
+      "bytes": 3458,
+      "sha256": "c15aaa16bbab472ccaf57d1d5b8f44b67f99d294ab2bb15407496d39eac8b6e7"
+    },
+    {
+      "path": "Scripts/Animation/Stance/Run.ps1",
+      "bytes": 2821,
+      "sha256": "963376b3dc42f78389b99f6ad436281945081a5c879cb4930e982f19aa8362c7"
+    }
+  ]
+}

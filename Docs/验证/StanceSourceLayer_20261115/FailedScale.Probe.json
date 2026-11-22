@@ -1,0 +1,82 @@
+{
+  "mode": "Probe",
+  "status": "Failed",
+  "clips": [
+    {
+      "name": "CrouchIdle",
+      "path": "/Game/Experiments/Stance_20261022/SourceLayerProbe/AS_SourceLayer_CrouchIdle.AS_SourceLayer_CrouchIdle",
+      "keys": 202,
+      "duration_s": 6.7,
+      "checks": [
+        {
+          "retarget": false,
+          "max_position_cm": 0.0012825991933939525,
+          "max_angle_deg": 0.0011298416055778864,
+          "worst": [
+            82,
+            "pelvis",
+            "position",
+            [
+              -1.1289895587548848,
+              1.3810804764817135,
+              38.96392212582393
+            ],
+            [
+              -1.1291557550430298,
+              1.381178379058838,
+              38.96265411376953
+            ]
+          ]
+        },
+        {
+          "retarget": true,
+          "max_position_cm": 1661.335338790016,
+          "max_angle_deg": 0.0011298416055778864,
+          "worst": [
+            192,
+            "ball_r",
+            "position",
+            [
+              -936.1594629409564,
+              379.539516270113,
+              -1327.6875517910935
+            ],
+            [
+              -18.857086181640625,
+              -13.175018310546875,
+              0.6071262955665588
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [
+    [
+      "CrouchIdle",
+      {
+        "retarget": true,
+        "max_position_cm": 1661.335338790016,
+        "max_angle_deg": 0.0011298416055778864,
+        "worst": [
+          192,
+          "ball_r",
+          "position",
+          [
+            -936.1594629409564,
+            379.539516270113,
+            -1327.6875517910935
+          ],
+          [
+            -18.857086181640625,
+            -13.175018310546875,
+            0.6071262955665588
+          ]
+        ]
+      }
+    ]
+  ],
+  "source": "D:\\UE_Projects\\_worktrees\\ShootGame_UE58\\SourceAssets\\StanceCrouch\\LayerPlayback",
+  "formal_reference_unchanged": true,
+  "probe_cleanup": true
+}

@@ -1,0 +1,239 @@
+{
+  "status": "Passed",
+  "task": "保留原始 Source，父层运动正确烘焙后绑定生产 Skeleton",
+  "files": [
+    {
+      "path": "Content/Experiments/Stance_20261022/SourceBaked/AS_SourceBaked_CrouchBack.uasset",
+      "bytes": 170632,
+      "sha256": "a8093acff26f7307e163409fa1d03a6690a3bcad13567bfa529af6d1399d08bc"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/SourceBaked/AS_SourceBaked_CrouchForwardLeft.uasset",
+      "bytes": 169682,
+      "sha256": "828f1724af0735940213eab8a6cb12dd6588bb10a42cad39166fc7e5bad1a70d"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/SourceBaked/AS_SourceBaked_CrouchIdle.uasset",
+      "bytes": 922156,
+      "sha256": "3bc5327cc7a3f6b26627a69fb4e10fa894050f6c23f2d9fb22a40c70342a3931"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/SourceBaked/AS_SourceBaked_CrouchLeft.uasset",
+      "bytes": 260968,
+      "sha256": "2a2b52be5ff6d3d8771e9213a9b4ea092fb9d51ebc945ad588a56278cb247ebd"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/SourceBaked/AS_SourceBaked_CrouchRight.uasset",
+      "bytes": 254062,
+      "sha256": "b3022f075894bed4bd862d67b1d94c5c28934b63568a63035d2e8283b9718002"
+    },
+    {
+      "path": "Docs/开发记录/2026-11-15-2024-原始下蹲父层烘焙与生产骨架导入.md",
+      "bytes": 2825,
+      "sha256": "4c3e2c6dab1c4b63ddc234f9426794cbfa0ef35bda98589fc8406f135c48cfb5"
+    },
+    {
+      "path": "Docs/滑铲与下蹲动画实验.md",
+      "bytes": 10717,
+      "sha256": "05c3d6a93d6c152bfb95ab634f387230c7d465b6024aeef2f5635fbfcb6ea076"
+    },
+    {
+      "path": "Docs/验证/StanceSourceBaked_20261115/Bake.log",
+      "bytes": 2325,
+      "sha256": "87db20a6baa3c19a371b478abbdd64cc71636bfd4d00cae831b43a3e5d6a3ddb"
+    },
+    {
+      "path": "Docs/验证/StanceSourceBaked_20261115/BakeSummary.json",
+      "bytes": 593,
+      "sha256": "3d15fc896f89ec68eeff220bb709eab61911adb3d1acb8dabe76d3966bd4738e"
+    },
+    {
+      "path": "Docs/验证/StanceSourceBaked_20261115/BakeV2.log",
+      "bytes": 2078,
+      "sha256": "d062ac92070df16bb286a8fb2cd9195541589f98ad1deada5190eab8b081c861"
+    },
+    {
+      "path": "Docs/验证/StanceSourceBaked_20261115/Checks.json",
+      "bytes": 281,
+      "sha256": "bd765966e4c39485df9e55cce88dec52915ce00663724b7b122cd620ae9e7d90"
+    },
+    {
+      "path": "Docs/验证/StanceSourceBaked_20261115/Import.json",
+      "bytes": 7275,
+      "sha256": "299a194b584d59e649dcd8e0e7154f1443f493f6231056354b312c830663f892"
+    },
+    {
+      "path": "Docs/验证/StanceSourceBaked_20261115/Import.log",
+      "bytes": 274306,
+      "sha256": "59482d246c8503a8e987b1de01c5b970bf516ef62a38175832ddcd2bd8b693c7"
+    },
+    {
+      "path": "Docs/验证/StanceSourceBaked_20261115/Preview.png",
+      "bytes": 358064,
+      "sha256": "fbc4b1b85711d8003303686699b4c4f3e65d2a4487673640dcbbdb4ef9109505"
+    },
+    {
+      "path": "Docs/验证/StanceSourceBaked_20261115/Probe.json",
+      "bytes": 1550,
+      "sha256": "eeb5d1b47f49d1f17a253c288afaf3f6796017a5e0bc0f87c846c4771162e2ef"
+    },
+    {
+      "path": "Docs/验证/StanceSourceBaked_20261115/Probe.log",
+      "bytes": 238059,
+      "sha256": "2acf42abb154e30726db9420c75de39b2e69cf48d1a68842ced3018005dde97c"
+    },
+    {
+      "path": "Docs/验证/StanceSourceBaked_20261115/Protection.json",
+      "bytes": 33256,
+      "sha256": "0a4208f4e7bda4aea5f53cb2fd5ba13ba3bb72a370a2cc5e4e4e6a92fe42ef2a"
+    },
+    {
+      "path": "Docs/验证/StanceSourceBaked_20261115/README.md",
+      "bytes": 5599,
+      "sha256": "fa7b67ee03f51e71235a9d5982d449afcb6f0948824595d29acf5450d1e4f973"
+    },
+    {
+      "path": "Docs/验证/StanceSourceBaked_20261115/RawBones.csv.gz",
+      "bytes": 1886294,
+      "sha256": "77864e6495022ad9de6c8618ee763d08302d84a38633359f50db0fdacf6dc0bc"
+    },
+    {
+      "path": "Docs/验证/StanceSourceBaked_20261115/ReviewEditor.log",
+      "bytes": 307618,
+      "sha256": "36fbcc08729d7f3e4b100cb49135722b0a82918b8876d85ccce60ef7287ab62e"
+    },
+    {
+      "path": "Docs/验证/StanceSourceBaked_20261115/ReviewEditorNormal.log",
+      "bytes": 309759,
+      "sha256": "02b0297dc1fa03653e8451bcb4edb9a3e8fbd0f305cd56e0ceb1f66028a3779f"
+    },
+    {
+      "path": "Docs/验证/StanceSourceBaked_20261115/ReviewWindow.json",
+      "bytes": 364,
+      "sha256": "431662eadd7be2eae973740f59b7f45ec429e9199ec27c559e35da473cec79b0"
+    },
+    {
+      "path": "Docs/验证/StanceSourceBaked_20261115/Verify.json",
+      "bytes": 3556,
+      "sha256": "6c763e6e1e4bb126cce961c48d370fe71752d62109908166d82ac56b983e35e8"
+    },
+    {
+      "path": "Docs/验证/StanceSourceBaked_20261115/Verify.log",
+      "bytes": 230704,
+      "sha256": "7f9f964e485f464cfbd90c065a92fd3b4d62a588a18b89b50d03e130397c7665"
+    },
+    {
+      "path": "Scripts/Animation/Stance/bake_source_parent.py",
+      "bytes": 7681,
+      "sha256": "14b979042e5c8d643c1d848a282f128b61254ebee9210a2fc312870e0a0183fa"
+    },
+    {
+      "path": "Scripts/Animation/Stance/import_baked_source.py",
+      "bytes": 6678,
+      "sha256": "cbdca107b3eebb0d9bf743eb3de500772b95a9a758571ff3bf1c9c2e7b06eed5"
+    },
+    {
+      "path": "Scripts/Animation/Stance/verify_baked_source.py",
+      "bytes": 5288,
+      "sha256": "131f269ff3582fefca3d1d40d13ad04fffd8d8c4b044a45f9e04f7a38ecb1782"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/CrouchBack.fbx",
+      "bytes": 369312,
+      "sha256": "5cea1844f84fff1c24b1aec3b14a37632b7940cb6692ac44e8c8ac9d72bf6278"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/CrouchForwardLeft.fbx",
+      "bytes": 369312,
+      "sha256": "a920a9a3313588dee457c24964259b99ac4706663d5a873fe2f2d1927761b8cb"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/CrouchIdle.fbx",
+      "bytes": 821392,
+      "sha256": "d8c0859e2c76c99da0b8f5b942fe802d0a56b1a6dd3f438253c0c24274de40e5"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/CrouchLeft.fbx",
+      "bytes": 415360,
+      "sha256": "502d1f9ed6a74c372dd220067c4502839c8a58db8cf194217ca649c688da0ee6"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/CrouchRight.fbx",
+      "bytes": 411872,
+      "sha256": "53d66093a9f6cd4fbc1d2a0cc8fc7c2c784c155badcc79d9dceb385aeb9aaea4"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/ParentBaked/BakeSummary.json",
+      "bytes": 593,
+      "sha256": "3d15fc896f89ec68eeff220bb709eab61911adb3d1acb8dabe76d3966bd4738e"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/ParentBaked/CrouchBack.blend",
+      "bytes": 3360243,
+      "sha256": "519bf5292155b633e43ae5fcb61dc3a971c8eef30ea094974591d0a578556797"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/ParentBaked/CrouchBack.fbx",
+      "bytes": 773324,
+      "sha256": "dff8b9be100babb2748061592ba3ee21a387de8e0cfad8bd801b7e63c30f3fa3"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/ParentBaked/CrouchForwardLeft.blend",
+      "bytes": 3360243,
+      "sha256": "1c1bcdab2a5e2a64b111bfefad1069fe14807ba18437e1366b21b9dbc7665729"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/ParentBaked/CrouchForwardLeft.fbx",
+      "bytes": 773324,
+      "sha256": "a4b79abed5ce080502ee5dc385f59104c097ae9921027fe89e392294b969f8a4"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/ParentBaked/CrouchIdle.blend",
+      "bytes": 19351371,
+      "sha256": "f8c7359357daa1ab92e5fed9b180826ef04b3d7cbcdf3fbfa12d503910ddbcab"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/ParentBaked/CrouchIdle.fbx",
+      "bytes": 1698220,
+      "sha256": "fc3d18c3d3b94b72686358ca2db70b870eb79e2d0e41ac953eb2b39de8e62988"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/ParentBaked/CrouchLeft.blend",
+      "bytes": 4446939,
+      "sha256": "04a9ca5e3a97ff051ef3cb9ab3efa99df00ce082ae480e67583563f75ce75cfd"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/ParentBaked/CrouchLeft.fbx",
+      "bytes": 788508,
+      "sha256": "735d32dbd9519b3cbc3c84c8fa23fea50c607142435965a97a3b1d62d702671b"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/ParentBaked/CrouchRight.blend",
+      "bytes": 4353411,
+      "sha256": "7f829d3c513fb6176c2c3d606e16895ad9e1f77a177665f6e8f45cee5bc80ae3"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/ParentBaked/CrouchRight.fbx",
+      "bytes": 782188,
+      "sha256": "152078cf7db6f41e4a6c0b9b03d34c89b1aa14e08d9aef93e295f8ba93682e98"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/ParentBaked/Expected.json",
+      "bytes": 5329814,
+      "sha256": "48182e92b1ae210eca40ed801e52a56abe33643cf58fa5ffc974b34be001820f"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/ParentBaked/README.md",
+      "bytes": 2043,
+      "sha256": "055487f43a1cf2cfc241e525236c3dd64c7fb3247ca783a4e2e9af0482dec604"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/README.md",
+      "bytes": 3296,
+      "sha256": "c14b3d8340be60c63d23ce8b58fff89ff848ff2c9a206f6f4f41379bd697f6b2"
+    }
+  ],
+  "protected_existing_files": 124,
+  "protection": "Protection.json",
+  "scope": "五段独立原始动作；现有实验未切换"
+}

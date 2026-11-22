@@ -1,0 +1,688 @@
+{
+  "status": "Passed",
+  "clips": [
+    {
+      "name": "Stand",
+      "ready": "Aim",
+      "length": 1.100000023841858,
+      "raw": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": 2.606421372259689,
+        "pelvis_z_cm": [
+          95.79846954345703,
+          95.79846954345703
+        ],
+        "head_z_cm": [
+          161.29419968495023,
+          161.29419968495023
+        ]
+      },
+      "compressed": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": 2.606421372259689,
+        "pelvis_z_cm": [
+          95.79846954345703,
+          95.79846954345703
+        ],
+        "head_z_cm": [
+          161.29419968495023,
+          161.29419968495023
+        ]
+      }
+    },
+    {
+      "name": "Stand",
+      "ready": "LowReady",
+      "length": 1.100000023841858,
+      "raw": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": -0.523399961409817,
+        "pelvis_z_cm": [
+          95.89678192138672,
+          95.89678192138672
+        ],
+        "head_z_cm": [
+          162.177022097643,
+          162.177022097643
+        ]
+      },
+      "compressed": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": -0.523399961409817,
+        "pelvis_z_cm": [
+          95.89678192138672,
+          95.89678192138672
+        ],
+        "head_z_cm": [
+          162.177022097643,
+          162.177022097643
+        ]
+      }
+    },
+    {
+      "name": "CrouchIdle",
+      "ready": "Aim",
+      "length": 1.100000023841858,
+      "raw": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": 0.7508219093246682,
+        "pelvis_z_cm": [
+          44.0,
+          44.0
+        ],
+        "head_z_cm": [
+          108.80804698140079,
+          108.80804698140079
+        ]
+      },
+      "compressed": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": 0.7508219093246682,
+        "pelvis_z_cm": [
+          44.0,
+          44.0
+        ],
+        "head_z_cm": [
+          108.80804698140079,
+          108.80804698140079
+        ]
+      }
+    },
+    {
+      "name": "CrouchIdle",
+      "ready": "LowReady",
+      "length": 1.100000023841858,
+      "raw": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": 0.750824553888096,
+        "pelvis_z_cm": [
+          44.0,
+          44.0
+        ],
+        "head_z_cm": [
+          108.36085349898957,
+          108.36085349898957
+        ]
+      },
+      "compressed": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": 0.750824553888096,
+        "pelvis_z_cm": [
+          44.0,
+          44.0
+        ],
+        "head_z_cm": [
+          108.36085349898957,
+          108.36085349898957
+        ]
+      }
+    },
+    {
+      "name": "DuckWalk",
+      "ready": "Aim",
+      "length": 1.100000023841858,
+      "raw": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": 0.7507993467323475,
+        "pelvis_z_cm": [
+          43.10407638549805,
+          44.900001525878906
+        ],
+        "head_z_cm": [
+          107.91212336689884,
+          109.7080485072797
+        ]
+      },
+      "compressed": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": 0.7507993467323475,
+        "pelvis_z_cm": [
+          43.10407638549805,
+          44.900001525878906
+        ],
+        "head_z_cm": [
+          107.91212336689884,
+          109.7080485072797
+        ]
+      }
+    },
+    {
+      "name": "DuckWalk",
+      "ready": "LowReady",
+      "length": 1.100000023841858,
+      "raw": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": 0.7508213338745238,
+        "pelvis_z_cm": [
+          43.10407638549805,
+          44.900001525878906
+        ],
+        "head_z_cm": [
+          107.46492988448762,
+          109.26085502486848
+        ]
+      },
+      "compressed": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": 0.7508213338745238,
+        "pelvis_z_cm": [
+          43.10407638549805,
+          44.900001525878906
+        ],
+        "head_z_cm": [
+          107.46492988448762,
+          109.26085502486848
+        ]
+      }
+    },
+    {
+      "name": "Slide",
+      "ready": "Aim",
+      "length": 1.100000023841858,
+      "raw": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": 6.546097488353309,
+        "pelvis_z_cm": [
+          15.0,
+          15.0
+        ],
+        "head_z_cm": [
+          69.6535005226829,
+          69.6535005226829
+        ]
+      },
+      "compressed": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": 6.546097488353309,
+        "pelvis_z_cm": [
+          15.0,
+          15.0
+        ],
+        "head_z_cm": [
+          69.6535005226829,
+          69.6535005226829
+        ]
+      }
+    },
+    {
+      "name": "Slide",
+      "ready": "LowReady",
+      "length": 1.100000023841858,
+      "raw": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": 6.546118143893628,
+        "pelvis_z_cm": [
+          15.0,
+          15.0
+        ],
+        "head_z_cm": [
+          73.07246111426826,
+          73.07246111426826
+        ]
+      },
+      "compressed": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": 6.546118143893628,
+        "pelvis_z_cm": [
+          15.0,
+          15.0
+        ],
+        "head_z_cm": [
+          73.07246111426826,
+          73.07246111426826
+        ]
+      }
+    },
+    {
+      "name": "DuckBack",
+      "ready": "Aim",
+      "length": 1.100000023841858,
+      "raw": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": 0.7507994103359312,
+        "pelvis_z_cm": [
+          43.10407638549805,
+          44.900001525878906
+        ],
+        "head_z_cm": [
+          107.91212336689884,
+          109.7080485072797
+        ]
+      },
+      "compressed": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": 0.7507994103359312,
+        "pelvis_z_cm": [
+          43.10407638549805,
+          44.900001525878906
+        ],
+        "head_z_cm": [
+          107.91212336689884,
+          109.7080485072797
+        ]
+      }
+    },
+    {
+      "name": "DuckBack",
+      "ready": "LowReady",
+      "length": 1.100000023841858,
+      "raw": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": 0.7508232994209099,
+        "pelvis_z_cm": [
+          43.10407638549805,
+          44.900001525878906
+        ],
+        "head_z_cm": [
+          107.46492988448762,
+          109.26085502486848
+        ]
+      },
+      "compressed": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": 0.7508232994209099,
+        "pelvis_z_cm": [
+          43.10407638549805,
+          44.900001525878906
+        ],
+        "head_z_cm": [
+          107.46492988448762,
+          109.26085502486848
+        ]
+      }
+    },
+    {
+      "name": "DuckLeft",
+      "ready": "Aim",
+      "length": 1.100000023841858,
+      "raw": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": 0.7507919326647823,
+        "pelvis_z_cm": [
+          43.10407638549805,
+          44.900001525878906
+        ],
+        "head_z_cm": [
+          107.91212336689884,
+          109.7080485072797
+        ]
+      },
+      "compressed": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": 0.7507919326647823,
+        "pelvis_z_cm": [
+          43.10407638549805,
+          44.900001525878906
+        ],
+        "head_z_cm": [
+          107.91212336689884,
+          109.7080485072797
+        ]
+      }
+    },
+    {
+      "name": "DuckLeft",
+      "ready": "LowReady",
+      "length": 1.100000023841858,
+      "raw": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": 0.750823625890618,
+        "pelvis_z_cm": [
+          43.10407638549805,
+          44.900001525878906
+        ],
+        "head_z_cm": [
+          107.46492988448762,
+          109.26085502486848
+        ]
+      },
+      "compressed": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": 0.750823625890618,
+        "pelvis_z_cm": [
+          43.10407638549805,
+          44.900001525878906
+        ],
+        "head_z_cm": [
+          107.46492988448762,
+          109.26085502486848
+        ]
+      }
+    },
+    {
+      "name": "DuckRight",
+      "ready": "Aim",
+      "length": 1.100000023841858,
+      "raw": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": 0.7507948760571672,
+        "pelvis_z_cm": [
+          43.10407638549805,
+          44.900001525878906
+        ],
+        "head_z_cm": [
+          107.91212336689884,
+          109.7080485072797
+        ]
+      },
+      "compressed": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": 0.7507948760571672,
+        "pelvis_z_cm": [
+          43.10407638549805,
+          44.900001525878906
+        ],
+        "head_z_cm": [
+          107.91212336689884,
+          109.7080485072797
+        ]
+      }
+    },
+    {
+      "name": "DuckRight",
+      "ready": "LowReady",
+      "length": 1.100000023841858,
+      "raw": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": 0.7508216967141834,
+        "pelvis_z_cm": [
+          43.10407638549805,
+          44.900001525878906
+        ],
+        "head_z_cm": [
+          107.46492988448762,
+          109.26085502486848
+        ]
+      },
+      "compressed": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": 0.7508216967141834,
+        "pelvis_z_cm": [
+          43.10407638549805,
+          44.900001525878906
+        ],
+        "head_z_cm": [
+          107.46492988448762,
+          109.26085502486848
+        ]
+      }
+    },
+    {
+      "name": "DuckForwardLeft",
+      "ready": "Aim",
+      "length": 1.100000023841858,
+      "raw": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": 0.7507950590236785,
+        "pelvis_z_cm": [
+          43.10407638549805,
+          44.900001525878906
+        ],
+        "head_z_cm": [
+          107.91212336689884,
+          109.7080485072797
+        ]
+      },
+      "compressed": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": 0.7507950590236785,
+        "pelvis_z_cm": [
+          43.10407638549805,
+          44.900001525878906
+        ],
+        "head_z_cm": [
+          107.91212336689884,
+          109.7080485072797
+        ]
+      }
+    },
+    {
+      "name": "DuckForwardLeft",
+      "ready": "LowReady",
+      "length": 1.100000023841858,
+      "raw": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": 0.7508243772232115,
+        "pelvis_z_cm": [
+          43.10407638549805,
+          44.900001525878906
+        ],
+        "head_z_cm": [
+          107.46492988448762,
+          109.26085502486848
+        ]
+      },
+      "compressed": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": 0.7508243772232115,
+        "pelvis_z_cm": [
+          43.10407638549805,
+          44.900001525878906
+        ],
+        "head_z_cm": [
+          107.46492988448762,
+          109.26085502486848
+        ]
+      }
+    },
+    {
+      "name": "DuckForwardRight",
+      "ready": "Aim",
+      "length": 1.100000023841858,
+      "raw": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": 0.750793504372619,
+        "pelvis_z_cm": [
+          43.10407638549805,
+          44.900001525878906
+        ],
+        "head_z_cm": [
+          107.91212336689884,
+          109.7080485072797
+        ]
+      },
+      "compressed": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": 0.750793504372619,
+        "pelvis_z_cm": [
+          43.10407638549805,
+          44.900001525878906
+        ],
+        "head_z_cm": [
+          107.91212336689884,
+          109.7080485072797
+        ]
+      }
+    },
+    {
+      "name": "DuckForwardRight",
+      "ready": "LowReady",
+      "length": 1.100000023841858,
+      "raw": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": 0.7508213357587561,
+        "pelvis_z_cm": [
+          43.10407638549805,
+          44.900001525878906
+        ],
+        "head_z_cm": [
+          107.46492988448762,
+          109.26085502486848
+        ]
+      },
+      "compressed": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": 0.7508213357587561,
+        "pelvis_z_cm": [
+          43.10407638549805,
+          44.900001525878906
+        ],
+        "head_z_cm": [
+          107.46492988448762,
+          109.26085502486848
+        ]
+      }
+    },
+    {
+      "name": "DuckBackLeft",
+      "ready": "Aim",
+      "length": 1.100000023841858,
+      "raw": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": 0.75077681855731,
+        "pelvis_z_cm": [
+          43.10407638549805,
+          44.900001525878906
+        ],
+        "head_z_cm": [
+          107.91212336689884,
+          109.7080485072797
+        ]
+      },
+      "compressed": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": 0.75077681855731,
+        "pelvis_z_cm": [
+          43.10407638549805,
+          44.900001525878906
+        ],
+        "head_z_cm": [
+          107.91212336689884,
+          109.7080485072797
+        ]
+      }
+    },
+    {
+      "name": "DuckBackLeft",
+      "ready": "LowReady",
+      "length": 1.100000023841858,
+      "raw": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": 0.7508192010109305,
+        "pelvis_z_cm": [
+          43.10407638549805,
+          44.900001525878906
+        ],
+        "head_z_cm": [
+          107.46492988448762,
+          109.26085502486848
+        ]
+      },
+      "compressed": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": 0.7508192010109305,
+        "pelvis_z_cm": [
+          43.10407638549805,
+          44.900001525878906
+        ],
+        "head_z_cm": [
+          107.46492988448762,
+          109.26085502486848
+        ]
+      }
+    },
+    {
+      "name": "DuckBackRight",
+      "ready": "Aim",
+      "length": 1.100000023841858,
+      "raw": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": 0.7507933556367341,
+        "pelvis_z_cm": [
+          43.10407638549805,
+          44.900001525878906
+        ],
+        "head_z_cm": [
+          107.91212336689884,
+          109.7080485072797
+        ]
+      },
+      "compressed": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": 0.7507933556367341,
+        "pelvis_z_cm": [
+          43.10407638549805,
+          44.900001525878906
+        ],
+        "head_z_cm": [
+          107.91212336689884,
+          109.7080485072797
+        ]
+      }
+    },
+    {
+      "name": "DuckBackRight",
+      "ready": "LowReady",
+      "length": 1.100000023841858,
+      "raw": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": 0.7508202082468607,
+        "pelvis_z_cm": [
+          43.10407638549805,
+          44.900001525878906
+        ],
+        "head_z_cm": [
+          107.46492988448762,
+          109.26085502486848
+        ]
+      },
+      "compressed": {
+        "loop_seam_cm": 0.0,
+        "root_drift_cm": 0.0,
+        "lowest_toe_cm": 0.7508202082468607,
+        "pelvis_z_cm": [
+          43.10407638549805,
+          44.900001525878906
+        ],
+        "head_z_cm": [
+          107.46492988448762,
+          109.26085502486848
+        ]
+      }
+    }
+  ],
+  "errors": []
+}

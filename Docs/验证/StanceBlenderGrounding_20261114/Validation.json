@@ -1,0 +1,22 @@
+{
+  "build": "Passed",
+  "resources": 90,
+  "runtime_cases": 264,
+  "runtime_frames": 43808,
+  "include_check": {
+    "status": "Passed",
+    "files": 159,
+    "headers": 62
+  },
+  "layout": {
+    "status": "Passed",
+    "warnings": 3,
+    "review": "574 为末参数 RF_Standalone；1078 / 1193 仅结束分号超出 120 列，均符合尾参数规则。"
+  },
+  "limitations": [
+    "启停参考点约 -2.92 cm 短暂穿地未标为通过",
+    "未进行坡面、碰撞或网络验收"
+  ],
+  "real_index_changed": false,
+  "committed": false
+}

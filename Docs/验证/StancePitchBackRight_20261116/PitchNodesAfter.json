@@ -1,0 +1,205 @@
+{
+  "returnValue": [
+    {
+      "output_pins": [
+        {
+          "value": "",
+          "connected_pins": [
+            {
+              "direction": "EGPD_Input",
+              "index_id": 1,
+              "node": {
+                "refPath": "/Game/Experiments/Stance_20261022/NativeGraph/ABP_StanceNative_TP.ABP_StanceNative_TP:AnimGraph.AnimGraphNode_LayeredBoneBlend_0"
+              }
+            }
+          ],
+          "pin_id": {
+            "direction": "EGPD_Output",
+            "index_id": 0,
+            "node": {
+              "refPath": "/Game/Experiments/Stance_20261022/NativeGraph/ABP_StanceNative_TP.ABP_StanceNative_TP:AnimGraph.AnimGraphNode_RotationOffsetBlendSpace_0"
+            }
+          },
+          "type_id": "Pose Link Structure",
+          "name": "Pose"
+        }
+      ],
+      "input_pins": [
+        {
+          "value": "0.000000",
+          "connected_pins": [
+            {
+              "direction": "EGPD_Output",
+              "index_id": 0,
+              "node": {
+                "refPath": "/Game/Experiments/Stance_20261022/NativeGraph/ABP_StanceNative_TP.ABP_StanceNative_TP:AnimGraph.K2Node_VariableGet_4"
+              }
+            }
+          ],
+          "pin_id": {
+            "direction": "EGPD_Input",
+            "index_id": 0,
+            "node": {
+              "refPath": "/Game/Experiments/Stance_20261022/NativeGraph/ABP_StanceNative_TP.ABP_StanceNative_TP:AnimGraph.AnimGraphNode_RotationOffsetBlendSpace_0"
+            }
+          },
+          "type_id": "Float (single-precision)",
+          "name": "X"
+        },
+        {
+          "value": "0.000000",
+          "connected_pins": [
+            {
+              "direction": "EGPD_Output",
+              "index_id": 0,
+              "node": {
+                "refPath": "/Game/Experiments/Stance_20261022/NativeGraph/ABP_StanceNative_TP.ABP_StanceNative_TP:AnimGraph.K2Node_CallFunction_0"
+              }
+            }
+          ],
+          "pin_id": {
+            "direction": "EGPD_Input",
+            "index_id": 1,
+            "node": {
+              "refPath": "/Game/Experiments/Stance_20261022/NativeGraph/ABP_StanceNative_TP.ABP_StanceNative_TP:AnimGraph.AnimGraphNode_RotationOffsetBlendSpace_0"
+            }
+          },
+          "type_id": "Float (single-precision)",
+          "name": "Y"
+        },
+        {
+          "value": "(LinkID=-1,SourceLinkID=-1)",
+          "connected_pins": [
+            {
+              "direction": "EGPD_Output",
+              "index_id": 0,
+              "node": {
+                "refPath": "/Game/Experiments/Stance_20261022/NativeGraph/ABP_StanceNative_TP.ABP_StanceNative_TP:AnimGraph.AnimGraphNode_BlendListByBool_0"
+              }
+            }
+          ],
+          "pin_id": {
+            "direction": "EGPD_Input",
+            "index_id": 2,
+            "node": {
+              "refPath": "/Game/Experiments/Stance_20261022/NativeGraph/ABP_StanceNative_TP.ABP_StanceNative_TP:AnimGraph.AnimGraphNode_RotationOffsetBlendSpace_0"
+            }
+          },
+          "type_id": "Pose Link Structure",
+          "name": "BasePose"
+        },
+        {
+          "value": "1.000000",
+          "connected_pins": [],
+          "pin_id": {
+            "direction": "EGPD_Input",
+            "index_id": 3,
+            "node": {
+              "refPath": "/Game/Experiments/Stance_20261022/NativeGraph/ABP_StanceNative_TP.ABP_StanceNative_TP:AnimGraph.AnimGraphNode_RotationOffsetBlendSpace_0"
+            }
+          },
+          "type_id": "Float (single-precision)",
+          "name": "Alpha"
+        }
+      ],
+      "position": {
+        "x": -100,
+        "y": 500
+      },
+      "node": {
+        "refPath": "/Game/Experiments/Stance_20261022/NativeGraph/ABP_StanceNative_TP.ABP_StanceNative_TP:AnimGraph.AnimGraphNode_RotationOffsetBlendSpace_0"
+      },
+      "type_id": "Animation|BlendSpaces|AimOffsetPlayer'AO_Rifle'"
+    },
+    {
+      "output_pins": [
+        {
+          "value": "0.0",
+          "connected_pins": [
+            {
+              "direction": "EGPD_Input",
+              "index_id": 0,
+              "node": {
+                "refPath": "/Game/Experiments/Stance_20261022/NativeGraph/ABP_StanceNative_TP.ABP_StanceNative_TP:AnimGraph.K2Node_CallFunction_0"
+              }
+            }
+          ],
+          "pin_id": {
+            "direction": "EGPD_Output",
+            "index_id": 0,
+            "node": {
+              "refPath": "/Game/Experiments/Stance_20261022/NativeGraph/ABP_StanceNative_TP.ABP_StanceNative_TP:AnimGraph.K2Node_VariableGet_5"
+            }
+          },
+          "type_id": "Float (single-precision)",
+          "name": "Pitch"
+        }
+      ],
+      "input_pins": [],
+      "position": {
+        "x": -320,
+        "y": 500
+      },
+      "node": {
+        "refPath": "/Game/Experiments/Stance_20261022/NativeGraph/ABP_StanceNative_TP.ABP_StanceNative_TP:AnimGraph.K2Node_VariableGet_5"
+      },
+      "type_id": "|GetPitch"
+    },
+    {
+      "output_pins": [
+        {
+          "value": "0.0",
+          "connected_pins": [
+            {
+              "direction": "EGPD_Input",
+              "index_id": 1,
+              "node": {
+                "refPath": "/Game/Experiments/Stance_20261022/NativeGraph/ABP_StanceNative_TP.ABP_StanceNative_TP:AnimGraph.AnimGraphNode_RotationOffsetBlendSpace_0"
+              }
+            }
+          ],
+          "pin_id": {
+            "direction": "EGPD_Output",
+            "index_id": 0,
+            "node": {
+              "refPath": "/Game/Experiments/Stance_20261022/NativeGraph/ABP_StanceNative_TP.ABP_StanceNative_TP:AnimGraph.K2Node_CallFunction_0"
+            }
+          },
+          "type_id": "Float (double-precision)",
+          "name": "ReturnValue"
+        }
+      ],
+      "input_pins": [
+        {
+          "value": "0.0",
+          "connected_pins": [
+            {
+              "direction": "EGPD_Output",
+              "index_id": 0,
+              "node": {
+                "refPath": "/Game/Experiments/Stance_20261022/NativeGraph/ABP_StanceNative_TP.ABP_StanceNative_TP:AnimGraph.K2Node_VariableGet_5"
+              }
+            }
+          ],
+          "pin_id": {
+            "direction": "EGPD_Input",
+            "index_id": 0,
+            "node": {
+              "refPath": "/Game/Experiments/Stance_20261022/NativeGraph/ABP_StanceNative_TP.ABP_StanceNative_TP:AnimGraph.K2Node_CallFunction_0"
+            }
+          },
+          "type_id": "Float (double-precision)",
+          "name": "A"
+        }
+      ],
+      "position": {
+        "x": -300,
+        "y": 680
+      },
+      "node": {
+        "refPath": "/Game/Experiments/Stance_20261022/NativeGraph/ABP_StanceNative_TP.ABP_StanceNative_TP:AnimGraph.K2Node_CallFunction_0"
+      },
+      "type_id": "Math|Trig|Sin(Degrees)"
+    }
+  ]
+}

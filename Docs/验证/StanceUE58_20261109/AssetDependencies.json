@@ -1,0 +1,375 @@
+{
+  "assets": [
+    {
+      "package": "/Game/Experiments/Stance_20261022/AS_CrouchIdle_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/AS_CrouchIdle_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/AS_DuckBackLeft_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/AS_DuckBackLeft_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/AS_DuckBackRight_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/AS_DuckBackRight_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/AS_DuckBack_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/AS_DuckBack_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/AS_DuckForwardLeft_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/AS_DuckForwardLeft_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/AS_DuckForwardRight_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/AS_DuckForwardRight_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/AS_DuckLeft_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/AS_DuckLeft_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/AS_DuckRight_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/AS_DuckRight_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/AS_DuckWalk_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/AS_DuckWalk_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/AS_Slide_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/AS_Slide_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/AS_Stand_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/AS_Stand_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/BS_Duck_Aim",
+      "class": "BlendSpace"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/BS_Duck_LowReady",
+      "class": "BlendSpace"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/L_StancePreview",
+      "class": "World"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/SKM_FP_Arms",
+      "class": "SkeletalMesh"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/SKM_FP_Legs",
+      "class": "SkeletalMesh"
+    }
+  ],
+  "dependencies": [
+    {
+      "from": "/Game/Experiments/Stance_20261022/AS_CrouchIdle_Aim",
+      "to": "/Game/Characters/Mannequins/Meshes/SK_Mannequin",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/AS_CrouchIdle_LowReady",
+      "to": "/Game/Characters/Mannequins/Meshes/SK_Mannequin",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/AS_DuckBackLeft_Aim",
+      "to": "/Game/Characters/Mannequins/Meshes/SK_Mannequin",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/AS_DuckBackLeft_LowReady",
+      "to": "/Game/Characters/Mannequins/Meshes/SK_Mannequin",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/AS_DuckBackRight_Aim",
+      "to": "/Game/Characters/Mannequins/Meshes/SK_Mannequin",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/AS_DuckBackRight_LowReady",
+      "to": "/Game/Characters/Mannequins/Meshes/SK_Mannequin",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/AS_DuckBack_Aim",
+      "to": "/Game/Characters/Mannequins/Meshes/SK_Mannequin",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/AS_DuckBack_LowReady",
+      "to": "/Game/Characters/Mannequins/Meshes/SK_Mannequin",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/AS_DuckForwardLeft_Aim",
+      "to": "/Game/Characters/Mannequins/Meshes/SK_Mannequin",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/AS_DuckForwardLeft_LowReady",
+      "to": "/Game/Characters/Mannequins/Meshes/SK_Mannequin",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/AS_DuckForwardRight_Aim",
+      "to": "/Game/Characters/Mannequins/Meshes/SK_Mannequin",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/AS_DuckForwardRight_LowReady",
+      "to": "/Game/Characters/Mannequins/Meshes/SK_Mannequin",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/AS_DuckLeft_Aim",
+      "to": "/Game/Characters/Mannequins/Meshes/SK_Mannequin",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/AS_DuckLeft_LowReady",
+      "to": "/Game/Characters/Mannequins/Meshes/SK_Mannequin",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/AS_DuckRight_Aim",
+      "to": "/Game/Characters/Mannequins/Meshes/SK_Mannequin",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/AS_DuckRight_LowReady",
+      "to": "/Game/Characters/Mannequins/Meshes/SK_Mannequin",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/AS_DuckWalk_Aim",
+      "to": "/Game/Characters/Mannequins/Meshes/SK_Mannequin",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/AS_DuckWalk_LowReady",
+      "to": "/Game/Characters/Mannequins/Meshes/SK_Mannequin",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/AS_Slide_Aim",
+      "to": "/Game/Characters/Mannequins/Meshes/SK_Mannequin",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/AS_Slide_LowReady",
+      "to": "/Game/Characters/Mannequins/Meshes/SK_Mannequin",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/AS_Stand_Aim",
+      "to": "/Game/Characters/Mannequins/Meshes/SK_Mannequin",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/AS_Stand_LowReady",
+      "to": "/Game/Characters/Mannequins/Meshes/SK_Mannequin",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/BS_Duck_Aim",
+      "to": "/Game/Characters/Mannequins/Meshes/SK_Mannequin",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/BS_Duck_Aim",
+      "to": "/Game/Experiments/Stance_20261022/AS_CrouchIdle_Aim",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/BS_Duck_Aim",
+      "to": "/Game/Experiments/Stance_20261022/AS_DuckBackLeft_Aim",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/BS_Duck_Aim",
+      "to": "/Game/Experiments/Stance_20261022/AS_DuckBackRight_Aim",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/BS_Duck_Aim",
+      "to": "/Game/Experiments/Stance_20261022/AS_DuckBack_Aim",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/BS_Duck_Aim",
+      "to": "/Game/Experiments/Stance_20261022/AS_DuckForwardLeft_Aim",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/BS_Duck_Aim",
+      "to": "/Game/Experiments/Stance_20261022/AS_DuckForwardRight_Aim",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/BS_Duck_Aim",
+      "to": "/Game/Experiments/Stance_20261022/AS_DuckLeft_Aim",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/BS_Duck_Aim",
+      "to": "/Game/Experiments/Stance_20261022/AS_DuckRight_Aim",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/BS_Duck_Aim",
+      "to": "/Game/Experiments/Stance_20261022/AS_DuckWalk_Aim",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/BS_Duck_LowReady",
+      "to": "/Game/Characters/Mannequins/Meshes/SK_Mannequin",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/BS_Duck_LowReady",
+      "to": "/Game/Experiments/Stance_20261022/AS_CrouchIdle_LowReady",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/BS_Duck_LowReady",
+      "to": "/Game/Experiments/Stance_20261022/AS_DuckBackLeft_LowReady",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/BS_Duck_LowReady",
+      "to": "/Game/Experiments/Stance_20261022/AS_DuckBackRight_LowReady",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/BS_Duck_LowReady",
+      "to": "/Game/Experiments/Stance_20261022/AS_DuckBack_LowReady",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/BS_Duck_LowReady",
+      "to": "/Game/Experiments/Stance_20261022/AS_DuckForwardLeft_LowReady",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/BS_Duck_LowReady",
+      "to": "/Game/Experiments/Stance_20261022/AS_DuckForwardRight_LowReady",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/BS_Duck_LowReady",
+      "to": "/Game/Experiments/Stance_20261022/AS_DuckLeft_LowReady",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/BS_Duck_LowReady",
+      "to": "/Game/Experiments/Stance_20261022/AS_DuckRight_LowReady",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/BS_Duck_LowReady",
+      "to": "/Game/Experiments/Stance_20261022/AS_DuckWalk_LowReady",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/SKM_FP_Arms",
+      "to": "/Game/Characters/Mannequins/Meshes/SK_Mannequin",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/SKM_FP_Arms",
+      "to": "/Game/Characters/Mannequins/Rigs/PA_Mannequin",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/SKM_FP_Arms",
+      "to": "/Game/Characters/Mannequins/Materials/Manny/MI_Manny_01_New",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/SKM_FP_Arms",
+      "to": "/Game/Characters/Mannequins/Materials/Manny/MI_Manny_02_New",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/SKM_FP_Arms",
+      "to": "/Game/Characters/Mannequins/Rigs/CR_Mannequin_Body",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/SKM_FP_Legs",
+      "to": "/Game/Characters/Mannequins/Meshes/SK_Mannequin",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/SKM_FP_Legs",
+      "to": "/Game/Characters/Mannequins/Rigs/PA_Mannequin",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/SKM_FP_Legs",
+      "to": "/Game/Characters/Mannequins/Materials/Manny/MI_Manny_01_New",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/SKM_FP_Legs",
+      "to": "/Game/Characters/Mannequins/Materials/Manny/MI_Manny_02_New",
+      "exists": true
+    },
+    {
+      "from": "/Game/Experiments/Stance_20261022/SKM_FP_Legs",
+      "to": "/Game/Characters/Mannequins/Rigs/CR_Mannequin_Body",
+      "exists": true
+    }
+  ],
+  "missing": []
+}

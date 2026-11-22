@@ -1,0 +1,119 @@
+{
+  "status": "Passed",
+  "clips": [
+    {
+      "asset": "/Game/Experiments/Stance_20261022/EightWay/AS_EightWay_CrouchForward",
+      "keys": 61,
+      "fps": 60,
+      "direction_deg": 0
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/EightWay/AS_EightWay_CrouchForwardRight",
+      "keys": 61,
+      "fps": 60,
+      "direction_deg": 45
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/EightWay/AS_EightWay_CrouchBackRight",
+      "keys": 61,
+      "fps": 60,
+      "direction_deg": 135
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/EightWay/AS_EightWay_CrouchBackLeft",
+      "keys": 61,
+      "fps": 60,
+      "direction_deg": 225
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/EightWay/AS_EightWay_CrouchForwardLeft",
+      "keys": 61,
+      "fps": 60,
+      "direction_deg": 315
+    }
+  ],
+  "bone_frames": 27145,
+  "max_raw_position_cm": 0.0021886289200873845,
+  "max_raw_angle_deg": 0.007584136225232717,
+  "max_compressed_position_cm": 0.0021886289200873845,
+  "max_compressed_angle_deg": 0.007584136225232717,
+  "loop_position_max_cm": 0,
+  "loop_angle_max_deg": 3.212731058883991e-05,
+  "ik_marker_max_cm": 0.0002438520895746443,
+  "max_compressed_leg_step_deg": 12.97666089458172,
+  "layout": {
+    "idle": {
+      "asset": "/Game/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchIdle.AS_SourceLayer_CrouchIdle",
+      "point": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "315": {
+      "asset": "/Game/Experiments/Stance_20261022/EightWay/AS_EightWay_CrouchForwardLeft.AS_EightWay_CrouchForwardLeft",
+      "point": [
+        0.7071067690849304,
+        -0.7071067690849304,
+        0.0
+      ]
+    },
+    "270": {
+      "asset": "/Game/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchLeft.AS_SourceLayer_CrouchLeft",
+      "point": [
+        0.0,
+        -1.0,
+        0.0
+      ]
+    },
+    "90": {
+      "asset": "/Game/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchRight.AS_SourceLayer_CrouchRight",
+      "point": [
+        0.0,
+        1.0,
+        0.0
+      ]
+    },
+    "180": {
+      "asset": "/Game/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchBack.AS_SourceLayer_CrouchBack",
+      "point": [
+        -1.0,
+        0.0,
+        0.0
+      ]
+    },
+    "45": {
+      "asset": "/Game/Experiments/Stance_20261022/EightWay/AS_EightWay_CrouchForwardRight.AS_EightWay_CrouchForwardRight",
+      "point": [
+        0.7071067690849304,
+        0.7071067690849304,
+        0.0
+      ]
+    },
+    "135": {
+      "asset": "/Game/Experiments/Stance_20261022/EightWay/AS_EightWay_CrouchBackRight.AS_EightWay_CrouchBackRight",
+      "point": [
+        -0.7071067811865476,
+        0.7071067811865476,
+        0.0
+      ]
+    },
+    "225": {
+      "asset": "/Game/Experiments/Stance_20261022/EightWay/AS_EightWay_CrouchBackLeft.AS_EightWay_CrouchBackLeft",
+      "point": [
+        -0.7071067811865476,
+        -0.7071067811865476,
+        0.0
+      ]
+    },
+    "0": {
+      "asset": "/Game/Experiments/Stance_20261022/EightWay/AS_EightWay_CrouchForward.AS_EightWay_CrouchForward",
+      "point": [
+        1.0,
+        0.0,
+        0.0
+      ]
+    }
+  },
+  "protected_files": 288
+}

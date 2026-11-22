@@ -1,0 +1,305 @@
+{
+  "mode": "Commit",
+  "status": "Passed",
+  "clips": [
+    {
+      "name": "CrouchIdle",
+      "path": "/Game/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchIdle.AS_SourceLayer_CrouchIdle",
+      "keys": 202,
+      "duration_s": 6.7,
+      "checks": [
+        {
+          "retarget": false,
+          "max_position_cm": 0.002437763332096426,
+          "max_angle_deg": 0.002744867268614308,
+          "worst": [
+            114,
+            "index_02_l",
+            "position",
+            [
+              -15.146202169149346,
+              74.27925931001519,
+              88.72984019604374
+            ],
+            [
+              -15.148612022399902,
+              74.27889251708984,
+              88.72981262207031
+            ]
+          ]
+        },
+        {
+          "retarget": true,
+          "max_position_cm": 0.002437763332092914,
+          "max_angle_deg": 0.002744867268614308,
+          "worst": [
+            114,
+            "index_02_l",
+            "position",
+            [
+              -15.14620216914935,
+              74.27925931001519,
+              88.72984019604374
+            ],
+            [
+              -15.148612022399902,
+              74.27889251708984,
+              88.72981262207031
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CrouchLeft",
+      "path": "/Game/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchLeft.AS_SourceLayer_CrouchLeft",
+      "keys": 38,
+      "duration_s": 1.2333333333333334,
+      "checks": [
+        {
+          "retarget": false,
+          "max_position_cm": 0.00026354496410663214,
+          "max_angle_deg": 0.009121984059755032,
+          "worst": [
+            9,
+            "ball_r",
+            "position",
+            [
+              -60.916207726791455,
+              12.483877337265548,
+              2.249838297679883
+            ],
+            [
+              -60.91609191894531,
+              12.484110832214355,
+              2.2497992515563965
+            ]
+          ]
+        },
+        {
+          "retarget": true,
+          "max_position_cm": 0.002252340455333154,
+          "max_angle_deg": 0.009121984059755032,
+          "worst": [
+            8,
+            "ball_r",
+            "position",
+            [
+              -57.21396288539687,
+              12.612781763809025,
+              1.1824713140397884
+            ],
+            [
+              -57.214141845703125,
+              12.610543251037598,
+              1.1826447248458862
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CrouchRight",
+      "path": "/Game/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchRight.AS_SourceLayer_CrouchRight",
+      "keys": 37,
+      "duration_s": 1.2,
+      "checks": [
+        {
+          "retarget": false,
+          "max_position_cm": 0.00029074919432600394,
+          "max_angle_deg": 0.0023308427098403775,
+          "worst": [
+            25,
+            "ball_r",
+            "position",
+            [
+              -70.03534782921257,
+              2.956051098788924,
+              1.6759690568225452
+            ],
+            [
+              -70.03533935546875,
+              2.956324338912964,
+              1.6760680675506592
+            ]
+          ]
+        },
+        {
+          "retarget": true,
+          "max_position_cm": 0.0006588121369131234,
+          "max_angle_deg": 0.0023308427098403775,
+          "worst": [
+            10,
+            "ball_l",
+            "position",
+            [
+              -34.319944048940876,
+              43.624710367304324,
+              1.4072604069484749
+            ],
+            [
+              -34.32056427001953,
+              43.6245002746582,
+              1.4073326587677002
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CrouchBack",
+      "path": "/Game/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchBack.AS_SourceLayer_CrouchBack",
+      "keys": 31,
+      "duration_s": 1.0,
+      "checks": [
+        {
+          "retarget": false,
+          "max_position_cm": 0.0002624645848210563,
+          "max_angle_deg": 0.0022657962275931544,
+          "worst": [
+            5,
+            "ball_r",
+            "position",
+            [
+              -13.749117999394212,
+              62.45171717148135,
+              0.6588486705288403
+            ],
+            [
+              -13.74890422821045,
+              62.45185852050781,
+              0.6589053273200989
+            ]
+          ]
+        },
+        {
+          "retarget": true,
+          "max_position_cm": 0.000714071736372043,
+          "max_angle_deg": 0.0022657962275931544,
+          "worst": [
+            6,
+            "ball_r",
+            "position",
+            [
+              -14.228547499503192,
+              67.86497469188132,
+              2.12027585102844
+            ],
+            [
+              -14.227874755859375,
+              67.86520385742188,
+              2.120345115661621
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CrouchForwardLeft",
+      "path": "/Game/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchForwardLeft.AS_SourceLayer_CrouchForwardLeft",
+      "keys": 31,
+      "duration_s": 1.0,
+      "checks": [
+        {
+          "retarget": false,
+          "max_position_cm": 0.0002467843544517998,
+          "max_angle_deg": 0.0015509643692200406,
+          "worst": [
+            24,
+            "ball_r",
+            "position",
+            [
+              26.637734063892008,
+              60.30561381784774,
+              2.0574625603844376
+            ],
+            [
+              26.637954711914062,
+              60.305580139160156,
+              2.057567834854126
+            ]
+          ]
+        },
+        {
+          "retarget": true,
+          "max_position_cm": 0.0005574428348810357,
+          "max_angle_deg": 0.0015509643692200406,
+          "worst": [
+            24,
+            "ball_r",
+            "position",
+            [
+              26.63741430148611,
+              60.30561259716918,
+              2.0574349982583735
+            ],
+            [
+              26.637954711914062,
+              60.305580139160156,
+              2.057567834854126
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CrouchForwardRight",
+      "path": "/Game/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchForwardRight.AS_SourceLayer_CrouchForwardRight",
+      "keys": 31,
+      "duration_s": 1.0,
+      "checks": [
+        {
+          "retarget": false,
+          "max_position_cm": 0.00024508245777816014,
+          "max_angle_deg": 0.0019013077131095058,
+          "worst": [
+            10,
+            "lowerarm_l",
+            "position",
+            [
+              24.05215835986732,
+              17.092131648303777,
+              89.52815826182041
+            ],
+            [
+              24.052024841308594,
+              17.092071533203125,
+              89.52796173095703
+            ]
+          ]
+        },
+        {
+          "retarget": true,
+          "max_position_cm": 0.00042594615286750204,
+          "max_angle_deg": 0.0019013077131095058,
+          "worst": [
+            27,
+            "ball_r",
+            "position",
+            [
+              -40.79659403950103,
+              39.07159680467667,
+              0.8603177031548697
+            ],
+            [
+              -40.796844482421875,
+              39.07126235961914,
+              0.8604004979133606
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "source": "D:\\UE_Projects\\_worktrees\\ShootGame_UE58\\SourceAssets\\StanceCrouch\\LayerPlayback",
+  "formal_reference_unchanged": true,
+  "saved_assets": [
+    "/Game/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchIdle.AS_SourceLayer_CrouchIdle",
+    "/Game/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchLeft.AS_SourceLayer_CrouchLeft",
+    "/Game/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchRight.AS_SourceLayer_CrouchRight",
+    "/Game/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchBack.AS_SourceLayer_CrouchBack",
+    "/Game/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchForwardLeft.AS_SourceLayer_CrouchForwardLeft",
+    "/Game/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchForwardRight.AS_SourceLayer_CrouchForwardRight"
+  ]
+}

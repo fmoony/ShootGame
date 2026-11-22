@@ -1,0 +1,131 @@
+{
+  "status": "Passed",
+  "assets": [
+    {
+      "path": "Content/Characters/Mannequins/Meshes/SK_Mannequin.uasset",
+      "kind": "protected",
+      "sha256": "ea0f1cc4f2d21093395784d5e9b5d1c4645f3445b4936891a18af5c4045c8d40",
+      "after": "ea0f1cc4f2d21093395784d5e9b5d1c4645f3445b4936891a18af5c4045c8d40"
+    },
+    {
+      "path": "Content/Characters/Mannequins/Meshes/SKM_Manny_Simple.uasset",
+      "kind": "protected",
+      "sha256": "9c1c63fdf7078ef68285d954815117b1b7a5d8efe702ed6de243ff1b8e8ee942",
+      "after": "9c1c63fdf7078ef68285d954815117b1b7a5d8efe702ed6de243ff1b8e8ee942"
+    },
+    {
+      "path": "Content/Shooter/Animation/ThirdPerson/ABP_TP_Player.uasset",
+      "kind": "protected",
+      "sha256": "703a674bbcbb2b1587f9539038e2325cca7d404afd5c4e0cb675d7c6307d8e60",
+      "after": "703a674bbcbb2b1587f9539038e2325cca7d404afd5c4e0cb675d7c6307d8e60"
+    },
+    {
+      "path": "Content/Shooter/Animation/FirstPerson/ABP_FP_Player.uasset",
+      "kind": "protected",
+      "sha256": "a946e1476cc0b83c2e45d41a99dc0de156c00e566566186dc87848672da24bc2",
+      "after": "a946e1476cc0b83c2e45d41a99dc0de156c00e566566186dc87848672da24bc2"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/L_StancePreview.umap",
+      "kind": "protected",
+      "sha256": "e004fd76fb00532ac116ff088cd50a10a546966f7c2863215610bf290eb115e8",
+      "after": "e004fd76fb00532ac116ff088cd50a10a546966f7c2863215610bf290eb115e8"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/SKM_FP_Arms.uasset",
+      "kind": "protected",
+      "sha256": "8b698f9e790265210029784eb82609161d23b118c19f15a62af7da9ecc5ad6bf",
+      "after": "8b698f9e790265210029784eb82609161d23b118c19f15a62af7da9ecc5ad6bf"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/SKM_FP_Legs.uasset",
+      "kind": "protected",
+      "sha256": "8d115ad27aff6ea5af450340449b1057a5e2859f7309a2e310c28e93269bb938",
+      "after": "8d115ad27aff6ea5af450340449b1057a5e2859f7309a2e310c28e93269bb938"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/AS_Stand_Aim.uasset",
+      "kind": "protected",
+      "sha256": "6715a425c9e57b230b72f31b742b4e1586049d7abc3139a98083943f24c63d03",
+      "after": "6715a425c9e57b230b72f31b742b4e1586049d7abc3139a98083943f24c63d03"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/AS_Stand_LowReady.uasset",
+      "kind": "protected",
+      "sha256": "cc50f3e5fd5af6da5d6d8d4ee162409dd34592827d16dc7a07fa5d91194e7a69",
+      "after": "cc50f3e5fd5af6da5d6d8d4ee162409dd34592827d16dc7a07fa5d91194e7a69"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/AS_Slide_Aim.uasset",
+      "kind": "protected",
+      "sha256": "041639dc01c0956904c0a8461dbbb970d5484d8020fe6418f41d95703da86d43",
+      "after": "041639dc01c0956904c0a8461dbbb970d5484d8020fe6418f41d95703da86d43"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/AS_Slide_LowReady.uasset",
+      "kind": "protected",
+      "sha256": "e16dc5c3abd6b07f6d2bf393304ae5dae89426de33a4a0bd7e968ec991129374",
+      "after": "e16dc5c3abd6b07f6d2bf393304ae5dae89426de33a4a0bd7e968ec991129374"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/CrouchIdle.fbx",
+      "kind": "protected",
+      "sha256": "d8c0859e2c76c99da0b8f5b942fe802d0a56b1a6dd3f438253c0c24274de40e5",
+      "after": "d8c0859e2c76c99da0b8f5b942fe802d0a56b1a6dd3f438253c0c24274de40e5"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/Source/AS_Source_CrouchIdle.uasset",
+      "kind": "protected",
+      "sha256": "254574b2cd2eef657c478d1b82070699bd1b8e39497ad36a18e87a7a17a0d1a4",
+      "after": "254574b2cd2eef657c478d1b82070699bd1b8e39497ad36a18e87a7a17a0d1a4"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/CrouchLeft.fbx",
+      "kind": "protected",
+      "sha256": "502d1f9ed6a74c372dd220067c4502839c8a58db8cf194217ca649c688da0ee6",
+      "after": "502d1f9ed6a74c372dd220067c4502839c8a58db8cf194217ca649c688da0ee6"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/Source/AS_Source_CrouchLeft.uasset",
+      "kind": "protected",
+      "sha256": "ca2dfd0366122387707eb2f5320e43aadc13a4b8b6da7d0dae8ecc1ded2c6e4e",
+      "after": "ca2dfd0366122387707eb2f5320e43aadc13a4b8b6da7d0dae8ecc1ded2c6e4e"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/CrouchRight.fbx",
+      "kind": "protected",
+      "sha256": "53d66093a9f6cd4fbc1d2a0cc8fc7c2c784c155badcc79d9dceb385aeb9aaea4",
+      "after": "53d66093a9f6cd4fbc1d2a0cc8fc7c2c784c155badcc79d9dceb385aeb9aaea4"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/Source/AS_Source_CrouchRight.uasset",
+      "kind": "protected",
+      "sha256": "21a9b4664fef05c75e274238fe6b372e20f461bd75a77b839b73a52958d33463",
+      "after": "21a9b4664fef05c75e274238fe6b372e20f461bd75a77b839b73a52958d33463"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/CrouchBack.fbx",
+      "kind": "protected",
+      "sha256": "5cea1844f84fff1c24b1aec3b14a37632b7940cb6692ac44e8c8ac9d72bf6278",
+      "after": "5cea1844f84fff1c24b1aec3b14a37632b7940cb6692ac44e8c8ac9d72bf6278"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/Source/AS_Source_CrouchBack.uasset",
+      "kind": "protected",
+      "sha256": "af07077ee146b99289c2ce0706310d384d3c01faed00d8895431bf912aa8f1cf",
+      "after": "af07077ee146b99289c2ce0706310d384d3c01faed00d8895431bf912aa8f1cf"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/CrouchForwardLeft.fbx",
+      "kind": "protected",
+      "sha256": "a920a9a3313588dee457c24964259b99ac4706663d5a873fe2f2d1927761b8cb",
+      "after": "a920a9a3313588dee457c24964259b99ac4706663d5a873fe2f2d1927761b8cb"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/Source/AS_Source_CrouchForwardLeft.uasset",
+      "kind": "protected",
+      "sha256": "e356e0874ab01a81499cf571c872ceacc0e25e8911ea9e94c718e043c9b4f086",
+      "after": "e356e0874ab01a81499cf571c872ceacc0e25e8911ea9e94c718e043c9b4f086"
+    }
+  ]
+}

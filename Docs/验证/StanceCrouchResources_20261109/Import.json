@@ -1,0 +1,32 @@
+[
+  {
+    "name": "CrouchIdle",
+    "asset": "/Game/Experiments/Stance_20261022/Source/AS_Source_CrouchIdle.AS_Source_CrouchIdle",
+    "length": 6.699999809265137,
+    "keys": 202
+  },
+  {
+    "name": "CrouchLeft",
+    "asset": "/Game/Experiments/Stance_20261022/Source/AS_Source_CrouchLeft.AS_Source_CrouchLeft",
+    "length": 1.2333333492279053,
+    "keys": 38
+  },
+  {
+    "name": "CrouchRight",
+    "asset": "/Game/Experiments/Stance_20261022/Source/AS_Source_CrouchRight.AS_Source_CrouchRight",
+    "length": 1.2000000476837158,
+    "keys": 37
+  },
+  {
+    "name": "CrouchBack",
+    "asset": "/Game/Experiments/Stance_20261022/Source/AS_Source_CrouchBack.AS_Source_CrouchBack",
+    "length": 1.0,
+    "keys": 31
+  },
+  {
+    "name": "CrouchForwardLeft",
+    "asset": "/Game/Experiments/Stance_20261022/Source/AS_Source_CrouchForwardLeft.AS_Source_CrouchForwardLeft",
+    "length": 1.0,
+    "keys": 31
+  }
+]

@@ -1,0 +1,33 @@
+{
+  "status": "Passed",
+  "method": "仅反射组件 X 并交换左右骨骼，保留参考骨骼轴约定",
+  "phase_offset_cycles": 0,
+  "time_remap": false,
+  "ik": false,
+  "height_correction": false,
+  "trajectory_optimization": false,
+  "smoothing": false,
+  "clips": [
+    {
+      "name": "CrouchForwardLeft",
+      "source": "CrouchForwardRight",
+      "keys": 61,
+      "fps": 60,
+      "duration_s": 1
+    },
+    {
+      "name": "CrouchBackRight",
+      "source": "CrouchBackLeft",
+      "keys": 61,
+      "fps": 60,
+      "duration_s": 1
+    }
+  ],
+  "max_source_position_cm": 3.4172960028016885e-05,
+  "max_source_angle_deg": 0.0008805780163854725,
+  "max_mirror_height_difference_cm": 3.8146516061488e-06,
+  "roundtrip_position_cm": 0,
+  "roundtrip_angle_deg": 3.9532577923636065e-05,
+  "max_bake_position_cm": 3.496227794613525e-05,
+  "max_bake_angle_deg": 0.00044996058190525543
+}

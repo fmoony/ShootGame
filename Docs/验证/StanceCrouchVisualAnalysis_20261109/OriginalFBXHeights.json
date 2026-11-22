@@ -1,0 +1,78 @@
+{
+  "global_settings": {
+    "UpAxis": [
+      1
+    ],
+    "UpAxisSign": [
+      1
+    ],
+    "FrontAxis": [
+      2
+    ],
+    "FrontAxisSign": [
+      1
+    ],
+    "CoordAxis": [
+      0
+    ],
+    "CoordAxisSign": [
+      1
+    ],
+    "OriginalUpAxis": [
+      -1
+    ],
+    "OriginalUpAxisSign": [
+      1
+    ],
+    "UnitScaleFactor": [
+      1.0
+    ],
+    "OriginalUnitScaleFactor": [
+      1.0
+    ],
+    "AmbientColor": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "DefaultCamera": [
+      "Producer Perspective"
+    ],
+    "TimeMode": [
+      6
+    ],
+    "TimeProtocol": [
+      2
+    ],
+    "SnapOnFrameMode": [
+      0
+    ],
+    "TimeSpanStart": [
+      0
+    ],
+    "TimeSpanStop": [
+      46186158000
+    ],
+    "CustomFrameRate": [
+      -1.0
+    ],
+    "TimeMarker": [],
+    "CurrentTimeMarker": [
+      -1
+    ]
+  },
+  "source_up_axis": 1,
+  "up_sign": 1,
+  "left_ball_height_source_cm": [
+    1.0957052089158577,
+    1.1006312004319323
+  ],
+  "right_ball_height_source_cm": [
+    0.7063559760058542,
+    0.7086302245618601
+  ],
+  "right_minus_left_height_cm": [
+    -0.39319086981780416,
+    -0.38891602309166196
+  ]
+}

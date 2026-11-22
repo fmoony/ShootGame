@@ -1,0 +1,158 @@
+{
+  "mode": "Commit",
+  "status": "Passed",
+  "clips": [
+    {
+      "name": "CrouchBackRight112",
+      "path": "/Game/Experiments/Stance_20261022/BackRight/AS_BackRight_CrouchBackRight112.AS_BackRight_CrouchBackRight112",
+      "keys": 31,
+      "duration_s": 1.0,
+      "checks": [
+        {
+          "retarget": false,
+          "max_position_cm": 0.00023631576587414903,
+          "max_angle_deg": 0.001883408408598778,
+          "worst": [
+            9,
+            "foot_r",
+            "position",
+            [
+              40.00971577688877,
+              29.989045761994973,
+              12.073360294584866
+            ],
+            [
+              40.009910583496094,
+              29.988924026489258,
+              12.073415756225586
+            ]
+          ]
+        },
+        {
+          "retarget": true,
+          "max_position_cm": 0.0006110095964737028,
+          "max_angle_deg": 0.001883408408598778,
+          "worst": [
+            6,
+            "ball_r",
+            "position",
+            [
+              57.25411396839241,
+              39.11619727509003,
+              2.1203049003030863
+            ],
+            [
+              57.25450134277344,
+              39.115726470947266,
+              2.120345115661621
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CrouchBackRight",
+      "path": "/Game/Experiments/Stance_20261022/BackRight/AS_BackRight_CrouchBackRight.AS_BackRight_CrouchBackRight",
+      "keys": 31,
+      "duration_s": 1.0,
+      "checks": [
+        {
+          "retarget": false,
+          "max_position_cm": 0.0002763197549293815,
+          "max_angle_deg": 0.0018266007793178755,
+          "worst": [
+            5,
+            "ball_r",
+            "position",
+            [
+              34.43793677963063,
+              53.882139384919114,
+              0.6588343721083074
+            ],
+            [
+              34.438194274902344,
+              53.8820686340332,
+              0.6589053869247437
+            ]
+          ]
+        },
+        {
+          "retarget": true,
+          "max_position_cm": 0.000629895858478016,
+          "max_angle_deg": 0.0018266007793178755,
+          "worst": [
+            6,
+            "ball_r",
+            "position",
+            [
+              37.92676598227127,
+              58.048855220414566,
+              2.120273683807431
+            ],
+            [
+              37.92732238769531,
+              58.04856872558594,
+              2.120345115661621
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CrouchBackRight157",
+      "path": "/Game/Experiments/Stance_20261022/BackRight/AS_BackRight_CrouchBackRight157.AS_BackRight_CrouchBackRight157",
+      "keys": 31,
+      "duration_s": 1.0,
+      "checks": [
+        {
+          "retarget": false,
+          "max_position_cm": 0.0002444313895604004,
+          "max_angle_deg": 0.0016143268058760583,
+          "worst": [
+            11,
+            "ball_r",
+            "position",
+            [
+              -5.325854781036402,
+              52.24549377098841,
+              6.3407986732238575
+            ],
+            [
+              -5.325619697570801,
+              52.245548248291016,
+              6.340759754180908
+            ]
+          ]
+        },
+        {
+          "retarget": true,
+          "max_position_cm": 0.0005635158145613861,
+          "max_angle_deg": 0.0016143268058760583,
+          "worst": [
+            6,
+            "ball_r",
+            "position",
+            [
+              12.825479102856907,
+              68.14408779840564,
+              2.120320172343032
+            ],
+            [
+              12.826040267944336,
+              68.14404296875,
+              2.1203453540802
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "source": "D:\\UE_Projects\\_worktrees\\ShootGame_UE58\\SourceAssets\\StanceCrouch\\BackRight",
+  "formal_reference_unchanged": true,
+  "saved_assets": [
+    "/Game/Experiments/Stance_20261022/BackRight/AS_BackRight_CrouchBackRight112.AS_BackRight_CrouchBackRight112",
+    "/Game/Experiments/Stance_20261022/BackRight/AS_BackRight_CrouchBackRight.AS_BackRight_CrouchBackRight",
+    "/Game/Experiments/Stance_20261022/BackRight/AS_BackRight_CrouchBackRight157.AS_BackRight_CrouchBackRight157"
+  ]
+}

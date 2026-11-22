@@ -1,0 +1,663 @@
+{
+  "cases": {
+    "0": {
+      "pitch": 0.0,
+      "lean_mean_deg": 1.196521223706516,
+      "muzzle_error_mean_deg": 36.599341040910126,
+      "muzzle_camera_cm": [
+        50.25239023161729,
+        43.628199402784595,
+        14.961507945802627
+      ]
+    },
+    "1": {
+      "pitch": 0.0,
+      "lean_mean_deg": 23.945488167203273,
+      "muzzle_error_mean_deg": 35.91809883465038,
+      "muzzle_camera_cm": [
+        50.80983799999999,
+        43.210144,
+        14.122525999999993
+      ]
+    },
+    "2": {
+      "pitch": 0.0,
+      "lean_mean_deg": 1.2051435354084448,
+      "muzzle_error_mean_deg": 36.25709437239693,
+      "muzzle_camera_cm": [
+        50.66036667581535,
+        43.24269264690782,
+        14.642977020952431
+      ]
+    },
+    "3": {
+      "pitch": 0.0,
+      "lean_mean_deg": 23.945488167203273,
+      "muzzle_error_mean_deg": 35.91809883465038,
+      "muzzle_camera_cm": [
+        50.80983799999999,
+        43.210144,
+        14.122525999999993
+      ]
+    },
+    "4": {
+      "pitch": 0.0,
+      "lean_mean_deg": 23.945479486460567,
+      "muzzle_error_mean_deg": 35.918093957529884,
+      "muzzle_camera_cm": [
+        50.80983327141921,
+        43.21014826228001,
+        14.122531492940492
+      ]
+    },
+    "5": {
+      "pitch": 0.0,
+      "lean_mean_deg": 23.945488167203273,
+      "muzzle_error_mean_deg": 35.91809883465038,
+      "muzzle_camera_cm": [
+        50.80983799999999,
+        43.210144,
+        14.122525999999993
+      ]
+    },
+    "6": {
+      "pitch": 0.0,
+      "lean_mean_deg": 23.945479486460567,
+      "muzzle_error_mean_deg": 35.918093957529884,
+      "muzzle_camera_cm": [
+        50.80983324641909,
+        43.210148812279996,
+        14.122531492940292
+      ]
+    },
+    "7": {
+      "pitch": 0.0,
+      "lean_mean_deg": 23.945488167203273,
+      "muzzle_error_mean_deg": 35.91809883465038,
+      "muzzle_camera_cm": [
+        50.80983799999999,
+        43.210144,
+        14.122525999999993
+      ]
+    },
+    "8": {
+      "pitch": 0.0,
+      "lean_mean_deg": 23.945479486460567,
+      "muzzle_error_mean_deg": 35.918093957529884,
+      "muzzle_camera_cm": [
+        50.8098332214191,
+        43.21014878727999,
+        14.122531492940299
+      ]
+    },
+    "9": {
+      "pitch": 0.0,
+      "lean_mean_deg": 23.945488167203273,
+      "muzzle_error_mean_deg": 35.91809883465038,
+      "muzzle_camera_cm": [
+        50.80983799999999,
+        43.210144,
+        14.122525999999993
+      ]
+    },
+    "10": {
+      "pitch": 0.0,
+      "lean_mean_deg": 23.945479486460567,
+      "muzzle_error_mean_deg": 35.918093957529884,
+      "muzzle_camera_cm": [
+        50.80983322141909,
+        43.210148812279996,
+        14.12253149294029
+      ]
+    },
+    "11": {
+      "pitch": 0.0,
+      "lean_mean_deg": 23.945488167203273,
+      "muzzle_error_mean_deg": 35.91809883465038,
+      "muzzle_camera_cm": [
+        50.80983799999999,
+        43.210144,
+        14.122525999999993
+      ]
+    },
+    "12": {
+      "pitch": 0.0,
+      "lean_mean_deg": 23.945479486460567,
+      "muzzle_error_mean_deg": 35.918093957529884,
+      "muzzle_camera_cm": [
+        50.809833221419105,
+        43.210148737279994,
+        14.122531492940318
+      ]
+    },
+    "13": {
+      "pitch": 0.0,
+      "lean_mean_deg": 23.945488167203273,
+      "muzzle_error_mean_deg": 35.91809883465038,
+      "muzzle_camera_cm": [
+        50.80983799999999,
+        43.210144,
+        14.122525999999993
+      ]
+    },
+    "14": {
+      "pitch": 0.0,
+      "lean_mean_deg": 23.945479486460567,
+      "muzzle_error_mean_deg": 35.918093957529884,
+      "muzzle_camera_cm": [
+        50.8098332714191,
+        43.21014876228001,
+        14.122531492940311
+      ]
+    },
+    "15": {
+      "pitch": 0.0,
+      "lean_mean_deg": 23.945488167203273,
+      "muzzle_error_mean_deg": 35.91809883465038,
+      "muzzle_camera_cm": [
+        50.80983799999999,
+        43.210144,
+        14.122525999999993
+      ]
+    },
+    "16": {
+      "pitch": 0.0,
+      "lean_mean_deg": 23.945479486460567,
+      "muzzle_error_mean_deg": 35.918093957529884,
+      "muzzle_camera_cm": [
+        50.8098332714191,
+        43.21014876228001,
+        14.122531492940311
+      ]
+    },
+    "17": {
+      "pitch": 0.0,
+      "lean_mean_deg": 23.945488167203273,
+      "muzzle_error_mean_deg": 35.91809883465038,
+      "muzzle_camera_cm": [
+        50.80983799999999,
+        43.210144,
+        14.122525999999993
+      ]
+    },
+    "18": {
+      "pitch": 0.0,
+      "lean_mean_deg": 23.945479486460567,
+      "muzzle_error_mean_deg": 35.918093957529884,
+      "muzzle_camera_cm": [
+        50.80983324641911,
+        43.21014873728,
+        14.122531492940318
+      ]
+    },
+    "19": {
+      "pitch": 0.0,
+      "lean_mean_deg": 23.945488167203273,
+      "muzzle_error_mean_deg": 35.91809883465038,
+      "muzzle_camera_cm": [
+        50.80983799999999,
+        43.210144,
+        14.122525999999993
+      ]
+    },
+    "20": {
+      "pitch": 0.0,
+      "lean_mean_deg": 23.945479486460567,
+      "muzzle_error_mean_deg": 35.918093957529884,
+      "muzzle_camera_cm": [
+        50.80983327141921,
+        43.21014826228001,
+        14.122531492940492
+      ]
+    },
+    "21": {
+      "pitch": 0.0,
+      "lean_mean_deg": 23.945479486460567,
+      "muzzle_error_mean_deg": 35.918093957529884,
+      "muzzle_camera_cm": [
+        50.80983324641909,
+        43.210148812279996,
+        14.122531492940292
+      ]
+    },
+    "22": {
+      "pitch": 0.0,
+      "lean_mean_deg": 23.945479486460567,
+      "muzzle_error_mean_deg": 35.918093957529884,
+      "muzzle_camera_cm": [
+        50.8098332214191,
+        43.21014878727999,
+        14.122531492940299
+      ]
+    },
+    "23": {
+      "pitch": 0.0,
+      "lean_mean_deg": 23.945479486460567,
+      "muzzle_error_mean_deg": 35.918093957529884,
+      "muzzle_camera_cm": [
+        50.80983322141909,
+        43.210148812279996,
+        14.12253149294029
+      ]
+    },
+    "24": {
+      "pitch": 0.0,
+      "lean_mean_deg": 23.945479486460567,
+      "muzzle_error_mean_deg": 35.918093957529884,
+      "muzzle_camera_cm": [
+        50.809833221419105,
+        43.210148737279994,
+        14.122531492940318
+      ]
+    },
+    "25": {
+      "pitch": 0.0,
+      "lean_mean_deg": 23.945479486460567,
+      "muzzle_error_mean_deg": 35.918093957529884,
+      "muzzle_camera_cm": [
+        50.8098332714191,
+        43.21014876228001,
+        14.122531492940311
+      ]
+    },
+    "26": {
+      "pitch": 0.0,
+      "lean_mean_deg": 23.945479486460567,
+      "muzzle_error_mean_deg": 35.918093957529884,
+      "muzzle_camera_cm": [
+        50.8098332714191,
+        43.21014876228001,
+        14.122531492940311
+      ]
+    },
+    "27": {
+      "pitch": 0.0,
+      "lean_mean_deg": 23.945479486460567,
+      "muzzle_error_mean_deg": 35.918093957529884,
+      "muzzle_camera_cm": [
+        50.80983324641911,
+        43.21014873728,
+        14.122531492940318
+      ]
+    },
+    "28": {
+      "pitch": 0.0,
+      "lean_mean_deg": 23.945479486460567,
+      "muzzle_error_mean_deg": 60.19317015251819,
+      "muzzle_camera_cm": [
+        48.74721950000001,
+        -41.437123,
+        -38.85358500000001
+      ]
+    },
+    "29": {
+      "pitch": 0.0,
+      "lean_mean_deg": 23.945479486460567,
+      "muzzle_error_mean_deg": 60.19317015251819,
+      "muzzle_camera_cm": [
+        48.747219475,
+        -41.437122775,
+        -38.85358500000001
+      ]
+    },
+    "30": {
+      "pitch": 0.0,
+      "lean_mean_deg": 23.945479486460567,
+      "muzzle_error_mean_deg": 60.19317015251819,
+      "muzzle_camera_cm": [
+        48.7472195,
+        -41.43712274999999,
+        -38.85358500000001
+      ]
+    },
+    "31": {
+      "pitch": 0.0,
+      "lean_mean_deg": 23.945479486460567,
+      "muzzle_error_mean_deg": 60.19317015251819,
+      "muzzle_camera_cm": [
+        48.7472195,
+        -41.437122775,
+        -38.85358500000001
+      ]
+    },
+    "32": {
+      "pitch": 0.0,
+      "lean_mean_deg": 23.945479486460567,
+      "muzzle_error_mean_deg": 60.19317015251819,
+      "muzzle_camera_cm": [
+        48.747219475,
+        -41.43712275,
+        -38.85358500000001
+      ]
+    },
+    "33": {
+      "pitch": 0.0,
+      "lean_mean_deg": 23.945479486460567,
+      "muzzle_error_mean_deg": 60.19317015251819,
+      "muzzle_camera_cm": [
+        48.74721955,
+        -41.437122775,
+        -38.85358500000001
+      ]
+    },
+    "34": {
+      "pitch": 0.0,
+      "lean_mean_deg": 23.945479486460567,
+      "muzzle_error_mean_deg": 60.19317015251819,
+      "muzzle_camera_cm": [
+        48.747219525,
+        -41.437122775,
+        -38.85358500000001
+      ]
+    },
+    "35": {
+      "pitch": 0.0,
+      "lean_mean_deg": 23.945479486460567,
+      "muzzle_error_mean_deg": 60.19317015251819,
+      "muzzle_camera_cm": [
+        48.7472195,
+        -41.437122775,
+        -38.85358500000001
+      ]
+    },
+    "36": {
+      "pitch": -90.0,
+      "lean_mean_deg": 9.54223317878439,
+      "muzzle_error_mean_deg": 35.00981409401938,
+      "muzzle_camera_cm": [
+        64.65984476506387,
+        24.558122138542934,
+        21.087784430389014
+      ]
+    },
+    "37": {
+      "pitch": -45.0,
+      "lean_mean_deg": 7.263747957962206,
+      "muzzle_error_mean_deg": 27.89523287020378,
+      "muzzle_camera_cm": [
+        60.03659079487978,
+        36.13745474234567,
+        -5.846109661200098
+      ]
+    },
+    "38": {
+      "pitch": -10.0,
+      "lean_mean_deg": 2.7136627251772247,
+      "muzzle_error_mean_deg": 35.860124335638794,
+      "muzzle_camera_cm": [
+        51.295623990162355,
+        44.160169642783025,
+        9.007240563976408
+      ]
+    },
+    "39": {
+      "pitch": -1.0,
+      "lean_mean_deg": 1.3402675590358053,
+      "muzzle_error_mean_deg": 36.3605195597967,
+      "muzzle_camera_cm": [
+        50.4965525866452,
+        43.6265554372116,
+        14.21723157529571
+      ]
+    },
+    "40": {
+      "pitch": -0.5,
+      "lean_mean_deg": 1.2871688591545971,
+      "muzzle_error_mean_deg": 36.32844810863447,
+      "muzzle_camera_cm": [
+        50.664062283083496,
+        43.229629798550775,
+        14.664737456570489
+      ]
+    },
+    "41": {
+      "pitch": 0.0,
+      "lean_mean_deg": 1.191560764802831,
+      "muzzle_error_mean_deg": 35.91210959300018,
+      "muzzle_camera_cm": [
+        50.801908631499735,
+        43.10387244012007,
+        14.291652081346669
+      ]
+    },
+    "42": {
+      "pitch": 0.5,
+      "lean_mean_deg": 1.1162038152130662,
+      "muzzle_error_mean_deg": 36.84231899748265,
+      "muzzle_camera_cm": [
+        50.028911556056336,
+        43.51622899997669,
+        15.573939690039486
+      ]
+    },
+    "43": {
+      "pitch": 1.0,
+      "lean_mean_deg": 1.030913815924712,
+      "muzzle_error_mean_deg": 36.246913327369896,
+      "muzzle_camera_cm": [
+        50.56733933812438,
+        42.85114991828599,
+        15.271718110650149
+      ]
+    },
+    "44": {
+      "pitch": 10.0,
+      "lean_mean_deg": -0.5304914062767718,
+      "muzzle_error_mean_deg": 35.67265508088789,
+      "muzzle_camera_cm": [
+        50.28606903976074,
+        38.17276994728487,
+        21.008554275363725
+      ]
+    },
+    "45": {
+      "pitch": 45.0,
+      "lean_mean_deg": -5.759027960823278,
+      "muzzle_error_mean_deg": 34.95546323281526,
+      "muzzle_camera_cm": [
+        49.36580442225042,
+        11.507955967695715,
+        35.559060973343335
+      ]
+    },
+    "46": {
+      "pitch": 90.0,
+      "lean_mean_deg": -8.651827289553779,
+      "muzzle_error_mean_deg": 14.538101620825056,
+      "muzzle_camera_cm": [
+        59.367796183590954,
+        -3.419947373310886,
+        12.033345058769978
+      ]
+    },
+    "47": {
+      "pitch": -90.0,
+      "lean_mean_deg": 32.948832097281375,
+      "muzzle_error_mean_deg": 35.07086392879714,
+      "muzzle_camera_cm": [
+        64.61234078315691,
+        24.671571917200644,
+        21.091161929216735
+      ]
+    },
+    "48": {
+      "pitch": -45.0,
+      "lean_mean_deg": 30.417949350689756,
+      "muzzle_error_mean_deg": 28.287868559091883,
+      "muzzle_camera_cm": [
+        59.78016028350501,
+        36.593625763955956,
+        -6.036659793850475
+      ]
+    },
+    "49": {
+      "pitch": -10.0,
+      "lean_mean_deg": 25.541785453177695,
+      "muzzle_error_mean_deg": 35.5763198672089,
+      "muzzle_camera_cm": [
+        51.38191232864053,
+        44.211613146916854,
+        7.968932120463492
+      ]
+    },
+    "50": {
+      "pitch": -1.0,
+      "lean_mean_deg": 24.106052437202084,
+      "muzzle_error_mean_deg": 35.93427782631695,
+      "muzzle_camera_cm": [
+        50.81779620185524,
+        43.380464737568055,
+        13.53642388226796
+      ]
+    },
+    "51": {
+      "pitch": -0.5,
+      "lean_mean_deg": 24.025776822725614,
+      "muzzle_error_mean_deg": 35.92763625348205,
+      "muzzle_camera_cm": [
+        50.812423515107405,
+        43.297121937859394,
+        13.830709102550134
+      ]
+    },
+    "52": {
+      "pitch": 0.0,
+      "lean_mean_deg": 23.945488167203273,
+      "muzzle_error_mean_deg": 35.91809883465038,
+      "muzzle_camera_cm": [
+        50.80983799999999,
+        43.210144,
+        14.122525999999993
+      ]
+    },
+    "53": {
+      "pitch": 0.5,
+      "lean_mean_deg": 23.858549679764778,
+      "muzzle_error_mean_deg": 35.94871029422317,
+      "muzzle_camera_cm": [
+        50.7440675582895,
+        43.00311693828135,
+        14.522421968249203
+      ]
+    },
+    "54": {
+      "pitch": 1.0,
+      "lean_mean_deg": 23.771647177317714,
+      "muzzle_error_mean_deg": 35.978440029612315,
+      "muzzle_camera_cm": [
+        50.67926276017083,
+        42.78991274114062,
+        14.923055209800426
+      ]
+    },
+    "55": {
+      "pitch": 10.0,
+      "lean_mean_deg": 22.221235377274546,
+      "muzzle_error_mean_deg": 36.389538553992274,
+      "muzzle_camera_cm": [
+        49.66352380732421,
+        37.94795612610249,
+        22.040048822247208
+      ]
+    },
+    "56": {
+      "pitch": 45.0,
+      "lean_mean_deg": 16.995893907527968,
+      "muzzle_error_mean_deg": 35.261451410695884,
+      "muzzle_camera_cm": [
+        49.103982789970104,
+        11.957617922868412,
+        35.80210103376744
+      ]
+    },
+    "57": {
+      "pitch": 90.0,
+      "lean_mean_deg": 14.16150772589082,
+      "muzzle_error_mean_deg": 14.38674824037721,
+      "muzzle_camera_cm": [
+        59.484957800364725,
+        -3.155198989410953,
+        12.178947959126685
+      ]
+    }
+  },
+  "stance_pitch_comparison": [
+    {
+      "pitch": -90.0,
+      "head_to_right_hand_difference_cm": 0.060973628347956,
+      "left_in_right_hand_difference_cm": 0.16313898051574457,
+      "muzzle_error_stand_deg": 35.00981409401938,
+      "muzzle_error_crouch_deg": 35.07086392879714
+    },
+    {
+      "pitch": -45.0,
+      "head_to_right_hand_difference_cm": 0.10387061728120833,
+      "left_in_right_hand_difference_cm": 0.2693862326995656,
+      "muzzle_error_stand_deg": 27.89523287020378,
+      "muzzle_error_crouch_deg": 28.287868559091883
+    },
+    {
+      "pitch": -10.0,
+      "head_to_right_hand_difference_cm": 0.4504520930033008,
+      "left_in_right_hand_difference_cm": 1.429104955050616,
+      "muzzle_error_stand_deg": 35.860124335638794,
+      "muzzle_error_crouch_deg": 35.5763198672089
+    },
+    {
+      "pitch": -1.0,
+      "head_to_right_hand_difference_cm": 0.4462431016464419,
+      "left_in_right_hand_difference_cm": 1.0092360493360142,
+      "muzzle_error_stand_deg": 36.3605195597967,
+      "muzzle_error_crouch_deg": 35.93427782631695
+    },
+    {
+      "pitch": -0.5,
+      "head_to_right_hand_difference_cm": 0.06479230094588533,
+      "left_in_right_hand_difference_cm": 1.0435163404388428,
+      "muzzle_error_stand_deg": 36.32844810863447,
+      "muzzle_error_crouch_deg": 35.92763625348205
+    },
+    {
+      "pitch": 0.0,
+      "head_to_right_hand_difference_cm": 0.07770831149154077,
+      "left_in_right_hand_difference_cm": 0.34468406893145864,
+      "muzzle_error_stand_deg": 35.91210959300018,
+      "muzzle_error_crouch_deg": 35.91809883465038
+    },
+    {
+      "pitch": 0.5,
+      "head_to_right_hand_difference_cm": 0.5240474890577624,
+      "left_in_right_hand_difference_cm": 1.3270146528324278,
+      "muzzle_error_stand_deg": 36.84231899748265,
+      "muzzle_error_crouch_deg": 35.94871029422317
+    },
+    {
+      "pitch": 1.0,
+      "head_to_right_hand_difference_cm": 0.09812098661383,
+      "left_in_right_hand_difference_cm": 0.6206516607283666,
+      "muzzle_error_stand_deg": 36.246913327369896,
+      "muzzle_error_crouch_deg": 35.978440029612315
+    },
+    {
+      "pitch": 10.0,
+      "head_to_right_hand_difference_cm": 0.22672133540676392,
+      "left_in_right_hand_difference_cm": 0.6836715614733864,
+      "muzzle_error_stand_deg": 35.67265508088789,
+      "muzzle_error_crouch_deg": 36.389538553992274
+    },
+    {
+      "pitch": 45.0,
+      "head_to_right_hand_difference_cm": 0.1873909976693062,
+      "left_in_right_hand_difference_cm": 0.19163704114091626,
+      "muzzle_error_stand_deg": 34.95546323281526,
+      "muzzle_error_crouch_deg": 35.261451410695884
+    },
+    {
+      "pitch": 90.0,
+      "head_to_right_hand_difference_cm": 0.19444083824462996,
+      "left_in_right_hand_difference_cm": 0.03484332399633908,
+      "muzzle_error_stand_deg": 14.538101620825056,
+      "muzzle_error_crouch_deg": 14.38674824037721
+    }
+  ]
+}

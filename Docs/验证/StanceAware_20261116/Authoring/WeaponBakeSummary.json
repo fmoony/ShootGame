@@ -1,0 +1,18 @@
+{
+  "status": "Passed",
+  "blender": "4.5.8 LTS",
+  "max_position_cm": 2.3598697576201423e-05,
+  "max_angle_deg": 0.00029770145601848896,
+  "clips": [
+    {
+      "name": "CrouchADS",
+      "keys": 61,
+      "fps": 60
+    },
+    {
+      "name": "CrouchLowReady",
+      "keys": 61,
+      "fps": 60
+    }
+  ]
+}

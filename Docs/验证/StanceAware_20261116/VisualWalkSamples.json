@@ -1,0 +1,58 @@
+[
+  {
+    "index": 1,
+    "previewMode": 2,
+    "previewForward": 0.7071068286895752,
+    "previewRight": 0.7071067094802856,
+    "previewCrouchAlpha": 1
+  },
+  {
+    "index": 2,
+    "previewMode": 2,
+    "previewForward": -0.0000021339212707971456,
+    "previewRight": 1,
+    "previewCrouchAlpha": 1
+  },
+  {
+    "index": 3,
+    "previewMode": 2,
+    "previewForward": -0.7071098685264587,
+    "previewRight": 0.7071036696434021,
+    "previewCrouchAlpha": 1
+  },
+  {
+    "index": 4,
+    "previewMode": 2,
+    "previewForward": -1,
+    "previewRight": 0.000001041018094838364,
+    "previewCrouchAlpha": 1
+  },
+  {
+    "index": 5,
+    "previewMode": 2,
+    "previewForward": -0.7071059346199036,
+    "previewRight": -0.7071076035499573,
+    "previewCrouchAlpha": 1
+  },
+  {
+    "index": 6,
+    "previewMode": 2,
+    "previewForward": 0.0000034134370707761263,
+    "previewRight": -1,
+    "previewCrouchAlpha": 1
+  },
+  {
+    "index": 7,
+    "previewMode": 2,
+    "previewForward": 0.7071107625961304,
+    "previewRight": -0.7071027755737305,
+    "previewCrouchAlpha": 1
+  },
+  {
+    "index": 0,
+    "previewMode": 2,
+    "previewForward": 1,
+    "previewRight": 0.000005499658982444089,
+    "previewCrouchAlpha": 1
+  }
+]

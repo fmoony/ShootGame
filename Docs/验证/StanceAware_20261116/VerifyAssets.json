@@ -1,0 +1,510 @@
+{
+  "status": "Passed",
+  "clips": [
+    {
+      "name": "CrouchForward",
+      "checks": [
+        {
+          "evaluation": "<AnimDataEvalType.RAW: 1>",
+          "max_position_cm": 0.0003947203705864317,
+          "max_angle_deg": 0.0016006432102951581
+        },
+        {
+          "evaluation": "<AnimDataEvalType.COMPRESSED: 2>",
+          "max_position_cm": 0.0003947203705864317,
+          "max_angle_deg": 0.0016006432102951581
+        }
+      ],
+      "loop_position_cm": 0,
+      "loop_angle_deg": 0
+    },
+    {
+      "name": "CrouchForwardRight",
+      "checks": [
+        {
+          "evaluation": "<AnimDataEvalType.RAW: 1>",
+          "max_position_cm": 0.000531465609599113,
+          "max_angle_deg": 0.0019586572296911593
+        },
+        {
+          "evaluation": "<AnimDataEvalType.COMPRESSED: 2>",
+          "max_position_cm": 0.000531465609599113,
+          "max_angle_deg": 0.0019586572296911593
+        }
+      ],
+      "loop_position_cm": 0,
+      "loop_angle_deg": 0
+    },
+    {
+      "name": "CrouchRight",
+      "checks": [
+        {
+          "evaluation": "<AnimDataEvalType.RAW: 1>",
+          "max_position_cm": 0.0006133461658369763,
+          "max_angle_deg": 0.002353649393610648
+        },
+        {
+          "evaluation": "<AnimDataEvalType.COMPRESSED: 2>",
+          "max_position_cm": 0.0006133461658369763,
+          "max_angle_deg": 0.002353649393610648
+        }
+      ],
+      "loop_position_cm": 0,
+      "loop_angle_deg": 0
+    },
+    {
+      "name": "CrouchBackRight",
+      "checks": [
+        {
+          "evaluation": "<AnimDataEvalType.RAW: 1>",
+          "max_position_cm": 0.0005865868946525378,
+          "max_angle_deg": 0.0023003102159719433
+        },
+        {
+          "evaluation": "<AnimDataEvalType.COMPRESSED: 2>",
+          "max_position_cm": 0.0005865868946525378,
+          "max_angle_deg": 0.0023003102159719433
+        }
+      ],
+      "loop_position_cm": 0,
+      "loop_angle_deg": 0
+    },
+    {
+      "name": "CrouchBack",
+      "checks": [
+        {
+          "evaluation": "<AnimDataEvalType.RAW: 1>",
+          "max_position_cm": 0.00040134007125396494,
+          "max_angle_deg": 0.0016006432102951581
+        },
+        {
+          "evaluation": "<AnimDataEvalType.COMPRESSED: 2>",
+          "max_position_cm": 0.00040134007125396494,
+          "max_angle_deg": 0.0016006432102951581
+        }
+      ],
+      "loop_position_cm": 0,
+      "loop_angle_deg": 0
+    },
+    {
+      "name": "CrouchBackLeft",
+      "checks": [
+        {
+          "evaluation": "<AnimDataEvalType.RAW: 1>",
+          "max_position_cm": 0.0005145542827312544,
+          "max_angle_deg": 0.0019586572296911593
+        },
+        {
+          "evaluation": "<AnimDataEvalType.COMPRESSED: 2>",
+          "max_position_cm": 0.0005145542827312544,
+          "max_angle_deg": 0.0019586572296911593
+        }
+      ],
+      "loop_position_cm": 0,
+      "loop_angle_deg": 0
+    },
+    {
+      "name": "CrouchLeft",
+      "checks": [
+        {
+          "evaluation": "<AnimDataEvalType.RAW: 1>",
+          "max_position_cm": 0.0005600657593066437,
+          "max_angle_deg": 0.002353649393610648
+        },
+        {
+          "evaluation": "<AnimDataEvalType.COMPRESSED: 2>",
+          "max_position_cm": 0.0005600657593066437,
+          "max_angle_deg": 0.002353649393610648
+        }
+      ],
+      "loop_position_cm": 0,
+      "loop_angle_deg": 0
+    },
+    {
+      "name": "CrouchForwardLeft",
+      "checks": [
+        {
+          "evaluation": "<AnimDataEvalType.RAW: 1>",
+          "max_position_cm": 0.0005747955134239283,
+          "max_angle_deg": 0.0023003102159719433
+        },
+        {
+          "evaluation": "<AnimDataEvalType.COMPRESSED: 2>",
+          "max_position_cm": 0.0005747955134239283,
+          "max_angle_deg": 0.0023003102159719433
+        }
+      ],
+      "loop_position_cm": 0,
+      "loop_angle_deg": 0
+    },
+    {
+      "name": "CrouchIdle",
+      "checks": [
+        {
+          "evaluation": "<AnimDataEvalType.RAW: 1>",
+          "max_position_cm": 0.00034174044657376293,
+          "max_angle_deg": 0.0012380247787836787
+        },
+        {
+          "evaluation": "<AnimDataEvalType.COMPRESSED: 2>",
+          "max_position_cm": 0.00034174044657376293,
+          "max_angle_deg": 0.0012380247787836787
+        }
+      ],
+      "loop_position_cm": 0,
+      "loop_angle_deg": 0
+    },
+    {
+      "name": "Stance_0",
+      "checks": [
+        {
+          "evaluation": "<AnimDataEvalType.RAW: 1>",
+          "max_position_cm": 0.0003970028752431992,
+          "max_angle_deg": 0.001766487178368158
+        },
+        {
+          "evaluation": "<AnimDataEvalType.COMPRESSED: 2>",
+          "max_position_cm": 0.0003970028752431992,
+          "max_angle_deg": 0.001766487178368158
+        }
+      ],
+      "loop_position_cm": 0,
+      "loop_angle_deg": 0
+    },
+    {
+      "name": "Stance_1",
+      "checks": [
+        {
+          "evaluation": "<AnimDataEvalType.RAW: 1>",
+          "max_position_cm": 0.000308846950358729,
+          "max_angle_deg": 0.0012749284967541765
+        },
+        {
+          "evaluation": "<AnimDataEvalType.COMPRESSED: 2>",
+          "max_position_cm": 0.000308846950358729,
+          "max_angle_deg": 0.0012749284967541765
+        }
+      ],
+      "loop_position_cm": 0,
+      "loop_angle_deg": 0
+    },
+    {
+      "name": "Stance_2",
+      "checks": [
+        {
+          "evaluation": "<AnimDataEvalType.RAW: 1>",
+          "max_position_cm": 0.00012593555850431762,
+          "max_angle_deg": 0.0010257627577700114
+        },
+        {
+          "evaluation": "<AnimDataEvalType.COMPRESSED: 2>",
+          "max_position_cm": 0.00012593555850431762,
+          "max_angle_deg": 0.0010257627577700114
+        }
+      ],
+      "loop_position_cm": 0,
+      "loop_angle_deg": 0
+    },
+    {
+      "name": "Stance_3",
+      "checks": [
+        {
+          "evaluation": "<AnimDataEvalType.RAW: 1>",
+          "max_position_cm": 0.00013203632198505996,
+          "max_angle_deg": 0.001009141669566929
+        },
+        {
+          "evaluation": "<AnimDataEvalType.COMPRESSED: 2>",
+          "max_position_cm": 0.00013203632198505996,
+          "max_angle_deg": 0.001009141669566929
+        }
+      ],
+      "loop_position_cm": 0,
+      "loop_angle_deg": 0
+    },
+    {
+      "name": "Stance_4",
+      "checks": [
+        {
+          "evaluation": "<AnimDataEvalType.RAW: 1>",
+          "max_position_cm": 0.00013709118183739604,
+          "max_angle_deg": 0.0010105997151147745
+        },
+        {
+          "evaluation": "<AnimDataEvalType.COMPRESSED: 2>",
+          "max_position_cm": 0.00013709118183739604,
+          "max_angle_deg": 0.0010105997151147745
+        }
+      ],
+      "loop_position_cm": 0,
+      "loop_angle_deg": 0
+    },
+    {
+      "name": "Stance_5",
+      "checks": [
+        {
+          "evaluation": "<AnimDataEvalType.RAW: 1>",
+          "max_position_cm": 0.00018599767693881726,
+          "max_angle_deg": 0.0010144498082557214
+        },
+        {
+          "evaluation": "<AnimDataEvalType.COMPRESSED: 2>",
+          "max_position_cm": 0.00018599767693881726,
+          "max_angle_deg": 0.0010144498082557214
+        }
+      ],
+      "loop_position_cm": 0,
+      "loop_angle_deg": 0
+    },
+    {
+      "name": "Stance_6",
+      "checks": [
+        {
+          "evaluation": "<AnimDataEvalType.RAW: 1>",
+          "max_position_cm": 0.00020900588873488932,
+          "max_angle_deg": 0.0009899313060459237
+        },
+        {
+          "evaluation": "<AnimDataEvalType.COMPRESSED: 2>",
+          "max_position_cm": 0.00020900588873488932,
+          "max_angle_deg": 0.0009899313060459237
+        }
+      ],
+      "loop_position_cm": 0,
+      "loop_angle_deg": 0
+    },
+    {
+      "name": "Stance_7",
+      "checks": [
+        {
+          "evaluation": "<AnimDataEvalType.RAW: 1>",
+          "max_position_cm": 0.0001719477448594406,
+          "max_angle_deg": 0.0010215700476001455
+        },
+        {
+          "evaluation": "<AnimDataEvalType.COMPRESSED: 2>",
+          "max_position_cm": 0.0001719477448594406,
+          "max_angle_deg": 0.0010215700476001455
+        }
+      ],
+      "loop_position_cm": 0,
+      "loop_angle_deg": 0
+    },
+    {
+      "name": "Stance_8",
+      "checks": [
+        {
+          "evaluation": "<AnimDataEvalType.RAW: 1>",
+          "max_position_cm": 0.0003118577686760326,
+          "max_angle_deg": 0.0011863730891627452
+        },
+        {
+          "evaluation": "<AnimDataEvalType.COMPRESSED: 2>",
+          "max_position_cm": 0.0003118577686760326,
+          "max_angle_deg": 0.0011863730891627452
+        }
+      ],
+      "loop_position_cm": 0,
+      "loop_angle_deg": 0
+    },
+    {
+      "name": "CrouchADS",
+      "checks": [
+        {
+          "evaluation": "<AnimDataEvalType.RAW: 1>",
+          "max_position_cm": 0.00035499226489205316,
+          "max_angle_deg": 0.001344786456104247
+        },
+        {
+          "evaluation": "<AnimDataEvalType.COMPRESSED: 2>",
+          "max_position_cm": 0.00035499226489205316,
+          "max_angle_deg": 0.001344786456104247
+        }
+      ],
+      "loop_position_cm": 0,
+      "loop_angle_deg": 0
+    },
+    {
+      "name": "CrouchLowReady",
+      "checks": [
+        {
+          "evaluation": "<AnimDataEvalType.RAW: 1>",
+          "max_position_cm": 0.00035499226489205316,
+          "max_angle_deg": 0.001344786456104247
+        },
+        {
+          "evaluation": "<AnimDataEvalType.COMPRESSED: 2>",
+          "max_position_cm": 0.00035499226489205316,
+          "max_angle_deg": 0.001344786456104247
+        }
+      ],
+      "loop_position_cm": 0,
+      "loop_angle_deg": 0
+    },
+    {
+      "name": "CrouchAO_m90",
+      "checks": [
+        {
+          "evaluation": "<AnimDataEvalType.RAW: 1>",
+          "max_position_cm": 0.0002718831001793581,
+          "max_angle_deg": 0.002314376114290059
+        },
+        {
+          "evaluation": "<AnimDataEvalType.COMPRESSED: 2>",
+          "max_position_cm": 0.0002718831001793581,
+          "max_angle_deg": 0.002314376114290059
+        }
+      ],
+      "loop_position_cm": 0,
+      "loop_angle_deg": 0
+    },
+    {
+      "name": "CrouchAO_m45",
+      "checks": [
+        {
+          "evaluation": "<AnimDataEvalType.RAW: 1>",
+          "max_position_cm": 0.0002718831001793581,
+          "max_angle_deg": 0.0012366816221810358
+        },
+        {
+          "evaluation": "<AnimDataEvalType.COMPRESSED: 2>",
+          "max_position_cm": 0.0002718831001793581,
+          "max_angle_deg": 0.0012366816221810358
+        }
+      ],
+      "loop_position_cm": 0,
+      "loop_angle_deg": 0
+    },
+    {
+      "name": "CrouchAO_zero",
+      "checks": [
+        {
+          "evaluation": "<AnimDataEvalType.RAW: 1>",
+          "max_position_cm": 0.0002718831001793581,
+          "max_angle_deg": 0.0011285944667338858
+        },
+        {
+          "evaluation": "<AnimDataEvalType.COMPRESSED: 2>",
+          "max_position_cm": 0.0002718831001793581,
+          "max_angle_deg": 0.0011285944667338858
+        }
+      ],
+      "loop_position_cm": 0,
+      "loop_angle_deg": 0
+    },
+    {
+      "name": "CrouchAO_p45",
+      "checks": [
+        {
+          "evaluation": "<AnimDataEvalType.RAW: 1>",
+          "max_position_cm": 0.0002718831001793581,
+          "max_angle_deg": 0.0011285944667338858
+        },
+        {
+          "evaluation": "<AnimDataEvalType.COMPRESSED: 2>",
+          "max_position_cm": 0.0002718831001793581,
+          "max_angle_deg": 0.0011285944667338858
+        }
+      ],
+      "loop_position_cm": 0,
+      "loop_angle_deg": 0
+    },
+    {
+      "name": "CrouchAO_p90",
+      "checks": [
+        {
+          "evaluation": "<AnimDataEvalType.RAW: 1>",
+          "max_position_cm": 0.0002718831001793581,
+          "max_angle_deg": 0.0020867988486548343
+        },
+        {
+          "evaluation": "<AnimDataEvalType.COMPRESSED: 2>",
+          "max_position_cm": 0.0002718831001793581,
+          "max_angle_deg": 0.0020867988486548343
+        }
+      ],
+      "loop_position_cm": 0,
+      "loop_angle_deg": 0
+    }
+  ],
+  "protected_files": 619,
+  "blueprints": [
+    {
+      "name": "ABP_StanceAware_TP",
+      "nodes": [
+        "AnimGraphNode_Root",
+        "AnimGraphNode_BlendSpacePlayer",
+        "AnimGraphNode_BlendSpacePlayer",
+        "K2Node_VariableGet",
+        "K2Node_VariableGet",
+        "AnimGraphNode_BlendSpacePlayer",
+        "K2Node_VariableGet",
+        "K2Node_VariableGet",
+        "AnimGraphNode_SequencePlayer",
+        "AnimGraphNode_BlendListByInt",
+        "K2Node_VariableGet",
+        "AnimGraphNode_SaveCachedPose",
+        "AnimGraphNode_UseCachedPose",
+        "AnimGraphNode_UseCachedPose",
+        "AnimGraphNode_SequencePlayer",
+        "AnimGraphNode_SequencePlayer",
+        "AnimGraphNode_BlendListByBool",
+        "K2Node_VariableGet",
+        "AnimGraphNode_SequencePlayer",
+        "AnimGraphNode_SequencePlayer",
+        "AnimGraphNode_BlendListByBool",
+        "K2Node_VariableGet",
+        "AnimGraphNode_TwoWayBlend",
+        "K2Node_VariableGet",
+        "AnimGraphNode_RotationOffsetBlendSpace",
+        "K2Node_VariableGet",
+        "K2Node_CallFunction",
+        "K2Node_VariableGet",
+        "AnimGraphNode_LayeredBoneBlend",
+        "AnimGraphNode_SaveCachedPose",
+        "AnimGraphNode_UseCachedPose",
+        "AnimGraphNode_UseCachedPose",
+        "AnimGraphNode_LayeredBoneBlend",
+        "AnimGraphNode_BlendListByBool",
+        "K2Node_VariableGet",
+        "K2Node_Event",
+        "K2Node_CallFunction",
+        "K2Node_DynamicCast",
+        "K2Node_VariableGet",
+        "K2Node_VariableSet",
+        "K2Node_VariableGet",
+        "K2Node_VariableSet",
+        "K2Node_VariableGet",
+        "K2Node_VariableSet",
+        "K2Node_VariableGet",
+        "K2Node_VariableSet",
+        "K2Node_VariableGet",
+        "K2Node_VariableSet",
+        "K2Node_VariableGet",
+        "K2Node_VariableSet",
+        "K2Node_VariableGet",
+        "K2Node_VariableSet",
+        "K2Node_VariableGet",
+        "K2Node_VariableSet"
+      ]
+    },
+    {
+      "name": "ABP_StanceAware_FP",
+      "nodes": [
+        "AnimGraphNode_Root",
+        "AnimGraphNode_CopyPoseFromMesh",
+        "K2Node_Event"
+      ]
+    }
+  ],
+  "metadata_updates": [
+    {
+      "path": "SourceAssets/StanceCrouch/README.md",
+      "before": "0233e7ba4f0a2b43a57c1a84b901f8a7cdbb08dbd3a54704b83f6d207b9850e5",
+      "after": "e19afc751565686a1d03ed0111598e3506b79798c47c79af732350824132a32d"
+    }
+  ],
+  "aim_samples": 8,
+  "lower_samples": 9,
+  "stance_samples": 9
+}

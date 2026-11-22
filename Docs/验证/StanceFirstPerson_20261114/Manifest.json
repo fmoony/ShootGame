@@ -1,0 +1,11 @@
+{
+  "files": {
+    "Source/ShootGameEditor/Tests/Stance/ShooterStancePreview.cpp": "f3fd19695ada6bd8d0f4212cb6b4e48a024ba72c0103ee069a9f04759413b62d",
+    "Source/ShootGameEditor/Tests/Stance/ShooterStancePreview.h": "e28568a6f8f67a38c882542c17d8b85c0e2a58513bee536ac18889589dc21bdd",
+    "Scripts/Animation/Stance/Run.ps1": "86feab7b5af3d466e450a970c2a4c1c157188464630cf3d5129e6284414b5fec",
+    "Scripts/Animation/Stance/analyze_view.py": "5f10193fd67c571b3684ef3afc713242ae12332faa7db189d936e4d3ba533cca",
+    "Saved/StanceView_20261114/Before.csv": "b0fb5bc458fb3eec1386d93e2d7d03104dbc32c01080dfcfbdb0b307c534e621",
+    "Saved/StanceView_20261114/ProductionView.csv": "4c084366bbd5f8d64645fed2264536ca02fbb2f352d307d21ac3f0d9f3c86ecd"
+  },
+  "input": "原实验现有动画，无轨道或资源保存"
+}

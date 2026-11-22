@@ -1,0 +1,187 @@
+{
+  "status": "Passed",
+  "scope": "Stance 自写 C++ 姿态处理已移除；原生图与复制通过；八向接触及半蹲 idle 一致性未通过",
+  "protected_existing_files": 174,
+  "files": [
+    {
+      "path": "Content/Experiments/Stance_20261022/NativeGraph/ABP_StanceNative_FP.uasset",
+      "bytes": 31513,
+      "sha256": "aa88a7c89c372cc1be07ed15f60d9ad87e31bac58984f8a58504d42f48d96817"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/NativeGraph/ABP_StanceNative_TP.uasset",
+      "bytes": 282774,
+      "sha256": "5b70426e71b2951f52bdfdad38330e3af3c8989212e9eda81742f7d43217ff19"
+    },
+    {
+      "path": "Docs/开发记录/2026-11-15-2215-实验原生动画图替代手工骨骼处理.md",
+      "bytes": 4026,
+      "sha256": "b4b8f93646be4574f380ef3ea0050dc73b0ca154ffff698e45d6d2acf6b094da"
+    },
+    {
+      "path": "Docs/滑铲与下蹲动画实验.md",
+      "bytes": 4530,
+      "sha256": "e96cbc0da0ed0f99d301cab6862afc4018e3fb3e3ec2dca354a6412f1756bac4"
+    },
+    {
+      "path": "Docs/验证/StanceNativeGraph_20261115/Build.log",
+      "bytes": 8107,
+      "sha256": "1c581435b87cc6d1b8ca3e31454a297970b9a0a72307a2bc34f965bd94ff027e"
+    },
+    {
+      "path": "Docs/验证/StanceNativeGraph_20261115/BuildV2.log",
+      "bytes": 5300,
+      "sha256": "d8155c2f2c9cfcb6f130c7b4cfb1d20b89dab450a1c8dd120506cfc938cc4054"
+    },
+    {
+      "path": "Docs/验证/StanceNativeGraph_20261115/BuildV3.log",
+      "bytes": 5262,
+      "sha256": "23dc193f752b573de0f0a5048e40877f281a3c2bb95f4acc158e5a524189e7f9"
+    },
+    {
+      "path": "Docs/验证/StanceNativeGraph_20261115/Checks.json",
+      "bytes": 3599,
+      "sha256": "4f4bcf9b6e3faba11cb82e6404f009b6e148cb8ca5b61625df283921c6b3b0d8"
+    },
+    {
+      "path": "Docs/验证/StanceNativeGraph_20261115/Comparison.analysis.log",
+      "bytes": 4886,
+      "sha256": "2ca13b27ca09bbc99623d175e40bf8590922a44912a1794a7340801818ab8493"
+    },
+    {
+      "path": "Docs/验证/StanceNativeGraph_20261115/EditorGraphAudit.json",
+      "bytes": 7682,
+      "sha256": "256b03ef33d66c4b037ed1d0073309fb84fd9e9dcc83b359dcb122fa89fc91c3"
+    },
+    {
+      "path": "Docs/验证/StanceNativeGraph_20261115/Findings.json",
+      "bytes": 1466,
+      "sha256": "2a1b6a14ed9126d8ed74ac6410fe1dacdbc35bae9c0d5d0cb4a869573a54703d"
+    },
+    {
+      "path": "Docs/验证/StanceNativeGraph_20261115/GraphLinks.csv",
+      "bytes": 4439,
+      "sha256": "ca0eaebf63b6bb52cdc821e71eb4ffc7bc0ecbc8ef6c9523ae35e8734c166301"
+    },
+    {
+      "path": "Docs/验证/StanceNativeGraph_20261115/GraphNodes.csv",
+      "bytes": 10703,
+      "sha256": "4a0aa94173330bae64ae5bb0e99eee36729f69d2681aca872942da22df325cc4"
+    },
+    {
+      "path": "Docs/验证/StanceNativeGraph_20261115/Layered.csv.gz",
+      "bytes": 7919371,
+      "sha256": "f01f26ed2b9ee5b5068ef5751b48373d1b80fac0099c7922f37800fa916e2668"
+    },
+    {
+      "path": "Docs/验证/StanceNativeGraph_20261115/Layered.log",
+      "bytes": 197733,
+      "sha256": "b2f274e90e7fc541c40ee3b76864a27eb3f792c1ec148d866ab1374baa02015a"
+    },
+    {
+      "path": "Docs/验证/StanceNativeGraph_20261115/Layered.native.json",
+      "bytes": 10625,
+      "sha256": "df069117a8c9d5886fe7fa8290efb4aea3b2ac2e33d10d3102f66fa8e3ecd368"
+    },
+    {
+      "path": "Docs/验证/StanceNativeGraph_20261115/Prepare.log",
+      "bytes": 231995,
+      "sha256": "24ff7b7a3e93e4b11c0410913adbacb0eb081bd2f8f0b788b9875df4a67c84b4"
+    },
+    {
+      "path": "Docs/验证/StanceNativeGraph_20261115/PrepareV2.log",
+      "bytes": 232865,
+      "sha256": "5287973b7a3a60d4b1904e7ba80b44303151f6790caffafea6c4c60bbc26a8f2"
+    },
+    {
+      "path": "Docs/验证/StanceNativeGraph_20261115/Protection.json",
+      "bytes": 46521,
+      "sha256": "a95640ed0a87a1225126b83ee8c716be816b95bfb60d880693e43b0a73b9db3d"
+    },
+    {
+      "path": "Docs/验证/StanceNativeGraph_20261115/README.md",
+      "bytes": 9311,
+      "sha256": "86bd084dc8c7d8ea6e4def4a9c1c7c0761f74e5f459587682d92142e66b1b55b"
+    },
+    {
+      "path": "Docs/验证/StanceNativeGraph_20261115/Raw.csv.gz",
+      "bytes": 7896772,
+      "sha256": "8e97b5750c1560d59bb3db15e513ba465d2cb34114f633ef91080e88e308bb6e"
+    },
+    {
+      "path": "Docs/验证/StanceNativeGraph_20261115/Raw.log",
+      "bytes": 197349,
+      "sha256": "17eab632eeaeeb8adf033f1ec18e9f549f194496bfe8b3a6f71f5722976e26a4"
+    },
+    {
+      "path": "Docs/验证/StanceNativeGraph_20261115/Review.png",
+      "bytes": 486751,
+      "sha256": "10be538e996766da0101638edc0a33a17309690e95bc46a8476ea1104acb0a81"
+    },
+    {
+      "path": "Docs/验证/StanceNativeGraph_20261115/ReviewSide.png",
+      "bytes": 493790,
+      "sha256": "bd588bea2bc4604d1b6b73e65a65b7a4d549d0ef13bc9d051998a95f950c68a9"
+    },
+    {
+      "path": "Docs/验证/StanceNativeGraph_20261115/ReviewWindow.json",
+      "bytes": 571,
+      "sha256": "e1d70df039d22427ffb38cf382c07a810d385811499286746cfd543976fe66c9"
+    },
+    {
+      "path": "Docs/验证/StanceNativeGraph_20261115/Verify.json",
+      "bytes": 6939,
+      "sha256": "a0c259be431ee70906d2c0307ce8cea2bbef5f5fbea631586bb7f1dad3530bb6"
+    },
+    {
+      "path": "Docs/验证/StanceNativeGraph_20261115/Verify.log",
+      "bytes": 230791,
+      "sha256": "9cc95aa6eb23aede0c7e2b5c229b04513b56f9acfba0944f29dc229a9ddbbf91"
+    },
+    {
+      "path": "Docs/验证/StanceNativeGraph_20261115/VerifyV2.log",
+      "bytes": 230637,
+      "sha256": "9543742dee70d32f11fb9a9df3984788531b8ba2940bcdc8b78cda492d0ec36c"
+    },
+    {
+      "path": "Docs/验证/StanceNativeGraph_20261115/VerifyV3.log",
+      "bytes": 230560,
+      "sha256": "0447ae2bd018070cb7a24270cd633dfd9f246989c9e9848fe1a757762d55acc7"
+    },
+    {
+      "path": "Docs/验证/StanceNativeGraph_20261115/VerifyV4.log",
+      "bytes": 229098,
+      "sha256": "5e7c789bbd29fc123a8c060d9ba64efc31a233f51e2fd77c9f7ef6ae8819f039"
+    },
+    {
+      "path": "Scripts/Animation/Stance/Run.ps1",
+      "bytes": 2646,
+      "sha256": "b9fe9364db1c14fb08b6916d761a2089e27a5c5029db2ec40d8038a327ef05f2"
+    },
+    {
+      "path": "Scripts/Animation/Stance/analyze_native_graph.py",
+      "bytes": 6750,
+      "sha256": "6a4aa4ccfc3e2c4ec05f189e2e1dec28d891be33cb9a9bb36638042b22c796b6"
+    },
+    {
+      "path": "Scripts/Animation/Stance/verify_native_graph.py",
+      "bytes": 3419,
+      "sha256": "ffb2d280da6df6be7f9aa5d02a9a8671f1cdb22b37d8d18f6f1420fde5e82424"
+    },
+    {
+      "path": "Source/ShootGameEditor/Tests/Stance/ShooterStancePreview.cpp",
+      "bytes": 30727,
+      "sha256": "4ac0dd888a684b33e84d8bfca9e6548866e1b5edb3bb42468c27809c68585ae6"
+    },
+    {
+      "path": "Source/ShootGameEditor/Tests/Stance/ShooterStancePreview.h",
+      "bytes": 3088,
+      "sha256": "bde5fac079758349a843d75a112991c7de06175d37168d931830c8601edffea4"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/README.md",
+      "bytes": 2902,
+      "sha256": "e776ecd2ee8a020f87a32be81ae5e32500aab910dc882cb47e6d8c10cf96cd0a"
+    }
+  ]
+}

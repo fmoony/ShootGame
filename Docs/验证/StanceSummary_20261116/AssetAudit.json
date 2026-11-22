@@ -1,0 +1,4505 @@
+{
+  "blueprints": [
+    {
+      "asset": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player",
+      "graphs": [
+        {
+          "name": "AnimGraph",
+          "path": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph",
+          "nodes": [
+            {
+              "name": "AnimGraphNode_Root_0",
+              "class": "AnimGraphNode_Root",
+              "title": "Output Pose",
+              "inputs": [
+                {
+                  "pin": "Result",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_ComponentToLocalSpace_0",
+                      "pin": "Pose"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "AnimGraphNode_StateMachine_58",
+              "class": "AnimGraphNode_StateMachine",
+              "title": "LocomotioStateMachine",
+              "inputs": []
+            },
+            {
+              "name": "AnimGraphNode_LayeredBoneBlend_1",
+              "class": "AnimGraphNode_LayeredBoneBlend",
+              "title": "Layered blend per bone",
+              "inputs": [
+                {
+                  "pin": "BasePose",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_StateMachine_58",
+                      "pin": "Pose"
+                    }
+                  ]
+                },
+                {
+                  "pin": "BlendPoses_0",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_Slot_1",
+                      "pin": "Pose"
+                    }
+                  ]
+                },
+                {
+                  "pin": "BlendWeights_0",
+                  "type": "Float (single-precision)",
+                  "value": "1.000000",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_7",
+                      "pin": "WeaponUpperBodyWeight"
+                    }
+                  ]
+                }
+              ],
+              "config": "<Struct 'AnimNode_LayeredBoneBlend' (0x000001F5D11E98B0) {base_pose: {}, blend_poses: (()), blend_weights: (1.000000), lod_threshold: -1, mesh_space_rotation_blend: True, root_space_rotation_blend: False, mesh_space_scale_blend: False, curve_blend_option: Override, update_base_pose_first: False}>"
+            },
+            {
+              "name": "AnimGraphNode_SequencePlayer_0",
+              "class": "AnimGraphNode_SequencePlayer",
+              "title": "Sequence Player",
+              "inputs": [
+                {
+                  "pin": "Sequence",
+                  "type": "Anim Sequence Base Object Reference",
+                  "value": "",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_0",
+                      "pin": "ThirdPersonHoldSequence"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "AnimGraphNode_RotationOffsetBlendSpace_0",
+              "class": "AnimGraphNode_RotationOffsetBlendSpace",
+              "title": "AimOffset Player '(None)'",
+              "inputs": [
+                {
+                  "pin": "X",
+                  "type": "Float (single-precision)",
+                  "value": "0.000000",
+                  "sources": []
+                },
+                {
+                  "pin": "Y",
+                  "type": "Float (single-precision)",
+                  "value": "0.000000",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_1",
+                      "pin": "AimPitchN"
+                    }
+                  ]
+                },
+                {
+                  "pin": "BlendSpace",
+                  "type": "Blend Space Object Reference",
+                  "value": "",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_5",
+                      "pin": "ThirdPersonAimOffset"
+                    }
+                  ]
+                },
+                {
+                  "pin": "BasePose",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_SequencePlayer_0",
+                      "pin": "Pose"
+                    }
+                  ]
+                },
+                {
+                  "pin": "Alpha",
+                  "type": "Float (single-precision)",
+                  "value": "1.000000",
+                  "sources": []
+                }
+              ]
+            },
+            {
+              "name": "AnimGraphNode_Slot_1",
+              "class": "AnimGraphNode_Slot",
+              "title": "Slot 'Arms'",
+              "inputs": [
+                {
+                  "pin": "Source",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_StateMachine_0",
+                      "pin": "Pose"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_VariableGet_2",
+              "class": "K2Node_VariableGet",
+              "title": "Get HandToMuzzle",
+              "inputs": []
+            },
+            {
+              "name": "AnimGraphNode_ShooterAimIK_0",
+              "class": "AnimGraphNode_ShooterAimIK",
+              "title": "Shooter Aim IK",
+              "inputs": [
+                {
+                  "pin": "ComponentPose",
+                  "type": "Component Space Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_LocalToComponentSpace_0",
+                      "pin": "ComponentPose"
+                    }
+                  ]
+                },
+                {
+                  "pin": "Alpha",
+                  "type": "Float (single-precision)",
+                  "value": "1.000000",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_13",
+                      "pin": "AimIKPresentationAlpha"
+                    }
+                  ]
+                },
+                {
+                  "pin": "AimDirectionWorld",
+                  "type": "Vector",
+                  "value": "1.000000,0.000000,0.000000",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_4",
+                      "pin": "AimDirectionWorld"
+                    }
+                  ]
+                },
+                {
+                  "pin": "AimTargetWorld",
+                  "type": "Vector",
+                  "value": "0.000000,0.000000,0.000000",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_8",
+                      "pin": "AimTargetWorld"
+                    }
+                  ]
+                },
+                {
+                  "pin": "bUseAimTargetWorld",
+                  "type": "Boolean",
+                  "value": "False",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_3",
+                      "pin": "bAimTargetWorldValid"
+                    }
+                  ]
+                },
+                {
+                  "pin": "HandToMuzzle",
+                  "type": "Transform",
+                  "value": "0.000000,0.000000,0.000000|0.000000,0.000000,-0.000000|1.000000,1.000000,1.000000",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_2",
+                      "pin": "HandToMuzzle"
+                    }
+                  ]
+                },
+                {
+                  "pin": "MinimumTargetDistanceFromMuzzle",
+                  "type": "Float (single-precision)",
+                  "value": "50.000000",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_14",
+                      "pin": "MinimumRemoteAimTargetDistanceFromMuzzle"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "AnimGraphNode_ComponentToLocalSpace_0",
+              "class": "AnimGraphNode_ComponentToLocalSpace",
+              "title": "Component To Local",
+              "inputs": [
+                {
+                  "pin": "ComponentPose",
+                  "type": "Component Space Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_ShooterLeftHandIK_0",
+                      "pin": "Pose"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "AnimGraphNode_LocalToComponentSpace_0",
+              "class": "AnimGraphNode_LocalToComponentSpace",
+              "title": "Local To Component",
+              "inputs": [
+                {
+                  "pin": "LocalPose",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_LayeredBoneBlend_1",
+                      "pin": "Pose"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_VariableGet_4",
+              "class": "K2Node_VariableGet",
+              "title": "Get AimDirectionWorld",
+              "inputs": []
+            },
+            {
+              "name": "K2Node_VariableGet_6",
+              "class": "K2Node_VariableGet",
+              "title": "Get LeftHandGripInRightHandSpace",
+              "inputs": []
+            },
+            {
+              "name": "AnimGraphNode_ShooterLeftHandIK_0",
+              "class": "AnimGraphNode_ShooterLeftHandIK",
+              "title": "Shooter Left Hand IK",
+              "inputs": [
+                {
+                  "pin": "ComponentPose",
+                  "type": "Component Space Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_ShooterAimIK_0",
+                      "pin": "Pose"
+                    }
+                  ]
+                },
+                {
+                  "pin": "Alpha",
+                  "type": "Float (single-precision)",
+                  "value": "1.000000",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_12",
+                      "pin": "LeftHandIKPresentationAlpha"
+                    }
+                  ]
+                },
+                {
+                  "pin": "WeaponGripInRightHandSpace",
+                  "type": "Transform",
+                  "value": "0.000000,0.000000,0.000000|0.000000,0.000000,-0.000000|1.000000,1.000000,1.000000",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_6",
+                      "pin": "LeftHandGripInRightHandSpace"
+                    }
+                  ]
+                },
+                {
+                  "pin": "HandGripInLeftHandSpace",
+                  "type": "Transform",
+                  "value": "0.000000,0.000000,0.000000|0.000000,0.000000,-0.000000|1.000000,1.000000,1.000000",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_9",
+                      "pin": "HandGripInLeftHandSpace"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_VariableGet_9",
+              "class": "K2Node_VariableGet",
+              "title": "Get HandGripInLeftHandSpace",
+              "inputs": []
+            },
+            {
+              "name": "K2Node_VariableGet_1",
+              "class": "K2Node_VariableGet",
+              "title": "Get AimPitchN",
+              "inputs": []
+            },
+            {
+              "name": "K2Node_VariableGet_8",
+              "class": "K2Node_VariableGet",
+              "title": "Get AimTargetWorld",
+              "inputs": []
+            },
+            {
+              "name": "K2Node_VariableGet_3",
+              "class": "K2Node_VariableGet",
+              "title": "Get bAimTargetWorldValid",
+              "inputs": []
+            },
+            {
+              "name": "AnimGraphNode_StateMachine_0",
+              "class": "AnimGraphNode_StateMachine",
+              "title": "WeaponAction",
+              "inputs": []
+            },
+            {
+              "name": "K2Node_VariableGet_12",
+              "class": "K2Node_VariableGet",
+              "title": "Get LeftHandIKPresentationAlpha",
+              "inputs": []
+            },
+            {
+              "name": "K2Node_VariableGet_13",
+              "class": "K2Node_VariableGet",
+              "title": "Get AimIKPresentationAlpha",
+              "inputs": []
+            },
+            {
+              "name": "AnimGraphNode_SaveCachedPose_0",
+              "class": "AnimGraphNode_SaveCachedPose",
+              "title": "Save cached pose 'ArmedAimPose'",
+              "inputs": [
+                {
+                  "pin": "Pose",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_RotationOffsetBlendSpace_0",
+                      "pin": "Pose"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_VariableGet_14",
+              "class": "K2Node_VariableGet",
+              "title": "Get MinimumRemoteAimTargetDistanceFromMuzzle",
+              "inputs": []
+            },
+            {
+              "name": "K2Node_VariableGet_0",
+              "class": "K2Node_VariableGet",
+              "title": "Get ThirdPersonHoldSequence",
+              "inputs": []
+            },
+            {
+              "name": "K2Node_VariableGet_5",
+              "class": "K2Node_VariableGet",
+              "title": "Get ThirdPersonAimOffset",
+              "inputs": []
+            },
+            {
+              "name": "K2Node_VariableGet_7",
+              "class": "K2Node_VariableGet",
+              "title": "Get WeaponUpperBodyWeight",
+              "inputs": []
+            }
+          ]
+        },
+        {
+          "name": "LocomotioStateMachine",
+          "path": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_StateMachine_58.LocomotioStateMachine",
+          "nodes": []
+        },
+        {
+          "name": "FPP_Idle",
+          "path": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_StateMachine_58.LocomotioStateMachine.AnimStateNode_1.FPP_Idle",
+          "nodes": [
+            {
+              "name": "AnimGraphNode_StateResult_32",
+              "class": "AnimGraphNode_StateResult",
+              "title": "Output Animation Pose",
+              "inputs": [
+                {
+                  "pin": "Result",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_SequencePlayer_0",
+                      "pin": "Pose"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "AnimGraphNode_SequencePlayer_0",
+              "class": "AnimGraphNode_SequencePlayer",
+              "title": "Sequence Player 'MM_Idle'",
+              "inputs": []
+            }
+          ]
+        },
+        {
+          "name": "FPP_JumpStart",
+          "path": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_StateMachine_58.LocomotioStateMachine.AnimStateNode_0.FPP_JumpStart",
+          "nodes": [
+            {
+              "name": "AnimGraphNode_StateResult_33",
+              "class": "AnimGraphNode_StateResult",
+              "title": "Output Animation Pose",
+              "inputs": [
+                {
+                  "pin": "Result",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_SequencePlayer_2",
+                      "pin": "Pose"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "AnimGraphNode_SequencePlayer_2",
+              "class": "AnimGraphNode_SequencePlayer",
+              "title": "Sequence Player 'MM_Jump'",
+              "inputs": []
+            }
+          ]
+        },
+        {
+          "name": "FPP_JumpLoop",
+          "path": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_StateMachine_58.LocomotioStateMachine.AnimStateNode_7.FPP_JumpLoop",
+          "nodes": [
+            {
+              "name": "AnimGraphNode_StateResult_34",
+              "class": "AnimGraphNode_StateResult",
+              "title": "Output Animation Pose",
+              "inputs": [
+                {
+                  "pin": "Result",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_SequencePlayer_3",
+                      "pin": "Pose"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "AnimGraphNode_SequencePlayer_3",
+              "class": "AnimGraphNode_SequencePlayer",
+              "title": "Sequence Player 'MM_Fall_Loop'",
+              "inputs": []
+            }
+          ]
+        },
+        {
+          "name": "AnimationTransitionGraph_213",
+          "path": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_StateMachine_58.LocomotioStateMachine.AnimStateTransitionNode_5.AnimationTransitionGraph_213",
+          "nodes": [
+            {
+              "name": "AnimGraphNode_TransitionResult_91",
+              "class": "AnimGraphNode_TransitionResult",
+              "title": "Result",
+              "inputs": [
+                {
+                  "pin": "bCanEnterTransition",
+                  "type": "Boolean",
+                  "value": "False",
+                  "sources": [
+                    {
+                      "node": "K2Node_CallFunction_25042",
+                      "pin": "ReturnValue"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_CallFunction_25042",
+              "class": "K2Node_CallFunction",
+              "title": "float <= float",
+              "inputs": [
+                {
+                  "pin": "A",
+                  "type": "Float (double-precision)",
+                  "value": "0.0",
+                  "sources": [
+                    {
+                      "node": "K2Node_AnimGetter_1",
+                      "pin": "ReturnValue"
+                    }
+                  ]
+                },
+                {
+                  "pin": "B",
+                  "type": "Float (double-precision)",
+                  "value": "0.1",
+                  "sources": []
+                }
+              ]
+            },
+            {
+              "name": "K2Node_AnimGetter_1",
+              "class": "K2Node_AnimGetter",
+              "title": "Get Relevant Anim Time Remaining (FPP_JumpStart)",
+              "inputs": []
+            }
+          ]
+        },
+        {
+          "name": "FPP_JumpEnd",
+          "path": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_StateMachine_58.LocomotioStateMachine.AnimStateNode_9.FPP_JumpEnd",
+          "nodes": [
+            {
+              "name": "AnimGraphNode_StateResult_35",
+              "class": "AnimGraphNode_StateResult",
+              "title": "Output Animation Pose",
+              "inputs": [
+                {
+                  "pin": "Result",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_SequencePlayer_4",
+                      "pin": "Pose"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "AnimGraphNode_SequencePlayer_4",
+              "class": "AnimGraphNode_SequencePlayer",
+              "title": "Sequence Player 'MM_Land'",
+              "inputs": []
+            }
+          ]
+        },
+        {
+          "name": "AnimationTransitionGraph_214",
+          "path": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_StateMachine_58.LocomotioStateMachine.AnimStateTransitionNode_7.AnimationTransitionGraph_214",
+          "nodes": [
+            {
+              "name": "AnimGraphNode_TransitionResult_92",
+              "class": "AnimGraphNode_TransitionResult",
+              "title": "Result",
+              "inputs": [
+                {
+                  "pin": "bCanEnterTransition",
+                  "type": "Boolean",
+                  "value": "False",
+                  "sources": [
+                    {
+                      "node": "K2Node_CallFunction_10601",
+                      "pin": "ReturnValue"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_CallFunction_10601",
+              "class": "K2Node_CallFunction",
+              "title": "NOT Boolean",
+              "inputs": [
+                {
+                  "pin": "A",
+                  "type": "Boolean",
+                  "value": "false",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_0",
+                      "pin": "bIsInAir"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_VariableGet_0",
+              "class": "K2Node_VariableGet",
+              "title": "Get bIsInAir",
+              "inputs": []
+            }
+          ]
+        },
+        {
+          "name": "AnimationTransitionGraph_215",
+          "path": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_StateMachine_58.LocomotioStateMachine.AnimStateTransitionNode_9.AnimationTransitionGraph_215",
+          "nodes": [
+            {
+              "name": "AnimGraphNode_TransitionResult_93",
+              "class": "AnimGraphNode_TransitionResult",
+              "title": "Result",
+              "inputs": [
+                {
+                  "pin": "bCanEnterTransition",
+                  "type": "Boolean",
+                  "value": "False",
+                  "sources": [
+                    {
+                      "node": "K2Node_CallFunction_27602",
+                      "pin": "ReturnValue"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_CallFunction_27602",
+              "class": "K2Node_CallFunction",
+              "title": "float <= float",
+              "inputs": [
+                {
+                  "pin": "A",
+                  "type": "Float (double-precision)",
+                  "value": "0.0",
+                  "sources": [
+                    {
+                      "node": "K2Node_AnimGetter_0",
+                      "pin": "ReturnValue"
+                    }
+                  ]
+                },
+                {
+                  "pin": "B",
+                  "type": "Float (double-precision)",
+                  "value": "0.750000",
+                  "sources": []
+                }
+              ]
+            },
+            {
+              "name": "K2Node_AnimGetter_0",
+              "class": "K2Node_AnimGetter",
+              "title": "Get Relevant Anim Time Remaining Fraction (FPP_JumpEnd)",
+              "inputs": []
+            }
+          ]
+        },
+        {
+          "name": "FPP_Run",
+          "path": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_StateMachine_58.LocomotioStateMachine.AnimStateNode_2.FPP_Run",
+          "nodes": [
+            {
+              "name": "AnimGraphNode_StateResult_52",
+              "class": "AnimGraphNode_StateResult",
+              "title": "Output Animation Pose",
+              "inputs": [
+                {
+                  "pin": "Result",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_BlendSpacePlayer_0",
+                      "pin": "Pose"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "AnimGraphNode_BlendSpacePlayer_0",
+              "class": "AnimGraphNode_BlendSpacePlayer",
+              "title": "Blendspace Player 'BS_Idle_Walk_Run'",
+              "inputs": [
+                {
+                  "pin": "X",
+                  "type": "Float (single-precision)",
+                  "value": "0.000000",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_1",
+                      "pin": "MoveDirection"
+                    }
+                  ]
+                },
+                {
+                  "pin": "Y",
+                  "type": "Float (single-precision)",
+                  "value": "0.000000",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_0",
+                      "pin": "LocomotionGroundSpeed"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_VariableGet_0",
+              "class": "K2Node_VariableGet",
+              "title": "Get LocomotionGroundSpeed",
+              "inputs": []
+            },
+            {
+              "name": "K2Node_VariableGet_1",
+              "class": "K2Node_VariableGet",
+              "title": "Get MoveDirection",
+              "inputs": []
+            }
+          ]
+        },
+        {
+          "name": "AnimationTransitionGraph_216",
+          "path": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_StateMachine_58.LocomotioStateMachine.AnimStateTransitionNode_2.AnimationTransitionGraph_216",
+          "nodes": [
+            {
+              "name": "AnimGraphNode_TransitionResult_206",
+              "class": "AnimGraphNode_TransitionResult",
+              "title": "Result",
+              "inputs": [
+                {
+                  "pin": "bCanEnterTransition",
+                  "type": "Boolean",
+                  "value": "False",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_0",
+                      "pin": "bShouldMove"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_VariableGet_0",
+              "class": "K2Node_VariableGet",
+              "title": "Get bShouldMove",
+              "inputs": []
+            }
+          ]
+        },
+        {
+          "name": "AnimationTransitionGraph_217",
+          "path": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_StateMachine_58.LocomotioStateMachine.AnimStateTransitionNode_4.AnimationTransitionGraph_217",
+          "nodes": [
+            {
+              "name": "AnimGraphNode_TransitionResult_252",
+              "class": "AnimGraphNode_TransitionResult",
+              "title": "Result",
+              "inputs": [
+                {
+                  "pin": "bCanEnterTransition",
+                  "type": "Boolean",
+                  "value": "False",
+                  "sources": [
+                    {
+                      "node": "K2Node_CallFunction_2998",
+                      "pin": "ReturnValue"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_CallFunction_2998",
+              "class": "K2Node_CallFunction",
+              "title": "NOT Boolean",
+              "inputs": [
+                {
+                  "pin": "A",
+                  "type": "Boolean",
+                  "value": "false",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_0",
+                      "pin": "bShouldMove"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_VariableGet_0",
+              "class": "K2Node_VariableGet",
+              "title": "Get bShouldMove",
+              "inputs": []
+            }
+          ]
+        },
+        {
+          "name": "AnimationTransitionGraph_218",
+          "path": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_StateMachine_58.LocomotioStateMachine.AnimStateTransitionNode_6.AnimationTransitionGraph_218",
+          "nodes": [
+            {
+              "name": "AnimGraphNode_TransitionResult_664",
+              "class": "AnimGraphNode_TransitionResult",
+              "title": "Result",
+              "inputs": [
+                {
+                  "pin": "bCanEnterTransition",
+                  "type": "Boolean",
+                  "value": "False",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_1",
+                      "pin": "bIsInAir"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_VariableGet_1",
+              "class": "K2Node_VariableGet",
+              "title": "Get bIsInAir",
+              "inputs": []
+            }
+          ]
+        },
+        {
+          "name": "AnimationTransitionGraph_219",
+          "path": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_StateMachine_58.LocomotioStateMachine.AnimStateTransitionNode_16.AnimationTransitionGraph_219",
+          "nodes": [
+            {
+              "name": "AnimGraphNode_TransitionResult_1087",
+              "class": "AnimGraphNode_TransitionResult",
+              "title": "Result",
+              "inputs": [
+                {
+                  "pin": "bCanEnterTransition",
+                  "type": "Boolean",
+                  "value": "False",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_0",
+                      "pin": "bIsInAir"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_VariableGet_0",
+              "class": "K2Node_VariableGet",
+              "title": "Get bIsInAir",
+              "inputs": []
+            }
+          ]
+        },
+        {
+          "name": "LocomotionEntry",
+          "path": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_StateMachine_58.LocomotioStateMachine.AnimStateConduitNode_0.LocomotionEntry",
+          "nodes": [
+            {
+              "name": "AnimGraphNode_TransitionResult_0",
+              "class": "AnimGraphNode_TransitionResult",
+              "title": "Result",
+              "inputs": [
+                {
+                  "pin": "bCanEnterTransition",
+                  "type": "Boolean",
+                  "value": "true",
+                  "sources": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Transition",
+          "path": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_StateMachine_58.LocomotioStateMachine.AnimStateTransitionNode_0.Transition",
+          "nodes": [
+            {
+              "name": "AnimGraphNode_TransitionResult_0",
+              "class": "AnimGraphNode_TransitionResult",
+              "title": "Result",
+              "inputs": [
+                {
+                  "pin": "bCanEnterTransition",
+                  "type": "Boolean",
+                  "value": "False",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_0",
+                      "pin": "bIsInAir"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_VariableGet_0",
+              "class": "K2Node_VariableGet",
+              "title": "Get bIsInAir",
+              "inputs": []
+            }
+          ]
+        },
+        {
+          "name": "Transition",
+          "path": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_StateMachine_58.LocomotioStateMachine.AnimStateTransitionNode_1.Transition",
+          "nodes": [
+            {
+              "name": "AnimGraphNode_TransitionResult_0",
+              "class": "AnimGraphNode_TransitionResult",
+              "title": "Result",
+              "inputs": [
+                {
+                  "pin": "bCanEnterTransition",
+                  "type": "Boolean",
+                  "value": "False",
+                  "sources": [
+                    {
+                      "node": "K2Node_CallFunction_0",
+                      "pin": "ReturnValue"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_VariableGet_0",
+              "class": "K2Node_VariableGet",
+              "title": "Get bIsInAir",
+              "inputs": []
+            },
+            {
+              "name": "K2Node_CallFunction_0",
+              "class": "K2Node_CallFunction",
+              "title": "NOT Boolean",
+              "inputs": [
+                {
+                  "pin": "A",
+                  "type": "Boolean",
+                  "value": "false",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_0",
+                      "pin": "bIsInAir"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Transition",
+          "path": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_StateMachine_58.LocomotioStateMachine.AnimStateTransitionNode_3.Transition",
+          "nodes": [
+            {
+              "name": "AnimGraphNode_TransitionResult_0",
+              "class": "AnimGraphNode_TransitionResult",
+              "title": "Result",
+              "inputs": [
+                {
+                  "pin": "bCanEnterTransition",
+                  "type": "Boolean",
+                  "value": "False",
+                  "sources": [
+                    {
+                      "node": "K2Node_CallFunction_0",
+                      "pin": "ReturnValue"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_VariableGet_0",
+              "class": "K2Node_VariableGet",
+              "title": "Get bIsInAir",
+              "inputs": []
+            },
+            {
+              "name": "K2Node_CallFunction_0",
+              "class": "K2Node_CallFunction",
+              "title": "NOT Boolean",
+              "inputs": [
+                {
+                  "pin": "A",
+                  "type": "Boolean",
+                  "value": "false",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_0",
+                      "pin": "bIsInAir"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "WeaponAction",
+          "path": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_StateMachine_0.WeaponAction",
+          "nodes": []
+        },
+        {
+          "name": "ArmedAim",
+          "path": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_StateMachine_0.WeaponAction.AnimStateNode_0.ArmedAim",
+          "nodes": [
+            {
+              "name": "AnimGraphNode_StateResult_0",
+              "class": "AnimGraphNode_StateResult",
+              "title": "Output Animation Pose",
+              "inputs": [
+                {
+                  "pin": "Result",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_StateMachine_0",
+                      "pin": "Pose"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "AnimGraphNode_SequencePlayer_0",
+              "class": "AnimGraphNode_SequencePlayer",
+              "title": "Sequence Player 'MF_Rifle_Idle_ADS'",
+              "inputs": []
+            },
+            {
+              "name": "AnimGraphNode_RotationOffsetBlendSpace_0",
+              "class": "AnimGraphNode_RotationOffsetBlendSpace",
+              "title": "AimOffset Player 'AO_Rifle'",
+              "inputs": [
+                {
+                  "pin": "X",
+                  "type": "Float (single-precision)",
+                  "value": "0.000000",
+                  "sources": []
+                },
+                {
+                  "pin": "Y",
+                  "type": "Float (single-precision)",
+                  "value": "0.000000",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_1",
+                      "pin": "AimPitchN"
+                    }
+                  ]
+                },
+                {
+                  "pin": "BasePose",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_SequencePlayer_0",
+                      "pin": "Pose"
+                    }
+                  ]
+                },
+                {
+                  "pin": "Alpha",
+                  "type": "Float (single-precision)",
+                  "value": "1.000000",
+                  "sources": []
+                }
+              ]
+            },
+            {
+              "name": "K2Node_VariableGet_1",
+              "class": "K2Node_VariableGet",
+              "title": "Get AimPitchN",
+              "inputs": []
+            },
+            {
+              "name": "AnimGraphNode_UseCachedPose_0",
+              "class": "AnimGraphNode_UseCachedPose",
+              "title": "Use cached pose 'ArmedAimPose'",
+              "inputs": []
+            },
+            {
+              "name": "AnimGraphNode_StateMachine_0",
+              "class": "AnimGraphNode_StateMachine",
+              "title": "RifleReady",
+              "inputs": []
+            }
+          ]
+        },
+        {
+          "name": "RifleReady",
+          "path": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_StateMachine_0.WeaponAction.AnimStateNode_0.ArmedAim.AnimGraphNode_StateMachine_0.RifleReady",
+          "nodes": []
+        },
+        {
+          "name": "ArmedAim",
+          "path": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_StateMachine_0.WeaponAction.AnimStateNode_0.ArmedAim.AnimGraphNode_StateMachine_0.RifleReady.AnimStateNode_0.ArmedAim",
+          "nodes": [
+            {
+              "name": "AnimGraphNode_StateResult_0",
+              "class": "AnimGraphNode_StateResult",
+              "title": "Output Animation Pose",
+              "inputs": [
+                {
+                  "pin": "Result",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_UseCachedPose_0",
+                      "pin": "Pose"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "AnimGraphNode_UseCachedPose_0",
+              "class": "AnimGraphNode_UseCachedPose",
+              "title": "Use cached pose 'ArmedAimPose'",
+              "inputs": []
+            }
+          ]
+        },
+        {
+          "name": "AimTransition",
+          "path": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_StateMachine_0.WeaponAction.AnimStateNode_0.ArmedAim.AnimGraphNode_StateMachine_0.RifleReady.AnimStateNode_1.AimTransition",
+          "nodes": [
+            {
+              "name": "AnimGraphNode_StateResult_0",
+              "class": "AnimGraphNode_StateResult",
+              "title": "Output Animation Pose",
+              "inputs": [
+                {
+                  "pin": "Result",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_ShooterRifleHeadPose_0",
+                      "pin": "Pose"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "AnimGraphNode_SequencePlayer_0",
+              "class": "AnimGraphNode_SequencePlayer",
+              "title": "Sequence Player",
+              "inputs": [
+                {
+                  "pin": "Sequence",
+                  "type": "Anim Sequence Base Object Reference",
+                  "value": "",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_0",
+                      "pin": "RifleTransitionSequence"
+                    }
+                  ]
+                },
+                {
+                  "pin": "PlayRate",
+                  "type": "Float (single-precision)",
+                  "value": "1.000000",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_1",
+                      "pin": "RifleTransitionPlayRate"
+                    }
+                  ]
+                },
+                {
+                  "pin": "StartPosition",
+                  "type": "Float (single-precision)",
+                  "value": "0.000000",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_2",
+                      "pin": "RifleTransitionStartPosition"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_VariableGet_0",
+              "class": "K2Node_VariableGet",
+              "title": "Get RifleTransitionSequence",
+              "inputs": []
+            },
+            {
+              "name": "K2Node_VariableGet_1",
+              "class": "K2Node_VariableGet",
+              "title": "Get RifleTransitionPlayRate",
+              "inputs": []
+            },
+            {
+              "name": "K2Node_VariableGet_2",
+              "class": "K2Node_VariableGet",
+              "title": "Get RifleTransitionStartPosition",
+              "inputs": []
+            },
+            {
+              "name": "AnimGraphNode_ShooterRifleReadyLayer_0",
+              "class": "AnimGraphNode_ShooterRifleReadyLayer",
+              "title": "Shooter Rifle Transition (Local t/T)",
+              "inputs": [
+                {
+                  "pin": "BasePose",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_UseCachedPose_0",
+                      "pin": "Pose"
+                    }
+                  ]
+                },
+                {
+                  "pin": "BlendPoses_0",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_SequencePlayer_0",
+                      "pin": "Pose"
+                    }
+                  ]
+                },
+                {
+                  "pin": "BlendWeights_0",
+                  "type": "Float (single-precision)",
+                  "value": "1.000000",
+                  "sources": []
+                }
+              ]
+            },
+            {
+              "name": "AnimGraphNode_UseCachedPose_0",
+              "class": "AnimGraphNode_UseCachedPose",
+              "title": "Use cached pose 'ArmedAimPose'",
+              "inputs": []
+            },
+            {
+              "name": "AnimGraphNode_ShooterRifleHeadPose_0",
+              "class": "AnimGraphNode_ShooterRifleHeadPose",
+              "title": "Rifle Head Forward + Upright (Local / preserve AO pitch)",
+              "inputs": [
+                {
+                  "pin": "Source",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_ApplyAdditive_0",
+                      "pin": "Pose"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "AnimGraphNode_ApplyAdditive_0",
+              "class": "AnimGraphNode_ApplyAdditive",
+              "title": "Apply Additive",
+              "inputs": [
+                {
+                  "pin": "Base",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_ShooterRifleReadyLayer_0",
+                      "pin": "Pose"
+                    }
+                  ]
+                },
+                {
+                  "pin": "Additive",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_SequencePlayer_1",
+                      "pin": "Pose"
+                    }
+                  ]
+                },
+                {
+                  "pin": "Alpha",
+                  "type": "Float (single-precision)",
+                  "value": "1.000000",
+                  "sources": [
+                    {
+                      "node": "K2Node_CallFunction_0",
+                      "pin": "ReturnValue"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "AnimGraphNode_SequencePlayer_1",
+              "class": "AnimGraphNode_SequencePlayer",
+              "title": "Sequence Player (additive) 'MM_Rifle_Sprint_Compact_Additive'",
+              "inputs": []
+            },
+            {
+              "name": "K2Node_AnimGetter_0",
+              "class": "K2Node_AnimGetter",
+              "title": "Current transition progress (ratio)",
+              "inputs": []
+            },
+            {
+              "name": "K2Node_CallFunction_0",
+              "class": "K2Node_CallFunction",
+              "title": "FInterpEaseInOut",
+              "inputs": [
+                {
+                  "pin": "A",
+                  "type": "Float (double-precision)",
+                  "value": "0.0",
+                  "sources": []
+                },
+                {
+                  "pin": "B",
+                  "type": "Float (double-precision)",
+                  "value": "1",
+                  "sources": []
+                },
+                {
+                  "pin": "Alpha",
+                  "type": "Float (double-precision)",
+                  "value": "0.0",
+                  "sources": [
+                    {
+                      "node": "K2Node_AnimGetter_0",
+                      "pin": "ReturnValue"
+                    }
+                  ]
+                },
+                {
+                  "pin": "Exponent",
+                  "type": "Float (double-precision)",
+                  "value": "2",
+                  "sources": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "LowReady",
+          "path": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_StateMachine_0.WeaponAction.AnimStateNode_0.ArmedAim.AnimGraphNode_StateMachine_0.RifleReady.AnimStateNode_2.LowReady",
+          "nodes": [
+            {
+              "name": "AnimGraphNode_StateResult_0",
+              "class": "AnimGraphNode_StateResult",
+              "title": "Output Animation Pose",
+              "inputs": [
+                {
+                  "pin": "Result",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_ShooterRifleHeadPose_0",
+                      "pin": "Pose"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "AnimGraphNode_SequencePlayer_0",
+              "class": "AnimGraphNode_SequencePlayer",
+              "title": "Sequence Player 'MM_Rifle_LowReady_Compact'",
+              "inputs": []
+            },
+            {
+              "name": "AnimGraphNode_UseCachedPose_0",
+              "class": "AnimGraphNode_UseCachedPose",
+              "title": "Use cached pose 'ArmedAimPose'",
+              "inputs": []
+            },
+            {
+              "name": "AnimGraphNode_ShooterRifleHeadPose_0",
+              "class": "AnimGraphNode_ShooterRifleHeadPose",
+              "title": "Rifle Head Forward + Upright (Local / preserve AO pitch)",
+              "inputs": [
+                {
+                  "pin": "Source",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_ApplyAdditive_0",
+                      "pin": "Pose"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "AnimGraphNode_LayeredBoneBlend_0",
+              "class": "AnimGraphNode_LayeredBoneBlend",
+              "title": "Layered blend per bone",
+              "inputs": [
+                {
+                  "pin": "BasePose",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_UseCachedPose_0",
+                      "pin": "Pose"
+                    }
+                  ]
+                },
+                {
+                  "pin": "BlendPoses_0",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_SequencePlayer_0",
+                      "pin": "Pose"
+                    }
+                  ]
+                },
+                {
+                  "pin": "BlendWeights_0",
+                  "type": "Float (single-precision)",
+                  "value": "1.000000",
+                  "sources": []
+                }
+              ],
+              "config": "<Struct 'AnimNode_LayeredBoneBlend' (0x000001F5D11EC5B0) {base_pose: {}, blend_poses: (()), blend_weights: (1.000000), lod_threshold: -1, mesh_space_rotation_blend: False, root_space_rotation_blend: False, mesh_space_scale_blend: False, curve_blend_option: Override, update_base_pose_first: False}>"
+            },
+            {
+              "name": "AnimGraphNode_ApplyAdditive_0",
+              "class": "AnimGraphNode_ApplyAdditive",
+              "title": "Apply Additive",
+              "inputs": [
+                {
+                  "pin": "Base",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_LayeredBoneBlend_0",
+                      "pin": "Pose"
+                    }
+                  ]
+                },
+                {
+                  "pin": "Additive",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_SequencePlayer_1",
+                      "pin": "Pose"
+                    }
+                  ]
+                },
+                {
+                  "pin": "Alpha",
+                  "type": "Float (single-precision)",
+                  "value": "1.000000",
+                  "sources": []
+                }
+              ]
+            },
+            {
+              "name": "AnimGraphNode_SequencePlayer_1",
+              "class": "AnimGraphNode_SequencePlayer",
+              "title": "Sequence Player (additive) 'MM_Rifle_Sprint_Compact_Additive'",
+              "inputs": []
+            }
+          ]
+        },
+        {
+          "name": "Transition",
+          "path": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_StateMachine_0.WeaponAction.AnimStateNode_0.ArmedAim.AnimGraphNode_StateMachine_0.RifleReady.AnimStateTransitionNode_0.Transition",
+          "nodes": [
+            {
+              "name": "AnimGraphNode_TransitionResult_0",
+              "class": "AnimGraphNode_TransitionResult",
+              "title": "Result",
+              "inputs": [
+                {
+                  "pin": "bCanEnterTransition",
+                  "type": "Boolean",
+                  "value": "False",
+                  "sources": [
+                    {
+                      "node": "K2Node_CallFunction_0",
+                      "pin": "ReturnValue"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_CallFunction_0",
+              "class": "K2Node_CallFunction",
+              "title": "GetRifleLowerRequested",
+              "inputs": [
+                {
+                  "pin": "self",
+                  "type": "Shooter Third Person Anim Instance Object Reference",
+                  "value": "",
+                  "sources": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Transition",
+          "path": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_StateMachine_0.WeaponAction.AnimStateNode_0.ArmedAim.AnimGraphNode_StateMachine_0.RifleReady.AnimStateTransitionNode_1.Transition",
+          "nodes": [
+            {
+              "name": "AnimGraphNode_TransitionResult_0",
+              "class": "AnimGraphNode_TransitionResult",
+              "title": "Result",
+              "inputs": [
+                {
+                  "pin": "bCanEnterTransition",
+                  "type": "Boolean",
+                  "value": "False",
+                  "sources": [
+                    {
+                      "node": "K2Node_CallFunction_0",
+                      "pin": "ReturnValue"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_CallFunction_0",
+              "class": "K2Node_CallFunction",
+              "title": "GetRifleRaiseRequested",
+              "inputs": [
+                {
+                  "pin": "self",
+                  "type": "Shooter Third Person Anim Instance Object Reference",
+                  "value": "",
+                  "sources": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Transition",
+          "path": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_StateMachine_0.WeaponAction.AnimStateNode_0.ArmedAim.AnimGraphNode_StateMachine_0.RifleReady.AnimStateTransitionNode_2.Transition",
+          "nodes": [
+            {
+              "name": "AnimGraphNode_TransitionResult_0",
+              "class": "AnimGraphNode_TransitionResult",
+              "title": "Result",
+              "inputs": [
+                {
+                  "pin": "bCanEnterTransition",
+                  "type": "Boolean",
+                  "value": "False",
+                  "sources": [
+                    {
+                      "node": "K2Node_CallFunction_0",
+                      "pin": "ReturnValue"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_CallFunction_0",
+              "class": "K2Node_CallFunction",
+              "title": "GetRifleAtLowEndpoint",
+              "inputs": [
+                {
+                  "pin": "self",
+                  "type": "Shooter Third Person Anim Instance Object Reference",
+                  "value": "",
+                  "sources": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Transition",
+          "path": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_StateMachine_0.WeaponAction.AnimStateNode_0.ArmedAim.AnimGraphNode_StateMachine_0.RifleReady.AnimStateTransitionNode_3.Transition",
+          "nodes": [
+            {
+              "name": "AnimGraphNode_TransitionResult_0",
+              "class": "AnimGraphNode_TransitionResult",
+              "title": "Result",
+              "inputs": [
+                {
+                  "pin": "bCanEnterTransition",
+                  "type": "Boolean",
+                  "value": "False",
+                  "sources": [
+                    {
+                      "node": "K2Node_CallFunction_0",
+                      "pin": "ReturnValue"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_CallFunction_0",
+              "class": "K2Node_CallFunction",
+              "title": "GetRifleAtAimEndpoint",
+              "inputs": [
+                {
+                  "pin": "self",
+                  "type": "Shooter Third Person Anim Instance Object Reference",
+                  "value": "",
+                  "sources": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Transition",
+          "path": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_StateMachine_0.WeaponAction.AnimStateNode_0.ArmedAim.AnimGraphNode_StateMachine_0.RifleReady.AnimStateTransitionNode_4.Transition",
+          "nodes": [
+            {
+              "name": "AnimGraphNode_TransitionResult_0",
+              "class": "AnimGraphNode_TransitionResult",
+              "title": "Result",
+              "inputs": [
+                {
+                  "pin": "bCanEnterTransition",
+                  "type": "Boolean",
+                  "value": "False",
+                  "sources": [
+                    {
+                      "node": "K2Node_CallFunction_0",
+                      "pin": "ReturnValue"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_CallFunction_0",
+              "class": "K2Node_CallFunction",
+              "title": "GetRifleReadyAbortRequested",
+              "inputs": [
+                {
+                  "pin": "self",
+                  "type": "Shooter Third Person Anim Instance Object Reference",
+                  "value": "",
+                  "sources": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Transition",
+          "path": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_StateMachine_0.WeaponAction.AnimStateNode_0.ArmedAim.AnimGraphNode_StateMachine_0.RifleReady.AnimStateTransitionNode_5.Transition",
+          "nodes": [
+            {
+              "name": "AnimGraphNode_TransitionResult_0",
+              "class": "AnimGraphNode_TransitionResult",
+              "title": "Result",
+              "inputs": [
+                {
+                  "pin": "bCanEnterTransition",
+                  "type": "Boolean",
+                  "value": "False",
+                  "sources": [
+                    {
+                      "node": "K2Node_CallFunction_0",
+                      "pin": "ReturnValue"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_CallFunction_0",
+              "class": "K2Node_CallFunction",
+              "title": "GetRifleReadyAbortRequested",
+              "inputs": [
+                {
+                  "pin": "self",
+                  "type": "Shooter Third Person Anim Instance Object Reference",
+                  "value": "",
+                  "sources": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Reload",
+          "path": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_StateMachine_0.WeaponAction.AnimStateNode_1.Reload",
+          "nodes": [
+            {
+              "name": "AnimGraphNode_StateResult_0",
+              "class": "AnimGraphNode_StateResult",
+              "title": "Output Animation Pose",
+              "inputs": [
+                {
+                  "pin": "Result",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_LayeredBoneBlend_1",
+                      "pin": "Pose"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "AnimGraphNode_SequencePlayer_2",
+              "class": "AnimGraphNode_SequencePlayer",
+              "title": "Sequence Player",
+              "inputs": [
+                {
+                  "pin": "Sequence",
+                  "type": "Anim Sequence Base Object Reference",
+                  "value": "",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_0",
+                      "pin": "ThirdPersonReloadSequence"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "AnimGraphNode_LayeredBoneBlend_1",
+              "class": "AnimGraphNode_LayeredBoneBlend",
+              "title": "Layered blend per bone",
+              "inputs": [
+                {
+                  "pin": "BasePose",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_UseCachedPose_0",
+                      "pin": "Pose"
+                    }
+                  ]
+                },
+                {
+                  "pin": "BlendPoses_0",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_ComponentToLocalSpace_1",
+                      "pin": "Pose"
+                    }
+                  ]
+                },
+                {
+                  "pin": "BlendWeights_0",
+                  "type": "Float (single-precision)",
+                  "value": "1.000000",
+                  "sources": []
+                }
+              ],
+              "config": "<Struct 'AnimNode_LayeredBoneBlend' (0x000001F5D11ED4B0) {base_pose: {}, blend_poses: (()), blend_weights: (1.000000), lod_threshold: -1, mesh_space_rotation_blend: True, root_space_rotation_blend: False, mesh_space_scale_blend: False, curve_blend_option: Override, update_base_pose_first: False}>"
+            },
+            {
+              "name": "AnimGraphNode_LocalToComponentSpace_1",
+              "class": "AnimGraphNode_LocalToComponentSpace",
+              "title": "Local To Component",
+              "inputs": [
+                {
+                  "pin": "LocalPose",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_SequencePlayer_2",
+                      "pin": "Pose"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "AnimGraphNode_ComponentToLocalSpace_1",
+              "class": "AnimGraphNode_ComponentToLocalSpace",
+              "title": "Component To Local",
+              "inputs": [
+                {
+                  "pin": "ComponentPose",
+                  "type": "Component Space Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_ModifyBone_5",
+                      "pin": "Pose"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "AnimGraphNode_ModifyBone_5",
+              "class": "AnimGraphNode_ModifyBone",
+              "title": "Transform (Modify) Bone - Bone: spine_03",
+              "inputs": [
+                {
+                  "pin": "ComponentPose",
+                  "type": "Component Space Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_ModifyBone_6",
+                      "pin": "Pose"
+                    }
+                  ]
+                },
+                {
+                  "pin": "Alpha",
+                  "type": "Float (single-precision)",
+                  "value": "1.000000",
+                  "sources": []
+                },
+                {
+                  "pin": "Translation",
+                  "type": "Vector",
+                  "value": "0.000000,0.000000,0.000000",
+                  "sources": []
+                },
+                {
+                  "pin": "Rotation",
+                  "type": "Rotator",
+                  "value": "0.000000,0.000000,0.000000",
+                  "sources": [
+                    {
+                      "node": "K2Node_CallFunction_0",
+                      "pin": "ReturnValue"
+                    }
+                  ]
+                },
+                {
+                  "pin": "Scale",
+                  "type": "Vector",
+                  "value": "1.000000,1.000000,1.000000",
+                  "sources": []
+                }
+              ]
+            },
+            {
+              "name": "K2Node_VariableGet_2",
+              "class": "K2Node_VariableGet",
+              "title": "Get AimPitchDegrees",
+              "inputs": []
+            },
+            {
+              "name": "K2Node_PromotableOperator_2",
+              "class": "K2Node_PromotableOperator",
+              "title": "float / float",
+              "inputs": [
+                {
+                  "pin": "A",
+                  "type": "Float (double-precision)",
+                  "value": "",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_2",
+                      "pin": "AimPitchDegrees"
+                    }
+                  ]
+                },
+                {
+                  "pin": "B",
+                  "type": "Float (double-precision)",
+                  "value": "-3.000000",
+                  "sources": []
+                }
+              ]
+            },
+            {
+              "name": "K2Node_CallFunction_0",
+              "class": "K2Node_CallFunction",
+              "title": "MakeRotator",
+              "inputs": [
+                {
+                  "pin": "Roll",
+                  "type": "Float (single-precision)",
+                  "value": "0.0",
+                  "sources": [
+                    {
+                      "node": "K2Node_PromotableOperator_2",
+                      "pin": "ReturnValue"
+                    }
+                  ]
+                },
+                {
+                  "pin": "Pitch",
+                  "type": "Float (single-precision)",
+                  "value": "0.0",
+                  "sources": []
+                },
+                {
+                  "pin": "Yaw",
+                  "type": "Float (single-precision)",
+                  "value": "0.0",
+                  "sources": []
+                }
+              ]
+            },
+            {
+              "name": "AnimGraphNode_ModifyBone_6",
+              "class": "AnimGraphNode_ModifyBone",
+              "title": "Transform (Modify) Bone - Bone: spine_02",
+              "inputs": [
+                {
+                  "pin": "ComponentPose",
+                  "type": "Component Space Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_ModifyBone_4",
+                      "pin": "Pose"
+                    }
+                  ]
+                },
+                {
+                  "pin": "Alpha",
+                  "type": "Float (single-precision)",
+                  "value": "1.000000",
+                  "sources": []
+                },
+                {
+                  "pin": "Translation",
+                  "type": "Vector",
+                  "value": "0.000000,0.000000,0.000000",
+                  "sources": []
+                },
+                {
+                  "pin": "Rotation",
+                  "type": "Rotator",
+                  "value": "0.000000,0.000000,0.000000",
+                  "sources": [
+                    {
+                      "node": "K2Node_CallFunction_0",
+                      "pin": "ReturnValue"
+                    }
+                  ]
+                },
+                {
+                  "pin": "Scale",
+                  "type": "Vector",
+                  "value": "1.000000,1.000000,1.000000",
+                  "sources": []
+                }
+              ]
+            },
+            {
+              "name": "AnimGraphNode_ModifyBone_4",
+              "class": "AnimGraphNode_ModifyBone",
+              "title": "Transform (Modify) Bone - Bone: spine_01",
+              "inputs": [
+                {
+                  "pin": "ComponentPose",
+                  "type": "Component Space Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_LocalToComponentSpace_1",
+                      "pin": "ComponentPose"
+                    }
+                  ]
+                },
+                {
+                  "pin": "Alpha",
+                  "type": "Float (single-precision)",
+                  "value": "1.000000",
+                  "sources": []
+                },
+                {
+                  "pin": "Translation",
+                  "type": "Vector",
+                  "value": "0.000000,0.000000,0.000000",
+                  "sources": []
+                },
+                {
+                  "pin": "Rotation",
+                  "type": "Rotator",
+                  "value": "0.000000,0.000000,0.000000",
+                  "sources": [
+                    {
+                      "node": "K2Node_CallFunction_0",
+                      "pin": "ReturnValue"
+                    }
+                  ]
+                },
+                {
+                  "pin": "Scale",
+                  "type": "Vector",
+                  "value": "1.000000,1.000000,1.000000",
+                  "sources": []
+                }
+              ]
+            },
+            {
+              "name": "AnimGraphNode_UseCachedPose_0",
+              "class": "AnimGraphNode_UseCachedPose",
+              "title": "Use cached pose 'ArmedAimPose'",
+              "inputs": []
+            },
+            {
+              "name": "K2Node_VariableGet_0",
+              "class": "K2Node_VariableGet",
+              "title": "Get ThirdPersonReloadSequence",
+              "inputs": []
+            }
+          ]
+        },
+        {
+          "name": "Transition",
+          "path": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_StateMachine_0.WeaponAction.AnimStateTransitionNode_0.Transition",
+          "nodes": [
+            {
+              "name": "AnimGraphNode_TransitionResult_0",
+              "class": "AnimGraphNode_TransitionResult",
+              "title": "Result",
+              "inputs": [
+                {
+                  "pin": "bCanEnterTransition",
+                  "type": "Boolean",
+                  "value": "False",
+                  "sources": [
+                    {
+                      "node": "K2Node_CommutativeAssociativeBinaryOperator_0",
+                      "pin": "ReturnValue"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_VariableGet_0",
+              "class": "K2Node_VariableGet",
+              "title": "Get bIsReloading",
+              "inputs": []
+            },
+            {
+              "name": "K2Node_VariableGet_1",
+              "class": "K2Node_VariableGet",
+              "title": "Get bReloadPresentationRecovering",
+              "inputs": []
+            },
+            {
+              "name": "K2Node_CallFunction_0",
+              "class": "K2Node_CallFunction",
+              "title": "NOT Boolean",
+              "inputs": [
+                {
+                  "pin": "A",
+                  "type": "Boolean",
+                  "value": "false",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_1",
+                      "pin": "bReloadPresentationRecovering"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_CommutativeAssociativeBinaryOperator_0",
+              "class": "K2Node_CommutativeAssociativeBinaryOperator",
+              "title": "AND Boolean",
+              "inputs": [
+                {
+                  "pin": "A",
+                  "type": "Boolean",
+                  "value": "false",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_0",
+                      "pin": "bIsReloading"
+                    }
+                  ]
+                },
+                {
+                  "pin": "B",
+                  "type": "Boolean",
+                  "value": "false",
+                  "sources": [
+                    {
+                      "node": "K2Node_CallFunction_0",
+                      "pin": "ReturnValue"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Transition",
+          "path": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_StateMachine_0.WeaponAction.AnimStateTransitionNode_1.Transition",
+          "nodes": [
+            {
+              "name": "AnimGraphNode_TransitionResult_0",
+              "class": "AnimGraphNode_TransitionResult",
+              "title": "Result",
+              "inputs": [
+                {
+                  "pin": "bCanEnterTransition",
+                  "type": "Boolean",
+                  "value": "False",
+                  "sources": [
+                    {
+                      "node": "K2Node_CommutativeAssociativeBinaryOperator_0",
+                      "pin": "ReturnValue"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_VariableGet_0",
+              "class": "K2Node_VariableGet",
+              "title": "Get bIsReloading",
+              "inputs": []
+            },
+            {
+              "name": "K2Node_CallFunction_0",
+              "class": "K2Node_CallFunction",
+              "title": "NOT Boolean",
+              "inputs": [
+                {
+                  "pin": "A",
+                  "type": "Boolean",
+                  "value": "false",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_0",
+                      "pin": "bIsReloading"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_VariableGet_1",
+              "class": "K2Node_VariableGet",
+              "title": "Get bReloadPresentationRecovering",
+              "inputs": []
+            },
+            {
+              "name": "K2Node_CommutativeAssociativeBinaryOperator_0",
+              "class": "K2Node_CommutativeAssociativeBinaryOperator",
+              "title": "OR Boolean",
+              "inputs": [
+                {
+                  "pin": "A",
+                  "type": "Boolean",
+                  "value": "false",
+                  "sources": [
+                    {
+                      "node": "K2Node_CallFunction_0",
+                      "pin": "ReturnValue"
+                    }
+                  ]
+                },
+                {
+                  "pin": "B",
+                  "type": "Boolean",
+                  "value": "false",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_1",
+                      "pin": "bReloadPresentationRecovering"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "EventGraph",
+          "path": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:EventGraph",
+          "nodes": [
+            {
+              "name": "K2Node_ExecutionSequence_0",
+              "class": "K2Node_ExecutionSequence",
+              "title": "Sequence",
+              "inputs": [
+                {
+                  "pin": "execute",
+                  "type": "Exec",
+                  "value": "",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_0",
+                      "pin": "then"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_Event_0",
+              "class": "K2Node_Event",
+              "title": "Event BlueprintUpdateAnimation",
+              "inputs": []
+            },
+            {
+              "name": "K2Node_Event_1",
+              "class": "K2Node_Event",
+              "title": "Event BlueprintInitializeAnimation",
+              "inputs": []
+            },
+            {
+              "name": "K2Node_CallFunction_27",
+              "class": "K2Node_CallFunction",
+              "title": "GetOwningActor",
+              "inputs": [
+                {
+                  "pin": "self",
+                  "type": "Anim Instance Object Reference",
+                  "value": "",
+                  "sources": []
+                }
+              ]
+            },
+            {
+              "name": "K2Node_DynamicCast_0",
+              "class": "K2Node_DynamicCast",
+              "title": "Cast To Character",
+              "inputs": [
+                {
+                  "pin": "execute",
+                  "type": "Exec",
+                  "value": "",
+                  "sources": [
+                    {
+                      "node": "K2Node_Event_1",
+                      "pin": "then"
+                    }
+                  ]
+                },
+                {
+                  "pin": "Object",
+                  "type": "Object Reference",
+                  "value": "",
+                  "sources": [
+                    {
+                      "node": "K2Node_CallFunction_27",
+                      "pin": "ReturnValue"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_VariableGet_2",
+              "class": "K2Node_VariableGet",
+              "title": "Get CharacterMovement",
+              "inputs": [
+                {
+                  "pin": "self",
+                  "type": "Character Object Reference",
+                  "value": "",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableSet_1",
+                      "pin": "Output_Get"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_VariableSet_1",
+              "class": "K2Node_VariableSet",
+              "title": "Set Character",
+              "inputs": [
+                {
+                  "pin": "execute",
+                  "type": "Exec",
+                  "value": "",
+                  "sources": [
+                    {
+                      "node": "K2Node_DynamicCast_0",
+                      "pin": "then"
+                    }
+                  ]
+                },
+                {
+                  "pin": "Character",
+                  "type": "Character Object Reference",
+                  "value": "",
+                  "sources": [
+                    {
+                      "node": "K2Node_DynamicCast_0",
+                      "pin": "AsCharacter"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_VariableSet_2",
+              "class": "K2Node_VariableSet",
+              "title": "Set MovementComponent",
+              "inputs": [
+                {
+                  "pin": "execute",
+                  "type": "Exec",
+                  "value": "",
+                  "sources": []
+                },
+                {
+                  "pin": "MovementComponent",
+                  "type": "Character Movement Component Object Reference",
+                  "value": "",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_2",
+                      "pin": "CharacterMovement"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_VariableGet_0",
+              "class": "K2Node_VariableGet",
+              "title": "Get",
+              "inputs": [
+                {
+                  "pin": "execute",
+                  "type": "Exec",
+                  "value": "",
+                  "sources": [
+                    {
+                      "node": "K2Node_Event_0",
+                      "pin": "then"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_Event_2",
+              "class": "K2Node_Event",
+              "title": "AnimNotify_ReloadRecovery",
+              "inputs": []
+            },
+            {
+              "name": "K2Node_CallFunction_0",
+              "class": "K2Node_CallFunction",
+              "title": "BeginReloadPresentationRecovery",
+              "inputs": [
+                {
+                  "pin": "execute",
+                  "type": "Exec",
+                  "value": "",
+                  "sources": [
+                    {
+                      "node": "K2Node_Event_2",
+                      "pin": "then"
+                    }
+                  ]
+                },
+                {
+                  "pin": "self",
+                  "type": "Shooter Third Person Anim Instance Object Reference",
+                  "value": "",
+                  "sources": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "asset": "/Game/Shooter/Animation/FirstPerson/ABP_FP_Player",
+      "graphs": [
+        {
+          "name": "AnimGraph",
+          "path": "/Game/Shooter/Animation/FirstPerson/ABP_FP_Player.ABP_FP_Player:AnimGraph",
+          "nodes": [
+            {
+              "name": "AnimGraphNode_Root_0",
+              "class": "AnimGraphNode_Root",
+              "title": "Output Pose",
+              "inputs": [
+                {
+                  "pin": "Result",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_Slot_0",
+                      "pin": "Pose"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "AnimGraphNode_CopyPoseFromMesh_0",
+              "class": "AnimGraphNode_CopyPoseFromMesh",
+              "title": "Copy Pose From Mesh",
+              "inputs": [
+                {
+                  "pin": "SourceMeshComponent",
+                  "type": "Skeletal Mesh Component Weak object",
+                  "value": "",
+                  "sources": []
+                }
+              ]
+            },
+            {
+              "name": "AnimGraphNode_Slot_0",
+              "class": "AnimGraphNode_Slot",
+              "title": "Slot 'Arms'",
+              "inputs": [
+                {
+                  "pin": "Source",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_CopyPoseFromMesh_0",
+                      "pin": "Pose"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "EventGraph",
+          "path": "/Game/Shooter/Animation/FirstPerson/ABP_FP_Player.ABP_FP_Player:EventGraph",
+          "nodes": [
+            {
+              "name": "K2Node_Event_0",
+              "class": "K2Node_Event",
+              "title": "Event BlueprintUpdateAnimation",
+              "inputs": []
+            },
+            {
+              "name": "K2Node_CallFunction_0",
+              "class": "K2Node_CallFunction",
+              "title": "TryGetPawnOwner",
+              "inputs": [
+                {
+                  "pin": "self",
+                  "type": "Anim Instance Object Reference",
+                  "value": "",
+                  "sources": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/NativeGraph/ABP_StanceNative_TP",
+      "graphs": [
+        {
+          "name": "AnimGraph",
+          "path": "/Game/Experiments/Stance_20261022/NativeGraph/ABP_StanceNative_TP.ABP_StanceNative_TP:AnimGraph",
+          "nodes": [
+            {
+              "name": "AnimGraphNode_Root_0",
+              "class": "AnimGraphNode_Root",
+              "title": "Output Pose",
+              "inputs": [
+                {
+                  "pin": "Result",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_BlendListByBool_1",
+                      "pin": "Pose"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "AnimGraphNode_SequencePlayer_0",
+              "class": "AnimGraphNode_SequencePlayer",
+              "title": "Sequence Player 'MF_Rifle_Idle_ADS'",
+              "inputs": []
+            },
+            {
+              "name": "AnimGraphNode_SequencePlayer_1",
+              "class": "AnimGraphNode_SequencePlayer",
+              "title": "Sequence Player 'AS_SourceLayer_CrouchIdle'",
+              "inputs": []
+            },
+            {
+              "name": "AnimGraphNode_BlendSpacePlayer_0",
+              "class": "AnimGraphNode_BlendSpacePlayer",
+              "title": "Blendspace Player 'BS_SourceLayer_Lower'",
+              "inputs": [
+                {
+                  "pin": "X",
+                  "type": "Float (single-precision)",
+                  "value": "0.000000",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_0",
+                      "pin": "Forward"
+                    }
+                  ]
+                },
+                {
+                  "pin": "Y",
+                  "type": "Float (single-precision)",
+                  "value": "0.000000",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_1",
+                      "pin": "Right"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_VariableGet_0",
+              "class": "K2Node_VariableGet",
+              "title": "Get Forward",
+              "inputs": []
+            },
+            {
+              "name": "K2Node_VariableGet_1",
+              "class": "K2Node_VariableGet",
+              "title": "Get Right",
+              "inputs": []
+            },
+            {
+              "name": "AnimGraphNode_SequencePlayer_2",
+              "class": "AnimGraphNode_SequencePlayer",
+              "title": "Sequence Player 'AS_Slide_Aim'",
+              "inputs": []
+            },
+            {
+              "name": "AnimGraphNode_BlendListByInt_0",
+              "class": "AnimGraphNode_BlendListByInt",
+              "title": "Blend Poses by int",
+              "inputs": [
+                {
+                  "pin": "BlendPose_0",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_SequencePlayer_0",
+                      "pin": "Pose"
+                    }
+                  ]
+                },
+                {
+                  "pin": "BlendPose_1",
+                  "type": "Pose Link Structure",
+                  "value": "",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_SequencePlayer_1",
+                      "pin": "Pose"
+                    }
+                  ]
+                },
+                {
+                  "pin": "BlendPose_2",
+                  "type": "Pose Link Structure",
+                  "value": "",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_BlendSpacePlayer_0",
+                      "pin": "Pose"
+                    }
+                  ]
+                },
+                {
+                  "pin": "BlendPose_3",
+                  "type": "Pose Link Structure",
+                  "value": "",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_SequencePlayer_2",
+                      "pin": "Pose"
+                    }
+                  ]
+                },
+                {
+                  "pin": "BlendTime_0",
+                  "type": "Float (single-precision)",
+                  "value": "0.100000",
+                  "sources": []
+                },
+                {
+                  "pin": "BlendTime_1",
+                  "type": "Float (single-precision)",
+                  "value": "0.100000",
+                  "sources": []
+                },
+                {
+                  "pin": "BlendTime_2",
+                  "type": "Float (single-precision)",
+                  "value": "0.100000",
+                  "sources": []
+                },
+                {
+                  "pin": "BlendTime_3",
+                  "type": "Float (single-precision)",
+                  "value": "0.100000",
+                  "sources": []
+                },
+                {
+                  "pin": "ActiveChildIndex",
+                  "type": "Integer",
+                  "value": "0",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_2",
+                      "pin": "Mode"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_VariableGet_2",
+              "class": "K2Node_VariableGet",
+              "title": "Get Mode",
+              "inputs": []
+            },
+            {
+              "name": "AnimGraphNode_SaveCachedPose_0",
+              "class": "AnimGraphNode_SaveCachedPose",
+              "title": "Save cached pose 'NativeLower'",
+              "inputs": [
+                {
+                  "pin": "Pose",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_BlendListByInt_0",
+                      "pin": "Pose"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "AnimGraphNode_UseCachedPose_0",
+              "class": "AnimGraphNode_UseCachedPose",
+              "title": "Use cached pose 'NativeLower'",
+              "inputs": []
+            },
+            {
+              "name": "AnimGraphNode_UseCachedPose_1",
+              "class": "AnimGraphNode_UseCachedPose",
+              "title": "Use cached pose 'NativeLower'",
+              "inputs": []
+            },
+            {
+              "name": "AnimGraphNode_SequencePlayer_3",
+              "class": "AnimGraphNode_SequencePlayer",
+              "title": "Sequence Player 'MF_Rifle_Idle_ADS'",
+              "inputs": []
+            },
+            {
+              "name": "AnimGraphNode_SequencePlayer_4",
+              "class": "AnimGraphNode_SequencePlayer",
+              "title": "Sequence Player 'MM_Rifle_LowReady_Compact'",
+              "inputs": []
+            },
+            {
+              "name": "AnimGraphNode_BlendListByBool_0",
+              "class": "AnimGraphNode_BlendListByBool",
+              "title": "Blend Poses by bool",
+              "inputs": [
+                {
+                  "pin": "BlendPose_0",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_SequencePlayer_4",
+                      "pin": "Pose"
+                    }
+                  ]
+                },
+                {
+                  "pin": "BlendPose_1",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_SequencePlayer_3",
+                      "pin": "Pose"
+                    }
+                  ]
+                },
+                {
+                  "pin": "BlendTime_0",
+                  "type": "Float (single-precision)",
+                  "value": "0.100000",
+                  "sources": []
+                },
+                {
+                  "pin": "BlendTime_1",
+                  "type": "Float (single-precision)",
+                  "value": "0.100000",
+                  "sources": []
+                },
+                {
+                  "pin": "bActiveValue",
+                  "type": "Boolean",
+                  "value": "False",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_3",
+                      "pin": "LowReady"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_VariableGet_3",
+              "class": "K2Node_VariableGet",
+              "title": "Get LowReady",
+              "inputs": []
+            },
+            {
+              "name": "AnimGraphNode_RotationOffsetBlendSpace_0",
+              "class": "AnimGraphNode_RotationOffsetBlendSpace",
+              "title": "AimOffset Player 'AO_Rifle'",
+              "inputs": [
+                {
+                  "pin": "X",
+                  "type": "Float (single-precision)",
+                  "value": "0.000000",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_4",
+                      "pin": "Yaw"
+                    }
+                  ]
+                },
+                {
+                  "pin": "Y",
+                  "type": "Float (single-precision)",
+                  "value": "0.000000",
+                  "sources": [
+                    {
+                      "node": "K2Node_CallFunction_0",
+                      "pin": "ReturnValue"
+                    }
+                  ]
+                },
+                {
+                  "pin": "BasePose",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_BlendListByBool_0",
+                      "pin": "Pose"
+                    }
+                  ]
+                },
+                {
+                  "pin": "Alpha",
+                  "type": "Float (single-precision)",
+                  "value": "1.000000",
+                  "sources": []
+                }
+              ]
+            },
+            {
+              "name": "K2Node_VariableGet_4",
+              "class": "K2Node_VariableGet",
+              "title": "Get Yaw",
+              "inputs": []
+            },
+            {
+              "name": "K2Node_VariableGet_5",
+              "class": "K2Node_VariableGet",
+              "title": "Get Pitch",
+              "inputs": []
+            },
+            {
+              "name": "AnimGraphNode_LayeredBoneBlend_0",
+              "class": "AnimGraphNode_LayeredBoneBlend",
+              "title": "Layered blend per bone",
+              "inputs": [
+                {
+                  "pin": "BasePose",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_UseCachedPose_0",
+                      "pin": "Pose"
+                    }
+                  ]
+                },
+                {
+                  "pin": "BlendPoses_0",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_RotationOffsetBlendSpace_0",
+                      "pin": "Pose"
+                    }
+                  ]
+                },
+                {
+                  "pin": "BlendWeights_0",
+                  "type": "Float (single-precision)",
+                  "value": "1.000000",
+                  "sources": []
+                }
+              ],
+              "config": "<Struct 'AnimNode_LayeredBoneBlend' (0x000001F5CD54FCB0) {base_pose: {}, blend_poses: (()), blend_weights: (1.000000), lod_threshold: -1, mesh_space_rotation_blend: True, root_space_rotation_blend: False, mesh_space_scale_blend: False, curve_blend_option: Override, update_base_pose_first: False}>"
+            },
+            {
+              "name": "AnimGraphNode_BlendListByBool_1",
+              "class": "AnimGraphNode_BlendListByBool",
+              "title": "Blend Poses by bool",
+              "inputs": [
+                {
+                  "pin": "BlendPose_0",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_UseCachedPose_1",
+                      "pin": "Pose"
+                    }
+                  ]
+                },
+                {
+                  "pin": "BlendPose_1",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_LayeredBoneBlend_0",
+                      "pin": "Pose"
+                    }
+                  ]
+                },
+                {
+                  "pin": "BlendTime_0",
+                  "type": "Float (single-precision)",
+                  "value": "0.100000",
+                  "sources": []
+                },
+                {
+                  "pin": "BlendTime_1",
+                  "type": "Float (single-precision)",
+                  "value": "0.100000",
+                  "sources": []
+                },
+                {
+                  "pin": "bActiveValue",
+                  "type": "Boolean",
+                  "value": "False",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_6",
+                      "pin": "LowerOnly"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_VariableGet_6",
+              "class": "K2Node_VariableGet",
+              "title": "Get LowerOnly",
+              "inputs": []
+            },
+            {
+              "name": "K2Node_CallFunction_0",
+              "class": "K2Node_CallFunction",
+              "title": "Sin (Degrees)",
+              "inputs": [
+                {
+                  "pin": "A",
+                  "type": "Float (double-precision)",
+                  "value": "0.0",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_5",
+                      "pin": "Pitch"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "EventGraph",
+          "path": "/Game/Experiments/Stance_20261022/NativeGraph/ABP_StanceNative_TP.ABP_StanceNative_TP:EventGraph",
+          "nodes": [
+            {
+              "name": "K2Node_Event_1",
+              "class": "K2Node_Event",
+              "title": "Event BlueprintUpdateAnimation",
+              "inputs": []
+            },
+            {
+              "name": "K2Node_CallFunction_0",
+              "class": "K2Node_CallFunction",
+              "title": "TryGetPawnOwner",
+              "inputs": [
+                {
+                  "pin": "self",
+                  "type": "Anim Instance Object Reference",
+                  "value": "",
+                  "sources": []
+                }
+              ]
+            },
+            {
+              "name": "K2Node_DynamicCast_0",
+              "class": "K2Node_DynamicCast",
+              "title": "Cast To ShooterStancePreviewPawn",
+              "inputs": [
+                {
+                  "pin": "execute",
+                  "type": "Exec",
+                  "value": "",
+                  "sources": [
+                    {
+                      "node": "K2Node_Event_1",
+                      "pin": "then"
+                    }
+                  ]
+                },
+                {
+                  "pin": "Object",
+                  "type": "Object Reference",
+                  "value": "",
+                  "sources": [
+                    {
+                      "node": "K2Node_CallFunction_0",
+                      "pin": "ReturnValue"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_VariableGet_0",
+              "class": "K2Node_VariableGet",
+              "title": "Get PreviewMode",
+              "inputs": [
+                {
+                  "pin": "self",
+                  "type": "Shooter Stance Preview Pawn Object Reference",
+                  "value": "",
+                  "sources": [
+                    {
+                      "node": "K2Node_DynamicCast_0",
+                      "pin": "AsShooter Stance Preview Pawn"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_VariableSet_0",
+              "class": "K2Node_VariableSet",
+              "title": "Set Mode",
+              "inputs": [
+                {
+                  "pin": "execute",
+                  "type": "Exec",
+                  "value": "",
+                  "sources": [
+                    {
+                      "node": "K2Node_DynamicCast_0",
+                      "pin": "then"
+                    }
+                  ]
+                },
+                {
+                  "pin": "Mode",
+                  "type": "Integer",
+                  "value": "0",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_0",
+                      "pin": "PreviewMode"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_VariableGet_1",
+              "class": "K2Node_VariableGet",
+              "title": "Get PreviewForward",
+              "inputs": [
+                {
+                  "pin": "self",
+                  "type": "Shooter Stance Preview Pawn Object Reference",
+                  "value": "",
+                  "sources": [
+                    {
+                      "node": "K2Node_DynamicCast_0",
+                      "pin": "AsShooter Stance Preview Pawn"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_VariableSet_1",
+              "class": "K2Node_VariableSet",
+              "title": "Set Forward",
+              "inputs": [
+                {
+                  "pin": "execute",
+                  "type": "Exec",
+                  "value": "",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableSet_0",
+                      "pin": "then"
+                    }
+                  ]
+                },
+                {
+                  "pin": "Forward",
+                  "type": "Float (single-precision)",
+                  "value": "0.0",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_1",
+                      "pin": "PreviewForward"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_VariableGet_2",
+              "class": "K2Node_VariableGet",
+              "title": "Get PreviewRight",
+              "inputs": [
+                {
+                  "pin": "self",
+                  "type": "Shooter Stance Preview Pawn Object Reference",
+                  "value": "",
+                  "sources": [
+                    {
+                      "node": "K2Node_DynamicCast_0",
+                      "pin": "AsShooter Stance Preview Pawn"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_VariableSet_2",
+              "class": "K2Node_VariableSet",
+              "title": "Set Right",
+              "inputs": [
+                {
+                  "pin": "execute",
+                  "type": "Exec",
+                  "value": "",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableSet_1",
+                      "pin": "then"
+                    }
+                  ]
+                },
+                {
+                  "pin": "Right",
+                  "type": "Float (single-precision)",
+                  "value": "0.0",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_2",
+                      "pin": "PreviewRight"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_VariableGet_3",
+              "class": "K2Node_VariableGet",
+              "title": "Get PreviewPitch",
+              "inputs": [
+                {
+                  "pin": "self",
+                  "type": "Shooter Stance Preview Pawn Object Reference",
+                  "value": "",
+                  "sources": [
+                    {
+                      "node": "K2Node_DynamicCast_0",
+                      "pin": "AsShooter Stance Preview Pawn"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_VariableSet_3",
+              "class": "K2Node_VariableSet",
+              "title": "Set Pitch",
+              "inputs": [
+                {
+                  "pin": "execute",
+                  "type": "Exec",
+                  "value": "",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableSet_2",
+                      "pin": "then"
+                    }
+                  ]
+                },
+                {
+                  "pin": "Pitch",
+                  "type": "Float (single-precision)",
+                  "value": "0.0",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_3",
+                      "pin": "PreviewPitch"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_VariableGet_4",
+              "class": "K2Node_VariableGet",
+              "title": "Get PreviewYaw",
+              "inputs": [
+                {
+                  "pin": "self",
+                  "type": "Shooter Stance Preview Pawn Object Reference",
+                  "value": "",
+                  "sources": [
+                    {
+                      "node": "K2Node_DynamicCast_0",
+                      "pin": "AsShooter Stance Preview Pawn"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_VariableSet_4",
+              "class": "K2Node_VariableSet",
+              "title": "Set Yaw",
+              "inputs": [
+                {
+                  "pin": "execute",
+                  "type": "Exec",
+                  "value": "",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableSet_3",
+                      "pin": "then"
+                    }
+                  ]
+                },
+                {
+                  "pin": "Yaw",
+                  "type": "Float (single-precision)",
+                  "value": "0.0",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_4",
+                      "pin": "PreviewYaw"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_VariableGet_5",
+              "class": "K2Node_VariableGet",
+              "title": "Get bPreviewLowReady",
+              "inputs": [
+                {
+                  "pin": "self",
+                  "type": "Shooter Stance Preview Pawn Object Reference",
+                  "value": "",
+                  "sources": [
+                    {
+                      "node": "K2Node_DynamicCast_0",
+                      "pin": "AsShooter Stance Preview Pawn"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_VariableSet_5",
+              "class": "K2Node_VariableSet",
+              "title": "Set LowReady",
+              "inputs": [
+                {
+                  "pin": "execute",
+                  "type": "Exec",
+                  "value": "",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableSet_4",
+                      "pin": "then"
+                    }
+                  ]
+                },
+                {
+                  "pin": "LowReady",
+                  "type": "Boolean",
+                  "value": "false",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_5",
+                      "pin": "bPreviewLowReady"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_VariableGet_6",
+              "class": "K2Node_VariableGet",
+              "title": "Get bPreviewLowerOnly",
+              "inputs": [
+                {
+                  "pin": "self",
+                  "type": "Shooter Stance Preview Pawn Object Reference",
+                  "value": "",
+                  "sources": [
+                    {
+                      "node": "K2Node_DynamicCast_0",
+                      "pin": "AsShooter Stance Preview Pawn"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "K2Node_VariableSet_6",
+              "class": "K2Node_VariableSet",
+              "title": "Set LowerOnly",
+              "inputs": [
+                {
+                  "pin": "execute",
+                  "type": "Exec",
+                  "value": "",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableSet_5",
+                      "pin": "then"
+                    }
+                  ]
+                },
+                {
+                  "pin": "LowerOnly",
+                  "type": "Boolean",
+                  "value": "false",
+                  "sources": [
+                    {
+                      "node": "K2Node_VariableGet_6",
+                      "pin": "bPreviewLowerOnly"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/NativeGraph/ABP_StanceNative_FP",
+      "graphs": [
+        {
+          "name": "AnimGraph",
+          "path": "/Game/Experiments/Stance_20261022/NativeGraph/ABP_StanceNative_FP.ABP_StanceNative_FP:AnimGraph",
+          "nodes": [
+            {
+              "name": "AnimGraphNode_Root_0",
+              "class": "AnimGraphNode_Root",
+              "title": "Output Pose",
+              "inputs": [
+                {
+                  "pin": "Result",
+                  "type": "Pose Link Structure",
+                  "value": "(LinkID=-1,SourceLinkID=-1)",
+                  "sources": [
+                    {
+                      "node": "AnimGraphNode_CopyPoseFromMesh_0",
+                      "pin": "Pose"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "AnimGraphNode_CopyPoseFromMesh_0",
+              "class": "AnimGraphNode_CopyPoseFromMesh",
+              "title": "Copy Pose From Mesh",
+              "inputs": [
+                {
+                  "pin": "SourceMeshComponent",
+                  "type": "Skeletal Mesh Component Weak object",
+                  "value": "",
+                  "sources": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "EventGraph",
+          "path": "/Game/Experiments/Stance_20261022/NativeGraph/ABP_StanceNative_FP.ABP_StanceNative_FP:EventGraph",
+          "nodes": [
+            {
+              "name": "K2Node_Event_0",
+              "class": "K2Node_Event",
+              "title": "Event BlueprintUpdateAnimation",
+              "inputs": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "blendspace": {
+    "samples": [
+      {
+        "animation": "/Game/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchIdle.AS_SourceLayer_CrouchIdle",
+        "forward": 0.0,
+        "right": 0.0,
+        "rate": 1.0
+      },
+      {
+        "animation": "/Game/Experiments/Stance_20261022/Mirrored/AS_Mirrored_CrouchForwardLeft.AS_Mirrored_CrouchForwardLeft",
+        "forward": 0.7071067690849304,
+        "right": -0.7071067690849304,
+        "rate": 1.0
+      },
+      {
+        "animation": "/Game/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchLeft.AS_SourceLayer_CrouchLeft",
+        "forward": 0.0,
+        "right": -1.0,
+        "rate": 1.0
+      },
+      {
+        "animation": "/Game/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchRight.AS_SourceLayer_CrouchRight",
+        "forward": 0.0,
+        "right": 1.0,
+        "rate": 1.0
+      },
+      {
+        "animation": "/Game/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchBack.AS_SourceLayer_CrouchBack",
+        "forward": -1.0,
+        "right": 0.0,
+        "rate": 1.0
+      },
+      {
+        "animation": "/Game/Experiments/Stance_20261022/EightWay/AS_EightWay_CrouchForwardRight.AS_EightWay_CrouchForwardRight",
+        "forward": 0.7071067690849304,
+        "right": 0.7071067690849304,
+        "rate": 1.0
+      },
+      {
+        "animation": "/Game/Experiments/Stance_20261022/Mirrored/AS_Mirrored_CrouchBackRight.AS_Mirrored_CrouchBackRight",
+        "forward": -0.7071067811865476,
+        "right": 0.7071067811865476,
+        "rate": 1.0
+      },
+      {
+        "animation": "/Game/Experiments/Stance_20261022/EightWay/AS_EightWay_CrouchBackLeft.AS_EightWay_CrouchBackLeft",
+        "forward": -0.7071067811865476,
+        "right": -0.7071067811865476,
+        "rate": 1.0
+      },
+      {
+        "animation": "/Game/Experiments/Stance_20261022/EightWay/AS_EightWay_CrouchForward.AS_EightWay_CrouchForward",
+        "forward": 1.0,
+        "right": 0.0,
+        "rate": 1.0
+      }
+    ],
+    "interpolation": [
+      {
+        "time": 0.20000000298023224,
+        "damping": 1.0,
+        "type": "<FilterInterpolationType.BSIT_SPRING_DAMPER: 5>"
+      },
+      {
+        "time": 0.20000000298023224,
+        "damping": 1.0,
+        "type": "<FilterInterpolationType.BSIT_SPRING_DAMPER: 5>"
+      },
+      {
+        "time": 0.0,
+        "damping": 1.0,
+        "type": "<FilterInterpolationType.BSIT_SPRING_DAMPER: 5>"
+      }
+    ],
+    "weight_speed": 0.0
+  },
+  "animation_assets": [
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_AimToLowReady_Compact",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_AimToLowReady_Relaxed",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_LowReady_Compact",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_Sprint_Compact_Additive",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/MF_Rifle_Idle_ADS",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_Reload",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Unarmed/Jump/MM_Fall_Loop",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Unarmed/Jump/MM_Jump",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Unarmed/Jump/MM_Land",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Unarmed/MM_Idle",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/AIM/MM_Rifle_Idle_ADS_AO_CC",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/AIM/MM_Rifle_Idle_ADS_AO_CD_Fixed",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/AIM/MM_Rifle_Idle_ADS_AO_CU",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/AIM/AO_Rifle",
+      "class": "AimOffsetBlendSpace"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Unarmed/Jog/MF_Unarmed_Jog_Bwd",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Unarmed/Jog/MF_Unarmed_Jog_Bwd_Left",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Unarmed/Jog/MF_Unarmed_Jog_Bwd_Right",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Unarmed/Jog/MF_Unarmed_Jog_Fwd",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Unarmed/Jog/MF_Unarmed_Jog_Fwd_Left",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Unarmed/Jog/MF_Unarmed_Jog_Fwd_Right",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Unarmed/Jog/MF_Unarmed_Jog_Left",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Unarmed/Jog/MF_Unarmed_Jog_Right",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Unarmed/Walk/MF_Unarmed_Walk_Bwd",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Unarmed/Walk/MF_Unarmed_Walk_Bwd_Left",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Unarmed/Walk/MF_Unarmed_Walk_Bwd_Right",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Unarmed/Walk/MF_Unarmed_Walk_Fwd",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Unarmed/Walk/MF_Unarmed_Walk_Fwd_Left",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Unarmed/Walk/MF_Unarmed_Walk_Fwd_Right",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Unarmed/Walk/MF_Unarmed_Walk_Left",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Unarmed/Walk/MF_Unarmed_Walk_Right",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Unarmed/BS_Idle_Walk_Run",
+      "class": "BlendSpace"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Death/MM_Death_Back_01",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Death/MM_Death_Front_01",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Death/MM_Death_Front_02",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Death/MM_Death_Front_03",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Death/MM_Death_Left_01",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Death/MM_Death_Right_01",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Pistol/MF_Pistol_Idle_ADS",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Pistol/MM_Pistol_DryFire",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Pistol/MM_Pistol_Equip",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Pistol/MM_Pistol_Fire",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Pistol/MM_Pistol_Fire_Montage",
+      "class": "AnimMontage"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Pistol/MM_Pistol_Reload",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Pistol/PistolAim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Pistol/Aim/AO_Pistol",
+      "class": "AimOffsetBlendSpace"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Pistol/Aim/MF_Pistol_Idle_ADS1",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Pistol/Aim/MF_Pistol_Idle_ADS_AO_CD",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Pistol/Aim/MF_Pistol_Idle_ADS_AO_CU",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Pistol/Jog/MF_Pistol_Jog_Bwd",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Pistol/Jog/MF_Pistol_Jog_Bwd_Left",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Pistol/Jog/MF_Pistol_Jog_Bwd_Right",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Pistol/Jog/MF_Pistol_Jog_Fwd",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Pistol/Jog/MF_Pistol_Jog_Fwd_Left",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Pistol/Jog/MF_Pistol_Jog_Fwd_Right",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Pistol/Jog/MF_Pistol_Jog_Left",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Pistol/Jog/MF_Pistol_Jog_Right",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Pistol/Jump/MM_Pistol_Jump_Fall_Loop",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Pistol/Jump/MM_Pistol_Jump_RecoveryAdditive",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Pistol/Jump/MM_Pistol_Jump_Start",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Pistol/Walk/MF_Pistol_Walk_Bwd",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Pistol/Walk/MF_Pistol_Walk_Bwd_Left",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Pistol/Walk/MF_Pistol_Walk_Bwd_Right",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Pistol/Walk/MF_Pistol_Walk_Fwd",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Pistol/Walk/MF_Pistol_Walk_Fwd_Left",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Pistol/Walk/MF_Pistol_Walk_Fwd_Right",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Pistol/Walk/MF_Pistol_Walk_Left",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Pistol/Walk/MF_Pistol_Walk_Right",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/FP_Rifle_Shoot_Montage",
+      "class": "AnimMontage"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/GrabRifleAndPutBack",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/MM_FP_Rifle_Reload",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_AimToLowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_AimToLowReady_CorrectedGrip",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_AimToLowReady_Down30",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_AimToLowReady_Down60",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_Draw",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_DryFire",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_Equip",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_Fire",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_Holster",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/MM_Rifle_LowReady_Relaxed",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/PutBackRifleBehindShoulder",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/RifleAimToDown",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/RifleIdle",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/AIM/MM_Rifle_Idle_ADS_AO_CD",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/HitReact/MM_HitReact_Back_Med_01",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/HitReact/MM_HitReact_Front_Hvy_01",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/HitReact/MM_HitReact_Front_Lgt_01",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/HitReact/MM_HitReact_Front_Lgt_02",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/HitReact/MM_HitReact_Front_Lgt_03",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/HitReact/MM_HitReact_Front_Lgt_04",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/HitReact/MM_HitReact_Front_Med_01",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/HitReact/MM_HitReact_Front_Med_02",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/Jog/MF_Rifle_Jog_Bwd",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/Jog/MF_Rifle_Jog_Bwd_Left",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/Jog/MF_Rifle_Jog_Bwd_Right",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/Jog/MF_Rifle_Jog_Fwd",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/Jog/MF_Rifle_Jog_Fwd_Left",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/Jog/MF_Rifle_Jog_Fwd_Right",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/Jog/MF_Rifle_Jog_Left",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/Jog/MF_Rifle_Jog_Right",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/Jump/MM_Rifle_Jump_Apex",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/Jump/MM_Rifle_Jump_Fall_Land",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/Jump/MM_Rifle_Jump_Fall_Loop",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/Jump/MM_Rifle_Jump_RecoveryAdditive",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/Jump/MM_Rifle_Jump_Start",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/Jump/MM_Rifle_Jump_Start_Loop",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/Walk/MF_Rifle_Walk_Bwd",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/Walk/MF_Rifle_Walk_Bwd_Left",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/Walk/MF_Rifle_Walk_Bwd_Right",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/Walk/MF_Rifle_Walk_Fwd",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/Walk/MF_Rifle_Walk_Fwd_Left",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/Walk/MF_Rifle_Walk_Fwd_Right",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/Walk/MF_Rifle_Walk_Left",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Rifle/Walk/MF_Rifle_Walk_Right",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Unarmed/Attack/MM_Attack_01",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Unarmed/Attack/MM_Attack_02",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Unarmed/Attack/MM_Attack_03",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Unarmed/Attack/MM_ChargedAttack",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Unarmed/Jump/MM_Dash",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Characters/Mannequins/Anims/Unarmed/Jump/MM_WallJump",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_Slide_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchIdle",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/EightWay/AS_EightWay_CrouchBackLeft",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/EightWay/AS_EightWay_CrouchForward",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/EightWay/AS_EightWay_CrouchForwardRight",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/Mirrored/AS_Mirrored_CrouchBackRight",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/Mirrored/AS_Mirrored_CrouchForwardLeft",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchBack",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchLeft",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchRight",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/SourceLayer/BS_SourceLayer_Lower",
+      "class": "BlendSpace"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_Slide_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_Stand_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_Stand_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_CrouchIdle_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_CrouchIdle_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckBackLeft_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckBackLeft_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckBackRight_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckBackRight_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckBack_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckBack_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_01_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_01_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_02_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_02_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_03_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_03_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_05_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_05_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_06_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_06_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_07_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_07_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_09_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_09_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_10_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_10_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_11_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_11_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_13_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_13_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_14_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_14_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_15_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_15_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_17_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_17_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_18_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_18_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_19_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_19_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_21_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_21_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_22_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_22_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_23_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_23_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_25_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_25_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_26_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_26_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_27_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_27_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_29_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_29_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_30_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_30_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_31_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckDirection_31_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckForwardLeft_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckForwardLeft_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckForwardRight_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckForwardRight_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckLeft_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckLeft_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckMid_15_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckMid_15_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckMid_17_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckMid_17_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckMid_19_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckMid_19_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckMid_21_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckMid_21_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckMid_27_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckMid_27_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckMid_29_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckMid_29_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckMid_31_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckMid_31_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckMid_45_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckMid_45_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckMid_47_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckMid_47_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckMid_49_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckMid_49_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckMid_51_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckMid_51_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckMid_53_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckMid_53_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckMid_55_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckMid_55_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckRight_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckRight_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckWalk_Aim",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_DuckWalk_LowReady",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/BS_Duck_Aim",
+      "class": "BlendSpace"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/BS_Duck_LowReady",
+      "class": "BlendSpace"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/BackRight/AS_BackRight_CrouchBackRight",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/BackRight/AS_BackRight_CrouchBackRight112",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/BackRight/AS_BackRight_CrouchBackRight157",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/EightWay/AS_EightWay_CrouchBackRight",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/EightWay/AS_EightWay_CrouchForwardLeft",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/Source/AS_Source_CrouchBack",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/Source/AS_Source_CrouchForwardLeft",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/Source/AS_Source_CrouchIdle",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/Source/AS_Source_CrouchLeft",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/Source/AS_Source_CrouchRight",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/SourceBaked/AS_SourceBaked_CrouchBack",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/SourceBaked/AS_SourceBaked_CrouchForwardLeft",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/SourceBaked/AS_SourceBaked_CrouchIdle",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/SourceBaked/AS_SourceBaked_CrouchLeft",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/SourceBaked/AS_SourceBaked_CrouchRight",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchForwardLeft",
+      "class": "AnimSequence"
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/SourceLayer/AS_SourceLayer_CrouchForwardRight",
+      "class": "AnimSequence"
+    }
+  ]
+}

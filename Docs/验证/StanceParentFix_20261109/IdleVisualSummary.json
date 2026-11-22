@@ -1,0 +1,150 @@
+{
+  "status": "Passed",
+  "frames": 1510,
+  "cases": [
+    {
+      "case": 0,
+      "low_ready": 0,
+      "pitch": 0.0,
+      "frames": 203,
+      "duration": 6.7335,
+      "toe_height_cm": [
+        0.0,
+        0.3932
+      ],
+      "maximum_head_view_angle_deg": 3.025,
+      "maximum_left_grip_error_cm": 0.0
+    },
+    {
+      "case": 1,
+      "low_ready": 0,
+      "pitch": 0.0,
+      "frames": 215,
+      "duration": 7.1784,
+      "toe_height_cm": [
+        -0.0,
+        0.3932
+      ],
+      "maximum_head_view_angle_deg": 3.024,
+      "maximum_left_grip_error_cm": 0.0
+    },
+    {
+      "case": 2,
+      "low_ready": 0,
+      "pitch": 0.0,
+      "frames": 214,
+      "duration": 7.1423999999999985,
+      "toe_height_cm": [
+        0.0,
+        0.3932
+      ],
+      "maximum_head_view_angle_deg": 3.023,
+      "maximum_left_grip_error_cm": 0.0
+    },
+    {
+      "case": 3,
+      "low_ready": 1,
+      "pitch": 0.0,
+      "frames": 215,
+      "duration": 7.1782,
+      "toe_height_cm": [
+        0.0,
+        0.3932
+      ],
+      "maximum_head_view_angle_deg": 3.023,
+      "maximum_left_grip_error_cm": 0.0
+    },
+    {
+      "case": 4,
+      "low_ready": 1,
+      "pitch": 0.0,
+      "frames": 214,
+      "duration": 7.148700000000002,
+      "toe_height_cm": [
+        0.0,
+        0.3932
+      ],
+      "maximum_head_view_angle_deg": 3.022,
+      "maximum_left_grip_error_cm": 0.0
+    },
+    {
+      "case": 5,
+      "low_ready": 1,
+      "pitch": 0.0,
+      "frames": 215,
+      "duration": 7.187200000000004,
+      "toe_height_cm": [
+        0.0,
+        0.3932
+      ],
+      "maximum_head_view_angle_deg": 3.024,
+      "maximum_left_grip_error_cm": 0.0
+    },
+    {
+      "case": 6,
+      "low_ready": 0,
+      "pitch": -25.0,
+      "frames": 58,
+      "duration": 1.9446000000000012,
+      "toe_height_cm": [
+        0.0,
+        0.3916
+      ],
+      "maximum_head_view_angle_deg": 3.021,
+      "maximum_left_grip_error_cm": 0.0
+    },
+    {
+      "case": 7,
+      "low_ready": 0,
+      "pitch": 25.0,
+      "frames": 59,
+      "duration": 1.976300000000002,
+      "toe_height_cm": [
+        0.0,
+        0.3915
+      ],
+      "maximum_head_view_angle_deg": 3.022,
+      "maximum_left_grip_error_cm": 0.0
+    },
+    {
+      "case": 8,
+      "low_ready": 1,
+      "pitch": -25.0,
+      "frames": 59,
+      "duration": 1.980400000000003,
+      "toe_height_cm": [
+        0.0,
+        0.3915
+      ],
+      "maximum_head_view_angle_deg": 3.023,
+      "maximum_left_grip_error_cm": 0.0
+    },
+    {
+      "case": 9,
+      "low_ready": 1,
+      "pitch": 25.0,
+      "frames": 58,
+      "duration": 1.9495999999999967,
+      "toe_height_cm": [
+        0.0,
+        0.3915
+      ],
+      "maximum_head_view_angle_deg": 2.979,
+      "maximum_left_grip_error_cm": 0.0
+    }
+  ],
+  "images": [
+    "00_CrouchIdle_View1_Aim.png",
+    "01_CrouchIdle_View2_Aim.png",
+    "02_CrouchIdle_View3_Aim.png",
+    "03_CrouchIdle_View1_LowReady.png",
+    "04_CrouchIdle_View2_LowReady.png",
+    "05_CrouchIdle_View3_LowReady.png",
+    "06_CrouchIdle_View1_Aim.png",
+    "07_CrouchIdle_View1_Aim.png",
+    "08_CrouchIdle_View1_LowReady.png",
+    "09_CrouchIdle_View1_LowReady.png"
+  ],
+  "errors": [],
+  "boundary": "数值只覆盖骨骼支撑点、视线与握持；鞋底接触、穿插和自然度另看实际渲染。"
+}

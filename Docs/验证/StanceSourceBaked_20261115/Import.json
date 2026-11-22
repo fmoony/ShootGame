@@ -1,0 +1,256 @@
+{
+  "mode": "Commit",
+  "status": "Passed",
+  "clips": [
+    {
+      "name": "CrouchIdle",
+      "path": "/Game/Experiments/Stance_20261022/SourceBaked/AS_SourceBaked_CrouchIdle.AS_SourceBaked_CrouchIdle",
+      "keys": 202,
+      "duration_s": 6.7,
+      "checks": [
+        {
+          "retarget": false,
+          "max_position_cm": 0.0026152572394688286,
+          "max_angle_deg": 0.0027073020969645978,
+          "worst": [
+            19,
+            "index_02_l",
+            "position",
+            [
+              -15.32556344359591,
+              74.37098467670722,
+              89.06170728001864
+            ],
+            [
+              -15.328138540491697,
+              74.37054242520837,
+              89.06159387800075
+            ]
+          ]
+        },
+        {
+          "retarget": true,
+          "max_position_cm": 0.0026152572394653305,
+          "max_angle_deg": 0.0027073020969645978,
+          "worst": [
+            19,
+            "index_02_l",
+            "position",
+            [
+              -15.325563443595913,
+              74.37098467670722,
+              89.06170728001864
+            ],
+            [
+              -15.328138540491697,
+              74.37054242520837,
+              89.06159387800075
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CrouchLeft",
+      "path": "/Game/Experiments/Stance_20261022/SourceBaked/AS_SourceBaked_CrouchLeft.AS_SourceBaked_CrouchLeft",
+      "keys": 38,
+      "duration_s": 1.2333333333333334,
+      "checks": [
+        {
+          "retarget": false,
+          "max_position_cm": 0.000525206505282523,
+          "max_angle_deg": 0.009556794856061989,
+          "worst": [
+            9,
+            "ball_r",
+            "position",
+            [
+              -27.50884757859191,
+              12.483623410217696,
+              2.249621853446418
+            ],
+            [
+              -27.508829382842148,
+              12.484117437687656,
+              2.2497991882901633
+            ]
+          ]
+        },
+        {
+          "retarget": true,
+          "max_position_cm": 0.00232103125224674,
+          "max_angle_deg": 0.009556794856061989,
+          "worst": [
+            8,
+            "ball_r",
+            "position",
+            [
+              -27.518656682680454,
+              12.612861591577497,
+              1.182506907284159
+            ],
+            [
+              -27.518795883994564,
+              12.610548840771095,
+              1.1826447215633324
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CrouchRight",
+      "path": "/Game/Experiments/Stance_20261022/SourceBaked/AS_SourceBaked_CrouchRight.AS_SourceBaked_CrouchRight",
+      "keys": 37,
+      "duration_s": 1.2,
+      "checks": [
+        {
+          "retarget": false,
+          "max_position_cm": 0.00043450160717988494,
+          "max_angle_deg": 0.0018055550488946268,
+          "worst": [
+            4,
+            "middle_03_r",
+            "position",
+            [
+              -45.92352574727336,
+              51.654628983780555,
+              110.6814974290875
+            ],
+            [
+              -45.92394521365855,
+              51.654528527566725,
+              110.68144500631152
+            ]
+          ]
+        },
+        {
+          "retarget": true,
+          "max_position_cm": 0.0004345016071815277,
+          "max_angle_deg": 0.0018055550488946268,
+          "worst": [
+            4,
+            "middle_03_r",
+            "position",
+            [
+              -45.92352574727336,
+              51.65462898378056,
+              110.6814974290875
+            ],
+            [
+              -45.92394521365855,
+              51.654528527566725,
+              110.68144500631152
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CrouchBack",
+      "path": "/Game/Experiments/Stance_20261022/SourceBaked/AS_SourceBaked_CrouchBack.AS_SourceBaked_CrouchBack",
+      "keys": 31,
+      "duration_s": 1.0,
+      "checks": [
+        {
+          "retarget": false,
+          "max_position_cm": 0.00041109315824349753,
+          "max_angle_deg": 0.000954810610671827,
+          "worst": [
+            28,
+            "pinky_03_r",
+            "position",
+            [
+              -25.979341906322297,
+              -149.01962779436806,
+              92.35373950413617
+            ],
+            [
+              -25.979288707299027,
+              -149.01928366101077,
+              92.35395799825756
+            ]
+          ]
+        },
+        {
+          "retarget": true,
+          "max_position_cm": 0.00041109315824349753,
+          "max_angle_deg": 0.000954810610671827,
+          "worst": [
+            28,
+            "pinky_03_r",
+            "position",
+            [
+              -25.979341906322297,
+              -149.01962779436806,
+              92.35373950413617
+            ],
+            [
+              -25.979288707299027,
+              -149.01928366101077,
+              92.35395799825756
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CrouchForwardLeft",
+      "path": "/Game/Experiments/Stance_20261022/SourceBaked/AS_SourceBaked_CrouchForwardLeft.AS_SourceBaked_CrouchForwardLeft",
+      "keys": 31,
+      "duration_s": 1.0,
+      "checks": [
+        {
+          "retarget": false,
+          "max_position_cm": 0.00039383969942882805,
+          "max_angle_deg": 0.0010734077443824784,
+          "worst": [
+            25,
+            "middle_02_r",
+            "position",
+            [
+              114.87392582387996,
+              173.65201471834527,
+              92.17404546145828
+            ],
+            [
+              114.87407332811514,
+              173.65202014840696,
+              92.17368032761449
+            ]
+          ]
+        },
+        {
+          "retarget": true,
+          "max_position_cm": 0.00039383969942882805,
+          "max_angle_deg": 0.0010734077443824784,
+          "worst": [
+            25,
+            "middle_02_r",
+            "position",
+            [
+              114.87392582387996,
+              173.65201471834527,
+              92.17404546145828
+            ],
+            [
+              114.87407332811514,
+              173.65202014840696,
+              92.17368032761449
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "source": "D:\\UE_Projects\\_worktrees\\ShootGame_UE58\\SourceAssets\\StanceCrouch\\ParentBaked",
+  "formal_reference_unchanged": true,
+  "saved_assets": [
+    "/Game/Experiments/Stance_20261022/SourceBaked/AS_SourceBaked_CrouchIdle.AS_SourceBaked_CrouchIdle",
+    "/Game/Experiments/Stance_20261022/SourceBaked/AS_SourceBaked_CrouchLeft.AS_SourceBaked_CrouchLeft",
+    "/Game/Experiments/Stance_20261022/SourceBaked/AS_SourceBaked_CrouchRight.AS_SourceBaked_CrouchRight",
+    "/Game/Experiments/Stance_20261022/SourceBaked/AS_SourceBaked_CrouchBack.AS_SourceBaked_CrouchBack",
+    "/Game/Experiments/Stance_20261022/SourceBaked/AS_SourceBaked_CrouchForwardLeft.AS_SourceBaked_CrouchForwardLeft"
+  ]
+}

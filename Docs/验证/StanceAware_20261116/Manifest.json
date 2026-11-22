@@ -1,0 +1,1030 @@
+{
+  "created_utc": "2026-11-16T15:53:02.877Z",
+  "branch": "codex/stance-aware-weapon-pose",
+  "engine": "5.8.4",
+  "status": "Experimental; numeric regression collected; visual acceptance failed; production integration deferred",
+  "files": [
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/ABP_StanceAware_FP.uasset",
+      "bytes": 31528,
+      "sha256": "32612d5070d4ea95df4438bc0d659b2698325deb7f51f3352ef1d0a52483343e"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/ABP_StanceAware_TP.uasset",
+      "bytes": 374616,
+      "sha256": "3e43172f02e655421cd26267f399825134bffd950cafd6ff33c85424dc986d3c"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/AS_StanceAware_CrouchADS.uasset",
+      "bytes": 88464,
+      "sha256": "b20e273b88fb8f6bbd40b2e2b0b89d55c855305c81ba0a733f1c8a1214d3d5db"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/AS_StanceAware_CrouchBack.uasset",
+      "bytes": 145078,
+      "sha256": "e7b08f55d966b237d405408add7f85b835242d817ad5a9582cdcb3d382b00e0f"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/AS_StanceAware_CrouchBackLeft.uasset",
+      "bytes": 145102,
+      "sha256": "317db764047219d557147a7e77fb57fd649da8e67f5d17a0cf558464e75b1ddb"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/AS_StanceAware_CrouchBackRight.uasset",
+      "bytes": 149012,
+      "sha256": "590a741e9ec156416415bda4f7ec0457d145a4a77eaffb12bdb0e91da9ac8413"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/AS_StanceAware_CrouchForward.uasset",
+      "bytes": 147048,
+      "sha256": "2ebc70f44ad0aea51ff8f6bfb7b6c416950f12ddd6b0eeb75a9bd4890847134c"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/AS_StanceAware_CrouchForwardLeft.uasset",
+      "bytes": 149024,
+      "sha256": "ec043c9f22071e531ab9c7fcbb2847b9bd2d993f02196ea7b43537fed74785f5"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/AS_StanceAware_CrouchForwardRight.uasset",
+      "bytes": 149030,
+      "sha256": "b81e8f93a8a91f79514eee9aea63c28813bd95fb2f090f9d15c7f26e2f2ecb6b"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/AS_StanceAware_CrouchIdle.uasset",
+      "bytes": 88470,
+      "sha256": "be128b0f6891b57c5f1afab93d2e93357750be0474e8970909dd99fd1df43b0b"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/AS_StanceAware_CrouchLeft.uasset",
+      "bytes": 150934,
+      "sha256": "c45bffbda064600fefa585c6f9b8f9fc5c189bc27e317bacad8fa470563f0392"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/AS_StanceAware_CrouchLowReady.uasset",
+      "bytes": 88494,
+      "sha256": "ba93d8848e88cd8ee5c9e6e4755653d6918ae55289c62c33080edc875d8f884e"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/AS_StanceAware_CrouchRight.uasset",
+      "bytes": 147036,
+      "sha256": "184511a86335aaf4495aeaf08d6bfe5d6adc2c329f1a54d7495d3a6898740263"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/BS_StanceAware_Lower.uasset",
+      "bytes": 16346,
+      "sha256": "0283348e9bf522383758bfc9c7b2200f3a6320a2f752aafaf102364bdace03e5"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/Refined/ABP_StanceAware_FP.uasset",
+      "bytes": 31552,
+      "sha256": "41c1c23b97aecfaffc8e0b884679528c576209759e8f164e954d515365a45705"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/Refined/ABP_StanceAware_TP.uasset",
+      "bytes": 369193,
+      "sha256": "1de13825b98edf47cfe1d6bd5be7769af22e7c4721e3de94de5d3048941dd140"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/Refined/AO_StanceWeapon.uasset",
+      "bytes": 13699,
+      "sha256": "4ef5da52168789bcd20a7f3c1f8a3c623dedacead85ffe7c25f7cbd81a5b4f25"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/Refined/AS_StanceAware_CrouchADS.uasset",
+      "bytes": 316526,
+      "sha256": "bb0ac5d7e981633b39ad1526b822ef36174bd95a062edcc56e439befaff4d621"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/Refined/AS_StanceAware_CrouchAO_m45.uasset",
+      "bytes": 317137,
+      "sha256": "72c3fa73845c5d0df71a681ec92a68e6e07515f3d4bdc52ecaba322a3651571d"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/Refined/AS_StanceAware_CrouchAO_m90.uasset",
+      "bytes": 317129,
+      "sha256": "f207dbfc47db9e630be9d5b37e6bb63c53552974f5187bc5343f9b96fc23e45e"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/Refined/AS_StanceAware_CrouchAO_p45.uasset",
+      "bytes": 317137,
+      "sha256": "f508f6d7cd43a19185dec2bd4de96cfb5ab02d275663a7dc6dcc3969b8cdf544"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/Refined/AS_StanceAware_CrouchAO_p90.uasset",
+      "bytes": 317137,
+      "sha256": "c4e4997e4d31b6fd059d1aa686d1de55d9f02539021566603f2cb9b060328952"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/Refined/AS_StanceAware_CrouchAO_zero.uasset",
+      "bytes": 317153,
+      "sha256": "623c769c1998adebaee44b49ca3d1605e0be31b3591b4ba539a36c942bd04b04"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/Refined/AS_StanceAware_CrouchBack.uasset",
+      "bytes": 150960,
+      "sha256": "c8ec5cc8d8c6b73534f82c35fa3531debea268d3f1490bbab065ee3a4c12ccb6"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/Refined/AS_StanceAware_CrouchBackLeft.uasset",
+      "bytes": 149032,
+      "sha256": "6a13618e3abd63d4fd224cb22ddb006b8d7cd0a39ad7bd04416bab511c0f08a4"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/Refined/AS_StanceAware_CrouchBackRight.uasset",
+      "bytes": 145134,
+      "sha256": "3063cd315673c1540b15f684713009699c0f909ec48e5b0584a1ee55e07e8612"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/Refined/AS_StanceAware_CrouchForward.uasset",
+      "bytes": 154882,
+      "sha256": "67d8b402bf13e8b8a7049369d05cc8be85040b1117dc4a9eaa48407d35446d96"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/Refined/AS_StanceAware_CrouchForwardLeft.uasset",
+      "bytes": 147098,
+      "sha256": "212f46017d8c292346b7cbd191e335924fb36cd02e40635008b3d0032d3fce55"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/Refined/AS_StanceAware_CrouchForwardRight.uasset",
+      "bytes": 151008,
+      "sha256": "c6514c4ba1e7a4068d1240089c8d50567c625bca2f30708b3d11fe684fe48fe8"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/Refined/AS_StanceAware_CrouchIdle.uasset",
+      "bytes": 88496,
+      "sha256": "f115b0d6b7bce3b05ea92d6a48a78af9dbe411c9bb5f3a40c95dfa96d89917ea"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/Refined/AS_StanceAware_CrouchLeft.uasset",
+      "bytes": 145104,
+      "sha256": "e6262d540651cb61767e007ce8850ac281922dbf34749be62691f07b0a806ab0"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/Refined/AS_StanceAware_CrouchLowReady.uasset",
+      "bytes": 316614,
+      "sha256": "35b8d0310ef32cc5379cab0c9d9f2e9ef2cfa3367cd22dda90e1381c939c1537"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/Refined/AS_StanceAware_CrouchRight.uasset",
+      "bytes": 150966,
+      "sha256": "72656753f51e357a7212aa93056d840ff88e2490d42ff13a08722f1941277e6a"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/Refined/AS_StanceAware_Stance_0.uasset",
+      "bytes": 88480,
+      "sha256": "0e074ff314e20701a7ca6f0becbef0fcc56dbb656b2e1dc94292cc56bba1899b"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/Refined/AS_StanceAware_Stance_1.uasset",
+      "bytes": 88480,
+      "sha256": "fd25e5fc8473603a8693112059d4bc2ad4471f2a939990ed3ed391b5872de491"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/Refined/AS_StanceAware_Stance_2.uasset",
+      "bytes": 88480,
+      "sha256": "58d2b713e94be2b3f0ef88741e8b5482679e1c72414f5fec445ce34522e6fc65"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/Refined/AS_StanceAware_Stance_3.uasset",
+      "bytes": 88480,
+      "sha256": "dbec316c8e0a4611196c5293ee3f308a5ae1b4624bdd27b6e0ed99b0c557324d"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/Refined/AS_StanceAware_Stance_4.uasset",
+      "bytes": 88480,
+      "sha256": "1b8c881151a9cc5ea3799975c626073e8bc4551f142b3b5b8d9eb23cb47b84b2"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/Refined/AS_StanceAware_Stance_5.uasset",
+      "bytes": 88480,
+      "sha256": "5048c569861c94c3c12871b5ad7a768b636099a41b8e6426f60e2306a2da2b10"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/Refined/AS_StanceAware_Stance_6.uasset",
+      "bytes": 88480,
+      "sha256": "d3469541a13b8ecbeb5d7dd88253dd62259e166d970758f5ede2b5433d6854cd"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/Refined/AS_StanceAware_Stance_7.uasset",
+      "bytes": 88480,
+      "sha256": "85fa6325c4658f75cb430eac39db00ee708d49f1f10b991367f90646b63255b3"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/Refined/AS_StanceAware_Stance_8.uasset",
+      "bytes": 88480,
+      "sha256": "e783089ece34fb92c1ad8f43a7e0daece6917230b99a9e08d81e627371d2b480"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/Refined/BS_StanceAware_Lower.uasset",
+      "bytes": 16434,
+      "sha256": "83e8acc0e7c6cdf19d43008b9c9d14c23de59dc7c2b9c6338b522e81cff3152a"
+    },
+    {
+      "path": "Content/Experiments/Stance_20261022/StanceAware_20261116/Refined/BS_StanceHeight.uasset",
+      "bytes": 6647,
+      "sha256": "e647ac37c13d18a4a9882db275b7e86a364fa92ace43bc96d9e4d6edc305c45c"
+    },
+    {
+      "path": "Docs/开发记录/2026-11-16-2321-StanceAware身体与持枪实验.md",
+      "bytes": 4223,
+      "sha256": "7389f99900298c41d6015d0e064d9104dca37293f6bdd0dbe1d3a4ccffca3cbd"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/AssetAuditAfter.json",
+      "bytes": 201067,
+      "sha256": "52983574eb2f713317c34f5b92cdd05e2086491a2241bdfe3245a4b1eb20c00d"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/AssetAuditBefore.json",
+      "bytes": 153920,
+      "sha256": "4056586b2802382c66fbf07fa5e7a61d82fe14a3c6c55c219b626f99c017b75e"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/Authoring/AimAuthorSummary.json",
+      "bytes": 1166,
+      "sha256": "3cbc3c3d5b70d3ab0e057bef8b660d8e0591c75405aceca1cd5fecca926bba84"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/Authoring/AimBakeSummary.json",
+      "bytes": 574,
+      "sha256": "642a7981eded2e845b153405095c3c6c044c8d5a73e20d86e61b922b6051a022"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/Authoring/AuthorSummary.json",
+      "bytes": 727,
+      "sha256": "9204a809cfef87455feab4b8d3f0b5e9383bf8939ebe8bccaba2234c05da5884"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/Authoring/BakeSummary.json",
+      "bytes": 1775,
+      "sha256": "a6f92e21f71ef9082d7250c7487617a4167957965b7b0427b216cfcb47967dcb"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/Authoring/WeaponAuthorSummary.json",
+      "bytes": 593,
+      "sha256": "ecb8c0f055fee473019aa6c3a311633ad413e939849147dffde2c9046ecca048"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/Authoring/WeaponBakeSummary.json",
+      "bytes": 327,
+      "sha256": "89fc10f8ef5892cf55a83f9b3b7d55cfe5bef8877c8adc9fac1ec7c57e419d28"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/Before32.csv.gz",
+      "bytes": 24983804,
+      "sha256": "fd5abb9d1ca672bb18489e2390b5ab24caf97dddf0a10b725b3a93b2b2366ed0"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/BeforeHashes.json",
+      "bytes": 109055,
+      "sha256": "1c7866ac182a2936b42735283900c20381116738229bf71f3ff8cf7236d18a83"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/BeforeSkin.json",
+      "bytes": 46821,
+      "sha256": "11883c50f06e3ab7cfadb2cbaa03a12b6ad39069bec10057532e6d2020e51c17"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/Current32.csv.gz",
+      "bytes": 10332471,
+      "sha256": "c7f441ee763f0733b05eebbf5b60103e5811da0e5a510fd870d20b79f93b1d23"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/Current32.eightway.json",
+      "bytes": 28568,
+      "sha256": "f25dba4302a87fb8f1841bf75d45aa96200401c0848dacf6681ba2be8da3a6f2"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/Current32.view.csv.gz",
+      "bytes": 100161,
+      "sha256": "c64bfb4e848f0ede5d8f8df4f734aed0d065ce72b41a0f1a5c80ff55650fffc5"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/CurrentLowerComparison.json",
+      "bytes": 140,
+      "sha256": "f2a00e7abfcceb9caeba05ab05b10fe80f412089d57e3e7b74613e8da6d1541c"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/CurrentSkin.json",
+      "bytes": 55903,
+      "sha256": "b1cfd92144c5994228a1884d5a3d5e94a55814e0d7fed0ce8cc88751286889be"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/CurrentTransitionSkin.json",
+      "bytes": 44577,
+      "sha256": "a46c1e7175a29180d1554df2a8d1b94f65b01fa0cf33d4bdd49c8431b6b6763a"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/FinalPresentation.csv.gz",
+      "bytes": 7378840,
+      "sha256": "fb265cf0eed7253fb6fe3a1532e0e72a49c514fa9542c3d8fcb464b4c7b6a36f"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/FinalPresentation.json",
+      "bytes": 17902,
+      "sha256": "ba788d5924dd326a7fd6be17a00cdc5dff6572f510a59c38d509d8867f50253f"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/FinalPresentation.view.csv.gz",
+      "bytes": 115825,
+      "sha256": "1e93624042c9853ec9c8b3f977d5fcec4379cb18c4da721553dfe9a91aa615ff"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/FinalRaw32.csv.gz",
+      "bytes": 8848544,
+      "sha256": "181bf4ee387b5ed3d749fff427dba78511e0f40ac1b80c9f7e7c2056397e54fd"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/Images/CrouchFP.png",
+      "bytes": 1734525,
+      "sha256": "5fdc347bed030b069ef4e54168710b965939bb3a560239b40b14b4d3c0dd709f"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/Images/CrouchSide.png",
+      "bytes": 1828365,
+      "sha256": "070a1fb6ab12ae882702e15e1caf89ae60d27bd5dc7332758a11bc803183b6b7"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/Images/Handoff.png",
+      "bytes": 1857254,
+      "sha256": "78cbc1b0f25cd44bb57f3eb0bd99a5ef26a452325f508c32bc8f9b72829ac6bd"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/Images/LowReadySide.png",
+      "bytes": 1893332,
+      "sha256": "3e8ac7cbd99a4a16dc09c2816282d75f06e432a310352f94e11171c1e2289110"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/Images/StandFP.png",
+      "bytes": 1464417,
+      "sha256": "dfc649903bb3c0365404ea3992a67d51ad22dfc74398c2129627f0ac378b0fd3"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/Images/StandSide.png",
+      "bytes": 1900670,
+      "sha256": "1dcb53c8215db46762190fc557d5bd6bdbd0aa83dcb7db65b185d500c2978942"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/Images/WalkSide.png",
+      "bytes": 1883457,
+      "sha256": "035cd8b5c0e008505a6d0fd13c575d13aebd07ee17dd1e3e909194158117dd69"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/Images/Walk_0.png",
+      "bytes": 1678213,
+      "sha256": "998a079e451f1d1fb7a91844bf25b511c2522d462dfd08c546c2386219325bbb"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/Images/Walk_1.png",
+      "bytes": 1945866,
+      "sha256": "1a0b4abef1f1500aabb7167f6177a17befb2b38b34ed3cd390a87f783175edd2"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/Images/Walk_2.png",
+      "bytes": 1929751,
+      "sha256": "3bf3e925983fe9a22c271989d4fe9ceb59f466c113b1d4f82eb7fc40fd509181"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/Images/Walk_3.png",
+      "bytes": 1799192,
+      "sha256": "0b71edef985931008c9f6c5f9893232276df253c34a9485c0411c46f7a8020f6"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/Images/Walk_4.png",
+      "bytes": 1767166,
+      "sha256": "04ecee30f9787e81c04825c535d7d2b6dae3f2f588156d67424f871c72d4f79a"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/Images/Walk_5.png",
+      "bytes": 1883899,
+      "sha256": "46f366a3ba26ef9bab8e8a77509702880cdc42852a71d3e410eac63ba992394b"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/Images/Walk_6.png",
+      "bytes": 1873319,
+      "sha256": "ad0f22d0444d11d8ff6b2fadef5ac680dd9c3cbef40f3d00e61315c62e0dde3b"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/Images/Walk_7.png",
+      "bytes": 1843012,
+      "sha256": "ec1c715909c88487da5b49e61880580b0a938fdb32a793551292d75619f28724"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/LegacyMirrorResources.json",
+      "bytes": 3659,
+      "sha256": "03afffaf5581633e79046850bd00e4e5bbb4d449d0679e652de8f5cb8e60268d"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/Logs/BuildReference90.log",
+      "bytes": 5262,
+      "sha256": "aae2fe850dab263578cb4072505695a984961fb33cf3325a9476e05e9218914c"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/Logs/Current32Console.log",
+      "bytes": 1077,
+      "sha256": "88863db688cea421dc7db94b373c78c753f42134bce6a0d6e34d752e836d80e9"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/Logs/FinalPresentationConsole.log",
+      "bytes": 1077,
+      "sha256": "3f23107f0116ebcf26a3a38589c63dc10a1e04ac2f2bc781c066d940292e3611"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/Logs/ImportRuntimeAim.log",
+      "bytes": 246472,
+      "sha256": "7e0d021187271302d7e4967ee39410d42d6e5dbbd63b1cd9ff0cb4da13501612"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/Logs/IncludePaths.log",
+      "bytes": 56,
+      "sha256": "1813ceaec039ab07013585ee559e27564209c0dd9e34a263eca22a17b7dca144"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/Logs/RuntimeAimAuthor.log",
+      "bytes": 1775,
+      "sha256": "44b8e667b7ba535a2580e457a9b4cb684c8e2c7023fa180f20ef1170481cd8e9"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/Logs/RuntimeAimBake.log",
+      "bytes": 2211,
+      "sha256": "284b434c5920cd80eb1872e2f50dfce0860697e4e822c24566a9b84e7604075f"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/Logs/StagedWhitespace.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/Logs/TextLayout.log",
+      "bytes": 1086,
+      "sha256": "31d465da5cc5a47b74502d05c82b62b2a554c045c3513d947c855035343d136f"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/Logs/VerifyBaselineConsole.log",
+      "bytes": 26571,
+      "sha256": "9ca7053dfe8c3409f744fa1b29bbeb33277e244716cbb718542f623fdaa5e0bd"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/Logs/VerifyFinalConsole.log",
+      "bytes": 23365,
+      "sha256": "70856b7079ce2cc061f9ce30856a9b1214c4faa8db31234af5fe8b8579451937"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/Logs/VerifyLegacyResources.log",
+      "bytes": 23401,
+      "sha256": "10e8fe094e72e44bdf0334ec9862b064b7ef00e64d03c02624ec1d713ede1657"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/PostBuildFormatting.json",
+      "bytes": 480,
+      "sha256": "3850b5bf326079974d287c019b3b3766ced6e8bd1aa1773811288a0b8ab731e7"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/README.md",
+      "bytes": 15721,
+      "sha256": "ab1b0538a4f5792992cc1cdea3a2b90ee8d9da2474957c99151cb1a0fd0c1635"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/RuntimeReference90.csv.gz",
+      "bytes": 6300151,
+      "sha256": "c29e0d3dd29ced432ae3baf81c95bf7b3f98588cc8c0f9c4b8161781eee94428"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/SourceSurvey.json",
+      "bytes": 7706,
+      "sha256": "363720d399c97b10c1d17acd1615354ac6263c6a24025cf84ebea8c4ad829d66"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/VerifyAssets.json",
+      "bytes": 15016,
+      "sha256": "cd8f6efe1e9db8ee1cec1684a6503cbc98db63b5ec22e95ad66cf9456176b1e5"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/VisibleSession.json",
+      "bytes": 639,
+      "sha256": "6642a7547ba404ebd22088139e43d480f9cc000314159cce8cbcc25c4a4cf499"
+    },
+    {
+      "path": "Docs/验证/StanceAware_20261116/VisualWalkSamples.json",
+      "bytes": 1219,
+      "sha256": "a04a48695e479310dadb32d3b4ee7c1f36a4ab86662cddb5e07a0c306c41b0de"
+    },
+    {
+      "path": "Docs/验证/滑铲与下蹲动画实验.md",
+      "bytes": 4665,
+      "sha256": "e493f133559f65952465f8d2d88cb6a6efccd80a669da4a459547a932b780287"
+    },
+    {
+      "path": "Scripts/Animation/StanceAware/Run.ps1",
+      "bytes": 2877,
+      "sha256": "f76304a5578d53d98de2430c4e1d2ab515bd8fc31af8374ee129279d9ec1d766"
+    },
+    {
+      "path": "Scripts/Animation/StanceAware/analyze_presentation.py",
+      "bytes": 3554,
+      "sha256": "f2965d45ea46b5a0c9df1a8c8f25fe9a395c3ba95182dcf951a8717c8e980e2e"
+    },
+    {
+      "path": "Scripts/Animation/StanceAware/apply_aim_space.py",
+      "bytes": 1244,
+      "sha256": "331feb666d35656b7f9e3eff986fc2c7c01429933264aee24fc7744d411f490c"
+    },
+    {
+      "path": "Scripts/Animation/StanceAware/author_aim_poses.py",
+      "bytes": 7776,
+      "sha256": "d3243e0c53bb991db75b79c3e9174864c25961ca989877d383775897d0b33d60"
+    },
+    {
+      "path": "Scripts/Animation/StanceAware/author_contacts.py",
+      "bytes": 9833,
+      "sha256": "41367760d6f342dfc476664c10fe7dd7afbd1c6a14e4c46a22c1b2cc33d3e0f2"
+    },
+    {
+      "path": "Scripts/Animation/StanceAware/bake_assets.py",
+      "bytes": 4712,
+      "sha256": "06fd422312af9633371a8ae93d5f142974875097e10ecf77457c0304b7aa1de3"
+    },
+    {
+      "path": "Scripts/Animation/StanceAware/check_runtime.py",
+      "bytes": 7669,
+      "sha256": "509019670db78d70cf5188b1fdaca463e32effef22a1c7eddadf4dd5681ec8b7"
+    },
+    {
+      "path": "Scripts/Animation/StanceAware/compare_lower.py",
+      "bytes": 1577,
+      "sha256": "feb0935ffd236fc064bec24c781a5f539e52fbc10afddeb0ff551d333c05ccde"
+    },
+    {
+      "path": "Scripts/Animation/StanceAware/import_assets.py",
+      "bytes": 5938,
+      "sha256": "2933b4a8186add05616d27447d491d9dbfa3133758db227c7a7cc25d4f4af476"
+    },
+    {
+      "path": "Scripts/Animation/StanceAware/prepare_weapon_poses.py",
+      "bytes": 6026,
+      "sha256": "dd60881aeb41904b6ed23bed8664a5baa3ef5d5d8311168fed0e7c894599ba88"
+    },
+    {
+      "path": "Scripts/Animation/StanceAware/verify_assets.py",
+      "bytes": 4477,
+      "sha256": "47b4c129d52f9baf6bc2213262b57ae260f49fd0b34edbeb23cd84594cac71bb"
+    },
+    {
+      "path": "Scripts/Animation/StanceAware/verify_legacy_resources.py",
+      "bytes": 6735,
+      "sha256": "3c4dcaa154cf5ac2dca1a0460fe6da84db01fb1d8cda0823e7fac2451d929851"
+    },
+    {
+      "path": "Source/ShootGameEditor/Tests/Stance/ShooterStancePreview.cpp",
+      "bytes": 44048,
+      "sha256": "b326241e902f8f5d5502fcc1833e88f000dd167e0e90f28ff267ecbd60951eef"
+    },
+    {
+      "path": "Source/ShootGameEditor/Tests/Stance/ShooterStancePreview.h",
+      "bytes": 3420,
+      "sha256": "bcf6a761250016d54c7b2c34065190f4baed3bab329ca8e8cc4ef044558d9217"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/README.md",
+      "bytes": 3477,
+      "sha256": "e19afc751565686a1d03ed0111598e3506b79798c47c79af732350824132a32d"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/AimReference.json",
+      "bytes": 199457,
+      "sha256": "850ce0987a1bca048de0693bd85b6c448f906fda55bb26253359978332a7afe3"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/AuthorSummary.json",
+      "bytes": 1042,
+      "sha256": "a9cac790723ac1b3b25d62601c743940d5ab7a3862d73c6ea6bc3ae291ec1b33"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/BakeSummary.json",
+      "bytes": 1073,
+      "sha256": "20ebb829e864c79d6904665a1439cc0d67daecaa5bf8efd44629e40c91da5bdd"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchADS.blend",
+      "bytes": 9712513,
+      "sha256": "50d32ee05b040b6f2e9908439b2bda1da4e38cf4b9251d02b7f4289b6d9ad5d9"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchADS.fbx",
+      "bytes": 813932,
+      "sha256": "fab539adc74ebd75384ee2b48198efc68c917adf0deecf153957a4d822b2c5cf"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchBack.blend",
+      "bytes": 9712513,
+      "sha256": "518916fb78748a12a91c9ddb4569d984759bb112a204e52b2644fccf34981b9c"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchBack.fbx",
+      "bytes": 834012,
+      "sha256": "0cc9b823de5b6e5e2f10d5f7c08344d4f474590d3e055b2ccacf8fc9c4e55be8"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchBackLeft.blend",
+      "bytes": 9712513,
+      "sha256": "db4b88d15f7e50db8a04f89e87175c384e58f3447531b6a8408df969385abb77"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchBackLeft.fbx",
+      "bytes": 834060,
+      "sha256": "756ffe4c6134debcf0199e27acd1fef679bf68ed940536976e633d40e9e7d77b"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchBackRight.blend",
+      "bytes": 9712513,
+      "sha256": "b2fff814fbb8dd70e93a014a39568c9809bae0deaaa918d4dc3bd621ec97499d"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchBackRight.fbx",
+      "bytes": 834156,
+      "sha256": "967c2df891385677f674e028132c800b4461f634ef09759b47990140c4c33e05"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchForward.blend",
+      "bytes": 9712513,
+      "sha256": "6e5adcf3732c5b88ae42984ac14d25822a36c70699faa8a2094732a54fe7f50c"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchForward.fbx",
+      "bytes": 834108,
+      "sha256": "660e2a150ced8f0b83c56473c83778268446c5e9652e9d2727d0dbc469974c66"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchForwardLeft.blend",
+      "bytes": 9712513,
+      "sha256": "6e8d1029df11bbd8a88695858d9c5fcde7c4c6500e18fe1a242940ed1dffe598"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchForwardLeft.fbx",
+      "bytes": 834028,
+      "sha256": "fff31730968670bb25243eba3087a8f80d1bb27f9698bc88fe1ee41c60999b66"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchForwardRight.blend",
+      "bytes": 9712513,
+      "sha256": "0f263d6144491962a6707add8de168b215009d1d91b462bbcd6f74d29b8389d1"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchForwardRight.fbx",
+      "bytes": 834076,
+      "sha256": "857ec3fb2ae29b9c55ddbfa0f628a0a4fe232724e1fe6105e46800ae192de5da"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchIdle.blend",
+      "bytes": 9712513,
+      "sha256": "04c1431277b85f78ef0b54d2217af478cca6382b7f61a3493ad3d650a5e67c4e"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchIdle.fbx",
+      "bytes": 813916,
+      "sha256": "7495b1f80eb363312c9711daa13410b3fe038b89a965a56d1ffed9e19a3cd6c8"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchLeft.blend",
+      "bytes": 9712513,
+      "sha256": "983f7ef0efe64fe51b4af60d71282daa5c12c28846f6be3884b987e174263bf5"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchLeft.fbx",
+      "bytes": 834188,
+      "sha256": "4310204e03988f4a375bc13b823b5578da7b4df17250f808ed1f5a29ff978fe6"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchLowReady.blend",
+      "bytes": 9712513,
+      "sha256": "51bc620deb800b8798439071d03158e14377cff3ee8eca69c966dff11c00f898"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchLowReady.fbx",
+      "bytes": 813932,
+      "sha256": "6056d8d27de8a6cd1dea86978626abd19893ce854892593614f2c198ac83ee2f"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchRight.blend",
+      "bytes": 9712513,
+      "sha256": "08cb7aa863f0be8b2d26d8cbd860d4a1fceed8174248fdb8cf3683eef629e978"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchRight.fbx",
+      "bytes": 834076,
+      "sha256": "9c6466b4936fe75b8808bbfbea9e4526f75e185afdcbb3a319b14117ddd1e156"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/Expected.json",
+      "bytes": 10487732,
+      "sha256": "ad6ed5837cfa00dba28e8f241b477da873ce81cfbc62d49ec1d37d87e2f77456"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/AimAuthorSummary.json",
+      "bytes": 1166,
+      "sha256": "3cbc3c3d5b70d3ab0e057bef8b660d8e0591c75405aceca1cd5fecca926bba84"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/AimBakeSummary.json",
+      "bytes": 574,
+      "sha256": "642a7981eded2e845b153405095c3c6c044c8d5a73e20d86e61b922b6051a022"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/AuthorSummary.json",
+      "bytes": 727,
+      "sha256": "9204a809cfef87455feab4b8d3f0b5e9383bf8939ebe8bccaba2234c05da5884"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/BakeSummary.json",
+      "bytes": 1775,
+      "sha256": "a6f92e21f71ef9082d7250c7487617a4167957965b7b0427b216cfcb47967dcb"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchADS.blend",
+      "bytes": 9712513,
+      "sha256": "eafec34c3b07a91c5ab67c9ef84aebe3e712456c6a666e7d9aefe82ef273e8ce"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchADS.fbx",
+      "bytes": 813932,
+      "sha256": "62b61ada6676917d024730f3f8131ad1e44619e2930e955d574e1e3a9008264d"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchAO_m45.blend",
+      "bytes": 9712513,
+      "sha256": "2ae86a6397bb95db641574c6322de6db4a604a590264c5c5bf21a0e8db650ee5"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchAO_m45.fbx",
+      "bytes": 813932,
+      "sha256": "c86a24ffc2a30a728b64a9e1310dcceadd479580c2129937da1a8838041a9aac"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchAO_m90.blend",
+      "bytes": 9712513,
+      "sha256": "895d585f6fb9a80aac0f2b07b6652aec8d093960a15906fdc01d19e015233918"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchAO_m90.fbx",
+      "bytes": 813916,
+      "sha256": "342f6571d7600437650971b5ac09974abe287001610b366432834d9dd4f6dbf0"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchAO_p45.blend",
+      "bytes": 9712513,
+      "sha256": "db90450b47f44afa6893a069c7ab6fb2509e839a4fab62ac62c862c703a9b448"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchAO_p45.fbx",
+      "bytes": 813932,
+      "sha256": "33d7ef7cf8aac4fc78bf795c5bee0c1a2859846ec093a1304564bc6e52868f96"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchAO_p90.blend",
+      "bytes": 9712513,
+      "sha256": "8e597abc7581071dee3dd690d3de0e96bfb0742e639d5c4c3447d9661f63fa00"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchAO_p90.fbx",
+      "bytes": 813916,
+      "sha256": "be9660adc5f54f9d5bc5622007eeb6a18b19b847eeec6318e70c1f645a18c525"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchAO_zero.blend",
+      "bytes": 9712513,
+      "sha256": "bdee03e16499f779671ebb73b71da60106eaadcbe52ec5d47012a4bc65c9de97"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchAO_zero.fbx",
+      "bytes": 813916,
+      "sha256": "d5b1a5c024ab568567baed20993558a6b477f5aae510ca391bdae8a0e4cfc553"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchBack.blend",
+      "bytes": 9712513,
+      "sha256": "36ee62b722b25ca6adaf779d612f214690ac3b0f86f51db7628ae96245797082"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchBack.fbx",
+      "bytes": 833900,
+      "sha256": "d114a97bc01034d5d0abefa545ba6b079ee65e823b357c3b260768ab7cc69957"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchBackLeft.blend",
+      "bytes": 9712513,
+      "sha256": "9762fc1bab2513157ec37b1d77dbe66415faf9cdae7528df837b680d9f7e6dc7"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchBackLeft.fbx",
+      "bytes": 834076,
+      "sha256": "a21665101a4c64727daaa8f0362ad01946e89c2f25d94eecdf9e119b6dde768f"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchBackRight.blend",
+      "bytes": 9712513,
+      "sha256": "ac57d11aef56b4577635d2c26bf83228862f8c78401a6264d785953d47d0a5e8"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchBackRight.fbx",
+      "bytes": 834092,
+      "sha256": "4fe6c955aa23b876305db61b29232bad8e07dc37bc210936d15b28e9720be60d"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchForward.blend",
+      "bytes": 9712513,
+      "sha256": "37deacd6d053a8098ab49fa66b3794286253bfbe89a36d7121230913e03e3b64"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchForward.fbx",
+      "bytes": 833884,
+      "sha256": "ef89acacff75527d5861211884493565fba0c77421fd0e68ad8659732bf1cd3e"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchForwardLeft.blend",
+      "bytes": 9712513,
+      "sha256": "6b744c53cccc187032f70a61e7f0ab90e3fdd072ff75c9d6272a4242b8285ee6"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchForwardLeft.fbx",
+      "bytes": 834076,
+      "sha256": "22f1984272e05538f6df3b24ed06eaa8eaeb723351302f53257cc5e4a0e3945f"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchForwardRight.blend",
+      "bytes": 9712513,
+      "sha256": "2ce8fe838a010ea453affeb889855f7a36184fbb98a91e628c6f5e35f7c0c882"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchForwardRight.fbx",
+      "bytes": 834060,
+      "sha256": "5035cb928f780b22a26a79d2671658b6f87f9c6db8ebc331bc4b0e62ebb518c4"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchIdle.blend",
+      "bytes": 9712513,
+      "sha256": "e1f13f3bfd3b4a77703fcd3c9d65a2ba3a4cb6ce5ea7f96e856a4c18d5641d91"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchIdle.fbx",
+      "bytes": 813916,
+      "sha256": "0a4aa0effe2916b161feda495f8aed3332f228554ba7e4c01df9a5836575a2e5"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchLeft.blend",
+      "bytes": 9712513,
+      "sha256": "8ca46ee8df4fbde9bd5125526b6c266d0e8a6714c3fd48fef1207bd33c476350"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchLeft.fbx",
+      "bytes": 834076,
+      "sha256": "d4a09170420d3c55d21b5fea517491756104265ac03839e68b48cfdbaefbfa40"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchLowReady.blend",
+      "bytes": 9712513,
+      "sha256": "dc4b3f8aabaf3432ed979b3e23311e9b4b612bdfbfee7123653d5c2053453a65"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchLowReady.fbx",
+      "bytes": 813916,
+      "sha256": "dff86a9e8285ab60bff77ff3cfcef5628004c69a7de0608c990c2134cf6a2fc5"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchRight.blend",
+      "bytes": 9712513,
+      "sha256": "c41c48a456c969338e0d09eea7f59aec56d4942981a363fdd9ee523fa82a57e3"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchRight.fbx",
+      "bytes": 834076,
+      "sha256": "33fe8b640c699eb1297d2d487dfd8fa225220b81f21d7c717fed9ad4e160f0b4"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/Expected.json",
+      "bytes": 23842379,
+      "sha256": "19774eaa65e39b8725f91d269554f39779c7737e54f1fbf08c9f6842c8f5a609"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/Stance_0.blend",
+      "bytes": 9712513,
+      "sha256": "0f3471d440eff0b6b3049698a8a2c453b46e8de7d1cf6c5e8aa6f49ff2116ff9"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/Stance_0.fbx",
+      "bytes": 813884,
+      "sha256": "dd2740b186feee12141b3914d0810be442245016bdb0b0df09b3590f119a92bb"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/Stance_1.blend",
+      "bytes": 9712513,
+      "sha256": "493634ec325262485edf383743320a97c33dc3b3b016b4b72ae8376e1131ecec"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/Stance_1.fbx",
+      "bytes": 813916,
+      "sha256": "f1b3583e7c95d3790770662859535e0383d8ec3b0393448f8b658ebde09681aa"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/Stance_2.blend",
+      "bytes": 9712513,
+      "sha256": "a3b851158a62810dc7259150d7d572be9db9c549b7ed916c116bbdc3310f7169"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/Stance_2.fbx",
+      "bytes": 813932,
+      "sha256": "905007ee6b846f759edaf4ea514d65433931e954ba2133ff753023ad59e7fb79"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/Stance_3.blend",
+      "bytes": 9712513,
+      "sha256": "76ef0eb2317d1c550ff06ec9588b6c0ba15ced0f4bbe471750fb13bd15af05d4"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/Stance_3.fbx",
+      "bytes": 813932,
+      "sha256": "284e092e7f07dbfc6311e8a310f247cda7fe3829ccffbbfa8223695f69861d8d"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/Stance_4.blend",
+      "bytes": 9712513,
+      "sha256": "328008032a8324fb5277dc340633d7523fe67592e05369058f2886aee3cc0d0e"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/Stance_4.fbx",
+      "bytes": 813932,
+      "sha256": "8fe6a15e5b77c0731d89e1ca35d69bc33e1ccbfc2abcc9cade661e5824a2c352"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/Stance_5.blend",
+      "bytes": 9712513,
+      "sha256": "a1af96c2f8c98d79a9c59a9ccc312c5cac3cd99bbc985f30102afeee6a92e7e2"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/Stance_5.fbx",
+      "bytes": 813932,
+      "sha256": "6af59a5e34b1a639a443acbffaab7558503643c7e0dd77aaa8196523347bfd9a"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/Stance_6.blend",
+      "bytes": 9712513,
+      "sha256": "9e7c0b1999c73f12cccb8e87807a429a57ca439fbb7aa970cdab11554d4ec8cb"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/Stance_6.fbx",
+      "bytes": 813932,
+      "sha256": "9e6e35b8bad5afc431e1582a05267331bdf49624d44cc6c89699eba927a26d96"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/Stance_7.blend",
+      "bytes": 9712513,
+      "sha256": "87c2bc2291c24a72f9d24522913e7517d6def29c4621416f5ae8b6abf86d3e9b"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/Stance_7.fbx",
+      "bytes": 813932,
+      "sha256": "258d364b8e14c698b91877c4fec659c6ae15a5c616eba2fe2d503328709267b0"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/Stance_8.blend",
+      "bytes": 9712513,
+      "sha256": "36e5fa1284d6ab648bc1c5c12298a75a0119d2a2fdabe18857675b3251dac4fc"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/Stance_8.fbx",
+      "bytes": 813916,
+      "sha256": "d915a2672f4c57cfabe9c70418469ee7a9cfb261663cb8f40f4ac19a45584710"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/WeaponAuthorSummary.json",
+      "bytes": 593,
+      "sha256": "ecb8c0f055fee473019aa6c3a311633ad413e939849147dffde2c9046ecca048"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/WeaponBakeSummary.json",
+      "bytes": 327,
+      "sha256": "89fc10f8ef5892cf55a83f9b3b7d55cfe5bef8877c8adc9fac1ec7c57e419d28"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/CommonStance.json",
+      "bytes": 102256,
+      "sha256": "e37328d1ce984ecb3a25f102047c0e540733f3c33c55047ac595fc669e8e984f"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/README.md",
+      "bytes": 2665,
+      "sha256": "f5318be6ad6de87c433cabd0ce880aec12a8d955dd224305ba85d3851331037b"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/ReferencePoses.json",
+      "bytes": 70957,
+      "sha256": "c269ec454f6ea788fd4b3a87606e296da9f8f96fd73e578eafad0b03407456fd"
+    },
+    {
+      "path": "SourceAssets/StanceCrouch/StanceAware_20261116/RuntimeAimReference.json",
+      "bytes": 156653,
+      "sha256": "de64e9dc37a0bf357eb9e99957005a1d6e4df949631e51f11ce08e24dfb6799d"
+    }
+  ],
+  "active_refined_asset_count": 30,
+  "retained_prototype_asset_count": 14
+}

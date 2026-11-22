@@ -1,0 +1,127 @@
+{
+  "reference_bone_error_cm": 4.9200858692565997e-05,
+  "foot_vertices": {
+    "l": 1977,
+    "r": 1977
+  },
+  "foot_triangles": {
+    "l": 3727,
+    "r": 3727
+  },
+  "cases": {
+    "6": {
+      "direction": 45.0,
+      "low": 0,
+      "frames": 68,
+      "surface_intersection_frames": 0,
+      "max_intersecting_triangle_pairs": 0,
+      "skin_min_z_cm": -4.01700148498469,
+      "skin_below_minus1cm_frames": 46
+    },
+    "14": {
+      "direction": 135.0,
+      "low": 0,
+      "frames": 68,
+      "surface_intersection_frames": 0,
+      "max_intersecting_triangle_pairs": 0,
+      "skin_min_z_cm": -5.0569974083163975,
+      "skin_below_minus1cm_frames": 42
+    },
+    "22": {
+      "direction": 225.0,
+      "low": 0,
+      "frames": 68,
+      "surface_intersection_frames": 0,
+      "max_intersecting_triangle_pairs": 0,
+      "skin_min_z_cm": -5.0467217389546,
+      "skin_below_minus1cm_frames": 42
+    },
+    "30": {
+      "direction": 315.0,
+      "low": 0,
+      "frames": 68,
+      "surface_intersection_frames": 0,
+      "max_intersecting_triangle_pairs": 0,
+      "skin_min_z_cm": -4.044685768434947,
+      "skin_below_minus1cm_frames": 43
+    },
+    "38": {
+      "direction": 45.0,
+      "low": 1,
+      "frames": 68,
+      "surface_intersection_frames": 0,
+      "max_intersecting_triangle_pairs": 0,
+      "skin_min_z_cm": -4.036833215030573,
+      "skin_below_minus1cm_frames": 43
+    },
+    "46": {
+      "direction": 135.0,
+      "low": 1,
+      "frames": 68,
+      "surface_intersection_frames": 0,
+      "max_intersecting_triangle_pairs": 0,
+      "skin_min_z_cm": -5.104719358822157,
+      "skin_below_minus1cm_frames": 44
+    },
+    "54": {
+      "direction": 225.0,
+      "low": 1,
+      "frames": 68,
+      "surface_intersection_frames": 0,
+      "max_intersecting_triangle_pairs": 0,
+      "skin_min_z_cm": -5.0960243889389645,
+      "skin_below_minus1cm_frames": 44
+    },
+    "62": {
+      "direction": 315.0,
+      "low": 1,
+      "frames": 68,
+      "surface_intersection_frames": 0,
+      "max_intersecting_triangle_pairs": 0,
+      "skin_min_z_cm": -4.06425744812219,
+      "skin_below_minus1cm_frames": 45
+    }
+  },
+  "worst": {
+    "6_floor": {
+      "time": 47.366669,
+      "phase": 0.383329,
+      "z": -4.01700148498469
+    },
+    "14_floor": {
+      "time": 77.266671,
+      "phase": 0.616654,
+      "z": -5.0569974083163975
+    },
+    "22_floor": {
+      "time": 109.266672,
+      "phase": 0.616646,
+      "z": -5.0467217389546
+    },
+    "30_floor": {
+      "time": 142.016674,
+      "phase": 0.339607,
+      "z": -4.044685768434947
+    },
+    "38_floor": {
+      "time": 173.016676,
+      "phase": 0.3396,
+      "z": -4.036833215030573
+    },
+    "46_floor": {
+      "time": 204.966677,
+      "phase": 0.622924,
+      "z": -5.104719358822157
+    },
+    "54_floor": {
+      "time": 236.966679,
+      "phase": 0.622916,
+      "z": -5.0960243889389645
+    },
+    "62_floor": {
+      "time": 270.716681,
+      "phase": 0.345877,
+      "z": -4.06425744812219
+    }
+  }
+}

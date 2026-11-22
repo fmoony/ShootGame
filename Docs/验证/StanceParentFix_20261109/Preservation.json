@@ -1,0 +1,17 @@
+[
+  {
+    "scope": "protected worktree map/source/stand/slide/FP/config/input",
+    "files": 20,
+    "changed": []
+  },
+  {
+    "scope": "OriginalFiles.Before.json",
+    "files": 58,
+    "changed": []
+  },
+  {
+    "scope": "EngineBaseline.Before.json",
+    "files": 18,
+    "changed": []
+  }
+]

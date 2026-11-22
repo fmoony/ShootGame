@@ -1,0 +1,65 @@
+{
+  "original_main": {
+    "checked": 58,
+    "changed": []
+  },
+  "engine_native": {
+    "checked": 18,
+    "changed": []
+  },
+  "worktree_before": {
+    "unchanged": [
+      "Config\\DefaultEditor.ini",
+      "Content\\Experiments\\Stance_20261022\\AS_Slide_Aim.uasset",
+      "Content\\Experiments\\Stance_20261022\\AS_Slide_LowReady.uasset",
+      "Content\\Experiments\\Stance_20261022\\AS_Stand_Aim.uasset",
+      "Content\\Experiments\\Stance_20261022\\AS_Stand_LowReady.uasset",
+      "Content\\Experiments\\Stance_20261022\\BS_Duck_Aim.uasset",
+      "Content\\Experiments\\Stance_20261022\\BS_Duck_LowReady.uasset",
+      "Content\\Experiments\\Stance_20261022\\L_StancePreview.umap",
+      "Content\\Experiments\\Stance_20261022\\SKM_FP_Arms.uasset",
+      "Content\\Experiments\\Stance_20261022\\SKM_FP_Legs.uasset",
+      "Content\\Experiments\\Stance_20261022\\Source\\AS_Source_CrouchBack.uasset",
+      "Content\\Experiments\\Stance_20261022\\Source\\AS_Source_CrouchForwardLeft.uasset",
+      "Content\\Experiments\\Stance_20261022\\Source\\AS_Source_CrouchIdle.uasset",
+      "Content\\Experiments\\Stance_20261022\\Source\\AS_Source_CrouchLeft.uasset",
+      "Content\\Experiments\\Stance_20261022\\Source\\AS_Source_CrouchRight.uasset",
+      "Content\\Experiments\\Stance_20261022\\Source\\SK_CrouchImport.uasset",
+      "Docs\\README.md",
+      "Docs\\UE58官方MCP.md",
+      "ShootGame.uproject",
+      "Source\\ShootGame\\AbilitySystem\\Abilities\\ShooterGameplayAbility_Fire.cpp",
+      "Source\\ShootGameEditor\\ShootGameEditor.Build.cs"
+    ],
+    "changed": [
+      "Content\\Experiments\\Stance_20261022\\AS_CrouchIdle_Aim.uasset",
+      "Content\\Experiments\\Stance_20261022\\AS_CrouchIdle_LowReady.uasset",
+      "Content\\Experiments\\Stance_20261022\\AS_DuckBack_Aim.uasset",
+      "Content\\Experiments\\Stance_20261022\\AS_DuckBack_LowReady.uasset",
+      "Content\\Experiments\\Stance_20261022\\AS_DuckBackLeft_Aim.uasset",
+      "Content\\Experiments\\Stance_20261022\\AS_DuckBackLeft_LowReady.uasset",
+      "Content\\Experiments\\Stance_20261022\\AS_DuckBackRight_Aim.uasset",
+      "Content\\Experiments\\Stance_20261022\\AS_DuckBackRight_LowReady.uasset",
+      "Content\\Experiments\\Stance_20261022\\AS_DuckForwardLeft_Aim.uasset",
+      "Content\\Experiments\\Stance_20261022\\AS_DuckForwardLeft_LowReady.uasset",
+      "Content\\Experiments\\Stance_20261022\\AS_DuckForwardRight_Aim.uasset",
+      "Content\\Experiments\\Stance_20261022\\AS_DuckForwardRight_LowReady.uasset",
+      "Content\\Experiments\\Stance_20261022\\AS_DuckLeft_Aim.uasset",
+      "Content\\Experiments\\Stance_20261022\\AS_DuckLeft_LowReady.uasset",
+      "Content\\Experiments\\Stance_20261022\\AS_DuckRight_Aim.uasset",
+      "Content\\Experiments\\Stance_20261022\\AS_DuckRight_LowReady.uasset",
+      "Content\\Experiments\\Stance_20261022\\AS_DuckWalk_Aim.uasset",
+      "Content\\Experiments\\Stance_20261022\\AS_DuckWalk_LowReady.uasset",
+      "Docs\\滑铲与下蹲动画实验.md",
+      "Scripts\\Animation\\Stance\\fbx_parent_motion.py",
+      "Scripts\\Animation\\Stance\\Run.ps1",
+      "Scripts\\Animation\\Stance\\verify.py",
+      "Source\\ShootGameEditor\\Tests\\Stance\\ShooterStancePreview.cpp",
+      "Source\\ShootGameEditor\\Tests\\Stance\\ShooterStancePreview.h"
+    ]
+  },
+  "build_id": {
+    "Binaries\\Win64\\UnrealEditor.modules": "db931d31-8703-4c38-b2b7-93dc445fd12b",
+    "E:\\UnrealEngine\\UE_5.8_Source\\Engine\\Binaries\\Win64\\UnrealEditor.modules": "db931d31-8703-4c38-b2b7-93dc445fd12b"
+  }
+}

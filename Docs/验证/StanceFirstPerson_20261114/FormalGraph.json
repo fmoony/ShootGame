@@ -1,0 +1,273 @@
+{
+  "pie": {
+    "returnValue": false
+  },
+  "tp": [
+    {
+      "type": "Animation|Blends|Layeredblendperbone",
+      "node": {
+        "refPath": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_LayeredBoneBlend_1"
+      },
+      "input": [
+        {
+          "name": "BasePose",
+          "value": "(LinkID=-1,SourceLinkID=-1)",
+          "connected": [
+            {
+              "refPath": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_StateMachine_58"
+            }
+          ]
+        },
+        {
+          "name": "BlendPoses_0",
+          "value": "(LinkID=-1,SourceLinkID=-1)",
+          "connected": [
+            {
+              "refPath": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_Slot_1"
+            }
+          ]
+        },
+        {
+          "name": "BlendWeights_0",
+          "value": "1.000000",
+          "connected": [
+            {
+              "refPath": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.K2Node_VariableGet_7"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Animation|BlendSpaces|AimOffsetPlayer'(None)'",
+      "node": {
+        "refPath": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_RotationOffsetBlendSpace_0"
+      },
+      "input": [
+        {
+          "name": "X",
+          "value": "0.000000",
+          "connected": []
+        },
+        {
+          "name": "Y",
+          "value": "0.000000",
+          "connected": [
+            {
+              "refPath": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.K2Node_VariableGet_1"
+            }
+          ]
+        },
+        {
+          "name": "BlendSpace",
+          "value": "",
+          "connected": [
+            {
+              "refPath": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.K2Node_VariableGet_5"
+            }
+          ]
+        },
+        {
+          "name": "BasePose",
+          "value": "(LinkID=-1,SourceLinkID=-1)",
+          "connected": [
+            {
+              "refPath": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_SequencePlayer_0"
+            }
+          ]
+        },
+        {
+          "name": "Alpha",
+          "value": "1.000000",
+          "connected": []
+        }
+      ]
+    },
+    {
+      "type": "Animation|Montage|Slot'Arms'",
+      "node": {
+        "refPath": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_Slot_1"
+      },
+      "input": [
+        {
+          "name": "Source",
+          "value": "(LinkID=-1,SourceLinkID=-1)",
+          "connected": [
+            {
+              "refPath": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_StateMachine_0"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Animation|SkeletalControls|ShooterAimIK",
+      "node": {
+        "refPath": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_ShooterAimIK_0"
+      },
+      "input": [
+        {
+          "name": "ComponentPose",
+          "value": "(LinkID=-1,SourceLinkID=-1)",
+          "connected": [
+            {
+              "refPath": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_LocalToComponentSpace_0"
+            }
+          ]
+        },
+        {
+          "name": "Alpha",
+          "value": "1.000000",
+          "connected": [
+            {
+              "refPath": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.K2Node_VariableGet_13"
+            }
+          ]
+        },
+        {
+          "name": "AimDirectionWorld",
+          "value": "1.000000,0.000000,0.000000",
+          "connected": [
+            {
+              "refPath": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.K2Node_VariableGet_4"
+            }
+          ]
+        },
+        {
+          "name": "AimTargetWorld",
+          "value": "0.000000,0.000000,0.000000",
+          "connected": [
+            {
+              "refPath": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.K2Node_VariableGet_8"
+            }
+          ]
+        },
+        {
+          "name": "bUseAimTargetWorld",
+          "value": "False",
+          "connected": [
+            {
+              "refPath": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.K2Node_VariableGet_3"
+            }
+          ]
+        },
+        {
+          "name": "HandToMuzzle",
+          "value": "0.000000,0.000000,0.000000|0.000000,0.000000,-0.000000|1.000000,1.000000,1.000000",
+          "connected": [
+            {
+              "refPath": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.K2Node_VariableGet_2"
+            }
+          ]
+        },
+        {
+          "name": "MinimumTargetDistanceFromMuzzle",
+          "value": "50.000000",
+          "connected": [
+            {
+              "refPath": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.K2Node_VariableGet_14"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "|GetAimDirectionWorld",
+      "node": {
+        "refPath": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.K2Node_VariableGet_4"
+      },
+      "input": []
+    },
+    {
+      "type": "|GetAimPitchN",
+      "node": {
+        "refPath": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.K2Node_VariableGet_1"
+      },
+      "input": []
+    },
+    {
+      "type": "|GetAimTargetWorld",
+      "node": {
+        "refPath": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.K2Node_VariableGet_8"
+      },
+      "input": []
+    },
+    {
+      "type": "|GetbAimTargetWorldValid",
+      "node": {
+        "refPath": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.K2Node_VariableGet_3"
+      },
+      "input": []
+    },
+    {
+      "type": "|GetAimIKPresentationAlpha",
+      "node": {
+        "refPath": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.K2Node_VariableGet_13"
+      },
+      "input": []
+    },
+    {
+      "type": "Animation|CachedPoses|Savecachedpose'ArmedAimPose'",
+      "node": {
+        "refPath": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_SaveCachedPose_0"
+      },
+      "input": [
+        {
+          "name": "Pose",
+          "value": "(LinkID=-1,SourceLinkID=-1)",
+          "connected": [
+            {
+              "refPath": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.AnimGraphNode_RotationOffsetBlendSpace_0"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "|GetMinimumRemoteAimTargetDistanceFromMuzzle",
+      "node": {
+        "refPath": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.K2Node_VariableGet_14"
+      },
+      "input": []
+    },
+    {
+      "type": "|GetThirdPersonAimOffset",
+      "node": {
+        "refPath": "/Game/Shooter/Animation/ThirdPerson/ABP_TP_Player.ABP_TP_Player:AnimGraph.K2Node_VariableGet_5"
+      },
+      "input": []
+    }
+  ],
+  "fp": [
+    {
+      "type": "Animation|Misc.|CopyPoseFromMesh",
+      "node": {
+        "refPath": "/Game/Shooter/Animation/FirstPerson/ABP_FP_Player.ABP_FP_Player:AnimGraph.AnimGraphNode_CopyPoseFromMesh_0"
+      },
+      "input": [
+        {
+          "name": "SourceMeshComponent",
+          "value": "",
+          "connected": []
+        }
+      ]
+    },
+    {
+      "type": "Animation|Montage|Slot'Arms'",
+      "node": {
+        "refPath": "/Game/Shooter/Animation/FirstPerson/ABP_FP_Player.ABP_FP_Player:AnimGraph.AnimGraphNode_Slot_0"
+      },
+      "input": [
+        {
+          "name": "Source",
+          "value": "(LinkID=-1,SourceLinkID=-1)",
+          "connected": [
+            {
+              "refPath": "/Game/Shooter/Animation/FirstPerson/ABP_FP_Player.ABP_FP_Player:AnimGraph.AnimGraphNode_CopyPoseFromMesh_0"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

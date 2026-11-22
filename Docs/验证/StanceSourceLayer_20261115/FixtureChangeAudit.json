@@ -1,0 +1,33 @@
+{
+  "status": "Passed",
+  "unchanged_functions": [
+    {
+      "name": "Sample",
+      "unchanged": true,
+      "sha256": "bb962f6994ea4af18d5c0582f5d2cd3bdae2cdeccf5109498d7e4f690288fd09"
+    },
+    {
+      "name": "AimSpines",
+      "unchanged": true,
+      "sha256": "8372a16a03bd5d153e1e2c7a79c5695e0ecdf006eb5d6ffdfe4310c52315d26a"
+    },
+    {
+      "name": "Grip",
+      "unchanged": true,
+      "sha256": "2da4bcc9cf19d55ea915e8e05889e400f1c952a38e6e96bf291e0ff316b48b37"
+    },
+    {
+      "name": "LayerUpperBody",
+      "unchanged": true,
+      "sha256": "a629e3a90430cbf2b9e542d45725db46518912c62a12a0c48e61856c109e8dd1"
+    }
+  ],
+  "no_cpp_grounding_added": true,
+  "source_header_only_edited": true,
+  "vs_refresh_required": false,
+  "new_blendspace": "SourceLayer/BS_SourceLayer_Lower",
+  "legacy_switch": "-StanceLegacyLower",
+  "actor_movement": "从完整来源 root 净行进只读提取，匹配 Pawn 速度；不修改骨骼",
+  "runtime_input": "RuntimeInput.json",
+  "movement_proof": "MovementMatch.json"
+}

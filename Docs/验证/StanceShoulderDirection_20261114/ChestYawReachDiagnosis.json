@@ -1,0 +1,9 @@
+{
+  "samples": 2003,
+  "method": "Chest yaw aligned, original right arm reference orientation, left hand follows real rifle",
+  "right_reach_cm": 30.39687190692473,
+  "left_reach_cm": [
+    25.373503125942367,
+    40.70224126883591
+  ]
+}
