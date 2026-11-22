@@ -21,5 +21,8 @@ public class ShootGameEditor : ModuleRules
 			PrivateDependencyModuleNames.AddRange(new string[] { "UnrealEd", "BlueprintEditorLibrary", "Kismet",
 				"Slate", "SlateCore", "AssetTools", "AnimationDataController" });
 		PrivateDependencyModuleNames.AddRange(new string[] { "InputCore", "GameplayStateTreeModule", "NavigationSystem" });
+		// 隔离 Stance 夹具派生 FP 网格并封闭切口所需的网格与骨权重接口。
+		PrivateDependencyModuleNames.AddRange(new string[] { "MeshDescription", "SkeletalMeshDescription",
+			"AnimationCore", "StaticMeshDescription", "Json" });
 	}
 }

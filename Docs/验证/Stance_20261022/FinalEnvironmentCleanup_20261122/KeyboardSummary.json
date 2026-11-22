@@ -1,0 +1,56 @@
+{
+  "state": "Passed",
+  "frames": 596,
+  "directions": {
+    "F": {
+      "samples": 50,
+      "min_speed_cm_s": 150.0,
+      "max_speed_cm_s": 150.0
+    },
+    "FR": {
+      "samples": 53,
+      "min_speed_cm_s": 149.99999999999977,
+      "max_speed_cm_s": 150.00000000000068
+    },
+    "R": {
+      "samples": 54,
+      "min_speed_cm_s": 150.0,
+      "max_speed_cm_s": 150.00000000000085
+    },
+    "BR": {
+      "samples": 53,
+      "min_speed_cm_s": 149.99999999999937,
+      "max_speed_cm_s": 150.00000000000114
+    },
+    "B": {
+      "samples": 54,
+      "min_speed_cm_s": 150.0,
+      "max_speed_cm_s": 150.0
+    },
+    "BL": {
+      "samples": 53,
+      "min_speed_cm_s": 149.9999999999991,
+      "max_speed_cm_s": 150.00000000000074
+    },
+    "L": {
+      "samples": 53,
+      "min_speed_cm_s": 150.0,
+      "max_speed_cm_s": 150.0
+    },
+    "FL": {
+      "samples": 53,
+      "min_speed_cm_s": 149.99999999999972,
+      "max_speed_cm_s": 150.0
+    }
+  },
+  "idle_max_speed_cm_s": 0.0,
+  "input_graph_max_error": 0,
+  "actor_z_range": [
+    0.0,
+    0.0
+  ],
+  "unique_classes": [
+    "/Game/Experiments/Stance_20261022/ABP_Smoothing03_Crouch.ABP_Smoothing03_Crouch_C"
+  ],
+  "visual_acceptance": "Current task verifies preservation and playability; no new animation quality approval."
+}

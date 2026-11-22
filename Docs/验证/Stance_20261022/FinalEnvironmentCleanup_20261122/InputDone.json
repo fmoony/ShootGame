@@ -1,0 +1,94 @@
+{
+  "method": "Targeted Win32 messages to unique verified UE PID 24788 preview HWND",
+  "windows": [
+    1115944
+  ],
+  "state": "Complete",
+  "events": [
+    {
+      "label": "F",
+      "keys": "W",
+      "seconds": 0.9
+    },
+    {
+      "label": "F_stop",
+      "keys": "",
+      "seconds": 0.25
+    },
+    {
+      "label": "FR",
+      "keys": "WD",
+      "seconds": 0.9
+    },
+    {
+      "label": "FR_stop",
+      "keys": "",
+      "seconds": 0.25
+    },
+    {
+      "label": "R",
+      "keys": "D",
+      "seconds": 0.9
+    },
+    {
+      "label": "R_stop",
+      "keys": "",
+      "seconds": 0.25
+    },
+    {
+      "label": "BR",
+      "keys": "SD",
+      "seconds": 0.9
+    },
+    {
+      "label": "BR_stop",
+      "keys": "",
+      "seconds": 0.25
+    },
+    {
+      "label": "B",
+      "keys": "S",
+      "seconds": 0.9
+    },
+    {
+      "label": "B_stop",
+      "keys": "",
+      "seconds": 0.25
+    },
+    {
+      "label": "BL",
+      "keys": "SA",
+      "seconds": 0.9
+    },
+    {
+      "label": "BL_stop",
+      "keys": "",
+      "seconds": 0.25
+    },
+    {
+      "label": "L",
+      "keys": "A",
+      "seconds": 0.9
+    },
+    {
+      "label": "L_stop",
+      "keys": "",
+      "seconds": 0.25
+    },
+    {
+      "label": "FL",
+      "keys": "WA",
+      "seconds": 0.9
+    },
+    {
+      "label": "FL_stop",
+      "keys": "",
+      "seconds": 0.25
+    },
+    {
+      "label": "FinalStop",
+      "keys": "",
+      "seconds": 0.6
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "state": "Complete",
+  "deleted_files": 285,
+  "removed_empty_folders": [
+    "D:\\UE_Projects\\_worktrees\\ShootGame_UE58\\SourceAssets\\FourDirectionCrouch_20261117\\ImportReady",
+    "D:\\UE_Projects\\_worktrees\\ShootGame_UE58\\SourceAssets\\StanceCrouch\\StanceAware_20261116\\BakedV2",
+    "D:\\UE_Projects\\_worktrees\\ShootGame_UE58\\SourceAssets\\StanceCrouch\\StanceAware_20261116\\Baked",
+    "D:\\UE_Projects\\_worktrees\\ShootGame_UE58\\SourceAssets\\StanceCrouch\\BlenderGrounded"
+  ],
+  "backup": "D:\\UE_Projects\\_worktrees\\ShootGame_UE58\\Saved\\StanceSourceCleanup_20261122_01\\RetiredSourceAssets.zip"
+}

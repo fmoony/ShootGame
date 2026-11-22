@@ -1,0 +1,136 @@
+{
+  "verified": true,
+  "count": 21,
+  "original_bytes": 1895946,
+  "archive_bytes": 341134,
+  "archive_sha256": "2d95d9dc696234c0ca489f0e5649a8f447b64e7d438651dd6e4c1e4a3ca944c0",
+  "archive": "D:\\UE_Projects\\_worktrees\\ShootGame_UE58\\Saved\\StanceFinalCleanup_20261122_01\\DeletedAssets_Backup.zip",
+  "files": [
+    {
+      "package": "/Game/Experiments/Stance_20261022/ABP_Bake_CardinalBlend",
+      "file": "Content/Experiments/Stance_20261022/ABP_Bake_CardinalBlend.uasset",
+      "bytes": 75304,
+      "sha256": "4485f2c78ea119cee118e2aab640d7e703e79ebdfe35f0f4a94785e2e3381106"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/ABP_BakedEight_Crouch",
+      "file": "Content/Experiments/Stance_20261022/ABP_BakedEight_Crouch.uasset",
+      "bytes": 81274,
+      "sha256": "ced94728f84f8129a5d92732580805ca2fae8cb5b2b71f071d3491dafe7ae88a"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/ABP_OWBake_BackRight",
+      "file": "Content/Experiments/Stance_20261022/ABP_OWBake_BackRight.uasset",
+      "bytes": 96711,
+      "sha256": "661f9a985397ab5fc52132af3ef7ce507f4a8186da5ae1db98168f4a9b9fa419"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/ABP_OWBake_FrontLeft",
+      "file": "Content/Experiments/Stance_20261022/ABP_OWBake_FrontLeft.uasset",
+      "bytes": 99642,
+      "sha256": "bfda18f21c54e90c2b2ff03c199a3842a636cf7b068ba1c5f81b8f579a1c6fc1"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/ABP_OWLocalMovement",
+      "file": "Content/Experiments/Stance_20261022/ABP_OWLocalMovement.uasset",
+      "bytes": 562161,
+      "sha256": "91ae05401d9d341a389bf0877c1e61b0037ddea726756395d18ef826150ef11c"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/ABP_TorsoReferenceEight_Crouch",
+      "file": "Content/Experiments/Stance_20261022/ABP_TorsoReferenceEight_Crouch.uasset",
+      "bytes": 76663,
+      "sha256": "6f9f418c0be59fca2d020f3264d6f67d913df198ee21216a2819dea7e228c778"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/AS_BlendBaked_BackLeft",
+      "file": "Content/Experiments/Stance_20261022/AS_BlendBaked_BackLeft.uasset",
+      "bytes": 221060,
+      "sha256": "94d26e5c22c699f78cddfe39164c3044185d35d94fc98ee20a76c7b1d7199ff9"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/AS_OWBaked_BackRight",
+      "file": "Content/Experiments/Stance_20261022/AS_OWBaked_BackRight.uasset",
+      "bytes": 227045,
+      "sha256": "c3c9fb1027acdda55bdd292954ee8a05e9d630cb0d9bcfeeafbcb49472f1fb7c"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Back",
+      "file": "Content/Experiments/Stance_20261022/AS_RootLockSource_Back.uasset",
+      "bytes": 175211,
+      "sha256": "26376ddb3febe889c2110e4f6e09abe67f018e63642721b19fa756c962110d63"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/BP_BackTorsoComparisonMode",
+      "file": "Content/Experiments/Stance_20261022/BP_BackTorsoComparisonMode.uasset",
+      "bytes": 21403,
+      "sha256": "dd157434a6fa03e2f899e63d1bced03e6b3724dd89450a30562dc249c941df5f"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/BP_BakedEightGameMode",
+      "file": "Content/Experiments/Stance_20261022/BP_BakedEightGameMode.uasset",
+      "bytes": 20741,
+      "sha256": "1f9e34d6c1b14492d843e38fa24be02181a38c07c4ff4bf4d1a0acfdc92639f2"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/BP_OWLocalGameMode",
+      "file": "Content/Experiments/Stance_20261022/BP_OWLocalGameMode.uasset",
+      "bytes": 21788,
+      "sha256": "dbf05d653016406947885987b2a4cf3a277e232ee1a18fc55ba3519c0f0e3a2b"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/BP_OWLocalPreview",
+      "file": "Content/Experiments/Stance_20261022/BP_OWLocalPreview.uasset",
+      "bytes": 54498,
+      "sha256": "52de1a41ee87d0e37900ebea8dabea4009de03a9a630e95ac62aa51feca34a29"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/BP_TorsoReferenceEightGameMode",
+      "file": "Content/Experiments/Stance_20261022/BP_TorsoReferenceEightGameMode.uasset",
+      "bytes": 21265,
+      "sha256": "d8c9466176f6e8129d178ce121d18c33bb2709b1be3c47afa0121513f0fb0545"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/BS_Bake_CardinalSource",
+      "file": "Content/Experiments/Stance_20261022/BS_Bake_CardinalSource.uasset",
+      "bytes": 13200,
+      "sha256": "1cbc97c2fff02370f16e6fe215df9e87227a1da0219df71ef724e4af9296f893"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/BS_BakedEight_Crouch",
+      "file": "Content/Experiments/Stance_20261022/BS_BakedEight_Crouch.uasset",
+      "bytes": 18254,
+      "sha256": "6c283f70af7dc95d30e9fae9267c98aab9eb31553938c4f16502e37de64b1f66"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/BS_TorsoReferenceEight_Crouch",
+      "file": "Content/Experiments/Stance_20261022/BS_TorsoReferenceEight_Crouch.uasset",
+      "bytes": 18273,
+      "sha256": "c24152c650fae741afcac26826d639e4789c670601184b4efb4151f2a71f3933"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/L_BackTorsoReference",
+      "file": "Content/Experiments/Stance_20261022/L_BackTorsoReference.umap",
+      "bytes": 31921,
+      "sha256": "a10fa7d12758206a591e7067881cc46f99e464d9a00d707182ca26efbc96a242"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/L_BakedEight_Crouch",
+      "file": "Content/Experiments/Stance_20261022/L_BakedEight_Crouch.umap",
+      "bytes": 19856,
+      "sha256": "bd16298de5849e7a5a706e27c14c91a2130933a71503b0b77c27f646741a1eae"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/L_OWLocalMovement",
+      "file": "Content/Experiments/Stance_20261022/L_OWLocalMovement.umap",
+      "bytes": 19686,
+      "sha256": "93cbc19d5eca072911ae4fda6958b4d8f524c10df1d9e96a719b044bc710891f"
+    },
+    {
+      "package": "/Game/Experiments/Stance_20261022/L_TorsoReferenceEight_Crouch",
+      "file": "Content/Experiments/Stance_20261022/L_TorsoReferenceEight_Crouch.umap",
+      "bytes": 19990,
+      "sha256": "a3aa385506d2136575713331b5bbdc7607cc68b8a2032b8cfda3c4baf0b1a2a5"
+    }
+  ]
+}

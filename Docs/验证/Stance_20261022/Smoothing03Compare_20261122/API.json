@@ -1,0 +1,27 @@
+{
+  "class": "/Game/Experiments/Stance_20261022/ABP_Smoothing03_Crouch.ABP_Smoothing03_Crouch_C",
+  "single_node_methods": [
+    "get_time_to_closest_marker",
+    "montage_get_blend_time",
+    "montage_get_effective_play_rate",
+    "montage_get_play_rate",
+    "montage_set_play_rate",
+    "set_blend_space_position",
+    "set_play_rate",
+    "set_position_with_previous_time"
+  ],
+  "times": {
+    "0": {
+      "length": 1.0,
+      "time": 0.0
+    },
+    "1": {
+      "length": 0.0,
+      "time": 0.0
+    },
+    "2": {
+      "length": 0.0,
+      "time": 0.0
+    }
+  }
+}

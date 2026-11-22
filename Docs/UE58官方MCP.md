@@ -68,9 +68,9 @@ RifleTools 使用后台 Blender、UE Python Commandlet 和原生 Editor 夹具�
 它不依赖旧 MCP，脚本、blend、fbx、姿态数据和导出设置全部保留。
 路径适配与动画重放另行验收，见 [Blender 工具链](Blender动画编辑工具链.md)。
 
-下蹲与滑铲仍是原 main 工作区的隔离动画原型。
-本轮不复制、删除、整合或接入 Stance 资产、源码和脚本。
-本轮也不处理原 main 的其他未提交修改。
+下蹲与滑铲已迁入 UE58 Worktree 的原隔离地图，使用独立动画脚本与 Editor 夹具。
+当前来源动作与验证边界见[下蹲实验][stance]，不依赖 MCP。
+原 main 的实验原件与其他未提交修改保持不变。
 
 ## 本机构建与验证边界
 
@@ -88,3 +88,5 @@ Codex 项目配置已提供，本轮直接通过 HTTP 验证服务；新聊天�
 
 - [Epic Unreal MCP](https://dev.epicgames.com/documentation/unreal-engine/unreal-mcp-in-unreal-editor)
 - [Codex MCP 配置](https://learn.chatgpt.com/docs/extend/mcp?surface=cli)
+
+[stance]: 验证/Stance_20261022/README.md

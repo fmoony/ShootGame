@@ -1,0 +1,2147 @@
+{
+  "allowed_roots": [
+    "BlendMirrorEight_20261117",
+    "FourDirectionCrouch_20261117",
+    "FourDirectionRootLockSource_20261117",
+    "StanceCrouch",
+    "StanceKeepUpperHeading_20261118",
+    "StanceLowerMirror_20261118",
+    "StanceTorsoMirrorHeadHands_20261118"
+  ],
+  "keep": [
+    {
+      "file": "SourceAssets/Audio/Footsteps/footstep_concrete_000.wav",
+      "bytes": 9164,
+      "sha256": "b294e3fa4024ced6101d6d990275bf320281c685316ce8c36446e2ab0ff84ac0",
+      "reason": "其他长期来源，保持"
+    },
+    {
+      "file": "SourceAssets/Audio/Footsteps/footstep_concrete_001.wav",
+      "bytes": 9316,
+      "sha256": "1fc77805b801b210c2faf74dda650c575d6ee9e0a596bcdad1e94485aff25054",
+      "reason": "其他长期来源，保持"
+    },
+    {
+      "file": "SourceAssets/Audio/Footsteps/footstep_concrete_002.wav",
+      "bytes": 9770,
+      "sha256": "1a69a185089f786efcde5d2f1355549ebb155da20a997a13dd475189d77df69a",
+      "reason": "其他长期来源，保持"
+    },
+    {
+      "file": "SourceAssets/Audio/Footsteps/footstep_concrete_003.wav",
+      "bytes": 9568,
+      "sha256": "f56324c6775cb1f63838838ef1ec52c3ed07156dcfb880a0452697f4ef5a77b9",
+      "reason": "其他长期来源，保持"
+    },
+    {
+      "file": "SourceAssets/Audio/Footsteps/footstep_concrete_004.wav",
+      "bytes": 9908,
+      "sha256": "21abe6048d839c999045f8d59b10610159b6ff7b1bb4eb5b32dca68b79287ee3",
+      "reason": "其他长期来源，保持"
+    },
+    {
+      "file": "SourceAssets/Audio/Footsteps/License.txt",
+      "bytes": 610,
+      "sha256": "043d5a52d1dc1dfd67437b55b714b7fd629031153ac579b9fdedc5396c037f99",
+      "reason": "其他长期来源，保持"
+    },
+    {
+      "file": "SourceAssets/Audio/Footsteps/README.md",
+      "bytes": 2667,
+      "sha256": "992f1c05493befe110daa7274b5c2ec90f7d37d13b942b3eda9baee7bae3c28a",
+      "reason": "其他长期来源，保持"
+    },
+    {
+      "file": "SourceAssets/Audio/Footsteps/MetalDirt/footstep_dirt_000.wav",
+      "bytes": 21764,
+      "sha256": "234981ee4f6f15a4bc38b598c18d4325a9e4f47732f103c17c64b058fc191b4b",
+      "reason": "其他长期来源，保持"
+    },
+    {
+      "file": "SourceAssets/Audio/Footsteps/MetalDirt/footstep_dirt_001.wav",
+      "bytes": 21764,
+      "sha256": "65e8d086d3178b88eea073a2dda409f92433b9620deec367bc8a5202c6928d26",
+      "reason": "其他长期来源，保持"
+    },
+    {
+      "file": "SourceAssets/Audio/Footsteps/MetalDirt/footstep_dirt_002.wav",
+      "bytes": 21764,
+      "sha256": "2a6e0b9a42685fdd17bddb90bb5ed9460955848350cdea6c466a2eb69539c400",
+      "reason": "其他长期来源，保持"
+    },
+    {
+      "file": "SourceAssets/Audio/Footsteps/MetalDirt/footstep_dirt_003.wav",
+      "bytes": 21764,
+      "sha256": "cc3374387bb775716a4f149a99ed697c75ec49578908ee1bd2dd2e4fb9e98ede",
+      "reason": "其他长期来源，保持"
+    },
+    {
+      "file": "SourceAssets/Audio/Footsteps/MetalDirt/footstep_dirt_004.wav",
+      "bytes": 21766,
+      "sha256": "1247c8dc8b55c850ae48ebdaa671ef75c06c5b3ce71cadf9f8d1db611d49fe0f",
+      "reason": "其他长期来源，保持"
+    },
+    {
+      "file": "SourceAssets/Audio/Footsteps/MetalDirt/footstep_metal_000.wav",
+      "bytes": 28902,
+      "sha256": "b93bc3bc4d2979d89eeb2bd44e7c373bb55acb2a52255cb1dc9f3a7547848746",
+      "reason": "其他长期来源，保持"
+    },
+    {
+      "file": "SourceAssets/Audio/Footsteps/MetalDirt/footstep_metal_001.wav",
+      "bytes": 31306,
+      "sha256": "98212932328f9737a5eed7f97a54d585b8b3ec4eb8aa32ece1aefe2bb8554cd1",
+      "reason": "其他长期来源，保持"
+    },
+    {
+      "file": "SourceAssets/Audio/Footsteps/MetalDirt/footstep_metal_002.wav",
+      "bytes": 17840,
+      "sha256": "3738649153a779369d09a240ab1acdaf48356dbdc56489e456de194fd822703a",
+      "reason": "其他长期来源，保持"
+    },
+    {
+      "file": "SourceAssets/Audio/Footsteps/MetalDirt/footstep_metal_003.wav",
+      "bytes": 27460,
+      "sha256": "f74893027d0c3c6ce017caa2931b0d5f881752d3586db4b491c2eb390bbcfcd5",
+      "reason": "其他长期来源，保持"
+    },
+    {
+      "file": "SourceAssets/Audio/Footsteps/MetalDirt/footstep_metal_004.wav",
+      "bytes": 24092,
+      "sha256": "3703c13a9e8f1c658c591295960854485535c1914397e36c0ae00c8d6818b562",
+      "reason": "其他长期来源，保持"
+    },
+    {
+      "file": "SourceAssets/Audio/Footsteps/MetalDirt/License-Dirt.txt",
+      "bytes": 141,
+      "sha256": "f6358da5008eab95662289159e00030bda8eb66df0a078dbc555bea176338553",
+      "reason": "其他长期来源，保持"
+    },
+    {
+      "file": "SourceAssets/Audio/Footsteps/MetalDirt/License-Metal.txt",
+      "bytes": 150,
+      "sha256": "6868c5ddd29a322a9cbc15bf54b202551b3e7eac09979a94bffa3e26009fb19a",
+      "reason": "其他长期来源，保持"
+    },
+    {
+      "file": "SourceAssets/Audio/Footsteps/MetalDirt/Manifest.json",
+      "bytes": 4045,
+      "sha256": "c4148af580af19b540a6f6cfea8e0db3a3ff828c82dcb5c4de46842f42620c8b",
+      "reason": "其他长期来源，保持"
+    },
+    {
+      "file": "SourceAssets/Audio/Footsteps/MetalDirt/README.md",
+      "bytes": 1700,
+      "sha256": "655ba3a1f185cc5781f9633593479337b99d5e1d26938f36485cdc48237686c5",
+      "reason": "其他长期来源，保持"
+    },
+    {
+      "file": "SourceAssets/BlendMirrorEight_20261117/README.md",
+      "bytes": 1131,
+      "sha256": "04af600b3f97562cdd982c2fc3657e716ff0818252591a83ea588f6d73c0d7d5",
+      "reason": "保留原有制作说明，不改历史正文"
+    },
+    {
+      "file": "SourceAssets/FourDirectionCrouch_20261117/README.md",
+      "bytes": 1585,
+      "sha256": "37b8ed50f85c7dd53c609c2ad01ce1aaa666f30d7e23ac998cf495556484cd2f",
+      "reason": "保留原有制作说明，不改历史正文"
+    },
+    {
+      "file": "SourceAssets/FourDirectionCrouch_20261117/Sources.json",
+      "bytes": 1125,
+      "sha256": "c2a439b100a5906ddcfb318e3ac92323127b724ce17c6a9f669819bcc4293237",
+      "reason": "较早四方向原始输入与来源清单"
+    },
+    {
+      "file": "SourceAssets/FourDirectionCrouch_20261117/Original/Crouch Walking Forward.fbx",
+      "bytes": 381920,
+      "sha256": "daa24e0aba3a3e931c13467d437704d2a318843ff2ca55aafa8d4c86ed99b109",
+      "reason": "较早四方向原始输入与来源清单"
+    },
+    {
+      "file": "SourceAssets/FourDirectionCrouch_20261117/Original/Walk Crouching Backward.fbx",
+      "bytes": 369312,
+      "sha256": "1eef8fded52d21572da4fdb0bc9bb6199ab09f5c47ce8e13803c91a2f09574ef",
+      "reason": "较早四方向原始输入与来源清单"
+    },
+    {
+      "file": "SourceAssets/FourDirectionCrouch_20261117/Original/Walk Crouching Left.fbx",
+      "bytes": 369312,
+      "sha256": "bcdc94e10027be664cd4ecf91a3a1c4a1ec606acb3cc9c9d1c3fed25dac1429f",
+      "reason": "较早四方向原始输入与来源清单"
+    },
+    {
+      "file": "SourceAssets/FourDirectionCrouch_20261117/Original/Walk Crouching Right.fbx",
+      "bytes": 369312,
+      "sha256": "09ea6ce933cf5fe943af9514fb5ffa20751aa14fd7090d4ab71a63fc74414ef6",
+      "reason": "较早四方向原始输入与来源清单"
+    },
+    {
+      "file": "SourceAssets/FourDirectionRootLockSource_20261117/import_ue.py",
+      "bytes": 5138,
+      "sha256": "e6f17ed403b181bbf33410f1c3d8f4ebf83c935ff3247a403b57d81c4ea33b82",
+      "reason": "当前四方向原件、导入版本与完整制作包"
+    },
+    {
+      "file": "SourceAssets/FourDirectionRootLockSource_20261117/prepare_import.py",
+      "bytes": 7866,
+      "sha256": "5b32317413c7b1df03ded6f1288e704122b69d128c704f41b22aeac72602ede7",
+      "reason": "当前四方向原件、导入版本与完整制作包"
+    },
+    {
+      "file": "SourceAssets/FourDirectionRootLockSource_20261117/README.md",
+      "bytes": 1219,
+      "sha256": "f2fd91ea5d1cb3e72859fc9c2426a5e0a09234f53a29a43079cfbe21baf70ad8",
+      "reason": "当前四方向原件、导入版本与完整制作包"
+    },
+    {
+      "file": "SourceAssets/FourDirectionRootLockSource_20261117/Sources.json",
+      "bytes": 1394,
+      "sha256": "63e0945083bb6a0b897025caec20d037495f9f8f04ddbcd0e48b57a8646521a4",
+      "reason": "当前四方向原件、导入版本与完整制作包"
+    },
+    {
+      "file": "SourceAssets/FourDirectionRootLockSource_20261117/ImportReady/Back.blend",
+      "bytes": 3360243,
+      "sha256": "38a9de92c8ceacab93c449fc39e9bb91e2f5364248134f6997fcbd5783b4ca30",
+      "reason": "当前四方向原件、导入版本与完整制作包"
+    },
+    {
+      "file": "SourceAssets/FourDirectionRootLockSource_20261117/ImportReady/Back.fbx",
+      "bytes": 773324,
+      "sha256": "dd9828e45ddcaad76c339716c3f2880af7514ee397d6e31ef40268ca2f63b0ca",
+      "reason": "当前四方向原件、导入版本与完整制作包"
+    },
+    {
+      "file": "SourceAssets/FourDirectionRootLockSource_20261117/ImportReady/BakeSummary.json",
+      "bytes": 491,
+      "sha256": "804e3df22c7fe1d981858882ecf2b1cb95442847987cc853fd3220150bf4549d",
+      "reason": "当前四方向原件、导入版本与完整制作包"
+    },
+    {
+      "file": "SourceAssets/FourDirectionRootLockSource_20261117/ImportReady/Expected.json",
+      "bytes": 1973750,
+      "sha256": "a9a7b9d91385659c76b616503f9abc0c026bfd9f71de808b4ad7acd844014e44",
+      "reason": "当前四方向原件、导入版本与完整制作包"
+    },
+    {
+      "file": "SourceAssets/FourDirectionRootLockSource_20261117/ImportReady/Forward.blend",
+      "bytes": 3360243,
+      "sha256": "18030690a204eb88fd6da9de0808b5d56ae04dbf16d9afe666707ff35a96d4a4",
+      "reason": "当前四方向原件、导入版本与完整制作包"
+    },
+    {
+      "file": "SourceAssets/FourDirectionRootLockSource_20261117/ImportReady/Forward.fbx",
+      "bytes": 773324,
+      "sha256": "894a3c47ee589aa53dd5b36cb6513c3c27ac74f85fcbe77371b0a9b2ef8e36b3",
+      "reason": "当前四方向原件、导入版本与完整制作包"
+    },
+    {
+      "file": "SourceAssets/FourDirectionRootLockSource_20261117/ImportReady/Left.blend",
+      "bytes": 3360243,
+      "sha256": "eeb97df3203ad4330ca52c2c5378168334ff048cbc08096b1c8917ab04f6fa55",
+      "reason": "当前四方向原件、导入版本与完整制作包"
+    },
+    {
+      "file": "SourceAssets/FourDirectionRootLockSource_20261117/ImportReady/Left.fbx",
+      "bytes": 773324,
+      "sha256": "a137edd7e27b173f099b951ed4bdd3958511464c84c448b2a42a154270f12d6b",
+      "reason": "当前四方向原件、导入版本与完整制作包"
+    },
+    {
+      "file": "SourceAssets/FourDirectionRootLockSource_20261117/ImportReady/Right.blend",
+      "bytes": 3360243,
+      "sha256": "ab8fa1c61975c6004c04f4966bcbf5a9287def28e672a39fc943efb5e4573ec9",
+      "reason": "当前四方向原件、导入版本与完整制作包"
+    },
+    {
+      "file": "SourceAssets/FourDirectionRootLockSource_20261117/ImportReady/Right.fbx",
+      "bytes": 773324,
+      "sha256": "1e39b9888811aa6adfa9335f391e38e0b7099286554c4c24dcc2e0ce2c2ef119",
+      "reason": "当前四方向原件、导入版本与完整制作包"
+    },
+    {
+      "file": "SourceAssets/FourDirectionRootLockSource_20261117/Original/Walk Crouching Backward.fbx",
+      "bytes": 369312,
+      "sha256": "595e8fea63796a8ef2795a570fea7a4b47c8ae9c1363d19ade8abff4a0272a2b",
+      "reason": "当前四方向原件、导入版本与完整制作包"
+    },
+    {
+      "file": "SourceAssets/FourDirectionRootLockSource_20261117/Original/Walk Crouching Forward.fbx",
+      "bytes": 369312,
+      "sha256": "c2d94f359f548c89be304aee288eb3c4f8b8c4571908ab0a2a3939239c84fc5f",
+      "reason": "当前四方向原件、导入版本与完整制作包"
+    },
+    {
+      "file": "SourceAssets/FourDirectionRootLockSource_20261117/Original/Walk Crouching Left.fbx",
+      "bytes": 369312,
+      "sha256": "f93ee82a024fd76b41a11b3af86f3a7285a30fdd53852ee85c89b85f294c3670",
+      "reason": "当前四方向原件、导入版本与完整制作包"
+    },
+    {
+      "file": "SourceAssets/FourDirectionRootLockSource_20261117/Original/Walk Crouching Right.fbx",
+      "bytes": 369312,
+      "sha256": "5bb874bee60b4428863342626d1da9e296d693de4d37c816146f60356450efb0",
+      "reason": "当前四方向原件、导入版本与完整制作包"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/CrouchBack.fbx",
+      "bytes": 369312,
+      "sha256": "5cea1844f84fff1c24b1aec3b14a37632b7940cb6692ac44e8c8ac9d72bf6278",
+      "reason": "最早五段原始输入与来源清单"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/CrouchForwardLeft.fbx",
+      "bytes": 369312,
+      "sha256": "a920a9a3313588dee457c24964259b99ac4706663d5a873fe2f2d1927761b8cb",
+      "reason": "最早五段原始输入与来源清单"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/CrouchIdle.fbx",
+      "bytes": 821392,
+      "sha256": "d8c0859e2c76c99da0b8f5b942fe802d0a56b1a6dd3f438253c0c24274de40e5",
+      "reason": "最早五段原始输入与来源清单"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/CrouchLeft.fbx",
+      "bytes": 415360,
+      "sha256": "502d1f9ed6a74c372dd220067c4502839c8a58db8cf194217ca649c688da0ee6",
+      "reason": "最早五段原始输入与来源清单"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/CrouchRight.fbx",
+      "bytes": 411872,
+      "sha256": "53d66093a9f6cd4fbc1d2a0cc8fc7c2c784c155badcc79d9dceb385aeb9aaea4",
+      "reason": "最早五段原始输入与来源清单"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/Manifest.json",
+      "bytes": 849,
+      "sha256": "93d3fea802637a1ed6cd765e6fe0841af52d00471552a01c00c1bac68bf39f6d",
+      "reason": "最早五段原始输入与来源清单"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/README.md",
+      "bytes": 3513,
+      "sha256": "87acde4ad0c2dec075d48d1908b6746fc6e5bc8648dd259b7c744d165e694c6b",
+      "reason": "保留原有制作说明，不改历史正文"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BackRight/README.md",
+      "bytes": 1058,
+      "sha256": "73068d30f36abe1fa9dc5afef74d595c000d43b33e093c2acbad9871bccdd4f4",
+      "reason": "保留原有制作说明，不改历史正文"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/EightWay/README.md",
+      "bytes": 2208,
+      "sha256": "ede668d26a3954e39f5fa17434c36c850306ea67469599316c20f70caa023d13",
+      "reason": "保留原有制作说明，不改历史正文"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/LayerPlayback/README.md",
+      "bytes": 2578,
+      "sha256": "1864092b3c069321725a1c33b28d7a6219880863cb9f975b1db71332d27f528f",
+      "reason": "保留原有制作说明，不改历史正文"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/Mirrored/README.md",
+      "bytes": 1201,
+      "sha256": "00f7e6712e10876809f9909e685e76d18ca6ff4d9a8f26eb604f59ad45e1e67e",
+      "reason": "保留原有制作说明，不改历史正文"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/ParentBaked/README.md",
+      "bytes": 2043,
+      "sha256": "055487f43a1cf2cfc241e525236c3dd64c7fb3247ca783a4e2e9af0482dec604",
+      "reason": "保留原有制作说明，不改历史正文"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/README.md",
+      "bytes": 2665,
+      "sha256": "f5318be6ad6de87c433cabd0ce880aec12a8d955dd224305ba85d3851331037b",
+      "reason": "保留原有制作说明，不改历史正文"
+    },
+    {
+      "file": "SourceAssets/StanceKeepUpperHeading_20261118/README.md",
+      "bytes": 504,
+      "sha256": "1bdfbaf403feb24b0ec2f641c64f968b366dfb9d33868dad759ccb064cfc20f6",
+      "reason": "保留原有制作说明，不改历史正文"
+    },
+    {
+      "file": "SourceAssets/StanceLowerMirror_20261118/README.md",
+      "bytes": 766,
+      "sha256": "35a05af36eee1e7470b829c233132c4b7208fa46fe54ab6a99fd1d25af4e0fe6",
+      "reason": "保留原有制作说明，不改历史正文"
+    },
+    {
+      "file": "SourceAssets/StanceTorsoMirrorHeadHands_20261118/README.md",
+      "bytes": 585,
+      "sha256": "f988c2c5cadcfe7a76f4899625a6552bc10d985f6081b9fe836438543dc44897",
+      "reason": "保留原有制作说明，不改历史正文"
+    }
+  ],
+  "delete": [
+    {
+      "file": "SourceAssets/BlendMirrorEight_20261117/BackLeft.blend",
+      "bytes": 7497578,
+      "sha256": "f4450aa809ae3b8bfdc159924d746d50e75b2b9f75da2fbedfd11fa5f356c1b4",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/BlendMirrorEight_20261117/BackLeft.fbx",
+      "bytes": 911772,
+      "sha256": "e42e84732a45d5789ad00cda7cf7c1c849f65ed9a8f40c07be5e0cf8cf898dc5",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/BlendMirrorEight_20261117/BackRight.blend",
+      "bytes": 7497578,
+      "sha256": "0efe05eda5f9b0f5ee6a862129f6a36c9cf2446137d85a06e27b762b586c03a0",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/BlendMirrorEight_20261117/BackRight.fbx",
+      "bytes": 912252,
+      "sha256": "2ae5a042bddbf2552c9333a4e3a296383577735f0d1970f34667f81a8f24799a",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/BlendMirrorEight_20261117/BakeSummary.json",
+      "bytes": 428,
+      "sha256": "d30088f74d0f1dd71e31b5ed394ea3103c74ab12685ddc33792793fe9ce2e80e",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/BlendMirrorEight_20261117/bake_blends_mirrors.py",
+      "bytes": 5511,
+      "sha256": "22db16d9c152e7200c17743edbe93d727fbe60a231ef25d92a4a9653c7b539af",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/BlendMirrorEight_20261117/CaptureCheck.json",
+      "bytes": 215,
+      "sha256": "87b75eb96a7068c5ed1dbc839722ddd0ffae70f4727e0248a5f30939f190648a",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/BlendMirrorEight_20261117/Expected.json",
+      "bytes": 4144119,
+      "sha256": "06023ecd72e2ab44148a87abcd8912a73366b7a253a5b542d1dbfce02f2d05ab",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/BlendMirrorEight_20261117/ForwardLeft.blend",
+      "bytes": 7497578,
+      "sha256": "27c815146ac8540f592f0986a559dbd0604b7a78d5ab0bb7c585059a365a6d4f",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/BlendMirrorEight_20261117/ForwardLeft.fbx",
+      "bytes": 912396,
+      "sha256": "4341ee300eb1ef352ac070a9df76e0dcdb20fbbc3aa6f1feb5b83a4d298bd417",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/BlendMirrorEight_20261117/ForwardRight.blend",
+      "bytes": 7497578,
+      "sha256": "e1b0ead82856aed8b1aa4a222458dd76b189e7470aa268bbb8f3ff20b9cc9d67",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/BlendMirrorEight_20261117/ForwardRight.fbx",
+      "bytes": 911388,
+      "sha256": "08a71249ac6d71b49b560b4fac88e49f8d156a1d30b6cf61b1d2966ea7461e9b",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/BlendMirrorEight_20261117/import_ue.py",
+      "bytes": 5157,
+      "sha256": "216c29725a3359d27a4ee79a2b9f380b4de7449baad8d00e627f754261f2679e",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/BlendMirrorEight_20261117/NativeBlendPoses.json",
+      "bytes": 2097747,
+      "sha256": "8767dd819f3d7141117f6e0296a7ebc1b622560f11ab9dd1cb8a2b7c4eb49199",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/BlendMirrorEight_20261117/Sources.json",
+      "bytes": 976,
+      "sha256": "dc86c68866649e0208f86619c7f074c821c882b856ffd7efc63140af4ce9b662",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/FourDirectionCrouch_20261117/import_ue.py",
+      "bytes": 5140,
+      "sha256": "7793142402f2d924276dbd1a02a7466ed5950a22abcbca8d41995be0d51baa70",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/FourDirectionCrouch_20261117/prepare_import.py",
+      "bytes": 7854,
+      "sha256": "0f023260ba136d682d6ac0e743e5ec7dbe167068edaae68e8a360bde6e8e801b",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/FourDirectionCrouch_20261117/ImportReady/Back.fbx",
+      "bytes": 773324,
+      "sha256": "a047d1a1cd0410c234203d35583477f09063500130b9c364a6d213b1e38a4681",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/FourDirectionCrouch_20261117/ImportReady/BakeSummary.json",
+      "bytes": 506,
+      "sha256": "cac1c12868afd7dd999290c3201367d7a3840a81234bea2ab16af83b10b56215",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/FourDirectionCrouch_20261117/ImportReady/Expected.json",
+      "bytes": 2053027,
+      "sha256": "a9450f9c767b77747260a121b938dcfefb4927f2ea67b848d98fad9b8e8d3fb2",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/FourDirectionCrouch_20261117/ImportReady/Forward.fbx",
+      "bytes": 771020,
+      "sha256": "30849645bba0a4d815f3221b22817289de9930a13a2e055f389f51bc8dcc56ce",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/FourDirectionCrouch_20261117/ImportReady/Left.fbx",
+      "bytes": 773324,
+      "sha256": "49eb23a5053f4a265ff6940e3ac32b18d5d762deee2f8b7e30b75ccd66191f15",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/FourDirectionCrouch_20261117/ImportReady/Right.fbx",
+      "bytes": 773324,
+      "sha256": "e9e09b945537e15375a8595a8db1a7837d45f0b5822dc8a0f4c88afc3249871d",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGroundingSeed.json.gz",
+      "bytes": 924923,
+      "sha256": "2990841b93fce0d5d5564d0876d2b8a69ac3aa069c28afad1dab0bef3f9396d9",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/NativeGaitReference.json.gz",
+      "bytes": 1777361,
+      "sha256": "82f9f389cbe96d92adb65ef4d22bead4ed5f19be6bc1ca3f7fb07786813f3f82",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BackRight/BakeSummary.json",
+      "bytes": 455,
+      "sha256": "f6e49339975fa18e766b0445d2745364f4715a98eb1fa9586349fe65d6691134",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BackRight/CrouchBackRight.blend",
+      "bytes": 7790113,
+      "sha256": "91042d576a9a0eb30b68b27bb60630047f8bf3c89b20bd9334ca0cef88d81517",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BackRight/CrouchBackRight.fbx",
+      "bytes": 773420,
+      "sha256": "8f948ecc25a5123e91e5a0497c0505a592fbf0aeda0d9c3b983ff2e0a98114f8",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BackRight/CrouchBackRight112.blend",
+      "bytes": 7790113,
+      "sha256": "41efaf5978520eb918f0aaab74c8ab82d8768d0cfb957aa69501ad289b7fb626",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BackRight/CrouchBackRight112.fbx",
+      "bytes": 773420,
+      "sha256": "dddce1616381b7df2eca4b1489f3a2984a36ee7a5d8b49b608b693ab1071af71",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BackRight/CrouchBackRight157.blend",
+      "bytes": 7790113,
+      "sha256": "86f542211024f2226fa5e26a3796d925f4bc461f6f3b4fbd82a3201f0d2052bf",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BackRight/CrouchBackRight157.fbx",
+      "bytes": 773420,
+      "sha256": "3ea0dc3efa43715907ba55c0c4ec7ee92089d05b1d61ec414500f6268c9688e1",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BackRight/Expected.json",
+      "bytes": 1486189,
+      "sha256": "c9618b8286a7f2db4c5c7463d197447b98bf0c333ea72eae4dfa53aab4b6a03e",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_CrouchIdle_Aim.fbx",
+      "bytes": 1640972,
+      "sha256": "5097581927b7a2c443b997807e57da529fe72fbf2ced4db6676bc314bc9b65fa",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_CrouchIdle_LowReady.fbx",
+      "bytes": 1642380,
+      "sha256": "060ed7a81dad1af9beb6bd9f44adec85f4f82ab40c8c854fc2ba5cb82a448bf0",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckBackLeft_Aim.fbx",
+      "bytes": 891500,
+      "sha256": "54b4d7438661d772d36fc810e9f51cf91807d07c6e3d477eacc435fa59ad9a74",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckBackLeft_LowReady.fbx",
+      "bytes": 893484,
+      "sha256": "03660572dbf8143964821767cb2f3cb3d62b96c2a3a86a638cd843c60d66dccc",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckBackRight_Aim.fbx",
+      "bytes": 892412,
+      "sha256": "62e4948833065c5a2dc2b48ed35fa73c4c5bae9cb6d5503a7791e4e413fc6c1b",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckBackRight_LowReady.fbx",
+      "bytes": 893676,
+      "sha256": "29d72a58d3c3cd97766a3b8c9a54e462fdb120cbee2adf933777c74be1292b40",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckBack_Aim.fbx",
+      "bytes": 891068,
+      "sha256": "5938765e330d6d98680294c387e9166703093df836df873976a6cc6fb2b516f4",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckBack_LowReady.fbx",
+      "bytes": 893724,
+      "sha256": "d9818669b4861c703e0a350e3405f40347d3e211b9c883f26ea3105796ddeab7",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_01_Aim.fbx",
+      "bytes": 892028,
+      "sha256": "8830d5a7e11b4153b5e0d3638a4aa8ae67e5668eff49f3414963d37b0aa433a4",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_01_LowReady.fbx",
+      "bytes": 894348,
+      "sha256": "73e23034e552f29f0b5649ae14e6219eabac82c44bc21fa1ce919f04a3527301",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_02_Aim.fbx",
+      "bytes": 891628,
+      "sha256": "7c5810d96793839f5eb58e0af5ce62617786dee2a7f7c6d1cd3644330eae26b0",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_02_LowReady.fbx",
+      "bytes": 893900,
+      "sha256": "47affce2865f0a65fea32bd7167202789bc5f442c148f2a95bf26ff6376277bb",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_03_Aim.fbx",
+      "bytes": 891612,
+      "sha256": "ea7c1d1e08a2d3157828e281529151a117f671632bc218abf117e8bba2d10098",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_03_LowReady.fbx",
+      "bytes": 893708,
+      "sha256": "788208e440494afef88cc534008d76911ae13aaa5100b1aabddfb54968926999",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_05_Aim.fbx",
+      "bytes": 891548,
+      "sha256": "435ed630ede512f3b9db14f03f88cc921d470ed2a10d6b910be1be49dc434dfa",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_05_LowReady.fbx",
+      "bytes": 893740,
+      "sha256": "812b80ae8fa4bbc7495e5d2688cd15523bfa958cba616db3d09a95f16db8cf75",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_06_Aim.fbx",
+      "bytes": 891804,
+      "sha256": "35455280957d1282de18d634c4d9d76a136b09b8df15390edc17a2b39e0cbe69",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_06_LowReady.fbx",
+      "bytes": 894028,
+      "sha256": "581f84cc039084245ae531054d797814300b931d194acde979ebac8f32ff67ed",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_07_Aim.fbx",
+      "bytes": 892028,
+      "sha256": "b16848a2222d0db2c940e905b44711ffc42196fe05c19f642d73b919e1364124",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_07_LowReady.fbx",
+      "bytes": 894508,
+      "sha256": "8823e33bba0c29a0a8497e72d3ba05d5786b23c5282aa1bcbd25189bfaddd3e7",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_09_Aim.fbx",
+      "bytes": 892332,
+      "sha256": "fdad103a84b5244fc07588b7bc8c341159f5cd5790f48f8076052f1f7b9a83f1",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_09_LowReady.fbx",
+      "bytes": 894348,
+      "sha256": "cde70ab2da7d29aafe5ffa7ef7286028a6e30c20058a110904e07b44e1231a52",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_10_Aim.fbx",
+      "bytes": 892620,
+      "sha256": "85339059211e91897aeb2700cebc60c528123b6c31ad26426aaa2dd38273c7b0",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_10_LowReady.fbx",
+      "bytes": 895084,
+      "sha256": "cf909c9b516c93a2cfcdf40ad706b80d4764cee8a3690a60436c5f6b963a3626",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_11_Aim.fbx",
+      "bytes": 892428,
+      "sha256": "2a71e6a05a9f247a4fbd5bb57f31e098c4b976cf50159acc121e39263362bf6b",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_11_LowReady.fbx",
+      "bytes": 893836,
+      "sha256": "8072b94d3a026a7033319380b2694abca6070d2fa747432cc63f132f01edd216",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_13_Aim.fbx",
+      "bytes": 892444,
+      "sha256": "6edb2f8afb1307b329ef6305b29faa2e2130f8540cf28cdf0e38d03194c6da6a",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_13_LowReady.fbx",
+      "bytes": 893324,
+      "sha256": "ac7c47d8349fb3187b27be20a8e800fa43ee99fc19c5296272e1a0052ad7bd5e",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_14_Aim.fbx",
+      "bytes": 892140,
+      "sha256": "c6ed6eeef0b559281517591eb3db6570834fec73ef909c50805102c81485f910",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_14_LowReady.fbx",
+      "bytes": 893500,
+      "sha256": "0381e431e245ce30980c1bcd21124eee994c14a0ee2b7219ff1cdc9c3d7a093d",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_15_Aim.fbx",
+      "bytes": 892156,
+      "sha256": "d24f94d0a92474f593c0f490fb1c6aed047b0b73e2917b76d482acc42184e384",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_15_LowReady.fbx",
+      "bytes": 893996,
+      "sha256": "70fdb0894c6a028a92d931c385c6de6248ddffe9dbfd9fb9f4ce6a47a5472b9c",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_17_Aim.fbx",
+      "bytes": 891260,
+      "sha256": "8437fd068f597262155673d41604739c90d2192c2572752ff025e3bd66c50f81",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_17_LowReady.fbx",
+      "bytes": 893548,
+      "sha256": "8b9cb0243d5ace45451a06e24d5f5c57d713c2b3b3b2b4f98e81fcd9dead9bd5",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_18_Aim.fbx",
+      "bytes": 891468,
+      "sha256": "f8039cf9be89226fcc5bdb52814bd81b0011edb33b066154a26c04f001c0a50e",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_18_LowReady.fbx",
+      "bytes": 893484,
+      "sha256": "2f19336fdad6df7fef4ca91aa28c7bb76e938f9570fc1073ce0ec7661787a273",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_19_Aim.fbx",
+      "bytes": 891628,
+      "sha256": "6db441de99363f28a5a787b2e721eae58c665c611b45b943bb320a7c373e4743",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_19_LowReady.fbx",
+      "bytes": 893484,
+      "sha256": "95ce5073f409dacdcc4e80805fa58fcbf6f007b21a0454b6008b6dd9bac5337e",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_21_Aim.fbx",
+      "bytes": 891468,
+      "sha256": "b282d474459a901cd9773b299cd8752249c98af1938df766acc6680d25a6c4a5",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_21_LowReady.fbx",
+      "bytes": 893836,
+      "sha256": "74266165383d3353f0da1f03b108a9742b635ea75a922b8a4de2e2972224f67a",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_22_Aim.fbx",
+      "bytes": 891436,
+      "sha256": "3f1372f522bdad52a28cfd03729cc11d7776cf695665b858f5b38cdc30c97e44",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_22_LowReady.fbx",
+      "bytes": 894316,
+      "sha256": "c2147e6f0b0040dbbc190b17f7d260d165c16e919750b93ebdb2c7a6032c9c18",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_23_Aim.fbx",
+      "bytes": 891532,
+      "sha256": "bc864f2c96c79d581f4170820cab6f677a68afca7434b5e29e6d36ae50074f19",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_23_LowReady.fbx",
+      "bytes": 895388,
+      "sha256": "e30a8adb044c17ed4fc98604b72d0123a549c3a773307cfe7fadf6c09d1339f5",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_25_Aim.fbx",
+      "bytes": 891820,
+      "sha256": "ee0df94e2bba364267f64cb388c6a731cd7d4e7c35b4f9598e045acd7bce42bf",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_25_LowReady.fbx",
+      "bytes": 894908,
+      "sha256": "b37945322ba5decea374de015b70fb55690d27bc5c277b5605b0b068eeb70fcb",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_26_Aim.fbx",
+      "bytes": 891916,
+      "sha256": "37d83f8585e7be16cb8849ebd3795a91ee3ffaf4bf3e021aa2c195da877312b9",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_26_LowReady.fbx",
+      "bytes": 894636,
+      "sha256": "6a611b3d27f11255a77b5c88115f1081ec9b2e427cf20fa0336a9165b951979b",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_27_Aim.fbx",
+      "bytes": 892332,
+      "sha256": "c50b9965d2983440e6a359939f3adba251064675ce5dce5c95bbf5d40cb7e00a",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_27_LowReady.fbx",
+      "bytes": 894108,
+      "sha256": "15c52618adf01bd1d37f478c6da72d0c9848695d4a6bc8997e3298152d206b76",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_29_Aim.fbx",
+      "bytes": 892316,
+      "sha256": "d7cd1254cf8073f13a0c027f35ef681b6d455263982ed8d77d230455b59041d5",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_29_LowReady.fbx",
+      "bytes": 893996,
+      "sha256": "ff1e0b9d65f599c0aad070788bc237952105f921fda750e33575f45f1d1fe3cc",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_30_Aim.fbx",
+      "bytes": 892460,
+      "sha256": "7064acfc9a5bfac17f1c246da91dfd6d31bb604f11a439eecd3bca4de6847fa2",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_30_LowReady.fbx",
+      "bytes": 894204,
+      "sha256": "03fc80d4e45f8c40135876d20faf060465d28b1e53f0647432cbb64e4aee861a",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_31_Aim.fbx",
+      "bytes": 892412,
+      "sha256": "bd2b82a1febaf3cc0edcc94e6a0cb77b2f0bb2f1d9a105165fe4d026c2048d61",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckDirection_31_LowReady.fbx",
+      "bytes": 894732,
+      "sha256": "c14b8dbfaf7cc3430986764d7adfae4810b80bfbd1dda4aa13d694546cfaf201",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckForwardLeft_Aim.fbx",
+      "bytes": 892492,
+      "sha256": "1acb6572282c144a0ce5bf7e80f299c37cd4aeabd5d2ade436677a879e7ff4ff",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckForwardLeft_LowReady.fbx",
+      "bytes": 893724,
+      "sha256": "f0ac9d3e6d17087de961781b36045038c6fae6fb8a420d4416a7bea3e8fdd4f5",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckForwardRight_Aim.fbx",
+      "bytes": 891692,
+      "sha256": "9c273df9026b2427630f520a651d0c5adb2aab8748533fd4616017b3642c9746",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckForwardRight_LowReady.fbx",
+      "bytes": 893740,
+      "sha256": "831d9766faf1724f9635a9d44ddddbcb492553e099dba788b60da4ccc49b6ca4",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckLeft_Aim.fbx",
+      "bytes": 892380,
+      "sha256": "3f42b2ab322b60dfaa6fa670d12477398d8aff81d066c0a7fd264a98ad3c8367",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckLeft_LowReady.fbx",
+      "bytes": 895580,
+      "sha256": "7983404b5394d1a155ac9532d5c054bf34b2add4c44e34f4508f848821f7f530",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_15_Aim.fbx",
+      "bytes": 892156,
+      "sha256": "0515adfe4ab27462fde21f5b80ad4fb01f7aed2e3cb94c5b189c3b9f80804cc8",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_15_LowReady.fbx",
+      "bytes": 894396,
+      "sha256": "c5d6037852c5a026f7c7eae3687af48fbd4ff59a64326c9a8edbfca29d140a8e",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_17_Aim.fbx",
+      "bytes": 892316,
+      "sha256": "b330d8e47cb502d763a1338995bfebaace2256b4917f14da606b5dc93cad4724",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_17_LowReady.fbx",
+      "bytes": 894428,
+      "sha256": "ca3e3b6ffe39ae9cfa739ea78d8c8d94a6de50f03ddfb8238f111f04cd7deb17",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_19_Aim.fbx",
+      "bytes": 892220,
+      "sha256": "ba1f23b6523496665a441b9001c1b1065fd53072687114a4835455cb181668de",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_19_LowReady.fbx",
+      "bytes": 894716,
+      "sha256": "c662efa7e9a9dd813dc68f497429753c408c84863b999300f52d17e577d63ce5",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_21_Aim.fbx",
+      "bytes": 892604,
+      "sha256": "fc7541bc41264253659da707f4d4d38d4e2dcd07e9ee4cd0d099a5ba662df082",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_21_LowReady.fbx",
+      "bytes": 894924,
+      "sha256": "19251bf3a3e1c392a040a218a2ad71692e8d63211e3c7da578d35743eb7d5717",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_27_Aim.fbx",
+      "bytes": 892124,
+      "sha256": "24d5cfd901210a0bf1b2272a104fe30bcd07c3bcbd3634c61990bb38040033f2",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_27_LowReady.fbx",
+      "bytes": 893372,
+      "sha256": "3cf590799adddb9b3beebd24159e2921f63d6a6420f562d6b614348816feea9e",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_29_Aim.fbx",
+      "bytes": 892076,
+      "sha256": "8bf6b0be3ea9819b078c1b350f8b5738307c62e950adc41437cf5a0b82aee1c3",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_29_LowReady.fbx",
+      "bytes": 893660,
+      "sha256": "c189b5317bb8582ebb2c0c37f6c7a533ac61cf557729e5468d995e3a33a30a6d",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_31_Aim.fbx",
+      "bytes": 891980,
+      "sha256": "b75f61f305e316823e731c2b0802fc34efcffa76b1cd10d72519d450193a3b68",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_31_LowReady.fbx",
+      "bytes": 894396,
+      "sha256": "d3d8ad1b5560892a93cb9b51af251e782364845a607981735b74f8020c4268a6",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_45_Aim.fbx",
+      "bytes": 891660,
+      "sha256": "b1600f88d566790b00ed3f5b5c3d2cac7282784ad3beb49c9e3545d56496d859",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_45_LowReady.fbx",
+      "bytes": 894684,
+      "sha256": "528fce4b58e460969cec98657625e37401323ac5f77e598df2a2fd0239fe799f",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_47_Aim.fbx",
+      "bytes": 891900,
+      "sha256": "d30d3ee26ef64bbbf73dca18c1e805edeb57f60592c2847522b66dc10468e59c",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_47_LowReady.fbx",
+      "bytes": 895580,
+      "sha256": "a5f765775ac05a14d407f87c0e2f703a3d4b8fb1eff1dd993d97560aa1cf39d2",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_49_Aim.fbx",
+      "bytes": 891932,
+      "sha256": "f713a3d54c153921c27dc0f3104e4ce042433bf0c0e91a410050b4706d2f2152",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_49_LowReady.fbx",
+      "bytes": 895244,
+      "sha256": "68d7f9d8e030fa7e39e3e7b861c820ab3358d6f332c59d73399b4c325e955a3a",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_51_Aim.fbx",
+      "bytes": 891820,
+      "sha256": "6890ca4bf69b49daf7f431910d3717d6c5af893e4d434f50f82b8c33783fc459",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_51_LowReady.fbx",
+      "bytes": 894716,
+      "sha256": "cc6b35d560ab28c58fcf3ebf2b3dbfa9a080d453e7785c6165f9153791ea4da8",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_53_Aim.fbx",
+      "bytes": 892524,
+      "sha256": "1f3d1ed5504e12e6f26848f7522fbbd4c5165d2083a23ebf4bae0121704207fa",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_53_LowReady.fbx",
+      "bytes": 894716,
+      "sha256": "db76f159c07095c417cd5f47ebc64a9e898191ddbcc7f91385107bbbce7474ff",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_55_Aim.fbx",
+      "bytes": 894796,
+      "sha256": "4879da1ca736c74df7af2e4a46bf7759f30d59e6ecbf73847d11c8d2586ffb99",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckMid_55_LowReady.fbx",
+      "bytes": 896140,
+      "sha256": "ea35a5f38a487c21a48dac526e40d972b8071bbeb1315d15ebf6afd21de70b9f",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckRight_Aim.fbx",
+      "bytes": 891628,
+      "sha256": "f10af63566307237fb61923815ba0a79f2ac54970e930fdd766ac40f7a64fe2b",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckRight_LowReady.fbx",
+      "bytes": 894220,
+      "sha256": "840469498c07e887dab0c3bf2d46b66ea6aa8a09d87648536ae1758b92f19a96",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckWalk_Aim.fbx",
+      "bytes": 891548,
+      "sha256": "a65303ead8459ce28513fda84c88e249355569ea9d5d3e524205add057d988f2",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/AS_DuckWalk_LowReady.fbx",
+      "bytes": 894252,
+      "sha256": "7ac2d4fb8c225c848bdff60706c100e5edad584955391a1c9afaef4c44eb37c9",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/Authored.json",
+      "bytes": 94596228,
+      "sha256": "18126910e34bab9cea4c342b137be31972e78a89d1c4e31ad6fb9435868f5964",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/FlatFeetSummary.json",
+      "bytes": 3402,
+      "sha256": "77a8c33b0f4247b9f5c7053d29bd94286f237c9ec6a9d9a384d56e3234876c9e",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/NativeGaitSummary.json",
+      "bytes": 3314,
+      "sha256": "571525ec1ed87d946f1056964f5e4c798871fe05705e81a428354041198ab11e",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/BlenderGrounded/StanceGrounded.blend",
+      "bytes": 396742852,
+      "sha256": "404ec38eb3f0adb3994972b4c93a1545bbb23e65eb174fab386e5ef791fd537f",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/EightWay/AuthorSummary.json",
+      "bytes": 653287,
+      "sha256": "d2b04b2332d489cfc935448e352e8b67367ec764e45418e86f62aad97c9b03fc",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/EightWay/BakeSummary.json",
+      "bytes": 590,
+      "sha256": "9c62b723ab3b2aaf0b4e5f8229241bf05cd81fa129f83585533f102131cc845e",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/EightWay/CrouchBackLeft.blend",
+      "bytes": 9712513,
+      "sha256": "76078e1aec2540a36ba29597f3352961a925528077d53a24e51c35d5227751aa",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/EightWay/CrouchBackLeft.fbx",
+      "bytes": 919964,
+      "sha256": "6d3c15bc7e6b4c21254505120ad11c63d460b178f1dc40eb42dc8b656dfd6888",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/EightWay/CrouchBackRight.blend",
+      "bytes": 9712513,
+      "sha256": "47c962e7d460f8d8ffa5900ef04e73d6c72c361d5617785c757f47d5d2d24120",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/EightWay/CrouchBackRight.fbx",
+      "bytes": 920428,
+      "sha256": "d49545f5944d8ba37b354028656a507d8934a41ee78bdc076b75df4802dbf5fe",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/EightWay/CrouchForward.blend",
+      "bytes": 9712513,
+      "sha256": "c7f2023e79b01fda0fb031919273367e12122a8203b80a1af5e82d1b9c9abbe5",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/EightWay/CrouchForward.fbx",
+      "bytes": 913500,
+      "sha256": "a8b2050fcf7450dfadfc0cd13b9deabab00354d7134184d6440fae94faeaf88d",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/EightWay/CrouchForwardLeft.blend",
+      "bytes": 9712513,
+      "sha256": "777cf8df8cc118ced40701539f045ed752e56697cf3c5f369e04032209e6f955",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/EightWay/CrouchForwardLeft.fbx",
+      "bytes": 920812,
+      "sha256": "2b79ed7dd6e57ee6d56ee69070ed25c9354936c534deb487812d376e76b27afe",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/EightWay/CrouchForwardRight.blend",
+      "bytes": 9712513,
+      "sha256": "f86bb02855011a0ded294f0f7d25d52b60cd24be8261ff49f56b393e5e91ba3b",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/EightWay/CrouchForwardRight.fbx",
+      "bytes": 919772,
+      "sha256": "a768e44a95907d00c51340bd405c63ccfb925e461e1b849c2d796ea785146461",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/EightWay/Expected.json",
+      "bytes": 4802686,
+      "sha256": "a2702dc6ee4e5183a7c03c92d0ec7f6cbd2bd3878ba067da412c22b4cb77a709",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/EightWay/Quality.json",
+      "bytes": 1368,
+      "sha256": "798be56002714f556b4a39f2c6172a72e6135e54d8d21a9085ee372bcf3c5b60",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/LayerPlayback/BakeSummary.json",
+      "bytes": 1163,
+      "sha256": "6c3830159e8bf78ff485f41c1a6ded9df0856cfd1566d4e2a72f9faee8944b34",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/LayerPlayback/CrouchBack.blend",
+      "bytes": 5575178,
+      "sha256": "e4597cb66f2cb743a8421b134c313096ef8f31841494f343edf8a991d8fe4d7f",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/LayerPlayback/CrouchBack.fbx",
+      "bytes": 773420,
+      "sha256": "ff6d481d71a5e4979877f8846b2607f35507ed937af317ee7e229d40cf4dddbc",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/LayerPlayback/CrouchForwardLeft.blend",
+      "bytes": 5575178,
+      "sha256": "9bd1c1d6fa20a9557559c96bee132777a08d911ce71f9bac44029137030d2abc",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/LayerPlayback/CrouchForwardLeft.fbx",
+      "bytes": 773420,
+      "sha256": "e00aacdb06bac40fefaa333483608a242fec463a9aea4dd686f8d67d743b0553",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/LayerPlayback/CrouchForwardRight.blend",
+      "bytes": 5575178,
+      "sha256": "162d3d2062bf2b42946e15efa919535c4bf0a4caf7ac8256ab348683ac4c5aa1",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/LayerPlayback/CrouchForwardRight.fbx",
+      "bytes": 773420,
+      "sha256": "83f1033d5fa36d4f22f7ecb548d79898a818954364d17804a20eaea64fb731d1",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/LayerPlayback/CrouchIdle.blend",
+      "bytes": 32523986,
+      "sha256": "c23a405006110c22764d597f3359ecf37b42483974a48b4cd167b36cb66484e2",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/LayerPlayback/CrouchIdle.fbx",
+      "bytes": 1703276,
+      "sha256": "fdca06a68a32c531c7323e9a23e54e5fd5e4929d958da03c7dc6625ada3d5d38",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/LayerPlayback/CrouchLeft.blend",
+      "bytes": 7110434,
+      "sha256": "c91c24739868caff2ac0bc80e6358a45a6a0c623a9309dd31b1ba8ecf44179a6",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/LayerPlayback/CrouchLeft.fbx",
+      "bytes": 790364,
+      "sha256": "2f1b01dfcfd573ea0724d7cc3f694211d6490311953f868883922ff803ef4136",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/LayerPlayback/CrouchRight.blend",
+      "bytes": 6952826,
+      "sha256": "7a26d6fb368a4e95e5f5c6a0232537aaada385d42cb2bf7ac865af6b7d800034",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/LayerPlayback/CrouchRight.fbx",
+      "bytes": 783356,
+      "sha256": "c02b57867c0d7d4007154816e1958165da300957ecad60884ec1274e690e6ada",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/LayerPlayback/Expected.json",
+      "bytes": 5808993,
+      "sha256": "bd0ea71f9121377b23c6ff3934a0db86c1a5960e80134f72d740832627dac2b3",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/Mirrored/CrouchBackRight.blend",
+      "bytes": 13849848,
+      "sha256": "1fc27367c74d922dda334cd91442704411a0053bd59498593d7ed87c8a9646a6",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/Mirrored/CrouchBackRight.fbx",
+      "bytes": 920620,
+      "sha256": "89bbbb1e8533f89d95dd95e332fa9026d375e46ab7a606cbe5297691340fa51a",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/Mirrored/CrouchForwardLeft.blend",
+      "bytes": 13849848,
+      "sha256": "b9233d018a7a86ce6fb96080389078e5196352a9ed3bfb1fbcd8169c70d2270b",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/Mirrored/CrouchForwardLeft.fbx",
+      "bytes": 919996,
+      "sha256": "1aa14150209bc28fb948d751645bde2509fa2f8af9966a8dcf3770d4429d1f4e",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/Mirrored/Expected.json",
+      "bytes": 4928087,
+      "sha256": "6be57570d50ce21fb3d5a983c0ca60a97589ab7d5fc9d50203a4e7392dd34d0b",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/Mirrored/MirrorSummary.json",
+      "bytes": 929,
+      "sha256": "99948ce86f59f1914ba023833fd87418def546f3706140f5ce505727bb975e87",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/ParentBaked/BakeSummary.json",
+      "bytes": 593,
+      "sha256": "3d15fc896f89ec68eeff220bb709eab61911adb3d1acb8dabe76d3966bd4738e",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/ParentBaked/CrouchBack.blend",
+      "bytes": 3360243,
+      "sha256": "519bf5292155b633e43ae5fcb61dc3a971c8eef30ea094974591d0a578556797",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/ParentBaked/CrouchBack.fbx",
+      "bytes": 773324,
+      "sha256": "dff8b9be100babb2748061592ba3ee21a387de8e0cfad8bd801b7e63c30f3fa3",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/ParentBaked/CrouchForwardLeft.blend",
+      "bytes": 3360243,
+      "sha256": "1c1bcdab2a5e2a64b111bfefad1069fe14807ba18437e1366b21b9dbc7665729",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/ParentBaked/CrouchForwardLeft.fbx",
+      "bytes": 773324,
+      "sha256": "a4b79abed5ce080502ee5dc385f59104c097ae9921027fe89e392294b969f8a4",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/ParentBaked/CrouchIdle.blend",
+      "bytes": 19351371,
+      "sha256": "f8c7359357daa1ab92e5fed9b180826ef04b3d7cbcdf3fbfa12d503910ddbcab",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/ParentBaked/CrouchIdle.fbx",
+      "bytes": 1698220,
+      "sha256": "fc3d18c3d3b94b72686358ca2db70b870eb79e2d0e41ac953eb2b39de8e62988",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/ParentBaked/CrouchLeft.blend",
+      "bytes": 4446939,
+      "sha256": "04a9ca5e3a97ff051ef3cb9ab3efa99df00ce082ae480e67583563f75ce75cfd",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/ParentBaked/CrouchLeft.fbx",
+      "bytes": 788508,
+      "sha256": "735d32dbd9519b3cbc3c84c8fa23fea50c607142435965a97a3b1d62d702671b",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/ParentBaked/CrouchRight.blend",
+      "bytes": 4353411,
+      "sha256": "7f829d3c513fb6176c2c3d606e16895ad9e1f77a177665f6e8f45cee5bc80ae3",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/ParentBaked/CrouchRight.fbx",
+      "bytes": 782188,
+      "sha256": "152078cf7db6f41e4a6c0b9b03d34c89b1aa14e08d9aef93e295f8ba93682e98",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/ParentBaked/Expected.json",
+      "bytes": 5329814,
+      "sha256": "48182e92b1ae210eca40ed801e52a56abe33643cf58fa5ffc974b34be001820f",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/AimReference.json",
+      "bytes": 199457,
+      "sha256": "850ce0987a1bca048de0693bd85b6c448f906fda55bb26253359978332a7afe3",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/CommonStance.json",
+      "bytes": 102256,
+      "sha256": "e37328d1ce984ecb3a25f102047c0e540733f3c33c55047ac595fc669e8e984f",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/ReferencePoses.json",
+      "bytes": 70957,
+      "sha256": "c269ec454f6ea788fd4b3a87606e296da9f8f96fd73e578eafad0b03407456fd",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/RuntimeAimReference.json",
+      "bytes": 156653,
+      "sha256": "de64e9dc37a0bf357eb9e99957005a1d6e4df949631e51f11ce08e24dfb6799d",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/AuthorSummary.json",
+      "bytes": 1042,
+      "sha256": "a9cac790723ac1b3b25d62601c743940d5ab7a3862d73c6ea6bc3ae291ec1b33",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/BakeSummary.json",
+      "bytes": 1073,
+      "sha256": "20ebb829e864c79d6904665a1439cc0d67daecaa5bf8efd44629e40c91da5bdd",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchADS.blend",
+      "bytes": 9712513,
+      "sha256": "50d32ee05b040b6f2e9908439b2bda1da4e38cf4b9251d02b7f4289b6d9ad5d9",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchADS.fbx",
+      "bytes": 813932,
+      "sha256": "fab539adc74ebd75384ee2b48198efc68c917adf0deecf153957a4d822b2c5cf",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchBack.blend",
+      "bytes": 9712513,
+      "sha256": "518916fb78748a12a91c9ddb4569d984759bb112a204e52b2644fccf34981b9c",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchBack.fbx",
+      "bytes": 834012,
+      "sha256": "0cc9b823de5b6e5e2f10d5f7c08344d4f474590d3e055b2ccacf8fc9c4e55be8",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchBackLeft.blend",
+      "bytes": 9712513,
+      "sha256": "db4b88d15f7e50db8a04f89e87175c384e58f3447531b6a8408df969385abb77",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchBackLeft.fbx",
+      "bytes": 834060,
+      "sha256": "756ffe4c6134debcf0199e27acd1fef679bf68ed940536976e633d40e9e7d77b",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchBackRight.blend",
+      "bytes": 9712513,
+      "sha256": "b2fff814fbb8dd70e93a014a39568c9809bae0deaaa918d4dc3bd621ec97499d",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchBackRight.fbx",
+      "bytes": 834156,
+      "sha256": "967c2df891385677f674e028132c800b4461f634ef09759b47990140c4c33e05",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchForward.blend",
+      "bytes": 9712513,
+      "sha256": "6e5adcf3732c5b88ae42984ac14d25822a36c70699faa8a2094732a54fe7f50c",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchForward.fbx",
+      "bytes": 834108,
+      "sha256": "660e2a150ced8f0b83c56473c83778268446c5e9652e9d2727d0dbc469974c66",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchForwardLeft.blend",
+      "bytes": 9712513,
+      "sha256": "6e8d1029df11bbd8a88695858d9c5fcde7c4c6500e18fe1a242940ed1dffe598",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchForwardLeft.fbx",
+      "bytes": 834028,
+      "sha256": "fff31730968670bb25243eba3087a8f80d1bb27f9698bc88fe1ee41c60999b66",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchForwardRight.blend",
+      "bytes": 9712513,
+      "sha256": "0f263d6144491962a6707add8de168b215009d1d91b462bbcd6f74d29b8389d1",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchForwardRight.fbx",
+      "bytes": 834076,
+      "sha256": "857ec3fb2ae29b9c55ddbfa0f628a0a4fe232724e1fe6105e46800ae192de5da",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchIdle.blend",
+      "bytes": 9712513,
+      "sha256": "04c1431277b85f78ef0b54d2217af478cca6382b7f61a3493ad3d650a5e67c4e",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchIdle.fbx",
+      "bytes": 813916,
+      "sha256": "7495b1f80eb363312c9711daa13410b3fe038b89a965a56d1ffed9e19a3cd6c8",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchLeft.blend",
+      "bytes": 9712513,
+      "sha256": "983f7ef0efe64fe51b4af60d71282daa5c12c28846f6be3884b987e174263bf5",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchLeft.fbx",
+      "bytes": 834188,
+      "sha256": "4310204e03988f4a375bc13b823b5578da7b4df17250f808ed1f5a29ff978fe6",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchLowReady.blend",
+      "bytes": 9712513,
+      "sha256": "51bc620deb800b8798439071d03158e14377cff3ee8eca69c966dff11c00f898",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchLowReady.fbx",
+      "bytes": 813932,
+      "sha256": "6056d8d27de8a6cd1dea86978626abd19893ce854892593614f2c198ac83ee2f",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchRight.blend",
+      "bytes": 9712513,
+      "sha256": "08cb7aa863f0be8b2d26d8cbd860d4a1fceed8174248fdb8cf3683eef629e978",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/CrouchRight.fbx",
+      "bytes": 834076,
+      "sha256": "9c6466b4936fe75b8808bbfbea9e4526f75e185afdcbb3a319b14117ddd1e156",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/Baked/Expected.json",
+      "bytes": 10487732,
+      "sha256": "ad6ed5837cfa00dba28e8f241b477da873ce81cfbc62d49ec1d37d87e2f77456",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/AimAuthorSummary.json",
+      "bytes": 1166,
+      "sha256": "3cbc3c3d5b70d3ab0e057bef8b660d8e0591c75405aceca1cd5fecca926bba84",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/AimBakeSummary.json",
+      "bytes": 574,
+      "sha256": "642a7981eded2e845b153405095c3c6c044c8d5a73e20d86e61b922b6051a022",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/AuthorSummary.json",
+      "bytes": 727,
+      "sha256": "9204a809cfef87455feab4b8d3f0b5e9383bf8939ebe8bccaba2234c05da5884",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/BakeSummary.json",
+      "bytes": 1775,
+      "sha256": "a6f92e21f71ef9082d7250c7487617a4167957965b7b0427b216cfcb47967dcb",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchADS.blend",
+      "bytes": 9712513,
+      "sha256": "eafec34c3b07a91c5ab67c9ef84aebe3e712456c6a666e7d9aefe82ef273e8ce",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchADS.fbx",
+      "bytes": 813932,
+      "sha256": "62b61ada6676917d024730f3f8131ad1e44619e2930e955d574e1e3a9008264d",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchAO_m45.blend",
+      "bytes": 9712513,
+      "sha256": "2ae86a6397bb95db641574c6322de6db4a604a590264c5c5bf21a0e8db650ee5",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchAO_m45.fbx",
+      "bytes": 813932,
+      "sha256": "c86a24ffc2a30a728b64a9e1310dcceadd479580c2129937da1a8838041a9aac",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchAO_m90.blend",
+      "bytes": 9712513,
+      "sha256": "895d585f6fb9a80aac0f2b07b6652aec8d093960a15906fdc01d19e015233918",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchAO_m90.fbx",
+      "bytes": 813916,
+      "sha256": "342f6571d7600437650971b5ac09974abe287001610b366432834d9dd4f6dbf0",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchAO_p45.blend",
+      "bytes": 9712513,
+      "sha256": "db90450b47f44afa6893a069c7ab6fb2509e839a4fab62ac62c862c703a9b448",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchAO_p45.fbx",
+      "bytes": 813932,
+      "sha256": "33d7ef7cf8aac4fc78bf795c5bee0c1a2859846ec093a1304564bc6e52868f96",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchAO_p90.blend",
+      "bytes": 9712513,
+      "sha256": "8e597abc7581071dee3dd690d3de0e96bfb0742e639d5c4c3447d9661f63fa00",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchAO_p90.fbx",
+      "bytes": 813916,
+      "sha256": "be9660adc5f54f9d5bc5622007eeb6a18b19b847eeec6318e70c1f645a18c525",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchAO_zero.blend",
+      "bytes": 9712513,
+      "sha256": "bdee03e16499f779671ebb73b71da60106eaadcbe52ec5d47012a4bc65c9de97",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchAO_zero.fbx",
+      "bytes": 813916,
+      "sha256": "d5b1a5c024ab568567baed20993558a6b477f5aae510ca391bdae8a0e4cfc553",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchBack.blend",
+      "bytes": 9712513,
+      "sha256": "36ee62b722b25ca6adaf779d612f214690ac3b0f86f51db7628ae96245797082",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchBack.fbx",
+      "bytes": 833900,
+      "sha256": "d114a97bc01034d5d0abefa545ba6b079ee65e823b357c3b260768ab7cc69957",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchBackLeft.blend",
+      "bytes": 9712513,
+      "sha256": "9762fc1bab2513157ec37b1d77dbe66415faf9cdae7528df837b680d9f7e6dc7",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchBackLeft.fbx",
+      "bytes": 834076,
+      "sha256": "a21665101a4c64727daaa8f0362ad01946e89c2f25d94eecdf9e119b6dde768f",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchBackRight.blend",
+      "bytes": 9712513,
+      "sha256": "ac57d11aef56b4577635d2c26bf83228862f8c78401a6264d785953d47d0a5e8",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchBackRight.fbx",
+      "bytes": 834092,
+      "sha256": "4fe6c955aa23b876305db61b29232bad8e07dc37bc210936d15b28e9720be60d",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchForward.blend",
+      "bytes": 9712513,
+      "sha256": "37deacd6d053a8098ab49fa66b3794286253bfbe89a36d7121230913e03e3b64",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchForward.fbx",
+      "bytes": 833884,
+      "sha256": "ef89acacff75527d5861211884493565fba0c77421fd0e68ad8659732bf1cd3e",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchForwardLeft.blend",
+      "bytes": 9712513,
+      "sha256": "6b744c53cccc187032f70a61e7f0ab90e3fdd072ff75c9d6272a4242b8285ee6",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchForwardLeft.fbx",
+      "bytes": 834076,
+      "sha256": "22f1984272e05538f6df3b24ed06eaa8eaeb723351302f53257cc5e4a0e3945f",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchForwardRight.blend",
+      "bytes": 9712513,
+      "sha256": "2ce8fe838a010ea453affeb889855f7a36184fbb98a91e628c6f5e35f7c0c882",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchForwardRight.fbx",
+      "bytes": 834060,
+      "sha256": "5035cb928f780b22a26a79d2671658b6f87f9c6db8ebc331bc4b0e62ebb518c4",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchIdle.blend",
+      "bytes": 9712513,
+      "sha256": "e1f13f3bfd3b4a77703fcd3c9d65a2ba3a4cb6ce5ea7f96e856a4c18d5641d91",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchIdle.fbx",
+      "bytes": 813916,
+      "sha256": "0a4aa0effe2916b161feda495f8aed3332f228554ba7e4c01df9a5836575a2e5",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchLeft.blend",
+      "bytes": 9712513,
+      "sha256": "8ca46ee8df4fbde9bd5125526b6c266d0e8a6714c3fd48fef1207bd33c476350",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchLeft.fbx",
+      "bytes": 834076,
+      "sha256": "d4a09170420d3c55d21b5fea517491756104265ac03839e68b48cfdbaefbfa40",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchLowReady.blend",
+      "bytes": 9712513,
+      "sha256": "dc4b3f8aabaf3432ed979b3e23311e9b4b612bdfbfee7123653d5c2053453a65",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchLowReady.fbx",
+      "bytes": 813916,
+      "sha256": "dff86a9e8285ab60bff77ff3cfcef5628004c69a7de0608c990c2134cf6a2fc5",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchRight.blend",
+      "bytes": 9712513,
+      "sha256": "c41c48a456c969338e0d09eea7f59aec56d4942981a363fdd9ee523fa82a57e3",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/CrouchRight.fbx",
+      "bytes": 834076,
+      "sha256": "33fe8b640c699eb1297d2d487dfd8fa225220b81f21d7c717fed9ad4e160f0b4",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/Expected.json",
+      "bytes": 23842379,
+      "sha256": "19774eaa65e39b8725f91d269554f39779c7737e54f1fbf08c9f6842c8f5a609",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/Stance_0.blend",
+      "bytes": 9712513,
+      "sha256": "0f3471d440eff0b6b3049698a8a2c453b46e8de7d1cf6c5e8aa6f49ff2116ff9",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/Stance_0.fbx",
+      "bytes": 813884,
+      "sha256": "dd2740b186feee12141b3914d0810be442245016bdb0b0df09b3590f119a92bb",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/Stance_1.blend",
+      "bytes": 9712513,
+      "sha256": "493634ec325262485edf383743320a97c33dc3b3b016b4b72ae8376e1131ecec",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/Stance_1.fbx",
+      "bytes": 813916,
+      "sha256": "f1b3583e7c95d3790770662859535e0383d8ec3b0393448f8b658ebde09681aa",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/Stance_2.blend",
+      "bytes": 9712513,
+      "sha256": "a3b851158a62810dc7259150d7d572be9db9c549b7ed916c116bbdc3310f7169",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/Stance_2.fbx",
+      "bytes": 813932,
+      "sha256": "905007ee6b846f759edaf4ea514d65433931e954ba2133ff753023ad59e7fb79",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/Stance_3.blend",
+      "bytes": 9712513,
+      "sha256": "76ef0eb2317d1c550ff06ec9588b6c0ba15ced0f4bbe471750fb13bd15af05d4",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/Stance_3.fbx",
+      "bytes": 813932,
+      "sha256": "284e092e7f07dbfc6311e8a310f247cda7fe3829ccffbbfa8223695f69861d8d",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/Stance_4.blend",
+      "bytes": 9712513,
+      "sha256": "328008032a8324fb5277dc340633d7523fe67592e05369058f2886aee3cc0d0e",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/Stance_4.fbx",
+      "bytes": 813932,
+      "sha256": "8fe6a15e5b77c0731d89e1ca35d69bc33e1ccbfc2abcc9cade661e5824a2c352",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/Stance_5.blend",
+      "bytes": 9712513,
+      "sha256": "a1af96c2f8c98d79a9c59a9ccc312c5cac3cd99bbc985f30102afeee6a92e7e2",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/Stance_5.fbx",
+      "bytes": 813932,
+      "sha256": "6af59a5e34b1a639a443acbffaab7558503643c7e0dd77aaa8196523347bfd9a",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/Stance_6.blend",
+      "bytes": 9712513,
+      "sha256": "9e7c0b1999c73f12cccb8e87807a429a57ca439fbb7aa970cdab11554d4ec8cb",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/Stance_6.fbx",
+      "bytes": 813932,
+      "sha256": "9e6e35b8bad5afc431e1582a05267331bdf49624d44cc6c89699eba927a26d96",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/Stance_7.blend",
+      "bytes": 9712513,
+      "sha256": "87c2bc2291c24a72f9d24522913e7517d6def29c4621416f5ae8b6abf86d3e9b",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/Stance_7.fbx",
+      "bytes": 813932,
+      "sha256": "258d364b8e14c698b91877c4fec659c6ae15a5c616eba2fe2d503328709267b0",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/Stance_8.blend",
+      "bytes": 9712513,
+      "sha256": "36e5fa1284d6ab648bc1c5c12298a75a0119d2a2fdabe18857675b3251dac4fc",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/Stance_8.fbx",
+      "bytes": 813916,
+      "sha256": "d915a2672f4c57cfabe9c70418469ee7a9cfb261663cb8f40f4ac19a45584710",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/WeaponAuthorSummary.json",
+      "bytes": 593,
+      "sha256": "ecb8c0f055fee473019aa6c3a311633ad413e939849147dffde2c9046ecca048",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceCrouch/StanceAware_20261116/BakedV2/WeaponBakeSummary.json",
+      "bytes": 327,
+      "sha256": "89fc10f8ef5892cf55a83f9b3b7d55cfe5bef8877c8adc9fac1ec7c57e419d28",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceKeepUpperHeading_20261118/BackRight.blend",
+      "bytes": 7497578,
+      "sha256": "f91dd962f728452fbcb98d86fda797fcb4d7db758f0c0e721446b065d498dcc4",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceKeepUpperHeading_20261118/BackRight.fbx",
+      "bytes": 912796,
+      "sha256": "74e19836645813ea685615293d35d3fad6adbcfa650fe16032e305fc11ede612",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceKeepUpperHeading_20261118/BakeSummary.json",
+      "bytes": 2691,
+      "sha256": "32aad1b17ce5f32b6bf6f04fd8b65e1a94efa297dc18d26ef6472b854527e710",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceKeepUpperHeading_20261118/bake_keep_upper_heading.py",
+      "bytes": 7581,
+      "sha256": "07a10167853dc84af84e24f14b4ae073b36452774e27eae5ca3c38e7910a3838",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceKeepUpperHeading_20261118/Expected.json",
+      "bytes": 2095951,
+      "sha256": "b636abc4d0cecee1ce942e2b216e9ca9af3e4dae43786577cf6b85b7c761d3fb",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceKeepUpperHeading_20261118/ForwardLeft.blend",
+      "bytes": 7497578,
+      "sha256": "39aa1eca28b1e2ff962bba4fee8a3d55be8cada93743e28d2baf181ababb0476",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceKeepUpperHeading_20261118/ForwardLeft.fbx",
+      "bytes": 912860,
+      "sha256": "2225574746bd52f133788b916ae2d2999f90069708bf2fed8f76001688e52c78",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceKeepUpperHeading_20261118/import_ue.py",
+      "bytes": 5129,
+      "sha256": "123b75f6cff9135f9dd89d3fbe76f9e8ce93dc7b00f1a3a258ce5fed1b73b247",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceLowerMirror_20261118/BackRight.blend",
+      "bytes": 7497578,
+      "sha256": "0547cb169f39c5c89ae0af381ec962d2f3ab8452edf45137ad0eb12752a1c653",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceLowerMirror_20261118/BackRight.fbx",
+      "bytes": 913020,
+      "sha256": "cbb90db64aa7038c73b07a21a93df6fe14e02bd168ca9481aa3567f02eba6136",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceLowerMirror_20261118/BakeSummary.json",
+      "bytes": 2674,
+      "sha256": "0dc16eebb7dfaca25401b2696757ddd9173502dae486d088b7442216e1662049",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceLowerMirror_20261118/bake_lower_mirror.py",
+      "bytes": 6816,
+      "sha256": "56178caed590a92ef3617c5ebb3e8e42490ebcfec0ae1d4709a95b6a896badc0",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceLowerMirror_20261118/Expected.json",
+      "bytes": 2089220,
+      "sha256": "a2a6fa46bd8fff5ba0c369091ff646ba37eb36ee6fb6866ce0ea1fcecb449c17",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceLowerMirror_20261118/ForwardLeft.blend",
+      "bytes": 7497578,
+      "sha256": "7af1ce71552f0766d8cf3b9b49295a0c3232c4a73cbed5eb83a8713058247a24",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceLowerMirror_20261118/ForwardLeft.fbx",
+      "bytes": 913100,
+      "sha256": "5762464e9cb00354b04c4b619babd0a76a40d1ecff182b5403638a49fe8cdab1",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceLowerMirror_20261118/import_ue.py",
+      "bytes": 5086,
+      "sha256": "e704bc61c17515954d6e7fb0fcc1471f9357b2ef0466562b55bab2f95fbd1780",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceTorsoMirrorHeadHands_20261118/BackRight.blend",
+      "bytes": 7497578,
+      "sha256": "fc23c8dce2ad60d9b364ca24e8a239e481e418beb7cfe7e9e3862babfacdffe9",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceTorsoMirrorHeadHands_20261118/BackRight.fbx",
+      "bytes": 913068,
+      "sha256": "d16c5d4bed4646744d95fe5936f2bcb966cb8ed0bbd5d85e0fa296d4960a8c83",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceTorsoMirrorHeadHands_20261118/BakeSummary.json",
+      "bytes": 2925,
+      "sha256": "26dcc156c2f675d3f9dfbc936605af14b26303dfd5db537fcbab93a34019e129",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceTorsoMirrorHeadHands_20261118/bake_torso_mirror_head_hands.py",
+      "bytes": 7928,
+      "sha256": "eba6303faf84e4374e5260e6512a0b0107cfb22d8802fcddd82af9467dfe80cd",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceTorsoMirrorHeadHands_20261118/Expected.json",
+      "bytes": 2088539,
+      "sha256": "aa52af9b0ff425743c23fd2d8fa9395c999dc392e2b8e9e418c5e624cd36f2f8",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceTorsoMirrorHeadHands_20261118/ForwardLeft.blend",
+      "bytes": 7497578,
+      "sha256": "35164a8a22cdf49349de1df134ac9638b1d89c234b564cc9031441e45294ed88",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceTorsoMirrorHeadHands_20261118/ForwardLeft.fbx",
+      "bytes": 912780,
+      "sha256": "66635cec939770f1bfa8ee90dfb4b20fe404bc685b0b43f18bfbb3b7d489f6ab",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    },
+    {
+      "file": "SourceAssets/StanceTorsoMirrorHeadHands_20261118/import_ue.py",
+      "bytes": 5170,
+      "sha256": "509c536d8eefae11e563e91bec8fec43e9d541bc2b5871b0ce8a01b600790c99",
+      "reason": "已停止采用的派生候选、中间数据或旧导入辅助"
+    }
+  ],
+  "kept_original_fbx": [
+    "SourceAssets/FourDirectionCrouch_20261117/Original/Crouch Walking Forward.fbx",
+    "SourceAssets/FourDirectionCrouch_20261117/Original/Walk Crouching Backward.fbx",
+    "SourceAssets/FourDirectionCrouch_20261117/Original/Walk Crouching Left.fbx",
+    "SourceAssets/FourDirectionCrouch_20261117/Original/Walk Crouching Right.fbx",
+    "SourceAssets/FourDirectionRootLockSource_20261117/Original/Walk Crouching Backward.fbx",
+    "SourceAssets/FourDirectionRootLockSource_20261117/Original/Walk Crouching Forward.fbx",
+    "SourceAssets/FourDirectionRootLockSource_20261117/Original/Walk Crouching Left.fbx",
+    "SourceAssets/FourDirectionRootLockSource_20261117/Original/Walk Crouching Right.fbx",
+    "SourceAssets/StanceCrouch/CrouchBack.fbx",
+    "SourceAssets/StanceCrouch/CrouchForwardLeft.fbx",
+    "SourceAssets/StanceCrouch/CrouchIdle.fbx",
+    "SourceAssets/StanceCrouch/CrouchLeft.fbx",
+    "SourceAssets/StanceCrouch/CrouchRight.fbx"
+  ],
+  "current_import_sources": [
+    "SourceAssets/Audio/Footsteps/MetalDirt/footstep_dirt_000.wav",
+    "SourceAssets/Audio/Footsteps/MetalDirt/footstep_dirt_001.wav",
+    "SourceAssets/Audio/Footsteps/MetalDirt/footstep_dirt_002.wav",
+    "SourceAssets/Audio/Footsteps/MetalDirt/footstep_dirt_003.wav",
+    "SourceAssets/Audio/Footsteps/MetalDirt/footstep_dirt_004.wav",
+    "SourceAssets/Audio/Footsteps/MetalDirt/footstep_metal_000.wav",
+    "SourceAssets/Audio/Footsteps/MetalDirt/footstep_metal_001.wav",
+    "SourceAssets/Audio/Footsteps/MetalDirt/footstep_metal_002.wav",
+    "SourceAssets/Audio/Footsteps/MetalDirt/footstep_metal_003.wav",
+    "SourceAssets/Audio/Footsteps/MetalDirt/footstep_metal_004.wav",
+    "SourceAssets/Audio/Footsteps/footstep_concrete_000.wav",
+    "SourceAssets/Audio/Footsteps/footstep_concrete_001.wav",
+    "SourceAssets/Audio/Footsteps/footstep_concrete_002.wav",
+    "SourceAssets/Audio/Footsteps/footstep_concrete_003.wav",
+    "SourceAssets/Audio/Footsteps/footstep_concrete_004.wav",
+    "SourceAssets/FourDirectionRootLockSource_20261117/ImportReady/Back.fbx",
+    "SourceAssets/FourDirectionRootLockSource_20261117/ImportReady/Forward.fbx",
+    "SourceAssets/FourDirectionRootLockSource_20261117/ImportReady/Left.fbx",
+    "SourceAssets/FourDirectionRootLockSource_20261117/ImportReady/Right.fbx"
+  ],
+  "retained_preparation_inputs": [
+    "Scripts/Animation/Stance/fbx_parent_motion.py",
+    "Scripts/Animation/RifleTools/blender_bridge.py",
+    "Scripts/Animation/RifleTools/Inputs/sources.json",
+    "Scripts/Animation/RifleTools/fbx_settings.json"
+  ],
+  "before_files": 347,
+  "before_bytes": 1357884252,
+  "after_existing_files": 62,
+  "after_existing_bytes": 24195750,
+  "delete_files": 285,
+  "delete_bytes": 1333688502,
+  "ue_assets": 14,
+  "checked_importable_assets": 206
+}

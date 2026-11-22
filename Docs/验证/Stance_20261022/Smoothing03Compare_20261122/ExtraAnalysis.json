@@ -1,0 +1,850 @@
+{
+  "response": {
+    "DynamicPair": [
+      {
+        "name": "steady_F",
+        "kind": "steady",
+        "settled_1cm": {
+          "baseline": 0.0,
+          "trial": 0.0
+        },
+        "final_error_cm": {
+          "baseline": 2.240065763592447e-05,
+          "trial": 2.240065764781101e-05
+        }
+      },
+      {
+        "name": "steady_FR",
+        "kind": "steady",
+        "settled_1cm": {
+          "baseline": 0.0,
+          "trial": 0.0
+        },
+        "final_error_cm": {
+          "baseline": 5.9355713597041446e-05,
+          "trial": 5.935571357662604e-05
+        }
+      },
+      {
+        "name": "steady_R",
+        "kind": "steady",
+        "settled_1cm": {
+          "baseline": 0.0,
+          "trial": 0.0
+        },
+        "final_error_cm": {
+          "baseline": 4.3725451058264726e-05,
+          "trial": 4.3725451058264726e-05
+        }
+      },
+      {
+        "name": "steady_BR",
+        "kind": "steady",
+        "settled_1cm": {
+          "baseline": 0.0,
+          "trial": 0.0
+        },
+        "final_error_cm": {
+          "baseline": 2.4772480296229044e-05,
+          "trial": 2.477248029767239e-05
+        }
+      },
+      {
+        "name": "steady_B",
+        "kind": "steady",
+        "settled_1cm": {
+          "baseline": 0.0,
+          "trial": 0.0
+        },
+        "final_error_cm": {
+          "baseline": 4.488764138289003e-05,
+          "trial": 4.4887641394778054e-05
+        }
+      },
+      {
+        "name": "steady_BL",
+        "kind": "steady",
+        "settled_1cm": {
+          "baseline": 0.0,
+          "trial": 0.0
+        },
+        "final_error_cm": {
+          "baseline": 4.7974872028873846e-05,
+          "trial": 4.7974872037100975e-05
+        }
+      },
+      {
+        "name": "steady_L",
+        "kind": "steady",
+        "settled_1cm": {
+          "baseline": 0.0,
+          "trial": 0.0
+        },
+        "final_error_cm": {
+          "baseline": 3.671768167776947e-05,
+          "trial": 3.671768169029806e-05
+        }
+      },
+      {
+        "name": "steady_FL",
+        "kind": "steady",
+        "settled_1cm": {
+          "baseline": 0.0,
+          "trial": 0.0
+        },
+        "final_error_cm": {
+          "baseline": 3.2752866808553985e-05,
+          "trial": 3.2752866820004556e-05
+        }
+      },
+      {
+        "name": "R_BR_phase0.0",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.26666730269789696,
+          "trial": 0.36666950210928917
+        },
+        "final_error_cm": {
+          "baseline": 5.6210079509788414e-05,
+          "trial": 5.6210079486570035e-05
+        }
+      },
+      {
+        "name": "R_BR_phase0.25",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.25000179931521416,
+          "trial": 0.3500021994113922
+        },
+        "final_error_cm": {
+          "baseline": 3.5301512815232525e-05,
+          "trial": 3.501915934919959e-05
+        }
+      },
+      {
+        "name": "R_BR_phase0.5",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.25000059977173805,
+          "trial": 0.4000011011958122
+        },
+        "final_error_cm": {
+          "baseline": 3.0148367088819784e-05,
+          "trial": 3.150753217035259e-05
+        }
+      },
+      {
+        "name": "R_BR_phase0.75",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.26666880026459694,
+          "trial": 0.3833362013101578
+        },
+        "final_error_cm": {
+          "baseline": 7.422845038298385e-05,
+          "trial": 7.427665775771763e-05
+        }
+      },
+      {
+        "name": "BR_R_phase0.0",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.23333410173654556,
+          "trial": 0.2833341993391514
+        },
+        "final_error_cm": {
+          "baseline": 1.9159298747857287e-05,
+          "trial": 3.5332283130165505e-05
+        }
+      },
+      {
+        "name": "BR_R_phase0.25",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.21666860207915306,
+          "trial": 0.366669200360775
+        },
+        "final_error_cm": {
+          "baseline": 1.9303611940293693e-05,
+          "trial": 1.914673719572353e-05
+        }
+      },
+      {
+        "name": "BR_R_phase0.5",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.2500030994415283,
+          "trial": 0.3333366997539997
+        },
+        "final_error_cm": {
+          "baseline": 1.0446868882593466e-05,
+          "trial": 4.466595697432363e-05
+        }
+      },
+      {
+        "name": "BR_R_phase0.75",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.23336990177631378,
+          "trial": 0.3167034983634949
+        },
+        "final_error_cm": {
+          "baseline": 2.7829161517658725e-05,
+          "trial": 5.2375075954355035e-05
+        }
+      },
+      {
+        "name": "F_B_phase0.0",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.20000049844384193,
+          "trial": 0.30000070109963417
+        },
+        "final_error_cm": {
+          "baseline": 5.326350831104558e-05,
+          "trial": 5.376759455254257e-05
+        }
+      },
+      {
+        "name": "F_B_phase0.25",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.20000050216913223,
+          "trial": 0.28333400189876556
+        },
+        "final_error_cm": {
+          "baseline": 4.079992612511156e-05,
+          "trial": 5.242242615897525e-05
+        }
+      },
+      {
+        "name": "F_B_phase0.5",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.20000059902668,
+          "trial": 0.31666750088334084
+        },
+        "final_error_cm": {
+          "baseline": 3.487909130795807e-05,
+          "trial": 3.950601678035104e-05
+        }
+      },
+      {
+        "name": "F_B_phase0.75",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.21671000123023987,
+          "trial": 0.3167506009340286
+        },
+        "final_error_cm": {
+          "baseline": 3.6322483914746045e-05,
+          "trial": 3.8422867474970084e-05
+        }
+      },
+      {
+        "name": "B_F_phase0.0",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.20000270009040833,
+          "trial": 0.2833363004028797
+        },
+        "final_error_cm": {
+          "baseline": 3.087805044015325e-05,
+          "trial": 3.7744448169602154e-05
+        }
+      },
+      {
+        "name": "B_F_phase0.25",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.21667000278830528,
+          "trial": 0.30002420023083687
+        },
+        "final_error_cm": {
+          "baseline": 4.611647761188884e-05,
+          "trial": 4.910392585317803e-05
+        }
+      },
+      {
+        "name": "B_F_phase0.5",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.20000059902668,
+          "trial": 0.2833341993391514
+        },
+        "final_error_cm": {
+          "baseline": 1.857468565560559e-05,
+          "trial": 4.5764970912001985e-05
+        }
+      },
+      {
+        "name": "B_F_phase0.75",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.20000039786100388,
+          "trial": 0.30000120028853416
+        },
+        "final_error_cm": {
+          "baseline": 5.552121783591847e-05,
+          "trial": 5.778102956107196e-05
+        }
+      },
+      {
+        "name": "L_BL_phase0.0",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.16666699945926666,
+          "trial": 0.30000069737434387
+        },
+        "final_error_cm": {
+          "baseline": 5.390414107952474e-05,
+          "trial": 5.178894941499528e-05
+        }
+      },
+      {
+        "name": "L_BL_phase0.25",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.20000040158629417,
+          "trial": 0.31666750088334084
+        },
+        "final_error_cm": {
+          "baseline": 3.8081414362028444e-05,
+          "trial": 3.771313794368965e-05
+        }
+      },
+      {
+        "name": "L_BL_phase0.5",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.20000039786100388,
+          "trial": 0.2666671983897686
+        },
+        "final_error_cm": {
+          "baseline": 7.681019136397292e-05,
+          "trial": 7.824215632310573e-05
+        }
+      },
+      {
+        "name": "L_BL_phase0.75",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.1833352968096733,
+          "trial": 0.2333524003624916
+        },
+        "final_error_cm": {
+          "baseline": 4.19442376019787e-05,
+          "trial": 4.306054557661444e-05
+        }
+      },
+      {
+        "name": "BL_L_phase0.0",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.21666719764471054,
+          "trial": 0.30000079795718193
+        },
+        "final_error_cm": {
+          "baseline": 3.6541356621538745e-05,
+          "trial": 3.973702845050035e-05
+        }
+      },
+      {
+        "name": "BL_L_phase0.25",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.2166672982275486,
+          "trial": 0.30000079795718193
+        },
+        "final_error_cm": {
+          "baseline": 3.7586855336503857e-05,
+          "trial": 4.7276755496040476e-05
+        }
+      },
+      {
+        "name": "BL_L_phase0.5",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.20000110194087029,
+          "trial": 0.3166681006550789
+        },
+        "final_error_cm": {
+          "baseline": 5.8515696224824915e-05,
+          "trial": 5.841248821603645e-05
+        }
+      },
+      {
+        "name": "BL_L_phase0.75",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.21666739881038666,
+          "trial": 0.3166675977408886
+        },
+        "final_error_cm": {
+          "baseline": 2.2050959314405264e-05,
+          "trial": 3.90646468300845e-05
+        }
+      },
+      {
+        "name": "FL_L_phase0.0",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.21666739881038666,
+          "trial": 0.3500012010335922
+        },
+        "final_error_cm": {
+          "baseline": 3.534579675572151e-05,
+          "trial": 3.6335486713661524e-05
+        }
+      },
+      {
+        "name": "FL_L_phase0.25",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.216669499874115,
+          "trial": 0.3833788000047207
+        },
+        "final_error_cm": {
+          "baseline": 6.037964358056863e-05,
+          "trial": 6.037964360552589e-05
+        }
+      },
+      {
+        "name": "FL_L_phase0.5",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.25000109896063805,
+          "trial": 0.3166716992855072
+        },
+        "final_error_cm": {
+          "baseline": 2.307531663812746e-05,
+          "trial": 2.3075316663376468e-05
+        }
+      },
+      {
+        "name": "FL_L_phase0.75",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.2333337999880314,
+          "trial": 0.3000006005167961
+        },
+        "final_error_cm": {
+          "baseline": 4.7721798900188624e-05,
+          "trial": 4.7721798900188624e-05
+        }
+      },
+      {
+        "name": "L_FL_phase0.0",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.26666829735040665,
+          "trial": 0.4000020995736122
+        },
+        "final_error_cm": {
+          "baseline": 4.649921587664246e-05,
+          "trial": 4.649921585973488e-05
+        }
+      },
+      {
+        "name": "L_FL_phase0.25",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.26666779816150665,
+          "trial": 0.3666679970920086
+        },
+        "final_error_cm": {
+          "baseline": 5.538608173874123e-05,
+          "trial": 5.538608176163642e-05
+        }
+      },
+      {
+        "name": "L_FL_phase0.5",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.21666710078716278,
+          "trial": 0.40000100061297417
+        },
+        "final_error_cm": {
+          "baseline": 3.775210827300877e-05,
+          "trial": 3.775210827300877e-05
+        }
+      },
+      {
+        "name": "L_FL_phase0.75",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.2333337999880314,
+          "trial": 0.4000009000301361
+        },
+        "final_error_cm": {
+          "baseline": 1.955599253749899e-05,
+          "trial": 1.955599253749899e-05
+        }
+      }
+    ],
+    "FocusPair": [
+      {
+        "name": "R_BR_exact0.0",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.2666858993470669,
+          "trial": 0.3833530992269516
+        },
+        "final_error_cm": {
+          "baseline": 3.54629436262621e-05,
+          "trial": 4.177531248021203e-05
+        }
+      },
+      {
+        "name": "R_BR_exact0.25",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.23333439975976944,
+          "trial": 0.36666810140013695
+        },
+        "final_error_cm": {
+          "baseline": 2.5773889140860895e-05,
+          "trial": 2.577388911983744e-05
+        }
+      },
+      {
+        "name": "R_BR_exact0.5",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.2666676975786686,
+          "trial": 0.3667406998574734
+        },
+        "final_error_cm": {
+          "baseline": 7.129049335061821e-05,
+          "trial": 7.129049335061821e-05
+        }
+      },
+      {
+        "name": "R_BR_exact0.75",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.21666749939322472,
+          "trial": 0.3833347000181675
+        },
+        "final_error_cm": {
+          "baseline": 4.613624367570756e-05,
+          "trial": 4.613624368154471e-05
+        }
+      },
+      {
+        "name": "F_B_exact0.0",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.20000050216913223,
+          "trial": 0.30000080168247223
+        },
+        "final_error_cm": {
+          "baseline": 4.4195960655554765e-05,
+          "trial": 4.419596067760338e-05
+        }
+      },
+      {
+        "name": "F_B_exact0.25",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.20000099763274193,
+          "trial": 0.31666789948940277
+        },
+        "final_error_cm": {
+          "baseline": 2.065157334625088e-05,
+          "trial": 2.065157336898476e-05
+        }
+      },
+      {
+        "name": "F_B_exact0.5",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.20000150054693222,
+          "trial": 0.28333500027656555
+        },
+        "final_error_cm": {
+          "baseline": 2.9526503693581542e-05,
+          "trial": 2.952650370960157e-05
+        }
+      },
+      {
+        "name": "F_B_exact0.75",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.18333380296826363,
+          "trial": 0.2833342030644417
+        },
+        "final_error_cm": {
+          "baseline": 2.2091464718584007e-05,
+          "trial": 2.2091464730387242e-05
+        }
+      },
+      {
+        "name": "B_F_exact0.0",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.20000040158629417,
+          "trial": 0.28333400189876556
+        },
+        "final_error_cm": {
+          "baseline": 4.5651452281802736e-05,
+          "trial": 4.565145229943034e-05
+        }
+      },
+      {
+        "name": "B_F_exact0.25",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.2166672982275486,
+          "trial": 0.2833340987563133
+        },
+        "final_error_cm": {
+          "baseline": 2.505353780460444e-05,
+          "trial": 2.5053537815009973e-05
+        }
+      },
+      {
+        "name": "B_F_exact0.5",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.20000090077519417,
+          "trial": 0.28333450108766556
+        },
+        "final_error_cm": {
+          "baseline": 4.290113118703432e-05,
+          "trial": 4.290113118703432e-05
+        }
+      },
+      {
+        "name": "B_F_exact0.75",
+        "kind": "transition",
+        "settled_1cm": {
+          "baseline": 0.18333400040864944,
+          "trial": 0.2666677013039589
+        },
+        "final_error_cm": {
+          "baseline": 2.2182149159886447e-05,
+          "trial": 2.2182149165770233e-05
+        }
+      }
+    ]
+  },
+  "fixed": [
+    {
+      "name": "R_BR",
+      "phase": 0.0,
+      "versions": {
+        "baseline": {
+          "peak_head": 121.37161872549446,
+          "max_up_cm_s": 44.520286013760135,
+          "settled_1cm": 0.2166673019528389,
+          "phase_error": 0.0
+        },
+        "trial": {
+          "peak_head": 121.37674848062015,
+          "max_up_cm_s": 30.370600891445473,
+          "settled_1cm": 0.3334125019609928,
+          "phase_error": 0.0
+        }
+      }
+    },
+    {
+      "name": "R_BR",
+      "phase": 0.25,
+      "versions": {
+        "baseline": {
+          "peak_head": 123.88207465640096,
+          "max_up_cm_s": 98.46647409602416,
+          "settled_1cm": 0.266728300601244,
+          "phase_error": 0.0
+        },
+        "trial": {
+          "peak_head": 123.88210694740027,
+          "max_up_cm_s": 65.87551154503556,
+          "settled_1cm": 0.4001667983829975,
+          "phase_error": 0.0
+        }
+      }
+    },
+    {
+      "name": "R_BR",
+      "phase": 0.5,
+      "versions": {
+        "baseline": {
+          "peak_head": 122.32728030717858,
+          "max_up_cm_s": 46.57224404835523,
+          "settled_1cm": 0.23333549872040749,
+          "phase_error": 0.0
+        },
+        "trial": {
+          "peak_head": 122.327323874478,
+          "max_up_cm_s": 31.125194896944496,
+          "settled_1cm": 0.3333357982337475,
+          "phase_error": 0.0
+        }
+      }
+    },
+    {
+      "name": "R_BR",
+      "phase": 0.75,
+      "versions": {
+        "baseline": {
+          "peak_head": 120.96150966259835,
+          "max_up_cm_s": 15.272180283114318,
+          "settled_1cm": 0.2666704021394253,
+          "phase_error": 0.0
+        },
+        "trial": {
+          "peak_head": 120.96152834258491,
+          "max_up_cm_s": 10.617653385931991,
+          "settled_1cm": 0.3833374008536339,
+          "phase_error": 0.0
+        }
+      }
+    },
+    {
+      "name": "F_B",
+      "phase": 0.0,
+      "versions": {
+        "baseline": {
+          "peak_head": 121.37515806020623,
+          "max_up_cm_s": 54.47117421584121,
+          "settled_1cm": 0.18333550170063972,
+          "phase_error": 0.0
+        },
+        "trial": {
+          "peak_head": 121.37489799618328,
+          "max_up_cm_s": 38.27720178828168,
+          "settled_1cm": 0.26666900143027306,
+          "phase_error": 0.0
+        }
+      }
+    },
+    {
+      "name": "F_B",
+      "phase": 0.25,
+      "versions": {
+        "baseline": {
+          "peak_head": 121.95017435256837,
+          "max_up_cm_s": 83.19870985472951,
+          "settled_1cm": 0.20000049844384193,
+          "phase_error": 0.0
+        },
+        "trial": {
+          "peak_head": 121.94979464843398,
+          "max_up_cm_s": 64.96260824136418,
+          "settled_1cm": 0.30000070109963417,
+          "phase_error": 0.0
+        }
+      }
+    },
+    {
+      "name": "F_B",
+      "phase": 0.5,
+      "versions": {
+        "baseline": {
+          "peak_head": 122.09966338265461,
+          "max_up_cm_s": 60.86949785868468,
+          "settled_1cm": 0.20000050216913223,
+          "phase_error": 0.0
+        },
+        "trial": {
+          "peak_head": 122.0993530210703,
+          "max_up_cm_s": 42.23626332692534,
+          "settled_1cm": 0.30000080168247223,
+          "phase_error": 0.0
+        }
+      }
+    },
+    {
+      "name": "F_B",
+      "phase": 0.75,
+      "versions": {
+        "baseline": {
+          "peak_head": 121.7167133309275,
+          "max_up_cm_s": 68.99796976224587,
+          "settled_1cm": 0.2000006027519703,
+          "phase_error": 0.0
+        },
+        "trial": {
+          "peak_head": 121.71638120128219,
+          "max_up_cm_s": 51.53984385116739,
+          "settled_1cm": 0.28334280103445053,
+          "phase_error": 0.0
+        }
+      }
+    },
+    {
+      "name": "B_F",
+      "phase": 0.0,
+      "versions": {
+        "baseline": {
+          "peak_head": 121.27063771506108,
+          "max_up_cm_s": 65.08530219572788,
+          "settled_1cm": 0.18333379924297333,
+          "phase_error": 0.0
+        },
+        "trial": {
+          "peak_head": 121.2709386734224,
+          "max_up_cm_s": 44.21053866891085,
+          "settled_1cm": 0.26669440045952797,
+          "phase_error": 0.0
+        }
+      }
+    },
+    {
+      "name": "B_F",
+      "phase": 0.25,
+      "versions": {
+        "baseline": {
+          "peak_head": 121.80735175638218,
+          "max_up_cm_s": 89.1971496873887,
+          "settled_1cm": 0.2000030018389225,
+          "phase_error": 0.0
+        },
+        "trial": {
+          "peak_head": 121.80767822906701,
+          "max_up_cm_s": 60.57592768940796,
+          "settled_1cm": 0.28333669900894165,
+          "phase_error": 0.0
+        }
+      }
+    },
+    {
+      "name": "B_F",
+      "phase": 0.5,
+      "versions": {
+        "baseline": {
+          "peak_head": 121.98273107771843,
+          "max_up_cm_s": 72.97673961503817,
+          "settled_1cm": 0.2000008001923561,
+          "phase_error": 0.0
+        },
+        "trial": {
+          "peak_head": 121.98306644705757,
+          "max_up_cm_s": 49.54823355937145,
+          "settled_1cm": 0.3000010997056961,
+          "phase_error": 0.0
+        }
+      }
+    },
+    {
+      "name": "B_F",
+      "phase": 0.75,
+      "versions": {
+        "baseline": {
+          "peak_head": 121.59153964825774,
+          "max_up_cm_s": 76.560109497956,
+          "settled_1cm": 0.20000090077519417,
+          "phase_error": 0.0
+        },
+        "trial": {
+          "peak_head": 121.59189082562588,
+          "max_up_cm_s": 52.223231045210525,
+          "settled_1cm": 0.2833345979452133,
+          "phase_error": 0.0
+        }
+      }
+    }
+  ]
+}

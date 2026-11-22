@@ -1,0 +1,9 @@
+{
+  "unchanged": {
+    "anim_node": true,
+    "node_count": true,
+    "smoothing": true,
+    "samples": true
+  },
+  "native_default_correct": true
+}

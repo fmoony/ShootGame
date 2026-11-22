@@ -1,0 +1,38 @@
+{
+  "baseline_files": 2502,
+  "deleted_expected_count": 21,
+  "deleted_existing": [
+    "Content/Experiments/Stance_20261022/ABP_BakedEight_Crouch.uasset",
+    "Content/Experiments/Stance_20261022/ABP_Bake_CardinalBlend.uasset",
+    "Content/Experiments/Stance_20261022/ABP_OWBake_BackRight.uasset",
+    "Content/Experiments/Stance_20261022/ABP_OWBake_FrontLeft.uasset",
+    "Content/Experiments/Stance_20261022/ABP_OWLocalMovement.uasset",
+    "Content/Experiments/Stance_20261022/ABP_TorsoReferenceEight_Crouch.uasset",
+    "Content/Experiments/Stance_20261022/AS_BlendBaked_BackLeft.uasset",
+    "Content/Experiments/Stance_20261022/AS_OWBaked_BackRight.uasset",
+    "Content/Experiments/Stance_20261022/AS_RootLockSource_Back.uasset",
+    "Content/Experiments/Stance_20261022/BP_BackTorsoComparisonMode.uasset",
+    "Content/Experiments/Stance_20261022/BP_BakedEightGameMode.uasset",
+    "Content/Experiments/Stance_20261022/BP_OWLocalGameMode.uasset",
+    "Content/Experiments/Stance_20261022/BP_OWLocalPreview.uasset",
+    "Content/Experiments/Stance_20261022/BP_TorsoReferenceEightGameMode.uasset",
+    "Content/Experiments/Stance_20261022/BS_BakedEight_Crouch.uasset",
+    "Content/Experiments/Stance_20261022/BS_Bake_CardinalSource.uasset",
+    "Content/Experiments/Stance_20261022/BS_TorsoReferenceEight_Crouch.uasset",
+    "Content/Experiments/Stance_20261022/L_BackTorsoReference.umap",
+    "Content/Experiments/Stance_20261022/L_BakedEight_Crouch.umap",
+    "Content/Experiments/Stance_20261022/L_OWLocalMovement.umap",
+    "Content/Experiments/Stance_20261022/L_TorsoReferenceEight_Crouch.umap"
+  ],
+  "changed_existing": [
+    "Source/ShootGameEditor/Tests/Stance/ShooterStancePreview.cpp",
+    "Docs/验证/Stance_20261022/滑铲与下蹲动画实验.md"
+  ],
+  "new_content": [],
+  "kept_14_assets_identical": true,
+  "native_default_path_only_source_change": true,
+  "index_old_body_identical": true,
+  "all_other_content_source_config_sourceassets_history_identical": true,
+  "preview_window": "window \"ShootGame Preview [NetMode: Standalone 0]  (64-bit/PC D3D SM6)\" [focused] [pos=0,0 size=1920,1032] [ref=w5]",
+  "backup_verified": true
+}

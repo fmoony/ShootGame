@@ -1,0 +1,28 @@
+{
+  "remaining": [
+    "/Game/Experiments/Stance_20261022/ABP_Smoothing03_Crouch",
+    "/Game/Experiments/Stance_20261022/AS_BackLeft_TorsoReference",
+    "/Game/Experiments/Stance_20261022/AS_BackRight_TorsoReference",
+    "/Game/Experiments/Stance_20261022/AS_Back_TorsoReference",
+    "/Game/Experiments/Stance_20261022/AS_BlendBaked_ForwardRight",
+    "/Game/Experiments/Stance_20261022/AS_OWBaked_FrontLeft",
+    "/Game/Experiments/Stance_20261022/AS_RootLockSource_Forward",
+    "/Game/Experiments/Stance_20261022/AS_RootLockSource_Left",
+    "/Game/Experiments/Stance_20261022/AS_RootLockSource_Right",
+    "/Game/Experiments/Stance_20261022/BP_BakedEightPreview",
+    "/Game/Experiments/Stance_20261022/BP_Smoothing03GameMode",
+    "/Game/Experiments/Stance_20261022/BS_Smoothing03_Crouch",
+    "/Game/Experiments/Stance_20261022/L_Smoothing03_Crouch",
+    "/Game/Experiments/Stance_20261022/SK_FourDirection"
+  ],
+  "removed_count": 21,
+  "missing_kept": [],
+  "unexpected_assets": [],
+  "checked_game_assets": 504,
+  "dangling_to_removed": {},
+  "kept_missing_game_dependencies": {},
+  "redirectors": [],
+  "empty_folders": [],
+  "dirty_content": [],
+  "dirty_maps": []
+}

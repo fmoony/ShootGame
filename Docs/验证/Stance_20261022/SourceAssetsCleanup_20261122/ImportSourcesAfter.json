@@ -1,0 +1,86 @@
+{
+  "editor_world": "/Game/Experiments/Stance_20261022/L_Smoothing03_Crouch.L_Smoothing03_Crouch",
+  "assets": [
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_BlendBaked_ForwardRight",
+      "class": "AnimSequence",
+      "sources": []
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_OWBaked_FrontLeft",
+      "class": "AnimSequence",
+      "sources": []
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Forward",
+      "class": "AnimSequence",
+      "sources": [
+        "D:/UE_Projects/_worktrees/ShootGame_UE58/SourceAssets/FourDirectionRootLockSource_20261117/ImportReady/Forward.fbx"
+      ]
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Left",
+      "class": "AnimSequence",
+      "sources": [
+        "D:/UE_Projects/_worktrees/ShootGame_UE58/SourceAssets/FourDirectionRootLockSource_20261117/ImportReady/Left.fbx"
+      ]
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Right",
+      "class": "AnimSequence",
+      "sources": [
+        "D:/UE_Projects/_worktrees/ShootGame_UE58/SourceAssets/FourDirectionRootLockSource_20261117/ImportReady/Right.fbx"
+      ]
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/BP_BakedEightPreview",
+      "class": "Blueprint",
+      "sources": []
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/SK_FourDirection",
+      "class": "Skeleton",
+      "sources": []
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/ABP_Smoothing03_Crouch",
+      "class": "AnimBlueprint",
+      "sources": []
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/BP_Smoothing03GameMode",
+      "class": "Blueprint",
+      "sources": []
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/BS_Smoothing03_Crouch",
+      "class": "BlendSpace",
+      "sources": []
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/L_Smoothing03_Crouch",
+      "class": "World",
+      "sources": []
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_BackLeft_TorsoReference",
+      "class": "AnimSequence",
+      "sources": []
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_BackRight_TorsoReference",
+      "class": "AnimSequence",
+      "sources": []
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_Back_TorsoReference",
+      "class": "AnimSequence",
+      "sources": [
+        "D:/UE_Projects/_worktrees/ShootGame_UE58/SourceAssets/FourDirectionRootLockSource_20261117/ImportReady/Back.fbx"
+      ]
+    }
+  ],
+  "source_tags": [],
+  "dirty_content": [],
+  "dirty_maps": []
+}

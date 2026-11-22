@@ -1,0 +1,140 @@
+{
+  "checked_importable_assets": 206,
+  "sourceassets_references": [
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Forward",
+      "class": "AnimSequence",
+      "sources": [
+        "D:/UE_Projects/_worktrees/ShootGame_UE58/SourceAssets/FourDirectionRootLockSource_20261117/ImportReady/Forward.fbx"
+      ]
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Left",
+      "class": "AnimSequence",
+      "sources": [
+        "D:/UE_Projects/_worktrees/ShootGame_UE58/SourceAssets/FourDirectionRootLockSource_20261117/ImportReady/Left.fbx"
+      ]
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Right",
+      "class": "AnimSequence",
+      "sources": [
+        "D:/UE_Projects/_worktrees/ShootGame_UE58/SourceAssets/FourDirectionRootLockSource_20261117/ImportReady/Right.fbx"
+      ]
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_Back_TorsoReference",
+      "class": "AnimSequence",
+      "sources": [
+        "D:/UE_Projects/_worktrees/ShootGame_UE58/SourceAssets/FourDirectionRootLockSource_20261117/ImportReady/Back.fbx"
+      ]
+    },
+    {
+      "asset": "/Game/Shooter/Audio/Footsteps/SW_Footstep_Concrete_000",
+      "class": "SoundWave",
+      "sources": [
+        "D:/UE_Projects/_worktrees/ShootGame_UE58/SourceAssets/Audio/Footsteps/footstep_concrete_000.wav"
+      ]
+    },
+    {
+      "asset": "/Game/Shooter/Audio/Footsteps/SW_Footstep_Concrete_001",
+      "class": "SoundWave",
+      "sources": [
+        "D:/UE_Projects/_worktrees/ShootGame_UE58/SourceAssets/Audio/Footsteps/footstep_concrete_001.wav"
+      ]
+    },
+    {
+      "asset": "/Game/Shooter/Audio/Footsteps/SW_Footstep_Concrete_002",
+      "class": "SoundWave",
+      "sources": [
+        "D:/UE_Projects/_worktrees/ShootGame_UE58/SourceAssets/Audio/Footsteps/footstep_concrete_002.wav"
+      ]
+    },
+    {
+      "asset": "/Game/Shooter/Audio/Footsteps/SW_Footstep_Concrete_003",
+      "class": "SoundWave",
+      "sources": [
+        "D:/UE_Projects/_worktrees/ShootGame_UE58/SourceAssets/Audio/Footsteps/footstep_concrete_003.wav"
+      ]
+    },
+    {
+      "asset": "/Game/Shooter/Audio/Footsteps/SW_Footstep_Concrete_004",
+      "class": "SoundWave",
+      "sources": [
+        "D:/UE_Projects/_worktrees/ShootGame_UE58/SourceAssets/Audio/Footsteps/footstep_concrete_004.wav"
+      ]
+    },
+    {
+      "asset": "/Game/Shooter/Audio/Footsteps/SW_Footstep_Dirt_000",
+      "class": "SoundWave",
+      "sources": [
+        "D:/UE_Projects/_worktrees/ShootGame_UE58/SourceAssets/Audio/Footsteps/MetalDirt/footstep_dirt_000.wav"
+      ]
+    },
+    {
+      "asset": "/Game/Shooter/Audio/Footsteps/SW_Footstep_Dirt_001",
+      "class": "SoundWave",
+      "sources": [
+        "D:/UE_Projects/_worktrees/ShootGame_UE58/SourceAssets/Audio/Footsteps/MetalDirt/footstep_dirt_001.wav"
+      ]
+    },
+    {
+      "asset": "/Game/Shooter/Audio/Footsteps/SW_Footstep_Dirt_002",
+      "class": "SoundWave",
+      "sources": [
+        "D:/UE_Projects/_worktrees/ShootGame_UE58/SourceAssets/Audio/Footsteps/MetalDirt/footstep_dirt_002.wav"
+      ]
+    },
+    {
+      "asset": "/Game/Shooter/Audio/Footsteps/SW_Footstep_Dirt_003",
+      "class": "SoundWave",
+      "sources": [
+        "D:/UE_Projects/_worktrees/ShootGame_UE58/SourceAssets/Audio/Footsteps/MetalDirt/footstep_dirt_003.wav"
+      ]
+    },
+    {
+      "asset": "/Game/Shooter/Audio/Footsteps/SW_Footstep_Dirt_004",
+      "class": "SoundWave",
+      "sources": [
+        "D:/UE_Projects/_worktrees/ShootGame_UE58/SourceAssets/Audio/Footsteps/MetalDirt/footstep_dirt_004.wav"
+      ]
+    },
+    {
+      "asset": "/Game/Shooter/Audio/Footsteps/SW_Footstep_Metal_000",
+      "class": "SoundWave",
+      "sources": [
+        "D:/UE_Projects/_worktrees/ShootGame_UE58/SourceAssets/Audio/Footsteps/MetalDirt/footstep_metal_000.wav"
+      ]
+    },
+    {
+      "asset": "/Game/Shooter/Audio/Footsteps/SW_Footstep_Metal_001",
+      "class": "SoundWave",
+      "sources": [
+        "D:/UE_Projects/_worktrees/ShootGame_UE58/SourceAssets/Audio/Footsteps/MetalDirt/footstep_metal_001.wav"
+      ]
+    },
+    {
+      "asset": "/Game/Shooter/Audio/Footsteps/SW_Footstep_Metal_002",
+      "class": "SoundWave",
+      "sources": [
+        "D:/UE_Projects/_worktrees/ShootGame_UE58/SourceAssets/Audio/Footsteps/MetalDirt/footstep_metal_002.wav"
+      ]
+    },
+    {
+      "asset": "/Game/Shooter/Audio/Footsteps/SW_Footstep_Metal_003",
+      "class": "SoundWave",
+      "sources": [
+        "D:/UE_Projects/_worktrees/ShootGame_UE58/SourceAssets/Audio/Footsteps/MetalDirt/footstep_metal_003.wav"
+      ]
+    },
+    {
+      "asset": "/Game/Shooter/Audio/Footsteps/SW_Footstep_Metal_004",
+      "class": "SoundWave",
+      "sources": [
+        "D:/UE_Projects/_worktrees/ShootGame_UE58/SourceAssets/Audio/Footsteps/MetalDirt/footstep_metal_004.wav"
+      ]
+    }
+  ],
+  "dirty_content": [],
+  "dirty_maps": []
+}

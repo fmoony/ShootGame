@@ -1,0 +1,30 @@
+{
+  "files": [
+    {
+      "file": "CrouchBack.fbx",
+      "sha256": "5cea1844f84fff1c24b1aec3b14a37632b7940cb6692ac44e8c8ac9d72bf6278",
+      "bytes": 369312
+    },
+    {
+      "file": "CrouchForwardLeft.fbx",
+      "sha256": "a920a9a3313588dee457c24964259b99ac4706663d5a873fe2f2d1927761b8cb",
+      "bytes": 369312
+    },
+    {
+      "file": "CrouchIdle.fbx",
+      "sha256": "d8c0859e2c76c99da0b8f5b942fe802d0a56b1a6dd3f438253c0c24274de40e5",
+      "bytes": 821392
+    },
+    {
+      "file": "CrouchLeft.fbx",
+      "sha256": "502d1f9ed6a74c372dd220067c4502839c8a58db8cf194217ca649c688da0ee6",
+      "bytes": 415360
+    },
+    {
+      "file": "CrouchRight.fbx",
+      "sha256": "53d66093a9f6cd4fbc1d2a0cc8fc7c2c784c155badcc79d9dceb385aeb9aaea4",
+      "bytes": 411872
+    }
+  ],
+  "original_files_untouched": true
+}

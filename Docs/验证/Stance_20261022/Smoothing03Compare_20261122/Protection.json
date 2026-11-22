@@ -1,0 +1,16 @@
+{
+  "baseline_files": 2480,
+  "changed_existing": [
+    "Docs/验证/Stance_20261022/滑铲与下蹲动画实验.md"
+  ],
+  "missing_existing": [],
+  "new_content": [
+    "Content/Experiments/Stance_20261022/ABP_Smoothing03_Crouch.uasset",
+    "Content/Experiments/Stance_20261022/BP_Smoothing03GameMode.uasset",
+    "Content/Experiments/Stance_20261022/BS_Smoothing03_Crouch.uasset",
+    "Content/Experiments/Stance_20261022/L_Smoothing03_Crouch.umap"
+  ],
+  "expected_new_count": 4,
+  "baseline_protected": true,
+  "index_original_body_preserved": true
+}

@@ -1,0 +1,22 @@
+[
+  {
+    "source": "D:/GameResource/Model/UETemplate/Animation/Crouch/Crouch Walking Forward.fbx",
+    "copy": "SourceAssets/FourDirectionCrouch_20261117/Original/Crouch Walking Forward.fbx",
+    "sha256": "daa24e0aba3a3e931c13467d437704d2a318843ff2ca55aafa8d4c86ed99b109"
+  },
+  {
+    "source": "D:/GameResource/Model/UETemplate/Animation/Crouch/Walk Crouching Backward.fbx",
+    "copy": "SourceAssets/FourDirectionCrouch_20261117/Original/Walk Crouching Backward.fbx",
+    "sha256": "1eef8fded52d21572da4fdb0bc9bb6199ab09f5c47ce8e13803c91a2f09574ef"
+  },
+  {
+    "source": "D:/GameResource/Model/UETemplate/Animation/Crouch/Walk Crouching Left.fbx",
+    "copy": "SourceAssets/FourDirectionCrouch_20261117/Original/Walk Crouching Left.fbx",
+    "sha256": "bcdc94e10027be664cd4ecf91a3a1c4a1ec606acb3cc9c9d1c3fed25dac1429f"
+  },
+  {
+    "source": "D:/GameResource/Model/UETemplate/Animation/Crouch/Walk Crouching Right.fbx",
+    "copy": "SourceAssets/FourDirectionCrouch_20261117/Original/Walk Crouching Right.fbx",
+    "sha256": "09ea6ce933cf5fe943af9514fb5ffa20751aa14fd7090d4ab71a63fc74414ef6"
+  }
+]
