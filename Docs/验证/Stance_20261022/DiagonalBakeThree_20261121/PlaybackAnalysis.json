@@ -1,0 +1,194 @@
+{
+  "BackRight": {
+    "frames": 182,
+    "seconds": 3.197465494275093,
+    "wraps": 3,
+    "classes": [
+      "/Script/Engine.AnimSingleNodeInstance"
+    ],
+    "runtime_vs_asset_position_cm": 0.0001902903742656272,
+    "actor_z_range": [
+      0.0,
+      0.0
+    ],
+    "seam": {
+      "root": {
+        "reference_position_cm": 0.0,
+        "baked_position_cm": 0.0,
+        "baked_rotation_deg": 0.0
+      },
+      "pelvis": {
+        "reference_position_cm": 0.0,
+        "baked_position_cm": 0.0,
+        "baked_rotation_deg": 0.0
+      },
+      "head": {
+        "reference_position_cm": 0.0,
+        "baked_position_cm": 0.0,
+        "baked_rotation_deg": 0.0
+      },
+      "foot_l": {
+        "reference_position_cm": 0.0003253489962663869,
+        "baked_position_cm": 0.0007817856902442631,
+        "baked_rotation_deg": 0.0009250620712623619
+      },
+      "foot_r": {
+        "reference_position_cm": 0.012760917729978597,
+        "baked_position_cm": 0.012764379043180604,
+        "baked_rotation_deg": 0.01316669311839104
+      },
+      "ball_l": {
+        "reference_position_cm": 0.00040045526964202494,
+        "baked_position_cm": 0.0010324187438085026,
+        "baked_rotation_deg": 0.0009278881747162674
+      },
+      "ball_r": {
+        "reference_position_cm": 0.010001815114039456,
+        "baked_position_cm": 0.010338453153707176,
+        "baked_rotation_deg": 0.013161494964993433
+      }
+    },
+    "static_pairs": [
+      {
+        "time": 0.25,
+        "position_cm": 0.00127907492441701,
+        "rotation_deg": 0.02307744269417452,
+        "camera_identical": true
+      },
+      {
+        "time": 0.75,
+        "position_cm": 0.0023040853187033133,
+        "rotation_deg": 0.03596287906631655,
+        "camera_identical": true
+      }
+    ]
+  },
+  "BackLeft": {
+    "frames": 187,
+    "seconds": 3.1946354024112225,
+    "wraps": 3,
+    "classes": [
+      "/Script/Engine.AnimSingleNodeInstance"
+    ],
+    "runtime_vs_asset_position_cm": 0.0001753638492334323,
+    "actor_z_range": [
+      0.0,
+      0.0
+    ],
+    "seam": {
+      "root": {
+        "reference_position_cm": 0.0,
+        "baked_position_cm": 0.0,
+        "baked_rotation_deg": 0.0
+      },
+      "pelvis": {
+        "reference_position_cm": 0.0,
+        "baked_position_cm": 0.0,
+        "baked_rotation_deg": 0.0
+      },
+      "head": {
+        "reference_position_cm": 0.0010593113134048726,
+        "baked_position_cm": 0.0009956669919483085,
+        "baked_rotation_deg": 0.001327176235234736
+      },
+      "foot_l": {
+        "reference_position_cm": 0.000166456670177286,
+        "baked_position_cm": 6.716829268710191e-05,
+        "baked_rotation_deg": 0.00026830779228156085
+      },
+      "foot_r": {
+        "reference_position_cm": 0.006234599253733304,
+        "baked_position_cm": 0.006557997059039251,
+        "baked_rotation_deg": 0.005208277607674552
+      },
+      "ball_l": {
+        "reference_position_cm": 0.00020235811266381898,
+        "baked_position_cm": 0.00013060850429617415,
+        "baked_rotation_deg": 0.00027540784612667
+      },
+      "ball_r": {
+        "reference_position_cm": 0.004665431072926203,
+        "baked_position_cm": 0.005285123545022925,
+        "baked_rotation_deg": 0.005208545756371493
+      }
+    },
+    "static_pairs": [
+      {
+        "time": 0.25,
+        "position_cm": 0.004269740115948545,
+        "rotation_deg": 0.010181822442911109,
+        "camera_identical": true
+      },
+      {
+        "time": 0.75,
+        "position_cm": 0.0021546976535588374,
+        "rotation_deg": 0.013215343937261887,
+        "camera_identical": true
+      }
+    ]
+  },
+  "ForwardRight": {
+    "frames": 192,
+    "seconds": 3.198377300053835,
+    "wraps": 3,
+    "classes": [
+      "/Script/Engine.AnimSingleNodeInstance"
+    ],
+    "runtime_vs_asset_position_cm": 0.0001680997752873553,
+    "actor_z_range": [
+      0.0,
+      0.0
+    ],
+    "seam": {
+      "root": {
+        "reference_position_cm": 0.002045631286762273,
+        "baked_position_cm": 0.002643585205078125,
+        "baked_rotation_deg": 0.0
+      },
+      "pelvis": {
+        "reference_position_cm": 0.002045631286762273,
+        "baked_position_cm": 0.002643585205078125,
+        "baked_rotation_deg": 0.0
+      },
+      "head": {
+        "reference_position_cm": 0.0017620774818182963,
+        "baked_position_cm": 0.002051106759915559,
+        "baked_rotation_deg": 0.007475851490584311
+      },
+      "foot_l": {
+        "reference_position_cm": 0.0006754365364448544,
+        "baked_position_cm": 0.0008866326904076867,
+        "baked_rotation_deg": 0.0016679022675350342
+      },
+      "foot_r": {
+        "reference_position_cm": 0.02023873000686833,
+        "baked_position_cm": 0.01997256780584936,
+        "baked_rotation_deg": 0.01170445612950069
+      },
+      "ball_l": {
+        "reference_position_cm": 0.001019388954865594,
+        "baked_position_cm": 0.0009750758552681778,
+        "baked_rotation_deg": 0.0016653042641849216
+      },
+      "ball_r": {
+        "reference_position_cm": 0.017646622470627264,
+        "baked_position_cm": 0.01713513257218001,
+        "baked_rotation_deg": 0.011704160554655722
+      }
+    },
+    "static_pairs": [
+      {
+        "time": 0.25,
+        "position_cm": 0.0073309460041075065,
+        "rotation_deg": 0.03042538982482344,
+        "camera_identical": true
+      },
+      {
+        "time": 0.75,
+        "position_cm": 0.005480509349116393,
+        "rotation_deg": 0.06641428762069086,
+        "camera_identical": true
+      }
+    ]
+  }
+}

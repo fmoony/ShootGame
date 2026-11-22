@@ -1,0 +1,88 @@
+{
+  "samples": [
+    {
+      "direction": "F",
+      "asset": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Forward.AS_RootLockSource_Forward",
+      "point": [
+        1.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "direction": "FR",
+      "asset": "/Game/Experiments/Stance_20261022/AS_BlendBaked_ForwardRight.AS_BlendBaked_ForwardRight",
+      "point": [
+        0.5,
+        0.5,
+        0.0
+      ]
+    },
+    {
+      "direction": "R",
+      "asset": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Right.AS_RootLockSource_Right",
+      "point": [
+        0.0,
+        1.0,
+        0.0
+      ]
+    },
+    {
+      "direction": "BR",
+      "asset": "/Game/Experiments/Stance_20261022/AS_BackRight_TorsoReference.AS_BackRight_TorsoReference",
+      "point": [
+        -0.5,
+        0.5,
+        0.0
+      ]
+    },
+    {
+      "direction": "B",
+      "asset": "/Game/Experiments/Stance_20261022/AS_Back_TorsoReference.AS_Back_TorsoReference",
+      "point": [
+        -1.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "direction": "BL",
+      "asset": "/Game/Experiments/Stance_20261022/AS_BackLeft_TorsoReference.AS_BackLeft_TorsoReference",
+      "point": [
+        -0.5,
+        -0.5,
+        0.0
+      ]
+    },
+    {
+      "direction": "L",
+      "asset": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Left.AS_RootLockSource_Left",
+      "point": [
+        0.0,
+        -1.0,
+        0.0
+      ]
+    },
+    {
+      "direction": "FL",
+      "asset": "/Game/Experiments/Stance_20261022/AS_OWBaked_FrontLeft.AS_OWBaked_FrontLeft",
+      "point": [
+        0.5,
+        -0.5,
+        0.0
+      ]
+    }
+  ],
+  "space": "/Game/Experiments/Stance_20261022/BS_TorsoReferenceEight_Crouch.BS_TorsoReferenceEight_Crouch",
+  "anim": "/Game/Experiments/Stance_20261022/ABP_TorsoReferenceEight_Crouch.ABP_TorsoReferenceEight_Crouch",
+  "game_mode": "/Game/Experiments/Stance_20261022/BP_TorsoReferenceEightGameMode.BP_TorsoReferenceEightGameMode",
+  "initial_class": "/Game/Experiments/Stance_20261022/ABP_TorsoReferenceEight_Crouch.ABP_TorsoReferenceEight_Crouch_C",
+  "map": "/Game/Experiments/Stance_20261022/L_TorsoReferenceEight_Crouch.L_TorsoReferenceEight_Crouch",
+  "node_value": "(GroupName=\"\",GroupRole=CanBeLeader,bOverridePositionWhenJoiningSyncGroupAsLeader=False,Method=DoNotSync,bIgnoreForRelevancyTest=False,X=0.000000,Y=0.000000,PlayRate=1.000000,bLoop=True,bResetPlayTimeWhenBlendSpaceChanges=True,StartPosition=0.000000,BlendSpace=\"/Script/Engine.BlendSpace'/Game/Experiments/Stance_20261022/BS_TorsoReferenceEight_Crouch.BS_TorsoReferenceEight_Crouch'\",InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))",
+  "anim_nodes": 4,
+  "smoothing": [
+    "(InterpolationTime=0.200000,DampingRatio=1.000000,MaxSpeed=0.000000,InterpolationType=BSIT_SpringDamper)",
+    "(InterpolationTime=0.200000,DampingRatio=1.000000,MaxSpeed=0.000000,InterpolationType=BSIT_SpringDamper)",
+    "(InterpolationTime=0.000000,DampingRatio=1.000000,MaxSpeed=0.000000,InterpolationType=BSIT_SpringDamper)"
+  ]
+}

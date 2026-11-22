@@ -1,0 +1,97 @@
+{
+  "world": "/Game/Experiments/Stance_20261022/L_OWLocalMovement.L_OWLocalMovement",
+  "assets": [
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_OWBaked_BackRight.AS_OWBaked_BackRight",
+      "skeleton": "/Game/Experiments/Stance_20261022/SK_FourDirection.SK_FourDirection",
+      "duration": 1.0,
+      "keys": 61,
+      "frames": 60,
+      "fps": "(Numerator=60,Denominator=1)",
+      "bone_tracks": 89,
+      "platform_fps": "(Default=(Numerator=30,Denominator=1),PerPlatform=())",
+      "root_motion": false,
+      "force_lock": false
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_BlendBaked_BackLeft.AS_BlendBaked_BackLeft",
+      "skeleton": "/Game/Experiments/Stance_20261022/SK_FourDirection.SK_FourDirection",
+      "duration": 1.0,
+      "keys": 61,
+      "frames": 60,
+      "fps": "(Numerator=60,Denominator=1)",
+      "bone_tracks": 89,
+      "platform_fps": "(Default=(Numerator=30,Denominator=1),PerPlatform=())",
+      "root_motion": false,
+      "force_lock": false
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_BlendBaked_ForwardRight.AS_BlendBaked_ForwardRight",
+      "skeleton": "/Game/Experiments/Stance_20261022/SK_FourDirection.SK_FourDirection",
+      "duration": 1.0,
+      "keys": 61,
+      "frames": 60,
+      "fps": "(Numerator=60,Denominator=1)",
+      "bone_tracks": 89,
+      "platform_fps": "(Default=(Numerator=30,Denominator=1),PerPlatform=())",
+      "root_motion": false,
+      "force_lock": false
+    }
+  ],
+  "dirty_content": [],
+  "dirty_maps": [],
+  "blend_samples": [
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Forward.AS_RootLockSource_Forward",
+      "point": [
+        1.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Back.AS_RootLockSource_Back",
+      "point": [
+        -1.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Left.AS_RootLockSource_Left",
+      "point": [
+        0.0,
+        -1.0,
+        0.0
+      ]
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Right.AS_RootLockSource_Right",
+      "point": [
+        0.0,
+        1.0,
+        0.0
+      ]
+    }
+  ],
+  "ABP_Bake_CardinalBlend": {
+    "node": "(NormalizedTime=0.000000,bTeleportToNormalizedTime=True,GroupName=\"\",GroupRole=CanBeLeader,bOverridePositionWhenJoiningSyncGroupAsLeader=False,Method=DoNotSync,bIgnoreForRelevancyTest=False,X=0.000000,Y=0.000000,PlayRate=1.000000,bLoop=False,bResetPlayTimeWhenBlendSpaceChanges=True,StartPosition=0.000000,BlendSpace=\"/Script/Engine.BlendSpace'/Game/Experiments/Stance_20261022/BS_Bake_CardinalSource.BS_Bake_CardinalSource'\",InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))",
+    "errors": []
+  },
+  "ABP_OWBake_BackRight": {
+    "node": "(GroupName=\"\",GroupRole=CanBeLeader,Method=DoNotSync,bIgnoreForRelevancyTest=False,Sequence=\"/Script/Engine.AnimSequence'/Game/Experiments/Stance_20261022/AS_RootLockSource_Back.AS_RootLockSource_Back'\",ExplicitTime=0.000000,bUseExplicitFrame=False,ExplicitFrame=0,bShouldLoop=False,bTeleportToExplicitTime=True,ReinitializationBehavior=ExplicitTime,StartPosition=0.000000,InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))",
+    "errors": []
+  },
+  "runtime_defaults": {
+    "bTestOverride": false,
+    "bManualPhase": false,
+    "bSnapInput": false,
+    "TurnSpeed": 10.0
+  },
+  "render": {
+    "r.MotionBlurQuality": 4,
+    "r.AntiAliasingMethod": 4
+  },
+  "max_fps": 0.0,
+  "throttle": true
+}

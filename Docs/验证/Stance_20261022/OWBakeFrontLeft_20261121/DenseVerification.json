@@ -1,0 +1,18 @@
+{
+  "<AnimDataEvalType.RAW: 1>": {
+    "max_position_cm": 0.015439702814139668,
+    "max_rotation_deg": 0.054510354551529534,
+    "worst_position": {
+      "time": 0.3416666666666667,
+      "bone": "ball_r"
+    }
+  },
+  "<AnimDataEvalType.COMPRESSED: 2>": {
+    "max_position_cm": 0.003635600074871222,
+    "max_rotation_deg": 0.0636103655757418,
+    "worst_position": {
+      "time": 0.8666666666666667,
+      "bone": "head"
+    }
+  }
+}

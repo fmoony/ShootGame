@@ -1,0 +1,367 @@
+{
+  "space": "/Game/Experiments/Stance_20261022/BS_BakedEight_Crouch.BS_BakedEight_Crouch",
+  "skeleton": "/Game/Experiments/Stance_20261022/SK_FourDirection.SK_FourDirection",
+  "axes": [
+    "(DisplayName=\"Forward\",Min=-1.000000,Max=1.000000,GridNum=4,bSnapToGrid=False,bWrapInput=False)",
+    "(DisplayName=\"Right\",Min=-1.000000,Max=1.000000,GridNum=4,bSnapToGrid=False,bWrapInput=False)",
+    "(DisplayName=\"None\",Min=0.000000,Max=100.000000,GridNum=4,bSnapToGrid=False,bWrapInput=False)"
+  ],
+  "smoothing": [
+    "(InterpolationTime=0.200000,DampingRatio=1.000000,MaxSpeed=0.000000,InterpolationType=BSIT_SpringDamper)",
+    "(InterpolationTime=0.200000,DampingRatio=1.000000,MaxSpeed=0.000000,InterpolationType=BSIT_SpringDamper)",
+    "(InterpolationTime=0.000000,DampingRatio=1.000000,MaxSpeed=0.000000,InterpolationType=BSIT_SpringDamper)"
+  ],
+  "samples": [
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Forward.AS_RootLockSource_Forward",
+      "point": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "rate": 1.0
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_BlendBaked_ForwardRight.AS_BlendBaked_ForwardRight",
+      "point": [
+        0.5,
+        0.5,
+        0.0
+      ],
+      "rate": 1.0
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Right.AS_RootLockSource_Right",
+      "point": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "rate": 1.0
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_OWBaked_BackRight.AS_OWBaked_BackRight",
+      "point": [
+        -0.5,
+        0.5,
+        0.0
+      ],
+      "rate": 1.0
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Back.AS_RootLockSource_Back",
+      "point": [
+        -1.0,
+        0.0,
+        0.0
+      ],
+      "rate": 1.0
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_BlendBaked_BackLeft.AS_BlendBaked_BackLeft",
+      "point": [
+        -0.5,
+        -0.5,
+        0.0
+      ],
+      "rate": 1.0
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Left.AS_RootLockSource_Left",
+      "point": [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      "rate": 1.0
+    },
+    {
+      "asset": "/Game/Experiments/Stance_20261022/AS_OWBaked_FrontLeft.AS_OWBaked_FrontLeft",
+      "point": [
+        0.5,
+        -0.5,
+        0.0
+      ],
+      "rate": 1.0
+    }
+  ],
+  "graphs": {
+    "AnimGraph": {
+      "nodes": [
+        {
+          "name": "AnimGraphNode_Root_0",
+          "title": "Output Pose",
+          "class": "AnimGraphNode_Root",
+          "pins": [
+            {
+              "name": "Result",
+              "value": "(LinkID=-1,SourceLinkID=-1)",
+              "links": [
+                "AnimGraphNode_BlendSpacePlayer_0:Pose"
+              ]
+            }
+          ],
+          "settings": "(Result=(LinkID=-1,SourceLinkID=-1),Name=\"\",LayerGroup=\"DefaultSharedGroup\",InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+        },
+        {
+          "name": "AnimGraphNode_BlendSpacePlayer_0",
+          "title": "Blendspace Player 'BS_BakedEight_Crouch'",
+          "class": "AnimGraphNode_BlendSpacePlayer",
+          "pins": [
+            {
+              "name": "X",
+              "value": "0.000000",
+              "links": [
+                "K2Node_VariableGet_0:Forward"
+              ]
+            },
+            {
+              "name": "Y",
+              "value": "0.000000",
+              "links": [
+                "K2Node_VariableGet_1:Right"
+              ]
+            },
+            {
+              "name": "Pose",
+              "value": "",
+              "links": [
+                "AnimGraphNode_Root_0:Result"
+              ]
+            }
+          ],
+          "settings": "(GroupName=\"\",GroupRole=CanBeLeader,bOverridePositionWhenJoiningSyncGroupAsLeader=False,Method=DoNotSync,bIgnoreForRelevancyTest=False,X=0.000000,Y=0.000000,PlayRate=1.000000,bLoop=True,bResetPlayTimeWhenBlendSpaceChanges=True,StartPosition=0.000000,BlendSpace=\"/Script/Engine.BlendSpace'/Game/Experiments/Stance_20261022/BS_BakedEight_Crouch.BS_BakedEight_Crouch'\",InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+        },
+        {
+          "name": "K2Node_VariableGet_0",
+          "title": "Get Forward",
+          "class": "K2Node_VariableGet",
+          "pins": [
+            {
+              "name": "Forward",
+              "value": "0.0",
+              "links": [
+                "AnimGraphNode_BlendSpacePlayer_0:X"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_VariableGet_1",
+          "title": "Get Right",
+          "class": "K2Node_VariableGet",
+          "pins": [
+            {
+              "name": "Right",
+              "value": "0.0",
+              "links": [
+                "AnimGraphNode_BlendSpacePlayer_0:Y"
+              ]
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    "EventGraph": {
+      "nodes": [
+        {
+          "name": "K2Node_Event_1",
+          "title": "Event BlueprintUpdateAnimation",
+          "class": "K2Node_Event",
+          "pins": [
+            {
+              "name": "OutputDelegate",
+              "value": "",
+              "links": []
+            },
+            {
+              "name": "then",
+              "value": "",
+              "links": [
+                "K2Node_DynamicCast_0:execute"
+              ]
+            },
+            {
+              "name": "DeltaTimeX",
+              "value": "0.0",
+              "links": []
+            }
+          ]
+        },
+        {
+          "name": "K2Node_CallFunction_1",
+          "title": "TryGetPawnOwner",
+          "class": "K2Node_CallFunction",
+          "pins": [
+            {
+              "name": "self",
+              "value": "",
+              "links": []
+            },
+            {
+              "name": "ReturnValue",
+              "value": "",
+              "links": [
+                "K2Node_DynamicCast_0:Object"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_DynamicCast_0",
+          "title": "Cast To ShooterStancePreviewPawn",
+          "class": "K2Node_DynamicCast",
+          "pins": [
+            {
+              "name": "execute",
+              "value": "",
+              "links": [
+                "K2Node_Event_1:then"
+              ]
+            },
+            {
+              "name": "Object",
+              "value": "",
+              "links": [
+                "K2Node_CallFunction_1:ReturnValue"
+              ]
+            },
+            {
+              "name": "then",
+              "value": "",
+              "links": [
+                "K2Node_VariableSet_0:execute"
+              ]
+            },
+            {
+              "name": "CastFailed",
+              "value": "",
+              "links": []
+            },
+            {
+              "name": "AsShooter Stance Preview Pawn",
+              "value": "",
+              "links": [
+                "K2Node_VariableGet_0:self",
+                "K2Node_VariableGet_1:self"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_VariableGet_0",
+          "title": "Get PreviewForward",
+          "class": "K2Node_VariableGet",
+          "pins": [
+            {
+              "name": "self",
+              "value": "",
+              "links": [
+                "K2Node_DynamicCast_0:AsShooter Stance Preview Pawn"
+              ]
+            },
+            {
+              "name": "PreviewForward",
+              "value": "0.0",
+              "links": [
+                "K2Node_VariableSet_0:Forward"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_VariableSet_0",
+          "title": "Set Forward",
+          "class": "K2Node_VariableSet",
+          "pins": [
+            {
+              "name": "execute",
+              "value": "",
+              "links": [
+                "K2Node_DynamicCast_0:then"
+              ]
+            },
+            {
+              "name": "Forward",
+              "value": "0.0",
+              "links": [
+                "K2Node_VariableGet_0:PreviewForward"
+              ]
+            },
+            {
+              "name": "then",
+              "value": "",
+              "links": [
+                "K2Node_VariableSet_1:execute"
+              ]
+            },
+            {
+              "name": "Output_Get",
+              "value": "0.0",
+              "links": []
+            }
+          ]
+        },
+        {
+          "name": "K2Node_VariableGet_1",
+          "title": "Get PreviewRight",
+          "class": "K2Node_VariableGet",
+          "pins": [
+            {
+              "name": "self",
+              "value": "",
+              "links": [
+                "K2Node_DynamicCast_0:AsShooter Stance Preview Pawn"
+              ]
+            },
+            {
+              "name": "PreviewRight",
+              "value": "0.0",
+              "links": [
+                "K2Node_VariableSet_1:Right"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_VariableSet_1",
+          "title": "Set Right",
+          "class": "K2Node_VariableSet",
+          "pins": [
+            {
+              "name": "execute",
+              "value": "",
+              "links": [
+                "K2Node_VariableSet_0:then"
+              ]
+            },
+            {
+              "name": "Right",
+              "value": "0.0",
+              "links": [
+                "K2Node_VariableGet_1:PreviewRight"
+              ]
+            },
+            {
+              "name": "then",
+              "value": "",
+              "links": []
+            },
+            {
+              "name": "Output_Get",
+              "value": "0.0",
+              "links": []
+            }
+          ]
+        }
+      ],
+      "errors": []
+    }
+  },
+  "world": "/Game/Experiments/Stance_20261022/L_BakedEight_Crouch.L_BakedEight_Crouch",
+  "default_game_mode": "/Game/Experiments/Stance_20261022/BP_BakedEightGameMode.BP_BakedEightGameMode_C",
+  "initial_anim": "/Game/Experiments/Stance_20261022/ABP_BakedEight_Crouch.ABP_BakedEight_Crouch_C",
+  "dirty_content": [],
+  "dirty_maps": []
+}

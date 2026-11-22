@@ -1,0 +1,35 @@
+{
+  "world": "/Game/Experiments/Stance_20261022/UEDPIE_0_L_TorsoReferenceEight_Crouch.L_TorsoReferenceEight_Crouch",
+  "pawn_tick": true,
+  "anim_class": "/Game/Experiments/Stance_20261022/ABP_TorsoReferenceEight_Crouch.ABP_TorsoReferenceEight_Crouch_C",
+  "configured_anim": "/Game/Experiments/Stance_20261022/ABP_TorsoReferenceEight_Crouch.ABP_TorsoReferenceEight_Crouch_C",
+  "game_mode": "/Game/Experiments/Stance_20261022/BP_TorsoReferenceEightGameMode.BP_TorsoReferenceEightGameMode_C",
+  "actor": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "inputs": [
+    1.0,
+    0.0
+  ],
+  "graph": [
+    1.0,
+    0.0
+  ],
+  "keys": {
+    "W": false,
+    "A": false,
+    "S": false,
+    "D": false
+  },
+  "rate": 0.0,
+  "fps": 0.0,
+  "render": {
+    "r.MotionBlurQuality": 4,
+    "r.AntiAliasingMethod": 4
+  },
+  "throttle": true,
+  "dirty_content": [],
+  "dirty_maps": []
+}

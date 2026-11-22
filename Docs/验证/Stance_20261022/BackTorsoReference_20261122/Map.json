@@ -1,0 +1,22 @@
+{
+  "map": "/Game/Experiments/Stance_20261022/L_BackTorsoReference",
+  "actors": [
+    {
+      "actor": "/Game/Experiments/Stance_20261022/L_BackTorsoReference.L_BackTorsoReference:PersistentLevel.SkeletalMeshActor_1",
+      "label": "Forward reference",
+      "sequence": "(AnimToPlay=\"/Script/Engine.AnimSequence'/Game/Experiments/Stance_20261022/AS_RootLockSource_Forward.AS_RootLockSource_Forward'\",bSavedLooping=True,bSavedPlaying=True,SavedPosition=0.000000,SavedPlayRate=1.000000)"
+    },
+    {
+      "actor": "/Game/Experiments/Stance_20261022/L_BackTorsoReference.L_BackTorsoReference:PersistentLevel.SkeletalMeshActor_2",
+      "label": "Back original",
+      "sequence": "(AnimToPlay=\"/Script/Engine.AnimSequence'/Game/Experiments/Stance_20261022/AS_RootLockSource_Back.AS_RootLockSource_Back'\",bSavedLooping=True,bSavedPlaying=True,SavedPosition=0.000000,SavedPlayRate=1.000000)"
+    },
+    {
+      "actor": "/Game/Experiments/Stance_20261022/L_BackTorsoReference.L_BackTorsoReference:PersistentLevel.SkeletalMeshActor_3",
+      "label": "Back torso trial",
+      "sequence": "(AnimToPlay=\"/Script/Engine.AnimSequence'/Game/Experiments/Stance_20261022/AS_Back_TorsoReference.AS_Back_TorsoReference'\",bSavedLooping=True,bSavedPlaying=True,SavedPosition=0.000000,SavedPlayRate=1.000000)"
+    }
+  ],
+  "camera": "/Game/Experiments/Stance_20261022/L_BackTorsoReference.L_BackTorsoReference:PersistentLevel.CameraActor_0",
+  "game_mode": "/Script/Engine.GameModeBase"
+}

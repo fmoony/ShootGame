@@ -1,0 +1,12 @@
+{
+  "checked": 2269,
+  "modified": [
+    "Docs/_工作区文档/下蹲实验进度.md",
+    "Docs/验证/Stance_20261022/滑铲与下蹲动画实验.md"
+  ],
+  "missing": [],
+  "added_experiment_assets": [
+    "Content/Experiments/Stance_20261022/ABP_OWBake_FrontLeft.uasset",
+    "Content/Experiments/Stance_20261022/AS_OWBaked_FrontLeft.uasset"
+  ]
+}

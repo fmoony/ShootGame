@@ -1,0 +1,15 @@
+{
+  "checked": 2349,
+  "modified": [
+    "Docs/_工作区文档/下蹲实验进度.md",
+    "Docs/验证/Stance_20261022/滑铲与下蹲动画实验.md"
+  ],
+  "missing": [],
+  "new_assets": [
+    "Content/Experiments/Stance_20261022/ABP_BakedEight_Crouch.uasset",
+    "Content/Experiments/Stance_20261022/BP_BakedEightGameMode.uasset",
+    "Content/Experiments/Stance_20261022/BP_BakedEightPreview.uasset",
+    "Content/Experiments/Stance_20261022/BS_BakedEight_Crouch.uasset",
+    "Content/Experiments/Stance_20261022/L_BakedEight_Crouch.umap"
+  ]
+}

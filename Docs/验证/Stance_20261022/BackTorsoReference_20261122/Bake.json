@@ -1,0 +1,17 @@
+{
+  "asset": "/Game/Experiments/Stance_20261022/AS_Back_TorsoReference.AS_Back_TorsoReference",
+  "source": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Back.AS_RootLockSource_Back",
+  "angles": {
+    "spine_01": 1.551597072900421,
+    "spine_02": 3.105236806085564,
+    "spine_04": 3.105248114014799,
+    "spine_05": 3.1052404480451905,
+    "neck_01": -4.0578936648813855,
+    "neck_02": -3.8767313702456505
+  },
+  "frame_rate": "(Numerator=30,Denominator=1)",
+  "frames": 30,
+  "duration": 1.0,
+  "root_motion": false,
+  "root_lock": false
+}

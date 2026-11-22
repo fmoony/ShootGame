@@ -1,0 +1,164 @@
+{
+  "BackRight": {
+    "<AnimDataEvalType.RAW: 1>": {
+      "keys": {
+        "position_cm": 0.00013991652767564,
+        "rotation_deg": 0.00013356032806202502,
+        "worst_rotation": {
+          "bone": "thumb_03_l",
+          "time": 0.23333333333333334
+        },
+        "worst_position": {
+          "bone": "index_03_l",
+          "time": 0.23333333333333334
+        }
+      },
+      "half": {
+        "position_cm": 0.012308443876884083,
+        "rotation_deg": 0.014109303958971423,
+        "worst_position": {
+          "bone": "ball_l",
+          "time": 0.8416666666666667
+        },
+        "worst_rotation": {
+          "bone": "calf_twist_02_l",
+          "time": 0.8416666666666667
+        }
+      }
+    },
+    "<AnimDataEvalType.COMPRESSED: 2>": {
+      "keys": {
+        "position_cm": 0.005911076285076705,
+        "rotation_deg": 0.06283809845933487,
+        "worst_rotation": {
+          "bone": "neck_02",
+          "time": 0.7333333333333333
+        },
+        "worst_position": {
+          "bone": "head",
+          "time": 0.7333333333333333
+        }
+      },
+      "half": {
+        "position_cm": 0.004908250294463125,
+        "rotation_deg": 0.05492822205353396,
+        "worst_rotation": {
+          "bone": "neck_02",
+          "time": 0.725
+        },
+        "worst_position": {
+          "bone": "head",
+          "time": 0.14166666666666666
+        }
+      }
+    }
+  },
+  "BackLeft": {
+    "<AnimDataEvalType.RAW: 1>": {
+      "keys": {
+        "position_cm": 9.097729212655567e-05,
+        "rotation_deg": 0.00013195706286379654,
+        "worst_position": {
+          "bone": "middle_02_r",
+          "time": 0.06666666666666667
+        },
+        "worst_rotation": {
+          "bone": "pinky_02_r",
+          "time": 0.06666666666666667
+        }
+      },
+      "half": {
+        "position_cm": 0.007350547654448996,
+        "rotation_deg": 0.012905993866377275,
+        "worst_position": {
+          "bone": "ball_l",
+          "time": 0.8416666666666667
+        },
+        "worst_rotation": {
+          "bone": "foot_l",
+          "time": 0.225
+        }
+      }
+    },
+    "<AnimDataEvalType.COMPRESSED: 2>": {
+      "keys": {
+        "position_cm": 0.009892907991311381,
+        "rotation_deg": 0.037004611399307594,
+        "worst_position": {
+          "bone": "foot_l",
+          "time": 0.8166666666666667
+        },
+        "worst_rotation": {
+          "bone": "foot_l",
+          "time": 0.21666666666666667
+        }
+      },
+      "half": {
+        "position_cm": 0.008250894394084293,
+        "rotation_deg": 0.027977819955566745,
+        "worst_position": {
+          "bone": "foot_l",
+          "time": 0.8083333333333333
+        },
+        "worst_rotation": {
+          "bone": "ball_l",
+          "time": 0.20833333333333334
+        }
+      }
+    }
+  },
+  "ForwardRight": {
+    "<AnimDataEvalType.RAW: 1>": {
+      "keys": {
+        "position_cm": 9.514836743731791e-05,
+        "rotation_deg": 0.00014104588703720287,
+        "worst_position": {
+          "bone": "index_03_l",
+          "time": 0.08333333333333333
+        },
+        "worst_rotation": {
+          "bone": "upperarm_r",
+          "time": 0.9666666666666667
+        }
+      },
+      "half": {
+        "position_cm": 0.010749296053362365,
+        "rotation_deg": 0.03934429927770188,
+        "worst_position": {
+          "bone": "ball_l",
+          "time": 0.7583333333333333
+        },
+        "worst_rotation": {
+          "bone": "ball_l",
+          "time": 0.7416666666666667
+        }
+      }
+    },
+    "<AnimDataEvalType.COMPRESSED: 2>": {
+      "keys": {
+        "position_cm": 0.02218839401891962,
+        "rotation_deg": 0.06641449007430698,
+        "worst_position": {
+          "bone": "ball_l",
+          "time": 0.8166666666666667
+        },
+        "worst_rotation": {
+          "bone": "ball_l",
+          "time": 0.75
+        }
+      },
+      "half": {
+        "position_cm": 0.017569199721167914,
+        "rotation_deg": 0.05432516299643152,
+        "worst_position": {
+          "bone": "ball_l",
+          "time": 0.8083333333333333
+        },
+        "worst_rotation": {
+          "bone": "foot_l",
+          "time": 0.7583333333333333
+        }
+      }
+    }
+  }
+}

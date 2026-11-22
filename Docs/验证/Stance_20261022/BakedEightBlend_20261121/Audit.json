@@ -1,0 +1,114 @@
+{
+  "clips": [
+    {
+      "direction": "F",
+      "point": [
+        1,
+        0,
+        0
+      ],
+      "asset": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Forward.AS_RootLockSource_Forward",
+      "length": 1.0,
+      "root_motion": false,
+      "force_lock": false
+    },
+    {
+      "direction": "FR",
+      "point": [
+        0.5,
+        0.5,
+        0
+      ],
+      "asset": "/Game/Experiments/Stance_20261022/AS_BlendBaked_ForwardRight.AS_BlendBaked_ForwardRight",
+      "length": 1.0,
+      "root_motion": false,
+      "force_lock": false
+    },
+    {
+      "direction": "R",
+      "point": [
+        0,
+        1,
+        0
+      ],
+      "asset": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Right.AS_RootLockSource_Right",
+      "length": 1.0,
+      "root_motion": false,
+      "force_lock": false
+    },
+    {
+      "direction": "BR",
+      "point": [
+        -0.5,
+        0.5,
+        0
+      ],
+      "asset": "/Game/Experiments/Stance_20261022/AS_OWBaked_BackRight.AS_OWBaked_BackRight",
+      "length": 1.0,
+      "root_motion": false,
+      "force_lock": false
+    },
+    {
+      "direction": "B",
+      "point": [
+        -1,
+        0,
+        0
+      ],
+      "asset": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Back.AS_RootLockSource_Back",
+      "length": 1.0,
+      "root_motion": false,
+      "force_lock": false
+    },
+    {
+      "direction": "BL",
+      "point": [
+        -0.5,
+        -0.5,
+        0
+      ],
+      "asset": "/Game/Experiments/Stance_20261022/AS_BlendBaked_BackLeft.AS_BlendBaked_BackLeft",
+      "length": 1.0,
+      "root_motion": false,
+      "force_lock": false
+    },
+    {
+      "direction": "L",
+      "point": [
+        0,
+        -1,
+        0
+      ],
+      "asset": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Left.AS_RootLockSource_Left",
+      "length": 1.0,
+      "root_motion": false,
+      "force_lock": false
+    },
+    {
+      "direction": "FL",
+      "point": [
+        0.5,
+        -0.5,
+        0
+      ],
+      "asset": "/Game/Experiments/Stance_20261022/AS_OWBaked_FrontLeft.AS_OWBaked_FrontLeft",
+      "length": 1.0,
+      "root_motion": false,
+      "force_lock": false
+    }
+  ],
+  "node_types": {
+    "PreviewForward": [
+      "Class|ShooterStancePreviewPawn|GetPreviewForward"
+    ],
+    "PreviewRight": [
+      "Class|ShooterStancePreviewPawn|GetPreviewRight"
+    ],
+    "TryGetPawnOwner": [
+      "Animation|TryGetPawnOwner"
+    ],
+    "BlueprintUpdateAnimation": [
+      "AddEvent|EventBlueprintUpdateAnimation"
+    ]
+  }
+}

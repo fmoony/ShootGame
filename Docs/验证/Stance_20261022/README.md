@@ -66,7 +66,8 @@ Pawn 的 PreviewForward／PreviewRight → AnimBP 变量 → BlendSpace Player �
 - [SourceAssets 清理、原始输入保护和导入来源检查][cleanup]。
 
 历史 0.2 秒、实时 OW 和旧候选资产已删除，不作为当前可进入的地图。
-完整历史采样、截图、旧脚本及开发记录留在磁盘，不纳入本次精简提交。
+历史记录已按主题归档，保留关键证据；非关键附件和退役脚本已精简。
+[历史主题、证据范围与恢复说明](历史归档_20261122/README.md)。
 上述报告包含当时的本机备份位置和保护清单，供解释过程，不是运行依赖。
 
 [sources]: ../../../SourceAssets/README.md

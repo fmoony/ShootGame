@@ -1,0 +1,2916 @@
+{
+  "path": "/Game/Experiments/Stance_20261022/ABP_OWLocalMovement.ABP_OWLocalMovement",
+  "world": "/Game/Experiments/Stance_20261022/L_OWLocalMovement.L_OWLocalMovement",
+  "graphs": {
+    "AnimGraph": {
+      "nodes": [
+        {
+          "name": "AnimGraphNode_Root_0",
+          "title": "Output Pose",
+          "type": "AnimGraphNode_Root",
+          "pins": [
+            {
+              "name": "Result",
+              "value": "(LinkID=-1,SourceLinkID=-1)",
+              "links": [
+                "AnimGraphNode_LayeredBoneBlend_2:Pose"
+              ]
+            }
+          ],
+          "settings": "(Result=(LinkID=-1,SourceLinkID=-1),Name=\"\",LayerGroup=\"DefaultSharedGroup\",InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+        },
+        {
+          "name": "AnimGraphNode_SequenceEvaluator_0",
+          "title": "Sequence Evaluator (by time) 'AS_RootLockSource_Forward'",
+          "type": "AnimGraphNode_SequenceEvaluator",
+          "pins": [
+            {
+              "name": "ExplicitTime",
+              "value": "0.000000",
+              "links": [
+                "K2Node_VariableGet_0:Phase"
+              ]
+            },
+            {
+              "name": "Pose",
+              "value": "",
+              "links": [
+                "AnimGraphNode_LocalToComponentSpace_0:LocalPose"
+              ]
+            }
+          ],
+          "settings": "(GroupName=\"\",GroupRole=CanBeLeader,Method=DoNotSync,bIgnoreForRelevancyTest=False,Sequence=\"/Script/Engine.AnimSequence'/Game/Experiments/Stance_20261022/AS_RootLockSource_Forward.AS_RootLockSource_Forward'\",ExplicitTime=0.000000,bUseExplicitFrame=False,ExplicitFrame=0,bShouldLoop=True,bTeleportToExplicitTime=True,ReinitializationBehavior=ExplicitTime,StartPosition=0.000000,InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+        },
+        {
+          "name": "K2Node_VariableGet_0",
+          "title": "Get Phase",
+          "type": "K2Node_VariableGet",
+          "pins": [
+            {
+              "name": "Phase",
+              "value": "0.0",
+              "links": [
+                "AnimGraphNode_SequenceEvaluator_0:ExplicitTime"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "AnimGraphNode_LocalToComponentSpace_0",
+          "title": "Local To Component",
+          "type": "AnimGraphNode_LocalToComponentSpace",
+          "pins": [
+            {
+              "name": "LocalPose",
+              "value": "(LinkID=-1,SourceLinkID=-1)",
+              "links": [
+                "AnimGraphNode_SequenceEvaluator_0:Pose"
+              ]
+            },
+            {
+              "name": "ComponentPose",
+              "value": "",
+              "links": [
+                "AnimGraphNode_OrientationWarping_0:ComponentPose"
+              ]
+            }
+          ],
+          "settings": "(LocalPose=(LinkID=-1,SourceLinkID=-1),InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+        },
+        {
+          "name": "AnimGraphNode_OrientationWarping_0",
+          "title": "Orientation Warping",
+          "type": "AnimGraphNode_OrientationWarping",
+          "pins": [
+            {
+              "name": "ComponentPose",
+              "value": "(LinkID=-1,SourceLinkID=-1)",
+              "links": [
+                "AnimGraphNode_LocalToComponentSpace_0:ComponentPose"
+              ]
+            },
+            {
+              "name": "Alpha",
+              "value": "1.000000",
+              "links": []
+            },
+            {
+              "name": "TargetTime",
+              "value": "0.800000",
+              "links": []
+            },
+            {
+              "name": "OrientationAngle",
+              "value": "0.000000",
+              "links": [
+                "K2Node_VariableGet_1:AngleF"
+              ]
+            },
+            {
+              "name": "CurrentAnimAsset",
+              "value": "",
+              "links": []
+            },
+            {
+              "name": "CurrentAnimAssetTime",
+              "value": "0.000000",
+              "links": []
+            },
+            {
+              "name": "Pose",
+              "value": "",
+              "links": [
+                "AnimGraphNode_ComponentToLocalSpace_0:ComponentPose"
+              ]
+            }
+          ],
+          "settings": "(Mode=Manual,TargetTime=0.800000,OrientationAngle=0.000000,LocomotionAngle=0.000000,LocomotionDirection=(X=0.000000,Y=0.000000,Z=0.000000),MinRootMotionSpeedThreshold=10.000000,LocomotionAngleDeltaThreshold=90.000000,SpineBones=((BoneName=\"spine_01\"),(BoneName=\"spine_02\"),(BoneName=\"spine_03\"),(BoneName=\"spine_04\"),(BoneName=\"spine_05\")),IKFootRootBone=(BoneName=\"ik_foot_root\"),IKFootBones=((BoneName=\"ik_foot_l\"),(BoneName=\"ik_foot_r\")),RotationAxis=Z,DistributedBoneOrientationAlpha=1.000000,RotationInterpSpeed=0.000000,CounterCompensateInterpSpeed=45.000000,MaxCorrectionDegrees=65.000000,MaxRootMotionDeltaToCompensateDegrees=45.000000,bCounterCompenstateInterpolationByRootMotion=True,bScaleByGlobalBlendWeight=False,bUseManualRootMotionVelocity=False,ManualRootMotionVelocity=(X=0.000000,Y=0.000000,Z=0.000000),WarpingSpace=ComponentTransform,WarpingSpaceTransform=(Rotation=(X=0.000000,Y=0.000000,Z=0.000000,W=1.000000),Translation=(X=0.000000,Y=0.000000,Z=0.000000),Scale3D=(X=1.000000,Y=1.000000,Z=1.000000)),DebugDrawScale=1.000000,bEnableDebugDraw=False,ComponentPose=(LinkID=-1,SourceLinkID=-1),LODThreshold=-1,AlphaInputType=Float,bAlphaBoolEnabled=True,Alpha=1.000000,AlphaScaleBias=(Scale=1.000000,Bias=0.000000),AlphaBoolBlend=(BlendInTime=0.000000,BlendOutTime=0.000000,BlendOption=HermiteCubic,CustomCurve=None),AlphaCurveName=\"\",AlphaScaleBiasClamp=(bMapRange=False,bClampResult=False,bInterpResult=False,InRange=(Min=0.000000,Max=1.000000),OutRange=(Min=0.000000,Max=1.000000),Scale=1.000000,Bias=0.000000,ClampMin=0.000000,ClampMax=1.000000,InterpSpeedIncreasing=10.000000,InterpSpeedDecreasing=10.000000),InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+        },
+        {
+          "name": "AnimGraphNode_ComponentToLocalSpace_0",
+          "title": "Component To Local",
+          "type": "AnimGraphNode_ComponentToLocalSpace",
+          "pins": [
+            {
+              "name": "ComponentPose",
+              "value": "(LinkID=-1,SourceLinkID=-1)",
+              "links": [
+                "AnimGraphNode_OrientationWarping_0:Pose"
+              ]
+            },
+            {
+              "name": "Pose",
+              "value": "",
+              "links": [
+                "AnimGraphNode_LayeredBoneBlend_0:BasePose"
+              ]
+            }
+          ],
+          "settings": "(ComponentPose=(LinkID=-1,SourceLinkID=-1),InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+        },
+        {
+          "name": "K2Node_VariableGet_1",
+          "title": "Get AngleF",
+          "type": "K2Node_VariableGet",
+          "pins": [
+            {
+              "name": "AngleF",
+              "value": "0.0",
+              "links": [
+                "AnimGraphNode_OrientationWarping_0:OrientationAngle"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "AnimGraphNode_SequenceEvaluator_1",
+          "title": "Sequence Evaluator (by time) 'AS_RootLockSource_Right'",
+          "type": "AnimGraphNode_SequenceEvaluator",
+          "pins": [
+            {
+              "name": "ExplicitTime",
+              "value": "0.000000",
+              "links": [
+                "K2Node_VariableGet_2:Phase"
+              ]
+            },
+            {
+              "name": "Pose",
+              "value": "",
+              "links": [
+                "AnimGraphNode_LocalToComponentSpace_1:LocalPose"
+              ]
+            }
+          ],
+          "settings": "(GroupName=\"\",GroupRole=CanBeLeader,Method=DoNotSync,bIgnoreForRelevancyTest=False,Sequence=\"/Script/Engine.AnimSequence'/Game/Experiments/Stance_20261022/AS_RootLockSource_Right.AS_RootLockSource_Right'\",ExplicitTime=0.000000,bUseExplicitFrame=False,ExplicitFrame=0,bShouldLoop=True,bTeleportToExplicitTime=True,ReinitializationBehavior=ExplicitTime,StartPosition=0.000000,InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+        },
+        {
+          "name": "K2Node_VariableGet_2",
+          "title": "Get Phase",
+          "type": "K2Node_VariableGet",
+          "pins": [
+            {
+              "name": "Phase",
+              "value": "0.0",
+              "links": [
+                "AnimGraphNode_SequenceEvaluator_1:ExplicitTime"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "AnimGraphNode_LocalToComponentSpace_1",
+          "title": "Local To Component",
+          "type": "AnimGraphNode_LocalToComponentSpace",
+          "pins": [
+            {
+              "name": "LocalPose",
+              "value": "(LinkID=-1,SourceLinkID=-1)",
+              "links": [
+                "AnimGraphNode_SequenceEvaluator_1:Pose"
+              ]
+            },
+            {
+              "name": "ComponentPose",
+              "value": "",
+              "links": [
+                "AnimGraphNode_OrientationWarping_1:ComponentPose"
+              ]
+            }
+          ],
+          "settings": "(LocalPose=(LinkID=-1,SourceLinkID=-1),InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+        },
+        {
+          "name": "AnimGraphNode_OrientationWarping_1",
+          "title": "Orientation Warping",
+          "type": "AnimGraphNode_OrientationWarping",
+          "pins": [
+            {
+              "name": "ComponentPose",
+              "value": "(LinkID=-1,SourceLinkID=-1)",
+              "links": [
+                "AnimGraphNode_LocalToComponentSpace_1:ComponentPose"
+              ]
+            },
+            {
+              "name": "Alpha",
+              "value": "1.000000",
+              "links": []
+            },
+            {
+              "name": "TargetTime",
+              "value": "0.800000",
+              "links": []
+            },
+            {
+              "name": "OrientationAngle",
+              "value": "0.000000",
+              "links": [
+                "K2Node_VariableGet_3:AngleR"
+              ]
+            },
+            {
+              "name": "CurrentAnimAsset",
+              "value": "",
+              "links": []
+            },
+            {
+              "name": "CurrentAnimAssetTime",
+              "value": "0.000000",
+              "links": []
+            },
+            {
+              "name": "Pose",
+              "value": "",
+              "links": [
+                "AnimGraphNode_ComponentToLocalSpace_1:ComponentPose"
+              ]
+            }
+          ],
+          "settings": "(Mode=Manual,TargetTime=0.800000,OrientationAngle=0.000000,LocomotionAngle=0.000000,LocomotionDirection=(X=0.000000,Y=0.000000,Z=0.000000),MinRootMotionSpeedThreshold=10.000000,LocomotionAngleDeltaThreshold=90.000000,SpineBones=((BoneName=\"spine_01\"),(BoneName=\"spine_02\"),(BoneName=\"spine_03\"),(BoneName=\"spine_04\"),(BoneName=\"spine_05\")),IKFootRootBone=(BoneName=\"ik_foot_root\"),IKFootBones=((BoneName=\"ik_foot_l\"),(BoneName=\"ik_foot_r\")),RotationAxis=Z,DistributedBoneOrientationAlpha=1.000000,RotationInterpSpeed=0.000000,CounterCompensateInterpSpeed=45.000000,MaxCorrectionDegrees=65.000000,MaxRootMotionDeltaToCompensateDegrees=45.000000,bCounterCompenstateInterpolationByRootMotion=True,bScaleByGlobalBlendWeight=False,bUseManualRootMotionVelocity=False,ManualRootMotionVelocity=(X=0.000000,Y=0.000000,Z=0.000000),WarpingSpace=ComponentTransform,WarpingSpaceTransform=(Rotation=(X=0.000000,Y=0.000000,Z=0.000000,W=1.000000),Translation=(X=0.000000,Y=0.000000,Z=0.000000),Scale3D=(X=1.000000,Y=1.000000,Z=1.000000)),DebugDrawScale=1.000000,bEnableDebugDraw=False,ComponentPose=(LinkID=-1,SourceLinkID=-1),LODThreshold=-1,AlphaInputType=Float,bAlphaBoolEnabled=True,Alpha=1.000000,AlphaScaleBias=(Scale=1.000000,Bias=0.000000),AlphaBoolBlend=(BlendInTime=0.000000,BlendOutTime=0.000000,BlendOption=HermiteCubic,CustomCurve=None),AlphaCurveName=\"\",AlphaScaleBiasClamp=(bMapRange=False,bClampResult=False,bInterpResult=False,InRange=(Min=0.000000,Max=1.000000),OutRange=(Min=0.000000,Max=1.000000),Scale=1.000000,Bias=0.000000,ClampMin=0.000000,ClampMax=1.000000,InterpSpeedIncreasing=10.000000,InterpSpeedDecreasing=10.000000),InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+        },
+        {
+          "name": "AnimGraphNode_ComponentToLocalSpace_1",
+          "title": "Component To Local",
+          "type": "AnimGraphNode_ComponentToLocalSpace",
+          "pins": [
+            {
+              "name": "ComponentPose",
+              "value": "(LinkID=-1,SourceLinkID=-1)",
+              "links": [
+                "AnimGraphNode_OrientationWarping_1:Pose"
+              ]
+            },
+            {
+              "name": "Pose",
+              "value": "",
+              "links": [
+                "AnimGraphNode_LayeredBoneBlend_0:BlendPoses_0"
+              ]
+            }
+          ],
+          "settings": "(ComponentPose=(LinkID=-1,SourceLinkID=-1),InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+        },
+        {
+          "name": "K2Node_VariableGet_3",
+          "title": "Get AngleR",
+          "type": "K2Node_VariableGet",
+          "pins": [
+            {
+              "name": "AngleR",
+              "value": "0.0",
+              "links": [
+                "AnimGraphNode_OrientationWarping_1:OrientationAngle"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "AnimGraphNode_SequenceEvaluator_2",
+          "title": "Sequence Evaluator (by time) 'AS_RootLockSource_Back'",
+          "type": "AnimGraphNode_SequenceEvaluator",
+          "pins": [
+            {
+              "name": "ExplicitTime",
+              "value": "0.000000",
+              "links": [
+                "K2Node_VariableGet_4:Phase"
+              ]
+            },
+            {
+              "name": "Pose",
+              "value": "",
+              "links": [
+                "AnimGraphNode_LocalToComponentSpace_2:LocalPose"
+              ]
+            }
+          ],
+          "settings": "(GroupName=\"\",GroupRole=CanBeLeader,Method=DoNotSync,bIgnoreForRelevancyTest=False,Sequence=\"/Script/Engine.AnimSequence'/Game/Experiments/Stance_20261022/AS_RootLockSource_Back.AS_RootLockSource_Back'\",ExplicitTime=0.000000,bUseExplicitFrame=False,ExplicitFrame=0,bShouldLoop=True,bTeleportToExplicitTime=True,ReinitializationBehavior=ExplicitTime,StartPosition=0.000000,InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+        },
+        {
+          "name": "K2Node_VariableGet_4",
+          "title": "Get Phase",
+          "type": "K2Node_VariableGet",
+          "pins": [
+            {
+              "name": "Phase",
+              "value": "0.0",
+              "links": [
+                "AnimGraphNode_SequenceEvaluator_2:ExplicitTime"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "AnimGraphNode_LocalToComponentSpace_2",
+          "title": "Local To Component",
+          "type": "AnimGraphNode_LocalToComponentSpace",
+          "pins": [
+            {
+              "name": "LocalPose",
+              "value": "(LinkID=-1,SourceLinkID=-1)",
+              "links": [
+                "AnimGraphNode_SequenceEvaluator_2:Pose"
+              ]
+            },
+            {
+              "name": "ComponentPose",
+              "value": "",
+              "links": [
+                "AnimGraphNode_OrientationWarping_2:ComponentPose"
+              ]
+            }
+          ],
+          "settings": "(LocalPose=(LinkID=-1,SourceLinkID=-1),InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+        },
+        {
+          "name": "AnimGraphNode_OrientationWarping_2",
+          "title": "Orientation Warping",
+          "type": "AnimGraphNode_OrientationWarping",
+          "pins": [
+            {
+              "name": "ComponentPose",
+              "value": "(LinkID=-1,SourceLinkID=-1)",
+              "links": [
+                "AnimGraphNode_LocalToComponentSpace_2:ComponentPose"
+              ]
+            },
+            {
+              "name": "Alpha",
+              "value": "1.000000",
+              "links": []
+            },
+            {
+              "name": "TargetTime",
+              "value": "0.800000",
+              "links": []
+            },
+            {
+              "name": "OrientationAngle",
+              "value": "0.000000",
+              "links": [
+                "K2Node_VariableGet_5:AngleB"
+              ]
+            },
+            {
+              "name": "CurrentAnimAsset",
+              "value": "",
+              "links": []
+            },
+            {
+              "name": "CurrentAnimAssetTime",
+              "value": "0.000000",
+              "links": []
+            },
+            {
+              "name": "Pose",
+              "value": "",
+              "links": [
+                "AnimGraphNode_ComponentToLocalSpace_2:ComponentPose"
+              ]
+            }
+          ],
+          "settings": "(Mode=Manual,TargetTime=0.800000,OrientationAngle=0.000000,LocomotionAngle=0.000000,LocomotionDirection=(X=0.000000,Y=0.000000,Z=0.000000),MinRootMotionSpeedThreshold=10.000000,LocomotionAngleDeltaThreshold=90.000000,SpineBones=((BoneName=\"spine_01\"),(BoneName=\"spine_02\"),(BoneName=\"spine_03\"),(BoneName=\"spine_04\"),(BoneName=\"spine_05\")),IKFootRootBone=(BoneName=\"ik_foot_root\"),IKFootBones=((BoneName=\"ik_foot_l\"),(BoneName=\"ik_foot_r\")),RotationAxis=Z,DistributedBoneOrientationAlpha=1.000000,RotationInterpSpeed=0.000000,CounterCompensateInterpSpeed=45.000000,MaxCorrectionDegrees=65.000000,MaxRootMotionDeltaToCompensateDegrees=45.000000,bCounterCompenstateInterpolationByRootMotion=True,bScaleByGlobalBlendWeight=False,bUseManualRootMotionVelocity=False,ManualRootMotionVelocity=(X=0.000000,Y=0.000000,Z=0.000000),WarpingSpace=ComponentTransform,WarpingSpaceTransform=(Rotation=(X=0.000000,Y=0.000000,Z=0.000000,W=1.000000),Translation=(X=0.000000,Y=0.000000,Z=0.000000),Scale3D=(X=1.000000,Y=1.000000,Z=1.000000)),DebugDrawScale=1.000000,bEnableDebugDraw=False,ComponentPose=(LinkID=-1,SourceLinkID=-1),LODThreshold=-1,AlphaInputType=Float,bAlphaBoolEnabled=True,Alpha=1.000000,AlphaScaleBias=(Scale=1.000000,Bias=0.000000),AlphaBoolBlend=(BlendInTime=0.000000,BlendOutTime=0.000000,BlendOption=HermiteCubic,CustomCurve=None),AlphaCurveName=\"\",AlphaScaleBiasClamp=(bMapRange=False,bClampResult=False,bInterpResult=False,InRange=(Min=0.000000,Max=1.000000),OutRange=(Min=0.000000,Max=1.000000),Scale=1.000000,Bias=0.000000,ClampMin=0.000000,ClampMax=1.000000,InterpSpeedIncreasing=10.000000,InterpSpeedDecreasing=10.000000),InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+        },
+        {
+          "name": "AnimGraphNode_ComponentToLocalSpace_2",
+          "title": "Component To Local",
+          "type": "AnimGraphNode_ComponentToLocalSpace",
+          "pins": [
+            {
+              "name": "ComponentPose",
+              "value": "(LinkID=-1,SourceLinkID=-1)",
+              "links": [
+                "AnimGraphNode_OrientationWarping_2:Pose"
+              ]
+            },
+            {
+              "name": "Pose",
+              "value": "",
+              "links": [
+                "AnimGraphNode_LayeredBoneBlend_1:BasePose"
+              ]
+            }
+          ],
+          "settings": "(ComponentPose=(LinkID=-1,SourceLinkID=-1),InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+        },
+        {
+          "name": "K2Node_VariableGet_5",
+          "title": "Get AngleB",
+          "type": "K2Node_VariableGet",
+          "pins": [
+            {
+              "name": "AngleB",
+              "value": "0.0",
+              "links": [
+                "AnimGraphNode_OrientationWarping_2:OrientationAngle"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "AnimGraphNode_SequenceEvaluator_3",
+          "title": "Sequence Evaluator (by time) 'AS_RootLockSource_Left'",
+          "type": "AnimGraphNode_SequenceEvaluator",
+          "pins": [
+            {
+              "name": "ExplicitTime",
+              "value": "0.000000",
+              "links": [
+                "K2Node_VariableGet_6:Phase"
+              ]
+            },
+            {
+              "name": "Pose",
+              "value": "",
+              "links": [
+                "AnimGraphNode_LocalToComponentSpace_3:LocalPose"
+              ]
+            }
+          ],
+          "settings": "(GroupName=\"\",GroupRole=CanBeLeader,Method=DoNotSync,bIgnoreForRelevancyTest=False,Sequence=\"/Script/Engine.AnimSequence'/Game/Experiments/Stance_20261022/AS_RootLockSource_Left.AS_RootLockSource_Left'\",ExplicitTime=0.000000,bUseExplicitFrame=False,ExplicitFrame=0,bShouldLoop=True,bTeleportToExplicitTime=True,ReinitializationBehavior=ExplicitTime,StartPosition=0.000000,InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+        },
+        {
+          "name": "K2Node_VariableGet_6",
+          "title": "Get Phase",
+          "type": "K2Node_VariableGet",
+          "pins": [
+            {
+              "name": "Phase",
+              "value": "0.0",
+              "links": [
+                "AnimGraphNode_SequenceEvaluator_3:ExplicitTime"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "AnimGraphNode_LocalToComponentSpace_3",
+          "title": "Local To Component",
+          "type": "AnimGraphNode_LocalToComponentSpace",
+          "pins": [
+            {
+              "name": "LocalPose",
+              "value": "(LinkID=-1,SourceLinkID=-1)",
+              "links": [
+                "AnimGraphNode_SequenceEvaluator_3:Pose"
+              ]
+            },
+            {
+              "name": "ComponentPose",
+              "value": "",
+              "links": [
+                "AnimGraphNode_OrientationWarping_3:ComponentPose"
+              ]
+            }
+          ],
+          "settings": "(LocalPose=(LinkID=-1,SourceLinkID=-1),InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+        },
+        {
+          "name": "AnimGraphNode_OrientationWarping_3",
+          "title": "Orientation Warping",
+          "type": "AnimGraphNode_OrientationWarping",
+          "pins": [
+            {
+              "name": "ComponentPose",
+              "value": "(LinkID=-1,SourceLinkID=-1)",
+              "links": [
+                "AnimGraphNode_LocalToComponentSpace_3:ComponentPose"
+              ]
+            },
+            {
+              "name": "Alpha",
+              "value": "1.000000",
+              "links": []
+            },
+            {
+              "name": "TargetTime",
+              "value": "0.800000",
+              "links": []
+            },
+            {
+              "name": "OrientationAngle",
+              "value": "0.000000",
+              "links": [
+                "K2Node_VariableGet_7:AngleL"
+              ]
+            },
+            {
+              "name": "CurrentAnimAsset",
+              "value": "",
+              "links": []
+            },
+            {
+              "name": "CurrentAnimAssetTime",
+              "value": "0.000000",
+              "links": []
+            },
+            {
+              "name": "Pose",
+              "value": "",
+              "links": [
+                "AnimGraphNode_ComponentToLocalSpace_3:ComponentPose"
+              ]
+            }
+          ],
+          "settings": "(Mode=Manual,TargetTime=0.800000,OrientationAngle=0.000000,LocomotionAngle=0.000000,LocomotionDirection=(X=0.000000,Y=0.000000,Z=0.000000),MinRootMotionSpeedThreshold=10.000000,LocomotionAngleDeltaThreshold=90.000000,SpineBones=((BoneName=\"spine_01\"),(BoneName=\"spine_02\"),(BoneName=\"spine_03\"),(BoneName=\"spine_04\"),(BoneName=\"spine_05\")),IKFootRootBone=(BoneName=\"ik_foot_root\"),IKFootBones=((BoneName=\"ik_foot_l\"),(BoneName=\"ik_foot_r\")),RotationAxis=Z,DistributedBoneOrientationAlpha=1.000000,RotationInterpSpeed=0.000000,CounterCompensateInterpSpeed=45.000000,MaxCorrectionDegrees=65.000000,MaxRootMotionDeltaToCompensateDegrees=45.000000,bCounterCompenstateInterpolationByRootMotion=True,bScaleByGlobalBlendWeight=False,bUseManualRootMotionVelocity=False,ManualRootMotionVelocity=(X=0.000000,Y=0.000000,Z=0.000000),WarpingSpace=ComponentTransform,WarpingSpaceTransform=(Rotation=(X=0.000000,Y=0.000000,Z=0.000000,W=1.000000),Translation=(X=0.000000,Y=0.000000,Z=0.000000),Scale3D=(X=1.000000,Y=1.000000,Z=1.000000)),DebugDrawScale=1.000000,bEnableDebugDraw=False,ComponentPose=(LinkID=-1,SourceLinkID=-1),LODThreshold=-1,AlphaInputType=Float,bAlphaBoolEnabled=True,Alpha=1.000000,AlphaScaleBias=(Scale=1.000000,Bias=0.000000),AlphaBoolBlend=(BlendInTime=0.000000,BlendOutTime=0.000000,BlendOption=HermiteCubic,CustomCurve=None),AlphaCurveName=\"\",AlphaScaleBiasClamp=(bMapRange=False,bClampResult=False,bInterpResult=False,InRange=(Min=0.000000,Max=1.000000),OutRange=(Min=0.000000,Max=1.000000),Scale=1.000000,Bias=0.000000,ClampMin=0.000000,ClampMax=1.000000,InterpSpeedIncreasing=10.000000,InterpSpeedDecreasing=10.000000),InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+        },
+        {
+          "name": "AnimGraphNode_ComponentToLocalSpace_3",
+          "title": "Component To Local",
+          "type": "AnimGraphNode_ComponentToLocalSpace",
+          "pins": [
+            {
+              "name": "ComponentPose",
+              "value": "(LinkID=-1,SourceLinkID=-1)",
+              "links": [
+                "AnimGraphNode_OrientationWarping_3:Pose"
+              ]
+            },
+            {
+              "name": "Pose",
+              "value": "",
+              "links": [
+                "AnimGraphNode_LayeredBoneBlend_1:BlendPoses_0"
+              ]
+            }
+          ],
+          "settings": "(ComponentPose=(LinkID=-1,SourceLinkID=-1),InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+        },
+        {
+          "name": "K2Node_VariableGet_7",
+          "title": "Get AngleL",
+          "type": "K2Node_VariableGet",
+          "pins": [
+            {
+              "name": "AngleL",
+              "value": "0.0",
+              "links": [
+                "AnimGraphNode_OrientationWarping_3:OrientationAngle"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "AnimGraphNode_LayeredBoneBlend_0",
+          "title": "Layered blend per bone",
+          "type": "AnimGraphNode_LayeredBoneBlend",
+          "pins": [
+            {
+              "name": "BasePose",
+              "value": "(LinkID=-1,SourceLinkID=-1)",
+              "links": [
+                "AnimGraphNode_ComponentToLocalSpace_0:Pose"
+              ]
+            },
+            {
+              "name": "BlendPoses_0",
+              "value": "(LinkID=-1,SourceLinkID=-1)",
+              "links": [
+                "AnimGraphNode_ComponentToLocalSpace_1:Pose"
+              ]
+            },
+            {
+              "name": "BlendWeights_0",
+              "value": "1.000000",
+              "links": [
+                "K2Node_VariableGet_8:MixFR"
+              ]
+            },
+            {
+              "name": "Pose",
+              "value": "",
+              "links": [
+                "AnimGraphNode_LayeredBoneBlend_2:BasePose"
+              ]
+            }
+          ],
+          "settings": "(BasePose=(LinkID=-1,SourceLinkID=-1),BlendPoses=(()),BlendMode=BranchFilter,BlendMasks=,LayerSetup=((BranchFilters=((BoneName=\"root\")))),BlendWeights=(1.000000),PerBoneBlendWeights=,SkeletonGuid=00000000000000000000000000000000,VirtualBoneGuid=00000000000000000000000000000000,LODThreshold=-1,bMeshSpaceRotationBlend=False,bRootSpaceRotationBlend=False,bMeshSpaceScaleBlend=False,CurveBlendOption=Override,bBlendRootMotionBasedOnRootBone=True,bUpdateBasePoseFirst=False,InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+        },
+        {
+          "name": "K2Node_VariableGet_8",
+          "title": "Get MixFR",
+          "type": "K2Node_VariableGet",
+          "pins": [
+            {
+              "name": "MixFR",
+              "value": "0.0",
+              "links": [
+                "AnimGraphNode_LayeredBoneBlend_0:BlendWeights_0"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "AnimGraphNode_LayeredBoneBlend_1",
+          "title": "Layered blend per bone",
+          "type": "AnimGraphNode_LayeredBoneBlend",
+          "pins": [
+            {
+              "name": "BasePose",
+              "value": "(LinkID=-1,SourceLinkID=-1)",
+              "links": [
+                "AnimGraphNode_ComponentToLocalSpace_2:Pose"
+              ]
+            },
+            {
+              "name": "BlendPoses_0",
+              "value": "(LinkID=-1,SourceLinkID=-1)",
+              "links": [
+                "AnimGraphNode_ComponentToLocalSpace_3:Pose"
+              ]
+            },
+            {
+              "name": "BlendWeights_0",
+              "value": "1.000000",
+              "links": [
+                "K2Node_VariableGet_9:MixBL"
+              ]
+            },
+            {
+              "name": "Pose",
+              "value": "",
+              "links": [
+                "AnimGraphNode_LayeredBoneBlend_2:BlendPoses_0"
+              ]
+            }
+          ],
+          "settings": "(BasePose=(LinkID=-1,SourceLinkID=-1),BlendPoses=(()),BlendMode=BranchFilter,BlendMasks=,LayerSetup=((BranchFilters=((BoneName=\"root\")))),BlendWeights=(1.000000),PerBoneBlendWeights=,SkeletonGuid=00000000000000000000000000000000,VirtualBoneGuid=00000000000000000000000000000000,LODThreshold=-1,bMeshSpaceRotationBlend=False,bRootSpaceRotationBlend=False,bMeshSpaceScaleBlend=False,CurveBlendOption=Override,bBlendRootMotionBasedOnRootBone=True,bUpdateBasePoseFirst=False,InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+        },
+        {
+          "name": "K2Node_VariableGet_9",
+          "title": "Get MixBL",
+          "type": "K2Node_VariableGet",
+          "pins": [
+            {
+              "name": "MixBL",
+              "value": "0.0",
+              "links": [
+                "AnimGraphNode_LayeredBoneBlend_1:BlendWeights_0"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "AnimGraphNode_LayeredBoneBlend_2",
+          "title": "Layered blend per bone",
+          "type": "AnimGraphNode_LayeredBoneBlend",
+          "pins": [
+            {
+              "name": "BasePose",
+              "value": "(LinkID=-1,SourceLinkID=-1)",
+              "links": [
+                "AnimGraphNode_LayeredBoneBlend_0:Pose"
+              ]
+            },
+            {
+              "name": "BlendPoses_0",
+              "value": "(LinkID=-1,SourceLinkID=-1)",
+              "links": [
+                "AnimGraphNode_LayeredBoneBlend_1:Pose"
+              ]
+            },
+            {
+              "name": "BlendWeights_0",
+              "value": "1.000000",
+              "links": [
+                "K2Node_VariableGet_10:MixGroups"
+              ]
+            },
+            {
+              "name": "Pose",
+              "value": "",
+              "links": [
+                "AnimGraphNode_Root_0:Result"
+              ]
+            }
+          ],
+          "settings": "(BasePose=(LinkID=-1,SourceLinkID=-1),BlendPoses=(()),BlendMode=BranchFilter,BlendMasks=,LayerSetup=((BranchFilters=((BoneName=\"root\")))),BlendWeights=(1.000000),PerBoneBlendWeights=,SkeletonGuid=00000000000000000000000000000000,VirtualBoneGuid=00000000000000000000000000000000,LODThreshold=-1,bMeshSpaceRotationBlend=False,bRootSpaceRotationBlend=False,bMeshSpaceScaleBlend=False,CurveBlendOption=Override,bBlendRootMotionBasedOnRootBone=True,bUpdateBasePoseFirst=False,InitialUpdateFunction=(ClassName=\"\",FunctionName=\"\"),BecomeRelevantFunction=(ClassName=\"\",FunctionName=\"\"),UpdateFunction=(ClassName=\"\",FunctionName=\"\"))"
+        },
+        {
+          "name": "K2Node_VariableGet_10",
+          "title": "Get MixGroups",
+          "type": "K2Node_VariableGet",
+          "pins": [
+            {
+              "name": "MixGroups",
+              "value": "0.0",
+              "links": [
+                "AnimGraphNode_LayeredBoneBlend_2:BlendWeights_0"
+              ]
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    "EventGraph": {
+      "nodes": [
+        {
+          "name": "K2Node_Event_1",
+          "title": "Event BlueprintUpdateAnimation",
+          "type": "K2Node_Event",
+          "pins": [
+            {
+              "name": "OutputDelegate",
+              "value": "",
+              "links": []
+            },
+            {
+              "name": "then",
+              "value": "",
+              "links": [
+                "K2Node_VariableSet_0:execute"
+              ]
+            },
+            {
+              "name": "DeltaTimeX",
+              "value": "0.0",
+              "links": [
+                "K2Node_PromotableOperator_0:B",
+                "K2Node_CallFunction_9:DeltaTime"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_VariableGet_0",
+          "title": "Get Phase",
+          "type": "K2Node_VariableGet",
+          "pins": [
+            {
+              "name": "Phase",
+              "value": "0.0",
+              "links": [
+                "K2Node_PromotableOperator_0:A",
+                "K2Node_CallFunction_2:A"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_PromotableOperator_0",
+          "title": "float + float",
+          "type": "K2Node_PromotableOperator",
+          "pins": [
+            {
+              "name": "A",
+              "value": "",
+              "links": [
+                "K2Node_VariableGet_0:Phase"
+              ]
+            },
+            {
+              "name": "B",
+              "value": "",
+              "links": [
+                "K2Node_Event_1:DeltaTimeX"
+              ]
+            },
+            {
+              "name": "ReturnValue",
+              "value": "",
+              "links": [
+                "K2Node_CallFunction_1:A"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_CallFunction_1",
+          "title": "Fraction",
+          "type": "K2Node_CallFunction",
+          "pins": [
+            {
+              "name": "A",
+              "value": "0.0",
+              "links": [
+                "K2Node_PromotableOperator_0:ReturnValue"
+              ]
+            },
+            {
+              "name": "ReturnValue",
+              "value": "0.0",
+              "links": [
+                "K2Node_CallFunction_2:B"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_VariableGet_1",
+          "title": "Get bManualPhase",
+          "type": "K2Node_VariableGet",
+          "pins": [
+            {
+              "name": "bManualPhase",
+              "value": "false",
+              "links": [
+                "K2Node_CallFunction_2:bPickA"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_CallFunction_2",
+          "title": "SelectFloat",
+          "type": "K2Node_CallFunction",
+          "pins": [
+            {
+              "name": "A",
+              "value": "0.0",
+              "links": [
+                "K2Node_VariableGet_0:Phase"
+              ]
+            },
+            {
+              "name": "B",
+              "value": "0.0",
+              "links": [
+                "K2Node_CallFunction_1:ReturnValue"
+              ]
+            },
+            {
+              "name": "bPickA",
+              "value": "false",
+              "links": [
+                "K2Node_VariableGet_1:bManualPhase"
+              ]
+            },
+            {
+              "name": "ReturnValue",
+              "value": "0.0",
+              "links": [
+                "K2Node_VariableSet_0:Phase"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_VariableSet_0",
+          "title": "Set Phase",
+          "type": "K2Node_VariableSet",
+          "pins": [
+            {
+              "name": "execute",
+              "value": "",
+              "links": [
+                "K2Node_Event_1:then"
+              ]
+            },
+            {
+              "name": "Phase",
+              "value": "0.0",
+              "links": [
+                "K2Node_CallFunction_2:ReturnValue"
+              ]
+            },
+            {
+              "name": "then",
+              "value": "",
+              "links": [
+                "K2Node_DynamicCast_0:execute"
+              ]
+            },
+            {
+              "name": "Output_Get",
+              "value": "0.0",
+              "links": []
+            }
+          ]
+        },
+        {
+          "name": "K2Node_CallFunction_3",
+          "title": "TryGetPawnOwner",
+          "type": "K2Node_CallFunction",
+          "pins": [
+            {
+              "name": "self",
+              "value": "",
+              "links": []
+            },
+            {
+              "name": "ReturnValue",
+              "value": "",
+              "links": [
+                "K2Node_DynamicCast_0:Object"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_DynamicCast_0",
+          "title": "Cast To ShooterStancePreviewPawn",
+          "type": "K2Node_DynamicCast",
+          "pins": [
+            {
+              "name": "execute",
+              "value": "",
+              "links": [
+                "K2Node_VariableSet_0:then"
+              ]
+            },
+            {
+              "name": "Object",
+              "value": "",
+              "links": [
+                "K2Node_CallFunction_3:ReturnValue"
+              ]
+            },
+            {
+              "name": "then",
+              "value": "",
+              "links": [
+                "K2Node_VariableSet_1:execute"
+              ]
+            },
+            {
+              "name": "CastFailed",
+              "value": "",
+              "links": []
+            },
+            {
+              "name": "AsShooter Stance Preview Pawn",
+              "value": "",
+              "links": [
+                "K2Node_VariableGet_2:self",
+                "K2Node_VariableGet_3:self"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_VariableGet_2",
+          "title": "Get PreviewForward",
+          "type": "K2Node_VariableGet",
+          "pins": [
+            {
+              "name": "self",
+              "value": "",
+              "links": [
+                "K2Node_DynamicCast_0:AsShooter Stance Preview Pawn"
+              ]
+            },
+            {
+              "name": "PreviewForward",
+              "value": "0.0",
+              "links": [
+                "K2Node_CallFunction_4:B"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_VariableGet_3",
+          "title": "Get PreviewRight",
+          "type": "K2Node_VariableGet",
+          "pins": [
+            {
+              "name": "self",
+              "value": "",
+              "links": [
+                "K2Node_DynamicCast_0:AsShooter Stance Preview Pawn"
+              ]
+            },
+            {
+              "name": "PreviewRight",
+              "value": "0.0",
+              "links": [
+                "K2Node_CallFunction_5:B"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_VariableGet_4",
+          "title": "Get TestForward",
+          "type": "K2Node_VariableGet",
+          "pins": [
+            {
+              "name": "TestForward",
+              "value": "0.0",
+              "links": [
+                "K2Node_CallFunction_4:A"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_VariableGet_5",
+          "title": "Get bTestOverride",
+          "type": "K2Node_VariableGet",
+          "pins": [
+            {
+              "name": "bTestOverride",
+              "value": "false",
+              "links": [
+                "K2Node_CallFunction_4:bPickA",
+                "K2Node_CallFunction_5:bPickA"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_CallFunction_4",
+          "title": "SelectFloat",
+          "type": "K2Node_CallFunction",
+          "pins": [
+            {
+              "name": "A",
+              "value": "0.0",
+              "links": [
+                "K2Node_VariableGet_4:TestForward"
+              ]
+            },
+            {
+              "name": "B",
+              "value": "0.0",
+              "links": [
+                "K2Node_VariableGet_2:PreviewForward"
+              ]
+            },
+            {
+              "name": "bPickA",
+              "value": "false",
+              "links": [
+                "K2Node_VariableGet_5:bTestOverride"
+              ]
+            },
+            {
+              "name": "ReturnValue",
+              "value": "0.0",
+              "links": [
+                "K2Node_VariableSet_1:InputForward"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_VariableSet_1",
+          "title": "Set InputForward",
+          "type": "K2Node_VariableSet",
+          "pins": [
+            {
+              "name": "execute",
+              "value": "",
+              "links": [
+                "K2Node_DynamicCast_0:then"
+              ]
+            },
+            {
+              "name": "InputForward",
+              "value": "0.0",
+              "links": [
+                "K2Node_CallFunction_4:ReturnValue"
+              ]
+            },
+            {
+              "name": "then",
+              "value": "",
+              "links": [
+                "K2Node_VariableSet_2:execute"
+              ]
+            },
+            {
+              "name": "Output_Get",
+              "value": "0.0",
+              "links": []
+            }
+          ]
+        },
+        {
+          "name": "K2Node_VariableGet_6",
+          "title": "Get TestRight",
+          "type": "K2Node_VariableGet",
+          "pins": [
+            {
+              "name": "TestRight",
+              "value": "0.0",
+              "links": [
+                "K2Node_CallFunction_5:A"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_CallFunction_5",
+          "title": "SelectFloat",
+          "type": "K2Node_CallFunction",
+          "pins": [
+            {
+              "name": "A",
+              "value": "0.0",
+              "links": [
+                "K2Node_VariableGet_6:TestRight"
+              ]
+            },
+            {
+              "name": "B",
+              "value": "0.0",
+              "links": [
+                "K2Node_VariableGet_3:PreviewRight"
+              ]
+            },
+            {
+              "name": "bPickA",
+              "value": "false",
+              "links": [
+                "K2Node_VariableGet_5:bTestOverride"
+              ]
+            },
+            {
+              "name": "ReturnValue",
+              "value": "0.0",
+              "links": [
+                "K2Node_VariableSet_2:InputRight"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_VariableSet_2",
+          "title": "Set InputRight",
+          "type": "K2Node_VariableSet",
+          "pins": [
+            {
+              "name": "execute",
+              "value": "",
+              "links": [
+                "K2Node_VariableSet_1:then"
+              ]
+            },
+            {
+              "name": "InputRight",
+              "value": "0.0",
+              "links": [
+                "K2Node_CallFunction_5:ReturnValue"
+              ]
+            },
+            {
+              "name": "then",
+              "value": "",
+              "links": [
+                "K2Node_VariableSet_3:execute"
+              ]
+            },
+            {
+              "name": "Output_Get",
+              "value": "0.0",
+              "links": []
+            }
+          ]
+        },
+        {
+          "name": "K2Node_VariableGet_7",
+          "title": "Get InputRight",
+          "type": "K2Node_VariableGet",
+          "pins": [
+            {
+              "name": "InputRight",
+              "value": "0.0",
+              "links": [
+                "K2Node_CallFunction_6:Y"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_VariableGet_8",
+          "title": "Get InputForward",
+          "type": "K2Node_VariableGet",
+          "pins": [
+            {
+              "name": "InputForward",
+              "value": "0.0",
+              "links": [
+                "K2Node_CallFunction_6:X"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_CallFunction_6",
+          "title": "Atan2 (Degrees)",
+          "type": "K2Node_CallFunction",
+          "pins": [
+            {
+              "name": "Y",
+              "value": "0.0",
+              "links": [
+                "K2Node_VariableGet_7:InputRight"
+              ]
+            },
+            {
+              "name": "X",
+              "value": "0.0",
+              "links": [
+                "K2Node_VariableGet_8:InputForward"
+              ]
+            },
+            {
+              "name": "ReturnValue",
+              "value": "0.0",
+              "links": [
+                "K2Node_VariableSet_3:DesiredYaw"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_VariableSet_3",
+          "title": "Set DesiredYaw",
+          "type": "K2Node_VariableSet",
+          "pins": [
+            {
+              "name": "execute",
+              "value": "",
+              "links": [
+                "K2Node_VariableSet_2:then"
+              ]
+            },
+            {
+              "name": "DesiredYaw",
+              "value": "0.0",
+              "links": [
+                "K2Node_CallFunction_6:ReturnValue"
+              ]
+            },
+            {
+              "name": "then",
+              "value": "",
+              "links": [
+                "K2Node_VariableSet_4:execute"
+              ]
+            },
+            {
+              "name": "Output_Get",
+              "value": "0.0",
+              "links": []
+            }
+          ]
+        },
+        {
+          "name": "K2Node_VariableGet_9",
+          "title": "Get SmoothedYaw",
+          "type": "K2Node_VariableGet",
+          "pins": [
+            {
+              "name": "SmoothedYaw",
+              "value": "0.0",
+              "links": [
+                "K2Node_CallFunction_7:Yaw",
+                "K2Node_CallFunction_12:A",
+                "K2Node_PromotableOperator_12:A",
+                "K2Node_PromotableOperator_15:A",
+                "K2Node_PromotableOperator_16:A",
+                "K2Node_PromotableOperator_17:A",
+                "K2Node_PromotableOperator_18:A"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_CallFunction_7",
+          "title": "MakeRotator",
+          "type": "K2Node_CallFunction",
+          "pins": [
+            {
+              "name": "Roll",
+              "value": "0.0",
+              "links": []
+            },
+            {
+              "name": "Pitch",
+              "value": "0.0",
+              "links": []
+            },
+            {
+              "name": "Yaw",
+              "value": "0.0",
+              "links": [
+                "K2Node_VariableGet_9:SmoothedYaw"
+              ]
+            },
+            {
+              "name": "ReturnValue",
+              "value": "0, 0, 0",
+              "links": [
+                "K2Node_CallFunction_9:Current"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_VariableGet_10",
+          "title": "Get DesiredYaw",
+          "type": "K2Node_VariableGet",
+          "pins": [
+            {
+              "name": "DesiredYaw",
+              "value": "0.0",
+              "links": [
+                "K2Node_CallFunction_8:Yaw",
+                "K2Node_CallFunction_11:A"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_CallFunction_8",
+          "title": "MakeRotator",
+          "type": "K2Node_CallFunction",
+          "pins": [
+            {
+              "name": "Roll",
+              "value": "0.0",
+              "links": []
+            },
+            {
+              "name": "Pitch",
+              "value": "0.0",
+              "links": []
+            },
+            {
+              "name": "Yaw",
+              "value": "0.0",
+              "links": [
+                "K2Node_VariableGet_10:DesiredYaw"
+              ]
+            },
+            {
+              "name": "ReturnValue",
+              "value": "0, 0, 0",
+              "links": [
+                "K2Node_CallFunction_9:Target"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_VariableGet_11",
+          "title": "Get TurnSpeed",
+          "type": "K2Node_VariableGet",
+          "pins": [
+            {
+              "name": "TurnSpeed",
+              "value": "0.0",
+              "links": [
+                "K2Node_CallFunction_9:InterpSpeed"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_CallFunction_9",
+          "title": "RInterpTo",
+          "type": "K2Node_CallFunction",
+          "pins": [
+            {
+              "name": "Current",
+              "value": "0, 0, 0",
+              "links": [
+                "K2Node_CallFunction_7:ReturnValue"
+              ]
+            },
+            {
+              "name": "Target",
+              "value": "0, 0, 0",
+              "links": [
+                "K2Node_CallFunction_8:ReturnValue"
+              ]
+            },
+            {
+              "name": "DeltaTime",
+              "value": "0.0",
+              "links": [
+                "K2Node_Event_1:DeltaTimeX"
+              ]
+            },
+            {
+              "name": "InterpSpeed",
+              "value": "0.0",
+              "links": [
+                "K2Node_VariableGet_11:TurnSpeed"
+              ]
+            },
+            {
+              "name": "ReturnValue",
+              "value": "0, 0, 0",
+              "links": [
+                "K2Node_CallFunction_10:InRot"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_CallFunction_10",
+          "title": "BreakRotator",
+          "type": "K2Node_CallFunction",
+          "pins": [
+            {
+              "name": "InRot",
+              "value": "0, 0, 0",
+              "links": [
+                "K2Node_CallFunction_9:ReturnValue"
+              ]
+            },
+            {
+              "name": "Roll",
+              "value": "0.0",
+              "links": []
+            },
+            {
+              "name": "Pitch",
+              "value": "0.0",
+              "links": []
+            },
+            {
+              "name": "Yaw",
+              "value": "0.0",
+              "links": [
+                "K2Node_CallFunction_11:B"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_VariableGet_12",
+          "title": "Get bSnapInput",
+          "type": "K2Node_VariableGet",
+          "pins": [
+            {
+              "name": "bSnapInput",
+              "value": "false",
+              "links": [
+                "K2Node_CallFunction_11:bPickA"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_CallFunction_11",
+          "title": "SelectFloat",
+          "type": "K2Node_CallFunction",
+          "pins": [
+            {
+              "name": "A",
+              "value": "0.0",
+              "links": [
+                "K2Node_VariableGet_10:DesiredYaw"
+              ]
+            },
+            {
+              "name": "B",
+              "value": "0.0",
+              "links": [
+                "K2Node_CallFunction_10:Yaw"
+              ]
+            },
+            {
+              "name": "bPickA",
+              "value": "false",
+              "links": [
+                "K2Node_VariableGet_12:bSnapInput"
+              ]
+            },
+            {
+              "name": "ReturnValue",
+              "value": "0.0",
+              "links": [
+                "K2Node_VariableSet_4:SmoothedYaw"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_VariableSet_4",
+          "title": "Set SmoothedYaw",
+          "type": "K2Node_VariableSet",
+          "pins": [
+            {
+              "name": "execute",
+              "value": "",
+              "links": [
+                "K2Node_VariableSet_3:then"
+              ]
+            },
+            {
+              "name": "SmoothedYaw",
+              "value": "0.0",
+              "links": [
+                "K2Node_CallFunction_11:ReturnValue"
+              ]
+            },
+            {
+              "name": "then",
+              "value": "",
+              "links": [
+                "K2Node_VariableSet_5:execute"
+              ]
+            },
+            {
+              "name": "Output_Get",
+              "value": "0.0",
+              "links": []
+            }
+          ]
+        },
+        {
+          "name": "K2Node_CallFunction_12",
+          "title": "Absolute (Float)",
+          "type": "K2Node_CallFunction",
+          "pins": [
+            {
+              "name": "A",
+              "value": "0.0",
+              "links": [
+                "K2Node_VariableGet_9:SmoothedYaw"
+              ]
+            },
+            {
+              "name": "ReturnValue",
+              "value": "0.0",
+              "links": [
+                "K2Node_CallFunction_13:Value",
+                "K2Node_CallFunction_14:Value"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_CallFunction_13",
+          "title": "MapRangeClamped",
+          "type": "K2Node_CallFunction",
+          "pins": [
+            {
+              "name": "Value",
+              "value": "0.0",
+              "links": [
+                "K2Node_CallFunction_12:ReturnValue"
+              ]
+            },
+            {
+              "name": "InRangeA",
+              "value": "45",
+              "links": []
+            },
+            {
+              "name": "InRangeB",
+              "value": "65",
+              "links": []
+            },
+            {
+              "name": "OutRangeA",
+              "value": "0.0",
+              "links": []
+            },
+            {
+              "name": "OutRangeB",
+              "value": "1",
+              "links": []
+            },
+            {
+              "name": "ReturnValue",
+              "value": "0.0",
+              "links": [
+                "K2Node_PromotableOperator_1:A",
+                "K2Node_PromotableOperator_1:B",
+                "K2Node_PromotableOperator_2:B"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_PromotableOperator_1",
+          "title": "float * float",
+          "type": "K2Node_PromotableOperator",
+          "pins": [
+            {
+              "name": "A",
+              "value": "",
+              "links": [
+                "K2Node_CallFunction_13:ReturnValue"
+              ]
+            },
+            {
+              "name": "B",
+              "value": "",
+              "links": [
+                "K2Node_CallFunction_13:ReturnValue"
+              ]
+            },
+            {
+              "name": "ReturnValue",
+              "value": "",
+              "links": [
+                "K2Node_PromotableOperator_4:A"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_PromotableOperator_2",
+          "title": "float * float",
+          "type": "K2Node_PromotableOperator",
+          "pins": [
+            {
+              "name": "A",
+              "value": "2",
+              "links": []
+            },
+            {
+              "name": "B",
+              "value": "",
+              "links": [
+                "K2Node_CallFunction_13:ReturnValue"
+              ]
+            },
+            {
+              "name": "ReturnValue",
+              "value": "",
+              "links": [
+                "K2Node_PromotableOperator_3:B"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_PromotableOperator_3",
+          "title": "float - float",
+          "type": "K2Node_PromotableOperator",
+          "pins": [
+            {
+              "name": "A",
+              "value": "3",
+              "links": []
+            },
+            {
+              "name": "B",
+              "value": "",
+              "links": [
+                "K2Node_PromotableOperator_2:ReturnValue"
+              ]
+            },
+            {
+              "name": "ReturnValue",
+              "value": "",
+              "links": [
+                "K2Node_PromotableOperator_4:B"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_PromotableOperator_4",
+          "title": "float * float",
+          "type": "K2Node_PromotableOperator",
+          "pins": [
+            {
+              "name": "A",
+              "value": "",
+              "links": [
+                "K2Node_PromotableOperator_1:ReturnValue"
+              ]
+            },
+            {
+              "name": "B",
+              "value": "",
+              "links": [
+                "K2Node_PromotableOperator_3:ReturnValue"
+              ]
+            },
+            {
+              "name": "ReturnValue",
+              "value": "",
+              "links": [
+                "K2Node_PromotableOperator_5:B"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_PromotableOperator_5",
+          "title": "float - float",
+          "type": "K2Node_PromotableOperator",
+          "pins": [
+            {
+              "name": "A",
+              "value": "1",
+              "links": []
+            },
+            {
+              "name": "B",
+              "value": "",
+              "links": [
+                "K2Node_PromotableOperator_4:ReturnValue"
+              ]
+            },
+            {
+              "name": "ReturnValue",
+              "value": "",
+              "links": [
+                "K2Node_VariableSet_5:WeightF"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_CallFunction_14",
+          "title": "MapRangeClamped",
+          "type": "K2Node_CallFunction",
+          "pins": [
+            {
+              "name": "Value",
+              "value": "0.0",
+              "links": [
+                "K2Node_CallFunction_12:ReturnValue"
+              ]
+            },
+            {
+              "name": "InRangeA",
+              "value": "115",
+              "links": []
+            },
+            {
+              "name": "InRangeB",
+              "value": "135",
+              "links": []
+            },
+            {
+              "name": "OutRangeA",
+              "value": "0.0",
+              "links": []
+            },
+            {
+              "name": "OutRangeB",
+              "value": "1",
+              "links": []
+            },
+            {
+              "name": "ReturnValue",
+              "value": "0.0",
+              "links": [
+                "K2Node_PromotableOperator_6:A",
+                "K2Node_PromotableOperator_6:B",
+                "K2Node_PromotableOperator_7:B"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_PromotableOperator_6",
+          "title": "float * float",
+          "type": "K2Node_PromotableOperator",
+          "pins": [
+            {
+              "name": "A",
+              "value": "",
+              "links": [
+                "K2Node_CallFunction_14:ReturnValue"
+              ]
+            },
+            {
+              "name": "B",
+              "value": "",
+              "links": [
+                "K2Node_CallFunction_14:ReturnValue"
+              ]
+            },
+            {
+              "name": "ReturnValue",
+              "value": "",
+              "links": [
+                "K2Node_PromotableOperator_9:A"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_PromotableOperator_7",
+          "title": "float * float",
+          "type": "K2Node_PromotableOperator",
+          "pins": [
+            {
+              "name": "A",
+              "value": "2",
+              "links": []
+            },
+            {
+              "name": "B",
+              "value": "",
+              "links": [
+                "K2Node_CallFunction_14:ReturnValue"
+              ]
+            },
+            {
+              "name": "ReturnValue",
+              "value": "",
+              "links": [
+                "K2Node_PromotableOperator_8:B"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_PromotableOperator_8",
+          "title": "float - float",
+          "type": "K2Node_PromotableOperator",
+          "pins": [
+            {
+              "name": "A",
+              "value": "3",
+              "links": []
+            },
+            {
+              "name": "B",
+              "value": "",
+              "links": [
+                "K2Node_PromotableOperator_7:ReturnValue"
+              ]
+            },
+            {
+              "name": "ReturnValue",
+              "value": "",
+              "links": [
+                "K2Node_PromotableOperator_9:B"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_PromotableOperator_9",
+          "title": "float * float",
+          "type": "K2Node_PromotableOperator",
+          "pins": [
+            {
+              "name": "A",
+              "value": "",
+              "links": [
+                "K2Node_PromotableOperator_6:ReturnValue"
+              ]
+            },
+            {
+              "name": "B",
+              "value": "",
+              "links": [
+                "K2Node_PromotableOperator_8:ReturnValue"
+              ]
+            },
+            {
+              "name": "ReturnValue",
+              "value": "",
+              "links": [
+                "K2Node_VariableSet_6:WeightB"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_VariableSet_5",
+          "title": "Set WeightF",
+          "type": "K2Node_VariableSet",
+          "pins": [
+            {
+              "name": "execute",
+              "value": "",
+              "links": [
+                "K2Node_VariableSet_4:then"
+              ]
+            },
+            {
+              "name": "WeightF",
+              "value": "0.0",
+              "links": [
+                "K2Node_PromotableOperator_5:ReturnValue"
+              ]
+            },
+            {
+              "name": "then",
+              "value": "",
+              "links": [
+                "K2Node_VariableSet_6:execute"
+              ]
+            },
+            {
+              "name": "Output_Get",
+              "value": "0.0",
+              "links": []
+            }
+          ]
+        },
+        {
+          "name": "K2Node_VariableSet_6",
+          "title": "Set WeightB",
+          "type": "K2Node_VariableSet",
+          "pins": [
+            {
+              "name": "execute",
+              "value": "",
+              "links": [
+                "K2Node_VariableSet_5:then"
+              ]
+            },
+            {
+              "name": "WeightB",
+              "value": "0.0",
+              "links": [
+                "K2Node_PromotableOperator_9:ReturnValue"
+              ]
+            },
+            {
+              "name": "then",
+              "value": "",
+              "links": [
+                "K2Node_VariableSet_7:execute"
+              ]
+            },
+            {
+              "name": "Output_Get",
+              "value": "0.0",
+              "links": []
+            }
+          ]
+        },
+        {
+          "name": "K2Node_VariableGet_13",
+          "title": "Get WeightF",
+          "type": "K2Node_VariableGet",
+          "pins": [
+            {
+              "name": "WeightF",
+              "value": "0.0",
+              "links": [
+                "K2Node_PromotableOperator_10:B",
+                "K2Node_PromotableOperator_13:A"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_PromotableOperator_10",
+          "title": "float - float",
+          "type": "K2Node_PromotableOperator",
+          "pins": [
+            {
+              "name": "A",
+              "value": "1",
+              "links": []
+            },
+            {
+              "name": "B",
+              "value": "",
+              "links": [
+                "K2Node_VariableGet_13:WeightF"
+              ]
+            },
+            {
+              "name": "ReturnValue",
+              "value": "",
+              "links": [
+                "K2Node_PromotableOperator_11:A"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_VariableGet_14",
+          "title": "Get WeightB",
+          "type": "K2Node_VariableGet",
+          "pins": [
+            {
+              "name": "WeightB",
+              "value": "0.0",
+              "links": [
+                "K2Node_PromotableOperator_11:B",
+                "K2Node_PromotableOperator_14:A"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_PromotableOperator_11",
+          "title": "float - float",
+          "type": "K2Node_PromotableOperator",
+          "pins": [
+            {
+              "name": "A",
+              "value": "",
+              "links": [
+                "K2Node_PromotableOperator_10:ReturnValue"
+              ]
+            },
+            {
+              "name": "B",
+              "value": "",
+              "links": [
+                "K2Node_VariableGet_14:WeightB"
+              ]
+            },
+            {
+              "name": "ReturnValue",
+              "value": "",
+              "links": [
+                "K2Node_CallFunction_15:A",
+                "K2Node_CallFunction_16:B"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_PromotableOperator_12",
+          "title": "float >= float",
+          "type": "K2Node_PromotableOperator",
+          "pins": [
+            {
+              "name": "A",
+              "value": "",
+              "links": [
+                "K2Node_VariableGet_9:SmoothedYaw"
+              ]
+            },
+            {
+              "name": "B",
+              "value": "",
+              "links": []
+            },
+            {
+              "name": "ReturnValue",
+              "value": "",
+              "links": [
+                "K2Node_CallFunction_15:bPickA",
+                "K2Node_CallFunction_16:bPickA"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_CallFunction_15",
+          "title": "SelectFloat",
+          "type": "K2Node_CallFunction",
+          "pins": [
+            {
+              "name": "A",
+              "value": "0.0",
+              "links": [
+                "K2Node_PromotableOperator_11:ReturnValue"
+              ]
+            },
+            {
+              "name": "B",
+              "value": "0.0",
+              "links": []
+            },
+            {
+              "name": "bPickA",
+              "value": "false",
+              "links": [
+                "K2Node_PromotableOperator_12:ReturnValue"
+              ]
+            },
+            {
+              "name": "ReturnValue",
+              "value": "0.0",
+              "links": [
+                "K2Node_VariableSet_7:WeightR"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_VariableSet_7",
+          "title": "Set WeightR",
+          "type": "K2Node_VariableSet",
+          "pins": [
+            {
+              "name": "execute",
+              "value": "",
+              "links": [
+                "K2Node_VariableSet_6:then"
+              ]
+            },
+            {
+              "name": "WeightR",
+              "value": "0.0",
+              "links": [
+                "K2Node_CallFunction_15:ReturnValue"
+              ]
+            },
+            {
+              "name": "then",
+              "value": "",
+              "links": [
+                "K2Node_VariableSet_8:execute"
+              ]
+            },
+            {
+              "name": "Output_Get",
+              "value": "0.0",
+              "links": []
+            }
+          ]
+        },
+        {
+          "name": "K2Node_CallFunction_16",
+          "title": "SelectFloat",
+          "type": "K2Node_CallFunction",
+          "pins": [
+            {
+              "name": "A",
+              "value": "0.0",
+              "links": []
+            },
+            {
+              "name": "B",
+              "value": "0.0",
+              "links": [
+                "K2Node_PromotableOperator_11:ReturnValue"
+              ]
+            },
+            {
+              "name": "bPickA",
+              "value": "false",
+              "links": [
+                "K2Node_PromotableOperator_12:ReturnValue"
+              ]
+            },
+            {
+              "name": "ReturnValue",
+              "value": "0.0",
+              "links": [
+                "K2Node_VariableSet_8:WeightL"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_VariableSet_8",
+          "title": "Set WeightL",
+          "type": "K2Node_VariableSet",
+          "pins": [
+            {
+              "name": "execute",
+              "value": "",
+              "links": [
+                "K2Node_VariableSet_7:then"
+              ]
+            },
+            {
+              "name": "WeightL",
+              "value": "0.0",
+              "links": [
+                "K2Node_CallFunction_16:ReturnValue"
+              ]
+            },
+            {
+              "name": "then",
+              "value": "",
+              "links": [
+                "K2Node_VariableSet_9:execute"
+              ]
+            },
+            {
+              "name": "Output_Get",
+              "value": "0.0",
+              "links": []
+            }
+          ]
+        },
+        {
+          "name": "K2Node_VariableGet_15",
+          "title": "Get WeightR",
+          "type": "K2Node_VariableGet",
+          "pins": [
+            {
+              "name": "WeightR",
+              "value": "0.0",
+              "links": [
+                "K2Node_PromotableOperator_13:B",
+                "K2Node_CallFunction_17:A"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_PromotableOperator_13",
+          "title": "float + float",
+          "type": "K2Node_PromotableOperator",
+          "pins": [
+            {
+              "name": "A",
+              "value": "",
+              "links": [
+                "K2Node_VariableGet_13:WeightF"
+              ]
+            },
+            {
+              "name": "B",
+              "value": "",
+              "links": [
+                "K2Node_VariableGet_15:WeightR"
+              ]
+            },
+            {
+              "name": "ReturnValue",
+              "value": "",
+              "links": [
+                "K2Node_CallFunction_17:B"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_VariableGet_16",
+          "title": "Get WeightL",
+          "type": "K2Node_VariableGet",
+          "pins": [
+            {
+              "name": "WeightL",
+              "value": "0.0",
+              "links": [
+                "K2Node_PromotableOperator_14:B",
+                "K2Node_CallFunction_18:A"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_PromotableOperator_14",
+          "title": "float + float",
+          "type": "K2Node_PromotableOperator",
+          "pins": [
+            {
+              "name": "A",
+              "value": "",
+              "links": [
+                "K2Node_VariableGet_14:WeightB"
+              ]
+            },
+            {
+              "name": "B",
+              "value": "",
+              "links": [
+                "K2Node_VariableGet_16:WeightL"
+              ]
+            },
+            {
+              "name": "ReturnValue",
+              "value": "",
+              "links": [
+                "K2Node_CallFunction_18:B",
+                "K2Node_VariableSet_11:MixGroups"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_CallFunction_17",
+          "title": "SafeDivide",
+          "type": "K2Node_CallFunction",
+          "pins": [
+            {
+              "name": "A",
+              "value": "0.0",
+              "links": [
+                "K2Node_VariableGet_15:WeightR"
+              ]
+            },
+            {
+              "name": "B",
+              "value": "0.0",
+              "links": [
+                "K2Node_PromotableOperator_13:ReturnValue"
+              ]
+            },
+            {
+              "name": "ReturnValue",
+              "value": "0.0",
+              "links": [
+                "K2Node_VariableSet_9:MixFR"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_VariableSet_9",
+          "title": "Set MixFR",
+          "type": "K2Node_VariableSet",
+          "pins": [
+            {
+              "name": "execute",
+              "value": "",
+              "links": [
+                "K2Node_VariableSet_8:then"
+              ]
+            },
+            {
+              "name": "MixFR",
+              "value": "0.0",
+              "links": [
+                "K2Node_CallFunction_17:ReturnValue"
+              ]
+            },
+            {
+              "name": "then",
+              "value": "",
+              "links": [
+                "K2Node_VariableSet_10:execute"
+              ]
+            },
+            {
+              "name": "Output_Get",
+              "value": "0.0",
+              "links": []
+            }
+          ]
+        },
+        {
+          "name": "K2Node_CallFunction_18",
+          "title": "SafeDivide",
+          "type": "K2Node_CallFunction",
+          "pins": [
+            {
+              "name": "A",
+              "value": "0.0",
+              "links": [
+                "K2Node_VariableGet_16:WeightL"
+              ]
+            },
+            {
+              "name": "B",
+              "value": "0.0",
+              "links": [
+                "K2Node_PromotableOperator_14:ReturnValue"
+              ]
+            },
+            {
+              "name": "ReturnValue",
+              "value": "0.0",
+              "links": [
+                "K2Node_VariableSet_10:MixBL"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_VariableSet_10",
+          "title": "Set MixBL",
+          "type": "K2Node_VariableSet",
+          "pins": [
+            {
+              "name": "execute",
+              "value": "",
+              "links": [
+                "K2Node_VariableSet_9:then"
+              ]
+            },
+            {
+              "name": "MixBL",
+              "value": "0.0",
+              "links": [
+                "K2Node_CallFunction_18:ReturnValue"
+              ]
+            },
+            {
+              "name": "then",
+              "value": "",
+              "links": [
+                "K2Node_VariableSet_11:execute"
+              ]
+            },
+            {
+              "name": "Output_Get",
+              "value": "0.0",
+              "links": []
+            }
+          ]
+        },
+        {
+          "name": "K2Node_VariableSet_11",
+          "title": "Set MixGroups",
+          "type": "K2Node_VariableSet",
+          "pins": [
+            {
+              "name": "execute",
+              "value": "",
+              "links": [
+                "K2Node_VariableSet_10:then"
+              ]
+            },
+            {
+              "name": "MixGroups",
+              "value": "0.0",
+              "links": [
+                "K2Node_PromotableOperator_14:ReturnValue"
+              ]
+            },
+            {
+              "name": "then",
+              "value": "",
+              "links": [
+                "K2Node_VariableSet_12:execute"
+              ]
+            },
+            {
+              "name": "Output_Get",
+              "value": "0.0",
+              "links": []
+            }
+          ]
+        },
+        {
+          "name": "K2Node_PromotableOperator_15",
+          "title": "float - float",
+          "type": "K2Node_PromotableOperator",
+          "pins": [
+            {
+              "name": "A",
+              "value": "",
+              "links": [
+                "K2Node_VariableGet_9:SmoothedYaw"
+              ]
+            },
+            {
+              "name": "B",
+              "value": "",
+              "links": []
+            },
+            {
+              "name": "ReturnValue",
+              "value": "",
+              "links": [
+                "K2Node_CallFunction_19:Angle"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_CallFunction_19",
+          "title": "NormalizeAxis",
+          "type": "K2Node_CallFunction",
+          "pins": [
+            {
+              "name": "Angle",
+              "value": "0.0",
+              "links": [
+                "K2Node_PromotableOperator_15:ReturnValue"
+              ]
+            },
+            {
+              "name": "ReturnValue",
+              "value": "0.0",
+              "links": [
+                "K2Node_CallFunction_20:Value"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_CallFunction_20",
+          "title": "Clamp (Float)",
+          "type": "K2Node_CallFunction",
+          "pins": [
+            {
+              "name": "Value",
+              "value": "0.0",
+              "links": [
+                "K2Node_CallFunction_19:ReturnValue"
+              ]
+            },
+            {
+              "name": "Min",
+              "value": "-65",
+              "links": []
+            },
+            {
+              "name": "Max",
+              "value": "65",
+              "links": []
+            },
+            {
+              "name": "ReturnValue",
+              "value": "0.0",
+              "links": [
+                "K2Node_VariableSet_12:AngleF"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_VariableSet_12",
+          "title": "Set AngleF",
+          "type": "K2Node_VariableSet",
+          "pins": [
+            {
+              "name": "execute",
+              "value": "",
+              "links": [
+                "K2Node_VariableSet_11:then"
+              ]
+            },
+            {
+              "name": "AngleF",
+              "value": "0.0",
+              "links": [
+                "K2Node_CallFunction_20:ReturnValue"
+              ]
+            },
+            {
+              "name": "then",
+              "value": "",
+              "links": [
+                "K2Node_VariableSet_13:execute"
+              ]
+            },
+            {
+              "name": "Output_Get",
+              "value": "0.0",
+              "links": []
+            }
+          ]
+        },
+        {
+          "name": "K2Node_PromotableOperator_16",
+          "title": "float - float",
+          "type": "K2Node_PromotableOperator",
+          "pins": [
+            {
+              "name": "A",
+              "value": "",
+              "links": [
+                "K2Node_VariableGet_9:SmoothedYaw"
+              ]
+            },
+            {
+              "name": "B",
+              "value": "90",
+              "links": []
+            },
+            {
+              "name": "ReturnValue",
+              "value": "",
+              "links": [
+                "K2Node_CallFunction_21:Angle"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_CallFunction_21",
+          "title": "NormalizeAxis",
+          "type": "K2Node_CallFunction",
+          "pins": [
+            {
+              "name": "Angle",
+              "value": "0.0",
+              "links": [
+                "K2Node_PromotableOperator_16:ReturnValue"
+              ]
+            },
+            {
+              "name": "ReturnValue",
+              "value": "0.0",
+              "links": [
+                "K2Node_CallFunction_22:Value"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_CallFunction_22",
+          "title": "Clamp (Float)",
+          "type": "K2Node_CallFunction",
+          "pins": [
+            {
+              "name": "Value",
+              "value": "0.0",
+              "links": [
+                "K2Node_CallFunction_21:ReturnValue"
+              ]
+            },
+            {
+              "name": "Min",
+              "value": "-65",
+              "links": []
+            },
+            {
+              "name": "Max",
+              "value": "65",
+              "links": []
+            },
+            {
+              "name": "ReturnValue",
+              "value": "0.0",
+              "links": [
+                "K2Node_VariableSet_13:AngleR"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_VariableSet_13",
+          "title": "Set AngleR",
+          "type": "K2Node_VariableSet",
+          "pins": [
+            {
+              "name": "execute",
+              "value": "",
+              "links": [
+                "K2Node_VariableSet_12:then"
+              ]
+            },
+            {
+              "name": "AngleR",
+              "value": "0.0",
+              "links": [
+                "K2Node_CallFunction_22:ReturnValue"
+              ]
+            },
+            {
+              "name": "then",
+              "value": "",
+              "links": [
+                "K2Node_VariableSet_14:execute"
+              ]
+            },
+            {
+              "name": "Output_Get",
+              "value": "0.0",
+              "links": []
+            }
+          ]
+        },
+        {
+          "name": "K2Node_PromotableOperator_17",
+          "title": "float - float",
+          "type": "K2Node_PromotableOperator",
+          "pins": [
+            {
+              "name": "A",
+              "value": "",
+              "links": [
+                "K2Node_VariableGet_9:SmoothedYaw"
+              ]
+            },
+            {
+              "name": "B",
+              "value": "180",
+              "links": []
+            },
+            {
+              "name": "ReturnValue",
+              "value": "",
+              "links": [
+                "K2Node_CallFunction_23:Angle"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_CallFunction_23",
+          "title": "NormalizeAxis",
+          "type": "K2Node_CallFunction",
+          "pins": [
+            {
+              "name": "Angle",
+              "value": "0.0",
+              "links": [
+                "K2Node_PromotableOperator_17:ReturnValue"
+              ]
+            },
+            {
+              "name": "ReturnValue",
+              "value": "0.0",
+              "links": [
+                "K2Node_CallFunction_24:Value"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_CallFunction_24",
+          "title": "Clamp (Float)",
+          "type": "K2Node_CallFunction",
+          "pins": [
+            {
+              "name": "Value",
+              "value": "0.0",
+              "links": [
+                "K2Node_CallFunction_23:ReturnValue"
+              ]
+            },
+            {
+              "name": "Min",
+              "value": "-65",
+              "links": []
+            },
+            {
+              "name": "Max",
+              "value": "65",
+              "links": []
+            },
+            {
+              "name": "ReturnValue",
+              "value": "0.0",
+              "links": [
+                "K2Node_VariableSet_14:AngleB"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_VariableSet_14",
+          "title": "Set AngleB",
+          "type": "K2Node_VariableSet",
+          "pins": [
+            {
+              "name": "execute",
+              "value": "",
+              "links": [
+                "K2Node_VariableSet_13:then"
+              ]
+            },
+            {
+              "name": "AngleB",
+              "value": "0.0",
+              "links": [
+                "K2Node_CallFunction_24:ReturnValue"
+              ]
+            },
+            {
+              "name": "then",
+              "value": "",
+              "links": [
+                "K2Node_VariableSet_15:execute"
+              ]
+            },
+            {
+              "name": "Output_Get",
+              "value": "0.0",
+              "links": []
+            }
+          ]
+        },
+        {
+          "name": "K2Node_PromotableOperator_18",
+          "title": "float - float",
+          "type": "K2Node_PromotableOperator",
+          "pins": [
+            {
+              "name": "A",
+              "value": "",
+              "links": [
+                "K2Node_VariableGet_9:SmoothedYaw"
+              ]
+            },
+            {
+              "name": "B",
+              "value": "-90",
+              "links": []
+            },
+            {
+              "name": "ReturnValue",
+              "value": "",
+              "links": [
+                "K2Node_CallFunction_25:Angle"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_CallFunction_25",
+          "title": "NormalizeAxis",
+          "type": "K2Node_CallFunction",
+          "pins": [
+            {
+              "name": "Angle",
+              "value": "0.0",
+              "links": [
+                "K2Node_PromotableOperator_18:ReturnValue"
+              ]
+            },
+            {
+              "name": "ReturnValue",
+              "value": "0.0",
+              "links": [
+                "K2Node_CallFunction_26:Value"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_CallFunction_26",
+          "title": "Clamp (Float)",
+          "type": "K2Node_CallFunction",
+          "pins": [
+            {
+              "name": "Value",
+              "value": "0.0",
+              "links": [
+                "K2Node_CallFunction_25:ReturnValue"
+              ]
+            },
+            {
+              "name": "Min",
+              "value": "-65",
+              "links": []
+            },
+            {
+              "name": "Max",
+              "value": "65",
+              "links": []
+            },
+            {
+              "name": "ReturnValue",
+              "value": "0.0",
+              "links": [
+                "K2Node_VariableSet_15:AngleL"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "K2Node_VariableSet_15",
+          "title": "Set AngleL",
+          "type": "K2Node_VariableSet",
+          "pins": [
+            {
+              "name": "execute",
+              "value": "",
+              "links": [
+                "K2Node_VariableSet_14:then"
+              ]
+            },
+            {
+              "name": "AngleL",
+              "value": "0.0",
+              "links": [
+                "K2Node_CallFunction_26:ReturnValue"
+              ]
+            },
+            {
+              "name": "then",
+              "value": "",
+              "links": []
+            },
+            {
+              "name": "Output_Get",
+              "value": "0.0",
+              "links": []
+            }
+          ]
+        }
+      ],
+      "errors": []
+    }
+  },
+  "defaults": {
+    "TurnSpeed": 10.0,
+    "bTestOverride": false,
+    "bManualPhase": false,
+    "bSnapInput": false,
+    "Phase": 0.0
+  },
+  "skeleton": "/Game/Experiments/Stance_20261022/SK_FourDirection.SK_FourDirection",
+  "dirty_content": [],
+  "dirty_maps": []
+}

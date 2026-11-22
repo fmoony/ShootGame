@@ -1,0 +1,99 @@
+{
+  "static_pairs": [
+    {
+      "time": 0.0,
+      "position_cm": 0.0029594318863341482,
+      "rotation_deg": 0.037759320819160905
+    },
+    {
+      "time": 0.125,
+      "position_cm": 0.001691430380378133,
+      "rotation_deg": 0.003954853155954938
+    },
+    {
+      "time": 0.25,
+      "position_cm": 0.0027996617436141335,
+      "rotation_deg": 0.03272025506773666
+    },
+    {
+      "time": 0.375,
+      "position_cm": 0.0027836428190830495,
+      "rotation_deg": 0.0380292698339048
+    },
+    {
+      "time": 0.5,
+      "position_cm": 0.002819747331502705,
+      "rotation_deg": 0.03516080239477788
+    },
+    {
+      "time": 0.625,
+      "position_cm": 0.0021257493286967297,
+      "rotation_deg": 0.032637854570996064
+    },
+    {
+      "time": 0.75,
+      "position_cm": 0.0017475986657947515,
+      "rotation_deg": 0.036199603892117245
+    },
+    {
+      "time": 0.875,
+      "position_cm": 0.0033088922351050074,
+      "rotation_deg": 0.04538001708861283
+    }
+  ],
+  "loop_frames": 191,
+  "loop_seconds": 3.1965623013675213,
+  "loop_wrap_count": 3,
+  "loop_anim_classes": [
+    "/Script/Engine.AnimSingleNodeInstance"
+  ],
+  "runtime_vs_asset_max_position_cm": 0.00019383242174637863,
+  "actor_z_range": [
+    0.0,
+    0.0
+  ],
+  "seam": {
+    "root": {
+      "reference_position_cm": 0.0,
+      "baked_position_cm": 0.0,
+      "reference_angle_deg": 0.0,
+      "baked_angle_deg": 0.0
+    },
+    "pelvis": {
+      "reference_position_cm": 0.0,
+      "baked_position_cm": 0.0,
+      "reference_angle_deg": 0.0,
+      "baked_angle_deg": 0.0
+    },
+    "head": {
+      "reference_position_cm": 0.004718942047782855,
+      "baked_position_cm": 0.005084520547343312,
+      "reference_angle_deg": 0.006670008461741653,
+      "baked_angle_deg": 0.0075948073808038185
+    },
+    "foot_l": {
+      "reference_position_cm": 0.0020410804492226797,
+      "baked_position_cm": 0.004120391636042891,
+      "reference_angle_deg": 0.0026250206223345438,
+      "baked_angle_deg": 0.005277550259407528
+    },
+    "foot_r": {
+      "reference_position_cm": 0.0002016680852898468,
+      "baked_position_cm": 0.00020083227045368128,
+      "reference_angle_deg": 0.0002054527827885941,
+      "baked_angle_deg": 0.00020917280092921608
+    },
+    "ball_l": {
+      "reference_position_cm": 0.0028022006314886807,
+      "baked_position_cm": 0.005659581663301963,
+      "reference_angle_deg": 0.0026245829539356534,
+      "baked_angle_deg": 0.00528121825145874
+    },
+    "ball_r": {
+      "reference_position_cm": 0.00024665035405234035,
+      "baked_position_cm": 0.00024598034296045444,
+      "reference_angle_deg": 0.00020582851842408152,
+      "baked_angle_deg": 0.00020575059198295144
+    }
+  }
+}

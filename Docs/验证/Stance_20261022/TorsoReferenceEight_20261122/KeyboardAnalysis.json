@@ -1,0 +1,135 @@
+{
+  "state": "Complete",
+  "frames": 597,
+  "directions": {
+    "F": {
+      "frames": 51,
+      "mean_speed": 150.0,
+      "mean_velocity": [
+        150.0,
+        0.0,
+        0.0
+      ],
+      "input": [
+        1.0,
+        0.0
+      ],
+      "rate": 1.0
+    },
+    "FR": {
+      "frames": 50,
+      "mean_speed": 150.00000000000045,
+      "mean_velocity": [
+        106.0660171779828,
+        106.06601717798209,
+        0.0
+      ],
+      "input": [
+        0.5,
+        0.5
+      ],
+      "rate": 1.0
+    },
+    "R": {
+      "frames": 50,
+      "mean_speed": 150.0,
+      "mean_velocity": [
+        0.0,
+        150.0,
+        0.0
+      ],
+      "input": [
+        0.0,
+        1.0
+      ],
+      "rate": 1.0
+    },
+    "BR": {
+      "frames": 51,
+      "mean_speed": 150.0000000000004,
+      "mean_velocity": [
+        -106.06601717798264,
+        106.06601717798218,
+        0.0
+      ],
+      "input": [
+        -0.5,
+        0.5
+      ],
+      "rate": 1.0
+    },
+    "B": {
+      "frames": 52,
+      "mean_speed": 150.0,
+      "mean_velocity": [
+        -150.0,
+        0.0,
+        0.0
+      ],
+      "input": [
+        -1.0,
+        0.0
+      ],
+      "rate": 1.0
+    },
+    "BL": {
+      "frames": 50,
+      "mean_speed": 149.99999999999983,
+      "mean_velocity": [
+        -106.06601717798208,
+        -106.06601717798193,
+        0.0
+      ],
+      "input": [
+        -0.5,
+        -0.5
+      ],
+      "rate": 1.0
+    },
+    "L": {
+      "frames": 52,
+      "mean_speed": 150.0,
+      "mean_velocity": [
+        0.0,
+        -150.0,
+        0.0
+      ],
+      "input": [
+        0.0,
+        -1.0
+      ],
+      "rate": 1.0
+    },
+    "FL": {
+      "frames": 51,
+      "mean_speed": 149.99999999999994,
+      "mean_velocity": [
+        106.06601717798209,
+        -106.06601717798209,
+        0.0
+      ],
+      "input": [
+        0.5,
+        -0.5
+      ],
+      "rate": 1.0
+    },
+    "Stop": {
+      "frames": 139,
+      "mean_speed": 0.0,
+      "mean_velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "input": [
+        -0.5,
+        -0.5
+      ],
+      "rate": 0.0
+    }
+  },
+  "classes": [
+    "/Game/Experiments/Stance_20261022/ABP_TorsoReferenceEight_Crouch.ABP_TorsoReferenceEight_Crouch_C"
+  ]
+}

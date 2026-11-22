@@ -1,0 +1,140 @@
+{
+  "state": "Complete",
+  "error": null,
+  "frames": 888,
+  "keys": {
+    "": {
+      "samples": 452,
+      "min_speed": 0,
+      "max_speed": 0,
+      "input": [
+        1,
+        0
+      ],
+      "graph": [
+        1,
+        0
+      ],
+      "rate": 0
+    },
+    "W": {
+      "samples": 52,
+      "min_speed": 150,
+      "max_speed": 150,
+      "input": [
+        1,
+        0
+      ],
+      "graph": [
+        1,
+        0
+      ],
+      "rate": 1
+    },
+    "DW": {
+      "samples": 52,
+      "min_speed": 149.99999999999955,
+      "max_speed": 150.00000000000065,
+      "input": [
+        0.5,
+        0.5
+      ],
+      "graph": [
+        0.5,
+        0.5
+      ],
+      "rate": 1
+    },
+    "D": {
+      "samples": 51,
+      "min_speed": 149.99999999999915,
+      "max_speed": 150,
+      "input": [
+        0,
+        1
+      ],
+      "graph": [
+        0,
+        1
+      ],
+      "rate": 1
+    },
+    "DS": {
+      "samples": 52,
+      "min_speed": 149.9999999999991,
+      "max_speed": 150.00000000000114,
+      "input": [
+        -0.5,
+        0.5
+      ],
+      "graph": [
+        -0.5,
+        0.5
+      ],
+      "rate": 1
+    },
+    "S": {
+      "samples": 52,
+      "min_speed": 150,
+      "max_speed": 150,
+      "input": [
+        -1,
+        0
+      ],
+      "graph": [
+        -1,
+        0
+      ],
+      "rate": 1
+    },
+    "AS": {
+      "samples": 53,
+      "min_speed": 149.99999999999932,
+      "max_speed": 150.00000000000077,
+      "input": [
+        -0.5,
+        -0.5
+      ],
+      "graph": [
+        -0.5,
+        -0.5
+      ],
+      "rate": 1
+    },
+    "A": {
+      "samples": 53,
+      "min_speed": 150,
+      "max_speed": 150,
+      "input": [
+        0,
+        -1
+      ],
+      "graph": [
+        0,
+        -1
+      ],
+      "rate": 1
+    },
+    "AW": {
+      "samples": 54,
+      "min_speed": 149.99999999999972,
+      "max_speed": 150.00000000000045,
+      "input": [
+        0.5,
+        -0.5
+      ],
+      "graph": [
+        0.5,
+        -0.5
+      ],
+      "rate": 1
+    }
+  },
+  "classes": [
+    "/Game/Experiments/Stance_20261022/ABP_BakedEight_Crouch.ABP_BakedEight_Crouch_C"
+  ],
+  "z": [
+    0,
+    0
+  ]
+}

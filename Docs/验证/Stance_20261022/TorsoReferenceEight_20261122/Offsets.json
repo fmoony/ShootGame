@@ -1,0 +1,178 @@
+[
+  {
+    "direction": "F",
+    "source": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Forward.AS_RootLockSource_Forward",
+    "point": [
+      1.0,
+      0.0,
+      0.0
+    ],
+    "angles": {
+      "spine_01": 0.0,
+      "spine_02": 0.0,
+      "spine_04": 0.0,
+      "spine_05": 0.0,
+      "neck_01": 0.0,
+      "neck_02": 0.0
+    },
+    "mean_z": {
+      "pelvis": 65.14885415395365,
+      "spine_05": 105.06211062901548,
+      "head": 117.89919506007564
+    }
+  },
+  {
+    "direction": "FR",
+    "source": "/Game/Experiments/Stance_20261022/AS_BlendBaked_ForwardRight.AS_BlendBaked_ForwardRight",
+    "point": [
+      0.5,
+      0.5,
+      0.0
+    ],
+    "angles": {
+      "spine_01": -0.04044711013834856,
+      "spine_02": -0.08561301791197096,
+      "spine_04": -0.08561127865990947,
+      "spine_05": -0.08564099534669367,
+      "neck_01": 0.216136708793222,
+      "neck_02": 0.5419038719360998
+    },
+    "mean_z": {
+      "pelvis": 65.8811223724087,
+      "spine_05": 106.29503348523826,
+      "head": 119.60241365452403
+    }
+  },
+  {
+    "direction": "R",
+    "source": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Right.AS_RootLockSource_Right",
+    "point": [
+      0.0,
+      1.0,
+      0.0
+    ],
+    "angles": {
+      "spine_01": -0.08099407307767947,
+      "spine_02": -0.17137112263948318,
+      "spine_04": -0.17138704556869122,
+      "spine_05": -0.17137389593636954,
+      "neck_01": 0.42732292842201325,
+      "neck_02": 1.0780310012729775
+    },
+    "mean_z": {
+      "pelvis": 65.83134897871872,
+      "spine_05": 106.25141315461765,
+      "head": 119.79059710892359
+    }
+  },
+  {
+    "direction": "BR",
+    "source": "/Game/Experiments/Stance_20261022/AS_OWBaked_BackRight.AS_OWBaked_BackRight",
+    "point": [
+      -0.5,
+      0.5,
+      0.0
+    ],
+    "angles": {
+      "spine_01": 0.6244839169380114,
+      "spine_02": 2.4831141962976915,
+      "spine_04": 2.8390373878942183,
+      "spine_05": 3.100039376570523,
+      "neck_01": -4.053393178733375,
+      "neck_02": -3.878679564874906
+    },
+    "mean_z": {
+      "pelvis": 65.1918098170931,
+      "spine_05": 107.7019586683494,
+      "head": 123.46499308444108
+    }
+  },
+  {
+    "direction": "B",
+    "source": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Back.AS_RootLockSource_Back",
+    "point": [
+      -1.0,
+      0.0,
+      0.0
+    ],
+    "angles": {
+      "spine_01": 1.551597072900421,
+      "spine_02": 3.105236806085564,
+      "spine_04": 3.105248114014799,
+      "spine_05": 3.1052404480451905,
+      "neck_01": -4.0578936648813855,
+      "neck_02": -3.8767313702456505
+    },
+    "mean_z": {
+      "pelvis": 65.19150752524116,
+      "spine_05": 107.70175696110695,
+      "head": 123.46431690989186
+    }
+  },
+  {
+    "direction": "BL",
+    "source": "/Game/Experiments/Stance_20261022/AS_BlendBaked_BackLeft.AS_BlendBaked_BackLeft",
+    "point": [
+      -0.5,
+      -0.5,
+      0.0
+    ],
+    "angles": {
+      "spine_01": 0.7084221634887378,
+      "spine_02": 1.419709827274021,
+      "spine_04": 1.419749545332344,
+      "spine_05": 1.4197520088847853,
+      "neck_01": -1.8174169349791516,
+      "neck_02": -1.4055886486765417
+    },
+    "mean_z": {
+      "pelvis": 66.69519215143761,
+      "spine_05": 108.60279007906891,
+      "head": 123.52543097050864
+    }
+  },
+  {
+    "direction": "L",
+    "source": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Left.AS_RootLockSource_Left",
+    "point": [
+      0.0,
+      -1.0,
+      0.0
+    ],
+    "angles": {
+      "spine_01": -0.13517340203008743,
+      "spine_02": -0.2683350429757727,
+      "spine_04": -0.2683541952694988,
+      "spine_05": -0.26834272403641357,
+      "neck_01": 0.42212087576510626,
+      "neck_02": 1.0711290651695613
+    },
+    "mean_z": {
+      "pelvis": 66.51621181716924,
+      "spine_05": 106.97337004104531,
+      "head": 120.49856962406783
+    }
+  },
+  {
+    "direction": "FL",
+    "source": "/Game/Experiments/Stance_20261022/AS_OWBaked_FrontLeft.AS_OWBaked_FrontLeft",
+    "point": [
+      0.5,
+      -0.5,
+      0.0
+    ],
+    "angles": {
+      "spine_01": -0.20266484333416557,
+      "spine_02": -0.19875385806018464,
+      "spine_04": -0.22164498852863623,
+      "spine_05": -0.2818362219942845,
+      "neck_01": 0.006012950865398992,
+      "neck_02": 0.006168201458633504
+    },
+    "mean_z": {
+      "pelvis": 65.14887693835098,
+      "spine_05": 105.0620521000605,
+      "head": 117.90047492348933
+    }
+  }
+]

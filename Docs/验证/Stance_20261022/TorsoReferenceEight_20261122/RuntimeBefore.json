@@ -1,0 +1,16 @@
+{
+  "world": "/Game/Experiments/Stance_20261022/UEDPIE_0_L_TorsoReferenceEight_Crouch.L_TorsoReferenceEight_Crouch",
+  "anim": "/Game/Experiments/Stance_20261022/ABP_TorsoReferenceEight_Crouch.ABP_TorsoReferenceEight_Crouch_C",
+  "tick": true,
+  "rate": 0.0,
+  "inputs": {
+    "PreviewForward": 1.0,
+    "PreviewRight": 0.0
+  },
+  "throttle": true,
+  "fps": 0.0,
+  "render": {
+    "r.MotionBlurQuality": 4,
+    "r.AntiAliasingMethod": 4
+  }
+}

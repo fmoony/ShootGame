@@ -1,0 +1,139 @@
+{
+  "raw_max": {
+    "local_translation_cm": 0.0,
+    "local_scale": 0.0,
+    "unedited_local_rotation_deg": 0.0,
+    "lower_component_position_cm": 0.0,
+    "lower_component_rotation_deg": 0.0,
+    "constant_offset_error_deg": 2.2132342465963154e-05
+  },
+  "samples_per_clip_per_evaluation": 121,
+  "evaluations": [
+    "RAW",
+    "COMPRESSED"
+  ],
+  "bones": 89,
+  "compressed": {
+    "Forward": {
+      "pelvis": {
+        "mean_z_cm": 65.14930211401183,
+        "min_z_cm": 63.728354261409976,
+        "max_z_cm": 66.87247289218007,
+        "excursion_cm": 3.1441186307700946,
+        "loop_seam_position_cm": 0.0
+      },
+      "spine_05": {
+        "mean_z_cm": 105.06255758249024,
+        "min_z_cm": 103.43573601768564,
+        "max_z_cm": 106.640195786139,
+        "excursion_cm": 3.2044597684533613,
+        "loop_seam_position_cm": 0.002626919845424579
+      },
+      "head": {
+        "mean_z_cm": 117.90102551582,
+        "min_z_cm": 115.91892213477783,
+        "max_z_cm": 119.48194312491674,
+        "excursion_cm": 3.5630209901389094,
+        "loop_seam_position_cm": 0.004632533117777147
+      },
+      "hand_l": {
+        "mean_z_cm": 88.45269697705662,
+        "min_z_cm": 86.12411486691794,
+        "max_z_cm": 90.2911944046697,
+        "excursion_cm": 4.167079537751761,
+        "loop_seam_position_cm": 0.0032273539259939175
+      },
+      "hand_r": {
+        "mean_z_cm": 84.7507485863138,
+        "min_z_cm": 82.7698051149702,
+        "max_z_cm": 86.85885765364758,
+        "excursion_cm": 4.089052538677379,
+        "loop_seam_position_cm": 0.006489958292203283
+      },
+      "min_ball_z_cm": -0.10320505605733743
+    },
+    "Back": {
+      "pelvis": {
+        "mean_z_cm": 65.19221640262758,
+        "min_z_cm": 63.32928914940254,
+        "max_z_cm": 67.17689877543283,
+        "excursion_cm": 3.847609626030291,
+        "loop_seam_position_cm": 0.0
+      },
+      "spine_05": {
+        "mean_z_cm": 107.70243378306519,
+        "min_z_cm": 106.05968846446955,
+        "max_z_cm": 109.5443079481422,
+        "excursion_cm": 3.4846194836726596,
+        "loop_seam_position_cm": 0.0
+      },
+      "head": {
+        "mean_z_cm": 123.46549637489989,
+        "min_z_cm": 121.61387071912709,
+        "max_z_cm": 125.30898903673749,
+        "excursion_cm": 3.695118317610394,
+        "loop_seam_position_cm": 0.0
+      },
+      "hand_l": {
+        "mean_z_cm": 94.36806429494978,
+        "min_z_cm": 92.21122936819644,
+        "max_z_cm": 96.61381323216551,
+        "excursion_cm": 4.40258386396907,
+        "loop_seam_position_cm": 0.0005177639873535696
+      },
+      "hand_r": {
+        "mean_z_cm": 91.4580356974899,
+        "min_z_cm": 89.43379048400116,
+        "max_z_cm": 93.85736967256832,
+        "excursion_cm": 4.42357918856716,
+        "loop_seam_position_cm": 0.005876077244442122
+      },
+      "min_ball_z_cm": 0.22481954525865433
+    },
+    "Adjusted": {
+      "pelvis": {
+        "mean_z_cm": 65.19221640262758,
+        "min_z_cm": 63.32928914940254,
+        "max_z_cm": 67.17689877543283,
+        "excursion_cm": 3.847609626030291,
+        "loop_seam_position_cm": 0.0
+      },
+      "spine_05": {
+        "mean_z_cm": 105.93230419679814,
+        "min_z_cm": 104.33562011177682,
+        "max_z_cm": 107.76782012158401,
+        "excursion_cm": 3.4322000098071896,
+        "loop_seam_position_cm": 0.0
+      },
+      "head": {
+        "mean_z_cm": 119.54116182156694,
+        "min_z_cm": 117.58213585071701,
+        "max_z_cm": 121.40072079537005,
+        "excursion_cm": 3.8185849446530398,
+        "loop_seam_position_cm": 7.920591389798134e-05
+      },
+      "hand_l": {
+        "mean_z_cm": 84.72351636297509,
+        "min_z_cm": 82.48965317271937,
+        "max_z_cm": 86.93158733112753,
+        "excursion_cm": 4.441934158408159,
+        "loop_seam_position_cm": 0.0009328850132415768
+      },
+      "hand_r": {
+        "mean_z_cm": 85.07870926257665,
+        "min_z_cm": 82.99376054643032,
+        "max_z_cm": 87.53595546077301,
+        "excursion_cm": 4.542194914342687,
+        "loop_seam_position_cm": 0.005928278036318188
+      },
+      "min_ball_z_cm": 0.22481954525865433
+    }
+  },
+  "compressed_lower_max_cm": 0.0,
+  "runtime": {
+    "frames": 130,
+    "duration_seconds": 2.1501686982810497,
+    "max_phase_difference_seconds": 0.0,
+    "max_lower_position_difference_cm": 3.1776437161565096e-14
+  }
+}

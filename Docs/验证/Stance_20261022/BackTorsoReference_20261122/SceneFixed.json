@@ -1,0 +1,6 @@
+{
+  "rotator_positional": "(Pitch=-90.000000,Yaw=0.000000,Roll=0.000000)",
+  "rotator_named": "(Pitch=0.000000,Yaw=-90.000000,Roll=0.000000)",
+  "default_pawn": "None",
+  "game_mode": "/Game/Experiments/Stance_20261022/BP_BackTorsoComparisonMode.BP_BackTorsoComparisonMode"
+}

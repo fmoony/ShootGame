@@ -1,0 +1,15 @@
+{
+  "protected_files": 245,
+  "changed_protected_files": [],
+  "historical_docs_changed": [],
+  "current_index_updated": [
+    "Docs/\u9a8c\u8bc1/Stance_20261022/\u6ed1\u94f2\u4e0e\u4e0b\u8e72\u52a8\u753b\u5b9e\u9a8c.md"
+  ],
+  "new_assets": [
+    "Content/Experiments/Stance_20261022/AS_Back_TorsoReference.uasset",
+    "Content/Experiments/Stance_20261022/BP_BackTorsoComparisonMode.uasset",
+    "Content/Experiments/Stance_20261022/L_BackTorsoReference.umap"
+  ],
+  "branch": "codex/ue-5.8",
+  "production_code_changes_this_round": false
+}

@@ -1,0 +1,56 @@
+{
+  "world": "/Game/Experiments/Stance_20261022/UEDPIE_0_L_BackTorsoReference.L_BackTorsoReference",
+  "game_mode": "/Game/Experiments/Stance_20261022/BP_BackTorsoComparisonMode.BP_BackTorsoComparisonMode_C",
+  "pawn": "None",
+  "camera": [
+    20.0,
+    700.0,
+    180.0
+  ],
+  "actors": {
+    "Forward reference": {
+      "position": 0.33333563804626465,
+      "playing": true,
+      "rate": 1.0,
+      "location": [
+        -150.0,
+        0.0,
+        0.0
+      ],
+      "rotation": "(Pitch=0.000000,Yaw=-90.000000,Roll=0.000000)",
+      "data": "(AnimToPlay=\"/Script/Engine.AnimSequence'/Game/Experiments/Stance_20261022/AS_RootLockSource_Forward.AS_RootLockSource_Forward'\",bSavedLooping=True,bSavedPlaying=True,SavedPosition=0.000000,SavedPlayRate=1.000000)"
+    },
+    "Back original": {
+      "position": 0.33333563804626465,
+      "playing": true,
+      "rate": 1.0,
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": "(Pitch=0.000000,Yaw=-90.000000,Roll=0.000000)",
+      "data": "(AnimToPlay=\"/Script/Engine.AnimSequence'/Game/Experiments/Stance_20261022/AS_RootLockSource_Back.AS_RootLockSource_Back'\",bSavedLooping=True,bSavedPlaying=True,SavedPosition=0.000000,SavedPlayRate=1.000000)"
+    },
+    "Back torso trial": {
+      "position": 0.33333563804626465,
+      "playing": true,
+      "rate": 1.0,
+      "location": [
+        150.0,
+        0.0,
+        0.0
+      ],
+      "rotation": "(Pitch=0.000000,Yaw=-90.000000,Roll=0.000000)",
+      "data": "(AnimToPlay=\"/Script/Engine.AnimSequence'/Game/Experiments/Stance_20261022/AS_Back_TorsoReference.AS_Back_TorsoReference'\",bSavedLooping=True,bSavedPlaying=True,SavedPosition=0.000000,SavedPlayRate=1.000000)"
+    }
+  },
+  "dirty_content": [],
+  "dirty_maps": [],
+  "fps": 0.0,
+  "throttle": true,
+  "render": {
+    "r.MotionBlurQuality": 4,
+    "r.AntiAliasingMethod": 4
+  }
+}

@@ -1,0 +1,38 @@
+[
+  {
+    "name": "BackRight",
+    "asset": "/Game/Experiments/Stance_20261022/AS_OWBaked_BackRight.AS_OWBaked_BackRight",
+    "skeleton": "/Game/Experiments/Stance_20261022/SK_FourDirection.SK_FourDirection",
+    "duration": 1.0,
+    "raw_fps": 60,
+    "raw_keys": 61,
+    "bones": 89,
+    "platform_rate": "(Default=(Numerator=30,Denominator=1),PerPlatform=())",
+    "root_motion": false,
+    "force_root_lock": false
+  },
+  {
+    "name": "BackLeft",
+    "asset": "/Game/Experiments/Stance_20261022/AS_BlendBaked_BackLeft.AS_BlendBaked_BackLeft",
+    "skeleton": "/Game/Experiments/Stance_20261022/SK_FourDirection.SK_FourDirection",
+    "duration": 1.0,
+    "raw_fps": 60,
+    "raw_keys": 61,
+    "bones": 89,
+    "platform_rate": "(Default=(Numerator=30,Denominator=1),PerPlatform=())",
+    "root_motion": false,
+    "force_root_lock": false
+  },
+  {
+    "name": "ForwardRight",
+    "asset": "/Game/Experiments/Stance_20261022/AS_BlendBaked_ForwardRight.AS_BlendBaked_ForwardRight",
+    "skeleton": "/Game/Experiments/Stance_20261022/SK_FourDirection.SK_FourDirection",
+    "duration": 1.0,
+    "raw_fps": 60,
+    "raw_keys": 61,
+    "bones": 89,
+    "platform_rate": "(Default=(Numerator=30,Denominator=1),PerPlatform=())",
+    "root_motion": false,
+    "force_root_lock": false
+  }
+]

@@ -1,0 +1,35 @@
+{
+  "clips": {
+    "Forward": {
+      "asset": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Forward.AS_RootLockSource_Forward",
+      "skeleton": "/Game/Experiments/Stance_20261022/SK_FourDirection.SK_FourDirection",
+      "duration": 1.0,
+      "root_motion": false,
+      "force_root_lock": false
+    },
+    "Back": {
+      "asset": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Back.AS_RootLockSource_Back",
+      "skeleton": "/Game/Experiments/Stance_20261022/SK_FourDirection.SK_FourDirection",
+      "duration": 1.0,
+      "root_motion": false,
+      "force_root_lock": false
+    },
+    "Left": {
+      "asset": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Left.AS_RootLockSource_Left",
+      "skeleton": "/Game/Experiments/Stance_20261022/SK_FourDirection.SK_FourDirection",
+      "duration": 1.0,
+      "root_motion": false,
+      "force_root_lock": false
+    },
+    "Right": {
+      "asset": "/Game/Experiments/Stance_20261022/AS_RootLockSource_Right.AS_RootLockSource_Right",
+      "skeleton": "/Game/Experiments/Stance_20261022/SK_FourDirection.SK_FourDirection",
+      "duration": 1.0,
+      "root_motion": false,
+      "force_root_lock": false
+    }
+  },
+  "factory": "Blend Space Factory New\r\n\r\n**C++ Source:**\r\n\r\n- **Module**: UnrealEd\r\n- **File**: BlendSpaceFactoryNew.h\r\n\r\n**Editor Properties:** (see get_editor_property/set_editor_property)\r\n\r\n- ``asset_import_task`` (AssetImportTask):  [Read-Write] Task for importing file via script interfaces\r\n- ``automated_import_data`` (AutomatedAssetImportData):  [Read-Write] Data for how to import files via the automated command line importing interface\r\n- ``context_class`` (type(Class)):  [Read-Write] Class of the context object used to help create the object.\r\n- ``create_new`` (bool):  [Read-Write] The default value to return from CanCreateNew()\r\n- ``edit_after_new`` (bool):  [Read-Write] true if the associated editor should be opened after creating a new object.\r\n- ``editor_import`` (bool):  [Read-Write] true if the factory imports objects from files.\r\n- ``formats`` (Array[str]):  [Read-Write] List of formats supported by the factory. Each entry is of the form \"ext;Description\" where ext is the file extension.\r\n- ``preview_skeletal_mesh`` (SkeletalMesh):  [Read-Write] The preview mesh to use for the created blendspace\r\n- ``supported_class`` (type(Class)):  [Read-Write] The class manufactured by this factory.\r\n- ``supported_workflows`` (uint8):  [Read-Write] Which workflows are supported.\r\n- ``target_skeleton`` (Skeleton):  [Read-Write] Target skeleton for the created blendspace\r\n- ``text`` (bool):  [Read-Write] true if the factory imports objects from text.",
+  "blend_param": "Blend Parameter\r\n\r\n**C++ Source:**\r\n\r\n- **Module**: Engine\r\n- **File**: BlendSpace.h\r\n\r\n**Editor Properties:** (see get_editor_property/set_editor_property)\r\n\r\n- ``display_name`` (str):  [Read-Write]\r\n- ``grid_num`` (int32):  [Read-Write] The number of grid divisions along this axis.\r\n- ``max`` (float):  [Read-Write] Maximum value for this axis range.\r\n- ``min`` (float):  [Read-Write] Minimum value for this axis range.\r\n- ``snap_to_grid`` (bool):  [Read-Write] If true then samples will always be snapped to the grid on this axis when added, moved, or the axes are changed.\r\n- ``wrap_input`` (bool):  [Read-Write] If true then the input can go outside the min/max range and the blend space is treated as being cyclic on this axis. If false then input parameters are clamped to the min/max values on this axis.",
+  "blend_sample": "Sample data\r\n\r\n**C++ Source:**\r\n\r\n- **Module**: Engine\r\n- **File**: BlendSpace.h\r\n\r\n**Editor Properties:** (see get_editor_property/set_editor_property)\r\n\r\n- ``animation`` (AnimSequence):  [Read-Write] For linked animations\r\n- ``frame_index_to_sample`` (uint32):  [Read-Write] Single Frame Blending: If selected, instead of using the entire animation sequence, only the specified single frame is used for sampling the animation\r\n- ``include_in_analyse_all`` (bool):  [Read-Write] Whether or not this sample will be moved when the \"analyse all\" button is used. Note that, even if disabled,\r\n  it will still be available for individual sample analysis/moving\r\n- ``mirror`` (bool):  [Read-Write]\r\n- ``rate_scale`` (float):  [Read-Write]\r\n- ``sample_value`` (Vector):  [Read-Write] blend 0->x, blend 1->y, blend 2->z\r\n- ``use_single_frame_for_blending`` (bool):  [Read-Write]"
+}

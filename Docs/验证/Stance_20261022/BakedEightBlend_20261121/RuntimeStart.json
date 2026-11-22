@@ -1,0 +1,19 @@
+{
+  "world": "/Game/Experiments/Stance_20261022/UEDPIE_0_L_BakedEight_Crouch.L_BakedEight_Crouch",
+  "anim": "/Game/Experiments/Stance_20261022/ABP_BakedEight_Crouch.ABP_BakedEight_Crouch_C",
+  "game_mode": "/Game/Experiments/Stance_20261022/BP_BakedEightGameMode.BP_BakedEightGameMode_C",
+  "configured_anim": "/Game/Experiments/Stance_20261022/ABP_BakedEight_Crouch.ABP_BakedEight_Crouch_C",
+  "inputs": {
+    "PreviewForward": 1.0,
+    "PreviewRight": 0.0
+  },
+  "graph": {
+    "Forward": 1.0,
+    "Right": 0.0
+  },
+  "class_fields": [],
+  "property_write": {
+    "PreviewForward": true,
+    "PreviewRight": true
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "model_methods": [
+    "get_bone_animation_tracks",
+    "get_bone_track_by_index",
+    "get_bone_track_by_name",
+    "get_bone_track_index",
+    "get_bone_track_index_by_name",
+    "get_bone_track_names",
+    "get_frame_rate",
+    "get_num_bone_tracks",
+    "get_number_of_frames",
+    "get_number_of_keys",
+    "is_valid_bone_track_index",
+    "is_valid_bone_track_name"
+  ],
+  "raw_frame_rate": "<Struct 'FrameRate' (0x000001F992BC88D0) {numerator: 60, denominator: 1}>",
+  "platform_target_frame_rate": "(Default=(Numerator=30,Denominator=1),PerPlatform=())",
+  "allow_frame_stripping": true,
+  "dirty_content": [],
+  "dirty_maps": []
+}

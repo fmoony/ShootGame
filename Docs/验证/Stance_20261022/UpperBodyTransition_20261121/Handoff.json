@@ -1,0 +1,25 @@
+{
+  "world": "/Game/Experiments/Stance_20261022/UEDPIE_0_L_OWLocalMovement.L_OWLocalMovement",
+  "anim": "/Game/Experiments/Stance_20261022/ABP_OWLocalMovement.ABP_OWLocalMovement_C",
+  "pawn_tick_enabled": true,
+  "actor": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "rate": 0.0,
+  "flags": {
+    "bTestOverride": false,
+    "bSnapInput": false,
+    "bManualPhase": false
+  },
+  "TurnSpeed": 10.0,
+  "throttle": true,
+  "max_fps": 0.0,
+  "render": {
+    "r.MotionBlurQuality": 4,
+    "r.AntiAliasingMethod": 4
+  },
+  "dirty_content": [],
+  "dirty_maps": []
+}

@@ -1,0 +1,11 @@
+{
+  "asset": "/Game/Experiments/Stance_20261022/AS_OWBaked_FrontLeft.AS_OWBaked_FrontLeft",
+  "skeleton": "/Game/Experiments/Stance_20261022/SK_FourDirection.SK_FourDirection",
+  "duration": 1.0,
+  "fps": 60,
+  "keys_per_bone": 61,
+  "bones": 89,
+  "root_motion": false,
+  "force_root_lock": false,
+  "method": "Native isolated OW graph at fixed SampleTime -> native component-to-parent relative transform -> AnimationDataController bone tracks; no pose solving, smoothing, normalization, root removal or world transform"
+}

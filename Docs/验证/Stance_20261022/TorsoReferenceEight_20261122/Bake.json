@@ -1,0 +1,49 @@
+{
+  "created": [
+    {
+      "direction": "BR",
+      "source": "/Game/Experiments/Stance_20261022/AS_OWBaked_BackRight.AS_OWBaked_BackRight",
+      "asset": "/Game/Experiments/Stance_20261022/AS_BackRight_TorsoReference.AS_BackRight_TorsoReference",
+      "angles": {
+        "spine_01": 0.6244839169380114,
+        "spine_02": 2.4831141962976915,
+        "spine_04": 2.8390373878942183,
+        "spine_05": 3.100039376570523,
+        "neck_01": -4.053393178733375,
+        "neck_02": -3.878679564874906
+      },
+      "frames": 60,
+      "frame_rate": "(Numerator=60,Denominator=1)",
+      "duration": 1.0
+    },
+    {
+      "direction": "BL",
+      "source": "/Game/Experiments/Stance_20261022/AS_BlendBaked_BackLeft.AS_BlendBaked_BackLeft",
+      "asset": "/Game/Experiments/Stance_20261022/AS_BackLeft_TorsoReference.AS_BackLeft_TorsoReference",
+      "angles": {
+        "spine_01": 0.7084221634887378,
+        "spine_02": 1.419709827274021,
+        "spine_04": 1.419749545332344,
+        "spine_05": 1.4197520088847853,
+        "neck_01": -1.8174169349791516,
+        "neck_02": -1.4055886486765417
+      },
+      "frames": 60,
+      "frame_rate": "(Numerator=60,Denominator=1)",
+      "duration": 1.0
+    }
+  ],
+  "unchanged": [
+    "F",
+    "FR",
+    "R",
+    "L",
+    "FL"
+  ],
+  "reused_previous_trial": "AS_Back_TorsoReference",
+  "not_baked_candidates": [
+    "FR",
+    "R",
+    "L"
+  ]
+}

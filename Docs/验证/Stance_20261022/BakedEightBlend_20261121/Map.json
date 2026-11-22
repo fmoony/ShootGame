@@ -1,0 +1,10 @@
+{
+  "world": "/Game/Experiments/Stance_20261022/L_BakedEight_Crouch.L_BakedEight_Crouch",
+  "game_mode": "/Game/Experiments/Stance_20261022/BP_BakedEightGameMode.BP_BakedEightGameMode_C",
+  "controllers": [
+    [
+      "Baked Eight Crouch - WASD",
+      "/Game/Experiments/Stance_20261022/BP_BakedEightPreview.BP_BakedEightPreview_C"
+    ]
+  ]
+}

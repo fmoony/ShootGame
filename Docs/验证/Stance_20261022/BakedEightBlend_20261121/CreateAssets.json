@@ -1,0 +1,10 @@
+{
+  "anim": "/Game/Experiments/Stance_20261022/ABP_BakedEight_Crouch.ABP_BakedEight_Crouch",
+  "space": "/Game/Experiments/Stance_20261022/BS_BakedEight_Crouch.BS_BakedEight_Crouch",
+  "game_mode": "/Game/Experiments/Stance_20261022/BP_BakedEightGameMode.BP_BakedEightGameMode",
+  "initial_class": "/Game/Experiments/Stance_20261022/ABP_BakedEight_Crouch.ABP_BakedEight_Crouch_C",
+  "preview": "/Game/Experiments/Stance_20261022/BP_BakedEightPreview.BP_BakedEightPreview",
+  "anim_nodes": 4,
+  "event_nodes": 7,
+  "preview_nodes": 12
+}

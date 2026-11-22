@@ -1,0 +1,20 @@
+{
+  "protected_file_count": 2441,
+  "unchanged_protected_files": 2440,
+  "updated_current_index": [
+    "Docs/验证/Stance_20261022/滑铲与下蹲动画实验.md"
+  ],
+  "new_assets": [
+    "Content/Experiments/Stance_20261022/ABP_TorsoReferenceEight_Crouch.uasset",
+    "Content/Experiments/Stance_20261022/AS_BackLeft_TorsoReference.uasset",
+    "Content/Experiments/Stance_20261022/AS_BackRight_TorsoReference.uasset",
+    "Content/Experiments/Stance_20261022/BP_TorsoReferenceEightGameMode.uasset",
+    "Content/Experiments/Stance_20261022/BS_TorsoReferenceEight_Crouch.uasset",
+    "Content/Experiments/Stance_20261022/L_TorsoReferenceEight_Crouch.umap"
+  ],
+  "historical_docs_changed": [],
+  "original_animation_and_skeleton_changed": [],
+  "production_code_and_config_changed": [],
+  "original_input_changed": [],
+  "branch": "codex/ue-5.8"
+}

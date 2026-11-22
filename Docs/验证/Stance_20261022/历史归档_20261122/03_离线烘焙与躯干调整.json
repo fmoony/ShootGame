@@ -1,0 +1,749 @@
+{
+  "theme": "离线烘焙与躯干调整",
+  "files": [
+    {
+      "file": "Docs/验证/Stance_20261022/BackTorsoReference_20261122/BackTorso_Loop.gif",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 10519298,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "f24c1a4fed553b0c2cd33d1ec3c8a9c6a6b8f2d16c3f6b782eb34cd22cc63524"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/BackTorsoReference_20261122/Bake.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 567,
+      "reason": "历史正文或结构化结论",
+      "sha256": "cc71148d9e7692e314a7befadd2fd13fd376166648f3329903b06d08a38939a5"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/BackTorsoReference_20261122/Handoff.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 1937,
+      "reason": "历史正文或结构化结论",
+      "sha256": "45ead29430ba8afda10b3f335493da97fcefa9d8d2be0e2df72a7fa93c4e282f"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/BackTorsoReference_20261122/LiveFrames.json.gz",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 169755,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "0f72dd86a4034dd34da9277722a9c5058a819f4fc1697c39f1df5fe903cdb018"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/BackTorsoReference_20261122/LoopSamples.json.gz",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 42087,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "664580233caaddd8f1ef5b04132c321738acc76c7e140c176db0353983bd5e61"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/BackTorsoReference_20261122/Map.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 1503,
+      "reason": "历史正文或结构化结论",
+      "sha256": "a6803365ab0d46e5cb290e6edbfe8415cafd2efcad429293a2808a50ef52c828"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/BackTorsoReference_20261122/Phase0_0.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 10196,
+      "reason": "历史正文或结构化结论",
+      "sha256": "ac09d3bc64367daa35dd4c6ae6eb7b3596d19e5e84eb371a51e976efc1745683"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/BackTorsoReference_20261122/Phase0_25.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 10194,
+      "reason": "历史正文或结构化结论",
+      "sha256": "5e65003e17b496bd71f447a75e167328924b2b6bc3296fcaa12ffa7f9de995d3"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/BackTorsoReference_20261122/Phase0_5.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 10191,
+      "reason": "历史正文或结构化结论",
+      "sha256": "6d39487dcca810b7289d59e65d185d842b952bff0c10527d0a5b6377b75008eb"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/BackTorsoReference_20261122/Phase0_75.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 10204,
+      "reason": "历史正文或结构化结论",
+      "sha256": "6bd69307c8479d23d8cc78aaa19a7bd0528d0d322a1f681e0424ca550700730d"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/BackTorsoReference_20261122/Protection.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 556,
+      "reason": "历史正文或结构化结论",
+      "sha256": "cd581adeb73d01c1476961ed193bdb5f23052b14433a031d4cbe4820576f37ec"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/BackTorsoReference_20261122/Report.md",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 6399,
+      "reason": "历史正文或结构化结论",
+      "sha256": "263a8ba2367df0a8ed9a11a49ff71e0bd3c4361b8d729e59805000f456c99b58"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/BackTorsoReference_20261122/SceneFixed.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 280,
+      "reason": "历史正文或结构化结论",
+      "sha256": "0f04f4541357447d52b710244bd251e2df45bc741e07e11c5ef61efd81233f25"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/BackTorsoReference_20261122/SourcePoses.json.gz",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 1480786,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "d6de184db12b87a45b3ac649099fca180e41fef95f63d039f91c0e5277a1998a"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/BackTorsoReference_20261122/Summary.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 4491,
+      "reason": "历史正文或结构化结论",
+      "sha256": "d331880489e1290723fcd58b45ccb76574e97b20fdff10e91bb1837c19e2efab"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/BakedEightBlend_20261121/Audit.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 2660,
+      "reason": "历史正文或结构化结论",
+      "sha256": "8022a58e690e878e26daccdad4da4bc8684df8a183bf678098df4f173fbc7e12"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/BakedEightBlend_20261121/CreateAssets.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 546,
+      "reason": "历史正文或结构化结论",
+      "sha256": "bcabbad24a9ec8fd1ec01c89c73043424fe937ceb2816c92ffb5f9b3f73df98f"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/BakedEightBlend_20261121/DynamicAnalysis.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 98913,
+      "reason": "历史正文或结构化结论",
+      "sha256": "7c46953256af217d52ead31db30911a79b0e259d23b029a92434cd1468998739"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/BakedEightBlend_20261121/EightDirectionAtlas.png",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 920082,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "c90eed237ebdf65b6a9d45429f631b1ff52c79d7db5d822d43d3c6cefeb10245"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/BakedEightBlend_20261121/FinalAssets.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 10799,
+      "reason": "历史正文或结构化结论",
+      "sha256": "35de3216a328723e2df27e1425c5dcb19996c37aeab70f3deb82934b8f6ae1e0"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/BakedEightBlend_20261121/FixedVerification.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 1214,
+      "reason": "历史正文或结构化结论",
+      "sha256": "7d112fadf00f6ae50be326b00aaf3e57ae83bb3f7acd3590bce859efb023f4f3"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/BakedEightBlend_20261121/Handoff.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 823,
+      "reason": "历史正文或结构化结论",
+      "sha256": "6990c8928d5c210adafa4e5e7a290d30112f231360a46634389d1c4367193596"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/BakedEightBlend_20261121/InputDone.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 1554,
+      "reason": "历史正文或结构化结论",
+      "sha256": "f6b9d59263bd4ace754d7cb98f1abf532da2be940015b542ef1fdc0eac433e7d"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/BakedEightBlend_20261121/KeyboardAnalysis.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 2300,
+      "reason": "历史正文或结构化结论",
+      "sha256": "025eb50c5644633e2d01cf17d6d0074a7020d8dfbf958ceda6616cdb9418631d"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/BakedEightBlend_20261121/Map.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 356,
+      "reason": "历史正文或结构化结论",
+      "sha256": "e3cff8598df85bc639328fd6b221466675e81cfd750195262b6b0288deed0846"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/BakedEightBlend_20261121/Protection.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 567,
+      "reason": "历史正文或结构化结论",
+      "sha256": "88937942f3929f67e8e5ba3e67e9f9ae3be059109b068b4535426aa36c67244e"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/BakedEightBlend_20261121/Report.md",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 8664,
+      "reason": "历史正文或结构化结论",
+      "sha256": "a89be4741ce7c30174a516059f30bb8511b430994abaa9ec040d3c1fe5771816"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/BakedEightBlend_20261121/RuntimeDiagnostic.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 749,
+      "reason": "历史正文或结构化结论",
+      "sha256": "298931b32affcf468772dcaa35f05fd93e5f011b30edb755f87addd0224d02a6"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/BakedEightBlend_20261121/RuntimeStart.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 641,
+      "reason": "历史正文或结构化结论",
+      "sha256": "28157b4648112033d99d6f4cc4e0f9f434e29fb47899785c1cef6738d98103ff"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/BakedEightBlend_20261121/VisualSamples.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 14333,
+      "reason": "历史正文或结构化结论",
+      "sha256": "052d0caaf5c3fc543dfcea5267c3aff363751ec6e0b5c4d655dba824377354fb"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/BakedEightUpperAudit_20261121/Audit.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 8471,
+      "reason": "历史正文或结构化结论",
+      "sha256": "92adc0b576d961c33de36f4631fa751d351cbfb964a3f40922b01e55a2ebcf32"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/BakedEightUpperAudit_20261121/FinalCaseMetrics.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 1326596,
+      "reason": "历史正文或结构化结论",
+      "sha256": "36f5b8ef1ad80fa23caffc26062f540b3487be91b8c58d22d2e803d1e5050dd2"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/BakedEightUpperAudit_20261121/FixedPhase.json.gz",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 278489,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "866597e4eb839167fb87a6f52e7fd021f97c3a9976d200b924ea79f2479a93cf"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/BakedEightUpperAudit_20261121/FixedPhaseAnalysis.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 7761,
+      "reason": "历史正文或结构化结论",
+      "sha256": "b16595d6aba36be71ab7ef35ff9d5a6a69995d5db74290cf68271911e0437e25"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/BakedEightUpperAudit_20261121/Handoff.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 823,
+      "reason": "历史正文或结构化结论",
+      "sha256": "6990c8928d5c210adafa4e5e7a290d30112f231360a46634389d1c4367193596"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/BakedEightUpperAudit_20261121/Protection.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 184,
+      "reason": "历史正文或结构化结论",
+      "sha256": "8d6dc1e936ae249f1440f321e9b29a6ecb67e4743f57cdb662dec52323b6c259"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/BakedEightUpperAudit_20261121/Report.md",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 9049,
+      "reason": "历史正文或结构化结论",
+      "sha256": "2d1a747fb67f731b40b8163fd818f6080e6dc4bb15a76de356fe87c830534284"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/BakedEightUpperAudit_20261121/Summary.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 207418,
+      "reason": "历史正文或结构化结论",
+      "sha256": "25d83eee6678eca595a0a7bf471272d4953a370b917d8689c0f4f0241a6a8cd9"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/BakedEightUpperAudit_20261121/UpperBody_Comparison.png",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 763454,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "8f95f143b2d9f5f3f93c6d46cc55a93872fe69486c38478cf220aad32290e4f9"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/BakedEightUpperAudit_20261121/Visual.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 30614,
+      "reason": "历史正文或结构化结论",
+      "sha256": "6a00e24651a37583715c3105b897e609e9bb84c7a8e6a53f4f91bd34395721ae"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/DiagonalBakeThree_20261121/Audit.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 4535,
+      "reason": "历史正文或结构化结论",
+      "sha256": "799fe9c5db79f51178bc2ea49a18483cab66d9ccc8fe2b83198784ca87325c3e"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/DiagonalBakeThree_20261121/Bake.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 1328,
+      "reason": "历史正文或结构化结论",
+      "sha256": "91b443820273802c3a1dd93513957005c28ad3a897d9760aed6724e1d38cfaac"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/DiagonalBakeThree_20261121/Comparison.png",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 1344609,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "5c11b295beeea83a95a36cd518a7b3adb9cc514240ceefa8fc0dfd3af8fbf0bb"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/DiagonalBakeThree_20261121/Graphs.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 11696,
+      "reason": "历史正文或结构化结论",
+      "sha256": "7d2415355bd214bee5f1046a5ff88410a957a986db156142a141fedfd058503b"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/DiagonalBakeThree_20261121/Handoff.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 3891,
+      "reason": "历史正文或结构化结论",
+      "sha256": "aa8f5f10a79a362a8d513ca59798896b562f9a668ae627880f99f49103b18f9d"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/DiagonalBakeThree_20261121/NativeSamples.json.gz",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 3892275,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "ac3535ced2c6efb65791be2737d17b33afb3813e23cd8e8047f2d18cdeb256e6"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/DiagonalBakeThree_20261121/PlaybackAnalysis.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 5709,
+      "reason": "历史正文或结构化结论",
+      "sha256": "cc49f992803de4b6aa10bc815c007a0832cb0ca22a9f10a9a2f20105dde17511"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/DiagonalBakeThree_20261121/Protection.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 665,
+      "reason": "历史正文或结构化结论",
+      "sha256": "5f988ddd589bf56a5571a2b17900c9b3701fee943c3dd84507bf5a066be62d0b"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/DiagonalBakeThree_20261121/Report.md",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 8908,
+      "reason": "历史正文或结构化结论",
+      "sha256": "dd48c531ee9a953b2ac223165c4f6ca5284dc3d40383c96b52b0a08101e9240d"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/DiagonalBakeThree_20261121/SourceRegression.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 694,
+      "reason": "历史正文或结构化结论",
+      "sha256": "87e55e4fa95b178bc75a1e87eace492c18a40f64ab4031fed6c8839210dc3927"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/DiagonalBakeThree_20261121/Verification.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 4376,
+      "reason": "历史正文或结构化结论",
+      "sha256": "6cfda0a74e43b2668df6f27a7c9831b6586f254fdde0c455b4441ba31be7fecc"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/DiagonalBakeThree_20261121/WindowShots.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 177126,
+      "reason": "历史正文或结构化结论",
+      "sha256": "952c22466b0fdcf666ec8b20e25cfe1a14949a5396bf8ecc82c831d21d939779"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/OWBakeFrontLeft_20261121/Bake.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 535,
+      "reason": "历史正文或结构化结论",
+      "sha256": "cc2a10a537ff0eaaa1bde7a439b43a0f070c5484ec13627e30df3175728530b8"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/OWBakeFrontLeft_20261121/Comparison.png",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 891969,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "cc63646dfe6a6f6fdeb93ab556810ca5c71fde2b5f8e2d63bc5ea8d7a677687f"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/OWBakeFrontLeft_20261121/DenseVerification.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 456,
+      "reason": "历史正文或结构化结论",
+      "sha256": "0ea19c6e637191ad1362aaaaca8d93e5e335f13fe6de5a7cec6d9af588c9ff02"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/OWBakeFrontLeft_20261121/Graph.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 6824,
+      "reason": "历史正文或结构化结论",
+      "sha256": "fca77122218e72bb2b0a3aa56bc244831fa0fbe24090aff34d1a8b76291b8bd2"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/OWBakeFrontLeft_20261121/Handoff.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 665,
+      "reason": "历史正文或结构化结论",
+      "sha256": "c4386fa77f5a0f7d768b813e2ea625130559915eeff81e3f250508412f3cb7bb"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/OWBakeFrontLeft_20261121/KeyVerification.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 462,
+      "reason": "历史正文或结构化结论",
+      "sha256": "f86d58db0f8ec03bab588a46839b9c1fb54a1f2d205075171334a6300e775fe1"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/OWBakeFrontLeft_20261121/NativeSamples.json.gz",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 639547,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "6a9ffdb79fb977aad32ff4710890f1896f52b03a77a49701f22eb6f063369879"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/OWBakeFrontLeft_20261121/NativeSamplesDense.json.gz",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 1266220,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "3eec567bbe3b4ca832584a040347ddcd8d21f8e2408ad1bf496c630fc0d1f6e6"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/OWBakeFrontLeft_20261121/PlaybackAnalysis.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 2792,
+      "reason": "历史正文或结构化结论",
+      "sha256": "d81e8554f503bbc580ae2ddf490f1b4f12e473d34de930a6cf3aea3242597c64"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/OWBakeFrontLeft_20261121/Protection.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 365,
+      "reason": "历史正文或结构化结论",
+      "sha256": "7d19fb45f945fc0a231d0e3e19094adfecdac64604b0e84de665ce774e68d190"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/OWBakeFrontLeft_20261121/Report.md",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 8095,
+      "reason": "历史正文或结构化结论",
+      "sha256": "b590c53311a2413c5630b9e07e6dbd1cc753dc196a6cae93ca05bb9d85938e1a"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/OWBakeFrontLeft_20261121/WindowShots.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 9841,
+      "reason": "历史正文或结构化结论",
+      "sha256": "67fed3297c7a231e9fd4a726f8c652d0e409f886870547ea6cf312fe6592eff2"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/TorsoReferenceEight_20261122/Bake.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 1451,
+      "reason": "历史正文或结构化结论",
+      "sha256": "b5896a7347e25a859d07eced15c6abcf7d9c77c6c9d97be9416b72a7381ddc69"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/TorsoReferenceEight_20261122/Candidates.json.gz",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 289670,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "ee3f2a2aaa1f7871fff03a06623dd0babc23ef2f96e37ed6ed10a6452129bacc"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/TorsoReferenceEight_20261122/Create.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 3238,
+      "reason": "历史正文或结构化结论",
+      "sha256": "bfaff0fc354160705267c14bd2ae0ad21b5edf6378e546f5b594e90215dccfd8"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/TorsoReferenceEight_20261122/EightDirection_Atlas.png",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 804032,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "302b90c81bc582e5775338f52a24b78082c0aacc50af9c3facf85d628748f23d"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/TorsoReferenceEight_20261122/FinalAssets.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 10929,
+      "reason": "历史正文或结构化结论",
+      "sha256": "6294e5cfd67a9036dc1c6d844c48432aec173106c84e37d6f442f1ef3dafc57b"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/TorsoReferenceEight_20261122/Handoff.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 895,
+      "reason": "历史正文或结构化结论",
+      "sha256": "1f73cf828230a9dbcc3a248f88e569beeac9ac3d1682b4857bee691a97406494"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/TorsoReferenceEight_20261122/KeyboardAnalysis.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 2376,
+      "reason": "历史正文或结构化结论",
+      "sha256": "f1739be75a5567b1b5b4040bf2f124b16f73ce304f553294501891aa278e2563"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/TorsoReferenceEight_20261122/Offsets.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 4601,
+      "reason": "历史正文或结构化结论",
+      "sha256": "2a8659e47ca54b928eaf28c2ff66dd13b7ff3e4fdb07115cdb101af502bc6533"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/TorsoReferenceEight_20261122/PairAnalysis.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 301441,
+      "reason": "历史正文或结构化结论",
+      "sha256": "a139cef0976fd681aa47fd16a87859c88fdb5f969e7a3e3dbf6f7820b4f6f6ec"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/TorsoReferenceEight_20261122/Protection.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 873,
+      "reason": "历史正文或结构化结论",
+      "sha256": "3c4890772949e7ddead38669c8c0ff652c5bdd65af1342d745e3bb01cdaaa0ab"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/TorsoReferenceEight_20261122/RearDiagonal_Comparison.gif",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 5156918,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "70fe768d61a971bcb75add1c769c5e785e958bca787d01e64e5311e69bdbde78"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/TorsoReferenceEight_20261122/Report.md",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 8616,
+      "reason": "历史正文或结构化结论",
+      "sha256": "18077d6af07577968ca5dee013464459425da0ff79a106308d952697bdcca9f7"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/TorsoReferenceEight_20261122/RuntimeBefore.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 459,
+      "reason": "历史正文或结构化结论",
+      "sha256": "91b47ff5d369e5a4b16abaf4e46fb852f74aa9a00891b2d6991a5bba72ebee07"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/TorsoReferenceEight_20261122/SourceAudit.json.gz",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 5583227,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "dfc3baccabf0d2f735cb08c18ac8f405f4aa2745863721a62d904134f65a10f9"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/TorsoReferenceEight_20261122/Visual.json.gz",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 426112,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "5c9dff96d3dfbbc443bcba39167cab319efbc7664c51d088c9aa648daf9de870"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/UpperBodyTransition_20261121/Audit.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 92417,
+      "reason": "历史正文或结构化结论",
+      "sha256": "3810b4e70c71c5eae71673c0f192c575ed8db3fca2f7061143056c947bf254d1"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/UpperBodyTransition_20261121/Bands.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 1459,
+      "reason": "历史正文或结构化结论",
+      "sha256": "8044d1707bf86c301c57f6a605221cc9420547a8cbabb2f5748dd03c27fd30da"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/UpperBodyTransition_20261121/Details.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 16599,
+      "reason": "历史正文或结构化结论",
+      "sha256": "ec610fd863ff2d32cac33fe5f15349a44c568c78c516b513179c1a1363e9df51"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/UpperBodyTransition_20261121/FinalCaseMetrics.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 827985,
+      "reason": "历史正文或结构化结论",
+      "sha256": "77352e395cc30d2a0568766d4334d78b3ca8c2e040ab1745893c4158a9c8a33d"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/UpperBodyTransition_20261121/Handoff.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 576,
+      "reason": "历史正文或结构化结论",
+      "sha256": "92376c9a02994c9be2dfe8710cc1eb7d4bcbb3a6bc69cf8e8ada2649afb6f2bd"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/UpperBodyTransition_20261121/Metrics.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 164919,
+      "reason": "历史正文或结构化结论",
+      "sha256": "15676ce421c3eda29876c76b643a1a2f2520532467001e13d25d4a7af40d1a63"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/UpperBodyTransition_20261121/Protection.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 117,
+      "reason": "历史正文或结构化结论",
+      "sha256": "fd6066b3b6b573ea8130f80455a849c8118c0a618c0149e3b7ffc4dfedf11f51"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/UpperBodyTransition_20261121/Report.md",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 9351,
+      "reason": "历史正文或结构化结论",
+      "sha256": "ea4b92bee999ddcd769d05ad108a522920f0e9fc6e61e03531f7d5d7d71b1df7"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/UpperBodyTransition_20261121/RetryFrames.json.gz",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 598214,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "a19c27decf036d8a0a322c3f38017764c27bef8ea0b3c659e476131579187cf3"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/UpperBodyTransition_20261121/Runtime.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 832,
+      "reason": "历史正文或结构化结论",
+      "sha256": "52f1a81fa15aee82313f5297edacaff72ceb13cc44454af9f2b9b22c0baf9569"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/UpperBodyTransition_20261121/UpperTransition_Compare.png",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 1007529,
+      "reason": "关键对照图或必要原生数据",
+      "sha256": "341d4477817b75fbeca04942e0dcf5a84fa4ed9bdaa59f512fd7f847fb495629"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/UpperBodyTransition_20261121/Visual.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 269106,
+      "reason": "历史正文或结构化结论",
+      "sha256": "6bc5c65abad6009888b34972b4fbe046d34d47e606ec017b4d69fc073fb2bc51"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/Verify.json",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 10483,
+      "reason": "历史正文或结构化结论",
+      "sha256": "e3286462b57ff1aabf5328ce57a2c81adc25a7b34a3147bef438f5674e9c93ae"
+    },
+    {
+      "file": "Docs/验证/Stance_20261022/滑铲与下蹲动画实验.md",
+      "action": "keep",
+      "theme": "离线烘焙与躯干调整",
+      "bytes": 19947,
+      "reason": "历史正文或结构化结论",
+      "sha256": "5cbbdcd2e2b0e8afa184cc03f76e50203efeef7c283de30e9e766c712396b2e1"
+    }
+  ]
+}
