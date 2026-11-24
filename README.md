@@ -9,15 +9,14 @@
 ## 当前开发入口
 
 > 已停止在 UE 5.6 下继续开发。本页所在 `main` 分支保留 UE 5.6 基线与开发导航。
-> 新功能、修复、动画资源与验证工作均在 `dev/ue-5.8` 分支及其工作区继续。
+> 新功能、修复、动画资源与验证工作均在 `dev/ue-5.8` 分支继续。
 
 - 当前引擎：UE 5.8.4。
-- 本机主工作区：`D:\UE_Projects\_worktrees\ShootGame_UE58`。
-- 原工作区：`D:\UE_Projects\ShootGame`，保留旧基线与未提交现场。
+- 当前开发分支：`dev/ue-5.8`；`main` 保留 UE 5.6 基线与开发导航。
 - 远端开发入口：[UE 5.8 分支](https://github.com/fmoony/ShootGame/tree/dev/ue-5.8)。
 - 最新规范与项目状态以开发分支中的 `AGENTS.md`、`README.md` 和 `Docs/` 为准。
 
-远端使用者无需复用本机路径，可直接克隆开发分支：
+开始开发可直接克隆该分支，目录名称可自行选择：
 
 ```powershell
 git clone --branch dev/ue-5.8 https://github.com/fmoony/ShootGame.git ShootGame_UE58
