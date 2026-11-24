@@ -1,10 +1,21 @@
 # ShootGame 项目导航
 
-本项目用于学习 Unreal Engine 5.6 的网络机制。当前原则是保持模板结构清晰，以最小、可验证的改动逐步完成多人化，不提前引入复杂框架。
+本项目用于学习 Unreal Engine 的网络机制。
+当前原则是保持模板结构清晰，以最小、可验证的改动逐步完成多人化，不提前引入复杂框架。
+
+## 当前开发工作区
+
+- 已停止在 UE 5.6 下继续开发；本目录 `D:\UE_Projects\ShootGame` 保留旧基线与现场。
+- 当前主工作区为 `D:\UE_Projects\_worktrees\ShootGame_UE58`，引擎版本为 UE 5.8.4。
+- 当前开发分支为 `dev/ue-5.8`；后续功能、修复、动画资源和验证工作均在该工作区进行。
+- 远端入口：[UE 5.8 开发分支](https://github.com/fmoony/ShootGame/tree/dev/ue-5.8)。
+- 开始后续开发前先切换到主工作区，读取其中的 `AGENTS.md` 与当前文档。
+- 本目录 `main` 分支只保留 UE 5.6 基线及导航；下文结构和工具说明按旧基线理解。
+- 原工作区已有的未提交修改不代表当前开发进度，不得直接纳入其他任务的提交。
 
 ## 项目概况
 
-- **引擎**: UE 5.6
+- **本目录保留基线**: UE 5.6；当前开发使用 UE 5.8.4，见上方工作区导航。
 - **模块**: `ShootGame`（Runtime 模块，含 `Engine`、`AIModule`、`UMG`、`EnhancedInput`、`StateTreeModule` 等依赖）
 - **入口**: `Source/ShootGame/ShootGame.cpp` → `FDefaultGameModuleImpl`
 - **插件**: `ModelingToolsEditorMode`（Editor）、`StateTree`、`GameplayStateTree`、`GameplayAbilities`、`McpAutomationBridge`（Editor）

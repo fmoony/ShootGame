@@ -4,7 +4,27 @@
 ![Language](https://img.shields.io/badge/C%2B%2B-20-00599C?logo=cplusplus)
 ![Platform](https://img.shields.io/badge/Platform-Windows-0078D6?logo=windows)
 
-基于 Unreal Engine 5.6 的多人网络射击学习项目。
+多人网络射击学习项目；当前开发已转到 Unreal Engine 5.8.4。
+
+## 当前开发入口
+
+> 已停止在 UE 5.6 下继续开发。本页所在 `main` 分支保留 UE 5.6 基线与开发导航。
+> 新功能、修复、动画资源与验证工作均在 `dev/ue-5.8` 分支及其工作区继续。
+
+- 当前引擎：UE 5.8.4。
+- 本机主工作区：`D:\UE_Projects\_worktrees\ShootGame_UE58`。
+- 原工作区：`D:\UE_Projects\ShootGame`，保留旧基线与未提交现场。
+- 远端开发入口：[UE 5.8 分支](https://github.com/fmoony/ShootGame/tree/dev/ue-5.8)。
+- 最新规范与项目状态以开发分支中的 `AGENTS.md`、`README.md` 和 `Docs/` 为准。
+
+远端使用者无需复用本机路径，可直接克隆开发分支：
+
+```powershell
+git clone --branch dev/ue-5.8 https://github.com/fmoony/ShootGame.git ShootGame_UE58
+cd ShootGame_UE58
+```
+
+下文的能力、环境要求与运行步骤描述本分支的 UE 5.6 基线，不代表 UE 5.8 当前状态。
 
 项目以服务器权威、清晰的运行时职责和可重复验证为核心，逐步实现武器、Inventory、
 Gameplay Ability、第一/第三人称表现、AI 与多人生命周期。当前重点是让每个网络闭环
@@ -66,7 +86,7 @@ Server Accept / Reject 结清状态，Owner 确认不补播过去的瞬时开火
 长期目标见[总路线](Docs/执行计划/Shooter完整Demo最终路线规划.md)；
 其中当前进度仍为 2026-10-08 快照，后续状态以本页所引记录和专题为准。
 
-## 环境要求
+## UE 5.6 基线环境要求
 
 - Windows 10/11 开发环境与客户端。
 - Unreal Engine 5.6。
@@ -79,7 +99,9 @@ Linux 专服已通过源码引擎构建、打包与公网双客户端登录验�
 公网移动、射击、伤害等完整玩法尚未完成验收，也不承诺服务器当前在线。
 Linux 构建条件及验证边界见[部署说明](Docs/部署/LinuxDedicatedServer构建与跟踪.md)。
 
-## 快速开始
+## UE 5.6 基线复现
+
+本节仅供复现旧基线；继续开发请使用上方的 UE 5.8 开发入口。
 
 ```powershell
 git clone https://github.com/fmoony/ShootGame.git
